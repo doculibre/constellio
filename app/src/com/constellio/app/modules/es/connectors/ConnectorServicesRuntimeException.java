@@ -21,7 +21,7 @@ public class ConnectorServicesRuntimeException extends RuntimeException {
 			extends ConnectorServicesRuntimeException {
 
 		public ConnectorServicesRuntimeException_CannotDownloadDocument(ConnectorDocument<?> document,
-				Throwable cause) {
+																		Throwable cause) {
 			super("Cannot download connector document '" + document.getURL() + "'", cause);
 		}
 	}
@@ -32,11 +32,12 @@ public class ConnectorServicesRuntimeException extends RuntimeException {
 			super("Cannot delete connector document '" + document.getURL() + "'", cause);
 		}
 	}
-	
+
 	public static class ConnectorServicesRuntimeException_CannotUpload extends ConnectorServicesRuntimeException {
 
-		public ConnectorServicesRuntimeException_CannotUpload(Document document, Throwable cause, String destinationUrl) {
-			super("Cannot upload connector document '" + document.getTitle() + "' @"+destinationUrl, cause);
+		public ConnectorServicesRuntimeException_CannotUpload(Document document, Throwable cause,
+															  String destinationUrl) {
+			super("Cannot upload connector document '" + document.getTitle() + "' @" + destinationUrl, cause);
 		}
 	}
 }

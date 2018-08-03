@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
-import java.util.Arrays;
-import java.util.List;
-
-import com.constellio.app.ui.application.ConstellioUI;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
@@ -17,16 +11,20 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
+import org.joda.time.LocalDateTime;
+
+import java.util.Arrays;
+import java.util.List;
 
 @SuppressWarnings("unchecked")
 public class ListAddRemoveCommentField extends ListAddRemoveField<Comment, CommentField> {
-	
+
 	public static final String STYLE_NAME = "list-add-remove-comment";
-	
+
 	public static final String USER_PROPERTY = "user";
 
 	public static final String DATE_PROPERTY = "commentDate";
-	
+
 	private JodaDateTimeToStringConverter dateTimeConverter = new JodaDateTimeToStringConverter();
 
 	public ListAddRemoveCommentField() {
@@ -47,7 +45,7 @@ public class ListAddRemoveCommentField extends ListAddRemoveField<Comment, Comme
 	protected CommentField newAddEditField() {
 		return new CommentField();
 	}
-	
+
 	@Override
 	protected Component newCaptionComponent(Comment itemId, String caption) {
 		Label captionLabel = new Label(itemId.getMessage());

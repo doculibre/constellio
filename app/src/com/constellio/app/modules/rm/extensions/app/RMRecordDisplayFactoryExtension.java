@@ -19,12 +19,13 @@ public class RMRecordDisplayFactoryExtension extends RecordDisplayFactoryExtensi
 
 	@Override
 	public ReferenceDisplay getDisplayForReference(AllowedReferences allowedReferences, String id) {
-		if(allowedReferences != null && allowedReferences.getAllowedSchemaType() != null &&
-				allowedReferences.getAllowedSchemaType().contains(AdministrativeUnit.SCHEMA_TYPE)) {
+		if (allowedReferences != null && allowedReferences.getAllowedSchemaType() != null &&
+			allowedReferences.getAllowedSchemaType().contains(AdministrativeUnit.SCHEMA_TYPE)) {
 			return getReferenceDisplayForAdministrativeUnit(id);
 		}
 		return null;
 	}
+
 	public AdministrativeUnitReferenceDisplay getReferenceDisplayForAdministrativeUnit(String id) {
 		return new AdministrativeUnitReferenceDisplay(id);
 	}

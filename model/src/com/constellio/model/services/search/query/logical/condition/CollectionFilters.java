@@ -1,12 +1,11 @@
 package com.constellio.model.services.search.query.logical.condition;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.model.entities.records.wrappers.Event;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.entities.records.wrappers.Event;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CollectionFilters implements DataStoreFilters {
 

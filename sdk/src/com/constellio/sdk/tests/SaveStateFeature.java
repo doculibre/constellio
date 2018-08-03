@@ -1,22 +1,21 @@
 package com.constellio.sdk.tests;
 
-import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
+import static java.util.Arrays.asList;
 
 public class SaveStateFeature {
 
@@ -25,7 +24,8 @@ public class SaveStateFeature {
 	String afterTestSaveTitle;
 	File afterTestSaveFile;
 
-	public SaveStateFeature(FactoriesTestFeatures factoriesTestFeatures, FileSystemTestFeatures fileSystemTestFeatures) {
+	public SaveStateFeature(FactoriesTestFeatures factoriesTestFeatures,
+							FileSystemTestFeatures fileSystemTestFeatures) {
 		this.factoriesTestFeatures = factoriesTestFeatures;
 		this.fileSystemTestFeatures = fileSystemTestFeatures;
 	}
@@ -58,8 +58,9 @@ public class SaveStateFeature {
 
 	}
 
-	public static File loadStateFrom(File file, File tempFolder, File settingsFolder, File contentFolder, File pluginsFolder,
-			File tlogWorkFolder, boolean resetPasswords)
+	public static File loadStateFrom(File file, File tempFolder, File settingsFolder, File contentFolder,
+									 File pluginsFolder,
+									 File tlogWorkFolder, boolean resetPasswords)
 			throws Exception {
 
 		File folder;

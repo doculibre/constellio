@@ -9,7 +9,7 @@ public class ThreadUtils {
 	LinkedBlockingQueue<TaskObject> queue;
 
 	public static <V> void iterateOverRunningTaskInParallel(Iterator<V> iterator, int threadsCount,
-			IteratorElementTask<V> task)
+															IteratorElementTask<V> task)
 			throws Exception {
 
 		if (threadsCount == 1) {
@@ -70,7 +70,7 @@ public class ThreadUtils {
 		AtomicReference<Exception> exceptionAtomicReference;
 
 		public QueueConsumerThread(LinkedBlockingQueue<TaskObject<V>> queue, IteratorElementTask<V> task,
-				AtomicReference<Exception> exceptionAtomicReference) {
+								   AtomicReference<Exception> exceptionAtomicReference) {
 			this.queue = queue;
 			this.task = task;
 			this.exceptionAtomicReference = exceptionAtomicReference;

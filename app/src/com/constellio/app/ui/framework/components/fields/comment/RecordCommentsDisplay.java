@@ -7,13 +7,13 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import java.util.List;
 
 public interface RecordCommentsDisplay {
-    void setCaption(String caption);
+	void setCaption(String caption);
 
-    void setVisible(boolean visible);
+	void setVisible(boolean visible);
 
-    void setComments(List<Comment> comments);
+	void setComments(List<Comment> comments);
 
-    SessionContext getSessionContext();
+	SessionContext getSessionContext();
 
-    ConstellioFactories getConstellioFactories();
+	ConstellioFactories getConstellioFactories();
 }

@@ -7,15 +7,15 @@ import java.util.List;
 import java.util.Locale;
 
 public class ConnectorHttpDocumentExtension {
-    public void onHttpDocumentFetched(OnHttpDocumentFetchedParams onHttpDocumentFetchedParams) {
-        ConnectorHttpDocument connectorHttpDocument = onHttpDocumentFetchedParams.getConnectorHttpDocument();
-        ThesaurusService thesaurusService = onHttpDocumentFetchedParams.getModelLayerFactory().getThesaurusManager()
-                .get(connectorHttpDocument.getCollection());
+	public void onHttpDocumentFetched(OnHttpDocumentFetchedParams onHttpDocumentFetchedParams) {
+		ConnectorHttpDocument connectorHttpDocument = onHttpDocumentFetchedParams.getConnectorHttpDocument();
+		ThesaurusService thesaurusService = onHttpDocumentFetchedParams.getModelLayerFactory().getThesaurusManager()
+				.get(connectorHttpDocument.getCollection());
 
-        if(thesaurusService != null) {
-            List<String> thesarusIdMatch = thesaurusService
-                    .matchThesaurusLabels(connectorHttpDocument.getParsedContent(), new Locale(connectorHttpDocument.getLanguage()));
-            connectorHttpDocument.setThesaurusMatch(thesarusIdMatch);
-        }
-    }
+		if (thesaurusService != null) {
+			List<String> thesarusIdMatch = thesaurusService
+					.matchThesaurusLabels(connectorHttpDocument.getParsedContent(), new Locale(connectorHttpDocument.getLanguage()));
+			connectorHttpDocument.setThesaurusMatch(thesarusIdMatch);
+		}
+	}
 }

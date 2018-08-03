@@ -1,17 +1,17 @@
 /**
  * IntelliGID, Open Source Enterprise Search
  * Copyright (C) 2010 DocuLibre inc.
- *
+ * <p>
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,12 +19,11 @@ package com.constellio.model.services.users.sync;
 
 /**
  * ldapfastbind.java
- *
+ * <p>
  * Sample JNDI application to use Active Directory LDAP_SERVER_FAST_BIND connection control
- *
  */
 
-import java.util.Hashtable;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
@@ -32,10 +31,10 @@ import javax.naming.NamingException;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
+import java.util.Hashtable;
 
-import org.apache.commons.lang3.StringUtils;
-
-@SuppressWarnings("serial") class FastBindConnectionControl implements Control {
+@SuppressWarnings("serial")
+class FastBindConnectionControl implements Control {
 	public byte[] getEncodedValue() {
 		return null;
 	}
@@ -75,9 +74,9 @@ public class LDAPFastBind {
 		}
 
 		if (activeDirectory) {
-			connCtls = new Control[] { new FastBindConnectionControl() };
+			connCtls = new Control[]{new FastBindConnectionControl()};
 		} else {
-			connCtls = new Control[] {};
+			connCtls = new Control[]{};
 		}
 
 		//first time we initialize the context, no credentials are supplied
@@ -94,7 +93,7 @@ public class LDAPFastBind {
 			ctx = new InitialLdapContext(env, connCtls);
 		} catch (NamingException e) {
 			if (activeDirectory) {
-				connCtls = new Control[] {};
+				connCtls = new Control[]{};
 				try {
 					ctx = new InitialLdapContext(env, connCtls);
 				} catch (NamingException e2) {

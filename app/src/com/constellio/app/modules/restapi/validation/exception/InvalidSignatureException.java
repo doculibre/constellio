@@ -6,11 +6,11 @@ import javax.ws.rs.core.Response;
 
 public class InvalidSignatureException extends BaseRestApiException {
 
-    private static final String CODE = "invalidSignature";
+	private static final String CODE = "invalidSignature";
 
-    public InvalidSignatureException() {
-        status = Response.Status.FORBIDDEN;
+	public InvalidSignatureException() {
+		status = Response.Status.FORBIDDEN;
 
-        buildValidationError(CODE);
-    }
+		buildValidationError(CODE);
+	}
 }

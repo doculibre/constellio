@@ -51,15 +51,27 @@ public class ExcelDataType {
 		this.dateType = dateType;
 	}
 
-	public String getStructure() { return structure; }
+	public String getStructure() {
+		return structure;
+	}
 
-	public void setStructure(String structure) { this.structure = structure; }
+	public void setStructure(String structure) {
+		this.structure = structure;
+	}
 
-	public int getItem() { return item; }
+	public int getItem() {
+		return item;
+	}
 
-	public void setItem(String item) { this.item = Integer.valueOf(item); }
+	public void setItem(String item) {
+		this.item = Integer.valueOf(item);
+	}
 
-	public boolean isMultiline() { return multiline; }
+	public boolean isMultiline() {
+		return multiline;
+	}
 
-	public void setMultiline(boolean multiline) { this.multiline = multiline; }
+	public void setMultiline(boolean multiline) {
+		this.multiline = multiline;
+	}
 }

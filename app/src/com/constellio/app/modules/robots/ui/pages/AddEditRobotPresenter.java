@@ -13,7 +13,6 @@ import com.constellio.app.modules.robots.services.RobotsManager;
 import com.constellio.app.modules.robots.ui.components.actionParameters.DynamicParametersField.DynamicParametersPresenter;
 import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -41,7 +40,6 @@ import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.MetadataList;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -161,23 +159,23 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	@Override
 	public OverrideMode getOverride(String metadataCode) {
 		switch (metadataCode) {
-		case ACTION:
-		case SCHEMA_FILTER:
-			return OverrideMode.DROPDOWN;
-		default:
-			return OverrideMode.NONE;
+			case ACTION:
+			case SCHEMA_FILTER:
+				return OverrideMode.DROPDOWN;
+			default:
+				return OverrideMode.NONE;
 		}
 	}
 
 	@Override
 	public List<Choice> getChoices(String metadataCode) {
 		switch (metadataCode) {
-		case ACTION:
-			return getActionChoices();
-		case SCHEMA_FILTER:
-			return getSchemaFilterChoices();
-		default:
-			throw new ImpossibleRuntimeException("BUG. No choices for metadata: " + metadataCode);
+			case ACTION:
+				return getActionChoices();
+			case SCHEMA_FILTER:
+				return getSchemaFilterChoices();
+			default:
+				throw new ImpossibleRuntimeException("BUG. No choices for metadata: " + metadataCode);
 		}
 	}
 
@@ -203,10 +201,9 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 				if (facetValue.getQuantity() > 0) {
 					String schema = facetValue.getValue();
 					for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
-						if(metadata.getInheritance() != null && metadata.isEnabled()) {
+						if (metadata.getInheritance() != null && metadata.isEnabled()) {
 							metadataCodes.add(metadata.getInheritance().getCode());
-						}
-						else if (metadata.getInheritance() == null && metadata.isEnabled()) {
+						} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
 							metadataCodes.add(metadata.getCode());
 						}
 					}
@@ -217,18 +214,18 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
+		//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
-				boolean isTextOrString = metadata.getType() == MetadataValueType.STRING ||  metadata.getType() == MetadataValueType.TEXT;
+				boolean isTextOrString = metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
 				if (config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser()) &&
-						(!isTextOrString || isTextOrString && metadata.isSearchable() ||
-								Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
-								ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
-								ConnectorSmbFolder.CONNECTOR_URL.equals(metadata.getLocalCode()) ||
-								ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
+					(!isTextOrString || isTextOrString && metadata.isSearchable() ||
+					 Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
+					 ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+					 ConnectorSmbFolder.CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+					 ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
 			}
@@ -237,21 +234,21 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	}
 
 	@Override
-	public Map<String,String> getMetadataSchemasList(String schemaTypeCode) {
+	public Map<String, String> getMetadataSchemasList(String schemaTypeCode) {
 		return searchCriteriaPresenterUtils.getMetadataSchemasList(schemaTypeCode);
 	}
 
 	private boolean isMetadataVisibleForUser(Metadata metadata, User currentUser) {
-		if(MetadataValueType.REFERENCE.equals(metadata.getType())) {
+		if (MetadataValueType.REFERENCE.equals(metadata.getType())) {
 			String referencedSchemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
 			Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager().getTaxonomyFor(collection, referencedSchemaType);
-			if(taxonomy != null) {
+			if (taxonomy != null) {
 				List<String> taxonomyGroupIds = taxonomy.getGroupIds();
 				List<String> taxonomyUserIds = taxonomy.getUserIds();
 				List<String> userGroups = currentUser.getUserGroups();
-				for(String group: taxonomyGroupIds) {
-					for(String userGroup: userGroups) {
-						if(userGroup.equals(group)) {
+				for (String group : taxonomyGroupIds) {
+					for (String userGroup : userGroups) {
+						if (userGroup.equals(group)) {
 							return true;
 						}
 					}

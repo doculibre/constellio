@@ -22,96 +22,96 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayConfigViewImpl extends BaseViewImpl implements DisplayConfigView {
 
-    DisplayConfigPresenter presenter;
-    public static final String BUTTONS_LAYOUT = "base-form-buttons-layout";
-    public static final String SAVE_BUTTON = "base-form-save";
-    public static final String CANCEL_BUTTON = "base-form_cancel";
+	DisplayConfigPresenter presenter;
+	public static final String BUTTONS_LAYOUT = "base-form-buttons-layout";
+	public static final String SAVE_BUTTON = "base-form-save";
+	public static final String CANCEL_BUTTON = "base-form_cancel";
 
-    public DisplayConfigViewImpl() {
-        this.presenter = new DisplayConfigPresenter(this);
-    }
+	public DisplayConfigViewImpl() {
+		this.presenter = new DisplayConfigPresenter(this);
+	}
 
-    @Override
-    protected void initBeforeCreateComponents(ViewChangeEvent event) {
+	@Override
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 
-        Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
-        presenter.setSchemaCode(params.get("schemaCode"));
-        presenter.setParameters(params);
-    }
+		Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
+		presenter.setSchemaCode(params.get("schemaCode"));
+		presenter.setParameters(params);
+	}
 
-    @Override
-    protected String getTitle() {
-        return $("DisplayConfigView.viewTitle", presenter.getLabel());
-    }
+	@Override
+	protected String getTitle() {
+		return $("DisplayConfigView.viewTitle", presenter.getLabel());
+	}
 
-    @Override
-    protected Component buildMainComponent(ViewChangeEvent event) {
-        Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
-        presenter.setSchemaCode(params.get("schemaCode"));
-        presenter.setParameters(params);
+	@Override
+	protected Component buildMainComponent(ViewChangeEvent event) {
+		Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
+		presenter.setSchemaCode(params.get("schemaCode"));
+		presenter.setParameters(params);
 
-        VerticalLayout viewLayout = new VerticalLayout();
-        viewLayout.setSizeFull();
-        viewLayout.addComponents(buildTables());
-        return viewLayout;
-    }
+		VerticalLayout viewLayout = new VerticalLayout();
+		viewLayout.setSizeFull();
+		viewLayout.addComponents(buildTables());
+		return viewLayout;
+	}
 
-    private Component buildTables() {
-        List<FormMetadataVO> metadataVOs = presenter.getMetadatas();
-        List<FormMetadataVO> valueMetadataVOs = presenter.getValueMetadatas();
+	private Component buildTables() {
+		List<FormMetadataVO> metadataVOs = presenter.getMetadatas();
+		List<FormMetadataVO> valueMetadataVOs = presenter.getValueMetadatas();
 
-        Collections.sort(metadataVOs, new SortFormMetadataVO(getSessionContext()));
+		Collections.sort(metadataVOs, new SortFormMetadataVO(getSessionContext()));
 
-        final ListBuilder select = new ListBuilder();
-        select.setColumns(30);
-        select.setRightColumnCaption($("DisplayConfigView.rightColumn"));
-        select.setLeftColumnCaption($("DisplayConfigView.leftColumn"));
+		final ListBuilder select = new ListBuilder();
+		select.setColumns(30);
+		select.setRightColumnCaption($("DisplayConfigView.rightColumn"));
+		select.setLeftColumnCaption($("DisplayConfigView.leftColumn"));
 
-        for (FormMetadataVO form : metadataVOs) {
-            select.addItem(form);
-            select.setItemCaption(form, form.getLabel(getSessionContext().getCurrentLocale().getLanguage()));
-        }
+		for (FormMetadataVO form : metadataVOs) {
+			select.addItem(form);
+			select.setItemCaption(form, form.getLabel(getSessionContext().getCurrentLocale().getLanguage()));
+		}
 
-        select.setValue(valueMetadataVOs);
+		select.setValue(valueMetadataVOs);
 
-        Button saveButton = new Button($("save"));
-        saveButton.addStyleName(SAVE_BUTTON);
-        saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-        saveButton.addClickListener(new ClickListener() {
-            @Override
-            public void buttonClick(ClickEvent event) {
-                List<FormMetadataVO> values = (List) select.getValue();
-                presenter.saveButtonClicked(values);
-            }
-        });
+		Button saveButton = new Button($("save"));
+		saveButton.addStyleName(SAVE_BUTTON);
+		saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		saveButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				List<FormMetadataVO> values = (List) select.getValue();
+				presenter.saveButtonClicked(values);
+			}
+		});
 
-        Button cancelButton = new Button($("cancel"));
-        cancelButton.addStyleName(CANCEL_BUTTON);
-        cancelButton.addClickListener(new ClickListener() {
-            @Override
-            public void buttonClick(ClickEvent event) {
-                presenter.cancelButtonClicked();
-            }
-        });
+		Button cancelButton = new Button($("cancel"));
+		cancelButton.addStyleName(CANCEL_BUTTON);
+		cancelButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.cancelButtonClicked();
+			}
+		});
 
-        HorizontalLayout buttonsLayout = new HorizontalLayout();
-        buttonsLayout.addStyleName(BUTTONS_LAYOUT);
-        buttonsLayout.setSpacing(true);
-        buttonsLayout.addComponent(saveButton);
-        buttonsLayout.addComponent(cancelButton);
+		HorizontalLayout buttonsLayout = new HorizontalLayout();
+		buttonsLayout.addStyleName(BUTTONS_LAYOUT);
+		buttonsLayout.setSpacing(true);
+		buttonsLayout.addComponent(saveButton);
+		buttonsLayout.addComponent(cancelButton);
 
-        VerticalLayout viewLayout = new VerticalLayout();
-        viewLayout.setSizeFull();
-        viewLayout.setSpacing(true);
-        viewLayout.addComponent(select);
-        viewLayout.addComponent(buttonsLayout);
+		VerticalLayout viewLayout = new VerticalLayout();
+		viewLayout.setSizeFull();
+		viewLayout.setSpacing(true);
+		viewLayout.addComponent(select);
+		viewLayout.addComponent(buttonsLayout);
 
-        return viewLayout;
-    }
+		return viewLayout;
+	}
 
-    @Override
-    protected boolean isFullWidthIfActionMenuAbsent() {
-        return true;
-    }
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return true;
+	}
 
 }

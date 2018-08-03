@@ -1,13 +1,13 @@
 package com.constellio.model.services.schemas.impacts;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SchemaTypesAlterationImpactsCalculator {
 
@@ -52,7 +52,7 @@ public class SchemaTypesAlterationImpactsCalculator {
 
 		SchemaTypesAlterationImpact impact = null;
 		if (reindexAutocomplete || !reindexedMetadataForSearch.isEmpty() || !convertedToMultiValue.isEmpty()
-				|| !convertedToSingleValue.isEmpty()) {
+			|| !convertedToSingleValue.isEmpty()) {
 			BatchProcessAction batchProcessAction = new SchemaTypeAlterationBatchProcessAction(reindexedMetadataForSearch,
 					convertedToSingleValue, convertedToMultiValue);
 			impact = new SchemaTypesAlterationImpact(batchProcessAction, type.getCode());

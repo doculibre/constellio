@@ -1,12 +1,11 @@
 package com.constellio.model.services.records.cache;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.solr.common.params.SolrParams;
-
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.extensions.BigVaultServerExtension;
+import org.apache.solr.common.params.SolrParams;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class StatsBigVaultServerExtension extends BigVaultServerExtension {
 

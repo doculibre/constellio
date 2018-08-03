@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.management.configs;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.ui.entities.SystemConfigurationVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -22,22 +16,15 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.validator.IntegerRangeValidator;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.AbstractComponent;
-import com.vaadin.ui.AbstractField;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.DateField;
-import com.vaadin.ui.Field;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigManagementView {
 
@@ -157,7 +144,7 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 	private Field<?> createField(SystemConfigurationVO config) {
 		SystemConfigurationType type = config.getType();
 		if (type == SystemConfigurationType.STRING ||
-				config.getType() == SystemConfigurationType.INTEGER) {
+			config.getType() == SystemConfigurationType.INTEGER) {
 			AbstractField<String> textField;
 			if (config.isHiddenValue()) {
 				textField = new BasePasswordField();

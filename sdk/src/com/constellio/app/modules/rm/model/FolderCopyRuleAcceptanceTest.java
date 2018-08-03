@@ -1,22 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
-import static com.constellio.app.modules.rm.model.enums.DisposalType.SORT;
-import static com.constellio.app.modules.rm.model.enums.RetentionType.FIXED;
-import static com.constellio.app.modules.rm.model.enums.RetentionType.OPEN;
-import static com.constellio.app.modules.rm.model.enums.RetentionType.UNTIL_REPLACED;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -27,6 +10,18 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+import static com.constellio.app.modules.rm.model.enums.DisposalType.*;
+import static com.constellio.app.modules.rm.model.enums.RetentionType.*;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FolderCopyRuleAcceptanceTest extends ConstellioTest {
 

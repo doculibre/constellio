@@ -1,32 +1,31 @@
 package com.constellio.app.ui.application;
 
-import java.io.IOException;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.vaadin.annotations.VaadinServletConfiguration;
+import com.vaadin.server.VaadinServlet;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.vaadin.annotations.VaadinServletConfiguration;
-import com.vaadin.server.VaadinServlet;
+import java.io.IOException;
 
 @SuppressWarnings("serial")
 @WebServlet(value = "/*", asyncSupported = true)
 @VaadinServletConfiguration(productionMode = false, ui = ConstellioUI.class)
 public class ConstellioVaadinServlet extends VaadinServlet {
 
-    boolean initialized = false;
+	boolean initialized = false;
 	Thread initThread;
-	
+
 	@Override
 	public void init(ServletConfig servletConfig)
 			throws ServletException {
-    	super.init(servletConfig);
-    	initThread = new Thread() {
+		super.init(servletConfig);
+		initThread = new Thread() {
 			@Override
-			public void run() {	
+			public void run() {
 				ConstellioFactories.getInstance();
 				initialized = true;
 			}
@@ -38,33 +37,34 @@ public class ConstellioVaadinServlet extends VaadinServlet {
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-        if (handleContextRootWithoutSlash(request, response)) {
-            return;
-        }
-        boolean staticResourceRequest = isStaticResourceRequest(request);
-        if (!staticResourceRequest) {
-    		if (!initialized) {
-    			try {
-    				initThread.join();
-    			} catch (InterruptedException e) {
-    				throw new RuntimeException(e);
-    			}
-    		}
-    		ConstellioFactories.getInstance().onRequestStarted();
-        }
+		if (handleContextRootWithoutSlash(request, response)) {
+			return;
+		}
+		boolean staticResourceRequest = isStaticResourceRequest(request);
+		if (!staticResourceRequest) {
+			if (!initialized) {
+				try {
+					initThread.join();
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			ConstellioFactories.getInstance().onRequestStarted();
+		}
 		try {
 			super.service(request, response);
 		} finally {
-	        if (!staticResourceRequest) {
-	        	ConstellioFactories.getInstance().onRequestEnded();
-	        }	
+			if (!staticResourceRequest) {
+				ConstellioFactories.getInstance().onRequestEnded();
+			}
 		}
 	}
 
 	/**
 	 * Adapted to support responsive design.
-	 *
+	 * <p>
 	 * See https://vaadin.com/forum#!/thread/1676923
+	 *
 	 * @see com.vaadin.server.VaadinServlet#servletInitialized()
 	 */
 

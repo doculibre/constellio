@@ -1,16 +1,12 @@
 package com.constellio.app.services.records;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.poi.ss.formula.functions.T;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.model.frameworks.validation.ValidationErrors;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class SystemCheckResults {
 

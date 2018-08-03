@@ -6,11 +6,11 @@ import javax.ws.rs.core.Response;
 
 public class RecordNotFoundException extends BaseRestApiException {
 
-    private static final String CODE = "recordNotFound";
+	private static final String CODE = "recordNotFound";
 
-    public RecordNotFoundException(String id) {
-        status = Response.Status.NOT_FOUND;
+	public RecordNotFoundException(String id) {
+		status = Response.Status.NOT_FOUND;
 
-        buildValidationError(CODE, ImmutableMap.<String, Object>builder().put("id", id).build());
-    }
+		buildValidationError(CODE, ImmutableMap.<String, Object>builder().put("id", id).build());
+	}
 }

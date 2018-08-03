@@ -1,26 +1,26 @@
 package com.constellio.app.ui.framework.data;
 
-import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.LookupTreeDataProvider;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider;
 import com.constellio.app.ui.framework.data.trees.LinkableRecordTreeNodesDataProvider;
 import com.constellio.app.ui.framework.data.trees.RecordTreeNodesDataProvider;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.app.ui.application.ConstellioUI.getCurrentSessionContext;
+
 public class RecordLookupTreeDataProvider extends BaseRecordTreeDataProvider implements LookupTreeDataProvider<String> {
-	
+
 	private String schemaTypeCode;
 	private Map<String, Boolean> selectableCache = new HashMap<>();
 	private boolean ignoreLinkability;
 	private boolean writeAccess;
 
-	public RecordLookupTreeDataProvider(String schemaTypeCode, String taxonomyCode, boolean writeAccess, boolean isShowAllIfHasAccessToManageSecurity) {
+	public RecordLookupTreeDataProvider(String schemaTypeCode, String taxonomyCode, boolean writeAccess,
+										boolean isShowAllIfHasAccessToManageSecurity) {
 		super(new LinkableRecordTreeNodesDataProvider(taxonomyCode, schemaTypeCode, writeAccess)
 				.setShowAllIfHasAccessToManageSecurity(isShowAllIfHasAccessToManageSecurity));
 		this.writeAccess = writeAccess;
@@ -30,7 +30,7 @@ public class RecordLookupTreeDataProvider extends BaseRecordTreeDataProvider imp
 	}
 
 	public RecordLookupTreeDataProvider(String schemaTypeCode, boolean writeAccess,
-			RecordTreeNodesDataProvider recordTreeNodesDataProvider) {
+										RecordTreeNodesDataProvider recordTreeNodesDataProvider) {
 		super(recordTreeNodesDataProvider);
 		this.writeAccess = writeAccess;
 		this.schemaTypeCode = schemaTypeCode;

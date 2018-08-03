@@ -22,7 +22,8 @@ public class BulkImportParams {
 		return warningsForRequiredUSRMetadatasWithoutValue;
 	}
 
-	public BulkImportParams setWarningsForRequiredUSRMetadatasWithoutValue(boolean warningsForRequiredUSRMetadatasWithoutValue) {
+	public BulkImportParams setWarningsForRequiredUSRMetadatasWithoutValue(
+			boolean warningsForRequiredUSRMetadatasWithoutValue) {
 		this.warningsForRequiredUSRMetadatasWithoutValue = warningsForRequiredUSRMetadatasWithoutValue;
 		return this;
 	}
@@ -76,7 +77,8 @@ public class BulkImportParams {
 		return importValidationErrorsBehavior;
 	}
 
-	public BulkImportParams setImportValidationErrorsBehavior(ImportValidationErrorsBehavior importValidationErrorsBehavior) {
+	public BulkImportParams setImportValidationErrorsBehavior(
+			ImportValidationErrorsBehavior importValidationErrorsBehavior) {
 		this.importValidationErrorsBehavior = importValidationErrorsBehavior;
 		return this;
 	}

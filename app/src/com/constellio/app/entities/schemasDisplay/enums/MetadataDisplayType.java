@@ -1,43 +1,43 @@
 package com.constellio.app.entities.schemasDisplay.enums;
 
+import com.constellio.model.entities.schemas.MetadataValueType;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataValueType;
-
 public enum MetadataDisplayType {
 
-    HORIZONTAL,
-    VERTICAL;
+	HORIZONTAL,
+	VERTICAL;
 
-    public static String getCaptionFor(MetadataDisplayType type) {
-        String caption = "";
+	public static String getCaptionFor(MetadataDisplayType type) {
+		String caption = "";
 
-        switch (type) {
-            case HORIZONTAL:
-                caption = "MetadataDisplayType.horizontal";
-                break;
-            case VERTICAL:
-                caption = "MetadataDisplayType.vertical";
-                break;
-        }
+		switch (type) {
+			case HORIZONTAL:
+				caption = "MetadataDisplayType.horizontal";
+				break;
+			case VERTICAL:
+				caption = "MetadataDisplayType.vertical";
+				break;
+		}
 
-        return caption;
-    }
+		return caption;
+	}
 
-    public static List<MetadataDisplayType> getAvailableMetadataDisplayTypesFor(MetadataValueType type, MetadataInputType input) {
-        List<MetadataDisplayType> displayTypes = new ArrayList<>();
+	public static List<MetadataDisplayType> getAvailableMetadataDisplayTypesFor(MetadataValueType type,
+																				MetadataInputType input) {
+		List<MetadataDisplayType> displayTypes = new ArrayList<>();
 
 
-        if(type != null && type.equals(MetadataValueType.REFERENCE) &&
-                input != null && (input.equals(MetadataInputType.RADIO_BUTTONS) || input.equals(MetadataInputType.CHECKBOXES))) {
+		if (type != null && type.equals(MetadataValueType.REFERENCE) &&
+			input != null && (input.equals(MetadataInputType.RADIO_BUTTONS) || input.equals(MetadataInputType.CHECKBOXES))) {
 
-            displayTypes.add(HORIZONTAL);
-        }
+			displayTypes.add(HORIZONTAL);
+		}
 
-        displayTypes.add(VERTICAL);
+		displayTypes.add(VERTICAL);
 
-        return displayTypes;
-    }
+		return displayTypes;
+	}
 }

@@ -1,11 +1,5 @@
 package com.constellio.app.entities.navigation;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
@@ -15,6 +9,11 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.vaadin.ui.Component;
+import org.joda.time.LocalDateTime;
+
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class PageItem implements CodedItem, Serializable {
 	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, RECORD_TREE, CUSTOM_ITEM}
@@ -37,7 +36,7 @@ public abstract class PageItem implements CodedItem, Serializable {
 	}
 
 	public static abstract class RecentItemTable extends PageItem {
-		
+
 		protected RecentItemTable(String code) {
 			super(code, Type.RECENT_ITEM_TABLE);
 		}
@@ -84,23 +83,23 @@ public abstract class PageItem implements CodedItem, Serializable {
 	}
 
 	public static abstract class RecordTree extends PageItem {
-		
+
 		private int defaultDataProvider = -1;
-		
+
 		private List<String> expandedRecordIds = Collections.emptyList();
-		
+
 		public RecordTree(String code) {
 			super(code, Type.RECORD_TREE);
 		}
-		
+
 		public int getDefaultDataProvider() {
 			return defaultDataProvider;
 		}
-		
+
 		public void setDefaultDataProvider(int defaultDataProvider) {
 			this.defaultDataProvider = defaultDataProvider;
 		}
-		
+
 		public List<String> getExpandedRecordIds() {
 			return expandedRecordIds;
 		}
@@ -113,7 +112,7 @@ public abstract class PageItem implements CodedItem, Serializable {
 				AppLayerFactory appLayerFactory, SessionContext sessionContext);
 
 		public abstract BaseContextMenu getContextMenu();
-		
+
 	}
 
 	public static abstract class CustomItem extends PageItem {

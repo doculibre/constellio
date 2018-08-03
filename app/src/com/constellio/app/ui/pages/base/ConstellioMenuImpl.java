@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
@@ -20,30 +9,33 @@ import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.app.ui.pages.viewGroups.MenuViewGroup.DisabledMenuViewGroup;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
-import com.vaadin.ui.UI;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 /**
  * A responsive menu component providing user information and the controls for
  * primary navigation between the views.
  */
-@SuppressWarnings({ "serial" })
+@SuppressWarnings({"serial"})
 public class ConstellioMenuImpl extends CustomComponent implements ConstellioMenu {
 
 	public static final String ID = "dashboard-menu";
@@ -63,7 +55,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 	private CssLayout menuItemsLayout;
 
 	private List<ConstellioMenuButton> mainMenuButtons = new ArrayList<>();
-	
+
 	private Map<ConstellioMenuButton, Label> badgeLabels = new HashMap<>();
 
 	public ConstellioMenuImpl() {
@@ -141,7 +133,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		menuItemsLayout.setHeight(100.0f, Unit.PERCENTAGE);
 
 		mainMenuButtons = buildMainMenuButtons();
-		
+
 		for (ConstellioMenuButton mainMenuButton : mainMenuButtons) {
 			Button menuButton = mainMenuButton.getButton();
 			menuButton.addClickListener(new ClickListener() {
@@ -186,9 +178,9 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 					} else {
 						menuButton.removeStyleName(selectedStyleName);
 					}
-					
+
 					refreshBadge(mainMenuButton);
-					
+
 				}
 				if (!newSelection && lastSelectedButton != null) {
 					lastSelectedButton.addStyleName(selectedStyleName);
@@ -203,7 +195,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 
 		return menuItemsLayout;
 	}
-	
+
 	private void refreshBadge(ConstellioMenuButton mainMenuButton) {
 		String badge = mainMenuButton.getBadge();
 		Label badgeLabel = badgeLabels.get(mainMenuButton);
@@ -214,7 +206,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 			badgeLabel.setVisible(false);
 		}
 	}
-	
+
 	@Override
 	public void refreshBadges() {
 		for (ConstellioMenuButton mainMenuButton : mainMenuButtons) {
@@ -346,7 +338,7 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		public Button getButton() {
 			return button;
 		}
-		
+
 		public String getBadge() {
 			return null;
 		}

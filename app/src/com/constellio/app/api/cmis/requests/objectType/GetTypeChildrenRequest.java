@@ -1,16 +1,15 @@
 package com.constellio.app.api.cmis.requests.objectType;
 
-import java.math.BigInteger;
-
+import com.constellio.app.api.cmis.ConstellioCmisException;
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.ConstellioCmisException;
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.services.factories.AppLayerFactory;
+import java.math.BigInteger;
 
 public class GetTypeChildrenRequest extends CmisCollectionRequest<TypeDefinitionList> {
 
@@ -21,8 +20,9 @@ public class GetTypeChildrenRequest extends CmisCollectionRequest<TypeDefinition
 	private BigInteger skipCount;
 
 	public GetTypeChildrenRequest(ConstellioCollectionRepository constellioCollectionRepository,
-			CallContext callContext, String typeId, BigInteger maxItems, Boolean includePropertyDefinitions, BigInteger skipCount,
-			AppLayerFactory appLayerFactory) {
+								  CallContext callContext, String typeId, BigInteger maxItems,
+								  Boolean includePropertyDefinitions, BigInteger skipCount,
+								  AppLayerFactory appLayerFactory) {
 		super(callContext, constellioCollectionRepository, appLayerFactory);
 
 		this.typeId = typeId;
@@ -46,11 +46,11 @@ public class GetTypeChildrenRequest extends CmisCollectionRequest<TypeDefinition
 	@Override
 	public String toString() {
 		return "GetTypeChildrenRequest{" +
-				"typeId='" + typeId + '\'' +
-				", maxItems=" + maxItems +
-				", includePropertyDefinitions=" + includePropertyDefinitions +
-				", skipCount=" + skipCount +
-				", repository='" + repository + '\'' +
-				'}';
+			   "typeId='" + typeId + '\'' +
+			   ", maxItems=" + maxItems +
+			   ", includePropertyDefinitions=" + includePropertyDefinitions +
+			   ", skipCount=" + skipCount +
+			   ", repository='" + repository + '\'' +
+			   '}';
 	}
 }

@@ -5,16 +5,16 @@ import com.vaadin.ui.CustomTable;
 import com.vaadin.ui.Table;
 
 public class ColumnReorderListenerAdapter implements CustomTable.ColumnReorderListener {
-    private final Table.ColumnReorderListener adaptee;
+	private final Table.ColumnReorderListener adaptee;
 
-    public ColumnReorderListenerAdapter(Table.ColumnReorderListener adaptee) {
-        this.adaptee = adaptee;
-    }
+	public ColumnReorderListenerAdapter(Table.ColumnReorderListener adaptee) {
+		this.adaptee = adaptee;
+	}
 
-    @Override
-    public void columnReorder(CustomTable.ColumnReorderEvent event) {
-        if (adaptee != null) {
-            adaptee.columnReorder(new Table.ColumnReorderEvent((Component) event.getSource()));
-        }
-    }
+	@Override
+	public void columnReorder(CustomTable.ColumnReorderEvent event) {
+		if (adaptee != null) {
+			adaptee.columnReorder(new Table.ColumnReorderEvent((Component) event.getSource()));
+		}
+	}
 }

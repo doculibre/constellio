@@ -1,11 +1,10 @@
 package com.constellio.app.ui.framework.builders;
 
+import com.constellio.app.ui.entities.TaxonomyVO;
+import com.constellio.model.entities.Taxonomy;
+
 import java.io.Serializable;
 import java.util.List;
-
-import com.constellio.app.ui.entities.TaxonomyVO;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.Taxonomy;
 
 @SuppressWarnings("serial")
 public class TaxonomyToVOBuilder implements Serializable {

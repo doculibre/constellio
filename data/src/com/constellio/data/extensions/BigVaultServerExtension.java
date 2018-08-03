@@ -1,8 +1,7 @@
 package com.constellio.data.extensions;
 
-import org.apache.solr.common.params.SolrParams;
-
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import org.apache.solr.common.params.SolrParams;
 
 public class BigVaultServerExtension {
 

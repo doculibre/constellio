@@ -1,13 +1,12 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDateTime;
+
+import java.util.List;
 
 public abstract class RMObject extends RecordWrapper {
 
@@ -17,7 +16,7 @@ public abstract class RMObject extends RecordWrapper {
 	public static final String FORM_MODIFIED_ON = "formModifiedOn";
 
 	public RMObject(Record record,
-			MetadataSchemaTypes types, String typeRequirement) {
+					MetadataSchemaTypes types, String typeRequirement) {
 		super(record, types, typeRequirement);
 	}
 

@@ -1,11 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
 import com.constellio.app.modules.es.connectors.smb.LastFetchedStatus;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO;
 import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
@@ -14,8 +9,11 @@ import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.Schemas;
+import org.joda.time.LocalDateTime;
 
 import javax.activation.MimetypesFileTypeMap;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SmbDocumentOrFolderUpdater {
 
@@ -27,7 +25,8 @@ public class SmbDocumentOrFolderUpdater {
 		this.smbRecordService = smbRecordService;
 	}
 
-	public void updateDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument<?> documentOrFolder, String parentUrl, boolean seed) {
+	public void updateDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument<?> documentOrFolder, String parentUrl,
+									   boolean seed) {
 		ConnectorSmbDocument smbDocument = smbRecordService.convertToSmbDocumentOrNull(documentOrFolder);
 		if (smbDocument != null) {
 			updateFullDocumentDTO(smbFileDTO, smbDocument, parentUrl);
@@ -40,7 +39,6 @@ public class SmbDocumentOrFolderUpdater {
 	}
 
 	private void updateFullDocumentDTO(SmbFileDTO smbFileDTO, ConnectorSmbDocument smbDocument, String parentUrl) {
-
 
 
 		// Utility
@@ -89,7 +87,8 @@ public class SmbDocumentOrFolderUpdater {
 				.withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
 	}
 
-	private void updateFullFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentUrl, boolean seed) {
+	private void updateFullFolderDTO(SmbFileDTO smbFileDTO, ConnectorSmbFolder smbFolder, String parentUrl,
+									 boolean seed) {
 		smbFolder.setTitle(smbFileDTO.getName())
 				.setUrl(smbFileDTO.getUrl())
 				.setTraversalCode(connectorInstance.getTraversalCode())
@@ -135,7 +134,8 @@ public class SmbDocumentOrFolderUpdater {
 				.withPropertyLabel("dateModified", $("SmbDocumentOrFolderUpdater.dateModified"));
 	}
 
-	public void updateFailedDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument documentOrFolder, String parentUrl) {
+	public void updateFailedDocumentOrFolder(SmbFileDTO smbFileDTO, ConnectorDocument documentOrFolder,
+											 String parentUrl) {
 		ConnectorSmbDocument smbDocument = smbRecordService.convertToSmbDocumentOrNull(documentOrFolder);
 		if (smbDocument != null) {
 			updateFailedDocumentDTO(smbFileDTO, smbDocument, parentUrl);

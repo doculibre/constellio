@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.chemistry.opencmis.commons.impl.IOUtils;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -21,15 +9,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator2;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMObject;
-import com.constellio.app.modules.rm.wrappers.RMTask;
-import com.constellio.app.modules.rm.wrappers.RMTaskType;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
@@ -57,6 +37,17 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.chemistry.opencmis.commons.impl.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 /**
  * Created by Charles Blanchette on 2017-03-22.
@@ -69,7 +60,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		List<Category> categories = rm.wrapCategorys(appLayerFactory.getModelLayerFactory().newSearchServices().search(
@@ -144,7 +135,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 	}
 
 	private void migrateSearchableSchemaTypes(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+											  AppLayerFactory appLayerFactory) {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		manager.saveType(manager.getType(collection, ContainerRecord.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
 		manager.saveType(manager.getType(collection, StorageSpace.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
@@ -165,7 +156,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 	}
 
 	public static void createNewTaskTypes(AppLayerFactory appLayerFactory, String collection, Transaction transaction,
-			MigrationResourcesProvider migrationResourcesProvider)
+										  MigrationResourcesProvider migrationResourcesProvider)
 			throws RecordServicesException {
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
@@ -184,8 +175,9 @@ public class RMMigrationTo7_2 implements MigrationScript {
 
 	}
 
-	private void adjustSchemaDisplay(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+	private void adjustSchemaDisplay(AppLayerFactory appLayerFactory,
+									 MigrationResourcesProvider migrationResourcesProvider,
+									 String collection) {
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		displayManager.saveSchema(displayManager.getSchema(collection, Folder.DEFAULT_SCHEMA)
@@ -261,8 +253,8 @@ public class RMMigrationTo7_2 implements MigrationScript {
 	}
 
 	public static void reloadEmailTemplates(AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+											MigrationResourcesProvider migrationResourcesProvider,
+											String collection) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
 				.equals("en")) {
 			reloadEmailTemplate("alertBorrowedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED,
@@ -305,8 +297,8 @@ public class RMMigrationTo7_2 implements MigrationScript {
 	}
 
 	private static void reloadEmailTemplate(final String templateFileName, final String templateId,
-			AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider, String collection) {
+											AppLayerFactory appLayerFactory,
+											MigrationResourcesProvider migrationResourcesProvider, String collection) {
 		final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 
 		try {
@@ -322,7 +314,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 	class SchemaAlterationFor7_2_step1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_2_step1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -353,7 +345,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 	class SchemaAlterationFor7_2_step2 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_2_step2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

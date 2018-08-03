@@ -1,34 +1,13 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.FolderType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -46,6 +25,19 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.SearchServices;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 public class RMSystemCheckExtension extends SystemCheckExtension {
 
@@ -109,9 +101,9 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 			for (String containerToRemove : params.getValuesToRemove()) {
 				list.removeContainerDetail(containerToRemove);
 
-				if(folderDetails != null) {
-					for(DecomListFolderDetail folder: folderDetails) {
-						if(containerToRemove.equals(folder.getContainerRecordId())) {
+				if (folderDetails != null) {
+					for (DecomListFolderDetail folder : folderDetails) {
+						if (containerToRemove.equals(folder.getContainerRecordId())) {
 							folder.setContainerRecordId(null);
 						}
 					}
@@ -298,7 +290,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 					.equals("folder")) {
 				for (MetadataSchema metadataSchema : metadataSchemaType.getAllSchemas()) {
 					if (!metadataSchema.getLocalCode().startsWith("USR") && !metadataSchema.getLocalCode().equals("default") &&
-							!ALLOWED_SCHEMAS_NOT_STARTING_WITH_USR.contains(metadataSchema.getCode())) {
+						!ALLOWED_SCHEMAS_NOT_STARTING_WITH_USR.contains(metadataSchema.getCode())) {
 						Map<String, Object> parameter = new HashMap<>();
 						parameter.put("schemaCode", metadataSchema.getLocalCode());
 						parameter.put("metadataSchemaType", metadataSchemaType.getCode());
@@ -369,20 +361,20 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 				}
 
 				if (manualExpectedDeposit != null && manualExpectedTransfer != null
-						&& manualExpectedDeposit.isBefore(manualExpectedTransfer)) {
+					&& manualExpectedDeposit.isBefore(manualExpectedTransfer)) {
 					params.getResultsBuilder().addNewValidationError(RMSystemCheckExtension.class,
 							DEPOSIT_DATE_BEFORE_TRANSFER_DATE, errorParams);
 					fixDeposit = params.isRepair();
 				}
 				if (manualExpectedDestruction != null && actualTransfer != null
-						&& manualExpectedDestruction.isBefore(actualTransfer)) {
+					&& manualExpectedDestruction.isBefore(actualTransfer)) {
 					params.getResultsBuilder().addNewValidationError(RMSystemCheckExtension.class,
 							DESTRUCTION_DATE_BEFORE_TRANSFER_DATE, errorParams);
 					fixDestruction = params.isRepair();
 				}
 
 				if (manualExpectedDestruction != null && manualExpectedTransfer != null
-						&& manualExpectedDestruction.isBefore(manualExpectedTransfer)) {
+					&& manualExpectedDestruction.isBefore(manualExpectedTransfer)) {
 					params.getResultsBuilder().addNewValidationError(RMSystemCheckExtension.class,
 							DESTRUCTION_DATE_BEFORE_TRANSFER_DATE, errorParams);
 					fixDestruction = params.isRepair();

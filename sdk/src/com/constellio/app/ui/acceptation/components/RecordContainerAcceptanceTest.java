@@ -1,20 +1,5 @@
 package com.constellio.app.ui.acceptation.components;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.when;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -24,13 +9,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.DisableButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.EnableButton;
-import com.constellio.app.ui.framework.buttons.IconButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -61,6 +40,20 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.when;
 
 @InDevelopmentTest
 @UiTest
@@ -344,7 +337,7 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 		}
 
 		private Container newAllRecordsContainer(MetadataSchema schema, final DummyViewPresenter tablePresenter,
-				String buttonsLabel) {
+												 String buttonsLabel) {
 			Container recordsContainer = new RecordVOLazyContainer(getAllRecordsDataProvider(schema));
 			final ButtonsContainer<?> buttonsContainer = new ButtonsContainer(recordsContainer, buttonsLabel);
 

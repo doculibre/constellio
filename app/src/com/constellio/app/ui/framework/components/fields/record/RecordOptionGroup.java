@@ -1,7 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.record;
 
-import java.util.List;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
@@ -9,6 +7,8 @@ import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionCo
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
+
+import java.util.List;
 
 public class RecordOptionGroup extends ListOptionGroup implements RecordOptionField {
 

@@ -11,6 +11,10 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class SearchCriteriaPresenterUtils extends BasePresenterUtils {
 
 	public SearchCriteriaPresenterUtils(SessionContext sessionContext) {

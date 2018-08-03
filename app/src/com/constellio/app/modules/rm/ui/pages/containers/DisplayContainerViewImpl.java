@@ -1,37 +1,33 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.reports.factories.labels.LabelsReportParameters;
-import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.components.*;
+import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
+import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.data.utils.Factory;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.vaadin.data.Property.ValueChangeEvent;
-import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -52,7 +48,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		if(event != null) {
+		if (event != null) {
 			presenter.forContainerId(event.getParameters());
 		}
 	}
@@ -117,7 +113,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
-		if(!popup) {
+		if (!popup) {
 			return new ClickListener() {
 				@Override
 				public void buttonClick(ClickEvent event) {
@@ -147,7 +143,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		});
 
 		RecordVOTable table = new RecordVOTable($("DisplayContainerView.foldersTableTitle"), container);
-		if(popup) {
+		if (popup) {
 			table.setWidth("80%");
 		} else {
 			table.setWidth("100%");
@@ -235,85 +231,85 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	}
 
 	// TODO: Quick hack to make printing container labels work...
-//	public static class ContainerLabelsButton extends WindowButton {
-//		private final RecordSelector selector;
-//		private final List<LabelTemplate> labelTemplates;
-//		private NewReportWriterFactory<LabelsReportParameters> labelsReportFactory;
-//
-//		@PropertyId("startPosition") private ComboBox startPosition;
-//		@PropertyId("numberOfCopies") private TextField copies;
-//		@PropertyId("labelConfiguration") private ComboBox labelConfiguration;
-//
-//		public ContainerLabelsButton(String caption, String windowCaption, RecordSelector selector,
-//				List<LabelTemplate> labelTemplates, final NewReportWriterFactory<LabelsReportParameters> labelsReportFactory) {
-//			super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
-//			this.selector = selector;
-//			this.labelTemplates = labelTemplates;
-//			this.labelsReportFactory = labelsReportFactory;
-//		}
-//
-//		@Override
-//		protected Component buildWindowContent() {
-//			startPosition = new ComboBox($("LabelsButton.startPosition"));
-//			if (labelTemplates.size() > 0) {
-//				int size = labelTemplates.get(0).getLabelsReportLayout().getNumberOfLabelsPerPage();
-//				startPosition.clear();
-//				for (int i = 1; i <= size; i++) {
-//					startPosition.addItem(i);
-//				}
-//			}
-//			for (int i = 1; i <= 10; i++) {
-//				startPosition.addItem(i);
-//			}
-//			startPosition.setNullSelectionAllowed(false);
-//
-//			labelConfiguration = new ComboBox($("LabelsButton.labelFormat"));
-//			for (LabelTemplate labelTemplate : labelTemplates) {
-//				labelConfiguration.addItem(labelTemplate);
-//				labelConfiguration.setItemCaption(labelTemplate, $(labelTemplate.getName()));
-//			}
-//			labelConfiguration.setNullSelectionAllowed(false);
-//			labelConfiguration.setImmediate(true);
-//			labelConfiguration.addValueChangeListener(new ValueChangeListener() {
-//				@Override
-//				public void valueChange(ValueChangeEvent event) {
-//					LabelTemplate labelTemplate = (LabelTemplate) event.getProperty().getValue();
-//					int size = labelTemplate.getLabelsReportLayout().getNumberOfLabelsPerPage();
-//					startPosition.clear();
-//					startPosition.removeAllItems();
-//					for (int i = 1; i <= size; i++) {
-//
-//						startPosition.addItem(i);
-//					}
-//				}
-//			});
-//
-//			copies = new TextField($("LabelsButton.numberOfCopies"));
-//			copies.setConverter(Integer.class);
-//
-//			return new BaseForm<LabelParametersVO>(
-//					new LabelParametersVO(labelTemplates.get(0)), this, labelConfiguration, startPosition,
-//					copies) {
-//				@Override
-//				protected void saveButtonClick(LabelParametersVO parameters)
-//						throws ValidationException {
-//					LabelsReportParameters labelsReportParameters = new LabelsReportParameters(
-//							selector.getSelectedRecordIds(),
-//							parameters.getLabelConfiguration(),
-//							parameters.getStartPosition(),
-//							parameters.getNumberOfCopies());
-//
-//					getWindow().setContent(new ReportViewer(labelsReportFactory.getReportBuilder(labelsReportParameters),
-//							labelsReportFactory.getFilename(null)));
-//				}
-//
-//				@Override
-//				protected void cancelButtonClick(LabelParametersVO parameters) {
-//					getWindow().close();
-//				}
-//			};
-//		}
-//	}
+	//	public static class ContainerLabelsButton extends WindowButton {
+	//		private final RecordSelector selector;
+	//		private final List<LabelTemplate> labelTemplates;
+	//		private NewReportWriterFactory<LabelsReportParameters> labelsReportFactory;
+	//
+	//		@PropertyId("startPosition") private ComboBox startPosition;
+	//		@PropertyId("numberOfCopies") private TextField copies;
+	//		@PropertyId("labelConfiguration") private ComboBox labelConfiguration;
+	//
+	//		public ContainerLabelsButton(String caption, String windowCaption, RecordSelector selector,
+	//				List<LabelTemplate> labelTemplates, final NewReportWriterFactory<LabelsReportParameters> labelsReportFactory) {
+	//			super(caption, windowCaption, WindowConfiguration.modalDialog("75%", "75%"));
+	//			this.selector = selector;
+	//			this.labelTemplates = labelTemplates;
+	//			this.labelsReportFactory = labelsReportFactory;
+	//		}
+	//
+	//		@Override
+	//		protected Component buildWindowContent() {
+	//			startPosition = new ComboBox($("LabelsButton.startPosition"));
+	//			if (labelTemplates.size() > 0) {
+	//				int size = labelTemplates.get(0).getLabelsReportLayout().getNumberOfLabelsPerPage();
+	//				startPosition.clear();
+	//				for (int i = 1; i <= size; i++) {
+	//					startPosition.addItem(i);
+	//				}
+	//			}
+	//			for (int i = 1; i <= 10; i++) {
+	//				startPosition.addItem(i);
+	//			}
+	//			startPosition.setNullSelectionAllowed(false);
+	//
+	//			labelConfiguration = new ComboBox($("LabelsButton.labelFormat"));
+	//			for (LabelTemplate labelTemplate : labelTemplates) {
+	//				labelConfiguration.addItem(labelTemplate);
+	//				labelConfiguration.setItemCaption(labelTemplate, $(labelTemplate.getName()));
+	//			}
+	//			labelConfiguration.setNullSelectionAllowed(false);
+	//			labelConfiguration.setImmediate(true);
+	//			labelConfiguration.addValueChangeListener(new ValueChangeListener() {
+	//				@Override
+	//				public void valueChange(ValueChangeEvent event) {
+	//					LabelTemplate labelTemplate = (LabelTemplate) event.getProperty().getValue();
+	//					int size = labelTemplate.getLabelsReportLayout().getNumberOfLabelsPerPage();
+	//					startPosition.clear();
+	//					startPosition.removeAllItems();
+	//					for (int i = 1; i <= size; i++) {
+	//
+	//						startPosition.addItem(i);
+	//					}
+	//				}
+	//			});
+	//
+	//			copies = new TextField($("LabelsButton.numberOfCopies"));
+	//			copies.setConverter(Integer.class);
+	//
+	//			return new BaseForm<LabelParametersVO>(
+	//					new LabelParametersVO(labelTemplates.get(0)), this, labelConfiguration, startPosition,
+	//					copies) {
+	//				@Override
+	//				protected void saveButtonClick(LabelParametersVO parameters)
+	//						throws ValidationException {
+	//					LabelsReportParameters labelsReportParameters = new LabelsReportParameters(
+	//							selector.getSelectedRecordIds(),
+	//							parameters.getLabelConfiguration(),
+	//							parameters.getStartPosition(),
+	//							parameters.getNumberOfCopies());
+	//
+	//					getWindow().setContent(new ReportViewer(labelsReportFactory.getReportBuilder(labelsReportParameters),
+	//							labelsReportFactory.getFilename(null)));
+	//				}
+	//
+	//				@Override
+	//				protected void cancelButtonClick(LabelParametersVO parameters) {
+	//					getWindow().close();
+	//				}
+	//			};
+	//		}
+	//	}
 
 	@Override
 	public void setBorrowedMessage(String borrowedMessage) {

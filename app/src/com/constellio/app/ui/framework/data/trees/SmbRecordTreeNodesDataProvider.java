@@ -1,18 +1,5 @@
 package com.constellio.app.ui.framework.data.trees;
 
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.visibleInTrees;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -39,6 +26,13 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.model.services.users.UserServices;
 
+import java.io.IOException;
+import java.util.*;
+
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.visibleInTrees;
+
 public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvider {
 	String taxonomyCode;
 	AppLayerFactory appLayerFactory;
@@ -61,7 +55,8 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
 	}
 
-	public SmbRecordTreeNodesDataProvider(String taxonomieCode, AppLayerFactory appLayerFactory, SessionContext sessionContext) {
+	public SmbRecordTreeNodesDataProvider(String taxonomieCode, AppLayerFactory appLayerFactory,
+										  SessionContext sessionContext) {
 		this.sessionContext = sessionContext;
 		collection = sessionContext.getCurrentCollection();
 		taxonomyCode = taxonomieCode;
@@ -79,7 +74,8 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
 	}
 
 	@Override
-	public LinkableTaxonomySearchResponse getChildrenNodes(String recordId, int start, int maxSize, FastContinueInfos infos) {
+	public LinkableTaxonomySearchResponse getChildrenNodes(String recordId, int start, int maxSize,
+														   FastContinueInfos infos) {
 		ConnectorSmbFolder connectorSmbFolder = esSchemasRecordsServices.getConnectorSmbFolder(recordId);
 
 		LogicalSearchCondition logicalSearchCondition = fromAllSchemasInCollectionOf(connectorSmbFolder, DataStore.RECORDS)

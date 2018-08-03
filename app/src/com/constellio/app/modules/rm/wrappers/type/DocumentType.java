@@ -1,13 +1,13 @@
 package com.constellio.app.modules.rm.wrappers.type;
 
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.List;
+import java.util.Map;
 
 public class DocumentType extends ValueListItem implements SchemaLinkingType {
 	public static final String SCHEMA_TYPE = "ddvDocumentType";
@@ -17,7 +17,7 @@ public class DocumentType extends ValueListItem implements SchemaLinkingType {
 	public static final String TEMPLATES = "templates";
 
 	public DocumentType(Record record,
-			MetadataSchemaTypes types) {
+						MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 

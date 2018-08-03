@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import org.assertj.core.groups.Tuple;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -24,6 +16,13 @@ import com.constellio.model.services.schemas.MetadataSchemasManagerException.Opt
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import org.assertj.core.groups.Tuple;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 
@@ -104,8 +103,8 @@ public class AddEditSchemaRecordPresenterAcceptTest extends ConstellioTest {
 			throws OptimisticLocking {
 		MetadataSchemasManager manager = getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaTypesBuilder types = manager.modify(zeCollection);
-		types.getSchemaType(schemaType).createCustomSchema("custom1").addLabel(Language.French,schemaType + " custom 1");
-		types.getSchemaType(schemaType).createCustomSchema("custom2").addLabel(Language.French,schemaType + " custom 2");
+		types.getSchemaType(schemaType).createCustomSchema("custom1").addLabel(Language.French, schemaType + " custom 1");
+		types.getSchemaType(schemaType).createCustomSchema("custom2").addLabel(Language.French, schemaType + " custom 2");
 		manager.saveUpdateSchemaTypes(types);
 	}
 }

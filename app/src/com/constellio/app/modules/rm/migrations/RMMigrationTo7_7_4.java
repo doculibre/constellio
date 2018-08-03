@@ -16,7 +16,8 @@ public class RMMigrationTo7_7_4 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new RMMigrationTo7_7_4.RMSchemaAlterationFor_7_7_4(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
@@ -24,29 +25,29 @@ public class RMMigrationTo7_7_4 extends MigrationHelper implements MigrationScri
 	class RMSchemaAlterationFor_7_7_4 extends MetadataSchemasAlterationHelper {
 
 		protected RMSchemaAlterationFor_7_7_4(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder categoryDefaultSchema = typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE);
-//			categoryDefaultSchema.getMetadata(Category.TITLE).setMultiLingual(true);
-//			categoryDefaultSchema.getMetadata(Category.DESCRIPTION).setMultiLingual(true);
-//			categoryDefaultSchema.getMetadata(Category.KEYWORDS).setMultiLingual(true);
-//
-//			MetadataSchemaBuilder administrativeUnitDefaultSchema = typesBuilder.getDefaultSchema(AdministrativeUnit.SCHEMA_TYPE);
-//			administrativeUnitDefaultSchema.getMetadata(AdministrativeUnit.TITLE).setMultiLingual(true);
-//			administrativeUnitDefaultSchema.getMetadata(AdministrativeUnit.DESCRIPTION).setMultiLingual(true);
-//
-//			MetadataSchemaBuilder retentionRuleDefaultSchema = typesBuilder.getDefaultSchema(RetentionRule.SCHEMA_TYPE);
-//
-//			retentionRuleDefaultSchema.getMetadata(RetentionRule.TITLE).setMultiLingual(true);
-//			retentionRuleDefaultSchema.getMetadata(RetentionRule.DESCRIPTION).setMultiLingual(true);
-//			retentionRuleDefaultSchema.getMetadata(RetentionRule.COPY_RULES_COMMENT).setMultiLingual(true);
-//			retentionRuleDefaultSchema.getMetadata(RetentionRule.GENERAL_COMMENT).setMultiLingual(true);
-//			retentionRuleDefaultSchema.getMetadata(RetentionRule.JURIDIC_REFERENCE).setMultiLingual(true);
-//			retentionRuleDefaultSchema.getMetadata(RetentionRule.KEYWORDS).setMultiLingual(true);
+			//			categoryDefaultSchema.getMetadata(Category.TITLE).setMultiLingual(true);
+			//			categoryDefaultSchema.getMetadata(Category.DESCRIPTION).setMultiLingual(true);
+			//			categoryDefaultSchema.getMetadata(Category.KEYWORDS).setMultiLingual(true);
+			//
+			//			MetadataSchemaBuilder administrativeUnitDefaultSchema = typesBuilder.getDefaultSchema(AdministrativeUnit.SCHEMA_TYPE);
+			//			administrativeUnitDefaultSchema.getMetadata(AdministrativeUnit.TITLE).setMultiLingual(true);
+			//			administrativeUnitDefaultSchema.getMetadata(AdministrativeUnit.DESCRIPTION).setMultiLingual(true);
+			//
+			//			MetadataSchemaBuilder retentionRuleDefaultSchema = typesBuilder.getDefaultSchema(RetentionRule.SCHEMA_TYPE);
+			//
+			//			retentionRuleDefaultSchema.getMetadata(RetentionRule.TITLE).setMultiLingual(true);
+			//			retentionRuleDefaultSchema.getMetadata(RetentionRule.DESCRIPTION).setMultiLingual(true);
+			//			retentionRuleDefaultSchema.getMetadata(RetentionRule.COPY_RULES_COMMENT).setMultiLingual(true);
+			//			retentionRuleDefaultSchema.getMetadata(RetentionRule.GENERAL_COMMENT).setMultiLingual(true);
+			//			retentionRuleDefaultSchema.getMetadata(RetentionRule.JURIDIC_REFERENCE).setMultiLingual(true);
+			//			retentionRuleDefaultSchema.getMetadata(RetentionRule.KEYWORDS).setMultiLingual(true);
 
 		}
 	}

@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
-import java.util.ArrayList;
-import java.util.List;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -35,6 +28,11 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -133,7 +131,7 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 			User user = getCurrentUser(ConstellioUI.getCurrent().getConstellioFactories().getModelLayerFactory());
 			String cannotDeleteMessage = $(isDeletePossible(schemaCode).getValidationErrors().get(0));
 			if (isDeletePossible(schemaCode).getValidationErrors().get(0).getValidatorErrorCode()
-					== "existingRecordsWithSchema") {
+				== "existingRecordsWithSchema") {
 				boolean areAllRecordsVisible = appSchemasServices.areAllRecordsVisible(collection, schemaCode, user);
 				CannotDeleteWindow cannotDeleteWindow = new CannotDeleteWindow(cannotDeleteMessage);
 				cannotDeleteWindow

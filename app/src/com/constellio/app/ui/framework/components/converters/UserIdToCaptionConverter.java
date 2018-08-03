@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.components.converters;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
@@ -14,6 +8,11 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.vaadin.data.util.converter.Converter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class UserIdToCaptionConverter implements Converter<String, String> {
 

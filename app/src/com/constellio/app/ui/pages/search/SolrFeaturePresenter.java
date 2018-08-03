@@ -1,11 +1,10 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.data.SolrFeatureDataProvider;
+import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.User;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.solr.client.solrj.ResponseParser;
@@ -17,11 +16,11 @@ import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.ltr.feature.SolrFeature;
 
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.framework.data.SolrFeatureDataProvider;
-import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.records.wrappers.User;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 
@@ -163,8 +162,9 @@ public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 			}
 
 			String basePath = baseUrl;
-			if (collection != null)
+			if (collection != null) {
 				basePath += "/" + collection;
+			}
 
 			if (SolrRequest.METHOD.DELETE == request.getMethod()) {
 				return new HttpDelete(basePath + path + wparams.toQueryString());

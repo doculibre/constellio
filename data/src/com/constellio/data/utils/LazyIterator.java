@@ -1,9 +1,9 @@
 package com.constellio.data.utils;
 
-import java.util.Iterator;
-
 import com.constellio.data.utils.LazyIteratorRuntimeException.LazyIteratorRuntimeException_IncorrectUsage;
 import com.constellio.data.utils.LazyIteratorRuntimeException.LazyIteratorRuntimeException_RemoveNotAvailable;
+
+import java.util.Iterator;
 
 public abstract class LazyIterator<T> implements Iterator<T> {
 

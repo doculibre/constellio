@@ -9,9 +9,9 @@ import com.vaadin.event.dd.acceptcriteria.AcceptAll;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 
 public class UserDocumentsWindow extends BaseWindow implements DropHandler {
-	
+
 	private ListUserDocumentsViewImpl view;
-	
+
 	public UserDocumentsWindow() {
 		setZIndex(null);
 		setWidth("80%");
@@ -24,7 +24,7 @@ public class UserDocumentsWindow extends BaseWindow implements DropHandler {
 		view = new ListUserDocumentsViewImpl();
 		view.enter(null);
 		setContent(view);
-		
+
 		ConstellioUI.getCurrent().addWindow(this);
 		view.drop(event);
 	}

@@ -1,16 +1,8 @@
 package com.constellio.app.ui.pages.imports.authorization;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import org.apache.commons.io.FileUtils;
-
-import com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices;
 import com.constellio.app.services.schemas.bulkImport.BulkImportResults;
 import com.constellio.app.services.schemas.bulkImport.ImportError;
+import com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.imports.ImportFilePresenterInterface;
@@ -18,6 +10,13 @@ import com.constellio.app.ui.pages.imports.ImportFileView;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ImportAuthorizationsFilePresenter extends BasePresenter<ImportFileView> implements ImportFilePresenterInterface {
 
@@ -46,7 +45,7 @@ public class ImportAuthorizationsFilePresenter extends BasePresenter<ImportFileV
 					for (ImportError error : errors.getImportErrors()) {
 						view.showErrorMessage(
 								$("ImportAuthorizationsFileViewImpl.errorWith") + " " + error.getInvalidElementId() + " : "
-										+ error
+								+ error
 										.getErrorMessage());
 					}
 					view.showImportCompleteMessage();

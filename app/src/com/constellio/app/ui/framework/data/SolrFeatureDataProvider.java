@@ -1,14 +1,8 @@
 package com.constellio.app.ui.framework.data;
 
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.entities.SearchBoostVO;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.search.SearchBoostManager;
-import com.constellio.model.services.search.entities.SearchBoost;
-import org.apache.solr.ltr.feature.Feature;
 import org.apache.solr.ltr.feature.SolrFeature;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

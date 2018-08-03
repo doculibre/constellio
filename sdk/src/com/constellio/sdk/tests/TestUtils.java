@@ -1,33 +1,32 @@
 package com.constellio.sdk.tests;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.i18n.i18n;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.events.EventBusManager;
+import com.constellio.data.events.SDKEventBusSendingService;
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.entries.ManualDataEntry;
+import com.constellio.model.entities.security.XMLAuthorizationDetails;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationRuntimeException;
+import com.constellio.model.services.contents.ContentFactory;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException.ValidationException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.sdk.tests.setups.SchemaShortcuts;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -45,38 +44,21 @@ import org.joda.time.LocalDateTime;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.constellio.app.modules.rm.wrappers.DecommissioningList;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.data.events.EventBusManager;
-import com.constellio.data.events.SDKEventBusSendingService;
-import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataNetworkLink;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.ManualDataEntry;
-import com.constellio.model.entities.security.XMLAuthorizationDetails;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.frameworks.validation.ValidationError;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.frameworks.validation.ValidationRuntimeException;
-import com.constellio.model.services.contents.ContentFactory;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException.ValidationException;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestUtils {
 
@@ -226,7 +208,7 @@ public class TestUtils {
 
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public static Condition<? super Object> unmodifiableCollection() {
 		return new Condition() {
 
@@ -288,7 +270,7 @@ public class TestUtils {
 	}
 
 	public static <K, V> Map<K, V> asMap(K key1, V value1, K key2, V value2, K key3, V value3, K key4, V value4, K key5,
-			V value5) {
+										 V value5) {
 		Map<K, V> map = new HashMap<K, V>();
 		map.put(key1, value1);
 		map.put(key2, value2);
@@ -299,7 +281,7 @@ public class TestUtils {
 	}
 
 	public static <K, V> Map<K, V> asMap(K key1, V value1, K key2, V value2, K key3, V value3, K key4, V value4, K key5,
-			V value5, K key6, V value6) {
+										 V value5, K key6, V value6) {
 		Map<K, V> map = new HashMap<K, V>();
 		map.put(key1, value1);
 		map.put(key2, value2);
@@ -323,8 +305,9 @@ public class TestUtils {
 		return map;
 	}
 
-	public static Map<String, Object> asStringObjectMap(String key1, Object value1, String key2, Object value2, String key3,
-			Object value3) {
+	public static Map<String, Object> asStringObjectMap(String key1, Object value1, String key2, Object value2,
+														String key3,
+														Object value3) {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(key1, value1);
 		map.put(key2, value2);
@@ -759,7 +742,7 @@ public class TestUtils {
 		}
 
 		public <T> ListAssert<T> extractingMetadata(String metadata) {
-			List<Tuple> tuples = getTuples(new String[] { metadata });
+			List<Tuple> tuples = getTuples(new String[]{metadata});
 
 			List<T> untupledValues = new ArrayList<>();
 			for (Tuple tuple : tuples) {
@@ -915,7 +898,8 @@ public class TestUtils {
 		return extractingSimpleCodeAndParameters(e.getErrors(), parameters);
 	}
 
-	public static List<Tuple> extractingSimpleCodeAndParameters(com.constellio.model.frameworks.validation.ValidationException e,
+	public static List<Tuple> extractingSimpleCodeAndParameters(
+			com.constellio.model.frameworks.validation.ValidationException e,
 			String... parameters) {
 		return extractingSimpleCodeAndParameters(e.getValidationErrors(), parameters);
 	}
@@ -1083,10 +1067,10 @@ public class TestUtils {
 		for (MetadataNetworkLink link : schemas.getTypes().getMetadataNetwork().getLinks()) {
 
 			if (!link.getToMetadata().isGlobal()
-					&& !link.getFromMetadata().isGlobal()
-					&& !link.getFromMetadata().getCode().startsWith("user_")
-					&& !link.getFromMetadata().getCode().startsWith("user_")
-					&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")) {
+				&& !link.getFromMetadata().isGlobal()
+				&& !link.getFromMetadata().getCode().startsWith("user_")
+				&& !link.getFromMetadata().getCode().startsWith("user_")
+				&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")) {
 				Tuple tuple = new Tuple();
 				tuple.addData(link.getFromMetadata().getCode());
 				tuple.addData(link.getToMetadata().getCode());
@@ -1103,7 +1087,8 @@ public class TestUtils {
 		linkEventBus(modelLayerFactory1.getDataLayerFactory(), modelLayerFactory2.getDataLayerFactory());
 	}
 
-	public static SDKEventBusSendingService linkEventBus(DataLayerFactory dataLayerFactory1, DataLayerFactory dataLayerFactory2) {
+	public static SDKEventBusSendingService linkEventBus(DataLayerFactory dataLayerFactory1,
+														 DataLayerFactory dataLayerFactory2) {
 		EventBusManager eventBusManager1 = dataLayerFactory1.getEventBusManager();
 		EventBusManager eventBusManager2 = dataLayerFactory2.getEventBusManager();
 		assertThat(eventBusManager1).isNotSameAs(eventBusManager2);

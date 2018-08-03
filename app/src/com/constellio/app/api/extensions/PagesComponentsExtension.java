@@ -14,11 +14,13 @@ public class PagesComponentsExtension {
 
 	}
 
-	public void decorateMainComponentAfterViewAssembledOnViewEntered(DecorateMainComponentAfterInitExtensionParams params) {
+	public void decorateMainComponentAfterViewAssembledOnViewEntered(
+			DecorateMainComponentAfterInitExtensionParams params) {
 
 	}
 
-	public void decorateMainComponentBeforeViewAssembledOnViewEntered(DecorateMainComponentAfterInitExtensionParams params) {
+	public void decorateMainComponentBeforeViewAssembledOnViewEntered(
+			DecorateMainComponentAfterInitExtensionParams params) {
 
 	}
 

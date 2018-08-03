@@ -1,18 +1,6 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.File;
-import java.util.List;
-
-import org.junit.FixMethodOrder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.runners.MethodSorters;
-
 import com.carrotsearch.junitbenchmarks.BenchmarkOptions;
-import com.carrotsearch.junitbenchmarks.BenchmarkRule;
 import com.carrotsearch.junitbenchmarks.annotation.BenchmarkHistoryChart;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.test.RandomWordsIterator;
@@ -26,6 +14,14 @@ import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
 import com.constellio.sdk.tests.annotations.PerformanceTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
+import java.io.File;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 @PerformanceTest
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

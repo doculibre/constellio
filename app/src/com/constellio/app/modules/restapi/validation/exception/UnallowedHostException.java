@@ -7,11 +7,11 @@ import javax.ws.rs.core.Response;
 
 public class UnallowedHostException extends BaseRestApiException {
 
-    private static final String CODE = "unallowedHost";
+	private static final String CODE = "unallowedHost";
 
-    public UnallowedHostException(String host) {
-        status = Response.Status.FORBIDDEN;
+	public UnallowedHostException(String host) {
+		status = Response.Status.FORBIDDEN;
 
-        buildValidationError(CODE, ImmutableMap.<String, Object>builder().put("host", host).build());
-    }
+		buildValidationError(CODE, ImmutableMap.<String, Object>builder().put("host", host).build());
+	}
 }

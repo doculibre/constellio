@@ -1,9 +1,5 @@
 package com.constellio.app.api.extensions;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
@@ -12,13 +8,18 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+
 public class TaxonomyPageExtension implements Serializable {
 
 	public ExtensionBooleanResult canManageTaxonomy(User user, Taxonomy taxonomy) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
-	public List<TaxonomyManagementClassifiedType> getClassifiedTypesFor(GetTaxonomyManagementClassifiedTypesParams params) {
+	public List<TaxonomyManagementClassifiedType> getClassifiedTypesFor(
+			GetTaxonomyManagementClassifiedTypesParams params) {
 		return Collections.emptyList();
 	}
 

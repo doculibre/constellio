@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.*;
-
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -23,15 +18,13 @@ import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyi
 import com.vaadin.data.Validator;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchResultSimpleTable extends SelectionTableAdapter implements SearchResultTable {
 
@@ -101,7 +94,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public List<String> getSelectedRecordIds() {
 		List<String> result = new ArrayList<>();
 		for (Object itemId : selectedItemIds) {
-//			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
+			//			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
 			result.add((String) itemId);
 		}
 		return result;
@@ -110,7 +103,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public List<String> getUnselectedRecordIds() {
 		List<String> result = new ArrayList<>();
 		for (Object itemId : deselectedItemIds) {
-//			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
+			//			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
 			result.add((String) itemId);
 		}
 		return result;
@@ -171,7 +164,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 				boolean somethingSelected = event.isSelectAll() || !event.getSelected().isEmpty();
 				for (Component component : extra) {
 					if (component instanceof BatchProcessingButton
-							|| component instanceof BatchProcessingModifyingOneMetadataButton) {
+						|| component instanceof BatchProcessingModifyingOneMetadataButton) {
 						component.setEnabled(recordVOContainer != null && recordVOContainer.size() > 0);
 					} else {
 						component.setEnabled(somethingSelected);
@@ -199,7 +192,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		private final boolean selectAll;
 
 		public SelectionChangeEvent(SearchResultSimpleTable table, Set<Object> selected, Set<Object> deselected,
-				boolean selectAll) {
+									boolean selectAll) {
 			this.table = table;
 			this.selected = selected;
 			this.deselected = deselected;

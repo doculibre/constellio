@@ -1,17 +1,17 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.SearchBoostVO;
 import com.constellio.app.ui.framework.builders.SearchBoostToVOBuilder;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.entities.SearchBoost;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class SearchBoostDataProvider extends AbstractDataProvider {
@@ -26,7 +26,7 @@ public class SearchBoostDataProvider extends AbstractDataProvider {
 	private String type;
 
 	public SearchBoostDataProvider(String type, String collection, SearchBoostToVOBuilder voBuilder,
-			ModelLayerFactory modelLayerFactory) {
+								   ModelLayerFactory modelLayerFactory) {
 		this.type = type;
 		this.voBuilder = voBuilder;
 		this.collection = collection;

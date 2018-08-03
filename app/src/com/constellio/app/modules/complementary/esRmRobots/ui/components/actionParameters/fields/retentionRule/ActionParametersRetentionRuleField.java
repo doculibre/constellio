@@ -5,9 +5,9 @@ import java.util.List;
 public interface ActionParametersRetentionRuleField {
 
 	void setOptions(List<String> options);
-	
+
 	String getFieldValue();
-	
+
 	void setFieldValue(String value);
 
 }

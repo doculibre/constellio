@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.entities.FormMetadataVO;
@@ -26,8 +19,13 @@ import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.*;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.TextField;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMetadataView {
 	final AddEditMetadataPresenter presenter;
@@ -122,7 +120,8 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		return newForm(editMode, inherited);
 	}
 
-	private void metadataValueTypeChanged(MetadataValueType value, Boolean multivalue, boolean inherited, boolean editMode) {
+	private void metadataValueTypeChanged(MetadataValueType value, Boolean multivalue, boolean inherited,
+										  boolean editMode) {
 		if (value != null) {
 			if (multivalue == null) {
 				multivalue = false;
@@ -147,10 +146,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				}
 			}
 
-			if(value == MetadataValueType.REFERENCE && multivalue) {
+			if (value == MetadataValueType.REFERENCE && multivalue) {
 				sortableField.setValue(false);
 				sortableField.setEnabled(false);
-			} else if(value == MetadataValueType.REFERENCE) {
+			} else if (value == MetadataValueType.REFERENCE) {
 				sortableField.setEnabled(true);
 			}
 
@@ -202,52 +201,52 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		sortableField.setEnabled(true);
 
 		switch (value) {
-		case BOOLEAN:
-			if (multivalueType.getValue()) {
-				multivalueType.setValue(false);
-			}
-			multivalueType.setEnabled(false);
-			sortableField.setEnabled(false);
-			break;
-		case TEXT:
-			multivalueType.setEnabled(true);
-			sortableField.setEnabled(false);
-			break;
-		case CONTENT:
-			multivalueType.setEnabled(true);
-			sortableField.setEnabled(false);
-			break;
-		case DATE:
-			multivalueType.setEnabled(true);
-			break;
-		case DATE_TIME:
-			multivalueType.setEnabled(true);
-			break;
-		case INTEGER:
-			multivalueType.setEnabled(true);
-			break;
-		case REFERENCE:
-			if(multivalue) {
-				sortableField.setValue(false);
+			case BOOLEAN:
+				if (multivalueType.getValue()) {
+					multivalueType.setValue(false);
+				}
+				multivalueType.setEnabled(false);
 				sortableField.setEnabled(false);
-			}
-			multivalueType.setEnabled(true);
-			autocomplete.setValue(false);
-			autocomplete.setEnabled(false);
-			searchableField.setValue(false);
-			searchableField.setEnabled(false);
-			refType.setEnabled(true);
-			refType.setRequired(!editMode);
-			break;
-		case STRING:
-			multivalueType.setEnabled(true);
-			break;
-		case NUMBER:
-			multivalueType.setEnabled(true);
-			break;
-		case STRUCTURE:
-			multivalueType.setEnabled(true);
-			break;
+				break;
+			case TEXT:
+				multivalueType.setEnabled(true);
+				sortableField.setEnabled(false);
+				break;
+			case CONTENT:
+				multivalueType.setEnabled(true);
+				sortableField.setEnabled(false);
+				break;
+			case DATE:
+				multivalueType.setEnabled(true);
+				break;
+			case DATE_TIME:
+				multivalueType.setEnabled(true);
+				break;
+			case INTEGER:
+				multivalueType.setEnabled(true);
+				break;
+			case REFERENCE:
+				if (multivalue) {
+					sortableField.setValue(false);
+					sortableField.setEnabled(false);
+				}
+				multivalueType.setEnabled(true);
+				autocomplete.setValue(false);
+				autocomplete.setEnabled(false);
+				searchableField.setValue(false);
+				searchableField.setEnabled(false);
+				refType.setEnabled(true);
+				refType.setRequired(!editMode);
+				break;
+			case STRING:
+				multivalueType.setEnabled(true);
+				break;
+			case NUMBER:
+				multivalueType.setEnabled(true);
+				break;
+			case STRUCTURE:
+				multivalueType.setEnabled(true);
+				break;
 		}
 	}
 
@@ -257,26 +256,26 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		searchableField.setValue(false);
 
 		switch (value) {
-		case BOOLEAN:
-			sortableField.setValue(false);
-		case TEXT:
-			sortableField.setValue(false);
-		case CONTENT:
-			sortableField.setValue(false);
-		case REFERENCE:
-			break;
-		case DATE:
-			break;
-		case DATE_TIME:
-			break;
-		case INTEGER:
-			break;
-		case STRING:
-			break;
-		case NUMBER:
-			break;
-		case STRUCTURE:
-			break;
+			case BOOLEAN:
+				sortableField.setValue(false);
+			case TEXT:
+				sortableField.setValue(false);
+			case CONTENT:
+				sortableField.setValue(false);
+			case REFERENCE:
+				break;
+			case DATE:
+				break;
+			case DATE_TIME:
+				break;
+			case INTEGER:
+				break;
+			case STRING:
+				break;
+			case NUMBER:
+				break;
+			case STRUCTURE:
+				break;
 		}
 	}
 
@@ -293,7 +292,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		labelsField.setId("labels");
 		labelsField.addStyleName("labels");
 
-		if(inherited) {
+		if (inherited) {
 			parentMetadataLabel = new TextField();
 			parentMetadataLabel.setCaption($("AddEditMetadataView.parentLabel"));
 			parentMetadataLabel.addStyleName("labels");
@@ -418,7 +417,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		advancedSearchField = new CheckBox() {
 			@Override
 			public void setEnabled(boolean enabled) {
-				if(!formMetadataVO.getLocalcode().equals(Schemas.PATH.getLocalCode())) {
+				if (!formMetadataVO.getLocalcode().equals(Schemas.PATH.getLocalCode())) {
 					super.setEnabled(enabled);
 				}
 				super.setEnabled(true);
@@ -466,13 +465,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		multiLingualField.setRequired(false);
 		multiLingualField.setId("multiLingual");
 		multiLingualField.setVisible(formMetadataVO.getValueType() == MetadataValueType.STRING
-				|| formMetadataVO.getValueType() == MetadataValueType.TEXT);
+									 || formMetadataVO.getValueType() == MetadataValueType.TEXT);
 
 		// TODO désactivé
 		multiLingualField.setVisible(false);
 
 
-				customAttributesField = new ArrayList<>();
+		customAttributesField = new ArrayList<>();
 		for (String attribute : presenter.getAvailableExtraAttributes()) {
 			CheckBox attributeField = new CheckBox();
 			attributeField.setCaption($("CustomMetadataAttribute." + attribute));
@@ -530,9 +529,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		fields.add(defaultValueField);
 		fields.add(displayType);
 
-        if(parentMetadataLabel != null) {
-            fields.add(2, parentMetadataLabel);
-        }
+		if (parentMetadataLabel != null) {
+			fields.add(2, parentMetadataLabel);
+		}
 		metadataForm = new MetadataForm(formMetadataVO, this, fields.toArray(new Field[0])) {//, displayedHorizontallyField) {
 
 			@Override
@@ -578,20 +577,20 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 			}
 		};
 
-        boolean isShowUnique = true;
+		boolean isShowUnique = true;
 
-        if(editMode){
+		if (editMode) {
 			isShowUnique = presenter.isShowUniqueComboBox();
 		}
 
-		if(!isShowUnique) {
+		if (!isShowUnique) {
 			uniqueField.setCaption(uniqueField.getCaption() + " " + $("AddEditMetadataView.containNonUniqueValueAlready"));
 		}
 
-		if(!formMetadataVO.getLocalcode().toLowerCase().equals("code")) {
+		if (!formMetadataVO.getLocalcode().toLowerCase().equals("code")) {
 			uniqueField.setEnabled(formMetadataVO.getValueType() == MetadataValueType.STRING && isShowUnique);
 			uniqueField.setVisible(formMetadataVO.getValueType() == MetadataValueType.STRING);
-		} else  {
+		} else {
 			uniqueField.setEnabled(false);
 			uniqueField.setVisible(true);
 		}
@@ -643,7 +642,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		inputType.setEnabled(false);
 		multivalueType.setEnabled(false);
 		enabledField.setEnabled(false);
-//		autocomplete.setEnabled(false);
+		//		autocomplete.setEnabled(false);
 		duplicableField.setEnabled(false);
 		inputMask.setEnabled(false);
 		defaultValueField.setEnabled(false);
@@ -651,7 +650,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		if (!formMetadataVO.getLocalcode().equals(Schemas.LEGACY_ID.getLocalCode())) {
 			requiredField.setEnabled(false);
 			searchableField.setEnabled(false);
-			if(!formMetadataVO.getLocalcode().equals(Schemas.PATH.getLocalCode())) {
+			if (!formMetadataVO.getLocalcode().equals(Schemas.PATH.getLocalCode())) {
 				advancedSearchField.setEnabled(false);
 			}
 		}

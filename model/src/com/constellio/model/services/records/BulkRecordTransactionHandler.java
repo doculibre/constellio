@@ -1,18 +1,5 @@
 package com.constellio.model.services.records;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.threads.ConstellioThread;
@@ -24,6 +11,14 @@ import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntime
 import com.constellio.model.services.records.BulkRecordTransactionHandlerRuntimeException.BulkRecordTransactionHandlerRuntimeException_Interrupted;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class BulkRecordTransactionHandler {
 
@@ -67,7 +62,7 @@ public class BulkRecordTransactionHandler {
 	}
 
 	public BulkRecordTransactionHandler(RecordServices recordServices, String resourceName,
-			BulkRecordTransactionHandlerOptions options) {
+										BulkRecordTransactionHandlerOptions options) {
 		this.recordServices = recordServices;
 		this.options = options;
 		this.resourceName = resourceName;
@@ -226,15 +221,15 @@ public class BulkRecordTransactionHandler {
 
 						switch (options.recordModificationImpactHandling) {
 
-						case IN_SAME_TRANSACTION:
-							recordServices.execute(transaction);
-							break;
-						case START_BATCH_PROCESS:
-							recordServices.executeHandlingImpactsAsync(transaction);
-							break;
-						case NO_IMPACT_HANDLING:
-							recordServices.executeWithImpactHandler(transaction, null);
-							break;
+							case IN_SAME_TRANSACTION:
+								recordServices.execute(transaction);
+								break;
+							case START_BATCH_PROCESS:
+								recordServices.executeHandlingImpactsAsync(transaction);
+								break;
+							case NO_IMPACT_HANDLING:
+								recordServices.executeWithImpactHandler(transaction, null);
+								break;
 						}
 					} catch (Exception e) {
 						if (!options.isContinueOnExceptions()) {
@@ -282,7 +277,7 @@ public class BulkRecordTransactionHandler {
 
 	private boolean isQueueEmptyAndWorkersWaiting() {
 		return tasks.isEmpty() && availableWorkers.get() == threadList.size()
-				&& createdTasksCounter.get() == completedTasksCounter.get();
+			   && createdTasksCounter.get() == completedTasksCounter.get();
 	}
 
 	static class BulkRecordTransactionHandlerTask {
@@ -292,7 +287,7 @@ public class BulkRecordTransactionHandler {
 		private Map<String, Record> referencedRecords;
 
 		BulkRecordTransactionHandlerTask(List<Record> records,
-				Map<String, Record> referencedRecords) {
+										 Map<String, Record> referencedRecords) {
 			this.referencedRecords = referencedRecords;
 			this.records = records;
 		}
@@ -328,7 +323,7 @@ public class BulkRecordTransactionHandler {
 
 	public int getMaximumCountOfRecords() {
 		return (options.getNumberOfThreads() * options.getRecordsPerBatch())
-				+ (options.getQueueSize() * options.getRecordsPerBatch());
+			   + (options.getQueueSize() * options.getRecordsPerBatch());
 	}
 
 	public int getNumberOfThreads() {

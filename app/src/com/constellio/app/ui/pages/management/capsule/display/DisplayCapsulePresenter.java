@@ -10,19 +10,19 @@ import com.constellio.model.entities.records.wrappers.User;
 
 public class DisplayCapsulePresenter extends BasePresenter<DisplayCapsuleView> {
 
-    private SchemaPresenterUtils utils;
+	private SchemaPresenterUtils utils;
 
-    public DisplayCapsulePresenter(DisplayCapsuleView view) {
-        super(view);
-        utils = new SchemaPresenterUtils(Capsule.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
-    }
+	public DisplayCapsulePresenter(DisplayCapsuleView view) {
+		super(view);
+		utils = new SchemaPresenterUtils(Capsule.DEFAULT_SCHEMA, view.getConstellioFactories(), view.getSessionContext());
+	}
 
-    @Override
-    protected boolean hasPageAccess(String params, User user) {
-        return  user.has(CorePermissions.ACCESS_SEARCH_CAPSULE).globally();
-    }
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.ACCESS_SEARCH_CAPSULE).globally();
+	}
 
-    public RecordVO getRecordVO(String id) {
-        return new RecordToVOBuilder().build(utils.getRecord(id), RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
-    }
+	public RecordVO getRecordVO(String id) {
+		return new RecordToVOBuilder().build(utils.getRecord(id), RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext());
+	}
 }

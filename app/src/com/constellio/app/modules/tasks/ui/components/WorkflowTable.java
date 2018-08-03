@@ -1,7 +1,5 @@
 package com.constellio.app.modules.tasks.ui.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.IconButton;
@@ -17,6 +15,8 @@ import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class WorkflowTable extends RecordVOTable {
 	public static final String PREFIX = "images/icons/task/";
@@ -50,7 +50,7 @@ public class WorkflowTable extends RecordVOTable {
 					recordVO = ((RecordVOItem) item).getRecord();
 				}
 
-				if(recordVO != null) {
+				if (recordVO != null) {
 					presenter.registerPreviousSelectedTab();
 					presenter.displayWorkflowInstanceRequested(recordVO);
 				}

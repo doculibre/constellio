@@ -1,23 +1,19 @@
 package com.constellio.app.ui.pages.management.app;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Upload;
 import com.vaadin.ui.Upload.Receiver;
 import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 @SuppressWarnings("serial")
 public class AppManagementView extends BaseViewImpl implements AdminViewGroup {

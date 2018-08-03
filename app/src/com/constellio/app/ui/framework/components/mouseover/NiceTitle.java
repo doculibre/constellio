@@ -1,8 +1,5 @@
 package com.constellio.app.ui.framework.components.mouseover;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.vaadin.server.AbstractExtension;
@@ -11,17 +8,19 @@ import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 
 @com.vaadin.annotations.JavaScript("theme://nicetitle/nicetitle.js")
 @com.vaadin.annotations.StyleSheet("theme://nicetitle/nicetitle.css")
 public class NiceTitle extends AbstractExtension {
-	
+
 	public static final String DISABLED_STYLE = "nicetitle-link-disabled";
 
 	private Component component;
 
 	private String title;
-	
+
 	private boolean visibleWhenDisabled;
 
 	public NiceTitle(Component component, String title) {
@@ -51,7 +50,7 @@ public class NiceTitle extends AbstractExtension {
 			runJavascript();
 		}
 	}
-	
+
 	private void runJavascript() {
 		String titleEscaped = StringEscapeUtils.escapeJavaScript(title);
 		String componentId = component.getId();
@@ -60,7 +59,7 @@ public class NiceTitle extends AbstractExtension {
 			component.setId(componentId);
 		}
 		component.addStyleName("nicetitle-link");
-		
+
 		StringBuilder js = new StringBuilder();
 		String getById = "document.getElementById(\"" + componentId + "\")";
 		js.append("if (" + getById + ") {");
@@ -72,7 +71,7 @@ public class NiceTitle extends AbstractExtension {
 		js.append(";");
 		js.append("makeNiceTitleA(" + getById + ")");
 		js.append("}");
-		
+
 		JavaScript javascript = JavaScript.getCurrent();
 		javascript.execute(js.toString());
 	}

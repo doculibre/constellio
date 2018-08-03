@@ -1,7 +1,5 @@
 package com.constellio.app.modules.robots.ui.pages;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.ui.navigation.RobotViews;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -13,6 +11,8 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ListRootRobotsPresenter extends BaseRobotPresenter<ListRootRobotsView> {
 	private RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
@@ -45,9 +45,9 @@ public class ListRootRobotsPresenter extends BaseRobotPresenter<ListRootRobotsVi
 	public void addButtonClicked() {
 		view.navigate().to(RobotViews.class).addRobot(null);
 	}
-	
+
 	public void backButtonClicked() {
 		view.navigate().to().adminModule();
 	}
-	
+
 }

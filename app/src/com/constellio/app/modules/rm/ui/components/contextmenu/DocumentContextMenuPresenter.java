@@ -82,7 +82,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 		return openForRequested(recordVO.getId());
 	}
 
-	public boolean hasMetadataReport(){
+	public boolean hasMetadataReport() {
 		return !ReportGeneratorUtils.getPrintableReportTemplate(presenterUtils.appLayerFactory(), presenterUtils.getCollection(), getDocumentVO().getSchema().getCode(), PrintableReportListPossibleType.DOCUMENT).isEmpty();
 	}
 

@@ -1,8 +1,8 @@
 package com.constellio.app.servlet;
 
-import javax.servlet.ServletContextEvent;
-
 import org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener;
+
+import javax.servlet.ServletContextEvent;
 
 public class ConstellioCmisRepositoryContextListener extends CmisRepositoryContextListener {
 
@@ -19,7 +19,6 @@ public class ConstellioCmisRepositoryContextListener extends CmisRepositoryConte
 			super.contextInitialized(sce);
 		}
 	}
-
 
 
 	private boolean isEnabled() {

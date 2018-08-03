@@ -1,14 +1,14 @@
 package com.constellio.model.conf.ldap.services;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
 import com.constellio.model.conf.ldap.user.LDAPGroup;
 import com.constellio.model.conf.ldap.user.LDAPUser;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public interface LDAPServices {
 
@@ -16,13 +16,13 @@ public interface LDAPServices {
 			throws CouldNotConnectUserToLDAP;
 
 	List<String> getTestSynchronisationUsersNames(LDAPServerConfiguration ldapServerConfiguration,
-			LDAPUserSyncConfiguration ldapUserSyncConfiguration);
+												  LDAPUserSyncConfiguration ldapUserSyncConfiguration);
 
 	List<String> getTestSynchronisationGroups(LDAPServerConfiguration ldapServerConfiguration,
-			LDAPUserSyncConfiguration ldapUserSyncConfiguration);
+											  LDAPUserSyncConfiguration ldapUserSyncConfiguration);
 
 	LDAPUsersAndGroups importUsersAndGroups(LDAPServerConfiguration serverConfiguration,
-			LDAPUserSyncConfiguration userSyncConfiguration, String url);
+											LDAPUserSyncConfiguration userSyncConfiguration, String url);
 
 	class LDAPUsersAndGroups {
 		Set<LDAPGroup> groups = new HashSet<>();

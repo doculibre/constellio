@@ -1,12 +1,12 @@
 package com.constellio.model.services.taxonomies;
 
-import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
-
 import com.constellio.data.events.Event;
 import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusListener;
 import com.constellio.data.events.EventBusManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
 
 public class EventBusTaxonomiesSearchServicesCache implements TaxonomiesSearchServicesCache, EventBusListener {
 
@@ -21,7 +21,7 @@ public class EventBusTaxonomiesSearchServicesCache implements TaxonomiesSearchSe
 	EventBus eventBus;
 
 	public EventBusTaxonomiesSearchServicesCache(TaxonomiesSearchServicesCache nestedCache,
-			EventBusManager eventBusManager) {
+												 EventBusManager eventBusManager) {
 		this.nestedCache = nestedCache;
 		this.eventBus = eventBusManager.createEventBus("taxonomiesHasChildren", EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 		this.eventBus.register(this);
@@ -66,28 +66,28 @@ public class EventBusTaxonomiesSearchServicesCache implements TaxonomiesSearchSe
 	@Override
 	public void onEventReceived(Event event) {
 		switch (event.getType()) {
-		case INVALIDATE_ALL_EVENT_TYPE:
-			nestedCache.invalidateAll();
-			break;
+			case INVALIDATE_ALL_EVENT_TYPE:
+				nestedCache.invalidateAll();
+				break;
 
-		case INVALIDATE_RECORD_EVENT_TYPE:
-			nestedCache.invalidateRecord(event.<String>getData());
-			break;
+			case INVALIDATE_RECORD_EVENT_TYPE:
+				nestedCache.invalidateRecord(event.<String>getData());
+				break;
 
-		case INVALIDATE_WITH_CHILDREN_EVENT_TYPE:
-			nestedCache.invalidateWithChildren(event.<String>getData());
-			break;
+			case INVALIDATE_WITH_CHILDREN_EVENT_TYPE:
+				nestedCache.invalidateWithChildren(event.<String>getData());
+				break;
 
-		case INVALIDATE_WITHOUT_CHILDREN_EVENT_TYPE:
-			nestedCache.invalidateWithoutChildren(event.<String>getData());
-			break;
+			case INVALIDATE_WITHOUT_CHILDREN_EVENT_TYPE:
+				nestedCache.invalidateWithoutChildren(event.<String>getData());
+				break;
 
-		case INVALIDATE_USER_EVENT_TYPE:
-			nestedCache.invalidateUser(event.<String>getData());
-			break;
+			case INVALIDATE_USER_EVENT_TYPE:
+				nestedCache.invalidateUser(event.<String>getData());
+				break;
 
-		default:
-			throw new ImpossibleRuntimeException("Unsupported event type " + event.getType());
+			default:
+				throw new ImpossibleRuntimeException("Unsupported event type " + event.getType());
 
 		}
 	}

@@ -1,20 +1,5 @@
 package com.constellio.app.ui.pages.globalGroup;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.sdk.tests.MockedNavigation;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.GlobalGroupVO;
@@ -27,6 +12,20 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
+import com.constellio.sdk.tests.MockedNavigation;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 
@@ -38,7 +37,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 	@Mock UserServices userServices;
 	@Mock GlobalGroupVO heroesGlobalGroupVO;
 	MockedNavigation navigator;
-    @Mock CoreViews coreView;
+	@Mock CoreViews coreView;
 	@Mock UserCredentialsManager userCredentialsManager;
 	@Mock UserCredential dakotaCredential, newDakotaCredential;
 	@Mock GlobalGroup heroes, legends;
@@ -56,7 +55,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 		globalGroups = new ArrayList<>();
 		globalGroups.add(heroes);
 
-        navigator = new MockedNavigation();
+		navigator = new MockedNavigation();
 
 		when(globalGroupView.getConstellioFactories()).thenReturn(mockedFactories.getConstellioFactories());
 		when(globalGroupView.getSessionContext()).thenReturn(FakeSessionContext.dakotaInCollection(zeCollection));
@@ -214,6 +213,6 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 		presenter.addSubGroupClicked(heroesGlobalGroupVO);
 
 		verify(globalGroupView.navigateTo()).url(NavigatorConfigurationService.GROUP_ADD_EDIT
-				+ "/groupList/groupDisplay/username%253Dcharles%253BparentGlobalGroupCode%253Dheroes%253BglobalGroupCode%253Dheroes");
+												 + "/groupList/groupDisplay/username%253Dcharles%253BparentGlobalGroupCode%253Dheroes%253BglobalGroupCode%253Dheroes");
 	}
 }

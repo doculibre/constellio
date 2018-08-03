@@ -1,23 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -48,22 +30,22 @@ import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.vaadin.addons.lazyquerycontainer.*;
+
+import java.io.Serializable;
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class LookupField<T extends Serializable> extends CustomField<T> {
-	
+
 	public static final String STYLE_NAME = "lookup";
 	public static final String ERROR_STYLE_NAME = STYLE_NAME + "-error";
 	public static final String AUTOCOMPLETE_FIELD_STYLE_NAME = STYLE_NAME + "-autocomplete-field";
@@ -72,7 +54,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	public static final String LOOKUP_WINDOW_STYLE_NAME = STYLE_NAME + "-window";
 	public static final String LOOKUP_WINDOW_CONTENT_STYLE_NAME = LOOKUP_WINDOW_STYLE_NAME + "-content";
 	private static final String CAPTION_PROPERTY_ID = "caption";
-	
+
 	private TextInputDataProvider<T> suggestInputDataProvider;
 	private List<LookupTreeDataProvider<T>> lookupTreeDataProviders = new ArrayList<>();
 	private BaseAutocompleteField<T> autoCompleteField;
@@ -110,7 +92,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	}
 
 	public int getTreeBufferSize() {
-		if(configs == null) {
+		if (configs == null) {
 			configs = ConstellioFactories.getInstance().getModelLayerFactory().getSystemConfigs();
 		}
 		return configs.getLazyTreeBufferSize();
@@ -125,7 +107,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			@Override
 			public List<T> suggest(String text) {
 				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, getBufferSize()));
-//				if (itemConverter != null) {
+				//				if (itemConverter != null) {
 				//					Collections.sort(values, new Comparator<T>() {
 				//						@Override
 				//						public int compare(T o1, T o2) {
@@ -504,7 +486,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			tabSheet.setSelectedTab(lazyTreePanel);
 		}
 	}
-	
+
 	public interface LookupTreeDataProvider<T extends Serializable> extends LazyTreeDataProvider<T> {
 
 		TextInputDataProvider<T> search();

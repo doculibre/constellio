@@ -1,10 +1,10 @@
 package com.constellio.data.dao.services.transactionLog.reader1;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.LazyIterator;
+
+import java.io.BufferedReader;
+import java.io.IOException;
 
 public class ReaderLinesIteratorV1 extends LazyIterator<String> {
 

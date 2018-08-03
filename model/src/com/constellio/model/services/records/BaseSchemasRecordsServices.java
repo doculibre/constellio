@@ -1,7 +1,13 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -9,19 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.constellio.data.utils.Factory;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class BaseSchemasRecordsServices implements Serializable {
 
@@ -37,7 +32,8 @@ public class BaseSchemasRecordsServices implements Serializable {
 		this(collection, modelLayerFactoryFactory, null);
 	}
 
-	public BaseSchemasRecordsServices(String collection, Factory<ModelLayerFactory> modelLayerFactoryFactory, Locale locale) {
+	public BaseSchemasRecordsServices(String collection, Factory<ModelLayerFactory> modelLayerFactoryFactory,
+									  Locale locale) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactoryFactory.get();
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;

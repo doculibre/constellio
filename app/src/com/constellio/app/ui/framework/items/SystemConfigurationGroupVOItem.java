@@ -1,10 +1,10 @@
 package com.constellio.app.ui.framework.items;
 
-import java.util.Collection;
-
 import com.constellio.app.ui.entities.SystemConfigurationGroupVO;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
+
+import java.util.Collection;
 
 @SuppressWarnings("serial")
 public class SystemConfigurationGroupVOItem implements Item {

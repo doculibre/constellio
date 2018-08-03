@@ -16,32 +16,32 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class BaseDaoTest {
 
-    @Mock RecordServices recordServices;
-    @Mock Record record;
+	@Mock RecordServices recordServices;
+	@Mock Record record;
 
-    @InjectMocks BaseDao baseDao = new DocumentDao();
+	@InjectMocks BaseDao baseDao = new DocumentDao();
 
-    @Before
-    public void setUp() {
-        initMocks(this);
+	@Before
+	public void setUp() {
+		initMocks(this);
 
-        when(recordServices.realtimeGetRecordById(anyString())).thenReturn(record);
-    }
+		when(recordServices.realtimeGetRecordById(anyString())).thenReturn(record);
+	}
 
-    @Test
-    public void testGetRecordbyId() {
-        Record record = baseDao.getRecordById("id");
-        assertThat(record).isNotNull().isEqualTo(record);
-    }
+	@Test
+	public void testGetRecordbyId() {
+		Record record = baseDao.getRecordById("id");
+		assertThat(record).isNotNull().isEqualTo(record);
+	}
 
-    @Test
-    public void testGetRecordByIdWithInvalidId() {
-        String id = "fakeId";
-        when(recordServices.realtimeGetRecordById(id))
-                .thenThrow(new RecordServicesRuntimeException.NoSuchRecordWithId(null, null, null));
+	@Test
+	public void testGetRecordByIdWithInvalidId() {
+		String id = "fakeId";
+		when(recordServices.realtimeGetRecordById(id))
+				.thenThrow(new RecordServicesRuntimeException.NoSuchRecordWithId(null, null, null));
 
-        Record record = baseDao.getRecordById(id);
-        assertThat(record).isNull();
-    }
+		Record record = baseDao.getRecordById(id);
+		assertThat(record).isNull();
+	}
 
 }

@@ -1,18 +1,15 @@
 package com.constellio.model.services.taxonomies;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.*;
-
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import com.constellio.model.entities.Taxonomy;
+import java.util.*;
+
+import static java.util.Arrays.asList;
 
 public class TaxonomiesReader {
 
@@ -28,6 +25,7 @@ public class TaxonomiesReader {
 	private static final String SCHEMA_TYPES = "schemaTypes";
 	private final Document document;
 	private final List<String> languageCollectionSupported;
+
 	public TaxonomiesReader(Document document, List<String> languageCollectionSupported) {
 		this.document = document;
 		this.languageCollectionSupported = languageCollectionSupported;
@@ -61,13 +59,13 @@ public class TaxonomiesReader {
 		String code = taxonomyElement.getAttributeValue(CODE);
 		String title = taxonomyElement.getChildText(TITLE);
 
-		Map<Language,String> languageTitleMap = new HashMap();
+		Map<Language, String> languageTitleMap = new HashMap();
 
 		List<Attribute> attributeList = taxonomyElement.getChild(TITLE).getAttributes();
 		int numberOfLang = 0;
-		if(attributeList.size() > 0) {
-			for(Attribute currentAttribute : attributeList) {
-				if(currentAttribute.getName().startsWith("title")) {
+		if (attributeList.size() > 0) {
+			for (Attribute currentAttribute : attributeList) {
+				if (currentAttribute.getName().startsWith("title")) {
 					String languageCode = currentAttribute.getName().replace("title", "");
 					Language language = Language.withCode(languageCode);
 					languageTitleMap.put(language, currentAttribute.getValue());
@@ -76,7 +74,7 @@ public class TaxonomiesReader {
 			}
 		}
 		if (numberOfLang == 0) {
-			for(String languageCollection : languageCollectionSupported) {
+			for (String languageCollection : languageCollectionSupported) {
 				Language language = Language.withCode(languageCollection);
 				languageTitleMap.put(language, title);
 			}

@@ -16,7 +16,6 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
-import com.constellio.model.services.records.RecordServices;
 import com.vaadin.ui.Component;
 
 public class RMSearchPageExtension extends SearchPageExtension {
@@ -50,23 +49,23 @@ public class RMSearchPageExtension extends SearchPageExtension {
 		String typeCode = param.getSchemaType();
 		//TODO add event
 		if (typeCode.equals(Document.SCHEMA_TYPE)) {
-//			result = new RecordDisplay(recordVO, new RMMetadataDisplayFactory());
+			//			result = new RecordDisplay(recordVO, new RMMetadataDisplayFactory());
 			DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, true);
 			view.enter(null);
 			result = view;
-		} else 	if (typeCode.equals(Folder.SCHEMA_TYPE)) {
+		} else if (typeCode.equals(Folder.SCHEMA_TYPE)) {
 			DisplayFolderViewImpl view = new DisplayFolderViewImpl(recordVO, true);
 			view.enter(null);
 			result = view;
 		} else {
 			if (typeCode.equals(ContainerRecord.SCHEMA_TYPE) &&
-                    DisplayContainerPresenter.hasRestrictedRecordAccess(rm, param.getUser(), recordVO.getRecord())) {
-                DisplayContainerViewImpl view = new DisplayContainerViewImpl(recordVO, true);
-                view.enter(null);
-                result = view;
-            } else {
-                result = null;
-            }
+				DisplayContainerPresenter.hasRestrictedRecordAccess(rm, param.getUser(), recordVO.getRecord())) {
+				DisplayContainerViewImpl view = new DisplayContainerViewImpl(recordVO, true);
+				view.enter(null);
+				result = view;
+			} else {
+				result = null;
+			}
 		}
 		return result;
 	}

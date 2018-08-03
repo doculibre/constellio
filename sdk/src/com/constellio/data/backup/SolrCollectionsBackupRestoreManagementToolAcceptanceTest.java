@@ -1,15 +1,10 @@
 package com.constellio.data.backup;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-
+import com.constellio.data.conf.PropertiesDataLayerConfiguration;
+import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.SDKFoldersLocator;
 import com.constellio.sdk.tests.annotations.CloudTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.commons.collections.CollectionUtils;
@@ -25,10 +20,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.constellio.data.conf.PropertiesDataLayerConfiguration;
-import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.SDKFoldersLocator;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 @CloudTest
 @SlowTest
@@ -115,7 +114,7 @@ public class SolrCollectionsBackupRestoreManagementToolAcceptanceTest extends Co
 	}
 
 	@Test
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public void testListSnapshots()
 			throws SolrServerException, IOException {
 		final String snapshotName = COLLECTION_CLOUD + System.currentTimeMillis();
@@ -125,7 +124,7 @@ public class SolrCollectionsBackupRestoreManagementToolAcceptanceTest extends Co
 
 		resp = tool.listSnapshots(COLLECTION_CLOUD);
 		assertThat(resp.getStatus()).isEqualTo(OK);
-		
+
 		NamedList namedList = (NamedList) resp.getResponse().get(SolrSnapshotManager.SNAPSHOTS_INFO);
 		assertThat(namedList).isNotNull();
 		assertThat(namedList.size()).isGreaterThan(OK);

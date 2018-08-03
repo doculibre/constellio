@@ -1,21 +1,7 @@
 package com.constellio.app.modules.rm.services.events;
 
-import static com.constellio.model.entities.records.wrappers.Event.EVENT_PRINCIPAL_PATH;
-import static com.constellio.model.services.contents.ContentFactory.checkedOut;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.endingWithText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
@@ -31,6 +17,15 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.records.wrappers.Event.EVENT_PRINCIPAL_PATH;
+import static com.constellio.model.services.contents.ContentFactory.checkedOut;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
 
 public class RMEventsSearchServices {
 	private ModelLayerFactory modelLayerFactory;
@@ -47,33 +42,33 @@ public class RMEventsSearchServices {
 	}
 
 	public LogicalSearchQuery newFindOpenedSessionsByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.OPEN_SESSION, startDate, endDate);
 	}
 
 	//by range date
 	public LogicalSearchQuery newFindCreatedDocumentsByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	  LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.CREATE_DOCUMENT, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindDeletedDocumentsByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	  LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.DELETE_DOCUMENT, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindModifiedDocumentsByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	   LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.MODIFY_DOCUMENT, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindBorrowedDocumentsByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	   LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.BORROW_DOCUMENT, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindReturnedDocumentsByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	   LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.RETURN_DOCUMENT, startDate, endDate);
 	}
 
@@ -110,27 +105,27 @@ public class RMEventsSearchServices {
 	}
 
 	public LogicalSearchQuery newFindCreatedFoldersByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.CREATE_FOLDER, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindModifiedFoldersByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	 LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.MODIFY_FOLDER, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindDeletedFoldersByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.DELETE_FOLDER, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindBorrowedFoldersByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	 LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.BORROW_FOLDER, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindReturnedFoldersByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	 LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.RETURN_FOLDER, startDate, endDate);
 	}
 
@@ -139,59 +134,64 @@ public class RMEventsSearchServices {
 	}
 
 	public LogicalSearchQuery newFindBorrowedContainersByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																		LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.BORROW_CONTAINER, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindReturnedContainersByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																		LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.RETURN_CONTAINER, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindRelocatedFoldersByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	  LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.FOLDER_RELOCATION, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindFolderDepositByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																   LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.FOLDER_DEPOSIT, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindDestructedFoldersByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	   LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.FOLDER_DESTRUCTION, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindPdfAGenerationEventsByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																		  LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.PDF_A_GENERATION, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindReceivedFoldersByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																	 LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.RECEIVE_FOLDER, startDate, endDate);
 	}
 
 	public LogicalSearchQuery newFindReceivedContainersByDateRangeQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate) {
+																		LocalDateTime endDate) {
 		return newFindEventByDateRangeQuery(currentUser, EventType.RECEIVE_CONTAINER, startDate, endDate);
 	}
 
 	//By Filing space and date range
-	public LogicalSearchQuery newFindCreatedFoldersByDateRangeAndByFilingSpaceQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String principalPath) {
+	public LogicalSearchQuery newFindCreatedFoldersByDateRangeAndByFilingSpaceQuery(User currentUser,
+																					LocalDateTime startDate,
+																					LocalDateTime endDate,
+																					String principalPath) {
 		return newFindEventByDateRangeAndByAdministrativeUnitQuery(currentUser, EventType.CREATE_FOLDER, startDate, endDate,
 				principalPath);
 	}
 
-	public LogicalSearchQuery newFindGrantedPermissionsByDateRangeAndByFolderQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, Folder folder) {
+	public LogicalSearchQuery newFindGrantedPermissionsByDateRangeAndByFolderQuery(User currentUser,
+																				   LocalDateTime startDate,
+																				   LocalDateTime endDate,
+																				   Folder folder) {
 		return newFindEventByDateRangeAndByFolderQuery(currentUser, EventType.GRANT_PERMISSION, startDate, endDate, folder);
 	}
 
-	public LogicalSearchQuery newFindCreatedDocumentsByDateRangeAndByUserQuery(User currentUser, LocalDateTime startDate,
-			LocalDateTime endDate, String username) {
+	public LogicalSearchQuery newFindCreatedDocumentsByDateRangeAndByUserQuery(User currentUser,
+																			   LocalDateTime startDate,
+																			   LocalDateTime endDate, String username) {
 		return newFindEventByDateRangeAndByUserQuery(currentUser, EventType.CREATE_DOCUMENT, startDate, endDate, username);
 	}
 
@@ -204,7 +204,7 @@ public class RMEventsSearchServices {
 	}
 
 	public LogicalSearchQuery newFindEventByDateRangeQuery(User currentUser, String eventType, LocalDateTime startDate,
-			LocalDateTime endDate) {
+														   LocalDateTime endDate) {
 		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
 		Metadata timestamp = Schemas.CREATED_ON;
 
@@ -213,8 +213,9 @@ public class RMEventsSearchServices {
 		return new LogicalSearchQuery(condition).sortDesc(timestamp);
 	}
 
-	public LogicalSearchQuery newFindEventByDateRangeAndByFolderQuery(User currentUser, String eventType, LocalDateTime startDate,
-			LocalDateTime endDate, Folder folder) {
+	public LogicalSearchQuery newFindEventByDateRangeAndByFolderQuery(User currentUser, String eventType,
+																	  LocalDateTime startDate,
+																	  LocalDateTime endDate, Folder folder) {
 		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
 		Metadata recordId = schemas.eventSchema().getMetadata(Event.RECORD_ID);
 		Metadata timestamp = Schemas.CREATED_ON;
@@ -226,8 +227,9 @@ public class RMEventsSearchServices {
 		return new LogicalSearchQuery(condition).sortDesc(timestamp);
 	}
 
-	public LogicalSearchQuery newFindEventByDateRangeAndByContainerQuery(User currentUser, String eventType, LocalDateTime startDate,
-																	  LocalDateTime endDate, String id) {
+	public LogicalSearchQuery newFindEventByDateRangeAndByContainerQuery(User currentUser, String eventType,
+																		 LocalDateTime startDate,
+																		 LocalDateTime endDate, String id) {
 		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
 		Metadata recordId = schemas.eventSchema().getMetadata(Event.RECORD_ID);
 		Metadata timestamp = Schemas.CREATED_ON;
@@ -239,15 +241,17 @@ public class RMEventsSearchServices {
 		return new LogicalSearchQuery(condition).sortDesc(timestamp);
 	}
 
-	public LogicalSearchQuery newFindEventByDateRangeAndByUserIdQuery(User currentUser, String eventType, LocalDateTime startDate,
-			LocalDateTime endDate, String userId) {
+	public LogicalSearchQuery newFindEventByDateRangeAndByUserIdQuery(User currentUser, String eventType,
+																	  LocalDateTime startDate,
+																	  LocalDateTime endDate, String userId) {
 		User user = schemas.getUser(userId);
 		String username = user.getUsername();
 		return newFindEventByDateRangeAndByUserQuery(currentUser, eventType, startDate, endDate, username);
 	}
 
-	public LogicalSearchQuery newFindEventByDateRangeAndByUserQuery(User currentUser, String eventType, LocalDateTime startDate,
-			LocalDateTime endDate, String userName) {
+	public LogicalSearchQuery newFindEventByDateRangeAndByUserQuery(User currentUser, String eventType,
+																	LocalDateTime startDate,
+																	LocalDateTime endDate, String userName) {
 		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
 		Metadata timestamp = Schemas.CREATED_ON;
 		Metadata user = schemas.eventSchema().getMetadata(Event.USERNAME);
@@ -260,7 +264,8 @@ public class RMEventsSearchServices {
 	}
 
 	public LogicalSearchQuery newFindEventByDateRangeAndByAdministrativeUnitQuery(User currentUser, String eventType,
-			LocalDateTime startDate, LocalDateTime endDate, String id) {
+																				  LocalDateTime startDate,
+																				  LocalDateTime endDate, String id) {
 		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
 		Metadata timestamp = Schemas.CREATED_ON;
 		Metadata principalPath = schemas.eventSchema().getMetadata(EVENT_PRINCIPAL_PATH);
@@ -300,7 +305,7 @@ public class RMEventsSearchServices {
 	}
 
 	private LogicalSearchQuery newFindEventForUserAfterDateQuery(User currentUser, String eventType, String username,
-			LocalDateTime date) {
+																 LocalDateTime date) {
 		Metadata type = schemas.eventSchema().getMetadata(Event.TYPE);
 		Metadata timestamp = Schemas.CREATED_ON;
 		Metadata user = schemas.eventSchema().getMetadata(Event.USERNAME);
@@ -336,8 +341,8 @@ public class RMEventsSearchServices {
 			}
 
 			return ofTheseAdministrativeUnits.isEmpty() ?
-					null :
-					from(schemas.eventSchemaType()).where(eventPrincipalPath).isAny(ofTheseAdministrativeUnits);
+				   null :
+				   from(schemas.eventSchemaType()).where(eventPrincipalPath).isAny(ofTheseAdministrativeUnits);
 		}
 	}
 

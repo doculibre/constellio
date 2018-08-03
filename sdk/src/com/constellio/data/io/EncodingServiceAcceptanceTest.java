@@ -1,12 +1,11 @@
 package com.constellio.data.io;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestUtils;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EncodingServiceAcceptanceTest extends ConstellioTest {
 

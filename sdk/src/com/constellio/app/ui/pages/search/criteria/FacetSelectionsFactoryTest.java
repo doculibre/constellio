@@ -1,14 +1,13 @@
 package com.constellio.app.ui.pages.search.criteria;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FacetSelectionsFactoryTest extends ConstellioTest {
 

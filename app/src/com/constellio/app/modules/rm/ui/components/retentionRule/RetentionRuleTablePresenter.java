@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
+
+import java.util.List;
 
 public interface RetentionRuleTablePresenter {
 

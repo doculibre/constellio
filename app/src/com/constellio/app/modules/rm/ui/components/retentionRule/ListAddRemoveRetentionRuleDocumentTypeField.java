@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
@@ -16,25 +12,29 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 @SuppressWarnings("unchecked")
 public class ListAddRemoveRetentionRuleDocumentTypeField extends ListAddRemoveField<RetentionRuleDocumentType, RetentionRuleDocumentTypeField> {
-	
+
 	public static final String DISPOSAL_TYPE_PROPERTY = "disposalType";
-	
+
 	private RecordIdToCaptionConverter documentTypeConverter = new RecordIdToCaptionConverter();
-	
+
 	private Boolean delayedDisposalTypeFieldVisible;
-	
+
 	@Override
 	protected Component initContent() {
 		Component content = super.initContent();
 		setWidth("100%");
-		
+
 		HorizontalLayout addEditFieldLayout = getAddEditFieldLayout();
 		addEditFieldLayout.setWidthUndefined();
 		addEditFieldLayout.setWidth("100%");
 		addEditFieldLayout.setExpandRatio(getAddEditField(), 1);
-		
+
 		return content;
 	}
 
@@ -45,7 +45,7 @@ public class ListAddRemoveRetentionRuleDocumentTypeField extends ListAddRemoveFi
 			addEditField.setDisposalTypeFieldVisible(delayedDisposalTypeFieldVisible);
 		}
 		return addEditField;
-	} 
+	}
 
 	@Override
 	protected void addValue(RetentionRuleDocumentType value) {
@@ -61,7 +61,7 @@ public class ListAddRemoveRetentionRuleDocumentTypeField extends ListAddRemoveFi
 			getAddEditField().setDisposalTypeFieldVisible(visible);
 		}
 		delayedDisposalTypeFieldVisible = visible;
-		
+
 		if (valuesTable != null) {
 			List<?> itemIds = new ArrayList<>(valuesTable.getItemIds());
 			valuesTable.removeAllItems();

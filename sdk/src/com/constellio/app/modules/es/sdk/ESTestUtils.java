@@ -1,15 +1,14 @@
 package com.constellio.app.modules.es.sdk;
 
-import static java.util.Arrays.asList;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import org.assertj.core.api.ListAssert;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import org.assertj.core.api.ListAssert;
-
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
+import static java.util.Arrays.asList;
 
 public class ESTestUtils {
 

@@ -1,16 +1,15 @@
 package com.constellio.model.services.search;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 /**
  * Created by Patrick on 2015-11-05.

@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -24,19 +20,23 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.io.IOException;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 @SuppressWarnings("serial")
 public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<DisplaySchemaRecordView> {
-	
+
 	private transient SequenceServices sequenceServices;
 	private transient RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions extensions;
-	
+
 	private String schemaCode;
-	
+
 	private RecordVO recordVO;
-	
+
 	private RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-	
+
 	public DisplaySchemaRecordPresenter(DisplaySchemaRecordView view) {
 		super(view);
 		initTransientObjects();
@@ -62,7 +62,7 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		schemaCode = recordVO.getSchema().getCode();
 		setSchemaCode(schemaCode);
 		view.setRecordVO(recordVO);
-		
+
 		final MetadataSchema schema = schema(schemaCode);
 		if (isHierarchical()) {
 			view.setSubRecords(new RecordVODataProvider(recordVO.getSchema(), voBuilder, view) {
@@ -79,7 +79,7 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 			});
 		}
 	}
-	
+
 	private boolean isHierarchical() {
 		MetadataSchema schema = schema(schemaCode);
 		return schema.hasMetadataWithCode(HierarchicalValueListItem.PARENT);
@@ -89,7 +89,7 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		String schemaCode = getSchemaCode();
 		view.navigate().to().listSchemaRecords(schemaCode);
 	}
-	
+
 	void editButtonClicked() {
 		editButtonClicked(recordVO);
 	}
@@ -98,7 +98,7 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		String schemaCode = getSchemaCode();
 		view.navigate().to().editSchemaRecord(schemaCode, recordVO.getId());
 	}
-	
+
 	void deleteButtonClicked() {
 		deleteButtonClicked(recordVO);
 	}
@@ -124,7 +124,7 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 	public boolean isSequenceTable() {
 		return !sequenceServices.getAvailableSequences(recordVO.getId()).isEmpty();
 	}
-	
+
 	private boolean tryDelete(RecordVO recordVO) {
 		boolean success;
 		Record record = recordVO.getRecord();
@@ -140,14 +140,14 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		}
 		return success;
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	private boolean isEditButtonVisible(RecordVO recordVO) {
 		Record record = recordVO.getRecord();
 		User user = getCurrentUser();
 		return !extensions.isModifyBlocked(record, user) && extensions.isRecordModifiableBy(record, user);
 	}
-	
+
 	private boolean isDeleteButtonVisible(RecordVO recordVO) {
 		Record record = recordVO.getRecord();
 		User user = getCurrentUser();

@@ -1,19 +1,18 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
-import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-import java.util.List;
-
+import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.Test;
 
-import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SolrUtilsTest extends ConstellioTest {
 
@@ -84,23 +83,23 @@ public class SolrUtilsTest extends ConstellioTest {
 		List<String> requests = Arrays.asList("req1", "req2");
 
 		String expectedNewDocumentString = "New documents : \n" +
-				"\tDocument '42' {\n" +
-				"\t\tkey1 : [1, 2]\n" +
-				"\t\tkey2 : [3]}\n" +
-				"\tDocument '666' {\n" +
-				"\t\tkey4 : [4]}\n";
+										   "\tDocument '42' {\n" +
+										   "\t\tkey1 : [1, 2]\n" +
+										   "\t\tkey2 : [3]}\n" +
+										   "\tDocument '666' {\n" +
+										   "\t\tkey4 : [4]}\n";
 		String expectedUpdatedDocumentString = "Updated documents : \n" +
-				"\tDocument 'a38' {\n" +
-				"\t\tkey1 : [5, 6]}\n" +
-				"\tDocument 'b72' {\n" +
-				"\t\tkey2 : [7]}\n";
+											   "\tDocument 'a38' {\n" +
+											   "\t\tkey1 : [5, 6]}\n" +
+											   "\tDocument 'b72' {\n" +
+											   "\t\tkey2 : [7]}\n";
 		String expectedDeletedIdsString = "Delete ids : [id1, id2]\n";
 		String expectedDeletedQueriesString = "Delete by queries : [req1, req2]\n";
 
 		assertThat(
 				SolrUtils.toString(new BigVaultServerTransaction(NOW, addedDocuments, modifiedDocuments, deletedIds, requests)))
 				.isEqualTo(expectedNewDocumentString + expectedUpdatedDocumentString + expectedDeletedIdsString
-						+ expectedDeletedQueriesString);
+						   + expectedDeletedQueriesString);
 
 		assertThat(SolrUtils.toString(new BigVaultServerTransaction(NOW))).isEmpty();
 

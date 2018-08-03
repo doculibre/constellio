@@ -1,11 +1,11 @@
 package com.constellio.model.entities;
 
+import com.constellio.data.utils.KeyListMap;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import com.constellio.data.utils.KeyListMap;
 
 public class Permissions {
 	private final String id;

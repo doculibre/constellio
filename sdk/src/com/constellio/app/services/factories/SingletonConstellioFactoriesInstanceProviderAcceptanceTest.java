@@ -1,11 +1,9 @@
 package com.constellio.app.services.factories;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import com.constellio.data.conf.*;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.junit.After;
@@ -13,14 +11,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.constellio.data.conf.ConfigManagerType;
-import com.constellio.data.conf.ContentDaoType;
-import com.constellio.data.conf.DataLayerConfiguration;
-import com.constellio.data.conf.PropertiesDataLayerConfiguration;
-import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
-import com.constellio.data.conf.SolrServerType;
-import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SingletonConstellioFactoriesInstanceProviderAcceptanceTest extends ConstellioTest {
 
@@ -41,7 +36,8 @@ public class SingletonConstellioFactoriesInstanceProviderAcceptanceTest extends 
 		final ConstellioFactoriesDecorator configurationDecorator = new ConstellioFactoriesDecorator() {
 
 			@Override
-			public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
+			public DataLayerConfiguration decorateDataLayerConfiguration(
+					DataLayerConfiguration dataLayerConfiguration) {
 				InMemoryDataLayerConfiguration configuration = new InMemoryDataLayerConfiguration(
 						(PropertiesDataLayerConfiguration) dataLayerConfiguration);
 
@@ -62,7 +58,8 @@ public class SingletonConstellioFactoriesInstanceProviderAcceptanceTest extends 
 		ConstellioFactoriesDecorator configurationAndServicesDecorator = new ConstellioFactoriesDecorator() {
 
 			@Override
-			public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
+			public DataLayerConfiguration decorateDataLayerConfiguration(
+					DataLayerConfiguration dataLayerConfiguration) {
 				return configurationDecorator.decorateDataLayerConfiguration(dataLayerConfiguration);
 			}
 
@@ -125,7 +122,8 @@ public class SingletonConstellioFactoriesInstanceProviderAcceptanceTest extends 
 		final ConstellioFactoriesDecorator configurationAndServicesDecorator = new ConstellioFactoriesDecorator() {
 
 			@Override
-			public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
+			public DataLayerConfiguration decorateDataLayerConfiguration(
+					DataLayerConfiguration dataLayerConfiguration) {
 				InMemoryDataLayerConfiguration configuration = new InMemoryDataLayerConfiguration(
 						(PropertiesDataLayerConfiguration) dataLayerConfiguration);
 

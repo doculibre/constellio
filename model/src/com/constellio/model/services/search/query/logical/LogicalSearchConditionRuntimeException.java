@@ -1,8 +1,8 @@
 package com.constellio.model.services.search.query.logical;
 
-import java.util.List;
-
 import com.constellio.model.entities.schemas.DataStoreField;
+
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class LogicalSearchConditionRuntimeException extends RuntimeException {

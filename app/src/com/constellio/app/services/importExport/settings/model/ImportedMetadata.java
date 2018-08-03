@@ -1,18 +1,13 @@
 package com.constellio.app.services.importExport.settings.model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.constellio.model.entities.schemas.MetadataValueType;
+import java.util.*;
 
 public class ImportedMetadata {
 
@@ -370,20 +365,20 @@ public class ImportedMetadata {
 	public List<String> getVisibleInListInSchemas(ListType listType) {
 		switch (listType) {
 
-		case DISPLAY:
-			return getVisibleInDisplayIn();
+			case DISPLAY:
+				return getVisibleInDisplayIn();
 
-		case FORM:
-			return getVisibleInFormIn();
+			case FORM:
+				return getVisibleInFormIn();
 
-		case SEARCH:
-			return getVisibleInResultIn();
+			case SEARCH:
+				return getVisibleInResultIn();
 
-		case TABLES:
-			return getVisibleInTablesIn();
+			case TABLES:
+				return getVisibleInTablesIn();
 
-		default:
-			throw new RuntimeException("Unsupported list " + listType);
+			default:
+				throw new RuntimeException("Unsupported list " + listType);
 
 		}
 
@@ -392,20 +387,20 @@ public class ImportedMetadata {
 	public Boolean getVisible(ListType listType) {
 		switch (listType) {
 
-		case DISPLAY:
-			return getVisibleInDisplay();
+			case DISPLAY:
+				return getVisibleInDisplay();
 
-		case FORM:
-			return getVisibleInForm();
+			case FORM:
+				return getVisibleInForm();
 
-		case SEARCH:
-			return getVisibleInSearchResult();
+			case SEARCH:
+				return getVisibleInSearchResult();
 
-		case TABLES:
-			return getVisibleInTables();
+			case TABLES:
+				return getVisibleInTables();
 
-		default:
-			throw new RuntimeException("Unsupported list " + listType);
+			default:
+				throw new RuntimeException("Unsupported list " + listType);
 
 		}
 

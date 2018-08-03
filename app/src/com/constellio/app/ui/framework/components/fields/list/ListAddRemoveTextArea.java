@@ -1,13 +1,12 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextArea;
+import org.apache.commons.lang3.StringUtils;
 
 @SuppressWarnings("unchecked")
 public class ListAddRemoveTextArea extends ListAddRemoveField<String, TextArea> {

@@ -9,16 +9,16 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Label;
 
 public class RetentionRuleDocumentTypeDisplay extends Label {
-	
+
 	private RecordIdToCaptionConverter documentTypeConverter = new RecordIdToCaptionConverter();
-	
+
 	private EnumWithSmallCodeToCaptionConverter disposalTypeConverter = new EnumWithSmallCodeToCaptionConverter(DisposalType.class);
 
 	public RetentionRuleDocumentTypeDisplay(RetentionRuleVO retentionRuleVO) {
 		setContentMode(ContentMode.HTML);
-		
+
 		boolean disposalTypeVisible = retentionRuleVO.hasCopyRetentionRuleWithSortDispositionType();
-		
+
 		StringBuffer value = new StringBuffer();
 		for (RetentionRuleDocumentType retentionRuleDocumentType : retentionRuleVO.getDocumentTypesDetails()) {
 			if (value.length() > 0) {

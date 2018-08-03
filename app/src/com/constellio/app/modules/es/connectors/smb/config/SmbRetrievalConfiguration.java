@@ -8,7 +8,8 @@ public class SmbRetrievalConfiguration {
 	private List<String> exclusions;
 	private boolean skipSharePermissions;
 
-	public SmbRetrievalConfiguration(List<String> seeds, List<String> inclusions, List<String> exclusions, boolean skipSharePermissions) {
+	public SmbRetrievalConfiguration(List<String> seeds, List<String> inclusions, List<String> exclusions,
+									 boolean skipSharePermissions) {
 		this.seeds = seeds;
 		this.inclusions = inclusions;
 		this.exclusions = exclusions;

@@ -63,23 +63,23 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 
 	public void tabSelected(String tabId) {
 		switch (tabId) {
-		case CREATE:
-			view.displayListCreation();
-			break;
-		case GENERATED:
-		case VALIDATED:
-		case APPROVED:
-			view.displayEditableTable(buildDataProvider(tabId));
-			break;
-		case PENDING_VALIDATION:
-		case TO_VALIDATE:
-		case PENDING_APPROVAL:
-		case TO_APPROVE:
-		case PROCESSED:
-			view.displayReadOnlyTable(buildDataProvider(tabId));
-			break;
-		default:
-			throw new ImpossibleRuntimeException("Unknown tabId + " + tabId);
+			case CREATE:
+				view.displayListCreation();
+				break;
+			case GENERATED:
+			case VALIDATED:
+			case APPROVED:
+				view.displayEditableTable(buildDataProvider(tabId));
+				break;
+			case PENDING_VALIDATION:
+			case TO_VALIDATE:
+			case PENDING_APPROVAL:
+			case TO_APPROVE:
+			case PROCESSED:
+				view.displayReadOnlyTable(buildDataProvider(tabId));
+				break;
+			default:
+				throw new ImpossibleRuntimeException("Unknown tabId + " + tabId);
 		}
 	}
 
@@ -127,28 +127,28 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 
 	private LogicalSearchQuery getQueryForTab(String tabId) {
 		switch (tabId) {
-		case GENERATED:
-			if(presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
-				return queryFactory().getGeneratedListsQuery(getCurrentUser());
-			} else {
-				return queryFactory().getGeneratedTransferListsQuery(getCurrentUser());
-			}
-		case PENDING_VALIDATION:
-			return queryFactory().getListsPendingValidationQuery(getCurrentUser());
-		case TO_VALIDATE:
-			return queryFactory().getListsToValidateQuery(getCurrentUser());
-		case VALIDATED:
-			return queryFactory().getValidatedListsQuery(getCurrentUser());
-		case PENDING_APPROVAL:
-			return queryFactory().getListsPendingApprovalQuery(getCurrentUser());
-		case TO_APPROVE:
-			return queryFactory().getListsToApproveQuery(getCurrentUser());
-		case APPROVED:
-			return queryFactory().getApprovedListsQuery(getCurrentUser());
-		case PROCESSED:
-			return queryFactory().getProcessedListsQuery(getCurrentUser());
-		default:
-			throw new ImpossibleRuntimeException("Unknown tabId: " + tabId);
+			case GENERATED:
+				if (presenterService().getCurrentUser(view.getSessionContext()).has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething()) {
+					return queryFactory().getGeneratedListsQuery(getCurrentUser());
+				} else {
+					return queryFactory().getGeneratedTransferListsQuery(getCurrentUser());
+				}
+			case PENDING_VALIDATION:
+				return queryFactory().getListsPendingValidationQuery(getCurrentUser());
+			case TO_VALIDATE:
+				return queryFactory().getListsToValidateQuery(getCurrentUser());
+			case VALIDATED:
+				return queryFactory().getValidatedListsQuery(getCurrentUser());
+			case PENDING_APPROVAL:
+				return queryFactory().getListsPendingApprovalQuery(getCurrentUser());
+			case TO_APPROVE:
+				return queryFactory().getListsToApproveQuery(getCurrentUser());
+			case APPROVED:
+				return queryFactory().getApprovedListsQuery(getCurrentUser());
+			case PROCESSED:
+				return queryFactory().getProcessedListsQuery(getCurrentUser());
+			default:
+				throw new ImpossibleRuntimeException("Unknown tabId: " + tabId);
 		}
 	}
 

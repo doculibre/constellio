@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -17,6 +12,10 @@ import com.constellio.data.dao.managers.config.ConfigManagerException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class RMMigrationTo8_0_3 extends MigrationHelper implements MigrationScript {
 
@@ -26,7 +25,8 @@ public class RMMigrationTo8_0_3 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new RMMigrationTo8_0_3.RMSchemaAlterationFor_8_0_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
@@ -34,8 +34,8 @@ public class RMMigrationTo8_0_3 extends MigrationHelper implements MigrationScri
 	}
 
 	public static void reloadEmailTemplates(AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+											MigrationResourcesProvider migrationResourcesProvider,
+											String collection) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
 				.equals("fr")) {
 			reloadEmailTemplate("approvalRequestDeniedForDecomListTemplate.html",
@@ -49,8 +49,8 @@ public class RMMigrationTo8_0_3 extends MigrationHelper implements MigrationScri
 	}
 
 	private static void reloadEmailTemplate(final String templateFileName, final String templateId,
-			AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider, String collection) {
+											AppLayerFactory appLayerFactory,
+											MigrationResourcesProvider migrationResourcesProvider, String collection) {
 		final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 
 		try {
@@ -66,7 +66,7 @@ public class RMMigrationTo8_0_3 extends MigrationHelper implements MigrationScri
 	class RMSchemaAlterationFor_8_0_3 extends MetadataSchemasAlterationHelper {
 
 		protected RMSchemaAlterationFor_8_0_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

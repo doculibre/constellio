@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -17,6 +12,11 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.services.records.RecordServices;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class SchemaRecordViewBreadcrumbTrail extends TitleBreadcrumbTrail {
 
@@ -41,8 +41,8 @@ public abstract class SchemaRecordViewBreadcrumbTrail extends TitleBreadcrumbTra
 				String parentId = recordVO.get(HierarchicalValueListItem.PARENT);
 				Record parentRecord = parentId != null ? recordServices.getDocumentById(parentId) : null;
 				recordVO = parentRecord != null ?
-						voBuilder.build(parentRecord, VIEW_MODE.DISPLAY, getView().getSessionContext()) :
-						null;
+						   voBuilder.build(parentRecord, VIEW_MODE.DISPLAY, getView().getSessionContext()) :
+						   null;
 			}
 		}
 		return items;

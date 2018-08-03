@@ -3,7 +3,7 @@ package com.constellio.data.frameworks.extensions;
 public class ExtensionUtils {
 
 	public static <T> Boolean getBooleanValue(VaultBehaviorsList<T> behaviors, Boolean defaultValue,
-			BooleanCaller<T> caller) {
+											  BooleanCaller<T> caller) {
 
 		Boolean value = defaultValue;
 		boolean forced = false;

@@ -1,9 +1,5 @@
 package com.constellio.app.api.extensions;
 
-import java.io.Serializable;
-import java.util.Locale;
-import java.util.Map;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -14,6 +10,10 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.ui.Field;
+
+import java.io.Serializable;
+import java.util.Locale;
+import java.util.Map;
 
 public abstract class BatchProcessingExtension implements Serializable {
 
@@ -87,7 +87,7 @@ public abstract class BatchProcessingExtension implements Serializable {
 		Locale locale;
 
 		public AddCustomLabelsParams(MetadataSchema schema, Locale locale,
-				Provider<String, String> resourceProvider, Map<String, String> customLabels) {
+									 Provider<String, String> resourceProvider, Map<String, String> customLabels) {
 			this.locale = locale;
 			this.schema = schema;
 			this.resourceProvider = resourceProvider;

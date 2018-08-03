@@ -1,21 +1,5 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.INHERITED_AUTHORIZATIONS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.NON_TAXONOMY_AUTHORIZATIONS;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-
-import java.util.Collections;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -38,14 +22,19 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.CollectionSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.DocumentSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.FolderSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy1FirstSchemaType;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy1SecondSchemaType;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2CustomSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2DefaultSchema;
-import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.TaxonomyRecords;
+import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.*;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Collections;
+import java.util.List;
+
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.*;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends ConstellioTest {
 
@@ -242,7 +231,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	}
 
 	private void assertAllRemovedAuthImpactInSecondSchemaAndFolderSchema(TestRecord record,
-			List<ModificationImpact> impacts) {
+																		 List<ModificationImpact> impacts) {
 		Metadata folderAllRemovedAuths = folderSchema.allRemovedAuths();
 		Metadata taxo1SecondSchemaAllRemovedAuths = taxonomy1SecondSchema.allRemovedAuths();
 
@@ -257,7 +246,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	}
 
 	private void assertAttachedAncestorsImpactInFolderAndDocumentSchema(TestRecord record,
-			List<ModificationImpact> impacts) {
+																		List<ModificationImpact> impacts) {
 		Metadata folderAuthorizations = folderSchema.attachedAncestors();
 		Metadata documentAuthorizations = documentSchema.attachedAncestors();
 
@@ -274,7 +263,8 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 						.whereAny(asList(documentSchema.parent())).isIn(asList(record)));
 	}
 
-	private void assertPathAndAuthorizationsImpactInFirstAndSecondSchema(TestRecord record, List<ModificationImpact> impacts) {
+	private void assertPathAndAuthorizationsImpactInFirstAndSecondSchema(TestRecord record,
+																		 List<ModificationImpact> impacts) {
 
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
@@ -292,7 +282,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	}
 
 	private void assertPathAndAuthorizationsImpactInSecondSchemaAndFolderSchema(TestRecord record,
-			List<ModificationImpact> impacts) {
+																				List<ModificationImpact> impacts) {
 
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
@@ -310,7 +300,7 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 	}
 
 	private void assertPathAndAuthorizationsImpactInFolderAndDocumentSchema(TestRecord record,
-			List<ModificationImpact> impacts) {
+																			List<ModificationImpact> impacts) {
 
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")

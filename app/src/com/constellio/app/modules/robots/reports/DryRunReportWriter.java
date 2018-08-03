@@ -1,23 +1,17 @@
 package com.constellio.app.modules.robots.reports;
 
+import com.constellio.app.ui.framework.reports.ReportWriter;
+import com.constellio.app.ui.i18n.i18n;
+import jxl.CellView;
+import jxl.Workbook;
+import jxl.WorkbookSettings;
+import jxl.write.*;
+import jxl.write.Number;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Locale;
-
-import jxl.CellView;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.write.Label;
-import jxl.write.Number;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableFont;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
-
-import com.constellio.app.ui.framework.reports.ReportWriter;
-import com.constellio.app.ui.i18n.i18n;
 
 public class DryRunReportWriter implements ReportWriter {
 	private static final WritableFont.FontName FONT = WritableFont.TIMES;
@@ -98,8 +92,8 @@ public class DryRunReportWriter implements ReportWriter {
 				continue;
 			}
 			if (cellObject instanceof Float ||
-					cellObject instanceof Integer ||
-					cellObject instanceof Double) {
+				cellObject instanceof Integer ||
+				cellObject instanceof Double) {
 				addNumber(sheet, font, columnNumber, lineNumber, new Double(cellObject.toString()));
 			} else {
 				addString(sheet, font, columnNumber, lineNumber, cellObject.toString());
@@ -114,7 +108,7 @@ public class DryRunReportWriter implements ReportWriter {
 	}
 
 	private void addNumber(WritableSheet sheet, WritableCellFormat font, int column, int row,
-			double d)
+						   double d)
 			throws WriteException {
 		Number number = new Number(column, row, d, font);
 		sheet.addCell(number);

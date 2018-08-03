@@ -1,11 +1,10 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import java.util.StringTokenizer;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
+import org.joda.time.LocalDateTime;
+
+import java.util.StringTokenizer;
 
 //AFTER : Move in core
 public class CommentFactory implements StructureFactory {
@@ -32,19 +31,19 @@ public class CommentFactory implements StructureFactory {
 		Comment comment = (Comment) structure;
 		StringBuilder stringBuilder = new StringBuilder();
 		writeString(stringBuilder, "" + comment.getUserId() == null ?
-				NULL :
-				comment.getUserId());
+								   NULL :
+								   comment.getUserId());
 		writeString(stringBuilder, "" + comment.getUsername() == null ?
-				"" :
-				comment.getUsername());
+								   "" :
+								   comment.getUsername());
 		if (comment.getDateTime() != null) {
 			writeString(stringBuilder, comment.getDateTime().toString(DATE_PATTERN));
 		} else {
 			writeString(stringBuilder, NULL);
 		}
 		writeString(stringBuilder, "" + comment.getMessage() == null ?
-				NULL :
-				comment.getMessage());
+								   NULL :
+								   comment.getMessage());
 		return stringBuilder.toString();
 	}
 

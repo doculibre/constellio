@@ -26,7 +26,6 @@ import java.util.Map;
 /**
  * Encapsulates responses from SpellCheckComponent
  *
- *
  * @since solr 1.3
  */
 public class CustomizedSpellCheckResponse {
@@ -45,7 +44,7 @@ public class CustomizedSpellCheckResponse {
 			String n = spellInfo.getName(i);
 			if ("correctlySpelled".equals(n)) {
 				correctlySpelled = (Boolean) spellInfo.getVal(i);
-			} else if ("collationInternalRank".equals(n)){
+			} else if ("collationInternalRank".equals(n)) {
 				//continue;
 			} else if ("collations".equals(n)) {
 				List<Object> collationInfo = spellInfo.getAll(n);
@@ -53,16 +52,16 @@ public class CustomizedSpellCheckResponse {
 				for (Object o : collationInfo) {
 					if (o instanceof String) {
 						collations.add(new Collation()
-						.setCollationQueryString((String) o));
+								.setCollationQueryString((String) o));
 					} else if (o instanceof NamedList) {
 						@SuppressWarnings("unchecked")
 						NamedList<Object> expandedCollation = (NamedList<Object>) o;
 						String collationQuery
-						= (String) expandedCollation.get("collationQuery");
+								= (String) expandedCollation.get("collationQuery");
 						int hits = (Integer) expandedCollation.get("hits");
 						@SuppressWarnings("unchecked")
 						NamedList<String> misspellingsAndCorrections
-						= (NamedList<String>) expandedCollation.get("misspellingsAndCorrections");
+								= (NamedList<String>) expandedCollation.get("misspellingsAndCorrections");
 
 						Collation collation = new Collation();
 						collation.setCollationQueryString(collationQuery);
@@ -107,25 +106,29 @@ public class CustomizedSpellCheckResponse {
 
 	public String getFirstSuggestion(String token) {
 		Suggestion s = suggestionMap.get(token);
-		if (s==null || s.getAlternatives().isEmpty()) return null;
+		if (s == null || s.getAlternatives().isEmpty()) {
+			return null;
+		}
 		return s.getAlternatives().get(0);
 	}
 
 	/**
 	 * <p>
-	 *  Return the first collated query string.  For convenience and backwards-compatibility.  Use getCollatedResults() for full data.
+	 * Return the first collated query string.  For convenience and backwards-compatibility.  Use getCollatedResults() for full data.
 	 * </p>
+	 *
 	 * @return first collated query string
 	 */
 	public String getCollatedResult() {
-		return collations==null || collations.size()==0 ? null : collations.get(0).collationQueryString;
+		return collations == null || collations.size() == 0 ? null : collations.get(0).collationQueryString;
 	}
 
 	/**
 	 * <p>
-	 *  Return all collations.  
-	 *  Will include # of hits and misspelling-to-correction details if "spellcheck.collateExtendedResults was true.
+	 * Return all collations.
+	 * Will include # of hits and misspelling-to-correction details if "spellcheck.collateExtendedResults was true.
 	 * </p>
+	 *
 	 * @return all collations
 	 */
 	public List<Collation> getCollatedResults() {
@@ -156,15 +159,15 @@ public class CustomizedSpellCheckResponse {
 					originalFrequency = (Integer) suggestion.getVal(i);
 				} else if ("suggestion".equals(n)) {
 					@SuppressWarnings("unchecked")
-					List list = (List)suggestion.getVal(i);
+					List list = (List) suggestion.getVal(i);
 					if (list.size() > 0 && list.get(0) instanceof NamedList) {
 						// extended results detected
 						@SuppressWarnings("unchecked")
-						List<NamedList> extended = (List<NamedList>)list;
+						List<NamedList> extended = (List<NamedList>) list;
 						alternativeFrequencies = new ArrayList<>();
 						for (NamedList nl : extended) {
-							alternatives.add((String)nl.get("word"));
-							alternativeFrequencies.add((Integer)nl.get("freq"));
+							alternatives.add((String) nl.get("word"));
+							alternativeFrequencies.add((Integer) nl.get("freq"));
 						}
 					} else {
 						@SuppressWarnings("unchecked")
@@ -195,12 +198,16 @@ public class CustomizedSpellCheckResponse {
 			return originalFrequency;
 		}
 
-		/** The list of alternatives */
+		/**
+		 * The list of alternatives
+		 */
 		public List<String> getAlternatives() {
 			return alternatives;
 		}
 
-		/** The frequencies of the alternatives in the corpus, or null if this information was not returned */
+		/**
+		 * The frequencies of the alternatives in the corpus, or null if this information was not returned
+		 */
 		public List<Integer> getAlternativeFrequencies() {
 			return alternativeFrequencies;
 		}

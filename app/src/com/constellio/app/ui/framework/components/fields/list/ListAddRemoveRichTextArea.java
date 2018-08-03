@@ -25,7 +25,7 @@ public class ListAddRemoveRichTextArea extends ListAddRemoveField<String, BaseRi
 		richTextArea.setImmediate(false);
 		return richTextArea;
 	}
-	
+
 	protected Component newCaptionComponent(String itemId, String caption) {
 		Label captionLabel = new Label(caption);
 		captionLabel.setContentMode(ContentMode.HTML);

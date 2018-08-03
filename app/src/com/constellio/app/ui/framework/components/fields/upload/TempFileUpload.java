@@ -1,9 +1,9 @@
 package com.constellio.app.ui.framework.components.fields.upload;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.Serializable;
-
-import org.apache.commons.io.FileUtils;
 
 public class TempFileUpload implements Serializable {
 

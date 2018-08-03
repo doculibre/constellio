@@ -7,7 +7,6 @@ import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.frameworks.validation.ValidationErrors;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -58,7 +57,7 @@ public class RecordServicesException extends Exception {
 
 		private static String getMessage(String id, Long version, TransactionDTO transactionDTO) {
 			return "Optimistic locking while saving record with id '" + id + "' in version '" + version + "'";
-//					+ "\n" + getAdvancedMessage(id, transactionDTO);
+			//					+ "\n" + getAdvancedMessage(id, transactionDTO);
 		}
 
 		public String getId() {
@@ -78,14 +77,14 @@ public class RecordServicesException extends Exception {
 			List<RecordDTO> newRecords = transactionDTO.getNewRecords();
 			List<RecordDTO> deletedRecords = transactionDTO.getDeletedRecords();
 			List<RecordDeltaDTO> modifiedRecords = transactionDTO.getModifiedRecords();
-			for(RecordDTO record: newRecords) {
-				if(id.equals(record.getId())) {
+			for (RecordDTO record : newRecords) {
+				if (id.equals(record.getId())) {
 					Map<String, Object> fields = record.getFields();
 					Iterator<Map.Entry<String, Object>> fieldIterator = fields.entrySet().iterator();
 					while (fieldIterator.hasNext()) {
 						Map.Entry<String, Object> next = fieldIterator.next();
 						try {
-							if(next != null && next.getKey() != null && next.getValue() != null) {
+							if (next != null && next.getKey() != null && next.getValue() != null) {
 								stringBuilder.append("Version " + record.getVersion() + " in new records with metadata: " + next.getKey() + " and value: " + next.getValue().toString() + "\n");
 							}
 						} catch (Exception e) {
@@ -96,14 +95,14 @@ public class RecordServicesException extends Exception {
 			}
 			stringBuilder.append("\n");
 
-			for(RecordDTO record: deletedRecords) {
-				if(id.equals(record.getId())) {
+			for (RecordDTO record : deletedRecords) {
+				if (id.equals(record.getId())) {
 					Map<String, Object> fields = record.getFields();
 					Iterator<Map.Entry<String, Object>> fieldIterator = fields.entrySet().iterator();
 					while (fieldIterator.hasNext()) {
 						Map.Entry<String, Object> next = fieldIterator.next();
 						try {
-							if(next != null && next.getKey() != null && next.getValue() != null) {
+							if (next != null && next.getKey() != null && next.getValue() != null) {
 								stringBuilder.append("Version " + record.getVersion() + " in deleted records with metadata: " + next.getKey() + " and value: " + next.getValue().toString() + "\n");
 							}
 						} catch (Exception e) {
@@ -114,8 +113,8 @@ public class RecordServicesException extends Exception {
 			}
 			stringBuilder.append("\n");
 
-			for(RecordDeltaDTO record: modifiedRecords) {
-				if(id.equals(record.getId())) {
+			for (RecordDeltaDTO record : modifiedRecords) {
+				if (id.equals(record.getId())) {
 					Map<String, Object> initialFields = record.getInitialFields();
 					Map<String, Object> modifiedFields = record.getModifiedFields();
 					Iterator<Map.Entry<String, Object>> initialFieldIterator = initialFields.entrySet().iterator();
@@ -124,12 +123,12 @@ public class RecordServicesException extends Exception {
 					while (initialFieldIterator.hasNext()) {
 						Map.Entry<String, Object> next = initialFieldIterator.next();
 						try {
-							if(next != null && next.getKey() != null && next.getValue() != null) {
+							if (next != null && next.getKey() != null && next.getValue() != null) {
 								modifiedFieldsAlreadyFound.add(next.getKey());
 								Object modifiedValue = modifiedFields.get(next.getKey());
-								if(modifiedValue != null) {
+								if (modifiedValue != null) {
 									stringBuilder.append("From version " + record.getFromVersion() + " in modified records with metadata: " + next.getKey() + " and old value: " + next.getValue().toString() +
-											" and new value: "+ modifiedValue.toString() +"\n");
+														 " and new value: " + modifiedValue.toString() + "\n");
 								} else {
 									stringBuilder.append("From version " + record.getFromVersion() + " in modified records with metadata: " + next.getKey() + " and old value: " + next.getValue().toString() + "\n");
 								}
@@ -141,7 +140,7 @@ public class RecordServicesException extends Exception {
 					while (modifiedFieldIterator.hasNext()) {
 						Map.Entry<String, Object> next = modifiedFieldIterator.next();
 						try {
-							if(next != null && next.getKey() != null && next.getValue() != null && !modifiedFieldsAlreadyFound.contains(next.getKey())) {
+							if (next != null && next.getKey() != null && next.getValue() != null && !modifiedFieldsAlreadyFound.contains(next.getKey())) {
 								modifiedFieldsAlreadyFound.add(next.getKey());
 								stringBuilder.append("From version " + record.getFromVersion() + " in modified records with metadata: " + next.getKey() + " and new value: " + next.getValue().toString() + "\n");
 							}

@@ -1,9 +1,20 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
-import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
-import static java.util.Arrays.asList;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultException.OptimisticLocking;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
+import com.constellio.data.utils.ThreadList;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import junit.framework.Assert;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,23 +24,10 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import junit.framework.Assert;
-
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.data.dao.dto.records.RecordsFlushing;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultException.OptimisticLocking;
-import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
-import com.constellio.data.utils.ThreadList;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
+import static java.util.Arrays.asList;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 

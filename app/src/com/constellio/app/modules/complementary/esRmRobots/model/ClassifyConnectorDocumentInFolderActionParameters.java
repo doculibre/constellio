@@ -20,7 +20,7 @@ public class ClassifyConnectorDocumentInFolderActionParameters extends ActionPar
 	public static final String ACTION_AFTER_CLASSIFICATION = "actionAfterClassification";
 
 	public ClassifyConnectorDocumentInFolderActionParameters(Record record,
-			MetadataSchemaTypes types) {
+															 MetadataSchemaTypes types) {
 		super(record, types);
 	}
 

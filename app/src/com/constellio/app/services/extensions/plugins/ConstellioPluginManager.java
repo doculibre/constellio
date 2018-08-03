@@ -1,8 +1,5 @@
 package com.constellio.app.services.extensions.plugins;
 
-import java.io.File;
-import java.util.List;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
@@ -10,6 +7,9 @@ import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPlugi
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.modules.Module;
+
+import java.io.File;
+import java.util.List;
 
 public interface ConstellioPluginManager extends StatefulService {
 

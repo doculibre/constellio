@@ -8,15 +8,15 @@ import java.util.Map;
 
 public class DocumentTypeNotFoundException extends BaseRestApiException {
 
-    private static final String CODE = "documentTypeNotFound";
+	private static final String CODE = "documentTypeNotFound";
 
-    public DocumentTypeNotFoundException(String field, String value) {
-        status = Response.Status.NOT_FOUND;
+	public DocumentTypeNotFoundException(String field, String value) {
+		status = Response.Status.NOT_FOUND;
 
-        Map<String, Object> parameters = Maps.newHashMap();
-        parameters.put("field", field);
-        parameters.put("value", value);
-        buildValidationError(CODE, parameters);
-    }
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("field", field);
+		parameters.put("value", value);
+		buildValidationError(CODE, parameters);
+	}
 
 }

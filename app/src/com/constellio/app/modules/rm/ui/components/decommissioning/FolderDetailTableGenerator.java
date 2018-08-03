@@ -7,7 +7,6 @@ import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListPresenter;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.display.EnumWithSmallCodeDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
@@ -50,7 +49,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 	private boolean displayOrderNumber;
 
 	public FolderDetailTableGenerator(DecommissioningListPresenter presenter, DecommissioningListViewImpl view,
-			boolean packageable) {
+									  boolean packageable) {
 		this.presenter = presenter;
 		this.view = view;
 		this.packageable = packageable;
@@ -165,10 +164,10 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 
 		table.setVisibleColumns(visibleColumns.toArray());
 
-		if(extension != null) {
-			table.sort(new String[] {CATEGORY_CODE, PREVIOUS_ID, FOLDER_ID}, new boolean[] {true, true, true});
+		if (extension != null) {
+			table.sort(new String[]{CATEGORY_CODE, PREVIOUS_ID, FOLDER_ID}, new boolean[]{true, true, true});
 		} else {
-			table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
+			table.sort(new String[]{CATEGORY_CODE}, new boolean[]{true});
 		}
 
 		return table;
@@ -179,30 +178,30 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		FolderDetailVO detail = (FolderDetailVO) itemId;
 
 		switch ((String) columnId) {
-		case CHECKBOX:
-			return buildCheckBox(detail);
-		case VALIDATION_CHECKBOX:
-			return buildValidationColumn(detail);
-		case FOLDER_ID:
-			return new Label(detail.getFolderId());
-		case PREVIOUS_ID:
-			return new Label(extension.getPreviousId(detail));
-		case FOLDER:
-			return new ReferenceDisplay(detail.getFolderId());
-		case SORT:
-			return buildSort(detail);
-		case RETENTION_RULE:
-			return new RetentionRuleReferenceDisplay(detail.getRetentionRuleId());
-		case CATEGORY_CODE:
-			return new Label(detail.getCategoryCode());
-		case MEDIUM:
-			return new EnumWithSmallCodeDisplay<>(detail.getMediumType());
-		case CONTAINER:
-			return buildContainer(detail);
-		case LINEAR_SIZE:
-			return buildLinearSize(detail);
-		case ORDER:
-			return buildOrderNumber(detail);
+			case CHECKBOX:
+				return buildCheckBox(detail);
+			case VALIDATION_CHECKBOX:
+				return buildValidationColumn(detail);
+			case FOLDER_ID:
+				return new Label(detail.getFolderId());
+			case PREVIOUS_ID:
+				return new Label(extension.getPreviousId(detail));
+			case FOLDER:
+				return new ReferenceDisplay(detail.getFolderId());
+			case SORT:
+				return buildSort(detail);
+			case RETENTION_RULE:
+				return new RetentionRuleReferenceDisplay(detail.getRetentionRuleId());
+			case CATEGORY_CODE:
+				return new Label(detail.getCategoryCode());
+			case MEDIUM:
+				return new EnumWithSmallCodeDisplay<>(detail.getMediumType());
+			case CONTAINER:
+				return buildContainer(detail);
+			case LINEAR_SIZE:
+				return buildLinearSize(detail);
+			case ORDER:
+				return buildOrderNumber(detail);
 		}
 
 		return null;
@@ -274,13 +273,13 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		return field;
 	}
 
-	private Component  buildValidationColumn(final FolderDetailVO detail) {
+	private Component buildValidationColumn(final FolderDetailVO detail) {
 		final BooleanOptionGroup included = new BooleanOptionGroup();
 		included.setValue(detail.isFolderIncluded());
 		included.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				if(!(boolean) included.getValue()) {
+				if (!(boolean) included.getValue()) {
 					presenter.removeFromContainer(detail);
 				}
 				presenter.setValidationStatus(detail, (boolean) included.getValue());

@@ -1,25 +1,9 @@
 package com.constellio.app.ui.pages.rm.folder;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import com.constellio.model.entities.Language;
-import org.assertj.core.api.StringAssert;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.openqa.selenium.By;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -34,6 +18,7 @@ import com.constellio.app.ui.tools.RecordFormWebElement;
 import com.constellio.app.ui.tools.ResearchResultWebElement;
 import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveFieldWebElement;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
@@ -52,6 +37,20 @@ import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.assertj.core.api.StringAssert;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.By;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {

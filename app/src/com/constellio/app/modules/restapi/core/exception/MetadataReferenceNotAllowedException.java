@@ -6,11 +6,11 @@ import javax.ws.rs.core.Response;
 
 public class MetadataReferenceNotAllowedException extends BaseRestApiException {
 
-    private static final String CODE = "metadataReferenceNotAllowed";
+	private static final String CODE = "metadataReferenceNotAllowed";
 
-    public MetadataReferenceNotAllowedException(String type, String code) {
-        status = Response.Status.BAD_REQUEST;
+	public MetadataReferenceNotAllowedException(String type, String code) {
+		status = Response.Status.BAD_REQUEST;
 
-        buildValidationError(CODE, ImmutableMap.<String, Object>builder().put("type", type).put("code", code).build());
-    }
+		buildValidationError(CODE, ImmutableMap.<String, Object>builder().put("type", type).put("code", code).build());
+	}
 }

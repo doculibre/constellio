@@ -1,10 +1,10 @@
 package com.constellio.app.ui.framework.components.converters;
 
-import java.util.Locale;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.vaadin.data.util.converter.Converter;
+
+import java.util.Locale;
 
 public class RecordVOToCaptionConverter implements Converter<String, RecordVO> {
 

@@ -1,32 +1,27 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-
+import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.CollectionInfo;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.utils.DefaultClassProvider;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
 
-import com.constellio.data.dao.services.DataStoreTypesFactory;
-import com.constellio.model.entities.CollectionInfo;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.utils.DefaultClassProvider;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.Arrays;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
@@ -42,7 +37,7 @@ public class MetadataSchemaTypeBuilderTest extends ConstellioTest {
 	String customSchemaCode = "zeCustomSchema";
 	String metadataCode = "zeMetadata";
 	String expectedCustomSchemaMetadataCompleteCode = CODE_SCHEMA_TYPE + UNDERSCORE + customSchemaCode + UNDERSCORE
-			+ metadataCode;
+													  + metadataCode;
 	String expectedDefaultSchemaMetadataCompleteCode = CODE_SCHEMA_TYPE + UNDERSCORE + DEFAULT + UNDERSCORE + metadataCode;
 
 	@Mock ModelLayerFactory modelLayerFactory;

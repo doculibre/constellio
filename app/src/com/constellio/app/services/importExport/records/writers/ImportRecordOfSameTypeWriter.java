@@ -1,29 +1,26 @@
 package com.constellio.app.services.importExport.records.writers;
 
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.LangUtils;
+import com.constellio.model.services.records.ContentImportVersion;
+import com.constellio.model.services.records.ImportContent;
+import com.constellio.model.services.records.SimpleImportContent;
+import com.constellio.model.services.records.StructureImportContent;
+import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Map;
-
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
-import com.constellio.model.services.records.ContentImportVersion;
-import com.constellio.model.services.records.ImportContent;
-import com.constellio.model.services.records.SimpleImportContent;
-import com.constellio.model.services.records.StructureImportContent;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
-import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.LangUtils;
-import com.sun.xml.txw2.output.IndentingXMLStreamWriter;
-
-import org.joda.time.LocalDateTime;
 
 public class ImportRecordOfSameTypeWriter {
 
@@ -117,14 +114,13 @@ public class ImportRecordOfSameTypeWriter {
 						writer.writeCharacters(((LocalDateTime) value).toString("yyyy-MM-dd HH:mm:ss"));
 						writer.writeEndElement();
 
-					} else if(value instanceof StructureImportContent) {
+					} else if (value instanceof StructureImportContent) {
 						writer.writeStartElement("structureContent");
 						writer.writeAttribute("type", "structureContent");
-						writer.writeAttribute("structure", ((StructureImportContent)value).getSerializedStructure());
+						writer.writeAttribute("structure", ((StructureImportContent) value).getSerializedStructure());
 						writer.writeAttribute("key", importRecordMetadata.getKey());
 						writer.writeEndElement();
-					}
-					else if (value instanceof ImportContent) {
+					} else if (value instanceof ImportContent) {
 						writer.writeStartElement(importRecordMetadata.getKey());
 						writer.writeAttribute("type", "content");
 						writeValue(value);
@@ -134,8 +130,7 @@ public class ImportRecordOfSameTypeWriter {
 						writer.writeAttribute("type", "structure");
 						writeValue(value);
 						writer.writeEndElement();
-					}
-					else {
+					} else {
 						writer.writeStartElement(importRecordMetadata.getKey());
 						writeValue(value);
 						writer.writeEndElement();

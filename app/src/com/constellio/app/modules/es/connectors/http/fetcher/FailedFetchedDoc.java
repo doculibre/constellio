@@ -1,9 +1,9 @@
 package com.constellio.app.modules.es.connectors.http.fetcher;
 
+import com.constellio.app.modules.es.connectors.http.utils.DigestUtil;
+
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-
-import com.constellio.app.modules.es.connectors.http.utils.DigestUtil;
 
 public class FailedFetchedDoc implements FetchedDoc {
 	private final String url;

@@ -1,12 +1,12 @@
 package com.constellio.app.modules.robots.ui.navigation;
 
-import static com.constellio.app.ui.params.ParamUtils.addParams;
+import com.constellio.app.ui.application.CoreViews;
+import com.vaadin.navigator.Navigator;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.ui.application.CoreViews;
-import com.vaadin.navigator.Navigator;
+import static com.constellio.app.ui.params.ParamUtils.addParams;
 
 public class RobotViews extends CoreViews {
 	public RobotViews(Navigator navigator) {

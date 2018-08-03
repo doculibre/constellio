@@ -1,7 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -11,6 +9,8 @@ import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.List;
 
 public class CoreMigrationTo_6_5_19 implements MigrationScript {
 
@@ -59,7 +59,7 @@ public class CoreMigrationTo_6_5_19 implements MigrationScript {
 
 	private class AddGlobalGroupLocallyCreatedMetadata extends MetadataSchemasAlterationHelper {
 		public AddGlobalGroupLocallyCreatedMetadata(String collection, MigrationResourcesProvider provider,
-				AppLayerFactory appLayerFactory) {
+													AppLayerFactory appLayerFactory) {
 			super(collection, provider, appLayerFactory);
 		}
 

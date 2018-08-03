@@ -1,12 +1,11 @@
 package com.constellio.sdk.tests.selenium.components.vaadin;
 
-import java.io.File;
-
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import com.constellio.sdk.tests.selenium.conditions.ConditionWithTimeout;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
-import com.constellio.sdk.tests.selenium.conditions.ConditionWithTimeout;
+import java.io.File;
 
 public class VaadinUpload {
 

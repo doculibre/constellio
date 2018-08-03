@@ -11,11 +11,12 @@ public class ValidationParams {
 	ImportDataOptions options;
 	boolean warningsForInvalidFacultativeMetadatas;
 
-	public ValidationParams(ValidationErrors errors, ImportData importRecord, ImportDataOptions options, boolean warningsForInvalidFacultativeMetadatas) {
+	public ValidationParams(ValidationErrors errors, ImportData importRecord, ImportDataOptions options,
+							boolean warningsForInvalidFacultativeMetadatas) {
 		this.errors = errors;
 		this.importRecord = importRecord;
 		this.options = options;
-		this.warningsForInvalidFacultativeMetadatas= warningsForInvalidFacultativeMetadatas;
+		this.warningsForInvalidFacultativeMetadatas = warningsForInvalidFacultativeMetadatas;
 	}
 
 	public ValidationErrors getErrors() {

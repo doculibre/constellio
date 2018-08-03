@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -34,6 +28,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.metadatas.IntegerStringValidator;
 
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static java.util.Arrays.asList;
+
 public class RMMigrationTo5_0_6 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -42,7 +42,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -114,7 +114,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 	}
 
 	private void addVariablePeriod888And999(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+											AppLayerFactory appLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		VariableRetentionPeriod period888 = rm.newVariableRetentionPeriod().setCode("888")
 				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod888"));
@@ -132,7 +132,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 		MetadataSchemaTypes types;
 
 		protected SchemaAlterationFor5_0_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 			types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 		}
@@ -172,7 +172,8 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 			userDocumentSchema.create("folder").defineReferencesTo(typesBuilder.getSchema(Folder.DEFAULT_SCHEMA));
 		}
 
-		private void modifyTextContentStructureAndUSRMetadatasToDontWriteNullValues(MetadataSchemaTypesBuilder typesBuilder) {
+		private void modifyTextContentStructureAndUSRMetadatasToDontWriteNullValues(
+				MetadataSchemaTypesBuilder typesBuilder) {
 			List<MetadataValueType> typesWithoutNullValues = asList(STRUCTURE, TEXT);
 			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
 				for (MetadataBuilder metadata : typeBuilder.getAllMetadatas()) {

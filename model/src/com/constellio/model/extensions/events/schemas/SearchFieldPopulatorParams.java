@@ -1,8 +1,8 @@
 package com.constellio.model.extensions.events.schemas;
 
-import java.util.Locale;
-
 import com.constellio.model.entities.schemas.Metadata;
+
+import java.util.Locale;
 
 public class SearchFieldPopulatorParams {
 	Metadata metadata;

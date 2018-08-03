@@ -1,31 +1,24 @@
 package com.constellio.model.services.schemas.builders;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
+import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.utils.DefaultClassProvider;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mock;
 
-import com.constellio.data.dao.services.DataStoreTypesFactory;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.utils.DefaultClassProvider;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 @RunWith(Parameterized.class)
 public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
@@ -47,8 +40,8 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 
 	@Parameterized.Parameters(name = "{0}")
 	public static Collection<Object[]> testCases() {
-		return Arrays.asList(new Object[][] { { givenBuilder }, { givenFinalEnity }, { givenBuilderObtainedFromManager },
-				{ givenFinalEnityObtainedFromManager } });
+		return Arrays.asList(new Object[][]{{givenBuilder}, {givenFinalEnity}, {givenBuilderObtainedFromManager},
+											{givenFinalEnityObtainedFromManager}});
 	}
 
 	@SuppressWarnings("unused")
@@ -443,7 +436,7 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 		if (builderMode) {
 			MetadataSchemaBuilder schema = typesBuilder.getSchema(code);
 			assertTrue("Invalid schema : " + schema.getCode(), schema.getCode().equals(code)
-					|| schema.getCode().equals(code));
+															   || schema.getCode().equals(code));
 		} else {
 			MetadataSchema schema = types.getSchema(code);
 			assertTrue(schema.getCode().equals(code) || schema.getCode().equals(code));
@@ -486,19 +479,19 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 	//@formatter:off
 	private void validateCanFindCustomSchemaFromSchemaType(String codeOrCode, String type)
 			throws Exception {
-//		System.out.println("validateCanFindCustomSchemaFromSchemaType(\"" + codeOrCode + "\", \"" + type + "\");");
+		//		System.out.println("validateCanFindCustomSchemaFromSchemaType(\"" + codeOrCode + "\", \"" + type + "\");");
 		if (builderMode) {
 			MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.getSchemaType(type);
 			MetadataSchemaBuilder schemaBuilder = schemaTypeBuilder.getSchema(codeOrCode);
 			assertTrue("Unexpected schema : " + schemaBuilder.getCode() + " in type " + type + ", expected : "
-					+ codeOrCode, schemaBuilder.getLocalCode().equals(codeOrCode)
-					|| schemaBuilder.getCode().equals(codeOrCode));
+					   + codeOrCode, schemaBuilder.getLocalCode().equals(codeOrCode)
+									 || schemaBuilder.getCode().equals(codeOrCode));
 		} else {
 			MetadataSchemaType schemaType = types.getSchemaType(type);
 			MetadataSchema schemaBuilder = schemaType.getSchema(codeOrCode);
 			assertTrue("Unexpected schema : " + schemaBuilder.getCode() + " in type " + type + ", expected : "
-					+ codeOrCode, schemaBuilder.getLocalCode().equals(codeOrCode)
-					|| schemaBuilder.getCode().equals(codeOrCode));
+					   + codeOrCode, schemaBuilder.getLocalCode().equals(codeOrCode)
+									 || schemaBuilder.getCode().equals(codeOrCode));
 		}
 	}
 	//@formatter:on
@@ -546,7 +539,8 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 		validateCanFindMetadataFromSchemaAndMetadataHasCode(codeOrCode, schemaCode, codeOrCode);
 	}
 
-	private void validateCanFindMetadataFromSchemaAndMetadataHasCode(String codeOrCode, String schemaCode, String expectedCode)
+	private void validateCanFindMetadataFromSchemaAndMetadataHasCode(String codeOrCode, String schemaCode,
+																	 String expectedCode)
 			throws Exception {
 		//		System.out.println("validateCanFindMetadataFromSchema(\"" + codeOrCode + "\", \"" + schemaCode + "\");");
 		if (builderMode) {

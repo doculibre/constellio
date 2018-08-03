@@ -1,13 +1,5 @@
 package com.constellio.sdk.load;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.List;
-
-import org.apache.solr.common.params.ModifiableSolrParams;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -23,6 +15,13 @@ import com.constellio.sdk.load.script.SystemWithDataAndRMModuleScript;
 import com.constellio.sdk.load.script.preparators.AdministrativeUnitTaxonomyPreparator;
 import com.constellio.sdk.load.script.preparators.CategoriesTaxonomyPreparator;
 import com.constellio.sdk.load.script.preparators.DefaultUsersPreparator;
+import org.apache.solr.common.params.ModifiableSolrParams;
+
+import java.io.File;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LoadSetup_SystemWithDataAndRMModuleMain {
 
@@ -58,7 +57,7 @@ public class LoadSetup_SystemWithDataAndRMModuleMain {
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "*:*");
 
-		AppLayerFactory appLayerFactory= ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads();
+		AppLayerFactory appLayerFactory = ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads();
 		DataLayerFactory dataLayerFactory = appLayerFactory.getModelLayerFactory().getDataLayerFactory();
 		dataLayerFactory.newRecordDao().execute(new TransactionDTO(RecordsFlushing.NOW()).withDeletedByQueries(params));
 

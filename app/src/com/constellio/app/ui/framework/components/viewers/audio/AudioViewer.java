@@ -6,8 +6,8 @@ import com.vaadin.ui.Audio;
 import com.vaadin.ui.CustomComponent;
 
 public class AudioViewer extends CustomComponent {
-	
-	public static final String[] SUPPORTED_EXTENSIONS = { /* "mp3", "wav" */ };
+
+	public static final String[] SUPPORTED_EXTENSIONS = { /* "mp3", "wav" */};
 
 	public AudioViewer(ContentVersionVO contentVersionVO) {
 		Audio audio = new Audio();

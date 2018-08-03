@@ -1,17 +1,5 @@
 package com.constellio.app.services.metadata;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.metadata.AppSchemasServicesRuntimeException.AppSchemasServicesRuntimeException_CannotDeleteSchema;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
@@ -37,6 +25,13 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static java.util.Arrays.asList;
 
 public class AppSchemasServices {
 
@@ -64,44 +59,44 @@ public class AppSchemasServices {
 		List<String> references = getReferencesWithDirectAllowedReference(collection, schemaCode);
 		MetadataSchema schema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
 		Map<String, Object> parameters = new HashMap<>();
-		parameters.put("schemaTitle", schema.	getLabels());
+		parameters.put("schemaTitle", schema.getLabels());
 
 		if (schemaCode.endsWith("default")) {
-			validationErrors = newValidationErrors(CANNOT_DELETE_DEFAULT_SCHEMA,parameters);
+			validationErrors = newValidationErrors(CANNOT_DELETE_DEFAULT_SCHEMA, parameters);
 		} else if (!references.isEmpty()) {
-			setParametersForMetadataReferencingSchemaError(parameters,collection, schemaCode);
-			validationErrors = newValidationErrors(METADATA_REFERENCING_SCHEMA,parameters);
-		} else if (searchServices.hasResults(from(schema).returnAll())){
-			setParametersForExistingRecordsWithSchemaError(parameters,schema);
-			validationErrors = newValidationErrors(EXISTING_RECORDS_WITH_SCHEMA,parameters);
+			setParametersForMetadataReferencingSchemaError(parameters, collection, schemaCode);
+			validationErrors = newValidationErrors(METADATA_REFERENCING_SCHEMA, parameters);
+		} else if (searchServices.hasResults(from(schema).returnAll())) {
+			setParametersForExistingRecordsWithSchemaError(parameters, schema);
+			validationErrors = newValidationErrors(EXISTING_RECORDS_WITH_SCHEMA, parameters);
 		}
 		return validationErrors;
 	}
 
-	public List<Record> getVisibleRecords(String collection, String schemaCode, User user, int numberOfRecords){
+	public List<Record> getVisibleRecords(String collection, String schemaCode, User user, int numberOfRecords) {
 		MetadataSchema metadataSchema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(metadataSchema).returnAll()).filteredWithUser(user, Role.READ);
 		List<Record> records = searchServices.search(logicalSearchQuery);
-		if(records.size() > numberOfRecords){
-			return records.subList(0,numberOfRecords);
-		}else {
+		if (records.size() > numberOfRecords) {
+			return records.subList(0, numberOfRecords);
+		} else {
 			return records;
 		}
 	}
 
-	public boolean areAllRecordsVisible(String collection, String schemaCode, User user){
+	public boolean areAllRecordsVisible(String collection, String schemaCode, User user) {
 		MetadataSchema metadataSchema = schemasManager.getSchemaTypes(collection).getSchema(schemaCode);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(metadataSchema).returnAll()).filteredWithUser(user, Role.READ);
 		Long numberOfVisibleRecords = searchServices.getResultsCount(logicalSearchQuery);
-		Long numberOfRecords =searchServices.getResultsCount(from(metadataSchema).returnAll());
-		if( numberOfRecords> numberOfVisibleRecords ){
+		Long numberOfRecords = searchServices.getResultsCount(from(metadataSchema).returnAll());
+		if (numberOfRecords > numberOfVisibleRecords) {
 			return false;
 		}
 		return true;
 	}
 
 	public void deleteSchemaCode(String collection, String schemaCode) {
-		ValidationErrors validationErrors =isSchemaDeletable(collection, schemaCode );
+		ValidationErrors validationErrors = isSchemaDeletable(collection, schemaCode);
 		if (validationErrors != null) {
 			throw new AppSchemasServicesRuntimeException_CannotDeleteSchema(schemaCode);
 		}
@@ -159,7 +154,8 @@ public class AppSchemasServices {
 		}
 	}
 
-	private void modifyReferencesWithDirectTarget(MetadataSchemaTypes types, final String fromCode, final String toCode) {
+	private void modifyReferencesWithDirectTarget(MetadataSchemaTypes types, final String fromCode,
+												  final String toCode) {
 		final List<String> referencesCodeToUpdate = getReferencesWithDirectAllowedReference(types.getCollection(), fromCode);
 		if (!referencesCodeToUpdate.isEmpty()) {
 			schemasManager.modify(types.getCollection(), new MetadataSchemaTypesAlteration() {
@@ -183,7 +179,7 @@ public class AppSchemasServices {
 	}
 
 	private boolean modifyRecordsAndReturnIfAsyncOperations(String collection, final MetadataSchema originalSchema,
-			final MetadataSchema destinationSchema) {
+															final MetadataSchema destinationSchema) {
 
 		BatchProcessesManager batchProcessesManager = appLayerFactory.getModelLayerFactory().getBatchProcessesManager();
 		LogicalSearchCondition condition = from(originalSchema).returnAll();
@@ -254,12 +250,12 @@ public class AppSchemasServices {
 		}
 	}
 
-	private Metadata getMetadata(String collection, String schemaCode){
+	private Metadata getMetadata(String collection, String schemaCode) {
 		String schemaType = new SchemaUtils().getSchemaTypeCode(schemaCode);
 		return schemasManager.getSchemaTypes(collection).getAllMetadatas().onlyReferencesToType(schemaType).get(0);
 	}
 
-	private ValidationErrors newValidationErrors(String code,Map<String, Object> parameters){
+	private ValidationErrors newValidationErrors(String code, Map<String, Object> parameters) {
 		ValidationErrors validationErrors = new ValidationErrors();
 		validationErrors.add(AppSchemasServices.class, code, parameters);
 		return validationErrors;
@@ -280,18 +276,19 @@ public class AppSchemasServices {
 		return references;
 	}
 
-	private void setParametersForMetadataReferencingSchemaError(Map<String, Object> parameters, String collection, String schemaCode){
+	private void setParametersForMetadataReferencingSchemaError(Map<String, Object> parameters, String collection,
+																String schemaCode) {
 		Metadata referenceMetadata = getMetadata(collection, schemaCode);
 		MetadataSchemaType metadataSchemaType = schemasManager.getSchemaTypes(collection).getSchemaType(referenceMetadata.getSchemaTypeCode());
 		MetadataSchema metadataSchema = schemasManager.getSchemaTypes(collection).getSchema(referenceMetadata.getSchemaCode());
-		parameters.put("metadataTitle",referenceMetadata.getLabels());
-		parameters.put("metadataSchemaTypeTitle",metadataSchemaType.getLabels());
+		parameters.put("metadataTitle", referenceMetadata.getLabels());
+		parameters.put("metadataSchemaTypeTitle", metadataSchemaType.getLabels());
 		parameters.put("metadataSchemaTitle", metadataSchema.getLabels());
 	}
 
-	private void setParametersForExistingRecordsWithSchemaError(Map<String, Object> parameters, MetadataSchema schema){
-		Long numberOfRecords =searchServices.getResultsCount(from(schema).returnAll());
-		parameters.put("recordsCount",numberOfRecords);
+	private void setParametersForExistingRecordsWithSchemaError(Map<String, Object> parameters, MetadataSchema schema) {
+		Long numberOfRecords = searchServices.getResultsCount(from(schema).returnAll());
+		parameters.put("recordsCount", numberOfRecords);
 	}
 
 	public void disableSchema(String collection, String schemaCode) {

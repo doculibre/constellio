@@ -1,11 +1,9 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
-import javax.naming.directory.BasicAttribute;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LDAPObjectAttribute {
 	private List<Object> value = new ArrayList<>();

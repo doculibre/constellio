@@ -1,12 +1,11 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+import java.util.Map;
 
 public class ImportedMetadataVOBuilder {
 	public ImportedMetadata build(Map<String, String> metadataElements)

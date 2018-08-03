@@ -35,9 +35,9 @@ public interface BaseView extends ViewComponent {
 	void updateUI();
 
 	void invalidate();
-	
+
 	void closeAllWindows();
-	
+
 	MainLayout getMainLayout();
 
 	void removeViewEnterListener(ViewEnterListener listener);
@@ -47,12 +47,12 @@ public interface BaseView extends ViewComponent {
 		void viewEntered(String params);
 
 		void afterInit(String parameters);
-		
+
 		/**
 		 * @param e Exception being thrown
 		 * @return True if listener handled exception
 		 */
 		boolean exception(Exception e);
-		
+
 	}
 }

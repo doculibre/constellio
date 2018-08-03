@@ -1,12 +1,9 @@
 package com.constellio.model.services.batch.xml.list;
 
-import static junit.framework.TestCase.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.batchprocess.BatchProcessStatus;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.joda.time.LocalDateTime;
@@ -14,10 +11,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.batchprocess.BatchProcessAction;
-import com.constellio.model.entities.batchprocess.BatchProcessStatus;
-import com.constellio.model.entities.batchprocess.RecordBatchProcess;
-import com.constellio.sdk.tests.ConstellioTest;
+import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 public class BatchProcessListWriterTest extends ConstellioTest {
 
@@ -45,7 +41,7 @@ public class BatchProcessListWriterTest extends ConstellioTest {
 	public void setup()
 			throws Exception {
 
-		when(action.getInstanceParameters()).thenReturn(new Object[] {});
+		when(action.getInstanceParameters()).thenReturn(new Object[]{});
 
 		document = new Document();
 		listWriter = spy(new BatchProcessListWriter(document));

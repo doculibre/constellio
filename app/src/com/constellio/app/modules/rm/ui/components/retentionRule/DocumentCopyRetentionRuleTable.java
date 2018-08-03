@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -45,16 +36,16 @@ import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.data.util.converter.Converter.ConversionException;
 import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>> {
 
@@ -88,7 +79,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 	private boolean formMode;
 
 	public DocumentCopyRetentionRuleTable(RetentionRuleVO retentionRuleVO, boolean formMode,
-			final RetentionRuleTablePresenter presenter) {
+										  final RetentionRuleTablePresenter presenter) {
 		this.retentionRuleVO = retentionRuleVO;
 		this.formMode = formMode;
 		this.presenter = presenter;
@@ -348,7 +339,7 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 		addItems();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public Class getType() {
 		return List.class;
@@ -383,12 +374,13 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 
 		private MetadataField dateMetadataField;
 
-		public RetentionPeriodFieldGroup(final CopyRetentionRule copyRetentionRule, final boolean activeRetentionPeriod) {
+		public RetentionPeriodFieldGroup(final CopyRetentionRule copyRetentionRule,
+										 final boolean activeRetentionPeriod) {
 			setSpacing(true);
 
 			RetentionPeriod retentionPeriod = (activeRetentionPeriod) ?
-					copyRetentionRule.getActiveRetentionPeriod() :
-					copyRetentionRule.getSemiActiveRetentionPeriod();
+											  copyRetentionRule.getActiveRetentionPeriod() :
+											  copyRetentionRule.getSemiActiveRetentionPeriod();
 
 			Property<String> dateMetadataProperty;
 			if (activeRetentionPeriod) {
@@ -424,8 +416,8 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 						}
 					}
 					if (activeRetentionPeriod &&
-							(retentionPeriod.getRetentionType() == RetentionType.OPEN ||
-							retentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
+						(retentionPeriod.getRetentionType() == RetentionType.OPEN ||
+						 retentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
 						yearsField.setConvertedValue(copyRetentionRule.getOpenActiveRetentionPeriod());
 						yearsField.setEnabled(true);
 					} else {
@@ -448,8 +440,8 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 							}
 							yearsField.setValue(null);
 							yearsField.setEnabled(activeRetentionPeriod &&
-									(newRetentionPeriod.getRetentionType() == RetentionType.OPEN ||
-									newRetentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED));
+												  (newRetentionPeriod.getRetentionType() == RetentionType.OPEN ||
+												   newRetentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED));
 						} else {
 							yearsField.setEnabled(true);
 						}
@@ -463,11 +455,11 @@ public class DocumentCopyRetentionRuleTable extends CustomField<List<CopyRetenti
 							yearsField.validate();
 							Integer newValue = (Integer) yearsField.getConvertedValue();
 							RetentionPeriod period = activeRetentionPeriod ?
-									copyRetentionRule.getActiveRetentionPeriod() :
-									copyRetentionRule.getSemiActiveRetentionPeriod();
+													 copyRetentionRule.getActiveRetentionPeriod() :
+													 copyRetentionRule.getSemiActiveRetentionPeriod();
 							if (activeRetentionPeriod &&
-									(period.getRetentionType() == RetentionType.OPEN ||
-									period.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
+								(period.getRetentionType() == RetentionType.OPEN ||
+								 period.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
 								copyRetentionRule.setOpenActiveRetentionPeriod(newValue);
 							} else if (newValue != null) {
 								openRetentionPeriodDDVField.setValue(null);

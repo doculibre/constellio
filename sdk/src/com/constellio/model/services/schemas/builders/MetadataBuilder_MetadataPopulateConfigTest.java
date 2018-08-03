@@ -1,16 +1,15 @@
 package com.constellio.model.services.schemas.builders;
 
+import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
+import org.junit.Test;
+
+import java.util.regex.Pattern;
+
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
-
-import java.util.regex.Pattern;
-
-import org.junit.Test;
-
-import com.constellio.model.entities.schemas.RegexConfig;
-import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
 
 public class MetadataBuilder_MetadataPopulateConfigTest extends MetadataBuilderTest {
 

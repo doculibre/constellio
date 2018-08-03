@@ -9,21 +9,21 @@ import javax.ws.rs.ext.Provider;
 @Provider
 public class RestApiObjectMapper implements ContextResolver<ObjectMapper> {
 
-    private final ObjectMapper defaultObjectMapper;
+	private final ObjectMapper defaultObjectMapper;
 
-    public RestApiObjectMapper() {
-        defaultObjectMapper = createDefaultMapper();
-    }
+	public RestApiObjectMapper() {
+		defaultObjectMapper = createDefaultMapper();
+	}
 
-    @Override
-    public ObjectMapper getContext(Class<?> type) {
-        return defaultObjectMapper;
-    }
+	@Override
+	public ObjectMapper getContext(Class<?> type) {
+		return defaultObjectMapper;
+	}
 
-    private static ObjectMapper createDefaultMapper() {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JodaModule());
+	private static ObjectMapper createDefaultMapper() {
+		final ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JodaModule());
 
-        return objectMapper;
-    }
+		return objectMapper;
+	}
 }

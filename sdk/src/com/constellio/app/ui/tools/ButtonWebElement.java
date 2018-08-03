@@ -51,7 +51,7 @@ public class ButtonWebElement {
 		element.scrollIntoView();
 	}
 
-	public String getCaption(){
+	public String getCaption() {
 		return element.find("v-button-caption").getText();
 	}
 }

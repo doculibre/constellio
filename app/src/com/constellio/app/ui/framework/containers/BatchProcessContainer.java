@@ -1,32 +1,15 @@
 package com.constellio.app.ui.framework.containers;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
-import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.RecordDisplay;
-import com.constellio.app.ui.pages.batchprocess.ListBatchProcessesPresenter;
-import com.constellio.app.ui.pages.batchprocess.ListBatchProcessesViewImpl;
-import com.vaadin.server.Resource;
-import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.BatchProcessVO;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
 import com.constellio.app.ui.framework.data.BatchProcessDataProvider;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.batchprocess.ListBatchProcessesPresenter;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -34,6 +17,18 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
+import com.vaadin.server.Resource;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Component;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BatchProcessContainer extends DataContainer<BatchProcessDataProvider> {
 
@@ -73,7 +68,8 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		this(dataProvider, true, presenter);
 	}
 
-	public BatchProcessContainer(BatchProcessDataProvider dataProvider, boolean systemBatchProcesses, ListBatchProcessesPresenter presenter) {
+	public BatchProcessContainer(BatchProcessDataProvider dataProvider, boolean systemBatchProcesses,
+								 ListBatchProcessesPresenter presenter) {
 		super(dataProvider);
 		this.systemBatchProcesses = systemBatchProcesses;
 		this.presenter = presenter;
@@ -155,7 +151,7 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 		return type;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	protected Property<?> getOwnContainerProperty(Object itemId, Object propertyId) {
 		final BatchProcessVO batchProcessVO = (BatchProcessVO) itemId;
@@ -191,7 +187,7 @@ public class BatchProcessContainer extends DataContainer<BatchProcessDataProvide
 
 				@Override
 				public void buttonClick(ClickEvent event) {
-					if(presenter.getBatchProcessReport(batchProcessVO.getId()) != null) {
+					if (presenter.getBatchProcessReport(batchProcessVO.getId()) != null) {
 						super.buttonClick(event);
 					} else {
 						presenter.showErrorMessage($("BachProcessContainer.noAvailableReport"));

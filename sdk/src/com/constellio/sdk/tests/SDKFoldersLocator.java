@@ -1,8 +1,8 @@
 package com.constellio.sdk.tests;
 
-import java.io.File;
-
 import com.constellio.model.conf.FoldersLocator;
+
+import java.io.File;
 
 public class SDKFoldersLocator extends FoldersLocator {
 

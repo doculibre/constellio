@@ -41,7 +41,7 @@ public class SequenceDataEntry implements DataEntry {
 	@Override
 	public String toString() {
 		return "SequenceDataEntry [fixedSequenceCode=" + fixedSequenceCode + ", metadataProvidingSequenceCode=" +
-				metadataProvidingSequenceCode + "]";
+			   metadataProvidingSequenceCode + "]";
 	}
 
 }

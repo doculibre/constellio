@@ -1,12 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -15,6 +8,13 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.vaadin.data.Item;
 import com.vaadin.ui.Field;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class RecordForm extends BaseForm<RecordVO> {
@@ -32,7 +32,7 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	}
 
 	public RecordForm(final RecordVO recordVO, List<FieldAndPropertyId> fieldsAndPropertyIds,
-			RecordFieldFactory formFieldFactory) {
+					  RecordFieldFactory formFieldFactory) {
 		super(recordVO, fieldsAndPropertyIds);
 		this.formFieldFactory = formFieldFactory;
 	}

@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -18,6 +16,8 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 
 public class RMMigrationTo7_0_10_5 implements MigrationScript {
 
@@ -43,7 +43,8 @@ public class RMMigrationTo7_0_10_5 implements MigrationScript {
 
 	public static class SchemaAlterationsFor7_0_10_5 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor7_0_10_5(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor7_0_10_5(String collection, MigrationResourcesProvider provider,
+											   AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 

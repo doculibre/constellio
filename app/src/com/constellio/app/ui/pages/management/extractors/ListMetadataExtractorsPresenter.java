@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.management.extractors;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.ui.entities.MetadataExtractorVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -13,15 +10,14 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ListMetadataExtractorsPresenter extends BasePresenter<ListMetadataExtractorsView> {
 
@@ -62,7 +58,7 @@ public class ListMetadataExtractorsPresenter extends BasePresenter<ListMetadataE
 				for (Metadata metadata : schema.getMetadatas()) {
 					if (metadata.getPopulateConfigs().isConfigured()) {
 						if (!metadata.inheritDefaultSchema() ||
-								!metadata.getPopulateConfigs().equals(metadata.getInheritance().getPopulateConfigs())) {
+							!metadata.getPopulateConfigs().equals(metadata.getInheritance().getPopulateConfigs())) {
 							populatedMetadatas.add(metadata);
 						}
 					}

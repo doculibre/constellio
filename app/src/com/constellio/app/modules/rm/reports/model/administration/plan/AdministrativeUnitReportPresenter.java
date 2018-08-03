@@ -49,7 +49,8 @@ public class AdministrativeUnitReportPresenter implements NewReportPresenter {
 		this(collection, appLayerFactory, true, locale);
 	}
 
-	public AdministrativeUnitReportPresenter(String collection, AppLayerFactory appLayerFactory, boolean withUsers, Locale locale) {
+	public AdministrativeUnitReportPresenter(String collection, AppLayerFactory appLayerFactory, boolean withUsers,
+											 Locale locale) {
 		this.collection = collection;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appCollectionExtentions = appLayerFactory.getExtensions().forCollection(collection);

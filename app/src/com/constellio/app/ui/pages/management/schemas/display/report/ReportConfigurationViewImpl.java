@@ -1,13 +1,9 @@
 package com.constellio.app.ui.pages.management.schemas.display.report;
 
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.ReportVO;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
-import com.vaadin.data.Container;
-import com.vaadin.data.Property;
-import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
@@ -47,7 +43,7 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		presenter.setParameters(params);
 
 		newReportTitle = new TextField($("ReportConfigurationView.newReportTitle"));
-		if(presenter.isEditMode()) {
+		if (presenter.isEditMode()) {
 			newReportTitle.setValue(presenter.getReport().getTitle());
 		}
 
@@ -71,30 +67,29 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		select.setLeftColumnCaption($("SearchDisplayConfigView.leftColumn"));
 
 		for (MetadataVO form : metadataVOProvider.listMetadataVO()) {
-			if(!metadataTitles.add(form.getLabel())) {
+			if (!metadataTitles.add(form.getLabel())) {
 				duplicatedTitles.add(form.getLabel());
 			}
 		}
 		select.setValue(new ArrayList<MetadataVO>());
 		List<String> selectedMetadataCodes = null;
-		if(presenter.isEditMode()) {
-			 selectedMetadataCodes = presenter.getReport().getReportedMetadataVOCodeList();
+		if (presenter.isEditMode()) {
+			selectedMetadataCodes = presenter.getReport().getReportedMetadataVOCodeList();
 		}
 		for (MetadataVO form : metadataVOProvider.listMetadataVO()) {
 			select.addItem(form);
-			if(presenter.isEditMode() && selectedMetadataCodes != null) {
-				if(selectedMetadataCodes.contains(form.getCode())) {
+			if (presenter.isEditMode() && selectedMetadataCodes != null) {
+				if (selectedMetadataCodes.contains(form.getCode())) {
 					List<MetadataVO> currentSelectedItem = new ArrayList<>((Collection<? extends MetadataVO>) select.getValue());
 					currentSelectedItem.add(form);
 					select.setValue(currentSelectedItem);
 				}
 			}
-			if(!duplicatedTitles.contains(form.getLabel())) {
-				select.setItemCaption(form, form.getLabel() );
-			}
-			else {
+			if (!duplicatedTitles.contains(form.getLabel())) {
+				select.setItemCaption(form, form.getLabel());
+			} else {
 				select.setItemCaption(form, form.getLabel()
-						+ "(" + presenter.getSchemaName(form.getCode()) + ": " + form.getLocalCode() + ")");
+											+ "(" + presenter.getSchemaName(form.getCode()) + ": " + form.getLocalCode() + ")");
 			}
 		}
 
@@ -107,11 +102,11 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 			@Override
 			public void buttonClick(ClickEvent event) {
 				List<MetadataVO> values = (List) select.getValue();
-				if(values.size() == 0){
+				if (values.size() == 0) {
 					showErrorMessage($("ReportConfigurationView.selectedValuesEmpty"));
-				} else if(StringUtils.isBlank(getSelectedReport())){
+				} else if (StringUtils.isBlank(getSelectedReport())) {
 					showErrorMessage($("ReportConfigurationView.reportTitleRequired"));
-				} else{
+				} else {
 					presenter.saveButtonClicked(values);
 				}
 			}

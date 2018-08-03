@@ -8,17 +8,19 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 public class RecordTextInputDataProviderWithOneRecordIgnore extends RecordTextInputDataProvider {
 
-    private String ignoredRecordId;
+	private String ignoredRecordId;
 
-    public RecordTextInputDataProviderWithOneRecordIgnore(ConstellioFactories constellioFactories, SessionContext sessionContext, String schemaTypeCode, boolean writeAccess, String ignoredRecordId) {
-        super(constellioFactories, sessionContext, schemaTypeCode, writeAccess);
-        this.ignoredRecordId = ignoredRecordId;
-    }
+	public RecordTextInputDataProviderWithOneRecordIgnore(ConstellioFactories constellioFactories,
+														  SessionContext sessionContext, String schemaTypeCode,
+														  boolean writeAccess, String ignoredRecordId) {
+		super(constellioFactories, sessionContext, schemaTypeCode, writeAccess);
+		this.ignoredRecordId = ignoredRecordId;
+	}
 
-    @Override
-    public LogicalSearchQuery getQuery(User user, String text, int startIndex, int count) {
-        LogicalSearchQuery logicalSearchQuery = super.getQuery(user, text, startIndex, count);
-        logicalSearchQuery.setCondition(logicalSearchQuery.getCondition().andWhere(Schemas.IDENTIFIER).isNotEqual(ignoredRecordId));
-        return logicalSearchQuery;
-    }
+	@Override
+	public LogicalSearchQuery getQuery(User user, String text, int startIndex, int count) {
+		LogicalSearchQuery logicalSearchQuery = super.getQuery(user, text, startIndex, count);
+		logicalSearchQuery.setCondition(logicalSearchQuery.getCondition().andWhere(Schemas.IDENTIFIER).isNotEqual(ignoredRecordId));
+		return logicalSearchQuery;
+	}
 }

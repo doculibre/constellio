@@ -1,14 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.modules.es.connectors.ConnectorServicesRuntimeException.ConnectorServicesRuntimeException_CannotDownloadDocument;
 import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
@@ -25,6 +16,15 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang.StringUtils;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class SMBConnectorUtilsServices implements ConnectorUtilsServices<ConnectorSmb> {
 
@@ -68,7 +68,7 @@ public class SMBConnectorUtilsServices implements ConnectorUtilsServices<Connect
 
 	@Override
 	public List<ConnectorDocument<?>> getChildren(ConnectorDocument<?> connectorDocument) {
-		if(connectorDocument instanceof ConnectorSmbFolder) {
+		if (connectorDocument instanceof ConnectorSmbFolder) {
 			LogicalSearchCondition condition = from(es.connectorSmbDocument.schemaType())
 					.where(es.connectorSmbDocument.parentConnectorUrl()).isEqualTo(((ConnectorSmbFolder) connectorDocument).getConnectorUrl());
 			return es.searchConnectorDocuments(new LogicalSearchQuery(condition));
@@ -124,8 +124,10 @@ public class SMBConnectorUtilsServices implements ConnectorUtilsServices<Connect
 		}
 		return url;
 	}
+
 	@Override
-	public InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument, String availableVersion) {
+	public InputStream newContentInputStream(ConnectorDocument connectorDocument, String classifyDocument,
+											 String availableVersion) {
 		throw new UnsupportedOperationException("TODO");
 	}
 

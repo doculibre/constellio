@@ -1,17 +1,12 @@
 package com.constellio.model.entities.security.global;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDateTime;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 public class SolrUserCredential extends RecordWrapper implements UserCredential {
 	public static final String SCHEMA_TYPE = "userCredential";

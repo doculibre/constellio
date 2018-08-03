@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
-import static java.util.Arrays.asList;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -19,6 +16,9 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
+
+import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
+import static java.util.Arrays.asList;
 
 public class RMMigrationTo6_5_54 implements MigrationScript {
 
@@ -49,7 +49,8 @@ public class RMMigrationTo6_5_54 implements MigrationScript {
 
 	public static class SchemaAlterationsFor6_5_54 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor6_5_54(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor6_5_54(String collection, MigrationResourcesProvider provider,
+											 AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 
@@ -62,9 +63,10 @@ public class RMMigrationTo6_5_54 implements MigrationScript {
 		}
 
 		private MetadataBuilder copy(MetadataSchemaTypeBuilder sourceSchemaType,
-				MetadataSchemaTypeBuilder destinationSchemaType,
+									 MetadataSchemaTypeBuilder destinationSchemaType,
 
-				String referenceLocalCode, String sourceMetadataLocalCode, String destinationMetadataLocalCode) {
+									 String referenceLocalCode, String sourceMetadataLocalCode,
+									 String destinationMetadataLocalCode) {
 
 			MetadataSchemaBuilder sourceDefaultSchema = sourceSchemaType.getDefaultSchema();
 			MetadataSchemaBuilder destinationDefaultSchema = destinationSchemaType.getDefaultSchema();

@@ -13,39 +13,39 @@ import java.util.Locale;
 
 @Provider
 @Slf4j
-public class RestApiExceptionMapper extends BaseRestApiExceptionMapper implements ExceptionMapper<Throwable>  {
+public class RestApiExceptionMapper extends BaseRestApiExceptionMapper implements ExceptionMapper<Throwable> {
 
-    @Override
-    public Response toResponse(Throwable e) {
-        Locale locale = getLocale();
-        RestApiErrorResponse errorResponse = RestApiErrorResponse.builder().build();
+	@Override
+	public Response toResponse(Throwable e) {
+		Locale locale = getLocale();
+		RestApiErrorResponse errorResponse = RestApiErrorResponse.builder().build();
 
-        if (e instanceof BaseRestApiException) {
-            BaseRestApiException ex = (BaseRestApiException) e;
+		if (e instanceof BaseRestApiException) {
+			BaseRestApiException ex = (BaseRestApiException) e;
 
-            errorResponse.setCode(ex.getStatus().getStatusCode());
-            errorResponse.setDescription(ex.getStatus().getReasonPhrase());
-            errorResponse.setMessage(i18n.$(ex.getValidationError(), locale));
-        } else if (e instanceof WebApplicationException) {
-            WebApplicationException ex = (WebApplicationException) e;
+			errorResponse.setCode(ex.getStatus().getStatusCode());
+			errorResponse.setDescription(ex.getStatus().getReasonPhrase());
+			errorResponse.setMessage(i18n.$(ex.getValidationError(), locale));
+		} else if (e instanceof WebApplicationException) {
+			WebApplicationException ex = (WebApplicationException) e;
 
-            errorResponse.setCode(ex.getResponse().getStatusInfo().getStatusCode());
-            errorResponse.setDescription(ex.getResponse().getStatusInfo().getReasonPhrase());
-            errorResponse.setMessage(ex.getLocalizedMessage());
-        } else if (e instanceof ValidationRuntimeException) {
-            ValidationRuntimeException ex = (ValidationRuntimeException) e;
+			errorResponse.setCode(ex.getResponse().getStatusInfo().getStatusCode());
+			errorResponse.setDescription(ex.getResponse().getStatusInfo().getReasonPhrase());
+			errorResponse.setMessage(ex.getLocalizedMessage());
+		} else if (e instanceof ValidationRuntimeException) {
+			ValidationRuntimeException ex = (ValidationRuntimeException) e;
 
-            errorResponse.setCode(Response.Status.BAD_REQUEST.getStatusCode());
-            errorResponse.setDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
-            errorResponse.setMessage(i18n.$(ex.getValidationErrorsList().get(0), locale));
-        } else {
-            log.error(e.getMessage(), e);
+			errorResponse.setCode(Response.Status.BAD_REQUEST.getStatusCode());
+			errorResponse.setDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
+			errorResponse.setMessage(i18n.$(ex.getValidationErrorsList().get(0), locale));
+		} else {
+			log.error(e.getMessage(), e);
 
-            errorResponse.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-            errorResponse.setDescription(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-            errorResponse.setMessage(e.getMessage());
-        }
+			errorResponse.setCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+			errorResponse.setDescription(Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+			errorResponse.setMessage(e.getMessage());
+		}
 
-        return buildResponse(errorResponse);
-    }
+		return buildResponse(errorResponse);
+	}
 }

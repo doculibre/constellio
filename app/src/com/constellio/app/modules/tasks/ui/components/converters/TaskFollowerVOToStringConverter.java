@@ -1,16 +1,17 @@
 package com.constellio.app.modules.tasks.ui.components.converters;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import java.util.Locale;
-
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.ui.framework.components.converters.RecordIdToCaptionConverter;
 import com.vaadin.data.util.converter.Converter;
 
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class TaskFollowerVOToStringConverter implements Converter<String, TaskFollowerVO> {
-	
+
 	private RecordIdToCaptionConverter followerIdConverter = new RecordIdToCaptionConverter();
-	
+
 	@Override
 	public TaskFollowerVO convertToModel(String value, Class<? extends TaskFollowerVO> targetType, Locale locale)
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
@@ -28,7 +29,7 @@ public class TaskFollowerVOToStringConverter implements Converter<String, TaskFo
 			boolean followTaskCompleted = value.isFollowTaskCompleted();
 			boolean followTaskDeleted = value.isFollowTaskDeleted();
 			boolean followSubTasksModified = value.isFollowSubTasksModified();
-			
+
 			StringBuffer sb = new StringBuffer();
 			String followerIdCaption = followerIdConverter.convertToPresentation(followerId, targetType, locale);
 			sb.append(followerIdCaption);

@@ -1,8 +1,8 @@
 package com.constellio.model.services.search.query.logical.condition;
 
-import java.util.List;
-
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
+
+import java.util.List;
 
 public class NegatedLogicalSearchCondition extends LogicalSearchCondition {
 	private final LogicalSearchCondition negated;

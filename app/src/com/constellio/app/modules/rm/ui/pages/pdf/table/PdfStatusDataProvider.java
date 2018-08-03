@@ -6,11 +6,11 @@ import java.util.Collection;
 import java.util.List;
 
 public interface PdfStatusDataProvider<T> extends DataProvider {
-    public List<T> listPdfStatus();
+	public List<T> listPdfStatus();
 
-    public Collection<?> getOwnContainerPropertyIds();
+	public Collection<?> getOwnContainerPropertyIds();
 
-    public Class<?> getOwnType(Object propertyId);
+	public Class<?> getOwnType(Object propertyId);
 
-    public Object getOwnValue(Object itemId, Object propertyId);
+	public Object getOwnValue(Object itemId, Object propertyId);
 }

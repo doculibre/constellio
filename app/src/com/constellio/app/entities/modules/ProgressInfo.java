@@ -1,22 +1,22 @@
 package com.constellio.app.entities.modules;
 
-import java.io.Serializable;
-
 import com.jgoodies.common.collect.ArrayListModel;
 import com.jgoodies.common.collect.ObservableList;
 
+import java.io.Serializable;
+
 public class ProgressInfo implements Serializable {
-	
+
 	private String task;
-	
+
 	private String progressMessage;
-	
+
 	private long currentState = 0;
-	
+
 	private long end;
-	
+
 	private boolean done;
-	
+
 	private ObservableList<String> errorMessages = new ArrayListModel<>();
 
 	public String getTask() {
@@ -38,11 +38,11 @@ public class ProgressInfo implements Serializable {
 	public long getCurrentState() {
 		return currentState;
 	}
-	
+
 	public void setCurrentState(long currentState) {
 		this.currentState = currentState;
 	}
-	
+
 	public String getProgressMessage() {
 		return progressMessage;
 	}
@@ -75,7 +75,7 @@ public class ProgressInfo implements Serializable {
 		setErrorMessages(new ArrayListModel<String>());
 		setDone(false);
 	}
-	
+
 	public Float getProgress() {
 		Float progress;
 		if (done) {
@@ -83,14 +83,14 @@ public class ProgressInfo implements Serializable {
 		} else if (end == 0) {
 			progress = null;
 		} else {
-			progress = ((float) currentState / end); 
+			progress = ((float) currentState / end);
 			if (progress > 1) {
 				progress = 1f;
 			}
 			if (progress == 1 || !done) {
 				done = true;
 			}
-		} 
+		}
 		return progress;
 	}
 

@@ -1,32 +1,5 @@
 package com.constellio.app.modules.tasks.migrations;
 
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.DROPDOWN;
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.HIDDEN;
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.LOOKUP;
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.RICHTEXT;
-import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.STANDBY;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
-import static com.constellio.model.entities.records.wrappers.ValueListItem.CODE;
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -66,6 +39,22 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.PercentageValidator;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.*;
+import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.*;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
+import static com.constellio.model.entities.records.wrappers.ValueListItem.CODE;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static java.util.Arrays.asList;
 
 public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationScript {
 	@Override
@@ -75,7 +64,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 
 		if (!appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
 				.hasType(RMTask.SCHEMA_TYPE)) {
@@ -91,7 +80,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 	}
 
 	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+									MigrationResourcesProvider migrationResourcesProvider) {
 
 		Language language = migrationResourcesProvider.getLanguage();
 
@@ -171,7 +160,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 	}
 
 	private void createTaskStatusTypes(String collection, AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+									   MigrationResourcesProvider migrationResourcesProvider) {
 		Transaction transaction = new Transaction();
 		TasksSchemasRecordsServices schemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 
@@ -200,8 +189,9 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		}
 	}
 
-	private void addEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+	private void addEmailTemplates(AppLayerFactory appLayerFactory,
+								   MigrationResourcesProvider migrationResourcesProvider,
+								   String collection) {
 		addEmailTemplate(appLayerFactory, migrationResourcesProvider, collection, "taskAssigneeModificationTemplate.html",
 				TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED);
 		addEmailTemplate(appLayerFactory, migrationResourcesProvider, collection,
@@ -217,9 +207,10 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 				TasksEmailTemplates.TASK_REMINDER);
 	}
 
-	private void addEmailTemplate(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection,
-			String templateFileName, String templateId) {
+	private void addEmailTemplate(AppLayerFactory appLayerFactory,
+								  MigrationResourcesProvider migrationResourcesProvider,
+								  String collection,
+								  String templateFileName, String templateId) {
 		InputStream remindReturnBorrowedFolderTemplate = migrationResourcesProvider.getStream(templateFileName);
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
@@ -232,8 +223,9 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 	}
 
 	private class TaskStatusSchemaAlterationFor5_0_7 extends MetadataSchemasAlterationHelper {
-		public TaskStatusSchemaAlterationFor5_0_7(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+		public TaskStatusSchemaAlterationFor5_0_7(String collection,
+												  MigrationResourcesProvider migrationResourcesProvider,
+												  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -265,7 +257,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		TaskStatus standbyStatus;
 
 		public TaskSchemaAlterationFor5_0_7(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory, TaskStatus standbyStatus) {
+											AppLayerFactory appLayerFactory, TaskStatus standbyStatus) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 			this.standbyStatus = standbyStatus;
 		}
@@ -288,7 +280,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		}
 
 		private MetadataSchemaTypeBuilder createTaskSchemaType(MetadataSchemaTypesBuilder typesBuilder,
-				MetadataSchemaBuilder taskType) {
+															   MetadataSchemaBuilder taskType) {
 			MetadataSchemaTypeBuilder taskStatusType = typesBuilder.getSchemaType(TaskStatus.SCHEMA_TYPE);
 			MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(Task.SCHEMA_TYPE).setSecurity(true);
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();

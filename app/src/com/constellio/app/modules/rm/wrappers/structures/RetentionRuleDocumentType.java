@@ -1,11 +1,10 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.schemas.ModifiableStructure;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class RetentionRuleDocumentType implements ModifiableStructure {
 

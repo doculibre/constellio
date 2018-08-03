@@ -95,7 +95,7 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 			Record record = toRecord(recordVO);
 			recordServices().recalculate(record);
 
-			if(isReindexationNeeded) {
+			if (isReindexationNeeded) {
 				recordServices().executeWithoutImpactHandling(new Transaction().update(record));
 				appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 				view.navigate().to().taxonomyManagement(taxonomyCode, conceptId);
@@ -128,13 +128,13 @@ public class AddEditTaxonomyConceptPresenter extends SingleSchemaBasePresenter<A
 		recordServices().recalculate(record);
 		final boolean isReindexationNeeded;
 
-		if(operation.equals(EDIT) &&
-				(record.isModified(Schemas.PATH) || record.isModified(Schemas.CODE) || record.isModified(Schemas.TITLE))) {
+		if (operation.equals(EDIT) &&
+			(record.isModified(Schemas.PATH) || record.isModified(Schemas.CODE) || record.isModified(Schemas.TITLE))) {
 			Long numberOfRecordsToChange = searchServices().getResultsCount(fromAllSchemasIn(collection).where(Schemas.PATH)
 					.isStartingWithText(((List<String>) originalRecord.get(Schemas.PATH)).get(0)));
 			String confirmationMessage;
 
-			if(numberOfRecordsToChange < 10000) {
+			if (numberOfRecordsToChange < 10000) {
 				confirmationMessage = $("AddEditTaxonomyConceptPresenter.confirmLowerThan10000");
 				isReindexationNeeded = false;
 			} else {

@@ -12,7 +12,7 @@ import com.constellio.model.entities.records.Record;
 public class ConnectorServicesFactory {
 
 	public static ConnectorUtilsServices forConnectorInstance(AppLayerFactory appLayerFactory,
-			ConnectorInstance connectorInstance) {
+															  ConnectorInstance connectorInstance) {
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(connectorInstance.getCollection(), appLayerFactory);
 		ConnectorManager connectorManager = es.getConnectorManager();
 
@@ -25,12 +25,12 @@ public class ConnectorServicesFactory {
 	}
 
 	public static ConnectorUtilsServices forConnectorDocument(AppLayerFactory appLayerFactory,
-			ConnectorDocument connectorDocument) {
+															  ConnectorDocument connectorDocument) {
 		return forRecord(appLayerFactory, connectorDocument.getWrappedRecord());
 	}
-	
+
 	public ConnectorUtilsServices forConnectorDocumentNonStatic(AppLayerFactory appLayerFactory,
-			ConnectorDocument connectorDocument) {
+																ConnectorDocument connectorDocument) {
 		return forConnectorDocument(appLayerFactory, connectorDocument);
 	}
 

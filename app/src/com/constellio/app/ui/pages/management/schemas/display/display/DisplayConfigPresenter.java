@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.display.display;
 
-import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -25,6 +16,10 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+
+import java.util.*;
+
+import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
 
 public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayConfigView> {
 

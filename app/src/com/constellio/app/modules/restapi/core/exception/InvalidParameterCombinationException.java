@@ -7,14 +7,14 @@ import java.util.Map;
 
 public class InvalidParameterCombinationException extends BaseRestApiException {
 
-    private static final String CODE = "invalidParameterCombination";
+	private static final String CODE = "invalidParameterCombination";
 
-    public InvalidParameterCombinationException(String parameter1, String parameter2) {
-        status = Response.Status.BAD_REQUEST;
+	public InvalidParameterCombinationException(String parameter1, String parameter2) {
+		status = Response.Status.BAD_REQUEST;
 
-        Map<String, Object> parameters = Maps.newHashMap();
-        parameters.put("parameter1", parameter1);
-        parameters.put("parameter2", parameter2);
-        buildValidationError(CODE, parameters);
-    }
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("parameter1", parameter1);
+		parameters.put("parameter2", parameter2);
+		buildValidationError(CODE, parameters);
+	}
 }

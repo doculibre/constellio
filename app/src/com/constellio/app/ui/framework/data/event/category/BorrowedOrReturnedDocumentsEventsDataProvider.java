@@ -1,13 +1,5 @@
 package com.constellio.app.ui.framework.data.event.category;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.AbstractDataProvider;
@@ -18,6 +10,13 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.joda.time.LocalDateTime;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 /**
  * Created by Nouha on 2015-01-30.
@@ -35,7 +34,8 @@ public class BorrowedOrReturnedDocumentsEventsDataProvider extends AbstractDataP
 	private String currentUserName;
 
 	public BorrowedOrReturnedDocumentsEventsDataProvider(ModelLayerFactory modelLayerFactory, String collection,
-			String currentUserName, LocalDateTime startDate, LocalDateTime endDate) {
+														 String currentUserName, LocalDateTime startDate,
+														 LocalDateTime endDate) {
 		this.collection = collection;
 		this.currentUserName = currentUserName;
 		this.startDate = startDate;
@@ -70,9 +70,9 @@ public class BorrowedOrReturnedDocumentsEventsDataProvider extends AbstractDataP
 
 	@Override
 	public String getEventType(Integer index) {
-		if(index == 0){
+		if (index == 0) {
 			return EventType.BORROW_DOCUMENT;
-		}else{
+		} else {
 			return EventType.RETURN_DOCUMENT;
 		}
 	}
@@ -93,7 +93,7 @@ public class BorrowedOrReturnedDocumentsEventsDataProvider extends AbstractDataP
 
 	@Override
 	public List<EventStatistics> getEvents() {
-		if (events == null){
+		if (events == null) {
 			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 			init(constellioFactories.getModelLayerFactory());
 		}

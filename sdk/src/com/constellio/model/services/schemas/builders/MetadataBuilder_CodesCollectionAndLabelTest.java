@@ -1,10 +1,10 @@
 package com.constellio.model.services.schemas.builders;
 
+import org.junit.Test;
+
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
 
 public class MetadataBuilder_CodesCollectionAndLabelTest extends MetadataBuilderTest {
 

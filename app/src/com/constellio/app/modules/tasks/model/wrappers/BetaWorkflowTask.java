@@ -1,13 +1,5 @@
 package com.constellio.app.modules.tasks.model.wrappers;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
@@ -15,10 +7,13 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.structures.MapStringStringStructure;
+import org.joda.time.LocalDate;
+
+import java.util.*;
 
 public class BetaWorkflowTask extends Task {
 	public BetaWorkflowTask(Record record,
-			MetadataSchemaTypes types) {
+							MetadataSchemaTypes types) {
 		super(record, types);
 	}
 

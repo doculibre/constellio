@@ -1,16 +1,12 @@
 package com.constellio.model.entities.records.wrappers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.FacetSelections;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.*;
 
 public class SavedSearch extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "savedSearch";
@@ -34,7 +30,7 @@ public class SavedSearch extends RecordWrapper {
 	public static final String CRITERION = "criterions";
 
 	public SavedSearch(Record record,
-			MetadataSchemaTypes types) {
+					   MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 

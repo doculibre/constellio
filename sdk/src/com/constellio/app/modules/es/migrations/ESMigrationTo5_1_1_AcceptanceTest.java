@@ -1,17 +1,16 @@
 package com.constellio.app.modules.es.migrations;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import org.junit.Test;
+
+import java.io.File;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ESMigrationTo5_1_1_AcceptanceTest extends ConstellioTest {
 

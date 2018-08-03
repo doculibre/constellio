@@ -1,8 +1,8 @@
 package com.constellio.data.dao.services.records;
 
-import static java.util.Arrays.asList;
-
 import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class DataStore {
 

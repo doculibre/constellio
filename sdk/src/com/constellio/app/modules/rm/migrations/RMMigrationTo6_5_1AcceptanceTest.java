@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
-import static junit.framework.TestCase.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -16,6 +7,14 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.junit.Test;
+
+import java.io.File;
+
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
+import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMMigrationTo6_5_1AcceptanceTest extends ConstellioTest {
 	@Test

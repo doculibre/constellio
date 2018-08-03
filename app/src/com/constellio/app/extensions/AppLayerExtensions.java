@@ -1,9 +1,9 @@
 package com.constellio.app.extensions;
 
+import com.constellio.model.entities.CollectionObject;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.constellio.model.entities.CollectionObject;
 
 public class AppLayerExtensions {
 

@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.copyRetentionRule;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredFieldImpl;
-import com.vaadin.data.Property;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
@@ -20,6 +8,7 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.copyRetentionRule.CopyRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule.CopyRetentionRuleDependencyField;
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCopyStatusEnteredFieldImpl;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -45,6 +34,10 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import com.vaadin.data.Property;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
 
 public class RecordWithCopyRetentionRuleParametersPresenter {
 	RecordWithCopyRetentionRuleParametersFields fields;
@@ -151,9 +144,9 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 					Set<String> ids = new HashSet<>();
 					for (CopyRetentionRule copyRetentionRule : uniformRule.getCopyRetentionRules()) {
 						if (typeId.equals(copyRetentionRule.getTypeId())
-								&& copyRetentionRule.getCopyType() == uniformCopyType
-								|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)
-								&& !ids.contains(copyRetentionRule.getId())) {
+							&& copyRetentionRule.getCopyType() == uniformCopyType
+							|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)
+							   && !ids.contains(copyRetentionRule.getId())) {
 							ids.add(copyRetentionRule.getId());
 							options.add(copyRetentionRule);
 						}
@@ -162,9 +155,9 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 					if (options.isEmpty()) {
 						for (CopyRetentionRule copyRetentionRule : uniformRule.getCopyRetentionRules()) {
 							if (copyRetentionRule.getTypeId() == null
-									&& copyRetentionRule.getCopyType() == uniformCopyType
-									|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)
-									&& !ids.contains(copyRetentionRule.getId())) {
+								&& copyRetentionRule.getCopyType() == uniformCopyType
+								|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)
+								   && !ids.contains(copyRetentionRule.getId())) {
 								ids.add(copyRetentionRule.getId());
 								options.add(copyRetentionRule);
 							}
@@ -177,7 +170,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 
 		} else {
 			CopyRetentionRuleDependencyField retentionRuleField = fields.getCopyRetentionRuleDependencyField();
-			if(retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
+			if (retentionRuleField != null && retentionRuleField.getFieldValue() != null) {
 				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 				RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
 
@@ -187,16 +180,16 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 				options = new ArrayList<>();
 				Set<String> ids = new HashSet<>();
 
-                for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
-                    if (copyRetentionRule.getTypeId() == null
-                            && copyRetentionRule.getCopyType() == uniformCopyType
-							|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)
-                            && !ids.contains(copyRetentionRule.getId())) {
-                        ids.add(copyRetentionRule.getId());
-                        options.add(copyRetentionRule);
-                    }
-                }
-			} else if(request.getQuery() != null) {
+				for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
+					if (copyRetentionRule.getTypeId() == null
+						&& copyRetentionRule.getCopyType() == uniformCopyType
+						|| (uniformCopyType == null && copyRetentionRule.getCopyType() == CopyType.PRINCIPAL)
+						   && !ids.contains(copyRetentionRule.getId())) {
+						ids.add(copyRetentionRule.getId());
+						options.add(copyRetentionRule);
+					}
+				}
+			} else if (request.getQuery() != null) {
 				options = getOptionsWithQuery(request);
 			} else {
 				options = getOptionsWithIds(request);
@@ -211,7 +204,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
 
 		FolderCopyStatusEnteredFieldImpl folderCopyStatusEnteredField = fields.getFolderCopyStatusEnteredField();
-		if(folderCopyStatusEnteredField != null && folderCopyStatusEnteredField.getFieldValue() != null) {
+		if (folderCopyStatusEnteredField != null && folderCopyStatusEnteredField.getFieldValue() != null) {
 			return folderCopyStatusEnteredField.getFieldValue();
 		}
 
@@ -253,7 +246,7 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(request.getSchemaType().getCollection(), appLayerFactory);
 
 		CopyRetentionRuleDependencyField copyRetentionRuleDependencyField = fields.getCopyRetentionRuleDependencyField();
-		if(copyRetentionRuleDependencyField != null && copyRetentionRuleDependencyField.getFieldValue() != null) {
+		if (copyRetentionRuleDependencyField != null && copyRetentionRuleDependencyField.getFieldValue() != null) {
 			return rm.getRetentionRule(copyRetentionRuleDependencyField.getFieldValue());
 		}
 

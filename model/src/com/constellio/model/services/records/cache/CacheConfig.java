@@ -1,14 +1,13 @@
 package com.constellio.model.services.records.cache;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class CacheConfig {
 
@@ -27,7 +26,8 @@ public class CacheConfig {
 	private VolatileCacheInvalidationMethod invalidationMethod;
 
 	private CacheConfig(String schemaType, boolean permanent, List<Metadata> persistedMetadatas, int volatileMaxSize,
-			List<Metadata> indexes, boolean loadedInitially, VolatileCacheInvalidationMethod invalidationMethod) {
+						List<Metadata> indexes, boolean loadedInitially,
+						VolatileCacheInvalidationMethod invalidationMethod) {
 		this.schemaType = schemaType;
 		this.permanent = permanent;
 		this.volatileMaxSize = volatileMaxSize;
@@ -102,13 +102,13 @@ public class CacheConfig {
 	}
 
 	public static CacheConfig volatileCache(MetadataSchemaType schemaType, int maxSize,
-			VolatileCacheInvalidationMethod invalidationMethod) {
+											VolatileCacheInvalidationMethod invalidationMethod) {
 		return volatileCache(schemaType.getCode(), maxSize, schemaType.getDefaultSchema().getMetadatas().onlyUniques(),
 				invalidationMethod);
 	}
 
 	public static CacheConfig volatileCache(String schemaType, int maxSize, List<Metadata> indexes,
-			VolatileCacheInvalidationMethod invalidationMethod) {
+											VolatileCacheInvalidationMethod invalidationMethod) {
 		return new CacheConfig(schemaType, false, new ArrayList<Metadata>(), maxSize, indexes, false, invalidationMethod);
 	}
 

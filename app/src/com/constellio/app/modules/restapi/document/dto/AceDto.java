@@ -10,20 +10,21 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import java.util.Set;
 
-@Data @Builder
-@EqualsAndHashCode(exclude={"authorizationId"})
+@Data
+@Builder
+@EqualsAndHashCode(exclude = {"authorizationId"})
 @JsonRootName("Ace")
 public class AceDto {
-    @JsonIgnore
-    private String authorizationId;
+	@JsonIgnore
+	private String authorizationId;
 
-    @NotEmpty @Schema(required=true, description="Can be a username or a group code")
-    private Set<String> principals;
-    @NotEmpty @Schema(required=true, allowableValues={"READ", "WRITE", "DELETE"})
-    private Set<String> permissions;
-    @Schema(type="string", format="date")
-    private String startDate;
-    @Schema(type="string", format="date")
-    private String endDate;
+	@NotEmpty @Schema(required = true, description = "Can be a username or a group code")
+	private Set<String> principals;
+	@NotEmpty @Schema(required = true, allowableValues = {"READ", "WRITE", "DELETE"})
+	private Set<String> permissions;
+	@Schema(type = "string", format = "date")
+	private String startDate;
+	@Schema(type = "string", format = "date")
+	private String endDate;
 
 }

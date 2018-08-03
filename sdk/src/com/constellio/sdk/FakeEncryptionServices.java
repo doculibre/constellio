@@ -1,12 +1,12 @@
 package com.constellio.sdk;
 
+import com.constellio.model.services.encrypt.EncryptionKeyFactory;
+import com.constellio.model.services.encrypt.EncryptionServices;
+
 import java.io.IOException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-
-import com.constellio.model.services.encrypt.EncryptionKeyFactory;
-import com.constellio.model.services.encrypt.EncryptionServices;
 
 /**
  * Created by dakota on 11/9/15.

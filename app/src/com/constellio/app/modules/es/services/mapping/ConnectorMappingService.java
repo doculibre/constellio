@@ -1,14 +1,5 @@
 package com.constellio.app.modules.es.services.mapping;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.connectors.ConnectorServicesFactory;
@@ -34,6 +25,8 @@ import com.constellio.model.services.schemas.MetadataSchemasManagerException.Opt
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.*;
 
 public class ConnectorMappingService {
 	private static final String MAPPING_METADATA_PREFIX = "MAP";
@@ -259,7 +252,8 @@ public class ConnectorMappingService {
 		private final SchemaDisplayManagerTransaction transaction;
 		private final List<Alteration> alterations;
 
-		public ConnectorMappingTransaction(MetadataSchemaTypesBuilder types, SchemaDisplayManagerTransaction transaction) {
+		public ConnectorMappingTransaction(MetadataSchemaTypesBuilder types,
+										   SchemaDisplayManagerTransaction transaction) {
 			this.types = types;
 			this.transaction = transaction;
 			alterations = new ArrayList<>();

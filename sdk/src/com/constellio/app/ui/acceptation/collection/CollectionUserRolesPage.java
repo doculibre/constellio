@@ -1,7 +1,5 @@
 package com.constellio.app.ui.acceptation.collection;
 
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.pages.collection.CollectionUserRolesViewImpl;
 import com.constellio.app.ui.tools.AutocompleteWebElement;
@@ -11,6 +9,7 @@ import com.constellio.app.ui.tools.RecordContainerWebElement;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
 
 public class CollectionUserRolesPage extends PageHelper {
 	protected CollectionUserRolesPage(ConstellioWebDriver driver) {

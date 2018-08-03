@@ -1,11 +1,11 @@
 package com.constellio.app.entities.schemasDisplay;
 
-import static java.util.Arrays.asList;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class SchemaDisplayConfig implements Serializable {
 
@@ -22,7 +22,8 @@ public class SchemaDisplayConfig implements Serializable {
 	private final List<String> tableMetadataCodes;
 
 	public SchemaDisplayConfig(String collection, String schemaCode, List<String> displayMetadataCodes,
-			List<String> formMetadataCodes, List<String> searchResultsMetadataCodes, List<String> tableMetadataCodes) {
+							   List<String> formMetadataCodes, List<String> searchResultsMetadataCodes,
+							   List<String> tableMetadataCodes) {
 		this.collection = collection;
 		this.schemaCode = schemaCode;
 		this.displayMetadataCodes = Collections.unmodifiableList(displayMetadataCodes);
@@ -188,27 +189,34 @@ public class SchemaDisplayConfig implements Serializable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (!(o instanceof SchemaDisplayConfig))
+		}
+		if (!(o instanceof SchemaDisplayConfig)) {
 			return false;
+		}
 
 		SchemaDisplayConfig that = (SchemaDisplayConfig) o;
 
-		if (schemaCode != null ? !schemaCode.equals(that.schemaCode) : that.schemaCode != null)
+		if (schemaCode != null ? !schemaCode.equals(that.schemaCode) : that.schemaCode != null) {
 			return false;
-		if (collection != null ? !collection.equals(that.collection) : that.collection != null)
+		}
+		if (collection != null ? !collection.equals(that.collection) : that.collection != null) {
 			return false;
+		}
 		if (displayMetadataCodes != null ?
-				!displayMetadataCodes.equals(that.displayMetadataCodes) :
-				that.displayMetadataCodes != null)
+			!displayMetadataCodes.equals(that.displayMetadataCodes) :
+			that.displayMetadataCodes != null) {
 			return false;
-		if (formMetadataCodes != null ? !formMetadataCodes.equals(that.formMetadataCodes) : that.formMetadataCodes != null)
+		}
+		if (formMetadataCodes != null ? !formMetadataCodes.equals(that.formMetadataCodes) : that.formMetadataCodes != null) {
 			return false;
+		}
 		if (searchResultsMetadataCodes != null ?
-				!searchResultsMetadataCodes.equals(that.searchResultsMetadataCodes) :
-				that.searchResultsMetadataCodes != null)
+			!searchResultsMetadataCodes.equals(that.searchResultsMetadataCodes) :
+			that.searchResultsMetadataCodes != null) {
 			return false;
+		}
 		return tableMetadataCodes != null ? tableMetadataCodes.equals(that.tableMetadataCodes) : that.tableMetadataCodes == null;
 	}
 

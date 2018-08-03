@@ -1,17 +1,11 @@
 package com.constellio.app.ui.tools;
 
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.tools.components.basic.DateFieldWebElement;
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
-import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveDateFieldWebElement;
-import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveDateTimeFieldWebElement;
-import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveDropDownWebElement;
-import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveLookupWebElement;
-import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveRichTextFieldWebElement;
-import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveTextFieldWebElement;
+import com.constellio.app.ui.tools.components.listAddRemove.*;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
 
 public class ResearchResultWebElement {
 
@@ -32,7 +26,7 @@ public class ResearchResultWebElement {
 	}
 
 	public void clickSaveButtonAndWaitForPageReload() {
-		ConstellioWebElement button = getBatchProcessPopup().findElement(By.className("v-button-primary")); 
+		ConstellioWebElement button = getBatchProcessPopup().findElement(By.className("v-button-primary"));
 		button.clickAndWaitForPageReload();
 	}
 
@@ -40,9 +34,7 @@ public class ResearchResultWebElement {
 		ConstellioWebElement choiceElement = resultDriver.findElement(By.className("v-button-search-result-title"));
 		choiceElement.clickAndWaitForPageReload();
 	}
-	
-	
-	
+
 
 	public ResearchResultWebElement toggleFirstCheckBoxInResult() {
 		new CheckboxWebElement(resultElement).toggle();
@@ -58,8 +50,8 @@ public class ResearchResultWebElement {
 		new DropDownWebElement(getBatchProcessPopup().findElement(By.className("v-filterselect-prompt"))).typeAndSelectFirst(option);
 		return this;
 	}
-	
-	
+
+
 	public DateFieldWebElement getDateField() {
 		return new DateFieldWebElement(getBatchProcessPopup());
 	}
@@ -67,17 +59,17 @@ public class ResearchResultWebElement {
 	public DateFieldWebElement getDatetimeField() {
 		return new DateFieldWebElement(getBatchProcessPopup(), "yyyy-MM-dd hh:mm:ss");
 	}
-	
+
 	public TextFieldWebElement getTextField() {
 		return new TextFieldWebElement(getBatchProcessPopup().findElement(By.className("v-textfield")));
 	}
 
 	public TextFieldWebElement getTextAreaField() {
-		return new TextFieldWebElement(getBatchProcessPopup().findElement(By.className("v-textarea"))); 
+		return new TextFieldWebElement(getBatchProcessPopup().findElement(By.className("v-textarea")));
 	}
-	
+
 	public RichTextFieldWebElement getRichTextField() {
-		return  new RichTextFieldWebElement(getBatchProcessPopup());
+		return new RichTextFieldWebElement(getBatchProcessPopup());
 	}
 
 	public DropDownWebElement getDropDown(String dropDownId) {
@@ -95,11 +87,11 @@ public class ResearchResultWebElement {
 	public ListAddRemoveDateTimeFieldWebElement getListAddRemoveDateTimeFieldWebElement() {
 		return new ListAddRemoveDateTimeFieldWebElement(getBatchProcessPopup());
 	}
-	
+
 	public ListAddRemoveLookupWebElement getListAddRemoveLookupWebElement() {
 		return new ListAddRemoveLookupWebElement(getBatchProcessPopup());
 	}
-	
+
 	public ListAddRemoveTextFieldWebElement getListAddRemoveTextFieldWebElement() {
 		return new ListAddRemoveTextFieldWebElement(getBatchProcessPopup());
 	}
@@ -107,7 +99,7 @@ public class ResearchResultWebElement {
 	public ListAddRemoveRichTextFieldWebElement getListAddRemoveRichTextFieldWebElement() {
 		return new ListAddRemoveRichTextFieldWebElement(getBatchProcessPopup());
 	}
-	
+
 	public ListAddRemoveDropDownWebElement getListAddRemoveDropDownWebElement() {
 		return new ListAddRemoveDropDownWebElement(getBatchProcessPopup());
 	}

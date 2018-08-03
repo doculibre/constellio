@@ -1,12 +1,12 @@
 package com.constellio.app.ui.framework.builders;
 
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @SuppressWarnings("serial")
 public class GlobalGroupToVOBuilder implements Serializable {

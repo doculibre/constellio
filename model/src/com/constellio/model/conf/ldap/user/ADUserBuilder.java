@@ -1,11 +1,10 @@
 package com.constellio.model.conf.ldap.user;
 
-import java.util.Date;
-import java.util.List;
-
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
+import java.util.Date;
+import java.util.List;
 
 public class ADUserBuilder extends CommonUserBuilder implements LDAPUserBuilder {
 	private static final long WINDOWS_FILE_TIME_FORMAT_BASE_DATE = 11644473600000L;

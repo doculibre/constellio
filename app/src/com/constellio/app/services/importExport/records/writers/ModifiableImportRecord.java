@@ -1,13 +1,9 @@
 package com.constellio.app.services.importExport.records.writers;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.schemas.Schemas;
+
+import java.util.*;
 
 public class ModifiableImportRecord {
 

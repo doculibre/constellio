@@ -1,24 +1,5 @@
 package com.constellio.model.services.taxonomies;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForGroups;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
-import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import org.assertj.core.api.ListAssert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -37,6 +18,19 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.ListAssert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.util.*;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForGroups;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends ConstellioTest {
@@ -62,8 +56,8 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 	@Parameterized.Parameters(name = "{0}")
 	public static Collection<Object[]> testCases() {
-		return Arrays.asList(new Object[][] {
-				{ "testingInvalidationsOnLocalCache" }, { "testingInvalidationsOnRemoteCache" } });
+		return Arrays.asList(new Object[][]{
+				{"testingInvalidationsOnLocalCache"}, {"testingInvalidationsOnRemoteCache"}});
 	}
 
 	@Before
@@ -1012,7 +1006,8 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 	}
 
-	private void navigateLinkableSelectingAFolder(User user, String taxonomy, Record record, TaxonomiesSearchOptions options) {
+	private void navigateLinkableSelectingAFolder(User user, String taxonomy, Record record,
+												  TaxonomiesSearchOptions options) {
 		TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
 		for (TaxonomySearchRecord child : taxonomiesSearchServices
@@ -1022,7 +1017,8 @@ public class TaxonomiesHasChildrenCacheInvalidationAcceptanceTest extends Conste
 
 	}
 
-	private void navigateLinkableSelectingADocument(User user, String taxonomy, Record record, TaxonomiesSearchOptions options) {
+	private void navigateLinkableSelectingADocument(User user, String taxonomy, Record record,
+													TaxonomiesSearchOptions options) {
 		TaxonomiesSearchServices taxonomiesSearchServices = getModelLayerFactory().newTaxonomiesSearchService();
 
 		for (TaxonomySearchRecord child : taxonomiesSearchServices

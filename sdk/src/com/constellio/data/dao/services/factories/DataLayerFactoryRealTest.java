@@ -1,13 +1,5 @@
 package com.constellio.data.dao.services.factories;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.managers.config.ConfigManager;
@@ -19,6 +11,13 @@ import com.constellio.data.dao.services.transactionLog.XMLSecondTransactionLogMa
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.io.File;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DataLayerFactoryRealTest extends ConstellioTest {
 

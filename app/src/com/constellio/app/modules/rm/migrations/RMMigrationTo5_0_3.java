@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.data.utils.LangUtils.withoutDuplicates;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -25,6 +20,11 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.data.utils.LangUtils.withoutDuplicates;
+
 public class RMMigrationTo5_0_3 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -33,7 +33,7 @@ public class RMMigrationTo5_0_3 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 		new SchemaAlterationFor5_0_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
 		givenNewPermissionsToExistingRMRoles(collection, appLayerFactory.getModelLayerFactory());
@@ -44,7 +44,7 @@ public class RMMigrationTo5_0_3 implements MigrationScript {
 	class SchemaAlterationFor5_0_3 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor5_0_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -88,8 +88,9 @@ public class RMMigrationTo5_0_3 implements MigrationScript {
 
 	}
 
-	private void configureNewDocumentMetadatasDisplay(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+	private void configureNewDocumentMetadatasDisplay(String collection,
+													  MigrationResourcesProvider migrationResourcesProvider,
+													  AppLayerFactory appLayerFactory) {
 
 		MetadataSchemaTypes types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 		SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();

@@ -6,9 +6,9 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 
 public class DeleteRobotRecordsViewImpl extends BaseProgressView implements DeleteRobotRecordsView {
-	
+
 	private String title;
-	
+
 	private DeleteRobotRecordsPresenter presenter;
 
 	public DeleteRobotRecordsViewImpl() {

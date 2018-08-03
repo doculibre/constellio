@@ -1,14 +1,16 @@
 package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
-import com.constellio.app.modules.es.connectors.smb.jobs.*;
+import com.constellio.app.modules.es.connectors.smb.jobs.JobParams;
+import com.constellio.app.modules.es.connectors.smb.jobs.SmbDeleteJob;
+import com.constellio.app.modules.es.connectors.smb.jobs.SmbDispatchJob;
+import com.constellio.app.modules.es.connectors.smb.jobs.SmbNewRetrievalJob;
 import com.constellio.app.modules.es.connectors.smb.service.SmbModificationIndicator;
 import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
 import com.constellio.app.modules.es.connectors.smb.service.SmbShareService;
 import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
-import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 
 public class SmbJobFactoryImpl implements SmbJobFactory {
@@ -25,8 +27,10 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 	private final SmbDocumentOrFolderUpdater updater;
 	private final SmbUrlComparator urlComparator;
 
-	public SmbJobFactoryImpl(ConnectorSmb connector, ConnectorSmbInstance connectorInstance, ConnectorEventObserver eventObserver, SmbShareService smbShareService,
-			ConnectorSmbUtils smbUtils, SmbRecordService smbRecordService, SmbDocumentOrFolderUpdater updater) {
+	public SmbJobFactoryImpl(ConnectorSmb connector, ConnectorSmbInstance connectorInstance,
+							 ConnectorEventObserver eventObserver, SmbShareService smbShareService,
+							 ConnectorSmbUtils smbUtils, SmbRecordService smbRecordService,
+							 SmbDocumentOrFolderUpdater updater) {
 		this.connector = connector;
 		this.connectorInstance = connectorInstance;
 		this.eventObserver = eventObserver;
@@ -45,36 +49,36 @@ public class SmbJobFactoryImpl implements SmbJobFactory {
 
 		if (smbUtils.isAccepted(url, connectorInstance)) {
 			switch (jobType) {
-			case DISPATCH:
-				job = new SmbDispatchJob(params);
-				break;
-			case RETRIEVAL:
-				if (this.connector.getDuplicateUrls().contains(url)) {
-					job = new SmbDeleteJob(params);
-					connector.markUrlAsFound(url);
+				case DISPATCH:
+					job = new SmbDispatchJob(params);
 					break;
-				}
+				case RETRIEVAL:
+					if (this.connector.getDuplicateUrls().contains(url)) {
+						job = new SmbDeleteJob(params);
+						connector.markUrlAsFound(url);
+						break;
+					}
 
-				SmbModificationIndicator recordSmbDocument = smbRecordService.getSmbModificationIndicator(connector, url);
-				SmbModificationIndicator shareIndicator = smbShareService.getModificationIndicator(url);
+					SmbModificationIndicator recordSmbDocument = smbRecordService.getSmbModificationIndicator(connector, url);
+					SmbModificationIndicator shareIndicator = smbShareService.getModificationIndicator(url);
 
-				if (shareIndicator == null) {
+					if (shareIndicator == null) {
+						job = new SmbDeleteJob(params);
+					} else if (recordSmbDocument == null) {
+						job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
+					} else if (!recordSmbDocument.equals(shareIndicator)) {
+						job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
+					}
+
+					if (shareIndicator != null) {
+						connector.markUrlAsFound(url);
+					}
+					break;
+				case DELETE:
 					job = new SmbDeleteJob(params);
-				} else if (recordSmbDocument == null) {
-					job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
-				} else if (!recordSmbDocument.equals(shareIndicator)) {
-					job = new SmbNewRetrievalJob(params, shareIndicator, smbUtils.isFolder(url));
-				}
-
-				if(shareIndicator != null) {
-					connector.markUrlAsFound(url);
-				}
-				break;
-			case DELETE:
-				job = new SmbDeleteJob(params);
-				break;
-			default:
-				break;
+					break;
+				default:
+					break;
 			}
 		} else {
 			job = new SmbDeleteJob(params);

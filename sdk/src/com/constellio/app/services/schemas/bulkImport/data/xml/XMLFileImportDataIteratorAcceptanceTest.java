@@ -1,28 +1,27 @@
 package com.constellio.app.services.schemas.bulkImport.data.xml;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-
-import java.io.FileNotFoundException;
-import java.io.Reader;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorTest;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.services.records.ContentImportVersion;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.FileNotFoundException;
+import java.io.Reader;
+import java.util.HashMap;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class XMLFileImportDataIteratorAcceptanceTest extends ImportDataIteratorTest {
 
@@ -103,10 +102,10 @@ public class XMLFileImportDataIteratorAcceptanceTest extends ImportDataIteratorT
 		importDataIterator = new XMLFileImportDataIterator(getTestResourceReader("calendrierConservationTest.xml"), ioServices);
 
 		String firstDescription = "Documents produits ou reçus relatifs à la gestion des documents constitutifs. "
-				+ "Les documents peuvent comprendre les certifications, les lettres patentes, la charte et les statuts.";
+								  + "Les documents peuvent comprendre les certifications, les lettres patentes, la charte et les statuts.";
 		String secondDescription =
 				"Documents produits ou reçus relatifs à l'historique de l'Ordre et aux événements qui ont marqué le cours de son développement. "
-						+ "Les documents peuvent comprendre les textes, les notes, les images fixes ou animées.";
+				+ "Les documents peuvent comprendre les textes, les notes, les images fixes ou animées.";
 
 		LocalDate localDate = new LocalDate(2015, 5, 1);
 

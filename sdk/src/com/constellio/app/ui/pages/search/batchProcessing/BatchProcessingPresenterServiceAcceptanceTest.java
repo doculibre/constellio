@@ -48,7 +48,6 @@ import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DE
 import static com.constellio.model.entities.schemas.MetadataValueType.*;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.in;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
@@ -117,7 +116,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	}
 
 	@Test
-	public void givenTwoFolderOnePrincipalAndOneSecondaryAndThreePossibleDelaiWhenSelectingPrincipalDelaiThenOnlyPrincpalRuleChanged() throws Exception {
+	public void givenTwoFolderOnePrincipalAndOneSecondaryAndThreePossibleDelaiWhenSelectingPrincipalDelaiThenOnlyPrincpalRuleChanged()
+			throws Exception {
 
 		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_10);
 
@@ -141,7 +141,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		RetentionRule retentionRule2 = rm.getRetentionRule(records.ruleId_1);
 
 		List newRetentionRuleList = new ArrayList();
-		for(CopyRetentionRule currentCopyRetentionRule : retentionRule2.getCopyRetentionRules()) {
+		for (CopyRetentionRule currentCopyRetentionRule : retentionRule2.getCopyRetentionRules()) {
 			newRetentionRuleList.add(currentCopyRetentionRule);
 		}
 		newRetentionRuleList.add(principal5_2_C);
@@ -159,12 +159,12 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.MAIN_COPY_RULE_ID_ENTERED, principal5_2_C.getId());
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
-		Map<String,Map<String, Object>> mapSpecialCase = request.getSpecialCaseModifiedMetadatas();
+		Map<String, Map<String, Object>> mapSpecialCase = request.getSpecialCaseModifiedMetadatas();
 
 		assertThat(mapSpecialCase.size() == 1);
 		assertThat(mapSpecialCase.get("A05").get("folder_default_mainCopyRuleIdEntered").equals(retentionRule1.getSecondaryCopy().getId()));
 		assertThat(mapSpecialCase.get("A04")).isNull();
-		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn",results.getRecordModifications(folder2.getId()).getFieldsModifications())).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
+		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn", results.getRecordModifications(folder2.getId()).getFieldsModifications())).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
 				tuple("Principal", "Secondaire", "folder_default_copyStatus"),
 				tuple("5-2-T", "888-0-D", "folder_default_mainCopyRule"),
 				tuple("2 (Règle de conservation #2)", "1 (Règle de conservation #1)", "folder_default_retentionRule"),
@@ -174,7 +174,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	}
 
 	@Test
-	public void givenFolderWithTwoPossibleDelaiAndWithPrincipalCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange() throws Exception {
+	public void givenFolderWithTwoPossibleDelaiAndWithPrincipalCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange()
+			throws Exception {
 
 		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_10);
 		recordService.update(folder1);
@@ -190,7 +191,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 
 		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn", results.getRecordModifications(folder1.getId()).getFieldsModifications())).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
-				tuple("10", "30","folder_default_administrativeUnitCode"),
+				tuple("10", "30", "folder_default_administrativeUnitCode"),
 				tuple("Principal", "Secondaire", "folder_default_copyStatus"),
 				tuple("10 (Unité 10)", "30 (Unité 30)", "folder_default_administrativeUnit"),
 				tuple("42-5-C", "888-0-D", "folder_default_mainCopyRule"),
@@ -199,7 +200,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	}
 
 	@Test
-	public void givenFolderWithThreePossibleDelaiAndWithSecondCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange() throws Exception {
+	public void givenFolderWithThreePossibleDelaiAndWithSecondCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange()
+			throws Exception {
 		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_30);
 		recordService.update(folder1);
 		recordService.recalculate(folder1);
@@ -212,7 +214,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		RetentionRule retentionRule = rm.getRetentionRule(records.ruleId_1);
 
 		List newRetentionRuleList = new ArrayList();
-		for(CopyRetentionRule currentCopyRetentionRule : retentionRule.getCopyRetentionRules()) {
+		for (CopyRetentionRule currentCopyRetentionRule : retentionRule.getCopyRetentionRules()) {
 			newRetentionRuleList.add(currentCopyRetentionRule);
 		}
 		newRetentionRuleList.add(principal5_2_T);
@@ -230,7 +232,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		assertThat(results.getRecordModifications(folder1.getId()).getFieldsModifications())
 				.extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
-				tuple("30", "10","folder_default_administrativeUnitCode"),
+				tuple("30", "10", "folder_default_administrativeUnitCode"),
 				tuple("Secondaire", "Principal", "folder_default_copyStatus"),
 				tuple("30 (Unité 30)", "10 (Unité 10)", "folder_default_administrativeUnit"),
 				tuple("888-0-D", "42-5-C", "folder_default_mainCopyRule")
@@ -239,7 +241,8 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	}
 
 	@Test
-	public void givenFolderWithTwoPossibleDelaiAndWithSecondCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange() throws Exception {
+	public void givenFolderWithTwoPossibleDelaiAndWithSecondCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange()
+			throws Exception {
 
 		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_30);
 		recordService.update(folder1);
@@ -257,7 +260,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn", results.getRecordModifications(folder1.getId()).getFieldsModifications()))
 				.extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
 
-				tuple("30", "10","folder_default_administrativeUnitCode"),
+				tuple("30", "10", "folder_default_administrativeUnitCode"),
 				tuple("Secondaire", "Principal", "folder_default_copyStatus"),
 				tuple("30 (Unité 30)", "10 (Unité 10)", "folder_default_administrativeUnit"),
 				tuple("888-0-D", "42-5-C", "folder_default_mainCopyRule"),
@@ -524,12 +527,13 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		);
 	}
 
-	public List<BatchProcessRecordFieldModification> removeMetadataCodeAndConfirmPresence(String code, List<BatchProcessRecordFieldModification> batchProcessRecordFieldModificationList) {
+	public List<BatchProcessRecordFieldModification> removeMetadataCodeAndConfirmPresence(String code,
+																						  List<BatchProcessRecordFieldModification> batchProcessRecordFieldModificationList) {
 
 		List<BatchProcessRecordFieldModification> newbatchProcessRecordFieldModificationsList = new ArrayList<>();
 
-		for(BatchProcessRecordFieldModification batchProcessRecordFieldModification : batchProcessRecordFieldModificationList) {
-			if(!batchProcessRecordFieldModification.getMetadata().getCode().equals(code)) {
+		for (BatchProcessRecordFieldModification batchProcessRecordFieldModification : batchProcessRecordFieldModificationList) {
+			if (!batchProcessRecordFieldModification.getMetadata().getCode().equals(code)) {
 				newbatchProcessRecordFieldModificationsList.add(batchProcessRecordFieldModification);
 			}
 		}

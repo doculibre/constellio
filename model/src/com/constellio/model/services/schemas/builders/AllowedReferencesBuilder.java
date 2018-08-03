@@ -1,10 +1,10 @@
 package com.constellio.model.services.schemas.builders;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.MetadataSchema;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class AllowedReferencesBuilder {
 

@@ -1,26 +1,10 @@
 package com.constellio.model.services.batch.controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.model.entities.batchprocess.AsyncTask;
-import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
-import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
-import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.batchprocess.RecordBatchProcess;
+import com.constellio.model.entities.batchprocess.*;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
@@ -41,6 +25,17 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class BatchProcessControllerThread extends ConstellioThread {
 
@@ -70,7 +65,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 		this.userServices = modelLayerFactory.newUserServices();
 
 		if (modelLayerFactory == null || modelLayerFactory.getDataLayerFactory() == null
-				|| modelLayerFactory.getDataLayerFactory().getLeaderElectionService() == null) {
+			|| modelLayerFactory.getDataLayerFactory().getLeaderElectionService() == null) {
 			throw new IllegalArgumentException("modelLayerFactory parameter is invalid");
 		}
 	}
@@ -99,7 +94,7 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			throws Exception {
 
 		if (modelLayerFactory.getDataLayerFactory().getLeaderElectionService().isCurrentNodeLeader()
-				&& new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isInBatchProcessesSchedule()) {
+			&& new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isInBatchProcessesSchedule()) {
 			final BatchProcess batchProcess = batchProcessesManager.getCurrentBatchProcess();
 			if (batchProcess != null) {
 				try {

@@ -89,7 +89,7 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 
 		RecordVODataProvider dataProvider = presenter.getDocuments();
 		VerticalLayout layout = new VerticalLayout(display, buildDocumentTable(dataProvider), comments);
-		for(int i = 0; i < dataProvider.size(); i++) {
+		for (int i = 0; i < dataProvider.size(); i++) {
 			selected.put(new Integer(i), false);
 		}
 
@@ -154,8 +154,8 @@ public class DocumentDecommissioningListViewImpl extends BaseViewImpl implements
 
 	private Component buildDocumentTable(RecordVODataProvider documents) {
 		Label header = new Label(presenter.isProcessed() ?
-				$("DocumentDecommissioningListView.processedDocuments") :
-				$("DocumentDecommissioningListView.processableDocuments"));
+								 $("DocumentDecommissioningListView.processedDocuments") :
+								 $("DocumentDecommissioningListView.processableDocuments"));
 		header.addStyleName(ValoTheme.LABEL_H2);
 
 		Table table = new RecordVOTable(documents);

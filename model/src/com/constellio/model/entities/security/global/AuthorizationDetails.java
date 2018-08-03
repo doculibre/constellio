@@ -1,9 +1,9 @@
 package com.constellio.model.entities.security.global;
 
+import org.joda.time.LocalDate;
+
 import java.io.Serializable;
 import java.util.List;
-
-import org.joda.time.LocalDate;
 
 /**
  * Created by Constellio on 2016-12-21.

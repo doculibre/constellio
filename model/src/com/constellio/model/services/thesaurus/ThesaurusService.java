@@ -1,16 +1,16 @@
 /**
  * Constellio, Open Source Enterprise Search
  * Copyright (C) 2010 DocuLibre inc.
- *
+ * <p>
  * This copyrighted material is made available to anyone wishing to use, modify,
  * copy, or redistribute it subject to the terms and conditions of the GNU
  * Lesser General Public License, as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
  * for more details.
- *
+ * <p>
  * You should have received a copy of the GNU Lesser General Public License
  * along with this distribution; if not, write to:
  * Free Software Foundation, Inc.
@@ -19,31 +19,18 @@
  */
 package com.constellio.model.services.thesaurus;
 
-import static com.constellio.model.services.thesaurus.util.SkosUtil.containsWithParsing;
-import static com.constellio.model.services.thesaurus.util.SkosUtil.equalsWithParsing;
-import static com.constellio.model.services.thesaurus.util.SkosUtil.getToLowerCase;
-import static com.constellio.model.services.thesaurus.util.SkosUtil.parseForSearch;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.model.entities.Language;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.thesaurus.util.SkosUtil;
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
+
+import static com.constellio.model.services.thesaurus.util.SkosUtil.*;
 
 @SuppressWarnings("serial")
 public class ThesaurusService implements Serializable {
@@ -145,20 +132,26 @@ public class ThesaurusService implements Serializable {
 	}
 
 	public boolean equalsRdfAbout(ThesaurusService obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (super.equals(obj))
+		}
+		if (super.equals(obj)) {
 			return true;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		ThesaurusService other = (ThesaurusService) obj;
 		if (rdfAbout == null) {
-			if (other.rdfAbout != null)
+			if (other.rdfAbout != null) {
 				return false;
-		} else if (!rdfAbout.equals(other.rdfAbout))
+			}
+		} else if (!rdfAbout.equals(other.rdfAbout)) {
 			return false;
+		}
 		return true;
 	}
 
@@ -313,11 +306,11 @@ public class ThesaurusService implements Serializable {
 	}
 
 	public void findDomainOfSkosConcept(SkosConcept skosConcept, String frenchLabelParentRequirement,
-			List<SkosConcept> domainSkosConcepts) {
+										List<SkosConcept> domainSkosConcepts) {
 
 		if (domainSkosConcepts == null) {
 			throw new IllegalArgumentException("domainSkosConcepts cannot be null when calling this" +
-					" mehtod it is an out parameter.");
+											   " mehtod it is an out parameter.");
 		}
 
 		if (skosConcept.getBroader() == null || skosConcept.getBroader().size() == 0) {
@@ -342,7 +335,7 @@ public class ThesaurusService implements Serializable {
 						meetParentLabelCriteria = true;
 					}
 					if (skosConcept2.getBroader() == null || skosConcept2.getBroader().size() == 0 &&
-							meetParentLabelCriteria) {
+															 meetParentLabelCriteria) {
 						boolean found = false;
 						for (SkosConcept skosConcept3 : domainSkosConcepts) {
 							if (skosConcept1.getRdfAbout().equals(skosConcept3.getRdfAbout())) {
@@ -375,7 +368,8 @@ public class ThesaurusService implements Serializable {
 
 	/**
 	 * Get skos concepts for all languages available.
-	 * @param input unparsed search term
+	 *
+	 * @param input                      unparsed search term
 	 * @param languageCodesAvailableList
 	 * @return skos concept response
 	 */
@@ -393,7 +387,8 @@ public class ThesaurusService implements Serializable {
 
 	/**
 	 * Get skos concept for a given language.
-	 * @param input unparsed search term
+	 *
+	 * @param input                 unparsed search term
 	 * @param languageCodeAvailable
 	 * @return skos concept response
 	 */
@@ -409,7 +404,8 @@ public class ThesaurusService implements Serializable {
 		return responseSkosConcept;
 	}
 
-	public void getSkosConceptForGivenLang(String input, String languageCodeAvailable, ResponseSkosConcept responseSkosConcept) {
+	public void getSkosConceptForGivenLang(String input, String languageCodeAvailable,
+										   ResponseSkosConcept responseSkosConcept) {
 		final Locale currentLanguage = new Locale(languageCodeAvailable);
 		Set<String> localeDisambiguationsNL = new LinkedHashSet<>();
 		Set<String> localeSuggestionsNL = new LinkedHashSet<>();
@@ -615,6 +611,7 @@ public class ThesaurusService implements Serializable {
 
 	/**
 	 * Validates pertinence of autocomplete suggestion result.
+	 *
 	 * @param input
 	 * @param suggestion
 	 * @return true if matching and not in exclusions.

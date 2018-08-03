@@ -1,10 +1,10 @@
 package com.constellio.model.services.search.cache;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-
-import org.jetbrains.annotations.NotNull;
 
 public abstract class LazyMap<K, V> implements Map<K, V> {
 

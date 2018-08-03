@@ -1,9 +1,8 @@
 package com.constellio.app.ui.framework.components.fields;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.vaadin.data.Property;
 import com.vaadin.ui.PasswordField;
+import org.apache.commons.lang.StringUtils;
 
 public class BasePasswordField extends PasswordField {
 

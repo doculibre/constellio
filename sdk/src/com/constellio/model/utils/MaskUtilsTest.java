@@ -1,8 +1,8 @@
 package com.constellio.model.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MaskUtilsTest {
 
@@ -69,7 +69,7 @@ public class MaskUtilsTest {
 	@Test
 	public void whenstrictFormatWithMissingValuesThenTrue()
 			throws MaskUtilsException {
-		assertThat(MaskUtils.strictFormatWithMissingValues("(AAA) AAA-AAAA","BCDEFGH")).isEqualTo("(BCD) EFG-HZZZ");
+		assertThat(MaskUtils.strictFormatWithMissingValues("(AAA) AAA-AAAA", "BCDEFGH")).isEqualTo("(BCD) EFG-HZZZ");
 		assertThat(MaskUtils.strictFormatWithMissingValues("999-999-9999", "1236664")).isEqualTo("123-666-4000");
 		assertThat(MaskUtils.strictFormatWithMissingValues("(AAA) 999-9999", "AB")).isEqualTo("(ABZ) 000-0000");
 		assertThat(MaskUtils.strictFormatWithMissingValues("(AAA) 999-9999", "ABC10")).isEqualTo("(ABC) 100-0000");

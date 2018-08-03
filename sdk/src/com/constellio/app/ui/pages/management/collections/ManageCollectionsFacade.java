@@ -1,13 +1,7 @@
 package com.constellio.app.ui.pages.management.collections;
 
-import java.util.List;
-
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
-
 import com.constellio.app.ui.tools.RecordContainerWebElement;
 import com.constellio.app.ui.tools.RecordContainerWebElement.RecordContainerWebElementRow;
-import com.constellio.app.ui.tools.vaadin.BaseFormWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 

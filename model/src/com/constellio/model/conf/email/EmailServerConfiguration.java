@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 public interface EmailServerConfiguration extends Serializable {
-	
+
 	boolean isEnabled();
 
 	Map<String, String> getProperties();

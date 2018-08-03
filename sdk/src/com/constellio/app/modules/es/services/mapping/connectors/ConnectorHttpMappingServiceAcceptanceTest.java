@@ -1,13 +1,5 @@
 package com.constellio.app.modules.es.services.mapping.connectors;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.assertj.core.api.ListAssert;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.modules.es.services.ConnectorManager;
@@ -16,6 +8,13 @@ import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.services.mapping.ConnectorMappingService;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.ListAssert;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConnectorHttpMappingServiceAcceptanceTest extends ConstellioTest {
 
@@ -64,7 +63,7 @@ public class ConnectorHttpMappingServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private ListAssert<ConnectorField> assertThatConnectorFields(ConnectorInstance<?> connectorInstance,
-			String connectorDocumentSchemaType) {
+																 String connectorDocumentSchemaType) {
 		return assertThat(service.getConnectorFields(connectorInstance, connectorDocumentSchemaType))
 				.usingFieldByFieldElementComparator();
 	}

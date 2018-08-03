@@ -1,26 +1,5 @@
 package com.constellio.model.services.event;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.data.dao.services.contents.ContentDaoException;
 import com.constellio.data.io.services.facades.IOServices;
@@ -36,6 +15,25 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EventServiceAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -167,7 +165,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
 		findZipFileAndAssertXml(Arrays.asList(event7),
 				FOLDER_NAME + "/" +
-						eventService.dateAsFileName(eventService.getDeletetionDateCutOff()) + ".zip", 1);
+				eventService.dateAsFileName(eventService.getDeletetionDateCutOff()) + ".zip", 1);
 
 		assertThat(getAppLayerFactory().getModelLayerFactory().getContentManager()
 				.getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(3);
@@ -189,7 +187,7 @@ public class EventServiceAcceptanceTest extends ConstellioTest {
 
 		findZipFileAndAssertXml(Arrays.asList(event8),
 				FOLDER_NAME + "/" +
-						eventService.dateAsFileName(event8.getCreatedOn()) + ".zip", 1);
+				eventService.dateAsFileName(event8.getCreatedOn()) + ".zip", 1);
 
 		assertThat(getAppLayerFactory().getModelLayerFactory().getContentManager()
 				.getContentDao().getFolderContents(FOLDER_NAME).size()).isEqualTo(4);

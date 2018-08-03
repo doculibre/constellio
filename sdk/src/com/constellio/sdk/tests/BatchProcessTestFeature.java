@@ -1,12 +1,12 @@
 package com.constellio.sdk.tests;
 
-import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
-
-import java.util.List;
-
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
+
+import java.util.List;
+
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
 
 public class BatchProcessTestFeature {
 

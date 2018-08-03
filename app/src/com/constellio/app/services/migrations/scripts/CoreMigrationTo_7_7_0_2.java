@@ -1,7 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -11,6 +9,8 @@ import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+
 public class CoreMigrationTo_7_7_0_2 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -18,7 +18,8 @@ public class CoreMigrationTo_7_7_0_2 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
 			new CoreSchemaAlterationFor_7_7_0_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -28,8 +29,8 @@ public class CoreMigrationTo_7_7_0_2 implements MigrationScript {
 	class CoreSchemaAlterationFor_7_7_0_2 extends MetadataSchemasAlterationHelper {
 
 		protected CoreSchemaAlterationFor_7_7_0_2(String collection,
-				MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+												  MigrationResourcesProvider migrationResourcesProvider,
+												  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

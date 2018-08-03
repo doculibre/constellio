@@ -1,11 +1,11 @@
 package com.constellio.app.modules.rm.model;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+
+import java.util.List;
 
 public class CopyRetentionRuleBuilderWithDefinedIds extends CopyRetentionRuleBuilder {
 	public CopyRetentionRuleBuilderWithDefinedIds() {

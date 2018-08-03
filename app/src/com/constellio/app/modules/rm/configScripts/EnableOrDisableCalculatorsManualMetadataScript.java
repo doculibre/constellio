@@ -10,16 +10,18 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class EnableOrDisableCalculatorsManualMetadataScript extends
-															AbstractSystemConfigurationScript<AllowModificationOfArchivisticStatusAndExpectedDatesChoice> {
+		AbstractSystemConfigurationScript<AllowModificationOfArchivisticStatusAndExpectedDatesChoice> {
 
 	@Override
-	public void onNewCollection(AllowModificationOfArchivisticStatusAndExpectedDatesChoice newValue, String collection, ModelLayerFactory modelLayerFactory) {
+	public void onNewCollection(AllowModificationOfArchivisticStatusAndExpectedDatesChoice newValue, String collection,
+								ModelLayerFactory modelLayerFactory) {
 		onValueChangedForCollection(newValue, modelLayerFactory, collection);
 	}
 
 	@Override
-	public void onValueChanged(AllowModificationOfArchivisticStatusAndExpectedDatesChoice previousValue, AllowModificationOfArchivisticStatusAndExpectedDatesChoice newValue,
-			ModelLayerFactory modelLayerFactory) {
+	public void onValueChanged(AllowModificationOfArchivisticStatusAndExpectedDatesChoice previousValue,
+							   AllowModificationOfArchivisticStatusAndExpectedDatesChoice newValue,
+							   ModelLayerFactory modelLayerFactory) {
 		if (newValue == null) {
 			newValue = AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED;
 		}
@@ -35,8 +37,9 @@ public class EnableOrDisableCalculatorsManualMetadataScript extends
 		}
 	}
 
-	private void onValueChangedForCollection(AllowModificationOfArchivisticStatusAndExpectedDatesChoice newValue, ModelLayerFactory modelLayerFactory,
-			String collection) {
+	private void onValueChangedForCollection(AllowModificationOfArchivisticStatusAndExpectedDatesChoice newValue,
+											 ModelLayerFactory modelLayerFactory,
+											 String collection) {
 		final boolean disableManualMetadataInCalculators = (newValue != AllowModificationOfArchivisticStatusAndExpectedDatesChoice.DISABLED);
 		modelLayerFactory
 				.getMetadataSchemasManager()

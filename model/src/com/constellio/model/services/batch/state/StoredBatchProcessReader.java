@@ -1,12 +1,12 @@
 package com.constellio.model.services.batch.state;
 
+import org.jdom2.Document;
+import org.jdom2.Element;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
 
 public class StoredBatchProcessReader {
 

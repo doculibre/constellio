@@ -17,13 +17,15 @@ public class ScriptsUtils {
 			}
 
 			@Override
-			public ModelLayerConfiguration decorateModelLayerConfiguration(ModelLayerConfiguration modelLayerConfiguration) {
+			public ModelLayerConfiguration decorateModelLayerConfiguration(
+					ModelLayerConfiguration modelLayerConfiguration) {
 				modelLayerConfiguration.setBatchProcessesEnabled(false);
 				return super.decorateModelLayerConfiguration(modelLayerConfiguration);
 			}
 
 			@Override
-			public DataLayerConfiguration decorateDataLayerConfiguration(DataLayerConfiguration dataLayerConfiguration) {
+			public DataLayerConfiguration decorateDataLayerConfiguration(
+					DataLayerConfiguration dataLayerConfiguration) {
 				dataLayerConfiguration.setBackgroundThreadsEnabled(false);
 				return super.decorateDataLayerConfiguration(dataLayerConfiguration);
 			}

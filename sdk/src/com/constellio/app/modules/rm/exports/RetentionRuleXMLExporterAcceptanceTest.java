@@ -1,20 +1,19 @@
 package com.constellio.app.modules.rm.exports;
 
-import static com.constellio.app.modules.rm.exports.RetentionRuleXMLExporter.forAllApprovedRulesInCollection;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.exports.RetentionRuleXMLExporterRuntimeException.RetentionRuleXMLExporterRuntimeException_InvalidFile;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.apache.commons.io.FileUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+
+import static com.constellio.app.modules.rm.exports.RetentionRuleXMLExporter.forAllApprovedRulesInCollection;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RetentionRuleXMLExporterAcceptanceTest extends ConstellioTest {
 

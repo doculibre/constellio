@@ -1,18 +1,17 @@
 package com.constellio.app.api.admin.services;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import javax.ws.rs.NotAuthorizedException;
-
-import org.junit.Before;
-
 import com.constellio.app.client.entities.UserResource;
 import com.constellio.app.client.services.AdminServicesSession;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+
+import javax.ws.rs.NotAuthorizedException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class AdminServicesLoginAcceptanceTest extends ConstellioTest {
 

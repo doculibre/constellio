@@ -16,9 +16,11 @@ public interface BatchProcessingPresenter {
 
 	RecordVO newRecordVO(String schema, String schemaType, SessionContext sessionContext);
 
-	InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject) throws RecordServicesException;
+	InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+			throws RecordServicesException;
 
-	boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject) throws RecordServicesException;
+	boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+			throws RecordServicesException;
 
 	BatchProcessingMode getBatchProcessingMode();
 

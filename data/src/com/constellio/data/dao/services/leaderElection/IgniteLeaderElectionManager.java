@@ -1,8 +1,6 @@
 package com.constellio.data.dao.services.leaderElection;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCluster;
 import org.apache.ignite.cluster.ClusterNode;
@@ -11,7 +9,8 @@ import org.apache.ignite.internal.util.typedef.internal.U;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.dao.services.factories.DataLayerFactory;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class IgniteLeaderElectionManager implements LeaderElectionManager {
 

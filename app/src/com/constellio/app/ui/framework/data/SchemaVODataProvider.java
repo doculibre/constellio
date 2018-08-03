@@ -1,12 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -18,6 +11,13 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class SchemaVODataProvider implements Serializable {
@@ -31,8 +31,9 @@ public class SchemaVODataProvider implements Serializable {
 	boolean active;
 
 
-	public SchemaVODataProvider(MetadataSchemaToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory, String collection,
-			String code, SessionContext sessionContext, boolean active) {
+	public SchemaVODataProvider(MetadataSchemaToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
+								String collection,
+								String code, SessionContext sessionContext, boolean active) {
 		this.voBuilder = voBuilder;
 		this.collection = collection;
 		this.typeCode = code;
@@ -114,15 +115,15 @@ public class SchemaVODataProvider implements Serializable {
 			}
 		}
 
-//		Collections.sort(result, new Comparator<MetadataSchemaVO>() {
-//			@Override
-//			public int compare(MetadataSchemaVO o1, MetadataSchemaVO o2) {
-//				String s1 = AccentApostropheCleaner.removeAccents(o1.getLabel().toLowerCase());
-//				String s2 = AccentApostropheCleaner.removeAccents(o2.getLabel().toLowerCase());
-//
-//				return s1.compareTo(s2);
-//			}
-//		});
+		//		Collections.sort(result, new Comparator<MetadataSchemaVO>() {
+		//			@Override
+		//			public int compare(MetadataSchemaVO o1, MetadataSchemaVO o2) {
+		//				String s1 = AccentApostropheCleaner.removeAccents(o1.getLabel().toLowerCase());
+		//				String s2 = AccentApostropheCleaner.removeAccents(o2.getLabel().toLowerCase());
+		//
+		//				return s1.compareTo(s2);
+		//			}
+		//		});
 
 		if(active){
 			result.add(0, voBuilder.build(type.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext));

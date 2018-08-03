@@ -16,7 +16,8 @@ public class RecordInModificationBeforeValidationAndAutomaticValuesCalculationEv
 	ValidationErrors validationErrors;
 
 	public RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent(Record record,
-			MetadataList modifiedMetadatas, ValidationErrors validationErrors) {
+																				  MetadataList modifiedMetadatas,
+																				  ValidationErrors validationErrors) {
 		this.record = record;
 		this.modifiedMetadatas = modifiedMetadatas;
 		this.validationErrors = validationErrors;

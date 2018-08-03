@@ -1,12 +1,12 @@
 package com.constellio.data.utils;
 
-import static com.constellio.data.utils.TimeProvider.getLocalDateTime;
+import org.joda.time.LocalDateTime;
+import org.joda.time.ReadableDuration;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.joda.time.LocalDateTime;
-import org.joda.time.ReadableDuration;
+import static com.constellio.data.utils.TimeProvider.getLocalDateTime;
 
 public class TimedCache<K, V> {
 

@@ -1,11 +1,10 @@
 package com.constellio.sdk.dev.tools;
 
-import java.io.File;
-import java.io.IOException;
-
+import com.constellio.model.conf.FoldersLocator;
 import org.apache.commons.io.FileUtils;
 
-import com.constellio.model.conf.FoldersLocator;
+import java.io.File;
+import java.io.IOException;
 
 public class ClearTurboCache {
 

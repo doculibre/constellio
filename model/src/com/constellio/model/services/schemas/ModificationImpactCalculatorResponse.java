@@ -1,8 +1,8 @@
 package com.constellio.model.services.schemas;
 
-import java.util.List;
-
 import com.constellio.model.entities.schemas.ModificationImpact;
+
+import java.util.List;
 
 public class ModificationImpactCalculatorResponse {
 

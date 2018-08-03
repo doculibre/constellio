@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
-import com.constellio.data.utils.dev.Toggle;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -29,14 +17,11 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
@@ -44,11 +29,20 @@ import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEditContainerView> {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(AddEditContainerPresenter.class);
-	
+
 	protected RecordVO container;
 	protected boolean editMode;
 	protected boolean multipleMode;
@@ -129,9 +123,9 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		DecommissioningSecurityService securityServices = new DecommissioningSecurityService(collection, appLayerFactory);
-		if(StringUtils.countMatches(params, "/") > 0) {
+		if (StringUtils.countMatches(params, "/") > 0) {
 			return securityServices.canCreateContainers(user) &&
-					(areContainersSequential() || Toggle.FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY.isEnabled());
+				   (areContainersSequential() || Toggle.FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY.isEnabled());
 		} else {
 			return securityServices.canCreateContainers(user);
 		}
@@ -158,11 +152,11 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 						containerRecord.setAdministrativeUnit(defaultAdministrativeUnitRecord);
 					} else {
 						LOGGER.error("User " + currentUser.getUsername()
-								+ " has no longer write access to default administrative unit " + defaultAdministrativeUnit);
+									 + " has no longer write access to default administrative unit " + defaultAdministrativeUnit);
 					}
 				} catch (Exception e) {
 					LOGGER.error("Default administrative unit for user " + currentUser.getUsername() + " is invalid: "
-							+ defaultAdministrativeUnit);
+								 + defaultAdministrativeUnit);
 				}
 			} else {
 				if (searchServices().getResultsCount(visibleAdministrativeUnitsQuery) > 0) {
@@ -184,8 +178,8 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 				Metadata metadata = schema.getMetadata(localCode);
 				if (metadata.getDataEntry().getType() == DataEntryType.MANUAL && !metadata.isSystemReserved()) {
 					Object defaultValue = metadata.getDefaultValue();
-					if(!(defaultValue == null ||
-							(defaultValue instanceof List && ((List) defaultValue).isEmpty()))) {
+					if (!(defaultValue == null ||
+						  (defaultValue instanceof List && ((List) defaultValue).isEmpty()))) {
 						container.set(metadata, defaultValue);
 						hasOverriddenAMetadata = hasOverriddenAMetadata || record.get(metadataVO) != null;
 					} else {
@@ -196,7 +190,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 				e.printStackTrace();
 			}
 		}
-		if(hasOverriddenAMetadata) {
+		if (hasOverriddenAMetadata) {
 			view.showMessage($("AddEditContainerView.hasOverriddenAMetadata"));
 		}
 		return new RecordToVOBuilder().build(container, VIEW_MODE.FORM, view.getSessionContext());
@@ -252,7 +246,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 
 	private boolean areContainersSequential() {
 		return isMetadataSequential(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.IDENTIFIER) ||
-				isMetadataSequential(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.TEMPORARY_IDENTIFIER);
+			   isMetadataSequential(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.TEMPORARY_IDENTIFIER);
 	}
 
 	private boolean isMetadataSequential(String metadataCode) {

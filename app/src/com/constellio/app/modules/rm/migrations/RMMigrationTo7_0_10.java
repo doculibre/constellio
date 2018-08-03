@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.Schemas.SCHEMA_AUTOCOMPLETE_FIELD;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -11,6 +9,8 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA_AUTOCOMPLETE_FIELD;
 
 public class RMMigrationTo7_0_10 implements MigrationScript {
 	@Override
@@ -26,7 +26,8 @@ public class RMMigrationTo7_0_10 implements MigrationScript {
 
 	public static class SchemaAlterationsFor7_0_10 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor7_0_10(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor7_0_10(String collection, MigrationResourcesProvider provider,
+											 AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 

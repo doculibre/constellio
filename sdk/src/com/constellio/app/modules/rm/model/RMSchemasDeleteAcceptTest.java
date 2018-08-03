@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -16,6 +11,10 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Test;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
@@ -188,13 +187,13 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 	}
 
 	private org.assertj.core.api.BooleanAssert assertThatLogicallyDeletable(RecordWrapper recordWrapper,
-			User user) {
+																			User user) {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		return assertThat(recordServices.isLogicallyDeletable(recordWrapper.getWrappedRecord(), user));
 	}
 
 	private org.assertj.core.api.BooleanAssert assertThatLogicallyThenPhysicallyDeletable(RecordWrapper recordWrapper,
-			User user) {
+																						  User user) {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		return assertThat(recordServices.isLogicallyThenPhysicallyDeletable(recordWrapper.getWrappedRecord(), user));
 	}

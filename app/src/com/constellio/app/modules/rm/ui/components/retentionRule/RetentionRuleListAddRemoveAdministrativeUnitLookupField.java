@@ -17,8 +17,7 @@ public class RetentionRuleListAddRemoveAdministrativeUnitLookupField extends Lis
 
 	private static final String SEPARATOR = " > ";
 
-	public
-	RetentionRuleListAddRemoveAdministrativeUnitLookupField() {
+	public RetentionRuleListAddRemoveAdministrativeUnitLookupField() {
 		super(AdministrativeUnit.SCHEMA_TYPE);
 	}
 

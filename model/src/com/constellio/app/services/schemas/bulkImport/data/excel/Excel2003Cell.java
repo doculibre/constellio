@@ -1,10 +1,10 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
-import java.util.Date;
-
 import jxl.Cell;
 import jxl.CellType;
 import jxl.DateCell;
+
+import java.util.Date;
 
 public class Excel2003Cell implements ExcelCell {
 

@@ -1,12 +1,7 @@
 package com.constellio.data.threads;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.dao.managers.StatefulService;
 import org.joda.time.DateTime;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
@@ -16,8 +11,8 @@ import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.conf.DataLayerConfiguration;
-import com.constellio.data.dao.managers.StatefulService;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *

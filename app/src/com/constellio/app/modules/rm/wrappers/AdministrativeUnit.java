@@ -1,12 +1,12 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.List;
+import java.util.Locale;
 
 public class AdministrativeUnit extends RecordWrapper {
 
@@ -27,23 +27,23 @@ public class AdministrativeUnit extends RecordWrapper {
 
 	@Deprecated
 	public AdministrativeUnit(Record record,
-			MetadataSchemaTypes types) {
+							  MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 
 	@Deprecated
 	protected AdministrativeUnit(Record record,
-			MetadataSchemaTypes types, String schemaCode) {
+								 MetadataSchemaTypes types, String schemaCode) {
 		super(record, types, schemaCode);
 	}
 
 	public AdministrativeUnit(Record record,
-			MetadataSchemaTypes types, Locale locale) {
+							  MetadataSchemaTypes types, Locale locale) {
 		super(record, types, SCHEMA_TYPE, locale);
 	}
 
 	protected AdministrativeUnit(Record record,
-			MetadataSchemaTypes types, String schemaCode, Locale locale) {
+								 MetadataSchemaTypes types, String schemaCode, Locale locale) {
 		super(record, types, schemaCode, locale);
 	}
 
@@ -84,7 +84,7 @@ public class AdministrativeUnit extends RecordWrapper {
 		return this;
 	}
 
-	public AdministrativeUnit setDescription(Locale locale, String description){
+	public AdministrativeUnit setDescription(Locale locale, String description) {
 		set(DESCRIPTION, locale, description);
 		return this;
 	}

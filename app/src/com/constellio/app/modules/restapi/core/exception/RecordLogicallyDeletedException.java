@@ -6,11 +6,11 @@ import javax.ws.rs.core.Response;
 
 public class RecordLogicallyDeletedException extends BaseRestApiException {
 
-    private static final String CODE = "recordLogicallyDeleted";
+	private static final String CODE = "recordLogicallyDeleted";
 
-    public RecordLogicallyDeletedException(String id) {
-        status = Response.Status.BAD_REQUEST;
+	public RecordLogicallyDeletedException(String id) {
+		status = Response.Status.BAD_REQUEST;
 
-        buildValidationError(CODE, ImmutableMap.<String, Object>builder().put("id", id).build());
-    }
+		buildValidationError(CODE, ImmutableMap.<String, Object>builder().put("id", id).build());
+	}
 }

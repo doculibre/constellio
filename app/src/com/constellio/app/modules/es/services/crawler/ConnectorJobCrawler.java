@@ -1,8 +1,8 @@
 package com.constellio.app.modules.es.services.crawler;
 
-import java.util.List;
-
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
+
+import java.util.List;
 
 public interface ConnectorJobCrawler {
 

@@ -1,13 +1,13 @@
 package com.constellio.app.entities.modules;
 
+import com.constellio.app.entities.navigation.NavigationConfig;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.configs.SystemConfiguration;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.constellio.app.entities.navigation.NavigationConfig;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.configs.SystemConfiguration;
 
 public abstract class DefaultComplementaryModule implements InstallableSystemModule {
 

@@ -33,156 +33,157 @@ import static com.constellio.sdk.tests.TestUtils.asList;
 
 public class ExtractImportationLogsScript {
 
-    static String currentCollection;
-    static AppLayerFactory appLayerFactory;
-    static ModelLayerFactory modelLayerFactory;
-    static SearchServices searchServices;
-    static RecordServices recordServices;
-    static RMSchemasRecordsServices rm;
+	static String currentCollection;
+	static AppLayerFactory appLayerFactory;
+	static ModelLayerFactory modelLayerFactory;
+	static SearchServices searchServices;
+	static RecordServices recordServices;
+	static RMSchemasRecordsServices rm;
 
-    static Path path;
-    static String type =  "all";
-    static int batchSize = 5000;
+	static Path path;
+	static String type = "all";
+	static int batchSize = 5000;
 
-    static AtomicInteger counter = new AtomicInteger();
+	static AtomicInteger counter = new AtomicInteger();
 
-    public static void main(String argv[])
-            throws Exception {
+	public static void main(String argv[])
+			throws Exception {
 
-        if(argv.length < 2){
-            System.out.println("Sample call : sudo java -Xmx5120m -classpath ./classes:./lib/* com.constellio.dev.ExtractImportationLogsScript <type> <batchSize>");
-            return;
-        }
-
-
-        type = argv[0];
-        try {
-            batchSize = Integer.valueOf(argv[1]);
-        }catch (Exception e){
-            e.printStackTrace();;
-
-            System.out.println("Invalid batch size value");
-
-            return;
-        }
-        initLogger();
-
-        RecordPopulateServices.LOG_CONTENT_MISSING = false;
-        appLayerFactory = startLayerFactoriesWithoutBackgroundThreads();
-        modelLayerFactory = appLayerFactory.getModelLayerFactory();
-        searchServices = modelLayerFactory.newSearchServices();
-        recordServices = modelLayerFactory.newRecordServices();
-        CollectionsListManager collectionsListManager = modelLayerFactory.getCollectionsListManager();
-        for (String collection : collectionsListManager.getCollections()) {
-            currentCollection = collection;
-            rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-            runScriptForCurrentCollection();
-        }
-
-    }
-
-    private static void runScriptForCurrentCollection() throws Exception {
-
-        if("folder".equalsIgnoreCase(type)) {
-            for (MetadataSchema folderSchema : rm.folderSchemaType().getAllSchemas()) {
-                runScriptForRMObject(folderSchema);
-            }
-        } else if ("document".equalsIgnoreCase(type)){
-            for (MetadataSchema documentSchema : rm.documentSchemaType().getAllSchemas()) {
-                runScriptForRMObject(documentSchema);
-            }
-        }
-
-    }
-
-    private static void runScriptForRMObject(final MetadataSchema schema)
-            throws Exception {
-
-        final Metadata legacyIdMetadata = schema.get("legacyIdentifier");
-        final Metadata titleMetadata = schema.get("title");
-        // TODO get document contents Metadata
-
-        LogicalSearchCondition condition = LogicalSearchQueryOperators.from(schema).whereAnyCondition(
-                LogicalSearchQueryOperators.allConditions(
-                        LogicalSearchQueryOperators.where(legacyIdMetadata).isNotNull(),
-                        LogicalSearchQueryOperators.where(legacyIdMetadata).isNotEqual("__NULL__")
-                )
-        );
+		if (argv.length < 2) {
+			System.out.println("Sample call : sudo java -Xmx5120m -classpath ./classes:./lib/* com.constellio.dev.ExtractImportationLogsScript <type> <batchSize>");
+			return;
+		}
 
 
-        if("folder".equalsIgnoreCase(type)){
-            new ActionExecutorInBatch(searchServices, "Update '" + schema.getCode() + "'", batchSize) {
+		type = argv[0];
+		try {
+			batchSize = Integer.valueOf(argv[1]);
+		} catch (Exception e) {
+			e.printStackTrace();
+			;
 
-                @Override
-                public void doActionOnBatch(List<Record> records)
-                        throws Exception {
+			System.out.println("Invalid batch size value");
+
+			return;
+		}
+		initLogger();
+
+		RecordPopulateServices.LOG_CONTENT_MISSING = false;
+		appLayerFactory = startLayerFactoriesWithoutBackgroundThreads();
+		modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		searchServices = modelLayerFactory.newSearchServices();
+		recordServices = modelLayerFactory.newRecordServices();
+		CollectionsListManager collectionsListManager = modelLayerFactory.getCollectionsListManager();
+		for (String collection : collectionsListManager.getCollections()) {
+			currentCollection = collection;
+			rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+			runScriptForCurrentCollection();
+		}
+
+	}
+
+	private static void runScriptForCurrentCollection() throws Exception {
+
+		if ("folder".equalsIgnoreCase(type)) {
+			for (MetadataSchema folderSchema : rm.folderSchemaType().getAllSchemas()) {
+				runScriptForRMObject(folderSchema);
+			}
+		} else if ("document".equalsIgnoreCase(type)) {
+			for (MetadataSchema documentSchema : rm.documentSchemaType().getAllSchemas()) {
+				runScriptForRMObject(documentSchema);
+			}
+		}
+
+	}
+
+	private static void runScriptForRMObject(final MetadataSchema schema)
+			throws Exception {
+
+		final Metadata legacyIdMetadata = schema.get("legacyIdentifier");
+		final Metadata titleMetadata = schema.get("title");
+		// TODO get document contents Metadata
+
+		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(schema).whereAnyCondition(
+				LogicalSearchQueryOperators.allConditions(
+						LogicalSearchQueryOperators.where(legacyIdMetadata).isNotNull(),
+						LogicalSearchQueryOperators.where(legacyIdMetadata).isNotEqual("__NULL__")
+				)
+		);
 
 
-                    for (Record record : records) {
+		if ("folder".equalsIgnoreCase(type)) {
+			new ActionExecutorInBatch(searchServices, "Update '" + schema.getCode() + "'", batchSize) {
 
-                        String legacyId = record.get(legacyIdMetadata);
-                        String title = record.get(titleMetadata);
-
-                        String recordString = "#" + counter.intValue() + " LegacyId:" + legacyId + ":" + title;
-                        System.out.println(recordString);
-
-                        append(recordString+"\n");
-
-                        counter.incrementAndGet();
-                    }
-                }
-            }.execute(new LogicalSearchQuery(condition).setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(asList(legacyIdMetadata, titleMetadata))));
-        } else if("document".equalsIgnoreCase(type)) {
-            new ActionExecutorInBatch(searchServices, "Update '" + schema.getCode() + "'", batchSize) {
-
-                @Override
-                public void doActionOnBatch(List<Record> records)
-                        throws Exception {
+				@Override
+				public void doActionOnBatch(List<Record> records)
+						throws Exception {
 
 
-                    for (Record record : records) {
+					for (Record record : records) {
 
-                        String legacyId = record.get(legacyIdMetadata);
-                        String title = record.get(titleMetadata);
+						String legacyId = record.get(legacyIdMetadata);
+						String title = record.get(titleMetadata);
 
-                        String recordString = "#" + counter.intValue() + " LegacyId:" + legacyId + ":" + title + ", versions:";
+						String recordString = "#" + counter.intValue() + " LegacyId:" + legacyId + ":" + title;
+						System.out.println(recordString);
 
-                        Document document = rm.wrapDocument(record);
+						append(recordString + "\n");
 
-                        int versionsCounter = 0;
-                        try {
-                            for (ContentVersion version : document.getContent().getVersions()) {
-                                if (versionsCounter > 0) {
-                                    recordString += ", ";
-                                }
-                                recordString += version.getVersion();
-                                versionsCounter++;
-                            }
-                        }catch (NullPointerException e){
-                            e.printStackTrace();
-                        }
+						counter.incrementAndGet();
+					}
+				}
+			}.execute(new LogicalSearchQuery(condition).setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(asList(legacyIdMetadata, titleMetadata))));
+		} else if ("document".equalsIgnoreCase(type)) {
+			new ActionExecutorInBatch(searchServices, "Update '" + schema.getCode() + "'", batchSize) {
 
-                        System.out.println(recordString);
+				@Override
+				public void doActionOnBatch(List<Record> records)
+						throws Exception {
 
-                        append(recordString + "\n");
 
-                        counter.incrementAndGet();
-                    }
-                }
-            }.execute(new LogicalSearchQuery(condition));//setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(asList(legacyIdMetadata, titleMetadata))));
-        }
-    }
+					for (Record record : records) {
 
-    private static void initLogger() throws IOException {
-        String datePart = new SimpleDateFormat("yyyy-MM-dd-HHmmss").format(new Date());
-        path = Paths.get("identifiants-"+type+"-importes-" + datePart + ".txt");
+						String legacyId = record.get(legacyIdMetadata);
+						String title = record.get(titleMetadata);
 
-        if (!Files.exists(path)) {
-            Files.createFile(path);
-        }
-    }
+						String recordString = "#" + counter.intValue() + " LegacyId:" + legacyId + ":" + title + ", versions:";
 
-    public static void append(String message) throws IOException {
-        Files.write(path, message.getBytes(), StandardOpenOption.APPEND);
-    }
+						Document document = rm.wrapDocument(record);
+
+						int versionsCounter = 0;
+						try {
+							for (ContentVersion version : document.getContent().getVersions()) {
+								if (versionsCounter > 0) {
+									recordString += ", ";
+								}
+								recordString += version.getVersion();
+								versionsCounter++;
+							}
+						} catch (NullPointerException e) {
+							e.printStackTrace();
+						}
+
+						System.out.println(recordString);
+
+						append(recordString + "\n");
+
+						counter.incrementAndGet();
+					}
+				}
+			}.execute(new LogicalSearchQuery(condition));//setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(asList(legacyIdMetadata, titleMetadata))));
+		}
+	}
+
+	private static void initLogger() throws IOException {
+		String datePart = new SimpleDateFormat("yyyy-MM-dd-HHmmss").format(new Date());
+		path = Paths.get("identifiants-" + type + "-importes-" + datePart + ".txt");
+
+		if (!Files.exists(path)) {
+			Files.createFile(path);
+		}
+	}
+
+	public static void append(String message) throws IOException {
+		Files.write(path, message.getBytes(), StandardOpenOption.APPEND);
+	}
 }

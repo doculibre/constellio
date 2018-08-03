@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 public class CollectionVODataProvider extends AbstractDataProvider {
-	
+
 	protected transient CollectionsManager collectionManager;
 
 	transient List<CollectionVO> collections;
@@ -106,7 +106,6 @@ public class CollectionVODataProvider extends AbstractDataProvider {
 		public CollectionVO() {
 			this(null, null, new ArrayList<String>(), new ArrayList<String>(), null, null);
 		}
-
 
 
 		public String getCode() {

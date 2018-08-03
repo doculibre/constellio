@@ -11,7 +11,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.joda.time.LocalDate;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -55,7 +54,7 @@ public class DecommissioningList extends RecordWrapper {
 	public static final String VALIDATION_USER = "validationUser";    // never used, disabled in 5.1.0
 
 	public DecommissioningList(Record record,
-			MetadataSchemaTypes types) {
+							   MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 
@@ -281,29 +280,29 @@ public class DecommissioningList extends RecordWrapper {
 		return null;
 	}
 
-//	public DecommissioningList setFolderDetailsFor(String... folders) {
-//		return setFolderDetailsFor(asList(folders));
-//	}
-//
-//	public DecommissioningList addFolderDetailsFor(String... folders) {
-//		List<DecomListFolderDetail> details = new ArrayList<>();
-//		details.addAll(getFolderDetails());
-//		List<String> existingDetails = getFolders();
-//		for (String folder : folders) {
-//			if(!existingDetails.contains(folder)) {
-//				details.add(new DecomListFolderDetail(folder));
-//			}
-//		}
-//		return setFolderDetails(details);
-//	}
-//
-//	public DecommissioningList setFolderDetailsFor(List<String> folders) {
-//		List<DecomListFolderDetail> details = new ArrayList<>();
-//		for (String folder : folders) {
-//			details.add(new DecomListFolderDetail(folder));
-//		}
-//		return setFolderDetails(details);
-//	}
+	//	public DecommissioningList setFolderDetailsFor(String... folders) {
+	//		return setFolderDetailsFor(asList(folders));
+	//	}
+	//
+	//	public DecommissioningList addFolderDetailsFor(String... folders) {
+	//		List<DecomListFolderDetail> details = new ArrayList<>();
+	//		details.addAll(getFolderDetails());
+	//		List<String> existingDetails = getFolders();
+	//		for (String folder : folders) {
+	//			if(!existingDetails.contains(folder)) {
+	//				details.add(new DecomListFolderDetail(folder));
+	//			}
+	//		}
+	//		return setFolderDetails(details);
+	//	}
+	//
+	//	public DecommissioningList setFolderDetailsFor(List<String> folders) {
+	//		List<DecomListFolderDetail> details = new ArrayList<>();
+	//		for (String folder : folders) {
+	//			details.add(new DecomListFolderDetail(folder));
+	//		}
+	//		return setFolderDetails(details);
+	//	}
 
 	public DecommissioningList removeFolderDetail(String folderId) {
 		List<DecomListFolderDetail> details = new ArrayList<>();
@@ -330,7 +329,7 @@ public class DecommissioningList extends RecordWrapper {
 		details.addAll(getFolderDetails());
 		List<String> existingDetails = getFolders();
 		for (Folder folder : folders) {
-			if(!existingDetails.contains(folder.getId())) {
+			if (!existingDetails.contains(folder.getId())) {
 				details.add(new DecomListFolderDetail(folder));
 			}
 		}
@@ -416,7 +415,7 @@ public class DecommissioningList extends RecordWrapper {
 		List<String> previousContainers = getContainers();
 		List<DecomListContainerDetail> details = new ArrayList<>(getContainerDetails());
 		for (ContainerRecord container : containers) {
-			if(!(previousContainers != null && previousContainers.contains(container.getId()))) {
+			if (!(previousContainers != null && previousContainers.contains(container.getId()))) {
 				DecomListContainerDetail detail = new DecomListContainerDetail(container);
 				details.add(detail);
 			}
@@ -427,9 +426,9 @@ public class DecommissioningList extends RecordWrapper {
 	public DecommissioningList addContainerDetailsFromFolders(Folder... folders) {
 		List<String> previousContainers = getContainers();
 		List<DecomListContainerDetail> details = new ArrayList<>(getContainerDetails());
-		for(Folder folder: folders) {
+		for (Folder folder : folders) {
 			String containerId = folder.getContainer();
-			if(!(previousContainers != null && previousContainers.contains(containerId)) && containerId != null) {
+			if (!(previousContainers != null && previousContainers.contains(containerId)) && containerId != null) {
 				DecomListContainerDetail detail = new DecomListContainerDetail(containerId);
 				details.add(detail);
 			}
@@ -571,7 +570,7 @@ public class DecommissioningList extends RecordWrapper {
 		documentIDs.addAll(getDocuments());
 		List<String> existingDocuments = getDocuments();
 		for (String document : documents) {
-			if(!existingDocuments.contains(document)) {
+			if (!existingDocuments.contains(document)) {
 				documentIDs.add(document);
 			}
 		}
@@ -584,7 +583,7 @@ public class DecommissioningList extends RecordWrapper {
 
 	public DecommissioningList removeDocuments(String... idsToRemove) {
 		ArrayList<String> ids = new ArrayList<>(getDocuments());
-		for(int i = 0; i < idsToRemove.length; i++) {
+		for (int i = 0; i < idsToRemove.length; i++) {
 			ids.remove(idsToRemove[i]);
 		}
 		return setDocuments(ids);
@@ -600,10 +599,10 @@ public class DecommissioningList extends RecordWrapper {
 		List<String> documentsToRemove = new ArrayList<>();
 		List<String> foldersToRemove = new ArrayList<>();
 
-		for(Record record: recordsToRemove) {
-			if(record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
+		for (Record record : recordsToRemove) {
+			if (record.isOfSchemaType(Folder.SCHEMA_TYPE)) {
 				foldersToRemove.add(record.getId());
-			} else if(record.isOfSchemaType(Document.SCHEMA_TYPE)) {
+			} else if (record.isOfSchemaType(Document.SCHEMA_TYPE)) {
 				documentsToRemove.add(record.getId());
 			}
 		}

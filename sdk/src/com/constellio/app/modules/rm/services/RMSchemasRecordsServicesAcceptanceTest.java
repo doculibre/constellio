@@ -1,15 +1,9 @@
 package com.constellio.app.modules.rm.services;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Locale;
-
-import com.constellio.model.entities.records.Record;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -17,6 +11,11 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Test;
+
+import java.util.Locale;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMSchemasRecordsServicesAcceptanceTest extends ConstellioTest {
 

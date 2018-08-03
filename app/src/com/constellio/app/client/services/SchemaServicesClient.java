@@ -1,16 +1,15 @@
 package com.constellio.app.client.services;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.constellio.app.client.AdminServicesConstants;
+import com.constellio.app.client.entities.MetadataResource;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-
-import com.constellio.app.client.AdminServicesConstants;
-import com.constellio.app.client.entities.MetadataResource;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SchemaServicesClient {
 

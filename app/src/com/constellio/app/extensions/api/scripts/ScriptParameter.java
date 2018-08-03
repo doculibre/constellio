@@ -5,52 +5,58 @@ import java.util.List;
 
 public class ScriptParameter {
 
-    ScriptParameterType type;
+	ScriptParameterType type;
 
-    String label;
+	String label;
 
-    boolean required;
+	boolean required;
 
-    List<String> options = new ArrayList<>();
+	List<String> options = new ArrayList<>();
 
-    public ScriptParameter(ScriptParameterType type, String label, boolean required) {
-        this.type = type;
-        this.label = label;
-        this.required = required;
-    }
+	public ScriptParameter(ScriptParameterType type, String label, boolean required) {
+		this.type = type;
+		this.label = label;
+		this.required = required;
+	}
 
-    public ScriptParameterType getType() {
-        return type;
-    }
+	public ScriptParameterType getType() {
+		return type;
+	}
 
-    public String getLabel() {
-        return label;
-    }
+	public String getLabel() {
+		return label;
+	}
 
-    public List<String> getOptions() {
-        return options;
-    }
+	public List<String> getOptions() {
+		return options;
+	}
 
-    public ScriptParameter setOptions(List<String> options) {
-        this.options = options;
-        return this;
-    }
+	public ScriptParameter setOptions(List<String> options) {
+		this.options = options;
+		return this;
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 
-        ScriptParameter that = (ScriptParameter) o;
+		ScriptParameter that = (ScriptParameter) o;
 
-        if (type != that.type) return false;
-        return label != null ? label.equals(that.label) : that.label == null;
-    }
+		if (type != that.type) {
+			return false;
+		}
+		return label != null ? label.equals(that.label) : that.label == null;
+	}
 
-    @Override
-    public int hashCode() {
-        int result = type != null ? type.hashCode() : 0;
-        result = 31 * result + (label != null ? label.hashCode() : 0) + options.hashCode();
-        return result;
-    }
+	@Override
+	public int hashCode() {
+		int result = type != null ? type.hashCode() : 0;
+		result = 31 * result + (label != null ? label.hashCode() : 0) + options.hashCode();
+		return result;
+	}
 }

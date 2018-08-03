@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -33,6 +29,10 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 public class RMMigrationTo6_2 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -40,7 +40,8 @@ public class RMMigrationTo6_2 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationsFor6_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		setupDisplayConfigs(collection, appLayerFactory);
@@ -88,7 +89,8 @@ public class RMMigrationTo6_2 implements MigrationScript {
 	}
 
 	public static class SchemaAlterationsFor6_2 extends MetadataSchemasAlterationHelper {
-		protected SchemaAlterationsFor6_2(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor6_2(String collection, MigrationResourcesProvider provider,
+										  AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 

@@ -1,17 +1,5 @@
 package com.constellio.app.api.cmis.accept;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -22,6 +10,17 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 @DriverTest
 public class UpdatePropertiesRequestAcceptTest extends ConstellioTest {
@@ -95,7 +94,7 @@ public class UpdatePropertiesRequestAcceptTest extends ConstellioTest {
 			fail("Exception expected");
 		} catch (CmisRuntimeException ex) {
 			assertThat(ex.getMessage()).isEqualTo("L'utilisateur chuck n'a pas la permission CMIS CAN_UPDATE_PROPERTIES"
-					+ " sur l'enregistrement zetaxo1_category1 - zetaxo1_category1");
+												  + " sur l'enregistrement zetaxo1_category1 - zetaxo1_category1");
 		}
 
 	}

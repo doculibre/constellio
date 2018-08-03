@@ -1,25 +1,5 @@
 package com.constellio.model.services.event;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
@@ -37,6 +17,24 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.collections.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 
 public class EventService implements Runnable {
 	ModelLayerFactory modelayerFactory;
@@ -98,49 +96,50 @@ public class EventService implements Runnable {
 		removeOldEventFromSolr();
 	}
 
-    private void closeFile(File file, XMLStreamWriter xmlStreamWriter, LocalDateTime localDateTime, String fileName, OutputStream fileStreamToClose) {
+	private void closeFile(File file, XMLStreamWriter xmlStreamWriter, LocalDateTime localDateTime, String fileName,
+						   OutputStream fileStreamToClose) {
 
-        File zipFile = null;
-        InputStream zipFileInputStream = null;
-        boolean isXmlStreamWriter = false;
-        try {
-            if(xmlStreamWriter != null) {
-                if(localDateTime != null) {
-                    setLastArchivedDayTime(localDateTime.withTime(0, 0,0,0).plusDays(1).minusMillis(1));
-                }
-                xmlStreamWriter.writeEndElement();
-                xmlStreamWriter.writeEndDocument();
-                xmlStreamWriter.flush();
+		File zipFile = null;
+		InputStream zipFileInputStream = null;
+		boolean isXmlStreamWriter = false;
+		try {
+			if (xmlStreamWriter != null) {
+				if (localDateTime != null) {
+					setLastArchivedDayTime(localDateTime.withTime(0, 0, 0, 0).plusDays(1).minusMillis(1));
+				}
+				xmlStreamWriter.writeEndElement();
+				xmlStreamWriter.writeEndDocument();
+				xmlStreamWriter.flush();
 
-                xmlStreamWriter.close();
-                isXmlStreamWriter = true;
-                zipFile = createNewFile(fileName + ".zip");
-                zipService.zip(zipFile, Arrays.asList(file));
+				xmlStreamWriter.close();
+				isXmlStreamWriter = true;
+				zipFile = createNewFile(fileName + ".zip");
+				zipService.zip(zipFile, Arrays.asList(file));
 
-                zipFileInputStream = ioServices.newFileInputStream(zipFile, IO_STREAM_NAME_CLOSE);
-                modelayerFactory.getContentManager()
-                        .getContentDao().add(FOLDER + "/" + fileName + ".zip", zipFileInputStream);
-            }
-        } catch (XMLStreamException e) {
-            throw new RuntimeException("Error while closing the Event writer outputStream. File : " + fileName, e);
-        } catch (ZipServiceException e) {
-            throw new RuntimeException("Error while zipping the file : " + fileName, e);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("Error while zipping the file : " + fileName, e);
-        } finally {
-            if(xmlStreamWriter != null && !isXmlStreamWriter) {
-                try {
-                    xmlStreamWriter.close();
-                } catch (XMLStreamException e) {
-                    throw new RuntimeException("Error while closing the XMLStreamWriter stream : with file name :" + fileName, e);
-                }
-            }
-            ioServices.closeQuietly(fileStreamToClose);
-            ioServices.closeQuietly(zipFileInputStream);
-            ioServices.deleteQuietly(zipFile);
-            ioServices.deleteQuietly(file);
-        }
-    }
+				zipFileInputStream = ioServices.newFileInputStream(zipFile, IO_STREAM_NAME_CLOSE);
+				modelayerFactory.getContentManager()
+						.getContentDao().add(FOLDER + "/" + fileName + ".zip", zipFileInputStream);
+			}
+		} catch (XMLStreamException e) {
+			throw new RuntimeException("Error while closing the Event writer outputStream. File : " + fileName, e);
+		} catch (ZipServiceException e) {
+			throw new RuntimeException("Error while zipping the file : " + fileName, e);
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException("Error while zipping the file : " + fileName, e);
+		} finally {
+			if (xmlStreamWriter != null && !isXmlStreamWriter) {
+				try {
+					xmlStreamWriter.close();
+				} catch (XMLStreamException e) {
+					throw new RuntimeException("Error while closing the XMLStreamWriter stream : with file name :" + fileName, e);
+				}
+			}
+			ioServices.closeQuietly(fileStreamToClose);
+			ioServices.closeQuietly(zipFileInputStream);
+			ioServices.deleteQuietly(zipFile);
+			ioServices.deleteQuietly(file);
+		}
+	}
 
 	public String dateAsFileName(LocalDateTime localDateTime) {
 
@@ -162,85 +161,83 @@ public class EventService implements Runnable {
 	public static final String EVENTS_XML_TAG = "Events";
 	public static final String EVENT_XML_TAG = "Event";
 
-    public List<Event> backupEventsInVault() {
-        XMLOutputFactory factory = XMLOutputFactory.newInstance();
-        List<Event> eventList = new ArrayList<>();
-        LocalDateTime lastDayTimeArchived = getLastDayTimeArchived();
-        File currentFile = null;
-        if(lastDayTimeArchived == null || lastDayTimeArchived.compareTo(getArchivedUntilLocalDate()) < 0) {
-            SearchServices searchServices = modelayerFactory.newSearchServices();
-            LogicalSearchQuery logicalSearchQuery = getEventAfterLastArchivedDayAndBeforeLastDayToArchiveLogicalSearchQuery();
+	public List<Event> backupEventsInVault() {
+		XMLOutputFactory factory = XMLOutputFactory.newInstance();
+		List<Event> eventList = new ArrayList<>();
+		LocalDateTime lastDayTimeArchived = getLastDayTimeArchived();
+		File currentFile = null;
+		if (lastDayTimeArchived == null || lastDayTimeArchived.compareTo(getArchivedUntilLocalDate()) < 0) {
+			SearchServices searchServices = modelayerFactory.newSearchServices();
+			LogicalSearchQuery logicalSearchQuery = getEventAfterLastArchivedDayAndBeforeLastDayToArchiveLogicalSearchQuery();
 
-            SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIteratorKeepingOrder(logicalSearchQuery, 25000);
+			SearchResponseIterator<Record> searchResponseIterator = searchServices.recordsIteratorKeepingOrder(logicalSearchQuery, 25000);
 
-            int dayOfTheMonth = -1;
-            int year = -9999;
+			int dayOfTheMonth = -1;
+			int year = -9999;
 
-            OutputStream fileOutputStream = null;
-            XMLStreamWriter xmlStreamWriter = null;
-            LocalDateTime oldLocalDateTime;
-            LocalDateTime localDateTime = null;
-            String fileName = null;
+			OutputStream fileOutputStream = null;
+			XMLStreamWriter xmlStreamWriter = null;
+			LocalDateTime oldLocalDateTime;
+			LocalDateTime localDateTime = null;
+			String fileName = null;
 
-            try
-            {
-                while (searchResponseIterator.hasNext()) {
-                    Record record = searchResponseIterator.next();
+			try {
+				while (searchResponseIterator.hasNext()) {
+					Record record = searchResponseIterator.next();
 
-                    oldLocalDateTime = localDateTime;
-                    localDateTime = record.get(Schemas.CREATED_ON);
+					oldLocalDateTime = localDateTime;
+					localDateTime = record.get(Schemas.CREATED_ON);
 
-                    try {
-                        if (dayOfTheMonth != localDateTime.getDayOfMonth() || localDateTime.getYear() != year) {
-                            dayOfTheMonth = localDateTime.getDayOfMonth();
-                            year = localDateTime.getYear();
+					try {
+						if (dayOfTheMonth != localDateTime.getDayOfMonth() || localDateTime.getYear() != year) {
+							dayOfTheMonth = localDateTime.getDayOfMonth();
+							year = localDateTime.getYear();
 
-                            closeFile(currentFile, xmlStreamWriter, oldLocalDateTime, fileName, fileOutputStream);
-                            fileName = dateAsFileName(localDateTime);
-                            currentFile = createNewFile(fileName + ".xml");
-                            fileOutputStream = ioServices.newFileOutputStream(currentFile, IO_STREAM_NAME_BACKUP_EVENTS_IN_VAULT);
-                            xmlStreamWriter = factory.createXMLStreamWriter(fileOutputStream, ENCODING);
-                            xmlStreamWriter.writeStartDocument(ENCODING, "1.0");
-                            xmlStreamWriter.writeStartElement(EVENTS_XML_TAG);
+							closeFile(currentFile, xmlStreamWriter, oldLocalDateTime, fileName, fileOutputStream);
+							fileName = dateAsFileName(localDateTime);
+							currentFile = createNewFile(fileName + ".xml");
+							fileOutputStream = ioServices.newFileOutputStream(currentFile, IO_STREAM_NAME_BACKUP_EVENTS_IN_VAULT);
+							xmlStreamWriter = factory.createXMLStreamWriter(fileOutputStream, ENCODING);
+							xmlStreamWriter.writeStartDocument(ENCODING, "1.0");
+							xmlStreamWriter.writeStartElement(EVENTS_XML_TAG);
 
-                        }
-                        xmlStreamWriter.writeStartElement(EVENT_XML_TAG);
+						}
+						xmlStreamWriter.writeStartElement(EVENT_XML_TAG);
 
-                        MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection());
-                        MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
-                        for (Metadata metadata : metadataSchema.getMetadatas()) {
-                            Object value = record.get(metadata);
+						MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection());
+						MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
+						for (Metadata metadata : metadataSchema.getMetadatas()) {
+							Object value = record.get(metadata);
 
-                            boolean write;
-                            if (value != null) {
-                                write = true;
-                                if (value instanceof java.util.Collection) {
-                                    if (CollectionUtils.isNotEmpty((java.util.Collection) value)) {
-                                        write = true;
-                                    } else {
-                                        write = false;
-                                    }
-                                }
+							boolean write;
+							if (value != null) {
+								write = true;
+								if (value instanceof java.util.Collection) {
+									if (CollectionUtils.isNotEmpty((java.util.Collection) value)) {
+										write = true;
+									} else {
+										write = false;
+									}
+								}
 
-                                if (write) {
-                                    xmlStreamWriter.writeAttribute(metadata.getLocalCode(), record.get(metadata).toString());
-                                }
-                            }
-                        }
+								if (write) {
+									xmlStreamWriter.writeAttribute(metadata.getLocalCode(), record.get(metadata).toString());
+								}
+							}
+						}
 
-                        xmlStreamWriter.writeEndElement();
+						xmlStreamWriter.writeEndElement();
 
-                    } catch (Exception e) {
-                        throw new RuntimeException("File not found for Event writing", e);
-                    }
-                }
-            }
-            finally {
-                closeFile(currentFile, xmlStreamWriter, localDateTime, fileName, fileOutputStream);
-            }
+					} catch (Exception e) {
+						throw new RuntimeException("File not found for Event writing", e);
+					}
+				}
+			} finally {
+				closeFile(currentFile, xmlStreamWriter, localDateTime, fileName, fileOutputStream);
+			}
 
 
-        }
+		}
 
 		return eventList;
 	}
@@ -261,8 +258,8 @@ public class EventService implements Runnable {
 		deleteArchivedEvents();
 	}
 
-    public void deleteArchivedEvents() {
-//        RecordDao recordDao = modelayerFactory.getDataLayerFactory().newRecordDao();
+	public void deleteArchivedEvents() {
+		//        RecordDao recordDao = modelayerFactory.getDataLayerFactory().newRecordDao();
 		//
 		//
 		//        TransactionDTO transaction = new TransactionDTO(RecordsFlushing.NOW());

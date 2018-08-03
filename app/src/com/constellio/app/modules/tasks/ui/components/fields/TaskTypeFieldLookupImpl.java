@@ -1,7 +1,5 @@
 package com.constellio.app.modules.tasks.ui.components.fields;
 
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -48,16 +46,19 @@ public class TaskTypeFieldLookupImpl extends LookupRecordField implements TaskTy
 		this(schemaTypeCode, schemaCode, false, unavailablesTaskTypes);
 	}
 
-	public TaskTypeFieldLookupImpl(String schemaTypeCode, String schemaCode, boolean writeAccess, List<String> unavailablesTaskTypes) {
+	public TaskTypeFieldLookupImpl(String schemaTypeCode, String schemaCode, boolean writeAccess,
+								   List<String> unavailablesTaskTypes) {
 		this(schemaTypeCode, schemaCode, writeAccess, true, true, unavailablesTaskTypes);
 	}
 
-	public TaskTypeFieldLookupImpl(String schemaTypeCode, String schemaCode, boolean writeAccess, boolean showDeactivated, boolean isShowAllIfHasAccessToManageSecurity, final List<String> unavailablesTaskTypes) {
+	public TaskTypeFieldLookupImpl(String schemaTypeCode, String schemaCode, boolean writeAccess,
+								   boolean showDeactivated, boolean isShowAllIfHasAccessToManageSecurity,
+								   final List<String> unavailablesTaskTypes) {
 		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess, showDeactivated) {
 				  @Override
 				  public LogicalSearchQuery getQuery(User user, String text, int startIndex, int count) {
 					  LogicalSearchQuery query = super.getQuery(user, text, startIndex, count);
-					  if(unavailablesTaskTypes != null) {
+					  if (unavailablesTaskTypes != null) {
 						  query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isNotIn(unavailablesTaskTypes));
 					  }
 					  return query;
@@ -69,7 +70,8 @@ public class TaskTypeFieldLookupImpl extends LookupRecordField implements TaskTy
 	}
 
 	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,
-																		boolean writeAccess, boolean isShowAllIfHasAccessToManageSecurity,
+																		boolean writeAccess,
+																		boolean isShowAllIfHasAccessToManageSecurity,
 																		List<String> unavailablesTaskTypes) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String collection = sessionContext.getCurrentCollection();
@@ -86,7 +88,7 @@ public class TaskTypeFieldLookupImpl extends LookupRecordField implements TaskTy
 		if (schemaTypeCode != null) {
 			taxonomies = taxonomiesManager
 					.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, currentUser, metadataSchemasManager);
-		} else if(schemaCode != null){
+		} else if (schemaCode != null) {
 			taxonomies = taxonomiesManager.getAvailableTaxonomiesForSchema(schemaCode, currentUser, metadataSchemasManager);
 		}
 		List<RecordLookupTreeDataProvider> dataProviders = new ArrayList<>();
@@ -100,7 +102,8 @@ public class TaskTypeFieldLookupImpl extends LookupRecordField implements TaskTy
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new RecordLookupTreeDataProvider[0]) : null;
 	}
 
-	public static RecordTreeNodesDataProvider getDataProvider(String taxonomyCode, final List<String> unavailablesTaskTypes) {
+	public static RecordTreeNodesDataProvider getDataProvider(String taxonomyCode,
+															  final List<String> unavailablesTaskTypes) {
 		final TaxonomiesSearchFilter filter = new TaxonomiesSearchFilter();
 		filter.setLinkableConceptsFilter(new LinkableConceptFilter() {
 			@Override

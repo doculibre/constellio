@@ -1,14 +1,11 @@
 package com.constellio.app.modules.rm.ui.entities;
 
-import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.CODE;
-import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.DESCRIPTION;
-import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.FILING_SPACES;
-import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.PARENT;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO;
 
 import java.util.List;
 
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
+import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.*;
 
 public class AdministrativeUnitVO extends RecordVO {
 

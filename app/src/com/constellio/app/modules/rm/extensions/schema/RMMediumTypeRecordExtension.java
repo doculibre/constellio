@@ -6,7 +6,6 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.search.SearchServices;
 
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 
@@ -15,24 +14,24 @@ import static com.constellio.model.entities.schemas.Schemas.CODE;
  */
 public class RMMediumTypeRecordExtension extends RecordExtension {
 
-    String collection;
+	String collection;
 
-    ModelLayerFactory modelLayerFactory;
+	ModelLayerFactory modelLayerFactory;
 
-    RMSchemasRecordsServices rm;
+	RMSchemasRecordsServices rm;
 
-    public RMMediumTypeRecordExtension(String collection, ModelLayerFactory modelLayerFactory) {
-        this.modelLayerFactory = modelLayerFactory;
-        this.collection = collection;
-        this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
-    }
+	public RMMediumTypeRecordExtension(String collection, ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
+		this.collection = collection;
+		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+	}
 
-    @Override
-    public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
-        if (MediumType.SCHEMA_TYPE.equals(event.getSchemaTypeCode())
-                && event.getRecord().get(CODE).equals("DM")) {
-            return ExtensionBooleanResult.FALSE;
-        }
-        return super.isLogicallyDeletable(event);
-    }
+	@Override
+	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		if (MediumType.SCHEMA_TYPE.equals(event.getSchemaTypeCode())
+			&& event.getRecord().get(CODE).equals("DM")) {
+			return ExtensionBooleanResult.FALSE;
+		}
+		return super.isLogicallyDeletable(event);
+	}
 }

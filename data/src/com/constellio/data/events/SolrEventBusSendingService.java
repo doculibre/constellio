@@ -1,22 +1,8 @@
 package com.constellio.data.events;
 
-import static java.util.Arrays.asList;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.bind.DatatypeConverter;
-
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_DataIsNotSerializable;
+import com.constellio.data.utils.TimeProvider;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrDocument;
@@ -27,9 +13,11 @@ import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
-import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_DataIsNotSerializable;
-import com.constellio.data.utils.TimeProvider;
+import javax.xml.bind.DatatypeConverter;
+import java.io.*;
+import java.util.*;
+
+import static java.util.Arrays.asList;
 
 public class SolrEventBusSendingService extends EventBusSendingService {
 
@@ -381,10 +369,12 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		}
 	}
 
-	/** Read the object from Base64 string. */
+	/**
+	 * Read the object from Base64 string.
+	 */
 	private static Object deserializeBase64(String s)
 			throws IOException,
-			ClassNotFoundException {
+				   ClassNotFoundException {
 		byte[] data = DatatypeConverter.parseBase64Binary(s);
 		ObjectInputStream ois = new ObjectInputStream(
 				new ByteArrayInputStream(data));
@@ -393,7 +383,9 @@ public class SolrEventBusSendingService extends EventBusSendingService {
 		return o;
 	}
 
-	/** Write the object to a Base64 string. */
+	/**
+	 * Write the object to a Base64 string.
+	 */
 	private static String serializeToBase64(Serializable o)
 			throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

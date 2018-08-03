@@ -1,13 +1,13 @@
 package com.constellio.app.ui.pages.search.criteria;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ConditionAppender {
 	private MetadataSchemaType schemaType;
@@ -43,19 +43,19 @@ public class ConditionAppender {
 			return pending.get(0);
 		}
 		switch (pendingOperator) {
-		case AND:
-			return from(schemaType).whereAllConditions(pending);
-		case OR:
-			return from(schemaType).whereAnyCondition(pending);
-		case AND_NOT:
-			ArrayList<LogicalSearchCondition> result = new ArrayList<>();
-			result.add(pending.remove(0));
-			for (LogicalSearchCondition condition : pending) {
-				result.add(condition.negated());
-			}
-			return from(schemaType).whereAllConditions(result);
-		default:
-			throw new RuntimeException("Unknown operator");
+			case AND:
+				return from(schemaType).whereAllConditions(pending);
+			case OR:
+				return from(schemaType).whereAnyCondition(pending);
+			case AND_NOT:
+				ArrayList<LogicalSearchCondition> result = new ArrayList<>();
+				result.add(pending.remove(0));
+				for (LogicalSearchCondition condition : pending) {
+					result.add(condition.negated());
+				}
+				return from(schemaType).whereAllConditions(result);
+			default:
+				throw new RuntimeException("Unknown operator");
 		}
 	}
 }

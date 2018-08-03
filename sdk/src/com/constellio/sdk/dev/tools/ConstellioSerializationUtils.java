@@ -1,14 +1,13 @@
 package com.constellio.sdk.dev.tools;
 
-import java.io.IOException;
-import java.io.NotSerializableException;
-import java.io.Serializable;
-
+import com.constellio.data.utils.serialization.SerializableChecker;
+import com.constellio.data.utils.serialization.SerializableChecker.ConstellioNotSerializableException;
 import org.apache.commons.lang.SerializationException;
 import org.apache.commons.lang.SerializationUtils;
 
-import com.constellio.data.utils.serialization.SerializableChecker;
-import com.constellio.data.utils.serialization.SerializableChecker.ConstellioNotSerializableException;
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.Serializable;
 
 public class ConstellioSerializationUtils {
 

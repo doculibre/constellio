@@ -1,8 +1,5 @@
 package com.constellio.app.api.cmis.binding.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -11,6 +8,9 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordServices;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CmisContentUtils {
 
@@ -44,8 +44,9 @@ public class CmisContentUtils {
 		return createContentCmisDocument(content, metadataLocalCode, contentVersion, record);
 	}
 
-	private static ContentCmisDocument createContentCmisDocument(Content content, String metadataLocalCode, String contentVersion,
-			Record record) {
+	private static ContentCmisDocument createContentCmisDocument(Content content, String metadataLocalCode,
+																 String contentVersion,
+																 Record record) {
 
 		boolean isPrivateWorkingCopy = false;
 		String returnedContentVersion = contentVersion;
@@ -62,8 +63,9 @@ public class CmisContentUtils {
 
 	}
 
-	public static List<ContentCmisDocument> getAllVersions(String id, RecordServices recordServices, MetadataSchemaTypes types,
-			User user) {
+	public static List<ContentCmisDocument> getAllVersions(String id, RecordServices recordServices,
+														   MetadataSchemaTypes types,
+														   User user) {
 		String[] idParts = id.split("_");
 		String metadataLocalCode = idParts[2];
 		ContentCmisDocument aContentVersion = getContent(id, recordServices, types);

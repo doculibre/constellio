@@ -1,14 +1,5 @@
 package com.constellio.model.services.background;
 
-import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.model.entities.records.RecordUpdateOptions.validationExceptionSafeOptions;
-import static com.constellio.model.entities.records.TransactionRecordsReindexation.ALL;
-
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
@@ -20,6 +11,14 @@ import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.records.RecordUpdateOptions.validationExceptionSafeOptions;
+import static com.constellio.model.entities.records.TransactionRecordsReindexation.ALL;
 
 public class RecordsReindexingBackgroundAction implements Runnable {
 

@@ -10,35 +10,35 @@ import java.util.Collection;
 import java.util.List;
 
 public class PdfStatusMessageProvider extends AbstractDataProvider implements PdfStatusDataProvider<String> {
-    private List<String> messages;
+	private List<String> messages;
 
-    @Override
-    public List<String> listPdfStatus() {
-        return ObjectUtils.defaultIfNull(messages, new ArrayList<String>());
-    }
+	@Override
+	public List<String> listPdfStatus() {
+		return ObjectUtils.defaultIfNull(messages, new ArrayList<String>());
+	}
 
-    @Override
-    public Collection<?> getOwnContainerPropertyIds() {
-        return Arrays.asList("id");
-    }
+	@Override
+	public Collection<?> getOwnContainerPropertyIds() {
+		return Arrays.asList("id");
+	}
 
-    @Override
-    public Class<?> getOwnType(Object propertyId) {
-        return String.class;
-    }
+	@Override
+	public Class<?> getOwnType(Object propertyId) {
+		return String.class;
+	}
 
-    @Override
-    public Object getOwnValue(Object itemId, Object propertyId) {
-        return (String)itemId;
-    }
+	@Override
+	public Object getOwnValue(Object itemId, Object propertyId) {
+		return (String) itemId;
+	}
 
-    public void setMessages(final List<String> messages) {
-        VaadinSession.getCurrent().access(new Runnable() {
-            @Override
-            public void run() {
-                PdfStatusMessageProvider.this.messages = messages;
-                fireDataRefreshEvent();
-            }
-        });
-    }
+	public void setMessages(final List<String> messages) {
+		VaadinSession.getCurrent().access(new Runnable() {
+			@Override
+			public void run() {
+				PdfStatusMessageProvider.this.messages = messages;
+				fireDataRefreshEvent();
+			}
+		});
+	}
 }

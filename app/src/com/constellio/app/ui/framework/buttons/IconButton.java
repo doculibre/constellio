@@ -1,14 +1,13 @@
 package com.constellio.app.ui.framework.buttons;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 
 @SuppressWarnings("serial")
 public abstract class IconButton extends BaseButton {
-	
+
 	public IconButton(Resource iconResource, String caption) {
 		this(iconResource, caption, iconResource != null);
 	}
@@ -33,7 +32,7 @@ public abstract class IconButton extends BaseButton {
 			}
 		}
 	}
-	
+
 	protected boolean isBorderless() {
 		return true;
 	}

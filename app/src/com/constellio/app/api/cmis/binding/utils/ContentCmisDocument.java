@@ -17,7 +17,7 @@ public class ContentCmisDocument {
 	private boolean isPrivateWorkingCopy;
 
 	public ContentCmisDocument(Content content, String version, Record record, String metadataLocalCode,
-			boolean isPrivateWorkingCopy) {
+							   boolean isPrivateWorkingCopy) {
 		this.content = content;
 		this.versionLabel = version;
 		this.record = record;
@@ -42,13 +42,14 @@ public class ContentCmisDocument {
 
 	}
 
-	public static ContentCmisDocument createForCurrentVersion(Content content, Record record, String metadataLocalCode) {
+	public static ContentCmisDocument createForCurrentVersion(Content content, Record record,
+															  String metadataLocalCode) {
 		String version = content.getCurrentVersion().getVersion();
 		return new ContentCmisDocument(content, version, record, metadataLocalCode, false);
 	}
 
 	public static ContentCmisDocument createForVersionSeenBy(Content content, Record record, String metadataLocalCode,
-			User user) {
+															 User user) {
 
 		if (user.getId().equals(content.getCheckoutUserId())) {
 			return new ContentCmisDocument(content, content.getCurrentCheckedOutVersion().getVersion(), record, metadataLocalCode,

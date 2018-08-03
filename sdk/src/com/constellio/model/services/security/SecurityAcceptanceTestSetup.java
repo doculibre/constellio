@@ -1,9 +1,5 @@
 package com.constellio.model.services.security;
 
-import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataFacultative;
-
-import java.util.*;
-
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -20,16 +16,19 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
 
+import java.util.*;
+
+import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataFacultative;
+
 /**
  * This schema setup can be used to test multiple taxonomy behaviors :
- *
+ * <p>
  * Taxonomy 1 : - composed of two types, folders can only be added in the second type, - the second type can be child of the first
  * type or second type, but not both (a validation should be done)
- *
+ * <p>
  * Taxonomy 2 : - composed of one type, but folders can only be added in the custom type
- *
+ * <p>
  * Folders : - can contains other folders and documents
- *
  */
 public class SecurityAcceptanceTestSetup extends SchemasSetup {
 
@@ -128,7 +127,8 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 	}
 
 	private void setupFolderType(MetadataSchemaTypeBuilder folderType, MetadataSchemaTypeBuilder category,
-			MetadataSchemaTypeBuilder administrativeUnit, MetadataSchemaTypeBuilder folderTypeType) {
+								 MetadataSchemaTypeBuilder administrativeUnit,
+								 MetadataSchemaTypeBuilder folderTypeType) {
 		folderType.getDefaultSchema().create("parent").defineChildOfRelationshipToType(folderType);
 		folderType.getDefaultSchema().create("taxonomy1").defineTaxonomyRelationshipToType(category);
 		folderType.getDefaultSchema().create("taxonomy2")
@@ -896,7 +896,8 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			return record;
 		}
 
-		private Record addCategoryRecord(Transaction transaction, String id, Record documentFondParent, Record categoryParent) {
+		private Record addCategoryRecord(Transaction transaction, String id, Record documentFondParent,
+										 Record categoryParent) {
 			Record record = new TestRecord(category, id);
 			record.set(category.title(), id);
 			record.set(category.parentOfDocumentFond(), documentFondParent);
@@ -921,7 +922,8 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 			return record;
 		}
 
-		private Record addFolderRecord(Transaction transaction, String id, Record parent, Record category, Record station) {
+		private Record addFolderRecord(Transaction transaction, String id, Record parent, Record category,
+									   Record station) {
 			Record record = new TestRecord(folderSchema, id);
 			record.set(folderSchema.title(), id);
 			record.set(folderSchema.parent(), parent);

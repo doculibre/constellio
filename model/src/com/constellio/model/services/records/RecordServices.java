@@ -1,7 +1,5 @@
 package com.constellio.model.services.records;
 
-import java.util.List;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
@@ -18,6 +16,8 @@ import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+
+import java.util.List;
 
 public interface RecordServices {
 
@@ -122,8 +122,10 @@ public interface RecordServices {
 			throws RecordServicesException;
 
 	ModificationImpactCalculatorResponse calculateImpactOfModification(Transaction transaction,
-			TaxonomiesManager taxonomiesManager,
-			SearchServices searchServices, MetadataSchemaTypes metadataSchemaTypes, boolean executedAfterTransaction);
+																	   TaxonomiesManager taxonomiesManager,
+																	   SearchServices searchServices,
+																	   MetadataSchemaTypes metadataSchemaTypes,
+																	   boolean executedAfterTransaction);
 
 	RecordsCaches getRecordsCaches();
 

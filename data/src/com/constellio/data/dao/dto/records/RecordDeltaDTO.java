@@ -28,7 +28,7 @@ public class RecordDeltaDTO implements RecordsOperationDTO {
 
 	//TODO Remove initialFields param, replacing it with recordDTO
 	public RecordDeltaDTO(RecordDTO recordDTO, Map<String, Object> modifiedFields, Map<String, Object> initialFields,
-			Map<String, Object> copyfields) {
+						  Map<String, Object> copyfields) {
 		super();
 		this.initialFields = initialFields;
 		this.copyfields = copyfields;
@@ -37,7 +37,8 @@ public class RecordDeltaDTO implements RecordsOperationDTO {
 		this.modifiedFields = Collections.unmodifiableMap(modifiedFields);
 	}
 
-	public RecordDeltaDTO(String id, long fromVersion, Map<String, Object> modifiedFields, Map<String, Object> initialFields) {
+	public RecordDeltaDTO(String id, long fromVersion, Map<String, Object> modifiedFields,
+						  Map<String, Object> initialFields) {
 		this(id, fromVersion, modifiedFields, initialFields, new HashMap<String, Object>());
 	}
 
@@ -49,8 +50,9 @@ public class RecordDeltaDTO implements RecordsOperationDTO {
 		this(id, 0, modifiedFields, null, new HashMap<String, Object>());
 	}
 
-	public RecordDeltaDTO(String id, long fromVersion, Map<String, Object> modifiedFields, Map<String, Object> initialFields,
-			Map<String, Object> copyfields) {
+	public RecordDeltaDTO(String id, long fromVersion, Map<String, Object> modifiedFields,
+						  Map<String, Object> initialFields,
+						  Map<String, Object> copyfields) {
 		super();
 		this.id = id;
 		this.copyfields = copyfields;

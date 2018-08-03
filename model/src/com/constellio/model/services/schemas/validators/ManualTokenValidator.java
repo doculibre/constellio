@@ -1,21 +1,21 @@
 package com.constellio.model.services.schemas.validators;
 
-import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
+
 public class ManualTokenValidator implements RecordMetadataValidator<List<String>> {
 
 	@Override
 	public void validate(Metadata metadata, List<String> tokens, ConfigProvider configProvider,
-			ValidationErrors validationErrors) {
+						 ValidationErrors validationErrors) {
 
 		if (tokens != null) {
 			for (String token : tokens) {

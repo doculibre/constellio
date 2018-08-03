@@ -11,30 +11,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FacetsCSVProducer extends AbstractCSVProducer {
-    private FacetsDataProvider dataProvider;
-    private List<String> properties;
+	private FacetsDataProvider dataProvider;
+	private List<String> properties;
 
-    public FacetsCSVProducer(Table table, Long maxRow, FacetsDataProvider dataProvider, List<String> properties) {
-        super(table, maxRow);
+	public FacetsCSVProducer(Table table, Long maxRow, FacetsDataProvider dataProvider, List<String> properties) {
+		super(table, maxRow);
 
-        this.dataProvider = dataProvider;
-        this.properties = properties;
-    }
+		this.dataProvider = dataProvider;
+		this.properties = properties;
+	}
 
-    @Override
-    protected long getRowCount() {
-        return dataProvider.size();
-    }
+	@Override
+	protected long getRowCount() {
+		return dataProvider.size();
+	}
 
-    @Override
-    protected List<Item> loadItems(int startIndex, int numberOfItems) {
-        List<Item> items = new ArrayList<>();
+	@Override
+	protected List<Item> loadItems(int startIndex, int numberOfItems) {
+		List<Item> items = new ArrayList<>();
 
-        List<Facets> facetsList = dataProvider.facetsList(startIndex, numberOfItems);
-        for (Facets facets: facetsList) {
-            items.add(new FacetsItem(facets, properties));
-        }
+		List<Facets> facetsList = dataProvider.facetsList(startIndex, numberOfItems);
+		for (Facets facets : facetsList) {
+			items.add(new FacetsItem(facets, properties));
+		}
 
-        return items;
-    }
+		return items;
+	}
 }

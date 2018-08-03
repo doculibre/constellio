@@ -1,41 +1,28 @@
 package com.constellio.model.extensions;
 
-import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
-import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
-import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.behaviors.RecordExtension.IsRecordModifiableByParams;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.behaviors.SchemaExtension;
-import com.constellio.model.extensions.events.records.RecordCreationEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
-import com.constellio.model.extensions.events.records.RecordModificationEvent;
-import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
-import com.constellio.model.extensions.events.records.RecordRestorationEvent;
-import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
-import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.*;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
 import com.constellio.model.extensions.events.schemas.SchemaEvent;
+import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
+import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -85,7 +72,8 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
-	public void callTransactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event, RecordUpdateOptions options) {
+	public void callTransactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event,
+												   RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
 			try {
 				extension.transactionExecutionBeforeSave(event);
@@ -93,7 +81,7 @@ public class ModelLayerCollectionExtensions {
 			} catch (RuntimeException e) {
 				if (options.isCatchExtensionsExceptions()) {
 					LOGGER.warn("Exception while calling extension of class '" + extension.getClass().getName()
-							+ "' on transaction ", e);
+								+ "' on transaction ", e);
 				} else {
 					throw e;
 				}
@@ -112,7 +100,8 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
-	public void callRecordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event, RecordUpdateOptions options) {
+	public void callRecordInModificationBeforeSave(RecordInModificationBeforeSaveEvent event,
+												   RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
 			try {
 				extension.recordInModificationBeforeSave(event);
@@ -137,7 +126,7 @@ public class ModelLayerCollectionExtensions {
 	}
 
 	public static void handleException(RuntimeException e, String recordId, String extensionClassname,
-			RecordUpdateOptions options) {
+									   RecordUpdateOptions options) {
 		//if (e instanceof ValidationRuntimeException) {
 		//	if (options.isCatchExtensionsValidationsErrors()) {
 		//		LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "' on record " + recordId, e);
@@ -295,19 +284,19 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
-    public Collection<? extends String> getAllowedSystemReservedMetadatasForExcelReport(String schemaTypeCode) {
+	public Collection<? extends String> getAllowedSystemReservedMetadatasForExcelReport(String schemaTypeCode) {
 		Set<String> allowedMetadatas = new HashSet<>();
 		for (SchemaExtension extension : schemaExtensions) {
 			allowedMetadatas.addAll(extension.getAllowedSystemReservedMetadatasForExcelReport(schemaTypeCode));
 		}
 
 		return new ArrayList<>(allowedMetadatas);
-    }
+	}
 
 	public Object populateSearchField(final SearchFieldPopulatorParams params) {
 		for (SchemaExtension extension : schemaExtensions) {
 			Object populateResult = extension.populateSearchField(params);
-			if(!ExtensionBooleanResult.NOT_APPLICABLE.equals(populateResult)) {
+			if (!ExtensionBooleanResult.NOT_APPLICABLE.equals(populateResult)) {
 				params.setValue(populateResult);
 			}
 		}
@@ -315,9 +304,10 @@ public class ModelLayerCollectionExtensions {
 	}
 
 
-	public java.util.Map<String, Object> batchProcessingSpecialCaseExtensions(BatchProcessingSpecialCaseParams batchProcessingSpecialCaseParams) {
+	public java.util.Map<String, Object> batchProcessingSpecialCaseExtensions(
+			BatchProcessingSpecialCaseParams batchProcessingSpecialCaseParams) {
 		java.util.Map<String, Object> metadataChangeOnRecord = new HashMap<>();
-		for(BatchProcessingSpecialCaseExtension batchProcessingSpecialCaseExtension : batchProcessingSpecialCaseExtensions) {
+		for (BatchProcessingSpecialCaseExtension batchProcessingSpecialCaseExtension : batchProcessingSpecialCaseExtensions) {
 			metadataChangeOnRecord.putAll(batchProcessingSpecialCaseExtension.processSpecialCase(batchProcessingSpecialCaseParams));
 		}
 

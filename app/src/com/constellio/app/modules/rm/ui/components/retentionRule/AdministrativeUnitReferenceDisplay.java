@@ -9,8 +9,6 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 
-import java.util.Locale;
-
 public class AdministrativeUnitReferenceDisplay extends ReferenceDisplay {
 
 	private static final String SEPARATOR = " > ";

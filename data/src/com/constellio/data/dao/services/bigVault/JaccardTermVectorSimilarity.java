@@ -48,8 +48,9 @@ public class JaccardTermVectorSimilarity {
 
 	private Double safeGetVal(Map<String, Map<String, Double>> doc, String term, String tag) {
 		Map<String, Double> map = doc.get(term);
-		if (map == null)
+		if (map == null) {
 			return 0.0;
+		}
 
 		return map.get(tag);
 	}

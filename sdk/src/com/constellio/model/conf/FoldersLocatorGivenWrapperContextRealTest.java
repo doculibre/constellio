@@ -1,27 +1,23 @@
 package com.constellio.model.conf;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
+import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
+import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Condition;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
+import org.junit.runners.Parameterized;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.apache.commons.io.FileUtils;
-import org.assertj.core.api.Condition;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
-import org.junit.runners.Parameterized;
-
-import com.carrotsearch.junitbenchmarks.BenchmarkRule;
-import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 @RunWith(Parameterized.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -42,8 +38,8 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 
 	@Parameterized.Parameters(name = "{0}")
 	public static Collection<Object[]> testCases() {
-		return Arrays.asList(new Object[][] {
-				{ givenJavaRootFolderIsWebappFolder }
+		return Arrays.asList(new Object[][]{
+				{givenJavaRootFolderIsWebappFolder}
 		});
 	}
 
@@ -114,7 +110,8 @@ public class FoldersLocatorGivenWrapperContextRealTest extends ConstellioTestWit
 
 	}
 
-	private FoldersLocator newFoldersLocator(File customTempFolder, File customImportationFolder, File customSettingsFolder) {
+	private FoldersLocator newFoldersLocator(File customTempFolder, File customImportationFolder,
+											 File customSettingsFolder) {
 		FoldersLocator locator = spy(new FoldersLocator());
 		if (testCase == givenJavaRootFolderIsWebappFolder) {
 			doReturn(webapp).when(locator).getJavaRootFolder();

@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -26,9 +20,6 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
-
-import static com.constellio.model.frameworks.validation.Validator.METADATA_CODE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMFolderExtensionAcceptanceTest extends ConstellioTest {

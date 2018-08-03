@@ -1,15 +1,11 @@
 package com.constellio.app.modules.rm.ui.components;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.ui.components.retentionRule.AdministrativeUnitReferenceDisplay;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleReferenceDisplay;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -17,6 +13,9 @@ import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RMMetadataDisplayFactory extends MetadataDisplayFactory {
 
@@ -27,10 +26,9 @@ public class RMMetadataDisplayFactory extends MetadataDisplayFactory {
 		if (metadataVO.codeMatches(Folder.KEYWORDS) || metadataVO.codeMatches(Document.KEYWORDS)) {
 			StringBuilder sb = new StringBuilder();
 			List<String> keywords = new ArrayList<>();
-			if(metadataValue.getValue() != null && metadataValue.getValue() instanceof String) {
+			if (metadataValue.getValue() != null && metadataValue.getValue() instanceof String) {
 				keywords.add(metadataValue.getValue().toString());
-			}
-			else {
+			} else {
 				keywords = metadataValue.getValue();
 			}
 			if (keywords != null) {

@@ -1,12 +1,5 @@
 package com.constellio.app.utils.scripts;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.utils.ScriptsUtils;
@@ -22,6 +15,13 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class QueryPerformanceTester {
 
@@ -40,8 +40,9 @@ public class QueryPerformanceTester {
 
 	}
 
-	public static void runTest(AppLayerFactory appLayerFactory, final String collection, String username, int nbOfThreads,
-			int nbOfExecute)
+	public static void runTest(AppLayerFactory appLayerFactory, final String collection, String username,
+							   int nbOfThreads,
+							   int nbOfExecute)
 			throws Exception {
 		final ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();

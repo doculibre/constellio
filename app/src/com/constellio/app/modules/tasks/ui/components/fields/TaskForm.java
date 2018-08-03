@@ -1,14 +1,14 @@
 package com.constellio.app.modules.tasks.ui.components.fields;
 
-import java.io.Serializable;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.vaadin.ui.Field;
 
+import java.io.Serializable;
+
 /**
  * Implemented:
- *
+ * <p>
  * Task.PROGRESS_PERCENTAGE
  *
  * @author Vincent

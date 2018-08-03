@@ -5,7 +5,8 @@ import com.constellio.model.extensions.params.CanAuthenticateUsingPasswordFileIf
 
 public class UserAuthenticationExtension {
 
-	public ExtensionBooleanResult canAuthenticateUsingPasswordFileIfLDAPFailed(CanAuthenticateUsingPasswordFileIfLDAPFailedParams params) {
+	public ExtensionBooleanResult canAuthenticateUsingPasswordFileIfLDAPFailed(
+			CanAuthenticateUsingPasswordFileIfLDAPFailedParams params) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 

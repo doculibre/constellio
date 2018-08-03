@@ -1,16 +1,16 @@
 package com.constellio.app.modules.es.connectors.utils;
 
-import java.io.InputStream;
-
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
+
+import java.io.InputStream;
 
 public class ConnectorJobUtils {
 	private ConnectorJobUtils() {
 	}
 
-	public static String getParsedContent(FileParser fileParser, InputStream inputStream, String contentId){
+	public static String getParsedContent(FileParser fileParser, InputStream inputStream, String contentId) {
 		try {
 			ParsedContent parsedContent = fileParser.parse(inputStream, false);
 			if (parsedContent.getParsedContent().isEmpty()) {

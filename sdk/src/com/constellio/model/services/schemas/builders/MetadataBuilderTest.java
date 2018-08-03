@@ -1,14 +1,5 @@
 package com.constellio.model.services.schemas.builders;
 
-import static java.util.Arrays.asList;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
-import org.mockito.Mock;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
@@ -21,6 +12,14 @@ import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+import org.mockito.Mock;
+
+import static java.util.Arrays.asList;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MetadataBuilderTest extends ConstellioTest {

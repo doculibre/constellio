@@ -1,30 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -51,6 +26,19 @@ import com.constellio.sdk.tests.schemas.DaysBetweenMultivalueLocalDateAndAnother
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.*;
+
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTest {
 
@@ -229,7 +217,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		verify(calculator).calculate(any(CalculatorParameters.class));
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	public void givenTwoLocalAndOneReferenceDependenciesWhenGetValuesFromDependenciesThenAllValueRetrieved() {
 		doReturn(true).when(services)
@@ -252,7 +240,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 						any(Locale.class), any(LocalisedRecordMetadataRetrieval.class));
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	public void givenLocalDependencyRequiredButNullWhenGettingValueThenReturnTrueAndDontAddValue() {
 		Map aMap = mock(Map.class);
@@ -266,7 +254,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		verify(aMap, never()).put(any(Dependency.class), anyObject());
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	public void givenLocalDependencyRequiredAndNotNullWhenGettingValueThenReturnTrueAndAddValue() {
 		Map aMap = mock(Map.class);
@@ -281,7 +269,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		verify(aMap).put(aLocalDependency, "aValue");
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	public void givenReferenceDependencyRequiredButNullWhenGettingValueThenReturnTrueAndDontAddValue() {
 		Map aMap = mock(Map.class);
@@ -300,7 +288,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		verify(aMap, never()).put(any(Dependency.class), anyObject());
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	public void givenReferenceDependencyRequiredAndNotNullWhenGettingValueThenReturnTrueAndAddValue() {
 		Map aMap = mock(Map.class);
@@ -319,7 +307,7 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		verify(aMap).put(aReferenceDependency, "aValue");
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void configureCalculatorDependencies() {
 		dependencies = new ArrayList();
 		dependencies.add(aLocalDependency);

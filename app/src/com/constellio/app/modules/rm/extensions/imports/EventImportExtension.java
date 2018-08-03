@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -13,6 +9,9 @@ import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Map;
 
 public class EventImportExtension extends RecordImportExtension {
 
@@ -46,13 +45,13 @@ public class EventImportExtension extends RecordImportExtension {
 			if (event.getType().toLowerCase().contains(Folder.SCHEMA_TYPE.toLowerCase())) {
 
 				Folder folder;
-				if(params.getImportDataOptions().isImportAsLegacyId()) {
+				if (params.getImportDataOptions().isImportAsLegacyId()) {
 					folder = rm.getFolderWithLegacyId(event.getRecordId());
 				} else {
 					folder = rm.getFolder(event.getRecordId());
 				}
 
-				if(folder != null) {
+				if (folder != null) {
 					event.setRecordId(folder.getId());
 					event.setTitle(folder.getTitle());
 				}
@@ -61,13 +60,12 @@ public class EventImportExtension extends RecordImportExtension {
 			if (event.getType().toLowerCase().contains(Document.SCHEMA_TYPE.toLowerCase())) {
 				Document document;
 
-				if(params.getImportDataOptions().isImportAsLegacyId()) {
+				if (params.getImportDataOptions().isImportAsLegacyId()) {
 					document = rm.getDocumentByLegacyId(event.getRecordId());
-				}
-				else {
+				} else {
 					document = rm.getDocument(event.getRecordId());
 				}
-				if(document != null) {
+				if (document != null) {
 					event.setRecordId(document.getId());
 					event.setTitle(document.getTitle());
 				}
@@ -76,12 +74,12 @@ public class EventImportExtension extends RecordImportExtension {
 			if (event.getType().toLowerCase().contains(ContainerRecord.SCHEMA_TYPE.toLowerCase())) {
 				ContainerRecord containerRecord;
 
-				if(params.getImportDataOptions().isImportAsLegacyId()) {
+				if (params.getImportDataOptions().isImportAsLegacyId()) {
 					containerRecord = rm.getContainerRecordWithLegacyId(event.getRecordId());
 				} else {
 					containerRecord = rm.getContainerRecord(event.getRecordId());
 				}
-				if(containerRecord != null) {
+				if (containerRecord != null) {
 					event.setRecordId(containerRecord.getId());
 					event.setTitle(containerRecord.getTitle());
 				}

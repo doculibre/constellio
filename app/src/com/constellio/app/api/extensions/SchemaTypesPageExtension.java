@@ -1,11 +1,11 @@
 package com.constellio.app.api.extensions;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SchemaTypesPageExtension {
 
@@ -27,7 +27,8 @@ public class SchemaTypesPageExtension {
 	 * @param param
 	 * @return
 	 */
-	public ExtensionBooleanResult isBuiltInMetadataAttributeModifiable(IsBuiltInMetadataAttributeModifiableParam param) {
+	public ExtensionBooleanResult isBuiltInMetadataAttributeModifiable(
+			IsBuiltInMetadataAttributeModifiableParam param) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 }

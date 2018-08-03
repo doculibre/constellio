@@ -1,7 +1,5 @@
 package com.constellio.app.modules.tasks.ui.components.fields;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.model.entities.records.wrappers.User;
@@ -16,14 +14,16 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.VerticalLayout;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implements TaskFollowerField {
-	
+
 	private TaskFollowerVO taskFollowerVO;
-	
+
 	private BeanItem<TaskFollowerVO> taskFollowerItem;
-	
+
 	private FieldGroup fieldGroup;
-	
+
 	@PropertyId("dirty")
 	private CheckBox dirtyField;
 	@PropertyId("followerId")
@@ -46,12 +46,12 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 		}
 		taskFollowerItem = new BeanItem<>(taskFollowerVO);
 		fieldGroup = new FieldGroup(taskFollowerItem);
-		
+
 		setPropertyDataSource(new AbstractProperty<TaskFollowerVO>() {
 			@Override
 			public TaskFollowerVO getValue() {
-				boolean submittedValueValid = taskFollowerVO.getFollowerId() != null; 
-				return  submittedValueValid ? taskFollowerVO : null;
+				boolean submittedValueValid = taskFollowerVO.getFollowerId() != null;
+				return submittedValueValid ? taskFollowerVO : null;
 			}
 
 			@Override
@@ -70,7 +70,7 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 				return TaskFollowerVO.class;
 			}
 		});
-		
+
 		VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setWidth("99%");
 		mainLayout.setHeightUndefined();
@@ -82,19 +82,19 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 
 		followerIdField = new LookupRecordField(User.SCHEMA_TYPE);
 		followerIdField.setCaption($("TaskFollowerField.followerId"));
-		
+
 		followTaskStatusModifiedField = new CheckBox();
 		followTaskStatusModifiedField.setCaption($("TaskFollowerField.followTaskStatusModified"));
-		
+
 		followTaskAssigneeModifiedField = new CheckBox();
 		followTaskAssigneeModifiedField.setCaption($("TaskFollowerField.followTaskAssigneeModified"));
-		
+
 		followSubTasksModifiedField = new CheckBox();
 		followSubTasksModifiedField.setCaption($("TaskFollowerField.followSubTasksModified"));
-		
+
 		followTaskCompletedField = new CheckBox();
 		followTaskCompletedField.setCaption($("TaskFollowerField.followTaskCompleted"));
-		
+
 		followTaskDeletedField = new CheckBox();
 		followTaskDeletedField.setCaption($("TaskFollowerField.followTaskDeleted"));
 
@@ -105,7 +105,7 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 		mainLayout.addComponent(followSubTasksModifiedField);
 		mainLayout.addComponent(followTaskCompletedField);
 		mainLayout.addComponent(followTaskDeletedField);
-		
+
 		fieldGroup.bindMemberFields(this);
 
 		return mainLayout;
@@ -115,7 +115,7 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 	public Class<? extends TaskFollowerVO> getType() {
 		return TaskFollowerVO.class;
 	}
-	
+
 	private boolean isInvalidFieldValue() {
 		boolean invalidFieldValue;
 		String followerIdValue = followerIdField.getValue();
@@ -124,19 +124,19 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 		Boolean followSubTasksModifiedValue = followSubTasksModifiedField.getValue();
 		Boolean followTaskCompletedValue = followTaskCompletedField.getValue();
 		Boolean followTaskDeletedValue = followTaskDeletedField.getValue();
-		if (followerIdValue == null && 
-				(Boolean.TRUE.equals(followTaskStatusModifiedValue) || 
-						Boolean.TRUE.equals(followTaskAssigneeModifiedValue) || 
-						Boolean.TRUE.equals(followSubTasksModifiedValue) ||  
-						Boolean.TRUE.equals(followTaskCompletedValue) ||  
-						Boolean.TRUE.equals(followTaskDeletedValue))) {
+		if (followerIdValue == null &&
+			(Boolean.TRUE.equals(followTaskStatusModifiedValue) ||
+			 Boolean.TRUE.equals(followTaskAssigneeModifiedValue) ||
+			 Boolean.TRUE.equals(followSubTasksModifiedValue) ||
+			 Boolean.TRUE.equals(followTaskCompletedValue) ||
+			 Boolean.TRUE.equals(followTaskDeletedValue))) {
 			invalidFieldValue = true;
-		} else if (followerIdValue != null && 
-				Boolean.FALSE.equals(followTaskStatusModifiedValue) && 
-				Boolean.FALSE.equals(followTaskAssigneeModifiedValue) && 
-				Boolean.FALSE.equals(followSubTasksModifiedValue) && 
-				Boolean.FALSE.equals(followTaskCompletedValue) && 
-				Boolean.FALSE.equals(followTaskDeletedValue)) {
+		} else if (followerIdValue != null &&
+				   Boolean.FALSE.equals(followTaskStatusModifiedValue) &&
+				   Boolean.FALSE.equals(followTaskAssigneeModifiedValue) &&
+				   Boolean.FALSE.equals(followSubTasksModifiedValue) &&
+				   Boolean.FALSE.equals(followTaskCompletedValue) &&
+				   Boolean.FALSE.equals(followTaskDeletedValue)) {
 			invalidFieldValue = true;
 		} else {
 			invalidFieldValue = false;
@@ -154,7 +154,7 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 				throw new InvalidValueException(e.getMessage());
 			}
 			super.commit();
-		} 
+		}
 	}
-	
+
 }

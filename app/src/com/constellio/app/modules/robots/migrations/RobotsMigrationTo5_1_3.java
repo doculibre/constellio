@@ -17,13 +17,15 @@ public class RobotsMigrationTo5_1_3 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemasAlterationsFor5_1_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
 	static class SchemasAlterationsFor5_1_3 extends MetadataSchemasAlterationHelper {
-		protected SchemasAlterationsFor5_1_3(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemasAlterationsFor5_1_3(String collection, MigrationResourcesProvider provider,
+											 AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 

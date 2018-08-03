@@ -21,81 +21,81 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class UrlServiceTest {
 
-    @Mock private SignatureService signatureService;
-    @Mock private ValidationService validationService;
-    @Mock private UrlDao urlDao;
-    @Mock private SystemConfigurationsManager systemConfigurationsManager;
+	@Mock private SignatureService signatureService;
+	@Mock private ValidationService validationService;
+	@Mock private UrlDao urlDao;
+	@Mock private SystemConfigurationsManager systemConfigurationsManager;
 
-    @InjectMocks private UrlService urlService;
+	@InjectMocks private UrlService urlService;
 
-    private String host = "localhost";
-    private String token = "token";
-    private String serviceKey = "serviceKey";
-    private SchemaTypes schemaType = SchemaTypes.DOCUMENT;
-    private String method = HttpMethod.GET;
-    private String id = "id";
-    private String folderId = "folderId";
-    private String expiration = "3600";
-    private String version;
-    private String physical;
+	private String host = "localhost";
+	private String token = "token";
+	private String serviceKey = "serviceKey";
+	private SchemaTypes schemaType = SchemaTypes.DOCUMENT;
+	private String method = HttpMethod.GET;
+	private String id = "id";
+	private String folderId = "folderId";
+	private String expiration = "3600";
+	private String version;
+	private String physical;
 
-    private String expectedSignedUrl = "http://localhost/constellio/rest/v1/documents?" +
-            "id=id&serviceKey=serviceKey&method=GET&date=&expiration=3600&signature=123456";
-    private String signedUrl;
+	private String expectedSignedUrl = "http://localhost/constellio/rest/v1/documents?" +
+									   "id=id&serviceKey=serviceKey&method=GET&date=&expiration=3600&signature=123456";
+	private String signedUrl;
 
-    @Before
-    public void setUp() throws Exception {
-        initMocks(this);
+	@Before
+	public void setUp() throws Exception {
+		initMocks(this);
 
-        when(signatureService.sign(anyString(), anyString())).thenReturn("123456");
+		when(signatureService.sign(anyString(), anyString())).thenReturn("123456");
 
-        when(urlDao.getServerPath()).thenReturn("http://localhost/constellio/");
-    }
+		when(urlDao.getServerPath()).thenReturn("http://localhost/constellio/");
+	}
 
-    @Test
-    public void testGetSignedUrl() throws Exception {
-        signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration, version, physical);
-        adjustExpectedSignedUrl();
+	@Test
+	public void testGetSignedUrl() throws Exception {
+		signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration, version, physical);
+		adjustExpectedSignedUrl();
 
-        assertThat(signedUrl).isEqualTo(expectedSignedUrl);
-    }
+		assertThat(signedUrl).isEqualTo(expectedSignedUrl);
+	}
 
-    @Test
-    public void testGetSignedUrlWithSwappedParameters() throws Exception {
-        signedUrl = urlService.getSignedUrl(host, token, method, schemaType, serviceKey, id, folderId, expiration, version, physical);
-        adjustExpectedSignedUrl();
+	@Test
+	public void testGetSignedUrlWithSwappedParameters() throws Exception {
+		signedUrl = urlService.getSignedUrl(host, token, method, schemaType, serviceKey, id, folderId, expiration, version, physical);
+		adjustExpectedSignedUrl();
 
-        assertThat(signedUrl).isNotEqualTo(expectedSignedUrl);
-    }
+		assertThat(signedUrl).isNotEqualTo(expectedSignedUrl);
+	}
 
-    @Test
-    public void testGetSignedUrlWithContentPath() throws Exception {
-        version = "1.0";
-        expectedSignedUrl = expectedSignedUrl
-                .replace("/documents", "/documents/content")
-                .replace("&expiration=3600", "&expiration=3600&version=1.0");
+	@Test
+	public void testGetSignedUrlWithContentPath() throws Exception {
+		version = "1.0";
+		expectedSignedUrl = expectedSignedUrl
+				.replace("/documents", "/documents/content")
+				.replace("&expiration=3600", "&expiration=3600&version=1.0");
 
-        signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration, version, physical);
-        adjustExpectedSignedUrl();
+		signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration, version, physical);
+		adjustExpectedSignedUrl();
 
-        assertThat(signedUrl).isEqualTo(expectedSignedUrl);
-    }
+		assertThat(signedUrl).isEqualTo(expectedSignedUrl);
+	}
 
-    @Test
-    public void testGetSignedUrlWithPhysical() throws Exception {
-        physical = "false";
-        expectedSignedUrl = expectedSignedUrl
-                .replace("&expiration=3600", "&expiration=3600&physical=false");
+	@Test
+	public void testGetSignedUrlWithPhysical() throws Exception {
+		physical = "false";
+		expectedSignedUrl = expectedSignedUrl
+				.replace("&expiration=3600", "&expiration=3600&physical=false");
 
-        signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration, version, physical);
-        adjustExpectedSignedUrl();
+		signedUrl = urlService.getSignedUrl(host, token, serviceKey, schemaType, method, id, folderId, expiration, version, physical);
+		adjustExpectedSignedUrl();
 
-        assertThat(signedUrl).isEqualTo(expectedSignedUrl);
-    }
+		assertThat(signedUrl).isEqualTo(expectedSignedUrl);
+	}
 
-    private void adjustExpectedSignedUrl() {
-        String now = DateUtils.formatIsoNoMillis(TimeProvider.getLocalDateTime());
-        expectedSignedUrl = expectedSignedUrl.replace("date=", "date=".concat(now));
-    }
+	private void adjustExpectedSignedUrl() {
+		String now = DateUtils.formatIsoNoMillis(TimeProvider.getLocalDateTime());
+		expectedSignedUrl = expectedSignedUrl.replace("date=", "date=".concat(now));
+	}
 
 }

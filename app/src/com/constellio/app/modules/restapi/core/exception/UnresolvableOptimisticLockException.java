@@ -7,14 +7,14 @@ import java.util.Map;
 
 public class UnresolvableOptimisticLockException extends BaseRestApiException {
 
-    private static final String CODE = "unresolvableOptimisticLock";
+	private static final String CODE = "unresolvableOptimisticLock";
 
-    public UnresolvableOptimisticLockException(String id) {
-        status = Response.Status.CONFLICT;
+	public UnresolvableOptimisticLockException(String id) {
+		status = Response.Status.CONFLICT;
 
-        Map<String, Object> parameters = Maps.newHashMap();
-        parameters.put("id", id);
-        buildValidationError(CODE, parameters);
-    }
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("id", id);
+		buildValidationError(CODE, parameters);
+	}
 
 }

@@ -1,43 +1,5 @@
 package com.constellio.model.entities.security;
 
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedAdminDelete;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedAdminRead;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedAdminWrite;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedAliceDelete;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedAliceRead;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedAliceWrite;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedBobDelete;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedBobRead;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedBobWrite;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedCharlesDelete;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedCharlesRead;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedCharlesWrite;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedChuckDelete;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedChuckRead;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedChuckWrite;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedDakotaDelete;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedDakotaRead;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedDakotaWrite;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedEdouardDelete;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedEdouardRead;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedEdouardWrite;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedGandalfDelete;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedGandalfRead;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedGandalfWrite;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedRobinDelete;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedRobinRead;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedRobinWrite;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedSasquatchDelete;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedSasquatchRead;
-import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.getExpectedSasquatchWrite;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
@@ -49,6 +11,14 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.model.entities.security.SolrAuthorizationDetailsAcceptanceTestResources.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SolrAuthorizationDetailsAcceptanceTest extends ConstellioTest {
 

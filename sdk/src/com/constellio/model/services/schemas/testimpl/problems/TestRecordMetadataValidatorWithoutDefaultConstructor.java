@@ -11,7 +11,8 @@ public class TestRecordMetadataValidatorWithoutDefaultConstructor implements Rec
 	}
 
 	@Override
-	public void validate(Metadata metadata, String value, ConfigProvider configProvider, ValidationErrors validationErrors) {
+	public void validate(Metadata metadata, String value, ConfigProvider configProvider,
+						 ValidationErrors validationErrors) {
 		throw new UnsupportedOperationException("TODO");
 	}
 

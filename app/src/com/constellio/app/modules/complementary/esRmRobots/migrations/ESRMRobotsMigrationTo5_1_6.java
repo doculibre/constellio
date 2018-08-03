@@ -17,7 +17,8 @@ public class ESRMRobotsMigrationTo5_1_6 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		new SchemaAlterationFor5_1_6(collection, migrationResourcesProvider, appLayerFactory).migrate();
@@ -26,7 +27,7 @@ public class ESRMRobotsMigrationTo5_1_6 implements MigrationScript {
 	class SchemaAlterationFor5_1_6 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor5_1_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

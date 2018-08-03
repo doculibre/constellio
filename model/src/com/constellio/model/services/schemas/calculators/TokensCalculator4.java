@@ -1,34 +1,20 @@
 package com.constellio.model.services.schemas.calculators;
 
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.LOGICALLY_DELETED;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.MANUAL_TOKENS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.VISIBLE_IN_TREES;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.SortedMap;
-
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.calculators.dependencies.AllPrincipalsAuthsDependencyValue;
-import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
-import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
-import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.calculators.dependencies.*;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+
+import java.util.*;
+import java.util.Map.Entry;
+
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.*;
 
 public class TokensCalculator4 implements MetadataValueCalculator<List<String>> {
 

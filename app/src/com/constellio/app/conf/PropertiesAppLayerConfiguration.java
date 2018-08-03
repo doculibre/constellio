@@ -1,18 +1,14 @@
 package com.constellio.app.conf;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.data.conf.PropertiesConfiguration;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.Language;
 import com.constellio.model.services.encrypt.EncryptionServices;
+
+import java.io.File;
+import java.util.*;
 
 public class PropertiesAppLayerConfiguration extends PropertiesConfiguration implements AppLayerConfiguration {
 
@@ -21,7 +17,7 @@ public class PropertiesAppLayerConfiguration extends PropertiesConfiguration imp
 	private final ModelLayerConfiguration modelLayerConfiguration;
 
 	public PropertiesAppLayerConfiguration(Map<String, String> configs, ModelLayerConfiguration modelLayerConfiguration,
-			FoldersLocator foldersLocator, File constellioProperties) {
+										   FoldersLocator foldersLocator, File constellioProperties) {
 		super(configs, constellioProperties);
 		this.modelLayerConfiguration = modelLayerConfiguration;
 		this.foldersLocator = foldersLocator;

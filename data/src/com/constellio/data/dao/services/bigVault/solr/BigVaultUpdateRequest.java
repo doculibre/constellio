@@ -1,9 +1,9 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
+import org.apache.solr.client.solrj.request.UpdateRequest;
+
 import java.io.IOException;
 import java.io.Writer;
-
-import org.apache.solr.client.solrj.request.UpdateRequest;
 
 public class BigVaultUpdateRequest extends UpdateRequest {
 

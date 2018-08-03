@@ -30,145 +30,156 @@ import java.util.List;
 
 public abstract class BaseDao {
 
-    protected ContentManager contentManager;
-    protected MetadataSchemasManager metadataSchemasManager;
-    protected SystemConfigurationsManager systemConfigurationsManager;
+	protected ContentManager contentManager;
+	protected MetadataSchemasManager metadataSchemasManager;
+	protected SystemConfigurationsManager systemConfigurationsManager;
 
-    protected RecordServices recordServices;
-    protected SearchServices searchServices;
-    protected UserServices userServices;
-    protected SchemasRecordsServices schemas;
+	protected RecordServices recordServices;
+	protected SearchServices searchServices;
+	protected UserServices userServices;
+	protected SchemasRecordsServices schemas;
 
-    @PostConstruct
-    protected void init() {
-        ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
-        contentManager = modelLayerFactory.getContentManager();
-        metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-        systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+	@PostConstruct
+	protected void init() {
+		ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
+		contentManager = modelLayerFactory.getContentManager();
+		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 
-        recordServices = modelLayerFactory.newRecordServices();
-        searchServices = modelLayerFactory.newSearchServices();
-        userServices = modelLayerFactory.newUserServices();
-        schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
-    }
+		recordServices = modelLayerFactory.newRecordServices();
+		searchServices = modelLayerFactory.newSearchServices();
+		userServices = modelLayerFactory.newUserServices();
+		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+	}
 
-    public String getUsernameByServiceKey(String serviceKey) {
-        Record userCredential = getRecordByMetadata(schemas.credentialServiceKey(), serviceKey);
-        if (userCredential == null) return null;
+	public String getUsernameByServiceKey(String serviceKey) {
+		Record userCredential = getRecordByMetadata(schemas.credentialServiceKey(), serviceKey);
+		if (userCredential == null) {
+			return null;
+		}
 
-        return getMetadataValue(userCredential, SolrUserCredential.USERNAME);
-    }
+		return getMetadataValue(userCredential, SolrUserCredential.USERNAME);
+	}
 
-    public User getUser(String serviceKey, String collection) {
-        String username = getUsernameByServiceKey(serviceKey);
+	public User getUser(String serviceKey, String collection) {
+		String username = getUsernameByServiceKey(serviceKey);
 
-        return userServices.getUserInCollection(username, collection);
-    }
+		return userServices.getUserInCollection(username, collection);
+	}
 
-    public Record getRecordById(String id) {
-        try {
-            return recordServices.realtimeGetRecordById(id);
-        } catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
-            return null;
-        }
-    }
+	public Record getRecordById(String id) {
+		try {
+			return recordServices.realtimeGetRecordById(id);
+		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+			return null;
+		}
+	}
 
-    public <T> T getMetadataValue(Record record, String metadataCode) {
-        MetadataSchema metadataSchema = metadataSchemasManager.getSchemaOf(record);
-        return record.get(metadataSchema.getMetadata(metadataCode));
-    }
+	public <T> T getMetadataValue(Record record, String metadataCode) {
+		MetadataSchema metadataSchema = metadataSchemasManager.getSchemaOf(record);
+		return record.get(metadataSchema.getMetadata(metadataCode));
+	}
 
-    public Metadata getMetadata(MetadataSchema schema, String metadataCode) {
-        return schema.getMetadata(metadataCode);
-    }
+	public Metadata getMetadata(MetadataSchema schema, String metadataCode) {
+		return schema.getMetadata(metadataCode);
+	}
 
-    public MetadataSchema getMetadataSchema(Record record) {
-        return metadataSchemasManager.getSchemaOf(record);
-    }
+	public MetadataSchema getMetadataSchema(Record record) {
+		return metadataSchemasManager.getSchemaOf(record);
+	}
 
-    public List<String> getAllowedHosts() {
-        String value = systemConfigurationsManager.getValue(RestApiConfigs.REST_API_URLS);
-        if (Strings.isNullOrEmpty(value)) {
-            return Collections.singletonList(getServerHost());
-        }
+	public List<String> getAllowedHosts() {
+		String value = systemConfigurationsManager.getValue(RestApiConfigs.REST_API_URLS);
+		if (Strings.isNullOrEmpty(value)) {
+			return Collections.singletonList(getServerHost());
+		}
 
-        List<String> restApiUrls = new ArrayList<>();
-        String[] urls = value.split(";");
-        for (String url : urls) {
-            restApiUrls.add((url.trim()));
-        }
-        return restApiUrls;
-    }
+		List<String> restApiUrls = new ArrayList<>();
+		String[] urls = value.split(";");
+		for (String url : urls) {
+			restApiUrls.add((url.trim()));
+		}
+		return restApiUrls;
+	}
 
-    public String getServerPath() {
-        String url = getUrl();
-        return url.concat(!url.endsWith("/") ? "/" : "");
-    }
+	public String getServerPath() {
+		String url = getUrl();
+		return url.concat(!url.endsWith("/") ? "/" : "");
+	}
 
-    public String getDateFormat() {
-        return systemConfigurationsManager.getValue(ConstellioEIMConfigs.DATE_FORMAT);
-    }
+	public String getDateFormat() {
+		return systemConfigurationsManager.getValue(ConstellioEIMConfigs.DATE_FORMAT);
+	}
 
-    public String getDateTimeFormat() {
-        return systemConfigurationsManager.getValue(ConstellioEIMConfigs.DATE_TIME_FORMAT);
-    }
+	public String getDateTimeFormat() {
+		return systemConfigurationsManager.getValue(ConstellioEIMConfigs.DATE_TIME_FORMAT);
+	}
 
-    protected Record getRecordByMetadata(Metadata metadata, String value) {
-        return recordServices.getRecordByMetadata(metadata, value);
-    }
+	protected Record getRecordByMetadata(Metadata metadata, String value) {
+		return recordServices.getRecordByMetadata(metadata, value);
+	}
 
-    protected MetadataSchema getMetadataSchema(String collection, String metadataSchemaType) {
-        return getMetadataSchema(collection, metadataSchemaType, null);
-    }
+	protected MetadataSchema getMetadataSchema(String collection, String metadataSchemaType) {
+		return getMetadataSchema(collection, metadataSchemaType, null);
+	}
 
-    protected MetadataSchema getMetadataSchema(String collection, String metadataSchemaType, String metadataSchemaCode) {
-        List<MetadataSchemaType> metadataSchemaTypes =
-                metadataSchemasManager.getSchemaTypes(collection, Collections.singletonList(metadataSchemaType));
-        if (metadataSchemaTypes.isEmpty()) return null;
+	protected MetadataSchema getMetadataSchema(String collection, String metadataSchemaType,
+											   String metadataSchemaCode) {
+		List<MetadataSchemaType> metadataSchemaTypes =
+				metadataSchemasManager.getSchemaTypes(collection, Collections.singletonList(metadataSchemaType));
+		if (metadataSchemaTypes.isEmpty()) {
+			return null;
+		}
 
-        if (metadataSchemaCode == null) return metadataSchemaTypes.get(0).getDefaultSchema();
-        return metadataSchemaTypes.get(0).getSchema(metadataSchemaCode);
-    }
+		if (metadataSchemaCode == null) {
+			return metadataSchemaTypes.get(0).getDefaultSchema();
+		}
+		return metadataSchemaTypes.get(0).getSchema(metadataSchemaCode);
+	}
 
-    protected <T> void updateMetadataValue(Record record, MetadataSchema schema, String metadataCode, T value) {
-        record.set(schema.getMetadata(metadataCode), value);
-    }
+	protected <T> void updateMetadataValue(Record record, MetadataSchema schema, String metadataCode, T value) {
+		record.set(schema.getMetadata(metadataCode), value);
+	}
 
-    protected void clearCustomMetadataValues(Record record, MetadataSchema schema) {
-        for (Metadata metadata : schema.getMetadatas().onlyUSR()) {
-            record.set(metadata, null);
-        }
-    }
+	protected void clearCustomMetadataValues(Record record, MetadataSchema schema) {
+		for (Metadata metadata : schema.getMetadatas().onlyUSR()) {
+			record.set(metadata, null);
+		}
+	}
 
-    protected String getUrl() {
-        return systemConfigurationsManager.getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
-    }
+	protected String getUrl() {
+		return systemConfigurationsManager.getValue(ConstellioEIMConfigs.CONSTELLIO_URL);
+	}
 
-    protected Transaction buildTransaction(String flushMode) {
-        return buildTransaction(flushMode, null);
-    }
+	protected Transaction buildTransaction(String flushMode) {
+		return buildTransaction(flushMode, null);
+	}
 
-    protected Transaction buildTransaction(String flushMode, User user) {
-        return new Transaction().setRecordFlushing(toRecordFlushing(flushMode)).setUser(user);
-    }
+	protected Transaction buildTransaction(String flushMode, User user) {
+		return new Transaction().setRecordFlushing(toRecordFlushing(flushMode)).setUser(user);
+	}
 
-    private RecordsFlushing toRecordFlushing(String value) {
-        if (value.equals("NOW")) return RecordsFlushing.NOW();
-        if (value.equals("LATER")) return RecordsFlushing.LATER();
+	private RecordsFlushing toRecordFlushing(String value) {
+		if (value.equals("NOW")) {
+			return RecordsFlushing.NOW();
+		}
+		if (value.equals("LATER")) {
+			return RecordsFlushing.LATER();
+		}
 
-        return RecordsFlushing.WITHIN_SECONDS(Integer.valueOf(value.split("_")[1]));
-    }
+		return RecordsFlushing.WITHIN_SECONDS(Integer.valueOf(value.split("_")[1]));
+	}
 
-    private String getServerHost() {
-        return getUrl().split("/")[2].split(":")[0];
-    }
+	private String getServerHost() {
+		return getUrl().split("/")[2].split(":")[0];
+	}
 
-    public Record getUserByUsername(String username, String collection) {
-        return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.user.username(), username);
-    }
+	public Record getUserByUsername(String username, String collection) {
+		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.user.username(), username);
+	}
 
-    public Record getGroupByCode(String groupCode, String collection) {
-        return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.group.code(), groupCode);
-    }
+	public Record getGroupByCode(String groupCode, String collection) {
+		return recordServices.getRecordsCaches().getCache(collection).getByMetadata(schemas.group.code(), groupCode);
+	}
 
 }

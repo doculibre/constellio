@@ -1,11 +1,11 @@
 package com.constellio.app.extensions.api.scripts;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class ScriptWithLogOutput extends Script {
 
@@ -15,7 +15,8 @@ public abstract class ScriptWithLogOutput extends Script {
 		this(appLayerFactory, category, name, false);
 	}
 
-	public ScriptWithLogOutput(AppLayerFactory appLayerFactory, String category, String name, boolean saveOutputAsTemporaryRecord) {
+	public ScriptWithLogOutput(AppLayerFactory appLayerFactory, String category, String name,
+							   boolean saveOutputAsTemporaryRecord) {
 		super(appLayerFactory, category, name);
 		this.saveOutputAsTemporaryRecord = saveOutputAsTemporaryRecord;
 	}

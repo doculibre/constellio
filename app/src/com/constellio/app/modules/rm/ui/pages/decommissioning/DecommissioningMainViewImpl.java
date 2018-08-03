@@ -116,9 +116,9 @@ public class DecommissioningMainViewImpl extends BaseViewImpl implements Decommi
 				}
 			});
 			foldersWithDate.addComponent(button);
-			if(SearchType.transfer.equals(type)) {
+			if (SearchType.transfer.equals(type)) {
 				button.setEnabled(presenter.getUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).globally() ||
-						presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
+								  presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());
 				button.setVisible(button.isEnabled());
 			} else {
 				button.setEnabled(presenter.getUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething());

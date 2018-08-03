@@ -1,15 +1,15 @@
 package com.constellio.app.modules.robots.reports;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.modules.robots.model.DryRunRobotAction;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.framework.reports.ReportWriterFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DryRunReportWriterFactory implements ReportWriterFactory {
 	private List<DryRunRobotAction> dryRunRobotActions;

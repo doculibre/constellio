@@ -87,7 +87,8 @@ public class TaxonomyObjectBuilder {
 		props.addProperty(new PropertyIdImpl(id, value));
 	}
 
-	private void addPropertyIdList(PropertiesImpl props, String typeId, Set<String> filter, String id, List<String> value) {
+	private void addPropertyIdList(PropertiesImpl props, String typeId, Set<String> filter, String id,
+								   List<String> value) {
 
 		props.addProperty(new PropertyIdImpl(id, value));
 	}

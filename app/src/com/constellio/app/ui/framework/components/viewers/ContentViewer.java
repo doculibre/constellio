@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.components.viewers;
 
-import java.util.Arrays;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -15,16 +10,20 @@ import com.constellio.app.ui.framework.components.viewers.image.ImageViewer;
 import com.constellio.app.ui.framework.components.viewers.video.VideoViewer;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
 
 public class ContentViewer extends CustomComponent {
-	
+
 	private Component viewerComponent;
 
 	public ContentViewer(RecordVO recordVO, String metadataCode, ContentVersionVO contentVersionVO) {
 		if (contentVersionVO != null) {
 			String fileName = contentVersionVO.getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
-			
+
 			if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				ImageViewer imageViewer = new ImageViewer(recordVO, Document.CONTENT, contentVersionVO);
 				viewerComponent = imageViewer;
@@ -38,7 +37,7 @@ public class ContentViewer extends CustomComponent {
 				DocumentViewer documentViewer;
 				if (recordVO instanceof DocumentVO) {
 					documentViewer = new DocumentViewer(recordVO, Document.CONTENT, contentVersionVO);
-				} else if (metadataCode != null) {	
+				} else if (metadataCode != null) {
 					documentViewer = new DocumentViewer(recordVO, metadataCode, contentVersionVO);
 				} else {
 					documentViewer = null;
@@ -52,7 +51,7 @@ public class ContentViewer extends CustomComponent {
 			setCompositionRoot(viewerComponent);
 		}
 	}
-	
+
 	public boolean isViewerComponentVisible() {
 		return isVisible() && viewerComponent != null && viewerComponent.isVisible();
 	}

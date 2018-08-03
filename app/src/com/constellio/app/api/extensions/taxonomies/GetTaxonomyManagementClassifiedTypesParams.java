@@ -12,7 +12,7 @@ public class GetTaxonomyManagementClassifiedTypesParams {
 	private SessionContextProvider sessionContextProvider;
 
 	public GetTaxonomyManagementClassifiedTypesParams(Taxonomy taxonomy, Record record,
-			SessionContextProvider sessionContextProvider) {
+													  SessionContextProvider sessionContextProvider) {
 		this.taxonomy = taxonomy;
 		this.record = record;
 		this.sessionContextProvider = sessionContextProvider;

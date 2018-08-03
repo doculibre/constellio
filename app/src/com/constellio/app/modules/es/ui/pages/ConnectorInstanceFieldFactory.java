@@ -1,13 +1,13 @@
 package com.constellio.app.modules.es.ui.pages;
 
-import java.util.Locale;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.ui.components.TraversalSchedulesComponent;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.vaadin.ui.Field;
+
+import java.util.Locale;
 
 public class ConnectorInstanceFieldFactory extends RecordFieldFactory {
 	@Override

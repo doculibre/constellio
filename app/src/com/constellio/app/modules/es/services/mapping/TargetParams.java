@@ -1,10 +1,10 @@
 package com.constellio.app.modules.es.services.mapping;
 
+import com.constellio.model.entities.schemas.MetadataValueType;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.constellio.model.entities.schemas.MetadataValueType;
 
 public class TargetParams implements Serializable {
 	private String code;

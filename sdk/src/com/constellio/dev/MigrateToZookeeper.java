@@ -1,14 +1,14 @@
 package com.constellio.dev;
 
-import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
-
-import java.io.File;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ZooKeeperConfigManager;
 import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusListener;
 import com.constellio.model.conf.FoldersLocator;
+
+import java.io.File;
+
+import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
 
 public class MigrateToZookeeper {
 

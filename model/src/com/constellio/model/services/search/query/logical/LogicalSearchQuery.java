@@ -1,16 +1,5 @@
 package com.constellio.model.services.search.query.logical;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.wrappers.User;
@@ -29,6 +18,12 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.*;
+
+import static java.util.Arrays.asList;
 
 //TODO Remove inheritance, rename to LogicalQuery
 public class LogicalSearchQuery implements SearchQuery {
@@ -446,7 +441,7 @@ public class LogicalSearchQuery implements SearchQuery {
 			//				break;
 			//			}
 
-			for (String lang : new String[] { "en", "fr", "ar" }) {
+			for (String lang : new String[]{"en", "fr", "ar"}) {
 				moreLikeThisFields.add(field.getAnalyzedField(lang).getDataStoreCode());
 			}
 		}
@@ -515,17 +510,17 @@ public class LogicalSearchQuery implements SearchQuery {
 		public String buildFQ(SecurityTokenManager securityTokenManager) {
 			String filter;
 			switch (access) {
-			case Role.READ:
-				filter = FilterUtils.userReadFilter(user, securityTokenManager);
-				break;
-			case Role.WRITE:
-				filter = FilterUtils.userWriteFilter(user, securityTokenManager);
-				break;
-			case Role.DELETE:
-				filter = FilterUtils.userDeleteFilter(user, securityTokenManager);
-				break;
-			default:
-				filter = FilterUtils.permissionFilter(user, access);
+				case Role.READ:
+					filter = FilterUtils.userReadFilter(user, securityTokenManager);
+					break;
+				case Role.WRITE:
+					filter = FilterUtils.userWriteFilter(user, securityTokenManager);
+					break;
+				case Role.DELETE:
+					filter = FilterUtils.userDeleteFilter(user, securityTokenManager);
+					break;
+				default:
+					filter = FilterUtils.permissionFilter(user, access);
 			}
 
 			return filter;

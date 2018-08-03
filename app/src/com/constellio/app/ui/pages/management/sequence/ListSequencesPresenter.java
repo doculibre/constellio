@@ -1,26 +1,27 @@
 package com.constellio.app.ui.pages.management.sequence;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.SequenceVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Language;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class ListSequencesPresenter implements Serializable {
-	
+
 	private transient SequenceServices sequenceServices;
-	
+
 	private List<SequenceVO> sequenceVOs;
 
 	private ListSequencesView view;
-	
+
 	public ListSequencesPresenter(ListSequencesView view) {
 		this.view = view;
 		initTransientObjects();
@@ -37,7 +38,7 @@ public class ListSequencesPresenter implements Serializable {
 		}
 		view.setSequenceVOs(sequenceVOs);
 	}
-	
+
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
@@ -49,7 +50,7 @@ public class ListSequencesPresenter implements Serializable {
 		SessionContext sessionContext = view.getSessionContext();
 		sequenceServices = new SequenceServices(constellioFactories, sessionContext);
 	}
-	
+
 	private Language getSequenceLanguage() {
 		Locale currentLocale = view.getSessionContext().getCurrentLocale();
 		String currentLanguageCode = currentLocale.getLanguage();
@@ -61,7 +62,7 @@ public class ListSequencesPresenter implements Serializable {
 		}
 		return sequenceLanguage;
 	}
-	
+
 	private List<AvailableSequence> getAvailableSequences() {
 		List<AvailableSequence> availableSequences;
 		String recordId = view.getRecordId();
@@ -72,7 +73,7 @@ public class ListSequencesPresenter implements Serializable {
 		}
 		return availableSequences;
 	}
-	
+
 	void saveButtonClicked() {
 		for (SequenceVO sequenceVO : sequenceVOs) {
 			String sequenceId = sequenceVO.getSequenceId();
@@ -82,11 +83,11 @@ public class ListSequencesPresenter implements Serializable {
 		view.closeWindow();
 		view.showMessage($("ListSequencesView.sequencesSaved"));
 	}
-	
+
 	void cancelButtonClicked() {
 		view.closeWindow();
 	}
-	
+
 	void windowCloseRequested() {
 		view.closeWindow();
 	}

@@ -1,9 +1,8 @@
 package com.constellio.app.modules.rm.model;
 
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class CopyRetentionRuleInRule implements ModifiableStructure {
 
@@ -20,7 +19,8 @@ public class CopyRetentionRuleInRule implements ModifiableStructure {
 	public CopyRetentionRuleInRule() {
 	}
 
-	public CopyRetentionRuleInRule(String ruleId, String categoryId, int categoryLevel, CopyRetentionRule copyRetentionRule) {
+	public CopyRetentionRuleInRule(String ruleId, String categoryId, int categoryLevel,
+								   CopyRetentionRule copyRetentionRule) {
 		if (ruleId == null) {
 			throw new IllegalArgumentException("ruleId");
 		}

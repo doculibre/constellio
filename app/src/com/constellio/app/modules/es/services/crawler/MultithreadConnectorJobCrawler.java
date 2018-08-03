@@ -1,16 +1,11 @@
 package com.constellio.app.modules.es.services.crawler;
 
+import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
+
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
+import java.util.concurrent.*;
 
 public class MultithreadConnectorJobCrawler implements ConnectorJobCrawler {
 

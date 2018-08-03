@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.profile;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.params.ParamUtils;
@@ -12,6 +8,10 @@ import com.constellio.app.ui.tools.OptionGroupWebElement;
 import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class ModifyProfilePage extends PageHelper {
 
@@ -27,7 +27,7 @@ public class ModifyProfilePage extends PageHelper {
 		String params = ParamUtils.addParams("", paramMap);
 		driver.navigateTo()
 				.url(NavigatorConfigurationService.MODIFY_PROFILE + "/" + NavigatorConfigurationService.GROUP_ADD_EDIT + "/"
-						+ params);
+					 + params);
 	}
 
 	public void navigateToEditHeroesGroupPage() {

@@ -3,10 +3,7 @@ package com.constellio.app.modules.rm.navigation;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListPresenter;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.pages.base.UIContext;
 import com.vaadin.navigator.Navigator;
-import com.vaadin.server.BrowserWindowOpener;
-import com.vaadin.ui.UI;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,12 +52,12 @@ public class RMViews extends CoreViews {
 
 	public void duplicateFolder(String id, boolean structure) {
 		Map<String, String> params = new HashMap<>();
-        params.put("id", id);
-        params.put("duplicate", Boolean.TRUE.toString());
-        if (structure) {
-            params.put("structure", Boolean.TRUE.toString());
-        }
-        navigator.navigateTo(addParams(RMNavigationConfiguration.DUPLICATE_FOLDER, params));
+		params.put("id", id);
+		params.put("duplicate", Boolean.TRUE.toString());
+		if (structure) {
+			params.put("structure", Boolean.TRUE.toString());
+		}
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DUPLICATE_FOLDER, params));
 	}
 
 	// DOCUMENT MANAGEMENT
@@ -217,69 +214,69 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.REPORTS);
 	}
 
-    //CONTAINERS
+	//CONTAINERS
 
-    public void addContainer() {
-        navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER);
-    }
+	public void addContainer() {
+		navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER);
+	}
 
 	public void addMultipleContainers() {
 		navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/m/t");
 	}
 
-    public void editContainer(String containerId) {
-        navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/" + containerId);
-    }
+	public void editContainer(String containerId) {
+		navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/" + containerId);
+	}
 
-    public void containersByAdministrativeUnits() {
-        navigator.navigateTo(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS);
-    }
+	public void containersByAdministrativeUnits() {
+		navigator.navigateTo(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS);
+	}
 
-    public void displayAdminUnitWithContainers(String tabName, String entityId) {
-        navigator
-                .navigateTo(RMNavigationConfiguration.DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/" + tabName + "/" + entityId);
-    }
+	public void displayAdminUnitWithContainers(String tabName, String entityId) {
+		navigator
+				.navigateTo(RMNavigationConfiguration.DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/" + tabName + "/" + entityId);
+	}
 
-    public void displayFilingSpaceWithContainers(String tabName, String adminUnitId, String filingSpaceId) {
-        navigator.navigateTo(
-                RMNavigationConfiguration.DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/" + tabName + "/" + adminUnitId + "/"
-                        + filingSpaceId);
-    }
+	public void displayFilingSpaceWithContainers(String tabName, String adminUnitId, String filingSpaceId) {
+		navigator.navigateTo(
+				RMNavigationConfiguration.DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/" + tabName + "/" + adminUnitId + "/"
+				+ filingSpaceId);
+	}
 
-    public void displayContainer(String containerId) {
-        navigator.navigateTo(RMNavigationConfiguration.DISPLAY_CONTAINER + "/" + containerId);
-    }
+	public void displayContainer(String containerId) {
+		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_CONTAINER + "/" + containerId);
+	}
 
-    //DECOMMISSIONING
+	//DECOMMISSIONING
 
-    public void searchContainerForDecommissioningList(String entityId) {
-        navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER + "/" + entityId);
-    }
+	public void searchContainerForDecommissioningList(String entityId) {
+		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER + "/" + entityId);
+	}
 
 	public void searchContainerForDecommissioningListReplay(String entityId, String searchId) {
 		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER + "/" + entityId + "/s/" + searchId);
 	}
 
-    public void createContainerForDecommissioningList(String entityId) {
-        navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_NEW_CONTAINER + "/" + entityId);
-    }
+	public void createContainerForDecommissioningList(String entityId) {
+		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_NEW_CONTAINER + "/" + entityId);
+	}
 
-    public void editDecommissioningList(String entityId) {
-        navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_EDIT + "/" + entityId);
-    }
+	public void editDecommissioningList(String entityId) {
+		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_EDIT + "/" + entityId);
+	}
 
-    //RETENTION RULE
+	//RETENTION RULE
 
-    public void addRetentionRule() {
-        navigator.navigateTo(RMNavigationConfiguration.ADD_RETENTION_RULE);
-    }
+	public void addRetentionRule() {
+		navigator.navigateTo(RMNavigationConfiguration.ADD_RETENTION_RULE);
+	}
 
-    public void editRetentionRule(String id) {
-        navigator.navigateTo(RMNavigationConfiguration.EDIT_RETENTION_RULE + "/" + id);
-    }
+	public void editRetentionRule(String id) {
+		navigator.navigateTo(RMNavigationConfiguration.EDIT_RETENTION_RULE + "/" + id);
+	}
 
-    public void displayRetentionRule(String id) {
-        navigator.navigateTo(RMNavigationConfiguration.DISPLAY_RETENTION_RULE + "/" + id);
-    }
+	public void displayRetentionRule(String id) {
+		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_RETENTION_RULE + "/" + id);
+	}
 
 }

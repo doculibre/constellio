@@ -18,9 +18,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.vaadin.data.Container;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,7 +42,8 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	private boolean cachedSearch;
 
 	@Deprecated
-	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory) {
+	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
+								ModelLayerFactory modelLayerFactory) {
 		this.schema = schema;
 		this.voBuilder = voBuilder;
 		this.sessionContext = ConstellioUI.getCurrentSessionContext();
@@ -53,15 +52,16 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	}
 
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
-			SessionContextProvider sessionContextProvider) {
+								SessionContextProvider sessionContextProvider) {
 		this.schema = schema;
 		this.voBuilder = voBuilder;
 		this.sessionContext = sessionContextProvider.getSessionContext();
 		init(sessionContextProvider.getConstellioFactories().getModelLayerFactory());
 	}
 
-	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
-			SessionContext sessionContext) {
+	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
+								ModelLayerFactory modelLayerFactory,
+								SessionContext sessionContext) {
 		this.schema = schema;
 		this.voBuilder = voBuilder;
 		this.sessionContext = sessionContext;
@@ -92,9 +92,9 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	private LogicalSearchQuery getFilteredQuery() {
 		LogicalSearchQuery query = getQuery();
 		if (query != null) {
-			for(RecordVOFilter filter: CollectionUtils.emptyIfNull(filters)) {
-                filter.addCondition(query);
-            }
+			for (RecordVOFilter filter : CollectionUtils.emptyIfNull(filters)) {
+				filter.addCondition(query);
+			}
 		}
 		return query;
 	}

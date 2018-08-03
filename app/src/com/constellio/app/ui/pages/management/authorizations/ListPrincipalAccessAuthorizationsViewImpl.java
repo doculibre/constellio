@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
-import static com.constellio.app.ui.framework.components.BaseForm.CANCEL_BUTTON;
-import static com.constellio.app.ui.framework.components.BaseForm.SAVE_BUTTON;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.vaadin.ui.themes.ValoTheme.BUTTON_PRIMARY;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -19,16 +9,19 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordFiel
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.framework.components.BaseForm.*;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.vaadin.ui.themes.ValoTheme.BUTTON_PRIMARY;
+
 public class ListPrincipalAccessAuthorizationsViewImpl extends ListAuthorizationsViewImpl implements
-																						  ListPrincipalAccessAuthorizationsView {
+		ListPrincipalAccessAuthorizationsView {
 
 	public ListPrincipalAccessAuthorizationsViewImpl() {
 		presenter = new ListPrincipalAccessAuthorizationsPresenter(this);

@@ -48,7 +48,7 @@ public class TaxonomiesManagerRuntimeException extends RuntimeException {
 
 		public TaxonomySchemaTypesHaveRecords(String schemaType) {
 			super("Cannot create/enable/disable taxonomy because there is(are) record(s) using metadataSchemaType "
-					+ schemaType + " in taxonomy");
+				  + schemaType + " in taxonomy");
 		}
 	}
 

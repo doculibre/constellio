@@ -20,7 +20,7 @@ public class CoreMigrationTo_6_5_42 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 
 		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
 			MetadataSchema userCredentialSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
@@ -33,7 +33,7 @@ public class CoreMigrationTo_6_5_42 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor6_5_42 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor6_5_42(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

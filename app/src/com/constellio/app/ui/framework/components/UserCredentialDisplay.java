@@ -1,12 +1,12 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class UserCredentialDisplay extends CustomComponent {
@@ -39,7 +39,8 @@ public class UserCredentialDisplay extends CustomComponent {
 		setCompositionRoot(mainLayout);
 	}
 
-	private int createComponentRow(UserCredentialVO userCredentialVO, int row, Component displayComponent, String caption) {
+	private int createComponentRow(UserCredentialVO userCredentialVO, int row, Component displayComponent,
+								   String caption) {
 		Label captionLabel = new Label(caption);
 
 		captionLabel.addStyleName(STYLE_CAPTION);

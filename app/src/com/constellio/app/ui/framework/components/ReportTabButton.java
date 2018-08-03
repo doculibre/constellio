@@ -1,9 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.reports.model.search.UnsupportedReportException;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -19,13 +15,11 @@ import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.*;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ReportTabButton extends WindowButton {
 	private VerticalLayout mainLayout, PDFTabLayout;
@@ -48,7 +42,8 @@ public class ReportTabButton extends WindowButton {
 		this.view = view;
 	}
 
-	public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton, boolean noPDFButton) {
+	public ReportTabButton(String caption, String windowCaption, BaseView view, boolean noExcelButton,
+						   boolean noPDFButton) {
 		this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), noExcelButton,
 				noPDFButton, null, view.getSessionContext());
 		this.view = view;
@@ -61,12 +56,13 @@ public class ReportTabButton extends WindowButton {
 	}
 
 	public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection,
-			boolean noExcelButton, SessionContext sessionContext) {
+						   boolean noExcelButton, SessionContext sessionContext) {
 		this(caption, windowCaption, appLayerFactory, collection, noExcelButton, false, null, sessionContext);
 	}
 
 	public ReportTabButton(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection,
-			boolean noExcelButton, boolean noPDFButton, NewReportPresenter presenter, SessionContext sessionContext) {
+						   boolean noExcelButton, boolean noPDFButton, NewReportPresenter presenter,
+						   SessionContext sessionContext) {
 
 		super(caption, windowCaption, new WindowConfiguration(true, true, "50%", "50%"));
 		this.viewPresenter = presenter;
@@ -103,7 +99,7 @@ public class ReportTabButton extends WindowButton {
 	@Override
 	public void afterOpenModal() {
 		if (pdfTab != null && (buttonPresenter.isNeedToRemovePDFTab() || (reportComboBox == null
-				|| reportComboBox.getContainerDataSource().size() == 0))) {
+																		  || reportComboBox.getContainerDataSource().size() == 0))) {
 			pdfTab.setVisible(false);
 		}
 
@@ -328,9 +324,9 @@ public class ReportTabButton extends WindowButton {
 		}
 	}
 
-    protected LogicalSearchQuery getLogicalSearchQuery(String selectedSchemaFilter) {
-        return null;
-    }
+	protected LogicalSearchQuery getLogicalSearchQuery(String selectedSchemaFilter) {
+		return null;
+	}
 
 
 }

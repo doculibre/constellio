@@ -1,14 +1,14 @@
 package com.constellio.app.ui.pages.imports.settings;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.ui.pages.imports.ImportFileView;
 import com.constellio.app.ui.pages.imports.ImportFileViewImpl;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Component;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ImportSettingsViewImpl extends ImportFileViewImpl implements ImportFileView {
 
@@ -37,6 +37,6 @@ public class ImportSettingsViewImpl extends ImportFileViewImpl implements Import
 	protected String getUploadFieldCaption() {
 		return $("ImportSettingsView.configFile");
 	}
-	
+
 }
 

@@ -1,12 +1,11 @@
 package com.constellio.app.ui.tools.components.listAddRemove;
 
+import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 
-import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
-
-public class ListAddRemoveRichTextFieldWebElement  extends ListAddRemoveFieldWebElement<TextFieldWebElement> {
+public class ListAddRemoveRichTextFieldWebElement extends ListAddRemoveFieldWebElement<TextFieldWebElement> {
 
 	public ListAddRemoveRichTextFieldWebElement(ConstellioWebElement nestedElement) {
 		super(nestedElement);
@@ -23,7 +22,7 @@ public class ListAddRemoveRichTextFieldWebElement  extends ListAddRemoveFieldWeb
 		getAddButtonWebElement().click();
 		return this;
 	}
-	
+
 	public ListAddRemoveRichTextFieldWebElement remove(int index) {
 		getRemoveButtonWebElement(index).click();
 		return this;
@@ -41,14 +40,10 @@ public class ListAddRemoveRichTextFieldWebElement  extends ListAddRemoveFieldWeb
 		getFrameComponent().sendKeys(Keys.CONTROL + "a");
 		getFrameComponent().sendKeys(Keys.DELETE);
 	}
-	
+
 	private ConstellioWebElement getFrameComponent() {
 		return nestedElement.findElement(By.className("gwt-RichTextArea"));
 	}
-	
 
-	
-	
 
-	
 }

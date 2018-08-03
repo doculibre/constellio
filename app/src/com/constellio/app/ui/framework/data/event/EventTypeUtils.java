@@ -145,16 +145,16 @@ public class EventTypeUtils implements Serializable {
 		Metadata eventDateMetadata = metadataSchema.getMetadata(Schemas.CREATED_ON.getLocalCode());
 		Metadata eventUserRolesMetadata = metadataSchema.getMetadata(Event.USER_ROLES);
 		Metadata eventType = metadataSchema.getMetadata(Event.TYPE);
-        metadataCodes.add(eventUserNameMetadata.getCode());
-        metadataCodes.add(eventDateMetadata.getCode());
-        metadataCodes.add(eventUserRolesMetadata.getCode());
-        metadataCodes.add(eventUserIPMetadata.getCode());
-        metadataCodes.add(eventType.getCode());
+		metadataCodes.add(eventUserNameMetadata.getCode());
+		metadataCodes.add(eventDateMetadata.getCode());
+		metadataCodes.add(eventUserRolesMetadata.getCode());
+		metadataCodes.add(eventUserIPMetadata.getCode());
+		metadataCodes.add(eventType.getCode());
 		return metadataCodes;
 	}
 
 	private static List<String> getSpecificMetadata(MetadataSchema metadataSchema,
-			String eventType) {
+													String eventType) {
 		List<String> metadataCodes = new ArrayList<>();
 		if (isPermissionEvent(eventType)) {
 			metadataCodes.addAll(getEventRecordMetadata(metadataSchema));
@@ -164,7 +164,7 @@ public class EventTypeUtils implements Serializable {
 			if (eventType.equals(EventType.DELETE_FOLDER) || eventType.equals(EventType.DELETE_DOCUMENT)) {
 				Metadata reasonMetadata = metadataSchema.getMetadata(Event.REASON);
 				metadataCodes.add(reasonMetadata.getCode());
-			} else if(isPotentiallyFromRequestTask(eventType)) {
+			} else if (isPotentiallyFromRequestTask(eventType)) {
 				Metadata taskMetadata = metadataSchema.getMetadata(Event.TASK);
 				metadataCodes.add(taskMetadata.getCode());
 				Metadata receiverMetadata = metadataSchema.getMetadata(Event.RECEIVER_NAME);
@@ -173,13 +173,13 @@ public class EventTypeUtils implements Serializable {
 				metadataCodes.add(descriptionMetadata.getCode());
 			}
 		} else if (isUserEvent(eventType) ||
-				isGroupEvent(eventType)) {
+				   isGroupEvent(eventType)) {
 			metadataCodes.addAll(getEventUserMetadata(metadataSchema));
 		}
 		if (isModificationEvent(eventType)) {
 			metadataCodes.add(Event.DELTA);
 		}
-		if(isRequestTaskEvent(eventType)) {
+		if (isRequestTaskEvent(eventType)) {
 			metadataCodes.add(Event.ACCEPTED);
 		}
 		return metadataCodes;
@@ -223,10 +223,10 @@ public class EventTypeUtils implements Serializable {
 
 	public static boolean isRecordEvent(String eventType) {
 		return isFolderEvent(eventType) ||
-				isDocumentEvent(eventType) ||
-				isTaskEvent(eventType) ||
-				isContainerEvent(eventType) ||
-				eventType.equals(EventType.PDF_A_GENERATION);
+			   isDocumentEvent(eventType) ||
+			   isTaskEvent(eventType) ||
+			   isContainerEvent(eventType) ||
+			   eventType.equals(EventType.PDF_A_GENERATION);
 	}
 
 	private static boolean isContainerEvent(String eventType) {
@@ -267,8 +267,8 @@ public class EventTypeUtils implements Serializable {
 
 	private static boolean isPermissionEvent(String eventType) {
 		if (eventType.contains(EventType.DELETE_PERMISSION) ||
-				eventType.contains(EventType.GRANT_PERMISSION) ||
-				eventType.contains(EventType.MODIFY_PERMISSION)) {
+			eventType.contains(EventType.GRANT_PERMISSION) ||
+			eventType.contains(EventType.MODIFY_PERMISSION)) {
 			return true;
 		} else {
 			return false;
@@ -299,7 +299,7 @@ public class EventTypeUtils implements Serializable {
 		//FIXME list all events
 		if (eventType.contains("modify_")) {
 			return true;
-		} else if(asList(EventType.BORROW_FOLDER, EventType.BORROW_CONTAINER,
+		} else if (asList(EventType.BORROW_FOLDER, EventType.BORROW_CONTAINER,
 				EventType.BORROW_REQUEST_FOLDER, EventType.BORROW_EXTENSION_REQUEST_FOLDER,
 				EventType.BORROW_REQUEST_CONTAINER, EventType.BORROW_EXTENSION_REQUEST_CONTAINER)
 				.contains(eventType)) {

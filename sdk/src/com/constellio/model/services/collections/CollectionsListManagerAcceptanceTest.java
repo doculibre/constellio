@@ -1,16 +1,15 @@
 package com.constellio.model.services.collections;
 
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
-import com.constellio.sdk.tests.ConstellioTest;
 
 public class CollectionsListManagerAcceptanceTest extends ConstellioTest {
 

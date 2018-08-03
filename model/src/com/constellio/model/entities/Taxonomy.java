@@ -1,12 +1,12 @@
 package com.constellio.model.entities;
 
-import static java.util.Arrays.asList;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serializable;
 import java.util.*;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import static java.util.Arrays.asList;
 
 public class Taxonomy implements CollectionObject, Serializable {
 
@@ -31,14 +31,15 @@ public class Taxonomy implements CollectionObject, Serializable {
 	}
 
 	public Taxonomy(String code, Map<Language, String> title, String collection, boolean visibleInHomePage,
-			List<String> userIds, List<String> groupIds, String taxonomySchemaType) {
+					List<String> userIds, List<String> groupIds, String taxonomySchemaType) {
 		this(code, title, collection, visibleInHomePage, userIds, groupIds, asList(taxonomySchemaType), false);
 	}
 
 	public Taxonomy(String code, Map<Language, String> title, String collection, boolean visibleInHomePage,
-			List<String> userIds, List<String> groupIds, List<String> taxonomySchemaTypes, boolean showParentsInSearchResults) {
+					List<String> userIds, List<String> groupIds, List<String> taxonomySchemaTypes,
+					boolean showParentsInSearchResults) {
 		this.code = code;
-		if(title != null) {
+		if (title != null) {
 			this.title = new HashMap(title);
 		} else {
 			this.title = new HashMap<>();
@@ -78,7 +79,7 @@ public class Taxonomy implements CollectionObject, Serializable {
 		return title.get(language);
 	}
 
-	public Map<Language,String> getTitle() {
+	public Map<Language, String> getTitle() {
 		return title;
 	}
 
@@ -143,34 +144,38 @@ public class Taxonomy implements CollectionObject, Serializable {
 	}
 
 	public static Taxonomy createHiddenInHomePage(String code, Map<Language, String> title, String collection,
-			String taxonomySchemaType) {
+												  String taxonomySchemaType) {
 		return new Taxonomy(code, title, collection, false, new ArrayList<String>(), new ArrayList<String>(),
 				asList(taxonomySchemaType), false);
 	}
 
 	public static Taxonomy createHiddenInHomePage(String code, Map<Language, String> title, String collection,
-			List<String> taxonomySchemaTypes) {
+												  List<String> taxonomySchemaTypes) {
 		return new Taxonomy(code, title, collection, false, new ArrayList<String>(), new ArrayList<String>(),
 				taxonomySchemaTypes, false);
 	}
 
-	public static Taxonomy createPublic(String code, Map<Language, String> title, String collection, List<String> taxonomySchemaTypes) {
+	public static Taxonomy createPublic(String code, Map<Language, String> title, String collection,
+										List<String> taxonomySchemaTypes) {
 		return new Taxonomy(code, title, collection, true, new ArrayList<String>(), new ArrayList<String>(), taxonomySchemaTypes,
 				false);
 	}
 
-	public static Taxonomy createPublic(String code, Map<Language, String>  title, String collection, String taxonomySchemaType) {
+	public static Taxonomy createPublic(String code, Map<Language, String> title, String collection,
+										String taxonomySchemaType) {
 		return new Taxonomy(code, title, collection, true, new ArrayList<String>(), new ArrayList<String>(),
 				asList(taxonomySchemaType), false);
 	}
 
-	public static Taxonomy createHomeTaxonomyForGroups(String code, Map<Language, String>  title, String collection, String taxonomySchemaType,
-			List<String> groupIds) {
+	public static Taxonomy createHomeTaxonomyForGroups(String code, Map<Language, String> title, String collection,
+													   String taxonomySchemaType,
+													   List<String> groupIds) {
 		return new Taxonomy(code, title, collection, true, new ArrayList<String>(), groupIds, asList(taxonomySchemaType), false);
 	}
 
-	public static Taxonomy createPublic(String code, Map<Language, String>  title, String collection, List<String> userIds, List<String> groupIds,
-			List<String> taxonomySchemaTypes, boolean isVisibleInHomePage) {
+	public static Taxonomy createPublic(String code, Map<Language, String> title, String collection,
+										List<String> userIds, List<String> groupIds,
+										List<String> taxonomySchemaTypes, boolean isVisibleInHomePage) {
 		return new Taxonomy(code, title, collection, isVisibleInHomePage, userIds, groupIds, taxonomySchemaTypes, false);
 	}
 

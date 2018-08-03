@@ -1,19 +1,5 @@
 package com.constellio.model.services.security.authentification;
 
-import java.util.Collections;
-import java.util.Hashtable;
-
-import javax.naming.AuthenticationException;
-import javax.naming.Context;
-import javax.naming.NamingException;
-import javax.naming.ldap.Control;
-import javax.naming.ldap.InitialLdapContext;
-import javax.naming.ldap.LdapContext;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.utils.hashing.HashingService;
@@ -26,6 +12,18 @@ import com.constellio.model.conf.ldap.services.LDAPServicesImpl;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.naming.AuthenticationException;
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.naming.ldap.Control;
+import javax.naming.ldap.InitialLdapContext;
+import javax.naming.ldap.LdapContext;
+import java.util.Collections;
+import java.util.Hashtable;
 
 public class LDAPAuthenticationService implements AuthenticationService, StatefulService {
 
@@ -41,7 +39,7 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 	public Control[] connCtls = null;
 
 	public LDAPAuthenticationService(LDAPConfigurationManager ldapConfigurationManager, ConfigManager configManager,
-			HashingService hashingService, UserServices userServices) {
+									 HashingService hashingService, UserServices userServices) {
 		this.ldapConfigurationManager = ldapConfigurationManager;
 		this.configManager = configManager;
 		this.hashingService = hashingService;
@@ -169,12 +167,12 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 			throws NamingException {
 		String[] securityPrincipals;
 		if (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.ACTIVE_DIRECTORY) {
-			return new String[] { username };
+			return new String[]{username};
 		} else if (ldapServerConfiguration.getDirectoryType() == LDAPDirectoryType.E_DIRECTORY) {
 			String userDn = getUserDn(username, domain, url);
-			return new String[] { userDn };
+			return new String[]{userDn};
 		} else {
-			String[] prefixes = new String[] { "uid=", "cn=" };
+			String[] prefixes = new String[]{"uid=", "cn="};
 			securityPrincipals = new String[prefixes.length];
 			for (int i = 0; i < prefixes.length; i++) {
 				String prefix = prefixes[i];
@@ -241,7 +239,8 @@ public class LDAPAuthenticationService implements AuthenticationService, Statefu
 		this.ldapServerConfiguration = ldapConfigurationManager.getLDAPServerConfiguration();
 	}
 
-	@SuppressWarnings("serial") class FastBindConnectionControl implements Control {
+	@SuppressWarnings("serial")
+	class FastBindConnectionControl implements Control {
 
 		public byte[] getEncodedValue() {
 			return null;

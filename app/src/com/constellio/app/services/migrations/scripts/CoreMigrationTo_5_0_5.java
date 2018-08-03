@@ -16,14 +16,15 @@ public class CoreMigrationTo_5_0_5 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 		new CoreSchemaAlterationFor5_0_4(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
 	class CoreSchemaAlterationFor5_0_4 extends MetadataSchemasAlterationHelper {
 
 		protected CoreSchemaAlterationFor5_0_4(String collection,
-				MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+											   MigrationResourcesProvider migrationResourcesProvider,
+											   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

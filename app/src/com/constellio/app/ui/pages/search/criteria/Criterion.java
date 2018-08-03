@@ -1,12 +1,12 @@
 package com.constellio.app.ui.pages.search.criteria;
 
-import java.io.Serializable;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+
+import java.io.Serializable;
 
 public class Criterion implements Serializable, ModifiableStructure {
 	public enum BooleanOperator {AND, OR, AND_NOT}
@@ -168,10 +168,10 @@ public class Criterion implements Serializable, ModifiableStructure {
 
 	public boolean isNotEmpty() {
 		return metadataCode != null && value != null
-				|| searchOperator == SearchOperator.IS_FALSE
-				|| searchOperator == SearchOperator.IS_TRUE
-				|| searchOperator == SearchOperator.IS_NULL
-				|| searchOperator == SearchOperator.IS_NOT_NULL
+			   || searchOperator == SearchOperator.IS_FALSE
+			   || searchOperator == SearchOperator.IS_TRUE
+			   || searchOperator == SearchOperator.IS_NULL
+			   || searchOperator == SearchOperator.IS_NOT_NULL
 				;
 	}
 

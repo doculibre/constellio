@@ -1,13 +1,12 @@
 package com.constellio.model.entities.records;
 
-import java.util.List;
-import java.util.Set;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
+import org.joda.time.LocalDateTime;
+
+import java.util.List;
+import java.util.Set;
 
 public interface Content extends ModifiableStructure {
 
@@ -53,7 +52,8 @@ public interface Content extends ModifiableStructure {
 
 	Content updateContentWithName(User user, ContentVersionDataSummary newVersion, boolean finalize, String name);
 
-	Content updateContentWithVersionAndName(User user, ContentVersionDataSummary newVersion, String version, String name);
+	Content updateContentWithVersionAndName(User user, ContentVersionDataSummary newVersion, String version,
+											String name);
 
 	LocalDateTime getCheckoutDateTime();
 

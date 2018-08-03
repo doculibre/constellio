@@ -1,13 +1,12 @@
 package com.constellio.app.modules.rm.ui.accept.retentionRules;
 
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.app.ui.tools.RecordFormWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
 
 public class AddEditRetentionRulePage extends PageHelper {
 	public AddEditRetentionRulePage(ConstellioWebDriver driver) {

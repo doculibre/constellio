@@ -1,13 +1,12 @@
 package com.constellio.app.ui.tools;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ListSelectWebElement {
 	private final Select select;

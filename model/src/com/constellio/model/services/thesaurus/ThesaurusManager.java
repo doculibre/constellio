@@ -1,16 +1,5 @@
 package com.constellio.model.services.thesaurus;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.tika.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.contents.ContentDaoException;
@@ -30,6 +19,16 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.thesaurus.exception.ThesaurusInvalidFileFormat;
+import org.apache.tika.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ThesaurusManager implements StatefulService, EventBusListener {
 
@@ -62,6 +61,7 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 
 	/**
 	 * Gets Thesaurus in non persistent memory for a given collection.
+	 *
 	 * @param collection
 	 * @return
 	 */
@@ -71,6 +71,7 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 
 	/**
 	 * Sets Thesaurus in non persistent memory for a given collection.
+	 *
 	 * @param
 	 */
 	public void set(InputStream inputStream, String collection)
@@ -92,6 +93,7 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 
 	/**
 	 * Saves Thesaurus to persistent memory.
+	 *
 	 * @return true if success
 	 */
 	public boolean save() {
@@ -182,15 +184,15 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 	@Override
 	public void onEventReceived(Event event) {
 		switch (event.getType()) {
-		case INVALIDATE_THESAURUS_CACHE:
+			case INVALIDATE_THESAURUS_CACHE:
 
-			String collection = event.getData("collection");
-			byte[] thesaurusBytes = event.getData("bytes");
+				String collection = event.getData("collection");
+				byte[] thesaurusBytes = event.getData("bytes");
 
-			ThesaurusService thesaurusService = getThesaurusService(new ByteArrayInputStream(thesaurusBytes));
-			thesaurusService.setSearchEventServices(new SearchEventServices(collection, modelLayerFactory));
-			cache.put(collection, thesaurusService);
-			break;
+				ThesaurusService thesaurusService = getThesaurusService(new ByteArrayInputStream(thesaurusBytes));
+				thesaurusService.setSearchEventServices(new SearchEventServices(collection, modelLayerFactory));
+				cache.put(collection, thesaurusService);
+				break;
 		}
 	}
 }

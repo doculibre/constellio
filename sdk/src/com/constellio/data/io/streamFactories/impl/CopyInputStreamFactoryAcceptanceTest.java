@@ -1,18 +1,17 @@
 package com.constellio.data.io.streamFactories.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.InputStream;
-
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.Octets;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.utils.Octets;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.io.File;
+import java.io.InputStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CopyInputStreamFactoryAcceptanceTest extends ConstellioTest {
 

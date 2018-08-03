@@ -1,11 +1,10 @@
 package com.constellio.data.io.services.facades;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import com.constellio.data.utils.ImpossibleRuntimeException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OpenedResourcesWatcher {
 

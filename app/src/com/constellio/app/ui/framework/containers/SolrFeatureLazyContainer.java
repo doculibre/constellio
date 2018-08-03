@@ -89,7 +89,7 @@ public class SolrFeatureLazyContainer extends LazyQueryContainer {
 
 			@Override
 			public Property<?> getItemProperty(Object id) {
-				if(id == null) {
+				if (id == null) {
 					return null;
 				}
 
@@ -98,9 +98,9 @@ public class SolrFeatureLazyContainer extends LazyQueryContainer {
 						return new ItemProperty(feature.getName());
 					case "query":
 						String query = null;
-						if(!CollectionUtils.isEmpty(feature.getFq())) {
+						if (!CollectionUtils.isEmpty(feature.getFq())) {
 							query = StringUtils.join(feature.getFq(), "; ");
-						} else if(StringUtils.isNotBlank(feature.getQ())) {
+						} else if (StringUtils.isNotBlank(feature.getQ())) {
 							query = feature.getQ();
 						}
 						return new ItemProperty(query);

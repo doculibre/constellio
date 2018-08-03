@@ -32,7 +32,7 @@ public class SchemaTypeVODataProvider implements Serializable {
 	String collection;
 
 	public SchemaTypeVODataProvider(MetadataSchemaTypeToVOBuilder voBuilder, AppLayerFactory appLayerFactory,
-			String collection) {
+									String collection) {
 		this.voBuilder = voBuilder;
 		this.collection = collection;
 		init(appLayerFactory);
@@ -78,7 +78,7 @@ public class SchemaTypeVODataProvider implements Serializable {
 		Collections.sort(schemaTypes, new Comparator<MetadataSchemaTypeVO>() {
 			@Override
 			public int compare(MetadataSchemaTypeVO o1, MetadataSchemaTypeVO o2) {
-				if(o1.getLabel() == null || o2.getLabel() == null) {
+				if (o1.getLabel() == null || o2.getLabel() == null) {
 					return -1;
 				}
 				String label1 = AccentApostropheCleaner.removeAccents(o1.getLabel()).toLowerCase();

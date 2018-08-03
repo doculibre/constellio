@@ -1,8 +1,8 @@
 package com.constellio.app.client.entities;
 
-import java.util.List;
-
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+
+import java.util.List;
 
 public class GlobalGroupResource {
 

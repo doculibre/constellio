@@ -7,14 +7,14 @@ import java.util.Map;
 
 public class InvalidDateCombinationException extends BaseRestApiException {
 
-    private static final String CODE = "invalidDateCombination";
+	private static final String CODE = "invalidDateCombination";
 
-    public InvalidDateCombinationException(String startDate, String endDate) {
-        status = Response.Status.BAD_REQUEST;
+	public InvalidDateCombinationException(String startDate, String endDate) {
+		status = Response.Status.BAD_REQUEST;
 
-        Map<String, Object> parameters = Maps.newHashMap();
-        parameters.put("start", startDate);
-        parameters.put("end", endDate);
-        buildValidationError(CODE, parameters);
-    }
+		Map<String, Object> parameters = Maps.newHashMap();
+		parameters.put("start", startDate);
+		parameters.put("end", endDate);
+		buildValidationError(CODE, parameters);
+	}
 }

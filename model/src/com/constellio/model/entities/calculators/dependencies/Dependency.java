@@ -1,8 +1,8 @@
 package com.constellio.model.entities.calculators.dependencies;
 
-import java.io.Serializable;
-
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.io.Serializable;
 
 public interface Dependency extends Serializable {
 

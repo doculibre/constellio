@@ -1,12 +1,5 @@
 package com.constellio.model.services.reports;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Report;
@@ -24,205 +17,212 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.users.UserServicesRuntimeException;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+
 public class ReportServices {
-    private final MetadataSchema reportSchema;
-    private final String collection;
-    SearchServices searchServices;
-    RecordServices recordServices;
-    private ModelLayerFactory modelLayerFactory;
+	private final MetadataSchema reportSchema;
+	private final String collection;
+	SearchServices searchServices;
+	RecordServices recordServices;
+	private ModelLayerFactory modelLayerFactory;
 
-    public ReportServices(ModelLayerFactory modelLayerFactory, String collection) {
-        this.searchServices = modelLayerFactory.newSearchServices();
-        this.recordServices = modelLayerFactory.newRecordServices();
-        this.modelLayerFactory = modelLayerFactory;
-        this.collection = collection;
-        MetadataSchemaTypes schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-        reportSchema = schemaTypes.getSchema(Report.DEFAULT_SCHEMA);
-    }
+	public ReportServices(ModelLayerFactory modelLayerFactory, String collection) {
+		this.searchServices = modelLayerFactory.newSearchServices();
+		this.recordServices = modelLayerFactory.newRecordServices();
+		this.modelLayerFactory = modelLayerFactory;
+		this.collection = collection;
+		MetadataSchemaTypes schemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		reportSchema = schemaTypes.getSchema(Report.DEFAULT_SCHEMA);
+	}
 
-    public void deleteReport(User user, Report report) {
-        String reportUsername = report.getUsername();
-        if (user.getUsername().equals(reportUsername)) {
-            delete(report, user);
-        } else {
-            if (report.getUsername() == null || hasReportManagementPermission(user)
-                    && recordServices.isLogicallyThenPhysicallyDeletable(report.getWrappedRecord(), user)) {
-                delete(report, user);
-            } else {
-                throw new CouldNotDeleteSomeoneElseReportRuntimeException(report.getUsername() + "!=" + user.getUsername());
-            }
-        }
-    }
+	public void deleteReport(User user, Report report) {
+		String reportUsername = report.getUsername();
+		if (user.getUsername().equals(reportUsername)) {
+			delete(report, user);
+		} else {
+			if (report.getUsername() == null || hasReportManagementPermission(user)
+												&& recordServices.isLogicallyThenPhysicallyDeletable(report.getWrappedRecord(), user)) {
+				delete(report, user);
+			} else {
+				throw new CouldNotDeleteSomeoneElseReportRuntimeException(report.getUsername() + "!=" + user.getUsername());
+			}
+		}
+	}
 
-    public void saveReport(User user, Report report) {
-        String reportUsername = report.getUsername();
-        if (user.getUsername().equals(reportUsername)) {
-            addUpdate(report);
-        } else {
-            if (report.getUsername() == null || hasReportManagementPermission(user)) {
-                addUpdate(report);
-            } else {
-                throw new CouldNotModifySomeoneElseReportRuntimeException(report.getUsername() + "!=" + user.getUsername());
-            }
-        }
-    }
+	public void saveReport(User user, Report report) {
+		String reportUsername = report.getUsername();
+		if (user.getUsername().equals(reportUsername)) {
+			addUpdate(report);
+		} else {
+			if (report.getUsername() == null || hasReportManagementPermission(user)) {
+				addUpdate(report);
+			} else {
+				throw new CouldNotModifySomeoneElseReportRuntimeException(report.getUsername() + "!=" + user.getUsername());
+			}
+		}
+	}
 
-    private boolean hasReportManagementPermission(User user) {
-        //TODO
-        return true;
-    }
+	private boolean hasReportManagementPermission(User user) {
+		//TODO
+		return true;
+	}
 
-    public List<Report> getUserReports(User user, String schemaTypeCode) {
-        Metadata schemaTypeCodeMetadata = reportSchema.getMetadata(Report.SCHEMA_TYPE_CODE);
-        Metadata userMetaData = reportSchema.getMetadata(Report.USERNAME);
-        LogicalSearchQuery query = new LogicalSearchQuery();
-        String username = null;
-        if (user != null) {
-            username = user.getUsername();
-        }
-        query.setCondition(
-                from(reportSchema).where(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode)
-                        .andWhere(userMetaData).isEqualTo(username));
-        List<Record> results = searchServices.search(query);
-        return wrapReports(results);
-    }
+	public List<Report> getUserReports(User user, String schemaTypeCode) {
+		Metadata schemaTypeCodeMetadata = reportSchema.getMetadata(Report.SCHEMA_TYPE_CODE);
+		Metadata userMetaData = reportSchema.getMetadata(Report.USERNAME);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		String username = null;
+		if (user != null) {
+			username = user.getUsername();
+		}
+		query.setCondition(
+				from(reportSchema).where(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode)
+						.andWhere(userMetaData).isEqualTo(username));
+		List<Record> results = searchServices.search(query);
+		return wrapReports(results);
+	}
 
-    private List<Report> wrapReports(List<Record> records) {
-        List<Report> reports = new ArrayList<>();
-        for (Record record : records) {
-            reports.add(new Report(record, modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)));
-        }
-        return reports;
-    }
+	private List<Report> wrapReports(List<Record> records) {
+		List<Report> reports = new ArrayList<>();
+		for (Record record : records) {
+			reports.add(new Report(record, modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)));
+		}
+		return reports;
+	}
 
-    public Report getReport(String schemaTypeCode, String reportTitle) {
-        return getUserReport(null, schemaTypeCode, reportTitle);
-    }
+	public Report getReport(String schemaTypeCode, String reportTitle) {
+		return getUserReport(null, schemaTypeCode, reportTitle);
+	}
 
-    public Report getUserReport(String username, String schemaTypeCode, String reportTitle) {
-        Metadata schemaTypeCodeMetadata = reportSchema.getMetadata(Report.SCHEMA_TYPE_CODE);
-        Metadata userMetadata = reportSchema.getMetadata(Report.USERNAME);
-        Metadata titleMetaData = Schemas.TITLE;
-        LogicalSearchQuery query = new LogicalSearchQuery();
-        if (username != null) {
-            query.setCondition(from(reportSchema)
-                    .where(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode)
-                    .andWhere(userMetadata).isEqualTo(username)
-                    .andWhere(titleMetaData).isEqualTo(reportTitle));
-        } else {
-            query.setCondition(from(reportSchema)
-                    .where(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode)
-                    .andWhere(userMetadata).isNull()
-                    .andWhere(titleMetaData).isEqualTo(reportTitle));
-        }
+	public Report getUserReport(String username, String schemaTypeCode, String reportTitle) {
+		Metadata schemaTypeCodeMetadata = reportSchema.getMetadata(Report.SCHEMA_TYPE_CODE);
+		Metadata userMetadata = reportSchema.getMetadata(Report.USERNAME);
+		Metadata titleMetaData = Schemas.TITLE;
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		if (username != null) {
+			query.setCondition(from(reportSchema)
+					.where(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode)
+					.andWhere(userMetadata).isEqualTo(username)
+					.andWhere(titleMetaData).isEqualTo(reportTitle));
+		} else {
+			query.setCondition(from(reportSchema)
+					.where(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode)
+					.andWhere(userMetadata).isNull()
+					.andWhere(titleMetaData).isEqualTo(reportTitle));
+		}
 
-        long count = searchServices.getResultsCount(query);
-        if (count == 0) {
-            if (username == null) {
-                return null;
-            } else {
-                query.setCondition(from(reportSchema)
-                        .where(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode)
-                        .andWhere(userMetadata).isNull()
-                        .andWhere(titleMetaData).isEqualTo(reportTitle));
-                if (searchServices.getResultsCount(query) == 0) {
-                    return null;
-                }
-            }
-        }
-        List<Record> results = searchServices.search(query);
-        return new Report(results.get(0), modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
-    }
+		long count = searchServices.getResultsCount(query);
+		if (count == 0) {
+			if (username == null) {
+				return null;
+			} else {
+				query.setCondition(from(reportSchema)
+						.where(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode)
+						.andWhere(userMetadata).isNull()
+						.andWhere(titleMetaData).isEqualTo(reportTitle));
+				if (searchServices.getResultsCount(query) == 0) {
+					return null;
+				}
+			}
+		}
+		List<Record> results = searchServices.search(query);
+		return new Report(results.get(0), modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection));
+	}
 
-    public List<Report> getReports(String schemaTypeCode) {
-        Metadata schemaTypeCodeMetadata = reportSchema.getMetadata(Report.SCHEMA_TYPE_CODE);
-        Metadata userMetadata = reportSchema.getMetadata(Report.USERNAME);
-        LogicalSearchQuery query = new LogicalSearchQuery();
-        query.setCondition(from(reportSchema)
-                .where(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode)
-                .andWhere(userMetadata).isNull());
-        long count = searchServices.getResultsCount(query);
-        if (count == 0) {
-            return new ArrayList<>();
-        } else {
-            List<Record> results = searchServices.search(query);
-            MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-            return warpReports(results, types);
-        }
-    }
+	public List<Report> getReports(String schemaTypeCode) {
+		Metadata schemaTypeCodeMetadata = reportSchema.getMetadata(Report.SCHEMA_TYPE_CODE);
+		Metadata userMetadata = reportSchema.getMetadata(Report.USERNAME);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		query.setCondition(from(reportSchema)
+				.where(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode)
+				.andWhere(userMetadata).isNull());
+		long count = searchServices.getResultsCount(query);
+		if (count == 0) {
+			return new ArrayList<>();
+		} else {
+			List<Record> results = searchServices.search(query);
+			MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			return warpReports(results, types);
+		}
+	}
 
-    public Record getRecordById(String id) {
-      return searchServices.searchSingleResult(from(reportSchema)
-              .where(Schemas.IDENTIFIER).isEqualTo(id));
-    }
+	public Record getRecordById(String id) {
+		return searchServices.searchSingleResult(from(reportSchema)
+				.where(Schemas.IDENTIFIER).isEqualTo(id));
+	}
 
-    public Report getReportById(String id) {
-        return wrapReports(Collections.singletonList(getRecordById(id))).get(0);
-    }
+	public Report getReportById(String id) {
+		return wrapReports(Collections.singletonList(getRecordById(id))).get(0);
+	}
 
-    private List<Report> warpReports(List<Record> results, MetadataSchemaTypes types) {
-        List<Report> returnList = new ArrayList<>();
-        for (Record record : results) {
-            returnList.add(new Report(record, types));
-        }
-        return returnList;
-    }
+	private List<Report> warpReports(List<Record> results, MetadataSchemaTypes types) {
+		List<Report> returnList = new ArrayList<>();
+		for (Record record : results) {
+			returnList.add(new Report(record, types));
+		}
+		return returnList;
+	}
 
-    public void delete(Report report, User user) {
-        recordServices.logicallyDelete(report.getWrappedRecord(), user);
-        recordServices.physicallyDelete(report.getWrappedRecord(), user);
-    }
+	public void delete(Report report, User user) {
+		recordServices.logicallyDelete(report.getWrappedRecord(), user);
+		recordServices.physicallyDelete(report.getWrappedRecord(), user);
+	}
 
-    public void addUpdate(Report report) {
-        Transaction transaction = new Transaction();
-        transaction.add(report);
-        try {
-            recordServices.execute(transaction);
-        } catch (RecordServicesException e) {
-            throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction(e);
-        }
-    }
+	public void addUpdate(Report report) {
+		Transaction transaction = new Transaction();
+		transaction.add(report);
+		try {
+			recordServices.execute(transaction);
+		} catch (RecordServicesException e) {
+			throw new UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction(e);
+		}
+	}
 
-    public List<String> getUserReportTitles(User user, String schemaTypeCode) {
-        List<String> returnList = new ArrayList<>();
-        Metadata schemaTypeCodeMetadata = reportSchema.getMetadata(Report.SCHEMA_TYPE_CODE);
-        Metadata userMetadata = reportSchema.getMetadata(Report.USERNAME);
-        Metadata titleMetaData = reportSchema.getMetadata(Report.TITLE);
-        LogicalSearchQuery query = new LogicalSearchQuery();
-        LogicalSearchCondition withUserNameOrWithNull;
-        if (user != null) {
-            withUserNameOrWithNull = where(userMetadata).isEqualTo(user.getUsername()).orWhere(userMetadata).isNull();
-        } else {
-            withUserNameOrWithNull = where(userMetadata).isNull();
-        }
-        query.setCondition(
-                from(reportSchema).where(withUserNameOrWithNull).andWhere(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode));
+	public List<String> getUserReportTitles(User user, String schemaTypeCode) {
+		List<String> returnList = new ArrayList<>();
+		Metadata schemaTypeCodeMetadata = reportSchema.getMetadata(Report.SCHEMA_TYPE_CODE);
+		Metadata userMetadata = reportSchema.getMetadata(Report.USERNAME);
+		Metadata titleMetaData = reportSchema.getMetadata(Report.TITLE);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		LogicalSearchCondition withUserNameOrWithNull;
+		if (user != null) {
+			withUserNameOrWithNull = where(userMetadata).isEqualTo(user.getUsername()).orWhere(userMetadata).isNull();
+		} else {
+			withUserNameOrWithNull = where(userMetadata).isNull();
+		}
+		query.setCondition(
+				from(reportSchema).where(withUserNameOrWithNull).andWhere(schemaTypeCodeMetadata).isEqualTo(schemaTypeCode));
 
-        long count = searchServices.getResultsCount(query);
-        if (count == 0) {
-            return returnList;
-        }
-        query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchemaTitle());
-        List<Record> results = searchServices.search(query);
-        if (results == null || results.isEmpty()) {
-            return returnList;
-        }
-        for (Record record : results) {
-            String reportTitle = record.get(titleMetaData);
-            returnList.add(reportTitle);
-        }
-        return returnList;
-    }
+		long count = searchServices.getResultsCount(query);
+		if (count == 0) {
+			return returnList;
+		}
+		query.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchemaTitle());
+		List<Record> results = searchServices.search(query);
+		if (results == null || results.isEmpty()) {
+			return returnList;
+		}
+		for (Record record : results) {
+			String reportTitle = record.get(titleMetaData);
+			returnList.add(reportTitle);
+		}
+		return returnList;
+	}
 
-    private class CouldNotModifySomeoneElseReportRuntimeException extends RuntimeException {
-        public CouldNotModifySomeoneElseReportRuntimeException(String message) {
-            super(message);
-        }
-    }
+	private class CouldNotModifySomeoneElseReportRuntimeException extends RuntimeException {
+		public CouldNotModifySomeoneElseReportRuntimeException(String message) {
+			super(message);
+		}
+	}
 
-    private class CouldNotDeleteSomeoneElseReportRuntimeException extends RuntimeException {
-        public CouldNotDeleteSomeoneElseReportRuntimeException(String message) {
-            super(message);
-        }
-    }
+	private class CouldNotDeleteSomeoneElseReportRuntimeException extends RuntimeException {
+		public CouldNotDeleteSomeoneElseReportRuntimeException(String message) {
+			super(message);
+		}
+	}
 }

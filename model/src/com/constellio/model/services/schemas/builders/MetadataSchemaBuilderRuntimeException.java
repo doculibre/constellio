@@ -1,9 +1,9 @@
 package com.constellio.model.services.schemas.builders;
 
+import com.constellio.model.utils.DependencyUtilsRuntimeException;
+
 import java.util.Collections;
 import java.util.List;
-
-import com.constellio.model.utils.DependencyUtilsRuntimeException;
 
 @SuppressWarnings("serial")
 public class MetadataSchemaBuilderRuntimeException extends RuntimeException {

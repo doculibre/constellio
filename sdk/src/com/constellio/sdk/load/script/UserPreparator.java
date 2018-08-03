@@ -1,9 +1,9 @@
 package com.constellio.sdk.load.script;
 
-import java.util.List;
-
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
+
+import java.util.List;
 
 public interface UserPreparator {
 

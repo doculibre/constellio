@@ -1,9 +1,9 @@
 package com.constellio.model.entities.security.global;
 
+import org.joda.time.LocalDateTime;
+
 import java.util.List;
 import java.util.Map;
-
-import org.joda.time.LocalDateTime;
 
 public interface UserCredential {
 	String getUsername();

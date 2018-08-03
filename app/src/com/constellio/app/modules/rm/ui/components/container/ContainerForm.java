@@ -1,8 +1,8 @@
 package com.constellio.app.modules.rm.ui.components.container;
 
-import java.io.Serializable;
-
 import com.vaadin.ui.Field;
+
+import java.io.Serializable;
 
 /**
  * Created by Constellio on 2017-01-11.

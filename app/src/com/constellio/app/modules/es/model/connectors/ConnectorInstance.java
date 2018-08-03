@@ -1,13 +1,5 @@
 package com.constellio.app.modules.es.model.connectors;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
 import com.constellio.app.modules.es.model.connectors.structures.TraversalSchedule;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.data.utils.TimeProvider;
@@ -16,6 +8,13 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class ConnectorInstance<T extends ConnectorInstance> extends RecordWrapper {
 
@@ -168,7 +167,7 @@ public class ConnectorInstance<T extends ConnectorInstance> extends RecordWrappe
 				LocalDateTime startTime = formatter.parseLocalDateTime(schedule.getStartTime());
 				LocalDateTime endTime = formatter.parseLocalDateTime(schedule.getEndTime());
 				if (startTime.getHourOfDay() == 0 && startTime.getMinuteOfHour() == 0 && endTime.getHourOfDay() == 0
-						&& endTime.getMinuteOfHour() == 0) {
+					&& endTime.getMinuteOfHour() == 0) {
 					return true;
 				} else if (startTimeBeforeCurrentTime(startTime, currentTime) && endTimeAfterCurrentTime(endTime, currentTime)) {
 					return true;

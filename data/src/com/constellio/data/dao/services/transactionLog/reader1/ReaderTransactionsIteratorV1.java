@@ -1,15 +1,5 @@
 package com.constellio.data.dao.services.transactionLog.reader1;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.SolrInputDocument;
-
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
@@ -21,6 +11,10 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRunti
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LazyIterator;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.SolrInputDocument;
+
+import java.util.*;
 
 public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTransaction> {
 
@@ -29,7 +23,7 @@ public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTra
 	DataLayerConfiguration configuration;
 
 	public ReaderTransactionsIteratorV1(String fileName, Iterator<List<String>> transactionLinesIterator,
-			DataLayerConfiguration configuration) {
+										DataLayerConfiguration configuration) {
 		this.fileName = fileName;
 		this.transactionLinesIterator = transactionLinesIterator;
 		this.configuration = configuration;
@@ -103,7 +97,8 @@ public class ReaderTransactionsIteratorV1 extends LazyIterator<BigVaultServerTra
 		transaction.getDeletedRecords().addAll(ids);
 	}
 
-	protected void handleAddUpdateLine(BigVaultServerTransaction transaction, List<String> currentAddUpdateLines, String firstLine) {
+	protected void handleAddUpdateLine(BigVaultServerTransaction transaction, List<String> currentAddUpdateLines,
+									   String firstLine) {
 		String[] firstLineParts = firstLine.split(" ");
 		if (firstLineParts.length != 3) {
 			throw new ImpossibleRuntimeException("Unsupported first line '" + firstLine + "'");

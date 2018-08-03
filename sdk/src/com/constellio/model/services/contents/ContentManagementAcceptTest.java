@@ -1,42 +1,12 @@
 package com.constellio.model.services.contents;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static com.constellio.model.services.contents.ContentFactory.isCheckedOutBy;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import com.constellio.model.entities.Language;
-import org.apache.commons.io.IOUtils;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.assertj.core.api.Condition;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Content;
@@ -48,12 +18,7 @@ import com.constellio.model.entities.records.wrappers.UserPermissionsChecker;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_CannotDeleteLastVersion;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustBeCheckedOut;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_ContentMustNotBeCheckedOut;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_InvalidArgument;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_UserHasNoDeleteVersionPermission;
-import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion;
+import com.constellio.model.services.contents.ContentImplRuntimeException.*;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoPreview;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
@@ -72,6 +37,33 @@ import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.apache.commons.io.IOUtils;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.assertj.core.api.Condition;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.model.services.contents.ContentFactory.isCheckedOutBy;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 public class ContentManagementAcceptTest extends ConstellioTest {
 
@@ -1743,7 +1735,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			@Override
 			public boolean matches(Content value) {
 				return value.getCheckoutUserId() == null && value.getCheckoutDateTime() == null
-						&& value.getCurrentCheckedOutVersion() == null;
+					   && value.getCurrentCheckedOutVersion() == null;
 			}
 		}.describedAs("notCheckedOut()");
 	}
@@ -2142,7 +2134,7 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		}
 
 		public RecordPreparation hasItsContentUpdatedAndFinalized(User alice,
-				ContentVersionDataSummary contentVersionDataSummary) {
+																  ContentVersionDataSummary contentVersionDataSummary) {
 			Content content = record.get(zeSchema.contentMetadata());
 			content.updateContent(alice, contentVersionDataSummary, true);
 			return this;
@@ -2154,21 +2146,24 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 			return this;
 		}
 
-		public RecordPreparation hasItsContentUpdatedWithName(User alice, ContentVersionDataSummary contentVersionDataSummary,
-				String name) {
+		public RecordPreparation hasItsContentUpdatedWithName(User alice,
+															  ContentVersionDataSummary contentVersionDataSummary,
+															  String name) {
 			Content content = record.get(zeSchema.contentMetadata());
 			content.updateContentWithName(alice, contentVersionDataSummary, false, name);
 			return this;
 		}
 
 		public RecordPreparation hasItsContentUpdatedWithVersionAndName(User alice,
-				ContentVersionDataSummary contentVersionDataSummary, String version, String name) {
+																		ContentVersionDataSummary contentVersionDataSummary,
+																		String version, String name) {
 			Content content = record.get(zeSchema.contentMetadata());
 			content.updateContentWithVersionAndName(alice, contentVersionDataSummary, version, name);
 			return this;
 		}
 
-		public RecordPreparation hasItsCheckedOutContentUpdatedWith(ContentVersionDataSummary contentVersionDataSummary) {
+		public RecordPreparation hasItsCheckedOutContentUpdatedWith(
+				ContentVersionDataSummary contentVersionDataSummary) {
 			Content content = record.get(zeSchema.contentMetadata());
 			content.updateCheckedOutContent(contentVersionDataSummary);
 			return this;
@@ -2211,13 +2206,14 @@ public class ContentManagementAcceptTest extends ConstellioTest {
 		}
 
 		public RecordPreparation contentCheckedInAsMinorWithNewName(ContentVersionDataSummary contentVersionDataSummary,
-				String newName) {
+																	String newName) {
 			Content content = record.get(zeSchema.contentMetadata());
 			content.checkInWithModificationAndName(contentVersionDataSummary, false, newName);
 			return this;
 		}
 
-		public RecordPreparation contentCheckedInAsSameVersionWithNewName(ContentVersionDataSummary contentVersionDataSummary,
+		public RecordPreparation contentCheckedInAsSameVersionWithNewName(
+				ContentVersionDataSummary contentVersionDataSummary,
 				String newName) {
 			Content content = record.get(zeSchema.contentMetadata());
 			content.checkInWithModificationAndNameInSameVersion(contentVersionDataSummary, newName);

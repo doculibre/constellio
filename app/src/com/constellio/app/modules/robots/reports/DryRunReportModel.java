@@ -1,9 +1,9 @@
 package com.constellio.app.modules.robots.reports;
 
+import org.apache.commons.collections.CollectionUtils;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.collections.CollectionUtils;
 
 public class DryRunReportModel {
 	private final List<List<String>> results = new ArrayList<>();

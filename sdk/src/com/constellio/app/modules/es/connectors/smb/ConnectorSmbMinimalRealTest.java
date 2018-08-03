@@ -1,21 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import jcifs.smb.NtlmPasswordAuthentication;
-
-import org.assertj.core.groups.Tuple;
-import org.joda.time.Duration;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommand;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory.SmbTestCommandType;
@@ -37,6 +21,20 @@ import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import jcifs.smb.NtlmPasswordAuthentication;
+import org.assertj.core.groups.Tuple;
+import org.joda.time.Duration;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 @InDevelopmentTest
 //TODO Activate test
@@ -379,11 +377,11 @@ public class ConnectorSmbMinimalRealTest extends ConstellioTest {
 	}
 
 	private String[] getDocumentFields() {
-		return new String[] { ConnectorSmbDocument.URL, ConnectorSmbDocument.PARSED_CONTENT, ConnectorDocument.FETCHED };
+		return new String[]{ConnectorSmbDocument.URL, ConnectorSmbDocument.PARSED_CONTENT, ConnectorDocument.FETCHED};
 	}
 
 	private String[] getFolderFields() {
-		return new String[] { ConnectorSmbFolder.URL, ConnectorDocument.FETCHED };
+		return new String[]{ConnectorSmbFolder.URL, ConnectorDocument.FETCHED};
 	}
 
 	private Tuple getFetchedFileTuple() {

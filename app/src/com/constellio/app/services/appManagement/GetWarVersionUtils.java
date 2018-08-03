@@ -1,12 +1,11 @@
 package com.constellio.app.services.appManagement;
 
-import java.io.File;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.utils.GradleFileVersionParser;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorRuntimeException;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.File;
 
 public class GetWarVersionUtils {
 

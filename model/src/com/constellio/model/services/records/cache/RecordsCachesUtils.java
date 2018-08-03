@@ -24,18 +24,18 @@ public class RecordsCachesUtils {
 
 	public static boolean hasNoUnsupportedFeatureOrFilter(LogicalSearchQuery query, boolean onlyIds) {
 		return query.getFacetFilters().toSolrFilterQueries().isEmpty()
-				&& query.getFieldBoosts().isEmpty()
-				&& query.getQueryBoosts().isEmpty()
-				&& query.getStartRow() == 0
-				&& query.getNumberOfRows() == 100000
-				&& query.getStatisticFields().isEmpty()
-				&& !query.isPreferAnalyzedFields()
-				&& query.getResultsProjection() == null
-				&& query.getFieldFacets().isEmpty()
-				&& query.getQueryFacets().isEmpty()
-				&& (query.getReturnedMetadatas().isFullyLoaded() || onlyIds)
-				&& (query.getUserFilters() == null || query.getUserFilters().isEmpty())
-				&& !query.isHighlighting();
+			   && query.getFieldBoosts().isEmpty()
+			   && query.getQueryBoosts().isEmpty()
+			   && query.getStartRow() == 0
+			   && query.getNumberOfRows() == 100000
+			   && query.getStatisticFields().isEmpty()
+			   && !query.isPreferAnalyzedFields()
+			   && query.getResultsProjection() == null
+			   && query.getFieldFacets().isEmpty()
+			   && query.getQueryFacets().isEmpty()
+			   && (query.getReturnedMetadatas().isFullyLoaded() || onlyIds)
+			   && (query.getUserFilters() == null || query.getUserFilters().isEmpty())
+			   && !query.isHighlighting();
 	}
 
 	public static Record prepareRecordForCacheInsert(Record insertedRecord, CacheConfig cacheConfig) {

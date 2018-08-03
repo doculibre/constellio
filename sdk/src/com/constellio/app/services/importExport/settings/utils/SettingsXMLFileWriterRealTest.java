@@ -3,7 +3,6 @@ package com.constellio.app.services.importExport.settings.utils;
 import com.constellio.app.services.importExport.settings.SettingsImportServicesTestUtils;
 import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
-
 import com.constellio.model.entities.Language;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -190,7 +189,7 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 
 		Element ddv1Elem = valueListsItems.get(0);
 		assertThat(ddv1Elem.getAttributeValue(CODE)).isEqualTo("ddvUSRvl1");
-		assertThat(ddv1Elem.getAttributeValue(TITLE + Language.French.getCode()) ).isEqualTo("domaine1");
+		assertThat(ddv1Elem.getAttributeValue(TITLE + Language.French.getCode())).isEqualTo("domaine1");
 		assertThat(ddv1Elem.getAttributeValue(CLASSIFIED_TYPES)).isEqualTo("document,folder");
 		assertThat(ddv1Elem.getAttributeValue("codeMode")).isEqualTo("DISABLED");
 	}
@@ -368,8 +367,8 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
 		String pattern = "## This is a comment on the first line\n"
-				+ "'Prefixe ' + title+ ' Suffixe'\n"
-				+ "## This is a comment on the last line";
+						 + "'Prefixe ' + title+ ' Suffixe'\n"
+						 + "## This is a comment on the last line";
 
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
 				.setType("STRING")

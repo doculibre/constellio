@@ -1,7 +1,5 @@
 package com.constellio.app.ui.acceptation.management.schemas;
 
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.pages.management.schemas.ListSchemaTypeViewImpl;
 import com.constellio.app.ui.tools.PageHelper;
@@ -9,6 +7,7 @@ import com.constellio.app.ui.tools.RecordContainerWebElement;
 import com.constellio.app.ui.tools.RecordContainerWebElement.RecordContainerWebElementRow;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
 
 public class SchemaTypePage extends PageHelper {
 	public static final int TITLE_COLUMN = 0;

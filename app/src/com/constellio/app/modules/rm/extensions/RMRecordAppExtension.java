@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
@@ -23,9 +20,11 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class RMRecordAppExtension extends RecordAppExtension {
-	
+
 	private static final String IMAGES_DIR = "images";
 
 	private final String collection;
@@ -85,7 +84,8 @@ public class RMRecordAppExtension extends RecordAppExtension {
 		}
 	}
 
-	private void setNiceTitle(RecordVO recordVO, Record record, String schemaTypeCode, String schemaCode, String metadataCode) {
+	private void setNiceTitle(RecordVO recordVO, Record record, String schemaTypeCode, String schemaCode,
+							  String metadataCode) {
 		Metadata metadata = types().getSchemaType(schemaTypeCode).getSchema(schemaCode).getMetadata(metadataCode);
 		String niceTitle = record.get(metadata);
 		if (niceTitle != null) {
@@ -108,7 +108,7 @@ public class RMRecordAppExtension extends RecordAppExtension {
 			} else {
 				fileName = "document";
 			}
-			
+
 			if (fileName == null || !isIcon(fileName)) {
 				String mimeType = document.getMimeType();
 				if (mimeType != null && !mimeType.isEmpty()) {
@@ -151,7 +151,7 @@ public class RMRecordAppExtension extends RecordAppExtension {
 	private String getFolderIconPath() {
 		return IMAGES_DIR + "/icons/folder/folder.png";
 	}
-	
+
 	private boolean isIcon(String filename) {
 		String extension = FilenameUtils.getExtension(filename);
 		String path = IMAGES_DIR + "/icons/ext/mantis/" + extension + ".gif";

@@ -1,19 +1,5 @@
 package com.constellio.app.modules.rm.services.reports.label;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.*;
-
-import com.constellio.app.ui.application.ConstellioUI;
-import org.apache.commons.lang.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
@@ -34,6 +20,18 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.commons.lang.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.*;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 /**
  * Class that creates the XML for the labels.
@@ -73,14 +71,16 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 		this.metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
 	}
 
-	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory,Locale locale, Record... recordElements) {
+	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale,
+							 Record... recordElements) {
 		this(collection, appLayerFactory, locale);
 		this.setElements(recordElements);
 	}
 
-	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory,Locale locale, int startingPosition, int numberOfCopies,
-			Record... recordElements) {
-		this(collection, appLayerFactory,locale, recordElements);
+	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale, int startingPosition,
+							 int numberOfCopies,
+							 Record... recordElements) {
+		this(collection, appLayerFactory, locale, recordElements);
 		this.startingPosition = startingPosition;
 		this.numberOfCopies = numberOfCopies;
 	}
@@ -170,6 +170,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 
 	/**
 	 * Method that will fill the empty tags to make sure JasperSoft correctly read them.
+	 *
 	 * @param originalElements element to check if empty
 	 * @return
 	 */
@@ -270,8 +271,8 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 
 	List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement) {
 		List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ?
-				recordElement.<String>getList(metadata) :
-				Collections.singletonList(recordElement.<String>get(metadata));
+													 recordElement.<String>getList(metadata) :
+													 Collections.singletonList(recordElement.<String>get(metadata));
 		List<Record> listOfRecordReferencedByMetadata = recordServices
 				.getRecordsById(this.collection, listOfIdsReferencedByMetadata);
 		List<Element> listOfMetadataTags = new ArrayList<>();
@@ -293,9 +294,9 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 			if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE
 					.equals(recordReferenced.getTypeCode())) {
 				Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ?
-						metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema()
-								.get(AdministrativeUnit.PARENT) :
-						metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
+										  metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema()
+												  .get(AdministrativeUnit.PARENT) :
+										  metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
 				String parentMetadataId = recordReferenced.get(parentMetadata);
 				if (parentMetadataId != null) {
 					Record parentRecord = recordServices.getDocumentById(parentMetadataId);
@@ -372,8 +373,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 	}
 
 	/**
-	 * @deprecated
-	 * use toString()
+	 * @deprecated use toString()
 	 */
 	private String converteInstanceToString(Object metadataValue) {
 		if (metadataValue instanceof List) {

@@ -1,16 +1,15 @@
 package com.constellio.app.services.migrations;
 
-import static org.mockito.Mockito.when;
+import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+import org.mockito.Mock;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.mockito.Mockito.when;
 
 public class ModuleMigrationScriptsComparatorTest extends ConstellioTest {
 

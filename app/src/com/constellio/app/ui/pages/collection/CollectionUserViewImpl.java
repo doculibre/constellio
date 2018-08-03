@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.collection;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AuthorizationsButton;
@@ -21,6 +15,11 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CollectionUserViewImpl extends BaseViewImpl implements CollectionUserView {
 	public static final String COMPUTED_USER_ROLES = User.DEFAULT_SCHEMA + "_" + User.ALL_ROLES;
@@ -94,12 +93,12 @@ public class CollectionUserViewImpl extends BaseViewImpl implements CollectionUs
 		@Override
 		public Component buildSingleValue(RecordVO recordVO, MetadataVO metadata, Object displayValue) {
 			switch (metadata.getCode()) {
-			case COMPUTED_USER_ROLES:
-				return new Label(presenter.getRoleTitle((String) displayValue));
-			case USER_ROLES:
-				return null;
-			default:
-				return super.buildSingleValue(recordVO, metadata, displayValue);
+				case COMPUTED_USER_ROLES:
+					return new Label(presenter.getRoleTitle((String) displayValue));
+				case USER_ROLES:
+					return null;
+				default:
+					return super.buildSingleValue(recordVO, metadata, displayValue);
 			}
 		}
 	}

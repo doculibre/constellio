@@ -1,15 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.actions;
 
-import static com.constellio.app.ui.i18n.i18n.asListOfMessages;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyConnectorRecordInTaxonomyExecutor;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -24,6 +14,15 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.asListOfMessages;
 
 public abstract class ClassifyConnectorFolderBaseActionExecutor implements ActionExecutor {
 
@@ -37,7 +36,7 @@ public abstract class ClassifyConnectorFolderBaseActionExecutor implements Actio
 
 	@Override
 	public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-			List<Record> records, List<Record> processedRecords, boolean dryRun) {
+							   List<Record> records, List<Record> processedRecords, boolean dryRun) {
 		Transaction transaction = new Transaction();
 		String collection = actionParameters.getCollection();
 		RobotSchemaRecordServices robots = new RobotSchemaRecordServices(collection, appLayerFactory);

@@ -29,185 +29,185 @@ import static org.mockito.Mockito.when;
 
 public class StorageSpaceLinearSizeCalculatorAcceptanceTest extends ConstellioTest {
 
-    RMTestRecords records = new RMTestRecords(zeCollection);
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
-    StorageSpaceLinearSizeCalculator calculator;
+	StorageSpaceLinearSizeCalculator calculator;
 
-    RMSchemasRecordsServices rm;
+	RMSchemasRecordsServices rm;
 
-    RecordServices recordServices;
+	RecordServices recordServices;
 
-    SearchServices searchServices;
+	SearchServices searchServices;
 
-    @Mock
-    CalculatorParameters parameters;
+	@Mock
+	CalculatorParameters parameters;
 
-    @Before
-    public void setUp() throws RecordServicesException {
-        calculator = spy(new StorageSpaceLinearSizeCalculator());
-        prepareSystem(
-                withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
-        );
+	@Before
+	public void setUp() throws RecordServicesException {
+		calculator = spy(new StorageSpaceLinearSizeCalculator());
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
+		);
 
-        rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-        recordServices = getModelLayerFactory().newRecordServices();
-        searchServices = getModelLayerFactory().newSearchServices();
-        recordServices.add(buildDefaultContainerType());
-    }
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		searchServices = getModelLayerFactory().newSearchServices();
+		recordServices.add(buildDefaultContainerType());
+	}
 
-    @Test
-    public void givenParametersThenCalculatorReturnsGoodValue() {
-        givenDisabledAfterTestValidations();
-        when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(new Double(5));
+	@Test
+	public void givenParametersThenCalculatorReturnsGoodValue() {
+		givenDisabledAfterTestValidations();
+		when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(new Double(5));
 
-        assertThat(calculator.calculate(parameters)).isEqualTo(5);
+		assertThat(calculator.calculate(parameters)).isEqualTo(5);
 
-        when(parameters.get(calculator.linearSizeSumParam)).thenReturn(new Double(9001));
+		when(parameters.get(calculator.linearSizeSumParam)).thenReturn(new Double(9001));
 
-        assertThat(calculator.calculate(parameters)).isEqualTo(5);
+		assertThat(calculator.calculate(parameters)).isEqualTo(5);
 
-        when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(null);
+		when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(null);
 
-        assertThat(calculator.calculate(parameters)).isEqualTo(9001);
+		assertThat(calculator.calculate(parameters)).isEqualTo(9001);
 
-        when(parameters.get(calculator.linearSizeSumParam)).thenReturn(null);
+		when(parameters.get(calculator.linearSizeSumParam)).thenReturn(null);
 
-        assertThat(calculator.calculate(parameters)).isNull();
+		assertThat(calculator.calculate(parameters)).isNull();
 
-        when(parameters.get(calculator.numberOfChildSizeSumParam)).thenReturn(new Double(2));
+		when(parameters.get(calculator.numberOfChildSizeSumParam)).thenReturn(new Double(2));
 
-        when(parameters.get(calculator.childLinearSizeSumParam)).thenReturn(new Double(5));
+		when(parameters.get(calculator.childLinearSizeSumParam)).thenReturn(new Double(5));
 
-        assertThat(calculator.calculate(parameters)).isEqualTo(5);
+		assertThat(calculator.calculate(parameters)).isEqualTo(5);
 
-        when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(new Double(10));
+		when(parameters.get(calculator.enteredLinearSizeParam)).thenReturn(new Double(10));
 
-        assertThat(calculator.calculate(parameters)).isEqualTo(5);
+		assertThat(calculator.calculate(parameters)).isEqualTo(5);
 
-        when(parameters.get(calculator.numberOfChildSizeSumParam)).thenReturn(new Double(0));
+		when(parameters.get(calculator.numberOfChildSizeSumParam)).thenReturn(new Double(0));
 
-        assertThat(calculator.calculate(parameters)).isEqualTo(10);
-    }
+		assertThat(calculator.calculate(parameters)).isEqualTo(10);
+	}
 
-    @Test
-    public void givenStorageSpaceHasChildStorageSpaceThenLinearSizeIsEqualToChildSumSum()
-            throws RecordServicesException {
+	@Test
+	public void givenStorageSpaceHasChildStorageSpaceThenLinearSizeIsEqualToChildSumSum()
+			throws RecordServicesException {
 
-        StorageSpace parentStorage = buildDefaultStorageSpace().setCapacity(200);
-        recordServices.add(parentStorage);
-        StorageSpace childStorage = buildChildStorageSpace().setCapacity(100).setParentStorageSpace(parentStorage);
-        recordServices.add(childStorage);
+		StorageSpace parentStorage = buildDefaultStorageSpace().setCapacity(200);
+		recordServices.add(parentStorage);
+		StorageSpace childStorage = buildChildStorageSpace().setCapacity(100).setParentStorageSpace(parentStorage);
+		recordServices.add(childStorage);
 
-        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
-        Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
-        assertThat(rm.wrapStorageSpace(record).getCapacity()).isEqualTo(200L);
-        assertThat(rm.wrapStorageSpace(record).getChildLinearSizeSum()).isEqualTo(new Double(100));
-        assertThat(rm.wrapStorageSpace(record).getAvailableSize()).isEqualTo(new Double(100));
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+		Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
+		assertThat(rm.wrapStorageSpace(record).getCapacity()).isEqualTo(200L);
+		assertThat(rm.wrapStorageSpace(record).getChildLinearSizeSum()).isEqualTo(new Double(100));
+		assertThat(rm.wrapStorageSpace(record).getAvailableSize()).isEqualTo(new Double(100));
 
-    }
+	}
 
-    @Test
-    public void givenContainerWithLinearSizeLinkedToStorageSpaceWithoutLinearSizeEnteredThenLinearSizeIsEqualToSum()
-            throws RecordServicesException {
+	@Test
+	public void givenContainerWithLinearSizeLinkedToStorageSpaceWithoutLinearSizeEnteredThenLinearSizeIsEqualToSum()
+			throws RecordServicesException {
 
-        StorageSpace storageRecord = buildDefaultStorageSpace();
-        recordServices.add(storageRecord);
-        addContainersLinkedToStorageSpace(storageRecord.getId());
+		StorageSpace storageRecord = buildDefaultStorageSpace();
+		recordServices.add(storageRecord);
+		addContainersLinkedToStorageSpace(storageRecord.getId());
 
-        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
-        Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
-        assertThat(rm.wrapStorageSpace(record).getLinearSizeEntered()).isNull();
-        assertThat(rm.wrapStorageSpace(record).getLinearSizeSum()).isEqualTo(new Double(6));
-        assertThat(rm.wrapStorageSpace(record).getLinearSize()).isEqualTo(new Double(6));
-    }
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+		Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
+		assertThat(rm.wrapStorageSpace(record).getLinearSizeEntered()).isNull();
+		assertThat(rm.wrapStorageSpace(record).getLinearSizeSum()).isEqualTo(new Double(6));
+		assertThat(rm.wrapStorageSpace(record).getLinearSize()).isEqualTo(new Double(6));
+	}
 
-    @Test
-    public void givenContainerIsMultivalueAndWithLinearSizeLinkedToStorageSpaceWithoutLinearSizeEnteredThenLinearSizeIsEqualToSum()
-            throws RecordServicesException {
-        givenConfig(RMConfigs.IS_CONTAINER_MULTIVALUE, true);
-        StorageSpace storageRecord = buildDefaultStorageSpace();
-        recordServices.add(storageRecord);
-        addContainersLinkedToStorageSpace(storageRecord.getId());
+	@Test
+	public void givenContainerIsMultivalueAndWithLinearSizeLinkedToStorageSpaceWithoutLinearSizeEnteredThenLinearSizeIsEqualToSum()
+			throws RecordServicesException {
+		givenConfig(RMConfigs.IS_CONTAINER_MULTIVALUE, true);
+		StorageSpace storageRecord = buildDefaultStorageSpace();
+		recordServices.add(storageRecord);
+		addContainersLinkedToStorageSpace(storageRecord.getId());
 
-        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
-        Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
-        assertThat(rm.wrapStorageSpace(record).getLinearSizeEntered()).isNull();
-        assertThat(rm.wrapStorageSpace(record).getLinearSizeSum()).isEqualTo(new Double(6));
-        assertThat(rm.wrapStorageSpace(record).getLinearSize()).isEqualTo(new Double(6));
-    }
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+		Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
+		assertThat(rm.wrapStorageSpace(record).getLinearSizeEntered()).isNull();
+		assertThat(rm.wrapStorageSpace(record).getLinearSizeSum()).isEqualTo(new Double(6));
+		assertThat(rm.wrapStorageSpace(record).getLinearSize()).isEqualTo(new Double(6));
+	}
 
-    @Test
-    public void givenContainerWithLinearSizeLinkedToStorageSpaceWithLinearSizeEnteredThenLinearSizeIsEqualToEnteredValue()
-            throws RecordServicesException {
+	@Test
+	public void givenContainerWithLinearSizeLinkedToStorageSpaceWithLinearSizeEnteredThenLinearSizeIsEqualToEnteredValue()
+			throws RecordServicesException {
 
-        StorageSpace storageRecord = buildDefaultStorageSpace().setLinearSizeEntered(2);
-        recordServices.add(storageRecord);
-        addContainersLinkedToStorageSpace(storageRecord.getId());
+		StorageSpace storageRecord = buildDefaultStorageSpace().setLinearSizeEntered(2);
+		recordServices.add(storageRecord);
+		addContainersLinkedToStorageSpace(storageRecord.getId());
 
-        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
-        Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
-        assertThat(rm.wrapStorageSpace(record).getLinearSizeEntered()).isEqualTo(new Double(2));
-        assertThat(rm.wrapStorageSpace(record).getLinearSizeSum()).isEqualTo(new Double(6));
-        assertThat(rm.wrapStorageSpace(record).getLinearSize()).isEqualTo(new Double(2));
-    }
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+		Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
+		assertThat(rm.wrapStorageSpace(record).getLinearSizeEntered()).isEqualTo(new Double(2));
+		assertThat(rm.wrapStorageSpace(record).getLinearSizeSum()).isEqualTo(new Double(6));
+		assertThat(rm.wrapStorageSpace(record).getLinearSize()).isEqualTo(new Double(2));
+	}
 
-    @Test
-    public void givenStorageSpaceWithLinearSizeEnteredWithoutLinkedContainerThenLinearSizeIsEqualToEnteredValue()
-            throws RecordServicesException {
+	@Test
+	public void givenStorageSpaceWithLinearSizeEnteredWithoutLinkedContainerThenLinearSizeIsEqualToEnteredValue()
+			throws RecordServicesException {
 
-        StorageSpace storageRecord = buildDefaultStorageSpace().setLinearSizeEntered(2);
-        recordServices.add(storageRecord);
+		StorageSpace storageRecord = buildDefaultStorageSpace().setLinearSizeEntered(2);
+		recordServices.add(storageRecord);
 
-        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
-        Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
-        assertThat(rm.wrapStorageSpace(record).getLinearSizeEntered()).isEqualTo(new Double(2));
-        assertThat(rm.wrapStorageSpace(record).getLinearSizeSum()).isEqualTo(new Double(0));
-        assertThat(rm.wrapStorageSpace(record).getLinearSize()).isEqualTo(new Double(2));
-    }
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+		Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
+		assertThat(rm.wrapStorageSpace(record).getLinearSizeEntered()).isEqualTo(new Double(2));
+		assertThat(rm.wrapStorageSpace(record).getLinearSizeSum()).isEqualTo(new Double(0));
+		assertThat(rm.wrapStorageSpace(record).getLinearSize()).isEqualTo(new Double(2));
+	}
 
-    @Test
-    public void givenStorageSpaceWithoutLinearSizeEnteredAndWithoutLinkedContainerThenLinearSizeIsEqualToZero()
-            throws RecordServicesException {
+	@Test
+	public void givenStorageSpaceWithoutLinearSizeEnteredAndWithoutLinkedContainerThenLinearSizeIsEqualToZero()
+			throws RecordServicesException {
 
-        StorageSpace storageRecord = buildDefaultStorageSpace();
-        recordServices.add(storageRecord);
+		StorageSpace storageRecord = buildDefaultStorageSpace();
+		recordServices.add(storageRecord);
 
-        getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
-        Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
-        assertThat(rm.wrapStorageSpace(record).getLinearSizeEntered()).isNull();
-        assertThat(rm.wrapStorageSpace(record).getLinearSizeSum()).isEqualTo(new Double(0));
-        assertThat(rm.wrapStorageSpace(record).getLinearSize()).isEqualTo(new Double(0));
-    }
+		getModelLayerFactory().getBatchProcessesManager().waitUntilAllFinished();
+		Record record = searchServices.searchSingleResult(from(rm.storageSpace.schemaType()).where(Schemas.IDENTIFIER).isEqualTo("storageTest"));
+		assertThat(rm.wrapStorageSpace(record).getLinearSizeEntered()).isNull();
+		assertThat(rm.wrapStorageSpace(record).getLinearSizeSum()).isEqualTo(new Double(0));
+		assertThat(rm.wrapStorageSpace(record).getLinearSize()).isEqualTo(new Double(0));
+	}
 
-    public StorageSpace buildDefaultStorageSpace() {
-        return rm.newStorageSpaceWithId("storageTest").setCode("TEST").setTitle("storageTest");
-    }
+	public StorageSpace buildDefaultStorageSpace() {
+		return rm.newStorageSpaceWithId("storageTest").setCode("TEST").setTitle("storageTest");
+	}
 
-    public StorageSpace buildChildStorageSpace() {
-        return rm.newStorageSpaceWithId("childStorage").setCode("CHILD").setTitle("childStorage");
-    }
+	public StorageSpace buildChildStorageSpace() {
+		return rm.newStorageSpaceWithId("childStorage").setCode("CHILD").setTitle("childStorage");
+	}
 
-    public void addContainersLinkedToStorageSpace(String storageID)
-            throws RecordServicesException {
+	public void addContainersLinkedToStorageSpace(String storageID)
+			throws RecordServicesException {
 
-        recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
-                .setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary1")
-                .setAdministrativeUnits(asList(records.unitId_10))
-                .setDecommissioningType(DecommissioningType.DEPOSIT)
-        );
-        recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
-                .setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary2")
-                .setAdministrativeUnits(asList(records.unitId_10))
-                .setDecommissioningType(DecommissioningType.DEPOSIT)
-        );
-        recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
-                .setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary3")
-                .setAdministrativeUnits(asList(records.unitId_10))
-                .setDecommissioningType(DecommissioningType.DEPOSIT)
-        );
-    }
+		recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
+				.setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary1")
+				.setAdministrativeUnits(asList(records.unitId_10))
+				.setDecommissioningType(DecommissioningType.DEPOSIT)
+		);
+		recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
+				.setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary2")
+				.setAdministrativeUnits(asList(records.unitId_10))
+				.setDecommissioningType(DecommissioningType.DEPOSIT)
+		);
+		recordServices.add(rm.newContainerRecord().setTitle("title").setCapacity(new Double(2))
+				.setStorageSpace(storageID).setType("containerTypeTest").setTemporaryIdentifier("containerTestTemporary3")
+				.setAdministrativeUnits(asList(records.unitId_10))
+				.setDecommissioningType(DecommissioningType.DEPOSIT)
+		);
+	}
 
-    public ContainerRecordType buildDefaultContainerType() {
-        return rm.newContainerRecordTypeWithId("containerTypeTest").setTitle("containerTypeTest").setCode("containerTypeTest");
-    }
+	public ContainerRecordType buildDefaultContainerType() {
+		return rm.newContainerRecordTypeWithId("containerTypeTest").setTitle("containerTypeTest").setCode("containerTypeTest");
+	}
 }
