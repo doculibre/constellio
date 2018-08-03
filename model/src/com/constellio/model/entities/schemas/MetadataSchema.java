@@ -44,16 +44,15 @@ public class MetadataSchema implements Serializable {
 
 	private MetadataSchemaCalculatedInfos calculatedInfos;
 
-	private boolean active;
+	private final boolean active;
 
 	private final String dataStore;
 
 	private final CollectionInfo collectionInfo;
 
 	public MetadataSchema(String localCode, String code, CollectionInfo collectionInfo, Map<Language, String> labels,
-			List<Metadata> metadatas,
-			Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
-			MetadataSchemaCalculatedInfos calculatedInfos, String dataStore) {
+			List<Metadata> metadatas, Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
+			MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active) {
 		super();
 		this.localCode = localCode;
 		this.code = code;
@@ -66,7 +65,7 @@ public class MetadataSchema implements Serializable {
 		this.indexByLocalCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
 		this.indexByCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByCode(metadatas));
 		this.dataStore = dataStore;
-		this.active = true;
+		this.active = active;
 		this.collectionInfo = collectionInfo;
 
 	}
@@ -249,7 +248,4 @@ public class MetadataSchema implements Serializable {
 		return active;
 	}
 
-	public void setActive(boolean active) {
-		this.active = active;
-	}
 }

@@ -78,7 +78,7 @@ public class MetadataSchemaBuilder {
 
 	private ClassListBuilder<RecordValidator> schemaValidators;
 
-	private boolean active;
+	private boolean active = true;
 
 	MetadataSchemaBuilder() {
 	}
@@ -372,7 +372,7 @@ public class MetadataSchemaBuilder {
 		MetadataSchema metadataSchema = new MetadataSchema(this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(),
 				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators),
-				schemaTypeBuilder.getDataStore());
+				schemaTypeBuilder.getDataStore(), this.isActive());
 		return metadataSchema;
 	}
 
@@ -586,8 +586,7 @@ public class MetadataSchemaBuilder {
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		MetadataSchema metadataSchema = new MetadataSchema(this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(), inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators)
-				, schemaTypeBuilder.getDataStore());
-		metadataSchema.setActive(this.active);
+				, schemaTypeBuilder.getDataStore(),this.isActive());
 		return metadataSchema;
 	}
 

@@ -19,15 +19,9 @@ import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.Table;
-import com.vaadin.ui.VerticalLayout;
 
 public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, ClickListener {
 	ListSchemaPresenter presenter;
@@ -104,7 +98,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		return tabSheet;
 	}
 
-    public void addSchemaToTable(final MetadataSchemaVO metadataSchemaVO, Container indexedContainer) {
+    public void addSchemaToTable(final MetadataSchemaVO metadataSchemaVO, final boolean active, Container indexedContainer) {
         MenuBar menuBar = new BaseMenuBar();
         MenuBar.MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
 
@@ -126,6 +120,26 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			};
 			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), new ThemeResource("images/icons/actions/delete.png"),
 					deleteListener);
+		}
+
+		if (active) {
+			final MenuBar.Command disableListener = new MenuBar.Command() {
+				@Override
+				public void menuSelected(MenuBar.MenuItem selectedItem) {
+					presenter.disableButtonClick(metadataSchemaVO.getCode());
+				}
+			};
+			rootItem.addItem($("ListSchemaViewImpl.menu.disable"),
+					new ThemeResource("images/commun/desactiverRouge.gif"), disableListener);
+		}else{
+			final MenuBar.Command enableListener = new MenuBar.Command() {
+				@Override
+				public void menuSelected(MenuBar.MenuItem selectedItem) {
+					presenter.enableButtonClick(metadataSchemaVO.getCode());
+				}
+			};
+			rootItem.addItem($("ListSchemaViewImpl.menu.enable"),
+					new ThemeResource("images/commun/reactiver.gif"), enableListener);
 		}
 
 		final MenuBar.Command formOrderListener = new MenuBar.Command() {
@@ -197,8 +211,8 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		indexedContainer.getContainerProperty(metadataSchemaVO, OPTIONS_COL).setValue(buttonVerticalLayout);
 	}
 
-	private Component buildTables() {
-		final SchemaVODataProvider dataProvider = presenter.getDataProvider();
+	private Table buildTables(boolean active) {
+		final SchemaVODataProvider dataProvider = presenter.getDataProvider(active);
 
 		Container indexContainer = new IndexedContainer();
 		indexContainer.addContainerProperty("localCode", String.class, "");
@@ -207,7 +221,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 
 		for (Integer integer : dataProvider.list()) {
 			MetadataSchemaVO metadataSchemaVO = dataProvider.getSchemaVO(integer);
-			addSchemaToTable(metadataSchemaVO, indexContainer);
+			addSchemaToTable(metadataSchemaVO, active, indexContainer);
 		}
 
 		Table table = new BaseTable(getClass().getName(), $("ListSchemaView.tableTitle", indexContainer.size()));

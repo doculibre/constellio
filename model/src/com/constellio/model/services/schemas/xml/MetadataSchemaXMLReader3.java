@@ -677,8 +677,6 @@ public class MetadataSchemaXMLReader3 {
 		for (Element metadataElement : defaultSchemaElement.getChildren("m")) {
 			parseMetadata(defaultSchemaBuilder, metadataElement, collectionSchema);
 		}
-
-
 		List<String> validatorsClassNames = parseValidators(defaultSchemaElement, null);
 		for (String validatorsClassName : validatorsClassNames) {
 			defaultSchemaBuilder.defineValidators().add(getValidatorClass(validatorsClassName));
@@ -756,8 +754,4 @@ public class MetadataSchemaXMLReader3 {
 		}
 		return labels;
 	}
-
-
-
-
 }

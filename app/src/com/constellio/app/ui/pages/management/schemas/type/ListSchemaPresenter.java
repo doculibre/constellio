@@ -172,7 +172,7 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 	}
 
 	public void disableButtonClick(String schemaCode) {
-		if(Folder.DEFAULT_SCHEMA.equals(schemaCode)){
+		if(schemaCode.contains(MetadataSchemaType.DEFAULT)){
 			view.showErrorMessage($("ListSchemaView.cannotLogicallyDeleteDefaultSchema"));
 		}
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
