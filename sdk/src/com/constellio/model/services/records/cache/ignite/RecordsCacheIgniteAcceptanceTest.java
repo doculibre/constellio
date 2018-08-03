@@ -1709,6 +1709,11 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			return false;
 		}
 
+		@Override
+		public void markAsSaved(long version, MetadataSchema schema) {
+
+		}
+
 		public <T> List<T> getValues(Metadata metadata) {
 			Object value = get(metadata);
 			if (value == null) {

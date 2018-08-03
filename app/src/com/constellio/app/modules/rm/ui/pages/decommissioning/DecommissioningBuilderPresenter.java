@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.extensions.api.DecommissioningBuilderPresen
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.search.SearchCriteriaPresenterUtils;
+import com.constellio.app.ui.pages.search.SearchViewImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +79,9 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	public DecommissioningBuilderPresenter forRequestParameters(String params) {
 		String[] parts = params.split("/", 3);
 
+		view.getUIContext().clearAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+		view.getUIContext().clearAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+
 		if (!addMode) {
 			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
 			searchType = SearchType.valueOf(parts[0]);
@@ -91,6 +95,8 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			SavedSearch search = getSavedSearch(parts[2]);
 			setSavedSearch(search);
 			this.displayResults = true;
+			view.getUIContext().setAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType);
+			view.getUIContext().setAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING, search.getId());
 		} else {
 			searchType = SearchType.valueOf(params);
 			view.setCriteriaSchemaType(getSchemaType());
@@ -428,6 +434,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				.setPageNumber(pageNumber)
 				.setSelectedFacets(this.getFacetSelections().getNestedMap())
 				.setPageLength(getSelectedPageLength());
+		search.getWrappedRecord().markAsSaved(99, search.getSchema());
 		modelLayerFactory.getRecordsCaches().getCache(view.getCollection()).insert(search.getWrappedRecord(), WAS_MODIFIED);
 		//recordServices().update(search);
 		if (refreshPage) {

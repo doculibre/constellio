@@ -27,13 +27,13 @@ import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -46,10 +46,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
@@ -61,6 +58,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public static final String SORT_BOX_STYLE = "sort-box";
 	public static final String SORT_TITLE_STYLE = "sort-title";
 	public static final String SAVE_SEARCH = "save-search";
+	public static final String SAVE_SEARCH_DECOMMISSIONING = "save-search-decommissioning";
+
+	public static final String DECOMMISSIONING_BUILDER_TYPE = "decommissioning-builder-title";
 
 	protected T presenter;
 	private VerticalLayout thesaurusDisambiguation;
@@ -73,6 +73,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
+	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
+
+
+	public void addSaveSearchListenerList(SaveSearchListener saveSearchListener) {
+		saveSearchListenerList.add(saveSearchListener);
+	}
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -215,7 +221,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	@Override
 	public SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets) {
 		if (temporarySave) {
-			presenter.saveTemporarySearch(false);
+			SavedSearch savedSearch = presenter.saveTemporarySearch(false);
+
+			for(SaveSearchListener saveSearchListener : saveSearchListenerList) {
+				saveSearchListener.save(new SaveSearchListener.Event(savedSearch));
+			}
 		}
 
 		SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
@@ -427,7 +437,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					@Override
 					public void buttonClick(ClickEvent event) {
 						presenter.searchResultClicked(searchResultVO.getRecordVO());
-
 					}
 				};
 			}

@@ -262,11 +262,11 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	}
 
-	class FolderBreadcrumbItem implements BreadcrumbItem {
+	 public class FolderBreadcrumbItem implements BreadcrumbItem {
 
 		private String folderId;
 
-		FolderBreadcrumbItem(String folderId) {
+		public FolderBreadcrumbItem(String folderId) {
 			this.folderId = folderId;
 		}
 
@@ -294,11 +294,11 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	}
 
-	class DocumentBreadcrumbItem implements BreadcrumbItem {
+	public static class DocumentBreadcrumbItem implements BreadcrumbItem {
 
 		private String documentId;
 
-		DocumentBreadcrumbItem(String documentId) {
+		public DocumentBreadcrumbItem(String documentId) {
 			this.documentId = documentId;
 		}
 

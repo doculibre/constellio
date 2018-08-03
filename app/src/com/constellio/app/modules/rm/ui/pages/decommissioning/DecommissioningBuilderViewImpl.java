@@ -1,20 +1,19 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListParams;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.SearchResultTable;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
+import com.constellio.app.ui.pages.search.SaveSearchListener;
 import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -22,15 +21,14 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
+import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningBuilderViewImpl extends SearchViewImpl<DecommissioningBuilderPresenter>
 		implements DecommissioningBuilderView {
@@ -38,6 +36,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 	public static final String ADMIN_UNIT = "admin-unit";
 	public static final String SEARCH = "search";
 	public static final String CREATE_LIST = "create-list";
+
 
 	private AdvancedSearchCriteriaComponent criteria;
 	private Button searchButton;
@@ -55,6 +54,15 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 				return presenter.isAddMode();
 			}
 		};
+
+		addSaveSearchListenerList(new SaveSearchListener() {
+			@Override
+			protected void save(Event event) {
+				getUIContext().setAttribute(DECOMMISSIONING_BUILDER_TYPE, presenter.getSearchType());
+				getUIContext().setAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING, event.getSavedSearch().getId());
+			}
+		});
+
 		addStyleName("search-decommissioning");
 	}
 
@@ -63,6 +71,8 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		presenter.forParams(event.getParameters());
 		super.initBeforeCreateComponents(event);
 	}
+
+
 
 	@Override
 	protected String getTitle() {
@@ -110,6 +120,8 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 	public List<Criterion> getSearchCriteria() {
 		return criteria.getSearchCriteria();
 	}
+
+
 
 	@Override
 	protected Component buildSearchUI() {
@@ -246,5 +258,10 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 			}
 		});
 		return addToListButton;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new DecommissionBreadcrumbTrail(getTitle(),  presenter.getSearchType(), null, presenter.decommissioningListId, this);
 	}
 }

@@ -102,6 +102,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
+	public Record getRecord() {
+		return record;
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return true;

@@ -8,6 +8,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
+import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
@@ -24,7 +27,6 @@ import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -229,7 +231,16 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new FolderDocumentBreadcrumbTrail(recordVO.getId(), taxonomyCode, this);
+
+		String searchId = getUIContext().getAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+		SearchType searchType = getUIContext().getAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+
+		if(searchId == null) {
+			return new FolderDocumentBreadcrumbTrail(recordVO.getId(), taxonomyCode, this);
+		} else {
+			return new DecommissionBreadcrumbTrail($( "DecommissioningBuilderView.viewTitle." + searchType.name()),
+					searchType, searchId, recordVO.getId(), this);
+		}
 	}
 
 	//	@Override

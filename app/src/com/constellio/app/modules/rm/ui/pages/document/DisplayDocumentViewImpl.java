@@ -1,8 +1,10 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -35,6 +37,7 @@ import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -277,7 +280,16 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new FolderDocumentBreadcrumbTrail(documentVO.getId(), taxonomyCode, this);
+
+		String saveSearchDecommissioning = getUIContext().getAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+		SearchType searchType = getUIContext().getAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+
+		if(saveSearchDecommissioning == null) {
+			return new FolderDocumentBreadcrumbTrail(recordDisplay.getRecordVO().getId(), taxonomyCode, this);
+		} else {
+			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
+					saveSearchDecommissioning, presenter.getRecord().getId(), this);
+		}
 	}
 
 	@Override

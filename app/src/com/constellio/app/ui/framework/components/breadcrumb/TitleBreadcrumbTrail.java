@@ -114,7 +114,7 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		
 	}
 	
-	class ViewGroupBreadcrumbItem implements BreadcrumbItem {
+	protected class ViewGroupBreadcrumbItem implements BreadcrumbItem {
 		
 		private Class<? extends MenuViewGroup> viewGroupClass;
 		

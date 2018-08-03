@@ -91,4 +91,6 @@ public interface Record extends Serializable, CollectionObject {
 
 	boolean isOfSchemaType(String type);
 
+	void markAsSaved(long version, MetadataSchema schema);
+
 }
