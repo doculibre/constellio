@@ -62,11 +62,13 @@ public class RemoveClickableNotificationsWhenChangingPage extends PagesComponent
 	public void decorateMainComponentBeforeViewInstanciated(DecorateMainComponentAfterInitExtensionParams params) {
 		super.decorateMainComponentBeforeViewInstanciated(params);
 		ConstellioUI ui = ConstellioUI.getCurrent();
-		Collection<Window> windows = ui.getWindows();
-		for(Window window: windows) {
-			if(window != null && window instanceof ClickableNotification) {
-				ui.removeWindow(window);
-			}
+		if (ui != null) {
+			Collection<Window> windows = ui.getWindows();
+			for(Window window: windows) {
+                if(window != null && window instanceof ClickableNotification) {
+                    ui.removeWindow(window);
+                }
+            }
 		}
 	}
 }

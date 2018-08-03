@@ -69,11 +69,17 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	private List<ActionMenuButtonsDecorator> actionMenuButtonsDecorators = new ArrayList<>();
 
 	public BaseViewImpl() {
+		this(ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory());
+	}
+
+	public BaseViewImpl(AppLayerFactory appLayerFactory) {
+		this(ConstellioUI.getCurrentSessionContext().getCurrentCollection(), appLayerFactory);
+	}
+
+	public BaseViewImpl(String collection, AppLayerFactory appLayerFactory) {
 		DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this);
-		AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
 
 		appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewInstanciated(params);
-		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		if (collection != null) {
 			appLayerFactory.getExtensions().forCollection(collection).decorateMainComponentBeforeViewInstanciated(params);
 		}
