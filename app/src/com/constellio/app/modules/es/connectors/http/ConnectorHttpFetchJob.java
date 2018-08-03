@@ -100,7 +100,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 			for (ConnectorHttpDocument httpDocument : documents) {
 				String url = httpDocument.getURL();
 
-				if (BooleanUtils.isTrue(httpDocument.getNoFollow()) || !robotsTxtFactory.isAuthorizedPath(url)) {
+				if (!robotsTxtFactory.isAuthorizedPath(url)) {
 					String path = getClass().getClassLoader().getResource(PATH_TO_NOINDEX_HTML).getPath();
 					if (StringUtils.startsWith(path, PROTOCOL)) {
 						url = path;
@@ -251,19 +251,21 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 		HtmlPageParserResults results = pageParser.parse(httpDocument.getURL(), (HtmlPage) page);
 
 		List<ConnectorDocument> savedDocuments = new ArrayList<>();
-		List<String> urls = new ArrayList<>(results.getLinkedUrls());
-		int linksLevel = httpDocument.getLevel() + 1;
-		if (linksLevel <= maxLevel) {
-			for (String url : urls) {
-				if (context.isNewUrl(url)) {
-					context.markAsFetched(url);
+		List<String> urls = new ArrayList<>();
+		if (!results.isNoFollow()) {
+			urls.addAll(results.getLinkedUrls());
+			int linksLevel = httpDocument.getLevel() + 1;
+			if (linksLevel <= maxLevel) {
+                for (String url : urls) {
+                    if (context.isNewUrl(url)) {
+                        context.markAsFetched(url);
 
-					ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
-					document.setInlinks(Arrays.asList(httpDocument.getUrl()));
-					document.setNoFollow(results.isNoFollow());
-					savedDocuments.add(document);
-				}
-			}
+                        ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
+                        document.setInlinks(Arrays.asList(httpDocument.getUrl()));
+                        savedDocuments.add(document);
+                    }
+                }
+            }
 		}
 
 		ensureNotStopped();

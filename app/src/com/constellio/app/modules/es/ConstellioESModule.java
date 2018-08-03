@@ -1,21 +1,5 @@
 package com.constellio.app.modules.es;
 
-import static com.constellio.app.extensions.api.scripts.Scripts.registerScript;
-import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_HTTP;
-import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_LDAP;
-import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_SMB;
-import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.es.migrations.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -27,14 +11,9 @@ import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
 import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
 import com.constellio.app.modules.es.constants.ESPermissionsTo;
-import com.constellio.app.modules.es.extensions.ESRecordAppExtension;
-import com.constellio.app.modules.es.extensions.ESRecordExtension;
-import com.constellio.app.modules.es.extensions.ESRecordNavigationExtension;
-import com.constellio.app.modules.es.extensions.ESSMBConnectorUrlCriterionExtension;
-import com.constellio.app.modules.es.extensions.ESSchemaExtension;
-import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
-import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
+import com.constellio.app.modules.es.extensions.*;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
+import com.constellio.app.modules.es.migrations.*;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -56,6 +35,14 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+
+import static com.constellio.app.extensions.api.scripts.Scripts.registerScript;
+import static com.constellio.app.modules.es.model.connectors.ConnectorType.*;
+import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 
 public class ConstellioESModule implements InstallableSystemModule, ModuleWithComboMigration {
 	public static final String ID = "es";
@@ -101,8 +88,7 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 				new ESMigrationTo7_7_0_42(),
 				new ESMigrationTo8_0(),
 				new ESMigrationTo8_0_1(),
-				new ESMigrationTo8_0_2(),
-				new ESMigrationTo8_0_3()
+				new ESMigrationTo8_0_2()
 		);
 	}
 

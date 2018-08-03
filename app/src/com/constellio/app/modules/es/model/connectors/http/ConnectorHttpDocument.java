@@ -43,7 +43,6 @@ public class ConnectorHttpDocument extends ConnectorDocument<ConnectorHttpDocume
 	public static final String DOWNLOAD_TIME = "downloadTime";
 	public static final String LANGUAGE = "language";
 	public static final String DESCRIPTION = "description";
-	public static final String NO_FOLLOW = "noFollow";
 
 	public ConnectorHttpDocument(Record record, MetadataSchemaTypes types) {
 		super(record, types, "connectorHttpDocument");
@@ -181,15 +180,6 @@ public class ConnectorHttpDocument extends ConnectorDocument<ConnectorHttpDocume
 
 	public ConnectorHttpDocument setDescription(String description) {
 		set(DESCRIPTION, description);
-		return this;
-	}
-
-	public Boolean getNoFollow() {
-		return get(DESCRIPTION);
-	}
-
-	public ConnectorHttpDocument setNoFollow(Boolean noFollow) {
-		set(NO_FOLLOW, noFollow);
 		return this;
 	}
 }
