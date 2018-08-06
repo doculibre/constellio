@@ -111,17 +111,6 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 
 		rootItem.addItem($("ListSchemaViewImpl.menu.edit"), EditButton.ICON_RESOURCE, editListener);
 
-		if (super.isVisible() && presenter.isDeleteButtonVisible(metadataSchemaVO.getCode())) {
-			final MenuBar.Command deleteListener = new MenuBar.Command() {
-				@Override
-				public void menuSelected(MenuBar.MenuItem selectedItem) {
-					presenter.deleteButtonClicked(metadataSchemaVO.getCode());
-				}
-			};
-			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), new ThemeResource("images/icons/actions/delete.png"),
-					deleteListener);
-		}
-
 		if (active) {
 			final MenuBar.Command disableListener = new MenuBar.Command() {
 				@Override
@@ -140,6 +129,17 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			};
 			rootItem.addItem($("ListSchemaViewImpl.menu.enable"),
 					new ThemeResource("images/commun/reactiver.gif"), enableListener);
+		}
+
+		if (super.isVisible()) {
+			final MenuBar.Command deleteListener = new MenuBar.Command() {
+				@Override
+				public void menuSelected(MenuBar.MenuItem selectedItem) {
+					presenter.deleteButtonClicked(metadataSchemaVO.getCode());
+				}
+			};
+			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), new ThemeResource("images/icons/actions/delete.png"),
+					deleteListener);
 		}
 
 		final MenuBar.Command formOrderListener = new MenuBar.Command() {
