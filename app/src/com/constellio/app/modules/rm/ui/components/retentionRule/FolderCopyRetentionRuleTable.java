@@ -707,7 +707,9 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			Collections.sort(enumConstants, new Comparator<EnumWithSmallCode>() {
 				@Override
 				public int compare(EnumWithSmallCode o1, EnumWithSmallCode o2) {
-					return o1.getCode().compareTo(o2.getCode());
+					String caption1 = $(DisposalType.class.getSimpleName() + "." + o1.getCode());
+					String caption2 = $(DisposalType.class.getSimpleName() + "." + o2.getCode());
+					return caption1.compareTo(caption2);
 				}
 			});
 			super.setOptions(enumConstants);
