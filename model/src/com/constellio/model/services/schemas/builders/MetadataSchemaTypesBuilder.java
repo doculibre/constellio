@@ -20,6 +20,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
+import com.constellio.model.utils.DependencyUtils.MultiMapDependencyResults;
+import com.constellio.model.utils.DependencyUtilsParams;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -259,11 +261,11 @@ public class MetadataSchemaTypesBuilder {
 	}
 
 	List<String> validateNoCyclicDependenciesBetweenSchemas() {
-		Map<String, Set<String>> typesDependencies = new HashMap<>();
-		Map<String, Set<String>> equalityTypesDependencies = new HashMap<>();
+		Map<String, Set<String>> primaryTypesDependencies = new HashMap<>();
+		Map<String, Set<String>> secondaryTypesDependencies = new HashMap<>();
 		for (MetadataSchemaTypeBuilder metadataSchemaType : schemaTypes) {
-			Set<String> types = new HashSet<>();
-			Set<String> equalityTypes = new HashSet<>();
+			Set<String> primaryTypes = new HashSet<>();
+			Set<String> secondaryTypes = new HashSet<>();
 			for (MetadataBuilder metadata : metadataSchemaType.getAllMetadatas()) {
 
 				if (metadata.getType() == REFERENCE) {
@@ -275,25 +277,26 @@ public class MetadataSchemaTypesBuilder {
 				if (metadata.getType() == REFERENCE && (metadata.isDependencyOfAutomaticMetadata() || metadata
 						.isChildOfRelationship() || metadata.isTaxonomyRelationship())) {
 
-					types.add(metadata.allowedReferencesBuilder.getSchemaType());
+					primaryTypes.add(metadata.allowedReferencesBuilder.getSchemaType());
 					for (String schema : metadata.allowedReferencesBuilder.getSchemas()) {
-						types.add(newSchemaUtils().getSchemaTypeCode(schema));
+						primaryTypes.add(newSchemaUtils().getSchemaTypeCode(schema));
 					}
 				}
 
 				if (metadata.getType() == REFERENCE) {
-
-					equalityTypes.add(metadata.allowedReferencesBuilder.getSchemaType());
+					secondaryTypes.add(metadata.allowedReferencesBuilder.getSchemaType());
 					for (String schema : metadata.allowedReferencesBuilder.getSchemas()) {
-						equalityTypes.add(newSchemaUtils().getSchemaTypeCode(schema));
+						secondaryTypes.add(newSchemaUtils().getSchemaTypeCode(schema));
 					}
 				}
 			}
-			typesDependencies.put(metadataSchemaType.getCode(), types);
-			equalityTypesDependencies.put(metadataSchemaType.getCode(), equalityTypes);
+			primaryTypesDependencies.put(metadataSchemaType.getCode(), primaryTypes);
+			secondaryTypesDependencies.put(metadataSchemaType.getCode(), secondaryTypes);
 		}
 		try {
-			return newDependencyUtils().sortByDependency(typesDependencies);
+			MultiMapDependencyResults<String> results = newDependencyUtils().sortTwoLevelOfDependencies(
+					primaryTypesDependencies, secondaryTypesDependencies, new DependencyUtilsParams());
+			return results.getSortedElements();
 		} catch (DependencyUtilsRuntimeException.CyclicDependency e) {
 			throw new MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas(e);
 		}

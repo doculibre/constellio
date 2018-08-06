@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 public class DependencyUtils<V> {
 
+
 	public boolean hasCyclicDependencies(Map<V, Set<V>> dependenciesMap) {
 
 		try {
@@ -26,13 +27,69 @@ public class DependencyUtils<V> {
 		});
 	}
 
-	public List<V> sortByDependency(Map<V, Set<V>> dependenciesMap, Comparator<V> tieComparator) {
-		return sortByDependency(dependenciesMap, new DependencyUtilsParams().sortTieUsing(tieComparator));
+	public MultiMapDependencyResults<V> sortTwoLevelOfDependencies(Map<V, Set<V>> primaryDependenciesMap,
+																   Map<V, Set<V>> secondaryDependenciesMap,
+																   DependencyUtilsParams params) {
 
+		Map<V, Set<V>> allDependencies = merge(primaryDependenciesMap, secondaryDependenciesMap);
+		KeySetMap<Object, Object> removed = new KeySetMap<>();
+		List<V> sorted = null;
+
+		while (sorted == null) {
+			try {
+				sorted = sortByDependency(allDependencies, new DependencyUtilsParams(params).withoutToleratedCyclicDepencies());
+
+			} catch (DependencyUtilsRuntimeException.CyclicDependency e) {
+				boolean removedSomething = false;
+				removingASecondaryDepedendency:
+				for (Map.Entry<Object, Set<Object>> entry : e.getCyclicDependencies().entrySet()) {
+
+					for (Object object : entry.getValue()) {
+						Set<V> principalDependenciesValues = primaryDependenciesMap.get(entry.getKey());
+						if (principalDependenciesValues == null || !principalDependenciesValues.contains(object)) {
+							HashSet<V> newValues = new HashSet<>(allDependencies.get(entry.getKey()));
+							newValues.remove(object);
+							allDependencies.put((V) entry.getKey(), newValues);
+							removed.add(entry.getKey(), object);
+							removedSomething = true;
+							break removingASecondaryDepedendency;
+						}
+
+					}
+
+				}
+
+				if (!removedSomething) {
+					throw new DependencyUtilsRuntimeException.CyclicDependency(e.getCyclicDependencies());
+				}
+			}
+
+
+		}
+
+		return new MultiMapDependencyResults(sorted, removed.getNestedMap());
 	}
 
-	public List<V> sortByDependency(List<Map<V, Set<V>>> dependenciesMaps) {
-		return sortByDependency(dependenciesMaps.get(0), new DependencyUtilsParams().sortUsingDefaultComparator());
+	private Map<V, Set<V>> merge(Map<V, Set<V>> map1, Map<V, Set<V>> map2) {
+		Map<V, Set<V>> merged = new HashMap<>();
+
+		for (Map<V, Set<V>> aMap : Arrays.asList(map1, map2)) {
+			for (Map.Entry<V, Set<V>> entry : aMap.entrySet()) {
+				Set<V> values = merged.get(entry.getKey());
+				if (values == null) {
+					values = new HashSet<>();
+					merged.put(entry.getKey(), values);
+				}
+				values.addAll(entry.getValue());
+			}
+
+
+		}
+		return merged;
+	}
+
+	public List<V> sortByDependency(Map<V, Set<V>> dependenciesMap, Comparator<V> tieComparator) {
+		return sortByDependency(dependenciesMap, new DependencyUtilsParams().sortTieUsing(tieComparator));
 
 	}
 
@@ -67,19 +124,7 @@ public class DependencyUtils<V> {
 					sb.append(entry.getKey() + " => " + entry.getValue() + "\n");
 				}
 
-				//TODO temporaire
-				if (cyclicDependencyCauses.size() == 2 && cyclicDependencyCauses.containsKey("d@3") && cyclicDependencyCauses.containsKey("c@3")) {
-
-					Set<V> values = dependenciesMapCopy.get("c@3");
-					values.remove("d@3");
-
-					dependenciesMapCopy.put((V) "c@3", values);
-					continue;
-
-				} else {
-
-					throw new DependencyUtilsRuntimeException.CyclicDependency(cycleElements, sb.toString());
-				}
+				throw new DependencyUtilsRuntimeException.CyclicDependency(cyclicDependencyCauses, sb.toString());
 			}
 
 			if (params.isSortTie()) {
@@ -246,6 +291,26 @@ public class DependencyUtils<V> {
 		private IterationResults(List<V> valuesWithoutDependencies, Map<V, Set<V>> valuesWithDependencies) {
 			this.valuesWithoutDependencies = valuesWithoutDependencies;
 			this.valuesWithDependencies = valuesWithDependencies;
+		}
+	}
+
+	public static class MultiMapDependencyResults<V> {
+
+		private List<V> sortedElements;
+
+		private Map<V, Set<V>> removedDependencies;
+
+		private MultiMapDependencyResults(List<V> sortedElements, Map<V, Set<V>> removedDependencies) {
+			this.sortedElements = sortedElements;
+			this.removedDependencies = removedDependencies;
+		}
+
+		public List<V> getSortedElements() {
+			return sortedElements;
+		}
+
+		public Map<V, Set<V>> getRemovedDependencies() {
+			return removedDependencies;
 		}
 	}
 

@@ -1,37 +1,13 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor.ALL_BOOLEAN_NO;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor.ALL_BOOLEAN_YES;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
@@ -40,6 +16,23 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.ImportContent;
 import com.constellio.model.services.records.bulkImport.ProgressionHandler;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor.ALL_BOOLEAN_NO;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecutor.ALL_BOOLEAN_YES;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
 
 public class RecordsImportValidator {
 
@@ -79,9 +72,12 @@ public class RecordsImportValidator {
 	SkippedRecordsImport skippedRecordsImport;
 	BulkImportParams params;
 
-	public RecordsImportValidator(String schemaType, ProgressionHandler progressionHandler, ImportDataProvider importDataProvider,
-			MetadataSchemaTypes types, ResolverCache resolverCache, ModelLayerCollectionExtensions extensions,
-			Language language, SkippedRecordsImport skippedRecordsImport, BulkImportParams params) {
+	public RecordsImportValidator(String schemaType, ProgressionHandler progressionHandler,
+								  ImportDataProvider importDataProvider,
+								  MetadataSchemaTypes types, ResolverCache resolverCache,
+								  ModelLayerCollectionExtensions extensions,
+								  Language language, SkippedRecordsImport skippedRecordsImport,
+								  BulkImportParams params) {
 		this.schemaType = schemaType;
 		this.importDataProvider = importDataProvider;
 		this.extensions = extensions;
@@ -120,7 +116,8 @@ public class RecordsImportValidator {
 		}
 	}
 
-	private void validate(ImportDataIterator importDataIterator, DecoratedValidationsErrors errors, AtomicBoolean fatalError) {
+	private void validate(ImportDataIterator importDataIterator, DecoratedValidationsErrors errors,
+						  AtomicBoolean fatalError) {
 		progressionHandler.beforeValidationOfSchema(schemaType);
 		int numberOfRecords = 0;
 		List<String> uniqueMetadatas = type.getAllMetadatas().onlyWithType(STRING).onlyUniques().toLocalCodesList();
@@ -189,7 +186,7 @@ public class RecordsImportValidator {
 	}
 
 	private void validateAllReferencesResolved(ValidationErrors errors) {
-		for (MetadataSchemaType schemaType : resolverCache.getCachedSchemaTypes())
+		for (MetadataSchemaType schemaType : resolverCache.getCachedSchemaTypes()) {
 			for (Metadata uniqueValueMetadata : schemaType.getAllMetadatas().onlyUniques()) {
 				KeySetMap<String, String> unresolved = new KeySetMap<>(
 						resolverCache.getUnresolvableUniqueValues(schemaType.getCode(), uniqueValueMetadata.getLocalCode()));
@@ -228,6 +225,7 @@ public class RecordsImportValidator {
 					}
 				}
 			}
+		}
 	}
 
 	private Map<String, Object> asMap(String key, Object value) {
@@ -237,7 +235,7 @@ public class RecordsImportValidator {
 	}
 
 	private void validateValueUnicityOfUniqueMetadata(List<String> uniqueMetadatas, ImportData importData,
-			ValidationErrors errors) {
+													  ValidationErrors errors) {
 		if (!resolverCache.isNewUniqueValue(type.getCode(), LEGACY_ID_LOCAL_CODE, importData.getLegacyId())) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put("value", importData.getLegacyId());
@@ -258,7 +256,8 @@ public class RecordsImportValidator {
 		}
 	}
 
-	private void markUniqueValuesAsInFile(boolean isImportedAsLegacyId, List<String> uniqueMetadatas, ImportData importData) {
+	private void markUniqueValuesAsInFile(boolean isImportedAsLegacyId, List<String> uniqueMetadatas,
+										  ImportData importData) {
 		if (isImportedAsLegacyId) {
 			resolverCache.markAsRecordInFile(type.getCode(), LEGACY_ID_LOCAL_CODE, importData.getLegacyId());
 		} else {
@@ -275,7 +274,7 @@ public class RecordsImportValidator {
 	}
 
 	private void validateMetadatasRequirement(ImportData importData, MetadataSchema metadataSchema,
-			ValidationErrors errors) {
+											  ValidationErrors errors) {
 		for (Metadata requiredMetadata : metadataSchema.getMetadatas().onlyAlwaysRequired().onlyNonSystemReserved()
 				.onlyManuals()) {
 
@@ -298,8 +297,13 @@ public class RecordsImportValidator {
 				String key = entry.getKey();
 				try {
 
-					if (key.contains("_")) {
-						key = StringUtils.substringBefore(key, "_");
+					String[] splittedCode = key.split("_");
+					if (splittedCode.length == 2) {
+						key = splittedCode[0];
+					}
+
+					if (splittedCode.length == 4) {
+						key = splittedCode[0] + "_" + splittedCode[1] + "_" + splittedCode[2];
 					}
 
 					final Metadata metadata = metadataSchema.getMetadata(key);
@@ -345,7 +349,8 @@ public class RecordsImportValidator {
 		}
 	}
 
-	private void feedLegacyIdResolver(ImportData importData, Metadata metadata, String resolverStr, ValidationErrors errors) {
+	private void feedLegacyIdResolver(ImportData importData, Metadata metadata, String resolverStr,
+									  ValidationErrors errors) {
 		String schemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
 		Resolver resolver = Resolver.toResolver(resolverStr);
 		MetadataSchemaType type = types.getSchemaType(schemaType);
@@ -431,7 +436,7 @@ public class RecordsImportValidator {
 	}
 
 	private void validateValue(final int index, final String legacyId, final Metadata metadata, final Object value,
-			ValidationErrors errors) {
+							   ValidationErrors errors) {
 
 		DecoratedValidationsErrors decoratedErrors = new DecoratedValidationsErrors(errors) {
 			@Override

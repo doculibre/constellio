@@ -1,5 +1,7 @@
 package com.constellio.model.utils;
 
+import com.constellio.model.utils.DependencyUtils.MultiMapDependencyResults;
+import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
 import org.junit.Test;
 
 import java.util.*;
@@ -8,6 +10,7 @@ import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.data.MapEntry.entry;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class DependencyUtilsTest {
@@ -40,41 +43,102 @@ public class DependencyUtilsTest {
 	//
 	//	}
 
+
 	@Test
-	public void testfrancis()
-			throws Exception {
+	public void whenSortingByDependencyUsingTwoMapsThenReturnSortedElementsWithFirstMapRequirementAndMostOfTheSecondOnes() {
 
 		Map<String, Set<String>> dependenciesMap = new HashMap<>();
-		dependenciesMap.put("a", asSet("a@2"));
-		dependenciesMap.put("b", asSet("b@2", "a"));
-		dependenciesMap.put("c", asSet("c@2", "d"));
-		dependenciesMap.put("d", asSet("d@2"));
-		dependenciesMap.put("e", asSet("e@2"));
-		dependenciesMap.put("f", asSet("f@2"));
+		dependenciesMap.put("a", new HashSet<String>());
+		dependenciesMap.put("b", asSet("a"));
+		dependenciesMap.put("c", asSet("d"));
+		dependenciesMap.put("d", new HashSet<String>());
+		dependenciesMap.put("e", new HashSet<String>());
+		dependenciesMap.put("f", asSet("b"));
 
-		dependenciesMap.put("a@2", asSet("a@3"));
-		dependenciesMap.put("b@2", asSet("b@3"));
-		dependenciesMap.put("c@2", asSet("c@3", "e@2"));
-		dependenciesMap.put("d@2", asSet("d@3"));
-		dependenciesMap.put("e@2", asSet("e@3"));
-		dependenciesMap.put("f@2", asSet("f@3", "b@2"));
+		//'a' must be before 'b', 'c' must be before 'd', 'f' must be before 'b'
 
+		Map<String, Set<String>> secondDependenciesMap = new HashMap<>();
+		secondDependenciesMap.put("a", asSet("f", "b"));
+		secondDependenciesMap.put("b", new HashSet<String>());
+		secondDependenciesMap.put("c", asSet("f", "e"));
+		secondDependenciesMap.put("d", asSet("e", "c"));
+		secondDependenciesMap.put("e", new HashSet<String>());
+		secondDependenciesMap.put("f", new HashSet<String>());
 
-		dependenciesMap.put("a@3", asSet("e@3"));
-		dependenciesMap.put("b@3", new HashSet<String>());
-		dependenciesMap.put("c@3", asSet("f@3", "d@3"));
-		dependenciesMap.put("d@3", asSet("e@3", "c@3"));
-		dependenciesMap.put("e@3", new HashSet<String>());
-		dependenciesMap.put("f@3", new HashSet<String>());
+		//'a' should be before 'f', but it is not possible
+		//'b' should be before 'a', but it is not possible
+		//'c' should be before 'f',
+		//'c' should be before 'e',
+		//'d' should be before 'c', but it is not possible
+		//'d' should be before 'e',
 
+		MultiMapDependencyResults<String> results = utils.sortTwoLevelOfDependencies(dependenciesMap, secondDependenciesMap, new DependencyUtilsParams());
+		assertThat(results.getSortedElements()).isEqualTo(asList("a", "e", "b", "d", "f", "c"));
+		assertThat(results.getRemovedDependencies()).containsOnly(
+				entry("a", asSet("b", "f")),
+				entry("d", asSet("c"))
+		);
 
-		//utils.validateNoCyclicDependencies(dependenciesMap);
-
-		List<String> dependencies = utils.sortByDependency(dependenciesMap);
-
-		System.out.println(dependencies);
-
+		results = utils.sortTwoLevelOfDependencies(dependenciesMap, secondDependenciesMap, new DependencyUtilsParams().withToleratedCyclicDepencies());
+		assertThat(results.getSortedElements()).isEqualTo(asList("a", "e", "b", "d", "f", "c"));
+		assertThat(results.getRemovedDependencies()).containsOnly(
+				entry("a", asSet("b", "f")),
+				entry("d", asSet("c"))
+		);
 	}
+
+	@Test
+	public void whenSortingByDependencyUsingTwoMapsWithTheFirstHavingCyclicDependencyThenException() {
+
+		Map<String, Set<String>> dependenciesMap = new HashMap<>();
+		dependenciesMap.put("a", asSet("f"));
+		dependenciesMap.put("b", asSet("a"));
+		dependenciesMap.put("c", asSet("d"));
+		dependenciesMap.put("d", new HashSet<String>());
+		dependenciesMap.put("e", new HashSet<String>());
+		dependenciesMap.put("f", asSet("b"));
+
+		//'a' must be before 'b', 'c' must be before 'd', 'f' must be before 'b'
+
+		Map<String, Set<String>> secondDependenciesMap = new HashMap<>();
+		secondDependenciesMap.put("a", asSet("f", "b"));
+		secondDependenciesMap.put("b", new HashSet<String>());
+		secondDependenciesMap.put("c", asSet("f", "e"));
+		secondDependenciesMap.put("d", asSet("e", "c"));
+		secondDependenciesMap.put("e", new HashSet<String>());
+		secondDependenciesMap.put("f", new HashSet<String>());
+
+		//'a' should be before 'f', but it is not possible
+		//'b' should be before 'a', but it is not possible
+		//'c' should be before 'f',
+		//'c' should be before 'e',
+		//'d' should be before 'c', but it is not possible
+		//'d' should be before 'e',
+
+		try {
+			utils.sortTwoLevelOfDependencies(dependenciesMap, secondDependenciesMap, new DependencyUtilsParams());
+			fail("Exception expected");
+		} catch (CyclicDependency e) {
+			assertThat(e.getCyclicDependencies()).containsOnly(
+					entry("a", asSet("f")),
+					entry("b", asSet("a")),
+					entry("f", asSet("b"))
+			);
+		}
+
+		try {
+			MultiMapDependencyResults<String> results = utils.sortTwoLevelOfDependencies(
+					dependenciesMap, secondDependenciesMap, new DependencyUtilsParams().withToleratedCyclicDepencies());
+			fail("Exception expected");
+		} catch (CyclicDependency e) {
+			assertThat(e.getCyclicDependencies()).containsOnly(
+					entry("a", asSet("f")),
+					entry("b", asSet("a")),
+					entry("f", asSet("b"))
+			);
+		}
+	}
+
 
 	@Test
 	public void givenMapWithoutCyclicDependenciesWhenSortingByDependencyThenCorrectOrder()
@@ -140,7 +204,7 @@ public class DependencyUtilsTest {
 			utils.validateNoCyclicDependencies(dependenciesMap);
 			fail("Cyclic dependency expected");
 		} catch (DependencyUtilsRuntimeException.CyclicDependency e) {
-			assertThat(e.getCyclicDependencies()).containsOnly("a", "b", "c");
+			assertThat(e.getCyclicDependencies().keySet()).containsOnly("a", "b", "c");
 		}
 
 	}
