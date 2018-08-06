@@ -419,6 +419,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		});
 
 		srTable.setWidth("100%");
+
 		return srTable;
 	}
 

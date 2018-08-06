@@ -66,6 +66,14 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
+	public void displayDocument(String id, String lotNumber) {
+		Map<String, String> params = new HashMap<>();
+		params.put("lotNumber", lotNumber);
+		params.put("id", id);
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_DOCUMENT, params));
+	}
+
 	public void displayDocument(String id, String homePageUrl, boolean isToOpenInNewTab) {
 		navigateTo(homePageUrl, RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id, isToOpenInNewTab);
 	}

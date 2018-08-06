@@ -42,6 +42,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 	private Button searchButton;
 	private Button addToListButton;
 	private LookupRecordField adminUnit;
+	private String saveEvent = null;
 
 	public DecommissioningBuilderViewImpl() {
 		presenter = new DecommissioningBuilderPresenter(this);
@@ -58,8 +59,9 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		addSaveSearchListenerList(new SaveSearchListener() {
 			@Override
 			protected void save(Event event) {
+				saveEvent = event.getSavedSearch().getId();
 				getUIContext().setAttribute(DECOMMISSIONING_BUILDER_TYPE, presenter.getSearchType());
-				getUIContext().setAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING, event.getSavedSearch().getId());
+				getUIContext().setAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING, saveEvent);
 			}
 		});
 
@@ -170,6 +172,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		Button createList = new DecommissioningButton($("DecommissioningBuilderView.createDecommissioningList"));
 		createList.addStyleName(ValoTheme.BUTTON_LINK);
 		createList.addStyleName(CREATE_LIST);
+
 		return results.createSummary(buildSelectAllButton(), buildAddToSelectionButton(), createList, buildAddToListButton());
 	}
 

@@ -122,8 +122,6 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 	public boolean itemClicked(BreadcrumbItem item) {
 		boolean handled;
 
-		breadcrumbTrail.getUIContext().clearAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
-		breadcrumbTrail.getUIContext().clearAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 
 		if (item instanceof DecommissionBreadcrumbTrailPresenter.FolderBreadcrumbItem) {
 			handled = true;
@@ -133,6 +131,10 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 			breadcrumbTrail.getUIContext().setAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING, searchId);
 
 			breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
+
+			breadcrumbTrail.getUIContext().clearAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+			breadcrumbTrail.getUIContext().clearAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+
 		} else if (item instanceof FolderDocumentBreadcrumbTrailPresenter.DocumentBreadcrumbItem) {
 			handled = true;
 			String documentId = ((FolderDocumentBreadcrumbTrailPresenter.DocumentBreadcrumbItem) item).getDocumentId();
@@ -141,6 +143,10 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 			breadcrumbTrail.getUIContext().setAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING, searchId);
 
 			breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
+
+			breadcrumbTrail.getUIContext().clearAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+			breadcrumbTrail.getUIContext().clearAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+
 		} else if(item instanceof  DispositionListBreadcrumbItem) {
 			handled = true;
 			breadcrumbTrail.navigate().to(RMViews.class).decommissioning();

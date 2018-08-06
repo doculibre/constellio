@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import com.constellio.app.api.extensions.params.DocumentBreadcrumParams;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
@@ -22,6 +23,7 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
@@ -282,11 +284,18 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		String saveSearchDecommissioning = getUIContext().getAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 		SearchType searchType = getUIContext().getAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 
-		if(saveSearchDecommissioning == null) {
-			return new FolderDocumentBreadcrumbTrail(recordDisplay.getRecordVO().getId(), taxonomyCode, this);
-		} else {
+		BaseBreadcrumbTrail breadcrumbTrail = null;
+		if(presenter.getParams() != null ){
+			breadcrumbTrail = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getBreadcrumtrail(new DocumentBreadcrumParams(presenter.getDocument().getId(),presenter.getParams(), this));
+		}
+
+		if (breadcrumbTrail != null) {
+			return breadcrumbTrail;
+		} else if (saveSearchDecommissioning != null) {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
 					saveSearchDecommissioning, presenter.getRecord().getId(), this);
+		} else {
+			return new FolderDocumentBreadcrumbTrail(documentVO.getId(), taxonomyCode, this);
 		}
 	}
 

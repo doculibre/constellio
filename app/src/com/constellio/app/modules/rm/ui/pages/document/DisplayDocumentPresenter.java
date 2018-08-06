@@ -28,6 +28,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -75,6 +76,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private String lastKnownCheckoutUserId;
 	private Long lastKnownLength;
 	private Document document;
+	private Map<String, String> paramsMap = null;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, boolean popup) {
 		super(view);
@@ -96,6 +98,14 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
+	public Document getDocument() {
+		return document;
+	}
+
+	public void setDocument(Document document) {
+		this.document = document;
+	}
+
 	public Record getRecord() {
 		return record;
 	}
@@ -105,8 +115,21 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return true;
 	}
 
+	public Map<String, String> getParams() {
+		return paramsMap;
+	}
+
 	public void forParams(String params) {
-		String id = params;
+		String id;
+
+		if(params.contains("id")) {
+			paramsMap = ParamUtils.getParamsMap(params);
+			id = paramsMap.get("id");
+		} else {
+			id = params;
+		}
+
+
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
 

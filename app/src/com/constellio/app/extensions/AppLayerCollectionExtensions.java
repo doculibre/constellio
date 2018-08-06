@@ -23,6 +23,8 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
@@ -100,6 +102,8 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<ListSchemaExtention> listSchemaCommandExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<DocumentBreadcrumExtention> documentBreadcrumExtentions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -636,4 +640,17 @@ public class AppLayerCollectionExtensions {
 		return new ArrayList<>(unwantedTaxonomies);
 	}
 
+	public BaseBreadcrumbTrail getBreadcrumtrail(DocumentBreadcrumParams documentBreadcrumParams) {
+		BaseBreadcrumbTrail breadcrumbTrail = null;
+
+		for(DocumentBreadcrumExtention documentBreadcrumExtention : documentBreadcrumExtentions) {
+			breadcrumbTrail = documentBreadcrumExtention.getBreadcrumTrail(documentBreadcrumParams);
+
+			if(breadcrumbTrail != null) {
+				break;
+			}
+		}
+
+		return breadcrumbTrail;
+	}
 }

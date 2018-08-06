@@ -97,8 +97,6 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			SavedSearch search = getSavedSearch(parts[2]);
 			setSavedSearch(search);
 			this.displayResults = true;
-			view.getUIContext().setAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType);
-			view.getUIContext().setAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING, search.getId());
 		} else {
 			searchType = SearchType.valueOf(params);
 			view.setCriteriaSchemaType(getSchemaType());
