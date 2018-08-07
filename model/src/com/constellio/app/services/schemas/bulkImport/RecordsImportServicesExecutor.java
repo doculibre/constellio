@@ -276,21 +276,20 @@ public class RecordsImportServicesExecutor {
 
 					}
 
-						throwIfNonEmpty(typeImportErrors);
-					}
-					if (skipped == 0) {
-						typeImportFinished = true;
-					}
-					previouslySkipped = skipped;
-				} finally {
-					importDataIterator.close();
-				}
-			}
-			if (params.importErrorsBehavior == STOP_ON_FIRST_ERROR
-					|| params.importErrorsBehavior == CONTINUE_FOR_RECORD_OF_SAME_TYPE) {
-				if (typeImportErrors.hasDecoratedErrors()) {
 					throwIfNonEmpty(typeImportErrors);
 				}
+				if (skipped == 0) {
+					typeImportFinished = true;
+				}
+				previouslySkipped = skipped;
+			} finally {
+				importDataIterator.close();
+			}
+		}
+		if (params.importErrorsBehavior == STOP_ON_FIRST_ERROR
+			|| params.importErrorsBehavior == CONTINUE_FOR_RECORD_OF_SAME_TYPE) {
+			if (typeImportErrors.hasDecoratedErrors()) {
+				throwIfNonEmpty(typeImportErrors);
 			}
 		}
 
