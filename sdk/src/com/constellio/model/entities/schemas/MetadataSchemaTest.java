@@ -101,7 +101,7 @@ public class MetadataSchemaTest extends ConstellioTest {
 
 		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
 		MetadataSchema schema = new MetadataSchema("default", "zeType_default", zeCollectionInfo, labels, metadatas, false,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS,true);
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 
 		List<Metadata> returnedMetadatas = schema.getTaxonomyRelationshipReferences(taxonomies);
 		assertThat(returnedMetadatas).containsOnly(taxonomyRelationToT4, taxonomyRelationToT3Custom);

@@ -1,6 +1,7 @@
 package com.constellio.app.services.schemas.bulkImport;
 
 import java.io.Serializable;
+import java.util.List;
 
 public interface BulkImportProgressionListener extends Serializable {
 
@@ -18,4 +19,6 @@ public interface BulkImportProgressionListener extends Serializable {
 	void afterRecordImports(String fromLegacyId, String toLegacyId, int totalImported, int batchQty, int errorsCount);
 
 	void onRecordImportPostponed(String legacyId);
+
+	void beforeSecondPhase(List<String> schemaTypesWithSecondPhaseImport);
 }

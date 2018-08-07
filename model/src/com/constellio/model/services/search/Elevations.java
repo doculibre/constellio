@@ -110,7 +110,6 @@ public class Elevations implements Serializable {
 	}
 
 
-
 	public static class DocExclusion implements Serializable {
 		private String id;
 

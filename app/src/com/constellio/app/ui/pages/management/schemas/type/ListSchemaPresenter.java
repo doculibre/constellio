@@ -3,7 +3,6 @@ package com.constellio.app.ui.pages.management.schemas.type;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -23,9 +22,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 
@@ -34,9 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaView> {
@@ -171,7 +165,7 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 	}
 
 	public void disableButtonClick(String schemaCode) {
-		if(schemaCode.contains(MetadataSchemaType.DEFAULT)){
+		if (schemaCode.contains(MetadataSchemaType.DEFAULT)) {
 			view.showErrorMessage($("ListSchemaView.cannotLogicallyDeleteDefaultSchema"));
 		}
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
@@ -180,33 +174,33 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 				fromAllSchemasIn(collection).where(Schemas.LINKED_SCHEMA).isEqualTo(schemaCode)));
 		List<String> recordsWithErrors = new ArrayList<>();
 
-		for(Record record : records) {
+		for (Record record : records) {
 			if (recordServices.isLogicallyDeletableAndIsSkipValidation(record, User.GOD)) {
 				recordsWithErrors.add(record.getTitle());
 			}
 		}
 
-		if (recordsWithErrors.isEmpty()){
+		if (recordsWithErrors.isEmpty()) {
 			AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
-			appSchemasServices.disableSchema(collection,schemaCode);
-			for(Record record : records) {
+			appSchemasServices.disableSchema(collection, schemaCode);
+			for (Record record : records) {
 				recordServices.logicallyDelete(record, User.GOD);
 			}
-		}else{
+		} else {
 			view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotLogicallyDeleteRecords", elementsSeparatedByComma(recordsWithErrors)));
 		}
 		view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
 	}
 
-	public void enableButtonClick(String schemaCode){
+	public void enableButtonClick(String schemaCode) {
 		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
-		appSchemasServices.enableSchema(collection,schemaCode);
+		appSchemasServices.enableSchema(collection, schemaCode);
 
 		view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
 	}
 
-	public String elementsSeparatedByComma(List<String> listOfElements){
-		return listOfElements.toString().replace("[","").replace("]","");
+	public String elementsSeparatedByComma(List<String> listOfElements) {
+		return listOfElements.toString().replace("[", "").replace("]", "");
 	}
 
 }

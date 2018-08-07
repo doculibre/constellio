@@ -34,6 +34,8 @@ public class ConfigManagerHelper {
 			Document document = new Document();
 			if (documentAlteration != null) {
 				documentAlteration.alter(document);
+			} else {
+				throw new ImpossibleRuntimeException("Cannot create empty xml");
 			}
 			try {
 				configManager.add(path, document);

@@ -90,6 +90,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(Capsule.DEFAULT_SCHEMA, Capsule.class);
 		wrappers.put(SearchEvent.DEFAULT_SCHEMA, SearchEvent.class);
 		wrappers.put(ThesaurusConfig.DEFAULT_SCHEMA, ThesaurusConfig.class);
+		wrappers.put(CapsuleLanguage.DEFAULT_SCHEMA, CapsuleLanguage.class);
 
 		System.out.println(header());
 

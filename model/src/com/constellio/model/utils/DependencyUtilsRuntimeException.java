@@ -1,6 +1,7 @@
 package com.constellio.model.utils;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("serial")
 public class DependencyUtilsRuntimeException extends RuntimeException {
@@ -20,31 +21,29 @@ public class DependencyUtilsRuntimeException extends RuntimeException {
 	@SuppressWarnings("rawtypes")
 	public static class CyclicDependency extends DependencyUtilsRuntimeException {
 
-		private final List cyclicDependencies;
+		private final Map cyclicDependenciesMap;
 
-		public CyclicDependency(List cyclicDependencies) {
-			super(toMessage(cyclicDependencies));
-			this.cyclicDependencies = cyclicDependencies;
+		public CyclicDependency(Map cyclicDependenciesMap) {
+			super(toMessage(cyclicDependenciesMap));
+			this.cyclicDependenciesMap = cyclicDependenciesMap;
 		}
 
-		public CyclicDependency(List cyclicDependencies, String graph) {
+		public CyclicDependency(Map cyclicDependenciesMap, String graph) {
 			super("There is a cyclic dependency : \n" + graph);
-			this.cyclicDependencies = cyclicDependencies;
+			this.cyclicDependenciesMap = cyclicDependenciesMap;
 		}
 
-		private static String toMessage(List cyclicDependencies) {
+		private static String toMessage(Map<Object, Set<Object>> cyclicDependencies) {
 			StringBuilder sb = new StringBuilder("There is a cyclic dependency : ");
-			for (Object cyclicDependency : cyclicDependencies) {
-				sb.append(cyclicDependency.toString());
-				sb.append("->");
+			for (Map.Entry<Object, Set<Object>> cyclicDependency : cyclicDependencies.entrySet()) {
+				sb.append(cyclicDependency.getKey() + "<-" + cyclicDependency.getValue() + ",  ");
 			}
-			sb.append(cyclicDependencies.get(0).toString());
 			return sb.toString();
 		}
 
 		@SuppressWarnings("unchecked")
-		public <T> List<T> getCyclicDependencies() {
-			return cyclicDependencies;
+		public <T> Map<T, Set<T>> getCyclicDependencies() {
+			return (Map<T, Set<T>>) cyclicDependenciesMap;
 		}
 
 	}

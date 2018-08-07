@@ -299,7 +299,7 @@ public class AppSchemasServices {
 		changeSchemaState(collection, schemaCode, true);
 	}
 
-	public void changeSchemaState(String collection, final String schemaCode, final boolean active){
+	public void changeSchemaState(String collection, final String schemaCode, final boolean active) {
 		schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {

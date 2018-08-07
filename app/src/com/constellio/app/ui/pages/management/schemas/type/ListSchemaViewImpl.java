@@ -5,7 +5,6 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
-import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.data.SchemaVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -98,9 +97,10 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		return tabSheet;
 	}
 
-    public void addSchemaToTable(final MetadataSchemaVO metadataSchemaVO, final boolean active, Container indexedContainer) {
-        MenuBar menuBar = new BaseMenuBar();
-        MenuBar.MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
+	public void addSchemaToTable(final MetadataSchemaVO metadataSchemaVO, final boolean active,
+								 Container indexedContainer) {
+		MenuBar menuBar = new BaseMenuBar();
+		MenuBar.MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
 
 		final MenuBar.Command editListener = new MenuBar.Command() {
 			@Override
@@ -111,17 +111,6 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 
 		rootItem.addItem($("ListSchemaViewImpl.menu.edit"), EditButton.ICON_RESOURCE, editListener);
 
-		if (super.isVisible() && presenter.isDeleteButtonVisible(metadataSchemaVO.getCode())) {
-			final MenuBar.Command deleteListener = new MenuBar.Command() {
-				@Override
-				public void menuSelected(MenuBar.MenuItem selectedItem) {
-					presenter.deleteButtonClicked(metadataSchemaVO.getCode());
-				}
-			};
-			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), new ThemeResource("images/icons/actions/delete.png"),
-					deleteListener);
-		}
-
 		if (active) {
 			final MenuBar.Command disableListener = new MenuBar.Command() {
 				@Override
@@ -131,7 +120,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			};
 			rootItem.addItem($("ListSchemaViewImpl.menu.disable"),
 					new ThemeResource("images/commun/desactiverRouge.gif"), disableListener);
-		}else{
+		} else {
 			final MenuBar.Command enableListener = new MenuBar.Command() {
 				@Override
 				public void menuSelected(MenuBar.MenuItem selectedItem) {
@@ -140,6 +129,17 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			};
 			rootItem.addItem($("ListSchemaViewImpl.menu.enable"),
 					new ThemeResource("images/commun/reactiver.gif"), enableListener);
+		}
+
+		if (super.isVisible()) {
+			final MenuBar.Command deleteListener = new MenuBar.Command() {
+				@Override
+				public void menuSelected(MenuBar.MenuItem selectedItem) {
+					presenter.deleteButtonClicked(metadataSchemaVO.getCode());
+				}
+			};
+			rootItem.addItem($("ListSchemaViewImpl.menu.delete"), new ThemeResource("images/icons/actions/delete.png"),
+					deleteListener);
 		}
 
 		final MenuBar.Command formOrderListener = new MenuBar.Command() {

@@ -45,9 +45,9 @@ public class MetadataSchema implements Serializable {
 	private final CollectionInfo collectionInfo;
 
 	public MetadataSchema(String localCode, String code, CollectionInfo collectionInfo, Map<Language, String> labels,
-			List<Metadata> metadatas,
-			Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
-			MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active) {
+						  List<Metadata> metadatas,
+						  Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
+						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active) {
 		super();
 		this.localCode = localCode;
 		this.code = code;
