@@ -193,38 +193,53 @@ public class RecordsImportValidator {
 
 				if (!unresolved.isEmpty()) {
 					for (Map.Entry<String, Set<String>> entry : unresolved.getMapEntries()) {
+						String value = entry.getKey();
 						for (String usedBy : entry.getValue()) {
-							//TODO if re
 
-							String usedByMetadata = StringUtils.substringBefore(usedBy, ":");
-							String usedBySchemaTypeCode = StringUtils.substringBefore(usedByMetadata, "_");
-							MetadataSchemaType usedBySchemaType = types.getSchemaType(usedBySchemaTypeCode);
-							String usedBySchemaTypeLabel = usedBySchemaType.getLabel(language);
-							String usedById = StringUtils.substringAfter(usedBy, ":");
-							Map<String, Object> parameters = new HashMap<>();
-							parameters.put("legacyId", usedById);
-							parameters.put("metadata", uniqueValueMetadata.getLocalCode());
-							parameters.put("metadataLabel", uniqueValueMetadata.getLabel(language));
-							parameters.put("referencedSchemaType", schemaType.getCode());
-							parameters.put("referencedSchemaTypeLabel", schemaType.getLabel(language));
-							parameters.put("value", entry.getKey());
-							if (usedById != null) {
-								parameters.put("prefix", usedBySchemaTypeLabel + " " + usedById + " : ");
-							} else {
-								parameters.put("prefix", usedBySchemaType.getLabel(language) + " : ");
-							}
-							if (params.isWarningsForInvalidFacultativeMetadatas()) {
-								errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
-							} else if (User.SCHEMA_TYPE.equals(schemaType.getCode()) && params
-									.isAllowingReferencesToNonExistingUsers()) {
-								errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
-							} else {
-								errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
-							}
+							addReferenceResolveError(errors, schemaType, uniqueValueMetadata, value, usedBy);
 						}
 					}
 				}
 			}
+		}
+	}
+
+	private void addReferenceResolveError(ValidationErrors errors, MetadataSchemaType schemaType,
+										  Metadata uniqueValueMetadata, String value, String usedBy) {
+		String usedByMetadata = StringUtils.substringBefore(usedBy, ":");
+		String usedBySchemaTypeCode = StringUtils.substringBefore(usedByMetadata, "_");
+		MetadataSchemaType usedBySchemaType = types.getSchemaType(usedBySchemaTypeCode);
+		String usedBySchemaTypeLabel = usedBySchemaType.getLabel(language);
+		String usedById = StringUtils.substringAfter(usedBy, ":");
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("legacyId", usedById);
+		parameters.put("metadata", uniqueValueMetadata.getLocalCode());
+		parameters.put("metadataLabel", uniqueValueMetadata.getLabel(language));
+		parameters.put("referencedSchemaType", schemaType.getCode());
+		parameters.put("referencedSchemaTypeLabel", schemaType.getLabel(language));
+		parameters.put("value", value);
+		if (usedById != null) {
+			parameters.put("prefix", usedBySchemaTypeLabel + " " + usedById + " : ");
+		} else {
+			parameters.put("prefix", usedBySchemaType.getLabel(language) + " : ");
+		}
+
+
+		//							List<String> schemaTypes = schemasManager.getSchemaTypes(metadata.getCollection()).getSchemaTypesSortedByDependency();
+		//							int schemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getSchemaTypeCode());
+		//							int targettingSchemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getReferencedSchemaType());
+
+		if (usedByMetadata.equals("zeSchemaType_default_secondaryReferenceToAnotherSchema")) {
+			return;
+		}
+
+		if (params.isWarningsForInvalidFacultativeMetadatas()) {
+			errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+		} else if (User.SCHEMA_TYPE.equals(schemaType.getCode()) && params
+				.isAllowingReferencesToNonExistingUsers()) {
+			errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+		} else {
+			errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
 		}
 	}
 
