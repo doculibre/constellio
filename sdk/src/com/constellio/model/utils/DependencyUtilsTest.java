@@ -1,9 +1,5 @@
 package com.constellio.model.utils;
 
-import org.junit.Test;
-
-import java.util.*;
-
 import com.constellio.model.utils.DependencyUtils.MultiMapDependencyResults;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
 import org.junit.Test;
@@ -14,7 +10,6 @@ import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-
 import static org.assertj.core.data.MapEntry.entry;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
