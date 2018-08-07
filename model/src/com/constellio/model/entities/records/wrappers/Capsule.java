@@ -79,6 +79,11 @@ public class Capsule extends RecordWrapper {
 		return this;
 	}
 
+	public Capsule setLanguage(CapsuleLanguage language) {
+		set(LANGUAGE, language);
+		return this;
+	}
+
 	public List<Content> getImages() {
 		return get(IMAGES);
 	}
