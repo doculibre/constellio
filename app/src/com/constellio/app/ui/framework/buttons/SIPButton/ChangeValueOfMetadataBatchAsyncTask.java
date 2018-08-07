@@ -1,70 +1,77 @@
 package com.constellio.app.ui.framework.buttons.SIPButton;
 
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
+import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultCSVReportWriter;
+import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
+import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultXLSReportWriter;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessPossibleImpact;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRecordFieldModification;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRecordModifications;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
+import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.*;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.batch.controller.BatchProcessTask;
 import com.constellio.model.services.batch.controller.RecordFromIdListIterator;
-import com.constellio.model.services.batch.controller.TaskList;
 import com.constellio.model.services.batch.state.BatchProcessProgressionServices;
 import com.constellio.model.services.batch.state.InMemoryBatchProcessProgressionServices;
 import com.constellio.model.services.batch.state.StoredBatchProcessPart;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordProvider;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.ForkJoinPool;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
+import static java.util.Arrays.asList;
 
 public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ChangeValueOfMetadataBatchAsyncTask.class);
+	private static final String TMP_BATCH_FILE = "BatchProcessingPresenterService-formatBatchProcessingResults";
+
 	final Map<String, Object> metadataChangedValues;
+	Long totalNumberOfRecords;
 	final String query;
 	List<String> recordIds;
-	final int numberOfExecutedRecords = 0;
-//	private String id;
-//	private BatchProcessStatus status;
-//	private LocalDateTime requestDateTime;
-//	private LocalDateTime startDateTime;
-//	private int handledRecordsCount;
-//	private int totalRecordsCount;
-//	private int errors;
-//	private BatchProcessAction action;
-//	private String username;
-//	private String title;
-//	private String collection;
-//	private String query;
-//	private List<String> records;
 
-	public ChangeValueOfMetadataBatchAsyncTask(Map<String, Object> metadataChangedValues, String query, List<String> recordIds) {
+	public ChangeValueOfMetadataBatchAsyncTask(Map<String, Object> metadataChangedValues, String query, List<String> recordIds, Long totalNumberOfRecords) {
 		this.metadataChangedValues = new HashMap<>(metadataChangedValues);
 		this.query = query;
 		this.recordIds = recordIds;
+		this.totalNumberOfRecords = totalNumberOfRecords;
 	}
 
 	@Override
 	public Object[] getInstanceParameters() {
-		return new Object[] { metadataChangedValues, query, recordIds };
+		return new Object[] { metadataChangedValues, query, recordIds, totalNumberOfRecords };
 	}
 
 	@Override
@@ -79,39 +86,40 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		BatchBuilderIterator<Record> batchIterator = getBatchIterator(appLayerFactory, previousPart);
 
 
-
-
 		MetadataSchemaTypes schemaTypes = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(params.getCollection());
-		RecordProvider recordProvider = new RecordProvider(appLayerFactory.getModelLayerFactory().newRecordServices());
-		List<String> recordsWithErrors = new ArrayList<>();
+		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		RecordProvider recordProvider = new RecordProvider(recordServices);
+
+		params.setProgressionUpperLimit(totalNumberOfRecords);
 
 		while (batchIterator.hasNext()) {
-//			int oldErrorCount = recordsWithErrors.size();
-//			List<String> newErrors = new ArrayList<>();
-//			List<Record> records = batchIterator.next();
-//			int index = previousPart == null ? 0 : previousPart.getIndex() + 1;
-//			String firstId = records.get(0).getId();
-//			String lastId = records.get(records.size() - 1).getId();
-//			StoredBatchProcessPart storedBatchProcessPart = new StoredBatchProcessPart(batchProcess.getId(), index, firstId,
-//					lastId, false, false);
-//
-//			//System.out.println("processing batch #" + index + " [" + firstId + "-" + lastId + "]");
-//			batchProcessProgressionServices.markNewPartAsStarted(storedBatchProcessPart);
-//			Transaction transaction = executeBatch(records, schemaTypes, recordProvider);
-//
-//			for (BatchProcessTask task : tasks) {
-//				newErrors = pool.invoke(task);
-//				recordsWithErrors.addAll(newErrors);
-//			}
-//
-//			batchProcessProgressionServices.markPartAsFinished(storedBatchProcessPart);
-//			previousPart = storedBatchProcessPart;
-//			report.addSkippedRecords(newErrors);
-//			updateBatchProcessReport(report, appLayerFactory);
-//			if (batchIterator.hasNext()) {
-//				batchProcessesManager.updateProgression(batchProcess, records.size(), recordsWithErrors.size() - oldErrorCount);
-//			}
+			List<Record> records = batchIterator.next();
+			for (int i = 0; i < records.size(); i += numberOfRecordsPerTask) {
+				List<Record> recordsForTransaction = records.subList(i, Math.min(records.size(), i + numberOfRecordsPerTask));
+				Transaction transaction = buildTransactionForBatch(recordsForTransaction, schemaTypes, recordProvider);
+				try {
+					recordServices.prepareRecords(transaction);
+					appendExcelReportExcel(transaction, report, appLayerFactory, params);
+					recordServices.execute(transaction);
+					transaction.getModifiedRecords();
+				} catch (Throwable t) {
+					if (report != null) {
+						report.appendErrors(asList(t.getMessage()));
+					}
+					t.printStackTrace();
+					LOGGER.error("Error while executing batch process action", t);
+					report.addSkippedRecords(transaction.getRecordIds());
+				}
+				params.incrementProgression(recordsForTransaction.size());
+				updateBatchProcessReport(report, appLayerFactory);
+			}
 		}
+	}
+
+	private void appendExcelReportExcel(Transaction transaction, BatchProcessReport report, AppLayerFactory appLayerFactory, AsyncTaskExecutionParams params) {
+		BatchProcessResults batchProcessResults = toBatchProcessResults(transaction, appLayerFactory, params.getCollection());
+		InputStream inputStream = formatBatchProcessingResults(batchProcessResults, appLayerFactory, params);
+		System.out.println("a");
 	}
 
 	private BatchBuilderIterator<Record> getBatchIterator(AppLayerFactory appLayerFactory, StoredBatchProcessPart previousPart) {
@@ -125,6 +133,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 				e.printStackTrace();
 			}
 			params.set("sort", "principalPath_s asc, id asc");
+
 
 			iterator = new RecordSearchResponseIterator(appLayerFactory.getModelLayerFactory(), params, 1000, true);
 			if (previousPart != null) {
@@ -206,6 +215,136 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	private void addRecordsIdsToErrorList(List<Record> batch, List<String> errors) {
+		for (Record record : batch) {
+			errors.add(record.getId());
+		}
+	}
+
+	private BatchProcessResults toBatchProcessResults(Transaction transaction, AppLayerFactory appLayerFactory, String collection) {
+
+		List<BatchProcessRecordModifications> recordModificationses = new ArrayList<>();
+		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
+		MetadataSchemasManager schemas = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		List<String> collectionLanguages = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
+		Locale locale = Language.withCode(collectionLanguages.get(0)).getLocale();
+		for (Record record : transaction.getModifiedRecords()) {
+			Record originalRecord = record.getCopyOfOriginalRecord();
+
+			List<BatchProcessRecordFieldModification> recordFieldModifications = new ArrayList<>();
+			for (Metadata metadata : record.getModifiedMetadatas(schemas.getSchemaTypes(collection))) {
+				if (!Schemas.isGlobalMetadataExceptTitle(metadata.getLocalCode()) && extensions
+						.isMetadataDisplayedWhenModifiedInBatchProcessing(metadata)) {
+
+					String valueBefore = convertToString(metadata, originalRecord.get(metadata), locale, appLayerFactory);
+					String valueAfter = convertToString(metadata, record.get(metadata), locale, appLayerFactory);
+					recordFieldModifications.add(new BatchProcessRecordFieldModification(valueBefore, valueAfter, metadata));
+				}
+			}
+
+			recordModificationses.add(new BatchProcessRecordModifications(originalRecord.getId(), originalRecord.getTitle(),
+					new ArrayList<BatchProcessPossibleImpact>(), recordFieldModifications));
+		}
+
+		return new BatchProcessResults(recordModificationses);
+	}
+
+	private String convertToString(Metadata metadata, Object value, Locale locale, AppLayerFactory appLayerFactory) {
+		try {
+			if (value == null) {
+				return null;
+
+			} else if (metadata.isMultivalue()) {
+				StringBuilder stringBuilder = new StringBuilder();
+				stringBuilder.append("[");
+				List<Object> list = (List<Object>) value;
+
+				for (Object item : list) {
+					if (stringBuilder.length() > 1) {
+						stringBuilder.append(", ");
+					}
+					stringBuilder.append(convertScalarToString(metadata, item, locale, appLayerFactory));
+				}
+
+				stringBuilder.append("]");
+
+				return stringBuilder.toString();
+			} else {
+				return convertScalarToString(metadata, value, locale, appLayerFactory);
+			}
+		} catch (Exception e) {
+			LOGGER.warn("Cannot format unsupported value '" + value + "'", e);
+			return "?";
+		}
+	}
+
+	private String convertScalarToString(Metadata metadata, Object value, Locale locale, AppLayerFactory appLayerFactory) {
+		if (value == null) {
+			return null;
+		}
+		switch (metadata.getType()) {
+
+			case DATE:
+				return DateFormatUtils.format((LocalDate) value);
+
+			case DATE_TIME:
+				return DateFormatUtils.format((LocalDateTime) value);
+
+			case STRING:
+			case TEXT:
+				return value.toString();
+
+			case INTEGER:
+			case NUMBER:
+				return value.toString();
+
+			case BOOLEAN:
+				return $(value.toString(), locale);
+
+			case REFERENCE:
+				Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(value.toString());
+				String code = record.get(Schemas.CODE);
+				if (code == null) {
+					return record.getId() + " (" + record.getTitle() + ")";
+				} else {
+					return code + " (" + record.getTitle() + ")";
+				}
+
+			case CONTENT:
+				return ((Content) value).getCurrentVersion().getFilename();
+
+			case STRUCTURE:
+				return value.toString();
+
+			case ENUM:
+				return $(metadata.getEnumClass().getSimpleName() + "." + ((EnumWithSmallCode) value).getCode(), locale);
+		}
+
+		throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
+	}
+
+	public InputStream formatBatchProcessingResults(BatchProcessResults results, AppLayerFactory appLayerFactory, AsyncTaskExecutionParams params) {
+		List<String> collectionLanguages = appLayerFactory.getCollectionsManager().getCollectionLanguages(params.getCollection());
+		Language language = Language.withCode(collectionLanguages.get(0));
+		Locale locale = language.getLocale();
+		File resultsFile = null;
+		Closeable outputStream = null;
+		IOServices ioServices = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
+		try {
+			resultsFile = ioServices.newTemporaryFile(TMP_BATCH_FILE + "_" + params.getBatchProcess().getId());
+			outputStream = new FileOutputStream(resultsFile);
+			new BatchProcessingResultCSVReportWriter(new BatchProcessingResultModel(results, language), locale)
+					.write((OutputStream) outputStream);
+			IOUtils.closeQuietly(outputStream);
+			return new FileInputStream(resultsFile);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		} finally {
+			ioServices.deleteQuietly(resultsFile);
+			IOUtils.closeQuietly(outputStream);
 		}
 	}
 }

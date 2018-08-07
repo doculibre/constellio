@@ -77,6 +77,16 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 				}
 
                 @Override
+                public void incrementProgression(int numberToAdd) {
+
+                }
+
+                @Override
+                public void setProgressionUpperLimit(long progressionUpperLimit) {
+
+                }
+
+            @Override
                 public AsyncTaskBatchProcess getBatchProcess() {
                     return null;
                 }

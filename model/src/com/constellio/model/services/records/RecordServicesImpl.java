@@ -561,7 +561,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return modelFactory.newSearchServices().search(query);
 	}
 
-	void prepareRecords(Transaction transaction)
+	public void prepareRecords(Transaction transaction)
 			throws RecordServicesException.ValidationException {
 		prepareRecords(transaction, null);
 	}

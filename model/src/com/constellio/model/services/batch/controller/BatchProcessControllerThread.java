@@ -136,6 +136,18 @@ public class BatchProcessControllerThread extends ConstellioThread {
 							}
 
 							@Override
+							public void incrementProgression(int numberToAdd) {
+								state.incrementCurrentlyProcessed(numberToAdd);
+								batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);
+							}
+
+							@Override
+							public void setProgressionUpperLimit(long progressionUpperLimit) {
+								state.setTotalToProcess(progressionUpperLimit);
+								batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);
+							}
+
+							@Override
 							public AsyncTaskBatchProcess getBatchProcess() {
 								return process;
 							}

@@ -10,6 +10,10 @@ public interface AsyncTaskExecutionParams {
 
 	void logError(String code, Map<String, Object> parameters);
 
+	void incrementProgression(int numberToAdd);
+
+	void setProgressionUpperLimit(long progressionUpperLimit);
+
 	AsyncTaskBatchProcess getBatchProcess();
 
 }

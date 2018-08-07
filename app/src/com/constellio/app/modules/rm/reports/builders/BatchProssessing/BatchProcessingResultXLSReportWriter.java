@@ -21,7 +21,7 @@ import static com.constellio.app.modules.rm.reports.builders.BatchProssessing.Ba
 import static java.util.Arrays.asList;
 
 
-public class BatchProcessingResultReportWriter implements ReportWriter {
+public class BatchProcessingResultXLSReportWriter implements ReportWriter {
     private static final WritableFont.FontName FONT = WritableFont.TIMES;
     private static final int FONT_SIZE = 10;
     private static final int MAX_NUMBER_OF_RECORDS_PER_SHEET = 10;
@@ -29,7 +29,7 @@ public class BatchProcessingResultReportWriter implements ReportWriter {
     BatchProcessingResultModel model;
     Locale locale;
 
-    public BatchProcessingResultReportWriter(BatchProcessingResultModel model, Locale locale) {
+    public BatchProcessingResultXLSReportWriter(BatchProcessingResultModel model, Locale locale) {
         this.model = model;
         this.locale = locale;
     }

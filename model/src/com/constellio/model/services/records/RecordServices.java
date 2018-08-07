@@ -90,6 +90,9 @@ public interface RecordServices {
 
 	List<Record> getRecordsById(String collection, List<String> ids);
 
+	void prepareRecords(Transaction transaction)
+			throws RecordServicesException.ValidationException;
+
 	void validateTransaction(Transaction transaction)
 			throws ValidationException;
 
@@ -164,4 +167,6 @@ public interface RecordServices {
 	void loadLazyTransientMetadatas(Record record);
 
 	void reloadEagerTransientMetadatas(Record record);
+
+
 }

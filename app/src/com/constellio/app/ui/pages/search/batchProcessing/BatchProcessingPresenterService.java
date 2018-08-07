@@ -23,8 +23,6 @@ import com.constellio.app.ui.framework.buttons.SIPButton.ChangeValueOfMetadataBa
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
-import com.constellio.model.frameworks.validation.ValidationException;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -38,7 +36,7 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
-import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultReportWriter;
+import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultXLSReportWriter;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -265,7 +263,7 @@ public class BatchProcessingPresenterService {
 		Transaction transaction = prepareTransaction(request, true);
 		recordServices.validateTransaction(transaction);
 
-		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(request.getModifiedMetadatas(), null, records);
+		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(request.getModifiedMetadatas(), null, records, Long.valueOf(records.size()));
 		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, title);
 		asyncTaskRequest.setUsername(username);
 
@@ -388,7 +386,7 @@ public class BatchProcessingPresenterService {
 			recordServices.validateTransaction(transaction);
 		}
 
-		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(request.getModifiedMetadatas(), toQueryString(query), null);
+		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(request.getModifiedMetadatas(), toQueryString(query), null, searchServices.getResultsCount(query));
 		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, title);
 		asyncTaskRequest.setUsername(username);
 
@@ -898,7 +896,7 @@ public class BatchProcessingPresenterService {
 		try {
 			resultsFile = ioServices.newTemporaryFile(TMP_BATCH_FILE);
 			outputStream = new FileOutputStream(resultsFile);
-			new BatchProcessingResultReportWriter(new BatchProcessingResultModel(results, locale), i18n.getLocale())
+			new BatchProcessingResultXLSReportWriter(new BatchProcessingResultModel(results, locale), i18n.getLocale())
 					.write((OutputStream) outputStream);
 			IOUtils.closeQuietly(outputStream);
 			return new FileInputStream(resultsFile);
