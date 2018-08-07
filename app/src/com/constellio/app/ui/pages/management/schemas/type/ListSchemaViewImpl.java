@@ -1,9 +1,14 @@
 package com.constellio.app.ui.pages.management.schemas.type;
 
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.data.SchemaVODataProvider;
@@ -18,6 +23,8 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -190,4 +197,33 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		return table;
 	}
 
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new TitleBreadcrumbTrail(this, getTitle()) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				IntermediateBreadCrumbTailItem intermediateBreadCrumbTailItem = new IntermediateBreadCrumbTailItem() {
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
+
+					@Override
+					public String getTitle() {
+						return $("ListSchemaTypeView.viewTitle");
+					}
+
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to(CoreViews.class).listSchemaTypes();
+					}
+				};
+
+				List<IntermediateBreadCrumbTailItem> intermediateBreadCrumbTailItemsList = new ArrayList<>();
+				intermediateBreadCrumbTailItemsList.addAll(super.getIntermediateItems());
+				intermediateBreadCrumbTailItemsList.add(intermediateBreadCrumbTailItem);
+				return intermediateBreadCrumbTailItemsList;
+			}
+		};
+	}
 }

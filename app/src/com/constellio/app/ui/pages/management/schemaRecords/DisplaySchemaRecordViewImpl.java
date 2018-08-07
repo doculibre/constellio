@@ -1,8 +1,14 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -171,6 +177,7 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 		}
 		return actionMenuButtons;
 	}
+
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {

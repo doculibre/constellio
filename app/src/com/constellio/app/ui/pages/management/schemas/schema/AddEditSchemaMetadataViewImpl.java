@@ -1,9 +1,15 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -17,9 +23,13 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEditSchemaMetadataView, ClickListener {
 
@@ -129,5 +139,58 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 		}
 
 		return tabSheet;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new TitleBreadcrumbTrail(this, getTitle()) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				IntermediateBreadCrumbTailItem intermediateBreadCrumbTailItem1 = new IntermediateBreadCrumbTailItem() {
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
+
+					@Override
+					public String getTitle() {
+						return $("ListSchemaTypeView.viewTitle");
+					}
+
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to(CoreViews.class).listSchemaTypes();
+					}
+				};
+
+				IntermediateBreadCrumbTailItem intermediateBreadCrumbTailItem2 = new IntermediateBreadCrumbTailItem() {
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
+
+					@Override
+					public String getTitle() {
+						return $("ListSchemaView.viewTitle");
+					}
+
+					@Override
+					public void activate(Navigation navigate) {
+						String schemaTypeCode = presenter.getSchemaCode().substring(0, presenter.getSchemaCode().indexOf("_"));
+
+						Map<String, String> paramsMap = new HashMap<>();
+						paramsMap.put("schemaTypeCode", schemaTypeCode);
+						String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, paramsMap);
+
+						navigate.to(CoreViews.class).listSchema(params);
+					}
+				};
+
+				List<IntermediateBreadCrumbTailItem> intermediateBreadCrumbTailItemsList = new ArrayList<>();
+				intermediateBreadCrumbTailItemsList.addAll(super.getIntermediateItems());
+				intermediateBreadCrumbTailItemsList.addAll(asList(intermediateBreadCrumbTailItem1, intermediateBreadCrumbTailItem2));
+				return intermediateBreadCrumbTailItemsList;
+			}
+		};
 	}
 }
