@@ -76,7 +76,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private String lastKnownCheckoutUserId;
 	private Long lastKnownLength;
 	private Document document;
-	private Map<String, String> paramsMap = null;
+	private Map<String, String> params = null;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, boolean popup) {
 		super(view);
@@ -116,15 +116,15 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public Map<String, String> getParams() {
-		return paramsMap;
+		return params;
 	}
 
 	public void forParams(String params) {
 		String id;
 
 		if(params.contains("id")) {
-			paramsMap = ParamUtils.getParamsMap(params);
-			id = paramsMap.get("id");
+			this.params = ParamUtils.getParamsMap(params);
+			id = this.params.get("id");
 		} else {
 			id = params;
 		}

@@ -284,10 +284,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		String saveSearchDecommissioning = getUIContext().getAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 		SearchType searchType = getUIContext().getAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 
-		BaseBreadcrumbTrail breadcrumbTrail = null;
-		if(presenter.getParams() != null ){
-			breadcrumbTrail = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getBreadcrumtrail(new DocumentBreadcrumParams(presenter.getDocument().getId(),presenter.getParams(), this));
-		}
+		BaseBreadcrumbTrail breadcrumbTrail;
+
+		breadcrumbTrail = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getBreadcrumtrail(new DocumentBreadcrumParams(presenter.getDocument().getId(),presenter.getParams(), this));
 
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;

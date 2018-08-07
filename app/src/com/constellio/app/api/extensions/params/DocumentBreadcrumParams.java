@@ -1,6 +1,7 @@
 package com.constellio.app.api.extensions.params;
 
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.base.UIContext;
 
 import java.util.Map;
 
@@ -8,6 +9,7 @@ public class DocumentBreadcrumParams {
 	String id;
 	Map<String,String> documentParams;
 	BaseView baseView;
+	UIContext uiContext;
 
 	public DocumentBreadcrumParams(String id, Map<String,String> documentParams, BaseView baseView) {
 		this.id = id;

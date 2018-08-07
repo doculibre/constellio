@@ -8,8 +8,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.constellio.app.api.extensions.DocumentBreadcrumExtention;
+import com.constellio.app.api.extensions.params.DocumentBreadcrumParams;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
 import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import org.joda.time.LocalDate;
@@ -58,7 +61,6 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
@@ -78,16 +80,7 @@ import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.*;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.themes.ValoTheme;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
@@ -225,8 +218,15 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 		String searchId = getUIContext().getAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 		SearchType searchType = getUIContext().getAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+		BaseBreadcrumbTrail breadcrumbTrail = null;
 
-		if(searchId == null) {
+
+		breadcrumbTrail = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getBreadcrumtrail(new DocumentBreadcrumParams(presenter.getFolderId(),presenter.getParams(), this));
+
+
+		if (breadcrumbTrail != null) {
+			return breadcrumbTrail;
+		} else if(searchId == null) {
 			return new FolderDocumentBreadcrumbTrail(recordVO.getId(), taxonomyCode, this);
 		} else {
 			return new DecommissionBreadcrumbTrail($( "DecommissioningBuilderView.viewTitle." + searchType.name()),

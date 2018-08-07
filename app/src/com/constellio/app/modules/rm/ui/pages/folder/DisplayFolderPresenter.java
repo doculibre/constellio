@@ -47,6 +47,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
@@ -116,6 +117,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	private boolean popup;
 
+	private Map<String, String> params = null;
+
 	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean popup) {
 		super(view, Folder.DEFAULT_SCHEMA);
 		this.popup = popup;
@@ -150,7 +153,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void forParams(String params) {
-		String id = params;
+		String id;
+
+		if(params.contains("id")) {
+			this.params = ParamUtils.getParamsMap(params);
+			id = this.params.get("id");
+		} else {
+			id = params;
+		}
+
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
 
@@ -204,6 +215,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.setEvents(eventsDataProvider);
 
 		computeAllItemsSelected();
+	}
+
+	public Map<String, String> getParams() {
+		return params;
+	}
+
+	public String getFolderId() {
+		return folderVO.getId();
 	}
 
 	LogicalSearchQuery getDocumentsQuery() {
