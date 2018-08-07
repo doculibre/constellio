@@ -132,7 +132,7 @@ public class AddEditSchemaRecordPresenter extends SingleSchemaBasePresenter<AddE
 		MetadataSchemaType type = types().getSchemaType(schemaTypeCode);
 		List<Choice> result = new ArrayList<>();
 		for (MetadataSchema schema : type.getCustomSchemas()) {
-			if(schema.isActive()){
+			if (schema.isActive()) {
 				Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 				result.add(new Choice(schema.getCode(), schema.getLabel(language)));
 			}

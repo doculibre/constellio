@@ -55,9 +55,9 @@ public class SchemaVODataProvider implements Serializable {
 
 	public MetadataSchemaVO getSchemaVO(Integer index) {
 		schemas = initSchemaVO();
-		if(schemas.isEmpty()){
+		if (schemas.isEmpty()) {
 			return null;
-		}else{
+		} else {
 			return schemas.get(index);
 		}
 	}
@@ -110,7 +110,7 @@ public class SchemaVODataProvider implements Serializable {
 		MetadataSchemaType type = types.getSchemaType(typeCode);
 
 		for (MetadataSchema schema : type.getCustomSchemas()) {
-			if(schema.isActive() == active){
+			if (schema.isActive() == active) {
 				result.add(voBuilder.build(schema, VIEW_MODE.TABLE, sessionContext));
 			}
 		}
@@ -125,7 +125,7 @@ public class SchemaVODataProvider implements Serializable {
 		//			}
 		//		});
 
-		if(active){
+		if (active) {
 			result.add(0, voBuilder.build(type.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext));
 		}
 

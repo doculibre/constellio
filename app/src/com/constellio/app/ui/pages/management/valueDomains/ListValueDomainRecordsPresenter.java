@@ -201,6 +201,6 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 	private void enableLinkedSchema(Record record) {
 		String linkedSchema = rmSchemas().getLinkedSchemaOf(record);
 		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
-		appSchemasServices.enableSchema(collection,linkedSchema);
+		appSchemasServices.enableSchema(collection, linkedSchema);
 	}
 }
