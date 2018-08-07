@@ -52,6 +52,8 @@ public class Toggle {
 
 	public static AvailableToggle EVENT_BUS_RECORDS_CACHE = newToggle(true);
 
+	public static AvailableToggle SHOW_CAPSULES_FOR_ALL_LANGUAGES = newToggle(false);
+
 
 	// ------------------------------------------------
 
