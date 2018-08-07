@@ -1491,7 +1491,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenCyclicDependencyInRecordsThenExceptionDuringImport()
+	public void givenCyclicDependencyInRecordsParentMetadataThenExceptionDuringImport()
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
@@ -1526,6 +1526,116 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			assertThat(frenchMessages(e)).containsOnly(
 					"Ze type de schéma : Il y a une dépendance cyclique entre les enregistrements importés avec ids «1, 2, 3, 4»");
 		}
+	}
+
+	@Test
+	public void givenCyclicDependencyInRecordsSecondaryMetadatasThenImportedInTwoPhases()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchema(zeSchema.code()).create("secondaryReferenceToAnotherSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType(anotherSchema.typeCode()));
+					}
+				}));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
+				.addField("secondaryReferenceToAnotherSchema", "1a"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
+				.addField("secondaryReferenceToAnotherSchema", "2a"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField("secondaryReferenceToAnotherSchema", "3a"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("1a").addField("title", "Another record 1")
+				.addField("referenceFromAnotherSchemaToZeSchema", "1"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("2a").addField("title", "Another record 2")
+				.addField("referenceFromAnotherSchemaToZeSchema", "2"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("3a").addField("title", "Another record 3")
+				.addField("referenceFromAnotherSchemaToZeSchema", "3"));
+
+		bulkImport(importDataProvider, progressionListener, admin, new BulkImportParams());
+		//TODO Modifier le mécanisme d'import afin de supporter des dépendances cycliques pendant l'import
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.extractingMetadatas("legacyIdentifier", "secondaryReferenceToAnotherSchema.legacyIdentifier").containsOnly(
+				tuple("1", "1a"),
+				tuple("2", "2a"),
+				tuple("3", "3a")
+		);
+
+		assertThatRecords(searchServices.search(query(from(anotherSchema.type()).returnAll())))
+				.extractingMetadatas("legacyIdentifier", "referenceFromAnotherSchemaToZeSchema.legacyIdentifier").containsOnly(
+				tuple("1a", "1"),
+				tuple("2a", "2"),
+				tuple("3a", "3")
+		);
+	}
+
+	@Test
+	public void givenInvalidDepedencyValueInSecondaryReferenceThenDetectedInSecondPhase()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchema(zeSchema.code()).create("secondaryReferenceToAnotherSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType(anotherSchema.typeCode()));
+					}
+				}));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
+				.addField("secondaryReferenceToAnotherSchema", "1a"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
+				.addField("secondaryReferenceToAnotherSchema", "2a"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField("secondaryReferenceToAnotherSchema", "4a"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("1a").addField("title", "Another record 1")
+				.addField("referenceFromAnotherSchemaToZeSchema", "1"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("2a").addField("title", "Another record 2")
+				.addField("referenceFromAnotherSchemaToZeSchema", "2"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("3a").addField("title", "Another record 3")
+				.addField("referenceFromAnotherSchemaToZeSchema", "3"));
+
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+			fail("An exception was expected");
+		} catch (ValidationException e) {
+
+			assertThat(extractingSimpleCodeAndParameters(e, "metadataCode", "referencedSchemaTypeCode", "uniqueMetadataCode", "value")).containsOnly(
+					tuple("RecordsImportServicesExecutor_unresolvedDependencyDuringSecondPhase", "secondaryReferenceToAnotherSchema", "anotherSchemaType", "legacyIdentifier", "4a")
+			);
+			assertThat(frenchMessages(e)).containsOnly("Ze type de schéma 3 : Impossible de définir la métadonnée «secondaryReferenceToAnotherSchema», car aucun enregistrement de type «anotherSchemaType» n’a la valeur «4a» à la métadonnée «legacyIdentifier».");
+		}
+
+		//Since the error occured in second phase, records are imported
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.extractingMetadatas("legacyIdentifier", "secondaryReferenceToAnotherSchema.legacyIdentifier").containsOnly(
+				tuple("1", "1a"),
+				tuple("2", "2a"),
+				tuple("3", null)
+		);
+
+		assertThatRecords(searchServices.search(query(from(anotherSchema.type()).returnAll())))
+				.extractingMetadatas("legacyIdentifier", "referenceFromAnotherSchemaToZeSchema.legacyIdentifier").containsOnly(
+				tuple("1a", "1"),
+				tuple("2a", "2"),
+				tuple("3a", "3")
+		);
 	}
 
 	@Test
@@ -3366,7 +3476,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		String logicallyDeletedRecordId = logicallyDeletedRecord.getId();
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
-				.addField(zeSchema.referenceMetadata().getCode(), "1"));
+				.addField(zeSchema.referenceMetadata().getLocalCode(), "1"));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 		Record importedRecord = recordWithLegacyId("2");

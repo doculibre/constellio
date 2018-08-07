@@ -3,6 +3,12 @@ package com.constellio.model.services.schemas.builders;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 
 import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+
+import com.constellio.model.utils.DependencyUtilsRuntimeException;
+
+import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("serial")
@@ -48,15 +54,15 @@ public class MetadataSchemaBuilderRuntimeException extends RuntimeException {
 
 	public static class CyclicDependenciesInMetadata extends MetadataSchemaBuilderRuntimeException {
 
-		List<String> metadataCodesWithCyclicDependency;
+		Map<String, Set<String>> metadataCodesWithCyclicDependency;
 
 		public CyclicDependenciesInMetadata(DependencyUtilsRuntimeException.CyclicDependency c) {
 			super(c.getMessage(), c);
 			this.metadataCodesWithCyclicDependency = c.getCyclicDependencies();
 		}
 
-		public List<String> getMetadataCodesWithCyclicDependency() {
-			return Collections.unmodifiableList(metadataCodesWithCyclicDependency);
+		public Map<String, Set<String>> getMetadataCodesWithCyclicDependency() {
+			return Collections.unmodifiableMap(metadataCodesWithCyclicDependency);
 		}
 	}
 

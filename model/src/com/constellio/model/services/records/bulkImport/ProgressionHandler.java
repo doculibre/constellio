@@ -81,4 +81,8 @@ public class ProgressionHandler {
 	public void afterRecordImports(String fromLegacyId, String toLegacyId, int batchQty, int errorsCount) {
 		listener.afterRecordImports(fromLegacyId, toLegacyId, stepProgression, batchQty, errorsCount);
 	}
+
+	public void beforeSecondPhase(List<String> schemaTypesWithSecondPhaseImport) {
+
+	}
 }
