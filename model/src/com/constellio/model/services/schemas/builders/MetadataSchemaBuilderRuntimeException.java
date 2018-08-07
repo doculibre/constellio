@@ -6,11 +6,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import com.constellio.model.utils.DependencyUtilsRuntimeException;
-
-import java.util.Collections;
-import java.util.List;
-
 @SuppressWarnings("serial")
 public class MetadataSchemaBuilderRuntimeException extends RuntimeException {
 

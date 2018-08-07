@@ -1306,7 +1306,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	@Override
 	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user) {
-		return newRecordDeleteServices().isLogicallyDeletableAndIsSkipValidation(record, user, new RecordLogicalDeleteOptions()) ;
+		return newRecordDeleteServices().isLogicallyDeletableAndIsSkipValidation(record, user, new RecordLogicalDeleteOptions());
 	}
 
 	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user) {
