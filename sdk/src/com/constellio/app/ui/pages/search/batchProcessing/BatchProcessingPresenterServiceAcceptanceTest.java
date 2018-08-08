@@ -42,10 +42,20 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
@@ -162,7 +172,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		BatchProcessRecordFieldModification batchProcessRecordFieldModification = getFieldByKey(results.getRecordModifications(folder2.getId()).getFieldsModifications(), "folder_default_formModifiedBy");
 		String valueAfterFormModifedBy = batchProcessRecordFieldModification.getValueAfter();
-		String idForFormModifedBy = valueAfterFormModifedBy.substring(0, valueAfterFormModifedBy .indexOf(' '));
+		String idForFormModifedBy = valueAfterFormModifedBy.substring(0, valueAfterFormModifedBy.indexOf(' '));
 
 
 		Map<String, Map<String, Object>> mapSpecialCase = request.getSpecialCaseModifiedMetadatas();
@@ -197,7 +207,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 		BatchProcessRecordFieldModification batchProcessRecordFieldModification = getFieldByKey(results.getRecordModifications(folder1.getId()).getFieldsModifications(), "folder_default_formModifiedBy");
 		String valueAfterFormModifedBy = batchProcessRecordFieldModification.getValueAfter();
-		String idForFormModifedBy = valueAfterFormModifedBy.substring(0, valueAfterFormModifedBy .indexOf(' '));
+		String idForFormModifedBy = valueAfterFormModifedBy.substring(0, valueAfterFormModifedBy.indexOf(' '));
 
 		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn", results.getRecordModifications(folder1.getId()).getFieldsModifications())).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
 				tuple("10", "30", "folder_default_administrativeUnitCode"),
@@ -208,9 +218,10 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		);
 	}
 
-	public static BatchProcessRecordFieldModification getFieldByKey(List<BatchProcessRecordFieldModification> batchProcessRecordFieldModificationList, String metadataCode) {
-		for(BatchProcessRecordFieldModification batchProcessRecordFieldModification : batchProcessRecordFieldModificationList) {
-			if(batchProcessRecordFieldModification.getMetadata().getCode().equals(metadataCode)) {
+	public static BatchProcessRecordFieldModification getFieldByKey(
+			List<BatchProcessRecordFieldModification> batchProcessRecordFieldModificationList, String metadataCode) {
+		for (BatchProcessRecordFieldModification batchProcessRecordFieldModification : batchProcessRecordFieldModificationList) {
+			if (batchProcessRecordFieldModification.getMetadata().getCode().equals(metadataCode)) {
 				return batchProcessRecordFieldModification;
 			}
 		}
@@ -278,7 +289,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		BatchProcessRecordFieldModification batchProcessRecordFieldModification = getFieldByKey(results.getRecordModifications(folder1.getId()).getFieldsModifications(), "folder_default_formModifiedBy");
 		String valueAfterFormModifedBy = batchProcessRecordFieldModification.getValueAfter();
-		String idForFormModifedBy = valueAfterFormModifedBy.substring(0, valueAfterFormModifedBy .indexOf(' '));
+		String idForFormModifedBy = valueAfterFormModifedBy.substring(0, valueAfterFormModifedBy.indexOf(' '));
 
 
 		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn", results.getRecordModifications(folder1.getId()).getFieldsModifications()))

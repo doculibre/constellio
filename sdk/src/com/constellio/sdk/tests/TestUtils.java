@@ -10,7 +10,12 @@ import com.constellio.data.events.SDKEventBusSendingService;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataNetworkLink;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.ManualDataEntry;
 import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -49,7 +54,19 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
@@ -924,11 +941,10 @@ public class TestUtils {
 
 		List<Tuple> tuples = new ArrayList<>();
 		for (ValidationError error : errors.getValidationWarnings()) {
-			List<Object> errorParameters = new ArrayList<>(parameters.length);
+			Tuple tuple = new Tuple(StringUtils.substringAfterLast(error.getCode(), "."));
 			for (String parameter : parameters) {
-				errorParameters.add(error.getParameters().get(parameter));
+				tuple.addData(error.getParameters().get(parameter));
 			}
-			Tuple tuple = new Tuple(StringUtils.substringAfterLast(error.getCode(), "."), errorParameters.toArray());
 			tuples.add(tuple);
 		}
 

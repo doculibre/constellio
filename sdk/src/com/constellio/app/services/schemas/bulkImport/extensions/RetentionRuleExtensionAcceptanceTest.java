@@ -10,6 +10,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +24,6 @@ import static com.constellio.sdk.tests.TestUtils.frenchMessages;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.Mock;
 
 public class RetentionRuleExtensionAcceptanceTest extends ConstellioTest {
 
