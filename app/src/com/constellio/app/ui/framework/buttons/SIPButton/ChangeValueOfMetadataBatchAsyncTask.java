@@ -130,6 +130,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 					csvReport.getName(), contentVersion);
 			report.setContent(content);
 			updateBatchProcessReport(report, appLayerFactory, RecordsFlushing.NOW());
+			FileUtils.deleteQuietly(csvReport);
 		} catch (IOException e) {
 			LOGGER.error("Error occured when creating csv report for batchProcess " + batchProcess.getId());
 			e.printStackTrace();
