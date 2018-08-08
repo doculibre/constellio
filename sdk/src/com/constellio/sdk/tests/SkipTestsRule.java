@@ -50,24 +50,8 @@ public class SkipTestsRule implements TestRule {
 
 		RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
 		Map<String, String> systemProperties = bean.getSystemProperties();
-		//
-		//		for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
-		//
-		//			if (entry.getValue().toLowerCase().contains("ldap")) {
-		//				System.out.println(entry.getValue());
-		//			}
-		//		}
 
 		sunJavaCommand = systemProperties.get("sun.java.command");
-		//		String bootClasspath = bean.getBootClassPath();
-		//		String classpath = bean.getClassPath();
-		//		String libraryPath = bean.getLibraryPath();
-		//		List<String> inputArguments = bean.getInputArguments();
-		//		System.out.println(inputArguments);
-		//		System.out.println(systemProperties);
-		//		System.out.println(bootClasspath);
-		//		System.out.println(classpath);
-		//		System.out.println(libraryPath);
 		this.whiteList = new ArrayList<>();
 		this.blackList = new ArrayList<>();
 
@@ -113,6 +97,8 @@ public class SkipTestsRule implements TestRule {
 			Map<String, String> properties = sdkPropertiesLoader.getSDKProperties();
 			this.skipTestsWithGradle = !("false".equals(properties.get("skip.testsWithGradle")));
 
+		} else {
+			this.skipTestsWithGradle = false;
 		}
 	}
 
