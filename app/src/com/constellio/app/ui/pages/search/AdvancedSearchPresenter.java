@@ -13,8 +13,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.constellio.app.ui.framework.buttons.SIPButton.ChangeValueOfMetadataBatchAsyncTask;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
+import com.constellio.model.services.search.SearchServices;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,13 +194,20 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public void batchEditRequested(String code, Object value, String schemaType) {
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
-		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
+
+		LogicalSearchQuery query = buildBatchProcessLogicalSearchQuery();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		ModifiableSolrParams params = searchServices.addSolrModifiableParams(query);
+
+		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(changes, SolrUtils.toSingleQueryString(params),
+				null, searchServices().getResultsCount(query));
+
 		String username = getCurrentUser() == null ? null : getCurrentUser().getUsername();
+		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, "userBatchProcess");
+		asyncTaskRequest.setUsername(username);
 
 		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
-		LogicalSearchQuery query = buildBatchProcessLogicalSearchQuery();
-		BatchProcess process = manager.addBatchProcessInStandby(query, action, username, "userBatchProcess");
-		manager.markAsPending(process);
+		manager.addAsyncTask(asyncTaskRequest);
 	}
 
 	@Override

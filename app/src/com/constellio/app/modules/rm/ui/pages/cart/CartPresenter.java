@@ -41,6 +41,7 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.buttons.SIPButton.ChangeValueOfMetadataBatchAsyncTask;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
@@ -51,7 +52,10 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.enums.BatchProcessingMode;
@@ -67,9 +71,11 @@ import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.solr.common.params.ModifiableSolrParams;
 
 public class CartPresenter extends SingleSchemaBasePresenter<CartView> implements BatchProcessingPresenter, NewReportPresenter {
 	private transient RMSchemasRecordsServices rm;
@@ -768,13 +774,21 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public void batchEditRequested(String code, Object value, String schemaType) {
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
-		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(collection).where(IDENTIFIER)
+				.isIn(getNotDeletedRecordsIds(schemaType))).filteredWithUserWrite(getCurrentUser());
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		ModifiableSolrParams params = searchServices.addSolrModifiableParams(query);
+
+		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(changes, SolrUtils.toSingleQueryString(params),
+				null, searchServices().getResultsCount(query));
+
 		String username = getCurrentUser() == null ? null : getCurrentUser().getUsername();
+		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, "userBatchProcess");
+		asyncTaskRequest.setUsername(username);
 
 		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
-		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(IDENTIFIER).isIn(getNotDeletedRecordsIds(schemaType));
-		BatchProcess process = manager.addBatchProcessInStandby(condition, action, username, "userBatchProcess");
-		manager.markAsPending(process);
+		manager.addAsyncTask(asyncTaskRequest);
 	}
 
 	public List<MetadataVO> getMetadataAllowedInBatchEdit(String schemaType) {

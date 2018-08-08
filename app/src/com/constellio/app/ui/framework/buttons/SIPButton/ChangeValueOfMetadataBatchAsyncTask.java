@@ -16,6 +16,7 @@ import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.*;
@@ -30,6 +31,8 @@ import com.constellio.model.services.batch.controller.RecordFromIdListIterator;
 import com.constellio.model.services.batch.state.BatchProcessProgressionServices;
 import com.constellio.model.services.batch.state.InMemoryBatchProcessProgressionServices;
 import com.constellio.model.services.batch.state.StoredBatchProcessPart;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.records.RecordServices;
@@ -38,7 +41,9 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.iterators.RecordSearchResponseIterator;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.users.UserServices;
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -55,7 +60,8 @@ import static java.util.Arrays.asList;
 
 public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChangeValueOfMetadataBatchAsyncTask.class);
-	private static final String TMP_BATCH_FILE = "BatchProcessingPresenterService-formatBatchProcessingResults";
+	private File csvReport = null;
+	private OutputStream csvOuputStream = null;
 
 	final Map<String, Object> metadataChangedValues;
 	Long totalNumberOfRecords;
@@ -77,14 +83,16 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 	@Override
 	public void execute(AsyncTaskExecutionParams params) throws ValidationException {
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		UserServices userServices = appLayerFactory.getModelLayerFactory().newUserServices();
+		ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 		AsyncTaskBatchProcess batchProcess = params.getBatchProcess();
 		BatchProcessReport report = getLinkedBatchProcessReport(batchProcess, appLayerFactory);
 		int numberOfRecordsPerTask = 100;
+		InputStream csvInputStream = null;
 
 		BatchProcessProgressionServices batchProcessProgressionServices = new InMemoryBatchProcessProgressionServices();
 		StoredBatchProcessPart previousPart = batchProcessProgressionServices.getLastBatchProcessPart(batchProcess);
 		BatchBuilderIterator<Record> batchIterator = getBatchIterator(appLayerFactory, previousPart);
-
 
 		MetadataSchemaTypes schemaTypes = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(params.getCollection());
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
@@ -92,34 +100,49 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 
 		params.setProgressionUpperLimit(totalNumberOfRecords);
 
-		while (batchIterator.hasNext()) {
-			List<Record> records = batchIterator.next();
-			for (int i = 0; i < records.size(); i += numberOfRecordsPerTask) {
-				List<Record> recordsForTransaction = records.subList(i, Math.min(records.size(), i + numberOfRecordsPerTask));
-				Transaction transaction = buildTransactionForBatch(recordsForTransaction, schemaTypes, recordProvider);
-				try {
-					recordServices.prepareRecords(transaction);
-					appendExcelReportExcel(transaction, report, appLayerFactory, params);
-					recordServices.execute(transaction);
-					transaction.getModifiedRecords();
-				} catch (Throwable t) {
-					if (report != null) {
-						report.appendErrors(asList(t.getMessage()));
+		try {
+			while (batchIterator.hasNext()) {
+				List<Record> records = batchIterator.next();
+				for (int i = 0; i < records.size(); i += numberOfRecordsPerTask) {
+					List<Record> recordsForTransaction = records.subList(i, Math.min(records.size(), i + numberOfRecordsPerTask));
+					Transaction transaction = buildTransactionForBatch(recordsForTransaction, schemaTypes, recordProvider);
+					try {
+						recordServices.prepareRecords(transaction);
+						appendCsvReport(transaction, appLayerFactory, params);
+						recordServices.execute(transaction);
+						transaction.getModifiedRecords();
+					} catch (Throwable t) {
+						if (report != null) {
+							report.appendErrors(asList(t.getMessage()));
+						}
+						t.printStackTrace();
+						LOGGER.error("Error while executing batch process action", t);
+						report.addSkippedRecords(transaction.getRecordIds());
 					}
-					t.printStackTrace();
-					LOGGER.error("Error while executing batch process action", t);
-					report.addSkippedRecords(transaction.getRecordIds());
+					params.incrementProgression(recordsForTransaction.size());
+					updateBatchProcessReport(report, appLayerFactory, RecordsFlushing.LATER());
 				}
-				params.incrementProgression(recordsForTransaction.size());
-				updateBatchProcessReport(report, appLayerFactory);
 			}
+
+			csvInputStream = new FileInputStream(csvReport);
+			ContentVersionDataSummary contentVersion = contentManager.upload(csvInputStream, csvReport.getName()).getContentVersionDataSummary();
+			Content content = contentManager.createMajor(userServices.getUserInCollection(batchProcess.getUsername(), batchProcess.getCollection()),
+					csvReport.getName(), contentVersion);
+			report.setContent(content);
+			updateBatchProcessReport(report, appLayerFactory, RecordsFlushing.NOW());
+		} catch (IOException e) {
+			LOGGER.error("Error occured when creating csv report for batchProcess " + batchProcess.getId());
+			e.printStackTrace();
+		} finally {
+			IOUtils.closeQuietly(csvInputStream);
+			IOUtils.closeQuietly(csvOuputStream);
 		}
 	}
 
-	private void appendExcelReportExcel(Transaction transaction, BatchProcessReport report, AppLayerFactory appLayerFactory, AsyncTaskExecutionParams params) {
+	private void appendCsvReport(Transaction transaction, AppLayerFactory appLayerFactory, AsyncTaskExecutionParams params)
+			throws IOException {
 		BatchProcessResults batchProcessResults = toBatchProcessResults(transaction, appLayerFactory, params.getCollection());
-		InputStream inputStream = formatBatchProcessingResults(batchProcessResults, appLayerFactory, params);
-		System.out.println("a");
+		writeBatchProcessingResultsToCsvReport(batchProcessResults, appLayerFactory, params);
 	}
 
 	private BatchBuilderIterator<Record> getBatchIterator(AppLayerFactory appLayerFactory, StoredBatchProcessPart previousPart) {
@@ -149,7 +172,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		return new BatchBuilderIterator<>(iterator, 1000);
 	}
 
-	public Transaction buildTransactionForBatch(List<Record> batch, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider) {
+	private Transaction buildTransactionForBatch(List<Record> batch, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider) {
 		SchemaUtils utils = new SchemaUtils();
 		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
 		for (Record record : batch) {
@@ -207,11 +230,11 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		return report;
 	}
 
-	private void updateBatchProcessReport(BatchProcessReport report, AppLayerFactory appLayerFactory) {
+	private void updateBatchProcessReport(BatchProcessReport report, AppLayerFactory appLayerFactory, RecordsFlushing recordsFlushing) {
 		try {
 			Transaction transaction = new Transaction();
 			transaction.addUpdate(report.getWrappedRecord());
-			transaction.setRecordFlushing(RecordsFlushing.LATER());
+			transaction.setRecordFlushing(recordsFlushing);
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -326,25 +349,26 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
 	}
 
-	public InputStream formatBatchProcessingResults(BatchProcessResults results, AppLayerFactory appLayerFactory, AsyncTaskExecutionParams params) {
+	private void writeBatchProcessingResultsToCsvReport(BatchProcessResults results, AppLayerFactory appLayerFactory, AsyncTaskExecutionParams params)
+			throws IOException {
 		List<String> collectionLanguages = appLayerFactory.getCollectionsManager().getCollectionLanguages(params.getCollection());
 		Language language = Language.withCode(collectionLanguages.get(0));
 		Locale locale = language.getLocale();
-		File resultsFile = null;
-		Closeable outputStream = null;
-		IOServices ioServices = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
-		try {
-			resultsFile = ioServices.newTemporaryFile(TMP_BATCH_FILE + "_" + params.getBatchProcess().getId());
-			outputStream = new FileOutputStream(resultsFile);
-			new BatchProcessingResultCSVReportWriter(new BatchProcessingResultModel(results, language), locale)
-					.write((OutputStream) outputStream);
-			IOUtils.closeQuietly(outputStream);
-			return new FileInputStream(resultsFile);
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		} finally {
-			ioServices.deleteQuietly(resultsFile);
-			IOUtils.closeQuietly(outputStream);
+		ensureCsvOutputStreamIsInitialized(params);
+		new BatchProcessingResultCSVReportWriter(new BatchProcessingResultModel(results, language), locale)
+				.write(csvOuputStream);
+	}
+
+	private OutputStream ensureCsvOutputStreamIsInitialized(AsyncTaskExecutionParams params)
+			throws IOException {
+		return csvOuputStream = FileUtils.openOutputStream(createOrGetTempFile(params), true);
+	}
+
+	private File createOrGetTempFile(AsyncTaskExecutionParams params) {
+		if(csvReport == null) {
+			return csvReport = new File(new FoldersLocator().getWorkFolder(), params.getBatchProcess().getId() + File.separator + "batchProcessReport.csv");
+		} else {
+			return csvReport;
 		}
 	}
 }
