@@ -34,6 +34,8 @@ public class ConfigManagerHelper {
 			Document document = new Document();
 			if (documentAlteration != null) {
 				documentAlteration.alter(document);
+			} else {
+				throw new ImpossibleRuntimeException("Cannot create empty xml");
 			}
 			try {
 				configManager.add(path, document);
@@ -59,7 +61,7 @@ public class ConfigManagerHelper {
 		//Read/update extension called when calling getXML and update
 		XMLConfiguration xmlConfiguration = configManager.getXML(path);
 
-		Document doc = xmlConfiguration.getDocument();
+ 		Document doc = xmlConfiguration.getDocument();
 		documentAlteration.alter(doc);
 
 		try {

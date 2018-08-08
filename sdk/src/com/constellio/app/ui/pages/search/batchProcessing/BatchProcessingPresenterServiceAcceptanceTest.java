@@ -159,6 +159,12 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.MAIN_COPY_RULE_ID_ENTERED, principal5_2_C.getId());
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
+
+		BatchProcessRecordFieldModification batchProcessRecordFieldModification = getFieldByKey(results.getRecordModifications(folder2.getId()).getFieldsModifications(), "folder_default_formModifiedBy");
+		String valueAfterFormModifedBy = batchProcessRecordFieldModification.getValueAfter();
+		String idForFormModifedBy = valueAfterFormModifedBy.substring(0, valueAfterFormModifedBy .indexOf(' '));
+
+
 		Map<String, Map<String, Object>> mapSpecialCase = request.getSpecialCaseModifiedMetadatas();
 
 		assertThat(mapSpecialCase.size() == 1);
@@ -168,7 +174,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("Principal", "Secondaire", "folder_default_copyStatus"),
 				tuple("5-2-T", "888-0-D", "folder_default_mainCopyRule"),
 				tuple("2 (Règle de conservation #2)", "1 (Règle de conservation #1)", "folder_default_retentionRule"),
-				tuple(null, "00000000059 (System Admin)", "folder_default_formModifiedBy"));
+				tuple(null, idForFormModifedBy + " (System Admin)", "folder_default_formModifiedBy"));
 		assertThat(results.getRecordModifications(folder1.getId()).getFieldsModifications()).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
 				tuple("42-5-C", "5-2-C", "folder_default_mainCopyRule"));
 	}
@@ -189,14 +195,27 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_30);
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
+		BatchProcessRecordFieldModification batchProcessRecordFieldModification = getFieldByKey(results.getRecordModifications(folder1.getId()).getFieldsModifications(), "folder_default_formModifiedBy");
+		String valueAfterFormModifedBy = batchProcessRecordFieldModification.getValueAfter();
+		String idForFormModifedBy = valueAfterFormModifedBy.substring(0, valueAfterFormModifedBy .indexOf(' '));
 
 		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn", results.getRecordModifications(folder1.getId()).getFieldsModifications())).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
 				tuple("10", "30", "folder_default_administrativeUnitCode"),
 				tuple("Principal", "Secondaire", "folder_default_copyStatus"),
 				tuple("10 (Unité 10)", "30 (Unité 30)", "folder_default_administrativeUnit"),
 				tuple("42-5-C", "888-0-D", "folder_default_mainCopyRule"),
-				tuple(null, "00000000059 (System Admin)", "folder_default_formModifiedBy")
+				tuple(null, idForFormModifedBy + " (System Admin)", "folder_default_formModifiedBy")
 		);
+	}
+
+	public static BatchProcessRecordFieldModification getFieldByKey(List<BatchProcessRecordFieldModification> batchProcessRecordFieldModificationList, String metadataCode) {
+		for(BatchProcessRecordFieldModification batchProcessRecordFieldModification : batchProcessRecordFieldModificationList) {
+			if(batchProcessRecordFieldModification.getMetadata().getCode().equals(metadataCode)) {
+				return batchProcessRecordFieldModification;
+			}
+		}
+
+		return null;
 	}
 
 	@Test
@@ -257,6 +276,11 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		BatchProcessResults results = presenterService.simulateWithQuery(request);
 
+		BatchProcessRecordFieldModification batchProcessRecordFieldModification = getFieldByKey(results.getRecordModifications(folder1.getId()).getFieldsModifications(), "folder_default_formModifiedBy");
+		String valueAfterFormModifedBy = batchProcessRecordFieldModification.getValueAfter();
+		String idForFormModifedBy = valueAfterFormModifedBy.substring(0, valueAfterFormModifedBy .indexOf(' '));
+
+
 		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn", results.getRecordModifications(folder1.getId()).getFieldsModifications()))
 				.extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
 
@@ -264,7 +288,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple("Secondaire", "Principal", "folder_default_copyStatus"),
 				tuple("30 (Unité 30)", "10 (Unité 10)", "folder_default_administrativeUnit"),
 				tuple("888-0-D", "42-5-C", "folder_default_mainCopyRule"),
-				tuple(null, "00000000059 (System Admin)", "folder_default_formModifiedBy")
+				tuple(null, idForFormModifedBy + " (System Admin)", "folder_default_formModifiedBy")
 		);
 	}
 

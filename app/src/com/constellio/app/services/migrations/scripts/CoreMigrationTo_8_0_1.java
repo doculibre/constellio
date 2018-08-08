@@ -9,10 +9,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Capsule;
-import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.TemporaryRecord;
-import com.constellio.model.entities.records.wrappers.VaultScanReport;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -88,7 +85,7 @@ public class CoreMigrationTo_8_0_1 implements MigrationScript {
 			schema.createUndeletable(VaultScanReport.MESSAGE).setType(MetadataValueType.TEXT).setSystemReserved(true);
 
 			MetadataSchemaBuilder capsuleSchema = typesBuilder.getSchema(Capsule.DEFAULT_SCHEMA);
-			capsuleSchema.create(Capsule.LANGUAGE).defineReferencesTo(typesBuilder.getSchemaType("ddvCapsuleLanguage"));
+			capsuleSchema.create(Capsule.LANGUAGE).defineReferencesTo(typesBuilder.getSchemaType(CapsuleLanguage.SCHEMA_TYPE));
 			capsuleSchema.create(Capsule.IMAGES).setType(CONTENT).setMultivalue(true);
 		}
 	}

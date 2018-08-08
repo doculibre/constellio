@@ -6,7 +6,7 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.searchConfig.SearchConfigurationViewImpl;
-import com.constellio.model.services.search.Elevations;
+import com.constellio.model.services.search.QueryElevation;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -104,7 +104,7 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
 					protected void confirmButtonClick(ConfirmDialog dialog) {
 						Object containedObject = containerMapperWithElevationObject.get(index);
 						if (singleDocElevation) {
-							Elevations.QueryElevation.DocElevation docElevation = (Elevations.QueryElevation.DocElevation) containedObject;
+							QueryElevation.DocElevation docElevation = (QueryElevation.DocElevation) containedObject;
 							presenter.cancelDocElevationButtonClicked(docElevation);
 						} else {
 							String queryOrId = (String) containedObject;
@@ -139,7 +139,7 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
 				baseTable.setColumnExpandRatio(INFORMATION, 1);
 				baseTable.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 60);
 
-				List<Elevations.QueryElevation.DocElevation> docElevations = presenter.getElevations(query);
+				List<QueryElevation.DocElevation> docElevations = presenter.getElevations(query);
 				addDocElevationsToTable(query, docElevations);
 			}
 		}
@@ -174,7 +174,7 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
 
 	private boolean isSingleDocElevation(int index) {
 		Object containedObject = containerMapperWithElevationObject.get(index);
-		return containedObject instanceof Elevations.QueryElevation.DocElevation;
+		return containedObject instanceof QueryElevation.DocElevation;
 	}
 
 	private boolean isSingleDocExclusion(int index) {
@@ -232,7 +232,7 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
 		addOneItemToTableAndSetValue(id, SPACE_4 + presenter.getRecordTitle(id));
 	}
 
-	private void addDocElevationsToTable(String query, List<Elevations.QueryElevation.DocElevation> docElevations) {
+	private void addDocElevationsToTable(String query, List<QueryElevation.DocElevation> docElevations) {
 		if (docElevations.size() > 0) {
 			addItemsToTable(query, docElevations);
 		}
@@ -247,9 +247,9 @@ public class EditElevationViewImpl extends BaseViewImpl implements EditElevation
 		indexedContainer.getContainerProperty(addedItemNumber, INFORMATION).setValue(label);
 	}
 
-	private void addItemsToTable(String query, List<Elevations.QueryElevation.DocElevation> docElevated) {
-		for (Iterator<Elevations.QueryElevation.DocElevation> iterator = docElevated.iterator(); iterator.hasNext(); ) {
-			Elevations.QueryElevation.DocElevation docElevation = iterator.next();
+	private void addItemsToTable(String query, List<QueryElevation.DocElevation> docElevated) {
+		for (Iterator<QueryElevation.DocElevation> iterator = docElevated.iterator(); iterator.hasNext(); ) {
+			QueryElevation.DocElevation docElevation = iterator.next();
 			addOneItemToTableAndSetValue(docElevation, SPACES_8 + presenter.getRecordTitle(docElevation.getId()));
 		}
 	}

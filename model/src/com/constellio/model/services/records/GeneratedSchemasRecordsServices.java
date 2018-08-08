@@ -36,6 +36,7 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	 * * ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
 	 **/
 
+
 	public SolrAuthorizationDetails wrapSolrAuthorizationDetails(Record record) {
 		return record == null ? null : new SolrAuthorizationDetails(record, getTypes());
 	}
@@ -183,8 +184,16 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("html");
 		}
 
+		public Metadata images() {
+			return metadata("images");
+		}
+
 		public Metadata keywords() {
 			return metadata("keywords");
+		}
+
+		public Metadata language() {
+			return metadata("language");
 		}
 	}
 
@@ -261,6 +270,62 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 
 		public Metadata organizationNumber() {
 			return metadata("organizationNumber");
+		}
+	}
+
+	public CapsuleLanguage wrapCapsuleLanguage(Record record) {
+		return record == null ? null : new CapsuleLanguage(record, getTypes());
+	}
+
+	public List<CapsuleLanguage> wrapCapsuleLanguages(List<Record> records) {
+		List<CapsuleLanguage> wrapped = new ArrayList<>();
+		for (Record record : records) {
+			wrapped.add(new CapsuleLanguage(record, getTypes()));
+		}
+
+		return wrapped;
+	}
+
+	public List<CapsuleLanguage> searchCapsuleLanguages(LogicalSearchQuery query) {
+		return wrapCapsuleLanguages(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public List<CapsuleLanguage> searchCapsuleLanguages(LogicalSearchCondition condition) {
+		MetadataSchemaType type = ddvCapsuleLanguage.schemaType();
+		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
+		return wrapCapsuleLanguages(modelLayerFactory.newSearchServices().search(query));
+	}
+
+	public CapsuleLanguage getCapsuleLanguage(String id) {
+		return wrapCapsuleLanguage(get(ddvCapsuleLanguage.schemaType(), id));
+	}
+
+	public List<CapsuleLanguage> getCapsuleLanguages(List<String> ids) {
+		return wrapCapsuleLanguages(get(ddvCapsuleLanguage.schemaType(), ids));
+	}
+
+	public CapsuleLanguage getCapsuleLanguageWithCode(String code) {
+		return wrapCapsuleLanguage(getByCode(ddvCapsuleLanguage.schemaType(), code));
+	}
+
+	public CapsuleLanguage getCapsuleLanguageWithLegacyId(String legacyId) {
+		return wrapCapsuleLanguage(getByLegacyId(ddvCapsuleLanguage.schemaType(), legacyId));
+	}
+
+	public CapsuleLanguage newCapsuleLanguage() {
+		return wrapCapsuleLanguage(create(ddvCapsuleLanguage.schema()));
+	}
+
+	public CapsuleLanguage newCapsuleLanguageWithId(String id) {
+		return wrapCapsuleLanguage(create(ddvCapsuleLanguage.schema(), id));
+	}
+
+	public final SchemaTypeShortcuts_ddvCapsuleLanguage_default ddvCapsuleLanguage
+			= new SchemaTypeShortcuts_ddvCapsuleLanguage_default("ddvCapsuleLanguage_default");
+
+	public class SchemaTypeShortcuts_ddvCapsuleLanguage_default extends SchemaTypeShortcuts {
+		protected SchemaTypeShortcuts_ddvCapsuleLanguage_default(String schemaCode) {
+			super(schemaCode);
 		}
 	}
 
@@ -811,12 +876,24 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			super(schemaCode);
 		}
 
+		public Metadata capsule() {
+			return metadata("capsule");
+		}
+
 		public Metadata clickCount() {
 			return metadata("clickCount");
 		}
 
 		public Metadata clicks() {
 			return metadata("clicks");
+		}
+
+		public Metadata dwellTime() {
+			return metadata("dwellTime");
+		}
+
+		public Metadata lastPageNavigation() {
+			return metadata("lastPageNavigation");
 		}
 
 		public Metadata numFound() {
@@ -831,10 +908,6 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("pageNavigationCount");
 		}
 
-		public Metadata lastPageNavigation() {
-			return metadata("lastPageNavigation");
-		}
-
 		public Metadata params() {
 			return metadata("params");
 		}
@@ -843,20 +916,12 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 			return metadata("qTime");
 		}
 
-		public Metadata dwellTime() {
-			return metadata("dwellTime");
-		}
-
 		public Metadata query() {
 			return metadata("query");
 		}
 
 		public Metadata username() {
 			return metadata("username");
-		}
-
-		public Metadata capsule() {
-			return metadata("capsule");
 		}
 	}
 
@@ -1285,5 +1350,6 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- end
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+
 
 }

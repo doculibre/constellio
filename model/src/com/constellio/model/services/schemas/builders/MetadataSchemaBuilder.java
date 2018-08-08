@@ -58,6 +58,8 @@ public class MetadataSchemaBuilder {
 
 	private ClassListBuilder<RecordValidator> schemaValidators;
 
+	private boolean active = true;
+
 	MetadataSchemaBuilder() {
 	}
 
@@ -71,6 +73,7 @@ public class MetadataSchemaBuilder {
 		builder.setCode(schema.getCode());
 		builder.setUndeletable(schema.isUndeletable());
 		builder.setLabels(schema.getLabels());
+		builder.setActive(schema.isActive());
 		builder.metadatas = new ArrayList<>();
 		for (Metadata metadata : schema.getMetadatas()) {
 			if (metadata.inheritDefaultSchema()) {
@@ -107,6 +110,7 @@ public class MetadataSchemaBuilder {
 		builder.setCollectionInfo(defaultSchema.getCollectionInfo());
 		builder.setUndeletable(defaultSchema.isUndeletable());
 		builder.setSchemaTypeBuilder(typeBuilder);
+		builder.setActive(defaultSchema.isActive());
 		builder.metadatas = new ArrayList<>();
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
 			builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(builder, metadata, builder.classProvider));
@@ -119,12 +123,14 @@ public class MetadataSchemaBuilder {
 	static MetadataSchemaBuilder createSchema(MetadataSchemaBuilder defaultSchema, String localCode,
 											  boolean commonMetadatas) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
+
 		builder.classProvider = defaultSchema.classProvider;
 		builder.setDefaultSchema(defaultSchema);
 		builder.metadatas = new ArrayList<>();
 		builder.setCollectionInfo(defaultSchema.getCollectionInfo());
 		builder.setLocalCode(localCode);
 		builder.setLabels(configureLabels(localCode, defaultSchema));
+		builder.setActive(defaultSchema.isActive());
 		builder.setCode(defaultSchema.getSchemaTypeBuilder().getCode() + UNDERSCORE + localCode);
 
 		for (MetadataBuilder metadata : defaultSchema.metadatas) {
@@ -347,10 +353,11 @@ public class MetadataSchemaBuilder {
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		Set<RecordValidator> recordValidators = this.schemaValidators.build();
 
-		return new MetadataSchema(this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
+		MetadataSchema metadataSchema = new MetadataSchema(this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(),
 				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators),
-				schemaTypeBuilder.getDataStore());
+				schemaTypeBuilder.getDataStore(), this.isActive());
+		return metadataSchema;
 	}
 
 	public String getTypeCode() {
@@ -561,9 +568,10 @@ public class MetadataSchemaBuilder {
 		final Set<RecordValidator> recordValidators = this.schemaValidators.build(defaultSchema.getValidators());
 
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
-		return new MetadataSchema(this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
+		MetadataSchema metadataSchema = new MetadataSchema(this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(), inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators)
-				, schemaTypeBuilder.getDataStore());
+				, schemaTypeBuilder.getDataStore(), this.isActive());
+		return metadataSchema;
 	}
 
 	public boolean isInheriting() {
@@ -690,5 +698,13 @@ public class MetadataSchemaBuilder {
 				.createCustomMetadataFromOriginalCustomMetadata(this, metadataBuilder, this.code);
 		metadatas.add(metadata);
 		return metadata;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 }

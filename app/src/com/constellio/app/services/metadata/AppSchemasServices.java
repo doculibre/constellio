@@ -20,6 +20,7 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -289,4 +290,23 @@ public class AppSchemasServices {
 		Long numberOfRecords = searchServices.getResultsCount(from(schema).returnAll());
 		parameters.put("recordsCount", numberOfRecords);
 	}
+
+	public void disableSchema(String collection, String schemaCode) {
+		changeSchemaState(collection, schemaCode, false);
+	}
+
+	public void enableSchema(String collection, String schemaCode) {
+		changeSchemaState(collection, schemaCode, true);
+	}
+
+	public void changeSchemaState(String collection, final String schemaCode, final boolean active) {
+		schemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaBuilder builder = types.getSchema(schemaCode);
+				builder.setActive(active);
+			}
+		});
+	}
+
 }

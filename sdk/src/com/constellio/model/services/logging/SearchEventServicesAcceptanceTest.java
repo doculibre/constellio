@@ -28,7 +28,7 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 	SchemasRecordsServices schemas;
 	SearchServices searchServices;
 
-	private static int TWO_SECONDS = 2000;
+	private static int FIVE_SECONDS = 5000;
 
 	@Before
 	public void setUp()
@@ -67,7 +67,7 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 			Thread.sleep(10);
 		}
 
-		assertThat(timeStampAfter - timeStampBefore).isLessThan(TWO_SECONDS);
+		assertThat(timeStampAfter - timeStampBefore).isLessThan(FIVE_SECONDS);
 		getDataLayerFactory().newEventsDao().flush();
 		assertThat(searchServices.getResultsCount(countSearchEventsQuery)).isEqualTo(5000);
 
@@ -103,7 +103,7 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 
 		getDataLayerFactory().newEventsDao().flush();
 
-		assertThat(timeStampAfter - timeStampBefore).isLessThan(TWO_SECONDS);
+		assertThat(timeStampAfter - timeStampBefore).isLessThan(FIVE_SECONDS);
 		SearchEvent event1 = schemas.getSearchEvent("search1");
 		SearchEvent event2 = schemas.getSearchEvent("search2");
 		SearchEvent event3 = schemas.getSearchEvent("search3");

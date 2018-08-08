@@ -3,6 +3,8 @@ package com.constellio.app.services.schemas.bulkImport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 public class LoggerBulkImportProgressionListener implements BulkImportProgressionListener {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LoggerBulkImportProgressionListener.class);
@@ -82,6 +84,11 @@ public class LoggerBulkImportProgressionListener implements BulkImportProgressio
 	@Override
 	public void onRecordImportPostponed(String legacyId) {
 		LOGGER.info("Importation of record '" + legacyId + "' is postponed because of missing dependencies");
+	}
+
+	@Override
+	public void beforeSecondPhase(List<String> schemaTypesWithSecondPhaseImport) {
+		LOGGER.info("Reimporting records of schema types '" + schemaTypesWithSecondPhaseImport + "'");
 	}
 
 	private double getPercentage() {

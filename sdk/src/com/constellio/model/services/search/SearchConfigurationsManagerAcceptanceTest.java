@@ -48,12 +48,12 @@ public class SearchConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 		Elevations elevations = searchConfigurationsManager.getCollection(zeCollection);
 
-		for (Iterator<Elevations.QueryElevation> iterator = elevations.getQueryElevations().iterator(); iterator.hasNext(); ) {
-			Elevations.QueryElevation queryElevation = iterator.next();
+		for (Iterator<QueryElevation> iterator = elevations.getQueryElevations().iterator(); iterator.hasNext(); ) {
+			QueryElevation queryElevation = iterator.next();
 
-			for (Iterator<Elevations.QueryElevation.DocElevation> queryElevationIterator =
+			for (Iterator<QueryElevation.DocElevation> queryElevationIterator =
 				 queryElevation.getDocElevations().iterator(); queryElevationIterator.hasNext(); ) {
-				Elevations.QueryElevation.DocElevation docElevation = queryElevationIterator.next();
+				QueryElevation.DocElevation docElevation = queryElevationIterator.next();
 				searchConfigurationsManager.removeElevated(zeCollection, queryElevation.getQuery(), docElevation.getId());
 			}
 		}

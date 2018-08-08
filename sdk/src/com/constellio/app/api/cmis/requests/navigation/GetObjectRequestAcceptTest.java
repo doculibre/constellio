@@ -155,7 +155,7 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 	private void thenTaxoOneObjectHasCorrectFields(CmisObject object) {
 		assertThat(object).isNotNull();
 		assertThat(object.getId()).isEqualTo("taxo_taxo1");
-		assertThat(object.getName()).isEqualTo("taxo1");
+		assertThat(object.getName()).isEqualTo("zeTaxo");
 		assertThat(object.getProperty(PropertyIds.PARENT_ID).<String>getValue()).isEqualTo(zeCollection);
 		assertThat(object.getProperty(PropertyIds.PATH).<String>getValue()).isEqualTo("/taxo_taxo1");
 	}

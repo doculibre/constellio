@@ -6,7 +6,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.search.Elevations;
+import com.constellio.model.services.search.QueryElevation;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 
 import java.util.List;
@@ -32,7 +32,7 @@ public class EditElevationPresenter extends BasePresenter<EditElevationView> {
 		return searchConfigurationsManager.getAllQuery(collection);
 	}
 
-	public List<Elevations.QueryElevation.DocElevation> getElevations(String query) {
+	public List<QueryElevation.DocElevation> getElevations(String query) {
 		return searchConfigurationsManager.getDocElevations(collection, query);
 	}
 
@@ -60,7 +60,7 @@ public class EditElevationPresenter extends BasePresenter<EditElevationView> {
 		view.navigate().to().editElevation();
 	}
 
-	public void cancelDocElevationButtonClicked(Elevations.QueryElevation.DocElevation docElevation) {
+	public void cancelDocElevationButtonClicked(QueryElevation.DocElevation docElevation) {
 		searchConfigurationsManager.removeElevated(collection, docElevation.getQuery(), docElevation.getId());
 		view.navigate().to().editElevation();
 	}

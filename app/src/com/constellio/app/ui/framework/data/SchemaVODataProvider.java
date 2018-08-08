@@ -28,14 +28,17 @@ public class SchemaVODataProvider implements Serializable {
 	String typeCode;
 	String collection;
 	SessionContext sessionContext;
+	boolean active;
+
 
 	public SchemaVODataProvider(MetadataSchemaToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
 								String collection,
-								String code, SessionContext sessionContext) {
+								String code, SessionContext sessionContext, boolean active) {
 		this.voBuilder = voBuilder;
 		this.collection = collection;
 		this.typeCode = code;
 		this.sessionContext = sessionContext;
+		this.active = active;
 		init(modelLayerFactory);
 	}
 
@@ -51,7 +54,12 @@ public class SchemaVODataProvider implements Serializable {
 	}
 
 	public MetadataSchemaVO getSchemaVO(Integer index) {
-		return schemas.get(index);
+		schemas = initSchemaVO();
+		if (schemas.isEmpty()) {
+			return null;
+		} else {
+			return schemas.get(index);
+		}
 	}
 
 	public int size() {
@@ -102,7 +110,9 @@ public class SchemaVODataProvider implements Serializable {
 		MetadataSchemaType type = types.getSchemaType(typeCode);
 
 		for (MetadataSchema schema : type.getCustomSchemas()) {
-			result.add(voBuilder.build(schema, VIEW_MODE.TABLE, sessionContext));
+			if (schema.isActive() == active) {
+				result.add(voBuilder.build(schema, VIEW_MODE.TABLE, sessionContext));
+			}
 		}
 
 		//		Collections.sort(result, new Comparator<MetadataSchemaVO>() {
@@ -115,8 +125,11 @@ public class SchemaVODataProvider implements Serializable {
 		//			}
 		//		});
 
-		result.add(0, voBuilder.build(type.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext));
+		if (active) {
+			result.add(0, voBuilder.build(type.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext));
+		}
 
 		return result;
 	}
+
 }

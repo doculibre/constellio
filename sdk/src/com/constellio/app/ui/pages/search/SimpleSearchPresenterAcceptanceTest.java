@@ -18,6 +18,7 @@ import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.CapsuleLanguage;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -32,7 +33,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.FakeUIContext;
 import com.constellio.sdk.tests.setups.Users;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,8 +82,6 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
-		Toggle.ADVANCED_SEARCH_CONFIGS.enable();
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
@@ -289,21 +287,31 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void testSearchCapsuleWithOneKeywords()
 			throws Exception {
+
+		Toggle.ADVANCED_SEARCH_CONFIGS.enable();
+
 		String html = "<h1>test</h1>";
 		List<String> keywords = asList("keyword1", "keyword2", "keyword3");
-		List<String> searchTerms = asList("keyword4", "keyword2", "keyword5");
 		String code = "code";
+
+		CapsuleLanguage frenchCapsuleLanguage = schemasRecordsServices.getCapsuleLanguageWithCode("fr");
+
 		Capsule capsule = schemasRecordsServices
 				.newCapsule()
 				.setCode(code)
+				.setLanguage(frenchCapsuleLanguage)
 				.setHTML(html)
 				.setKeywords(keywords);
 		Transaction transaction = new Transaction();
 		transaction.add(capsule);
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		simpleSearchPresenter.setSearchExpression("q/" + StringUtils.join(searchTerms, " "));
+		simpleSearchPresenter.setSearchExpression("keyword4");
 		Capsule returnedCapsule = simpleSearchPresenter.getCapsuleForCurrentSearch();
+		assertThat(returnedCapsule).isNull();
+
+		simpleSearchPresenter.setSearchExpression("keyword1");
+		returnedCapsule = simpleSearchPresenter.getCapsuleForCurrentSearch();
 		assertThat(returnedCapsule).isNotNull();
 		assertThat(returnedCapsule.getCode()).isEqualTo(code);
 		assertThat(returnedCapsule.getHTML()).isEqualTo(html);
