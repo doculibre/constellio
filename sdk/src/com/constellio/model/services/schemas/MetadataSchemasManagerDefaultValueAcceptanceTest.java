@@ -237,7 +237,7 @@ public class MetadataSchemasManagerDefaultValueAcceptanceTest extends Constellio
 				whichHasDefaultValue(asList("value1", "value2"))));
 
 		assertThat(zeSchema.stringMetadata().getDefaultValue()).isEqualTo(asList("value1", "value2"));
-		assertThat(newZeSchemaRecord().<String>get(zeSchema.stringMetadata())).isEqualTo(asList("value1", "value2"));
+		assertThat(newZeSchemaRecord().<List<String>>get(zeSchema.stringMetadata())).isEqualTo(asList("value1", "value2"));
 	}
 
 	@Test

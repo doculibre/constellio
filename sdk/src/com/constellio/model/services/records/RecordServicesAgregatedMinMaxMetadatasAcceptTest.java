@@ -168,7 +168,7 @@ public class RecordServicesAgregatedMinMaxMetadatasAcceptTest extends Constellio
 		waitForBatchProcess();
 		assertThat(record("merge1").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 6, 1, 0, 0, 0));
 		assertThat(record("merge2").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 2, 1, 0, 0, 0));
-		assertThat(record("merge3").<LocalDateTime>get(thirdSchema_minValue)).isEqualTo(date(2010, 2, 1));
+		assertThat(record("merge3").<LocalDate>get(thirdSchema_minValue)).isEqualTo(date(2010, 2, 1));
 
 		tx = new Transaction();
 		tx.add(r1.set("dateValue", asList(date(2010, 8, 1), date(2010, 1, 6))));

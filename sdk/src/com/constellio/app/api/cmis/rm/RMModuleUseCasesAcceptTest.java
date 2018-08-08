@@ -173,7 +173,7 @@ public class RMModuleUseCasesAcceptTest extends ConstellioTest {
 		assertThat(folder.<String>getPropertyValue("copyStatusEntered")).isNull();
 		assertThat(folder.<String>getPropertyValue("copyStatus")).isEqualTo("P");
 		assertThat(folder.<String>getPropertyValue("administrativeUnitEntered")).isEqualTo(records.unitId_10a);
-		assertThat(folder.<LocalDate>getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
+		assertThat(folder.<GregorianCalendar>getPropertyValue("openingDate")).is(sameDayThan(new LocalDate(2013, 3, 27)));
 
 	}
 

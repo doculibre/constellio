@@ -693,7 +693,7 @@ public class RecordImplTest extends ConstellioTest {
 		record.merge(newRecord, zeSchema);
 
 		assertThat(record.getRecordDTO()).isEqualTo(currentState);
-		assertThat(record.<Double>get(numberMetadata)).isEqualTo(20);
+		assertThat(record.<Integer>get(numberMetadata)).isEqualTo(20);
 		assertThat(record.<Double>get(otherNumberMetadata)).isEqualTo(10.0);
 		assertThat(record.isDirty()).isFalse();
 		assertThat(record.getModifiedValues()).hasSize(0);

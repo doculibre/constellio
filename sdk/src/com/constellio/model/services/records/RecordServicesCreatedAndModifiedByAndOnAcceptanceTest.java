@@ -64,7 +64,7 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		assertThat(record.<String>get(Schemas.CREATED_BY)).isEqualTo(alice.getId());
 		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(now);
 		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isEqualTo(alice.getId());
-		assertThat(record.<java.time.LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(now);
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(now);
 
 	}
 
@@ -216,7 +216,7 @@ public class RecordServicesCreatedAndModifiedByAndOnAcceptanceTest extends Const
 		assertThat(record.<String>get(Schemas.CREATED_BY)).isEqualTo(alice.getId());
 		assertThat(record.<LocalDateTime>get(Schemas.CREATED_ON)).isEqualTo(now);
 		assertThat(record.<String>get(Schemas.MODIFIED_BY)).isNull();
-		assertThat(record.<String>get(Schemas.MODIFIED_ON)).isEqualTo(shishOClock);
+		assertThat(record.<LocalDateTime>get(Schemas.MODIFIED_ON)).isEqualTo(shishOClock);
 	}
 
 	@Test

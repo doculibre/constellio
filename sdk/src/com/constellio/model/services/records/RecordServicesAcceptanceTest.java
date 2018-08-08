@@ -818,7 +818,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 		recordServices.update(record);
 
 		assertThat(record.<String>get(zeSchema.title())).isEqualTo("anOtherValue");
-		assertThat(record.<String>get(zeSchema.booleanMetadata())).isEqualTo(Arrays.asList(true, false, true));
+		assertThat(record.<List<Boolean>>get(zeSchema.booleanMetadata())).isEqualTo(Arrays.asList(true, false, true));
 		assertThat(record.getVersion()).isNotEqualTo(initialVersion);
 	}
 

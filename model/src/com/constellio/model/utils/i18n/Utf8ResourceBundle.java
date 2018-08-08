@@ -1,6 +1,5 @@
 package com.constellio.model.utils.i18n;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.PropertyResourceBundle;
@@ -78,15 +77,7 @@ public abstract class Utf8ResourceBundle {
 
 		@Override
 		protected Object handleGetObject(final String key) {
-			final String value = bundle.getString(key);
-			if (value == null) {
-				return null;
-			}
-			try {
-				return new String(value.getBytes("ISO-8859-1"), "UTF-8");
-			} catch (final UnsupportedEncodingException e) {
-				throw new RuntimeException("Encoding not supported", e);
-			}
+			return bundle.getString(key);
 		}
 	}
 }

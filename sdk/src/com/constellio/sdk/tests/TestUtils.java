@@ -939,11 +939,11 @@ public class TestUtils {
 
 		List<Tuple> tuples = new ArrayList<>();
 		for (ValidationError error : errors.getValidationErrors()) {
-			List<Object> errorParameters = new ArrayList<>(parameters.length);
+			Tuple tuple = new Tuple(StringUtils.substringAfterLast(error.getCode(), "."));
 			for (String parameter : parameters) {
-				errorParameters.add(error.getParameters().get(parameter));
+
+				tuple.addData(error.getParameters().get(parameter));
 			}
-			Tuple tuple = new Tuple(StringUtils.substringAfterLast(error.getCode(), "."), errorParameters.toArray());
 			tuples.add(tuple);
 		}
 

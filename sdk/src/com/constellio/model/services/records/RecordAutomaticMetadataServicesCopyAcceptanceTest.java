@@ -157,7 +157,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 
 		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
-		assertThat(record.<String>get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(new ArrayList<>());
+		assertThat(record.<List<String>>get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(new ArrayList<>());
 		assertThat(record.<LocalDateTime>get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(asList(aDate));
 	}
 

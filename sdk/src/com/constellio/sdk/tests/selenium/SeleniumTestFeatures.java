@@ -158,8 +158,6 @@ public class SeleniumTestFeatures {
 		JacksonJsonProvider jsonProvider = new JacksonJsonProvider();
 		jsonProvider.setMapper(mapper);
 
-		// allow to change restricted http headers such as "host"
-		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
 		ClientConfig config = new ClientConfig();
 		config.property(CommonProperties.FEATURE_AUTO_DISCOVERY_DISABLE_CLIENT, true);
