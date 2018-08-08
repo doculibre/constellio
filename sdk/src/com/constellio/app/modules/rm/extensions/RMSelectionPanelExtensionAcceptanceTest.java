@@ -8,8 +8,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -21,7 +19,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.MockedFactories;
 import com.vaadin.ui.VerticalLayout;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,7 +72,7 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
         assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
         .doesNotContain(records.folder_A20);
 
-        extension.parentFolderButtonClicked(records.folder_A20, param.getIds());
+        extension.parentFolderButtonClicked(records.folder_A20, param);
         assertThatRecords(records.getDocumentWithContent_A79(), records.getDocumentWithContent_B33()).extracting(Document.FOLDER)
                 .containsOnly(records.folder_A20);
         assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)

@@ -21,8 +21,6 @@ import javax.mail.internet.MimeMessage;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
-import com.constellio.app.modules.rm.extensions.api.FolderExtension;
-import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
@@ -172,7 +170,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                     protected void buttonClick(ClickEvent event) {
                         String parentId = field.getValue();
                         try {
-                            parentFolderButtonClicked(parentId, param.getIds());
+                            parentFolderButtonClicked(parentId, param);
                         } catch (Throwable e) {
 //                            LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
 //                            showErrorMessage("DisplayFolderView.parentFolderException");
@@ -535,9 +533,9 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         return new DecommissioningService(param.getUser().getCollection(), appLayerFactory);
     }
 
-    public void parentFolderButtonClicked(String parentId, List<String> recordIds)
+    public void parentFolderButtonClicked(String parentId, AvailableActionsParam param)
             throws RecordServicesException {
-
+        List<String> recordIds = param.getIds();
         List<String> couldNotMove = new ArrayList<>();
         if (isNotBlank(parentId)) {
             RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
@@ -549,12 +547,10 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                     switch (record.getTypeCode()) {
                         case Folder.SCHEMA_TYPE:
                             Folder folder = rmSchemas.getFolder(id);
-                            for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
-                                if (!extension.isMoveActionPossible(new FolderExtensionActionPossibleParams(folder.getWrappedRecord()))) {
-                                    isMovePossible = false;
-                                    couldNotMove.add(record.getTitle());
-                                    break;
-                                }
+                            if (!rmModuleExtensions.isMoveActionPossibleOnFolder(folder,param.getUser())) {
+                                isMovePossible = false;
+                                couldNotMove.add(record.getTitle());
+                                break;
                             }
                             if (isMovePossible) {
                                 recordServices.update(folder.setParentFolder(parentId));
@@ -603,12 +599,10 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                 try {
                     switch (record.getTypeCode()) {
                         case Folder.SCHEMA_TYPE:
-                            for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
-                                if (!extension.isCopyActionPossible(new FolderExtensionActionPossibleParams(record))) {
-                                    isCopyPossible = false;
-                                    couldNotDuplicate.add(record.getTitle());
-                                    break;
-                                }
+                            if (!rmModuleExtensions.isCopyActionPossibleOnFolder(rmSchemas.wrapFolder(record), param.getUser())) {
+                                isCopyPossible = false;
+                                couldNotDuplicate.add(record.getTitle());
+                                break;
                             }
                             if (!isCopyPossible) break;
 

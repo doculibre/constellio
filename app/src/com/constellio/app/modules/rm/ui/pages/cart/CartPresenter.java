@@ -144,12 +144,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			return;
 		}
 		List<Folder> folders = getCartFolders();
-		for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
-			for (Folder folder : folders) {
-				if (!extension.isCopyActionPossible(new FolderExtensionActionPossibleParams(folder.getWrappedRecord())))
-					view.showErrorMessage($("CartView.actionBlockedByExtension"));
-				return;
-			}
+		for (Folder folder : folders) {
+			if (!rmModuleExtensions.isCopyActionPossibleOnFolder(folder,getCurrentUser()))
+				view.showErrorMessage($("CartView.actionBlockedByExtension"));
+			return;
 		}
 
 		try {
@@ -564,12 +562,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public void shareWithUsersRequested(List<String> userids) {
 		List<Folder> folders = getCartFolders();
-		for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
-			for (Folder folder : folders) {
-				if (!extension.isShareActionPossible(new FolderExtensionActionPossibleParams(folder.getWrappedRecord()))) {
-					view.showErrorMessage($("CartView.actionBlockedByExtension"));
-					return;
-				}
+		for (Folder folder : folders) {
+			if (!rmModuleExtensions.isShareActionPossibleOnFolder(folder, getCurrentUser())) {
+				view.showErrorMessage($("CartView.actionBlockedByExtension"));
+				return;
 			}
 		}
 		List<Document> documents = getCartDocuments();
@@ -889,14 +885,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean isDecommissioningActionPossible() {
 		List<Record> records = rm().get(cart().getFolders());
-		for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
 			for (Record record : records) {
-				if (!extension.isDecommissioningActionPossible(new FolderExtensionActionPossibleParams(record))) {
+				Folder folder = rm.wrapFolder(record);
+				if (!rmModuleExtensions.isDecommissioningActionPossibleOnFolder(folder, getCurrentUser())) {
 					view.showErrorMessage(i18n.$("CartView.actionBlockedByExtension"));
 					return false;
 				}
 			}
-		}
 		return true;
 	}
 }
