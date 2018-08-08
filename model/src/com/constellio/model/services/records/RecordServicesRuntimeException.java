@@ -192,8 +192,9 @@ public class RecordServicesRuntimeException extends RuntimeException {
 	public static class RecordServicesRuntimeException_ExceptionWhileCalculating
 			extends RecordServicesRuntimeException {
 
-		public RecordServicesRuntimeException_ExceptionWhileCalculating(String recordId, Exception e) {
-			super("Exception while calculating metadatas of record'" + recordId + "'. Verify that the record is valid.", e);
+		public RecordServicesRuntimeException_ExceptionWhileCalculating(String recordId, Metadata metadata,
+																		Exception e) {
+			super("Exception while calculating metadata '" + metadata.getCode() + "' of record'" + recordId + "'. Verify that the record is valid.", e);
 		}
 	}
 }

@@ -16,6 +16,7 @@ import org.jdom2.Document;
 import java.io.Serializable;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 
 public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventListener, CollectionsListManagerListener {
 
@@ -101,7 +102,7 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 		String configPath = getConfigPath(collection);
 		configManager.registerListener(configPath, this);
 		//TODO Francis : Retiré le 7 aout 2018 pour faire passer les tests de OneXMLConfigPerCollectionManagerAcceptanceTest
-		//load(collection, configPath, WAS_OBTAINED);
+		load(collection, configPath, WAS_OBTAINED);
 	}
 
 	public String getConfigPath(String collectionCode) {

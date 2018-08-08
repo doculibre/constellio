@@ -640,15 +640,16 @@ public class RecordServicesImpl extends BaseRecordServices {
 							reindexationOptionForThisRecord = TransactionRecordsReindexation.ALL();
 						}
 
-						try {
-							for (Metadata metadata : step.getMetadatas()) {
-								automaticMetadataServices
-										.updateAutomaticMetadata(context, (RecordImpl) record, recordProvider, metadata,
-												reindexationOptionForThisRecord, types, transaction);
+
+						for (Metadata metadata : step.getMetadatas()) {
+							try {
+								automaticMetadataServices.updateAutomaticMetadata(context, (RecordImpl) record,
+										recordProvider, metadata, reindexationOptionForThisRecord, types, transaction);
+							} catch (RuntimeException e) {
+								throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), metadata, e);
 							}
-						} catch (RuntimeException e) {
-							throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
 						}
+
 						validationServices.validateAccess(record, transaction);
 					} else if (step instanceof UpdateCreationModificationUsersAndDateRecordPreparationStep) {
 						if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {

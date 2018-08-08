@@ -92,6 +92,7 @@ public class Toggle {
 		}
 		AvailableToggle toggle = new AvailableToggle();
 		toggle.enabled = value;
+		toggle.defaultValue = value;
 		toggles.add(toggle);
 		return toggle;
 	}
@@ -118,6 +119,7 @@ public class Toggle {
 	public static class AvailableToggle {
 
 		private boolean enabled;
+		private boolean defaultValue;
 
 		private String id;
 
@@ -129,6 +131,10 @@ public class Toggle {
 			if (enabled) {
 				throw new ImpossibleRuntimeException("Unsupported with toggle '" + id + "'");
 			}
+		}
+
+		public void reset() {
+			enabled = defaultValue;
 		}
 
 		public void ensureEnabled() {

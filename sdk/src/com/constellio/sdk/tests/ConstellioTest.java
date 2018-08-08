@@ -1,6 +1,7 @@
 package com.constellio.sdk.tests;
 
 import com.constellio.data.utils.dev.Toggle;
+import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.sdk.tests.annotations.PreserveState;
@@ -35,6 +36,11 @@ public class ConstellioTest extends AbstractConstellioTest {
 	@Before
 	public void beforeConstellioTest() {
 		MockitoAnnotations.initMocks(this);
+
+		for (AvailableToggle toggle : Toggle.getAllAvailable()) {
+			toggle.reset();
+		}
+
 		Toggle.ROLES_WITH_NEW_7_2_PERMISSIONS.enable();
 
 		testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
