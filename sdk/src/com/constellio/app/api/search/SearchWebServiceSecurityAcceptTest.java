@@ -1,6 +1,7 @@
 package com.constellio.app.api.search;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
@@ -218,6 +219,8 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 
 	@Test
 	public void testSearchEventPresentOnWebServiceQuery() throws IOException, SolrServerException {
+
+		Toggle.ADVANCED_SEARCH_CONFIGS.enable();
 
 		ModifiableSolrParams solrParams = new ModifiableSolrParams();
 		solrParams.add("q", "*:*");
