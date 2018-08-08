@@ -1,7 +1,6 @@
 package com.constellio.app.ui.acceptation;
 
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.model.conf.FoldersLocator;
@@ -39,7 +38,6 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
 	RMTestRecords records;
-	RMSchemasRecordsServices schemas;
 
 	protected List<String> missingKeys = new ArrayList<>();
 	Locale locale;

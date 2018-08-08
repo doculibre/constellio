@@ -18,6 +18,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -117,8 +118,9 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 	}
 
 	@Override
-	public synchronized void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
-		dependencies.clear();
+	public void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
+
+		List<Dependency> builtDependencies = new ArrayList<>();
 
 		metadataCode = calculatedMetadata.getCode();
 
@@ -126,16 +128,19 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		if (summaryColumnList != null) {
 			for (Map currentMap : summaryColumnList) {
 				String metadataCode = (String) currentMap.get(METADATA_CODE);
-				dependencies.add(toLocalDependency(schemaMetadatas, metadataCode));
+				builtDependencies.add(toLocalDependency(schemaMetadatas, metadataCode));
 			}
 		}
 
-		dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
+		builtDependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
+		dependencies = Collections.unmodifiableList(builtDependencies);
 	}
 
 	@Override
-	public synchronized void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata calculatedMetadata) {
+	public void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata calculatedMetadata) {
 		metadataCode = calculatedMetadata.getCode();
+
+		List<Dependency> builtDependencies = new ArrayList<>(dependencies);
 
 		MetadataList metadataList = schema.getMetadatas();
 		Metadata metadata = metadataList.getMetadataWithLocalCode("summary");
@@ -147,13 +152,14 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 				Metadata currentMetadata = schema.getMetadata(metadataCode);
 
 				if (currentMetadata.getType() == MetadataValueType.REFERENCE) {
-					dependencies.add(toReferenceDependency(types, schema, metadataCode,
+					builtDependencies.add(toReferenceDependency(types, schema, metadataCode,
 							getReferenceMetadataDisplayStringValue(currentMap)));
 				}
 			}
 		}
 
-		dependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
+		builtDependencies.addAll(asList(dynamicMetadatasDependency, dateformat, dateTimeformat));
+		dependencies = Collections.unmodifiableList(builtDependencies);
 	}
 
 	public String getReferenceMetadataDisplayStringValue(Map mapWithReferenceMetadataDisplay) {
@@ -243,7 +249,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 	}
 
 	@Override
-	public synchronized List<? extends Dependency> getDependencies() {
+	public List<? extends Dependency> getDependencies() {
 		return dependencies;
 	}
 
