@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -156,7 +157,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 			if (content != null) {
 				String hash = document.getContent().getCurrentVersion().getHash();
 				String extension = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename());
-				if ("pdf".equals(extension) || "PDF".equals(extension)) {
+				if ("pdf".equals(StringUtils.defaultIfBlank(extension, "").toLowerCase())) {
 					try (InputStream documentIn = contentManager.getContentInputStream(hash, getClass().getSimpleName() + hash + ".PdfGenerator")) {
 						result = PDDocument.load(documentIn);
 						result.getDocumentCatalog().setDocumentOutline(null);
