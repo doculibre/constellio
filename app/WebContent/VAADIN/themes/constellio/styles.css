@@ -12721,6 +12721,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-x: hidden;
 }
 
+.constellio .v-contextmenu .popupContent .gwt-MenuBar {
+  overflow-y: auto;
+}
+
 .constellio body, .constellio div, .constellio p, .constellio h2, .constellio h3, .constellio pre {
 	-webkit-user-select: text;
 }

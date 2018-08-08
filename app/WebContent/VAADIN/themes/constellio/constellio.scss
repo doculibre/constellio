@@ -466,6 +466,9 @@ $popup-view-z-index: 3;
 		.popupContent {
 			overflow-y: auto;
 			overflow-x: hidden;
+            .gwt-MenuBar {
+                overflow-y: auto;
+            }
 		}
 	}
 
