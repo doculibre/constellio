@@ -4,6 +4,7 @@ import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.utils.AccentApostropheCleaner;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.schemas.Schemas;
@@ -13,6 +14,8 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
+
+import static com.constellio.data.utils.dev.Toggle.SHOW_CAPSULES_FOR_ALL_LANGUAGES;
 
 public class CapsuleUtils {
 
@@ -26,30 +29,29 @@ public class CapsuleUtils {
 		return findCapsule(collection, language, query, null, solrParams);
 	}
 
-	private static Capsule findCapsule(String collection, String language, String query, LogicalSearchQuery searchQuery,
-									   ModifiableSolrParams solrParams) {
-		Capsule match = null;
-		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
-		if (StringUtils.isNotEmpty(query)) {
-			String cleanedSearchTerms = AccentApostropheCleaner.cleanAll(query);
-			loop1:
-			for (Capsule capsule : schemasRecordsServices.getAllCapsules()) {
-				boolean validLanguage;
-				if (capsule.getLanguage() == null) {
-					validLanguage = true;
-				} else {
-					String languageId = capsule.getLanguage();
-					Record languageRecord = recordServices.getDocumentById(languageId);
-					String languageCode = languageRecord.get(Schemas.CODE);
-					validLanguage = language.equalsIgnoreCase(languageCode);
-				}
-				if (validLanguage) {
-					for (String keyword : capsule.getKeywords()) {
-						String cleanedKeyword = AccentApostropheCleaner.cleanAll(keyword);
-						if (StringUtils.equalsIgnoreCase(cleanedKeyword, cleanedSearchTerms)) {
+    private static Capsule findCapsule(String collection, String language, String query, LogicalSearchQuery searchQuery, ModifiableSolrParams solrParams) {
+        Capsule match = null;
+        AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+        ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+        RecordServices recordServices = modelLayerFactory.newRecordServices();
+        SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+        if (StringUtils.isNotEmpty(query)) {
+            String cleanedSearchTerms = AccentApostropheCleaner.cleanAll(query);
+            loop1:
+            for (Capsule capsule : schemasRecordsServices.getAllCapsules()) {
+                boolean validLanguage;
+                if (SHOW_CAPSULES_FOR_ALL_LANGUAGES.isEnabled() || capsule.getLanguage() == null) {
+                    validLanguage = true;
+                } else {
+                    String languageId = capsule.getLanguage();
+                    Record languageRecord = recordServices.getDocumentById(languageId);
+                    String languageCode = languageRecord.get(Schemas.CODE);
+                    validLanguage = language.equalsIgnoreCase(languageCode);
+                }
+                if (validLanguage) {
+                    for (String keyword : capsule.getKeywords()) {
+                        String cleanedKeyword = AccentApostropheCleaner.cleanAll(keyword);
+                        if (StringUtils.equalsIgnoreCase(cleanedKeyword, cleanedSearchTerms)) {
 
 							FilterCapsuleParam param = null;
 							if (searchQuery != null) {

@@ -35,6 +35,9 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +50,9 @@ import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static java.util.Arrays.asList;
 
 class ConnectorHttpFetchJob extends ConnectorJob {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorHttpFetchJob.class);
+
 
 	public static final String PATH_TO_NOINDEX_HTML = "com/constellio/app/modules/es/connectors/http/noindex.html";
 	public static final String PROTOCOL = "file:";
@@ -68,7 +74,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 	private final ESSchemasRecordsServices es;
 
 	private final int maxLevel;
-	private final RobotsTxtFactory robotsTxtFactory;
+	private static final RobotsTxtFactory robotsTxtFactory = new RobotsTxtFactory();
 
 	public ConnectorHttpFetchJob(ConnectorHttp connector, ConnectorHttpInstance instance,
 								 List<ConnectorHttpDocument> documents,
@@ -84,7 +90,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 		fileParser = connectorHttp.getEs().getModelLayerFactory().newFileParser();
 		hashingService = connectorHttp.getEs().getModelLayerFactory().getIOServicesFactory().newHashingService(BASE64);
 		this.pageParser = new HtmlPageParser(urlAcceptor, fileParser, hashingService);
-		robotsTxtFactory = new RobotsTxtFactory();
+		//robotsTxtFactory = new RobotsTxtFactory();
 	}
 
 	@Override
@@ -131,7 +137,17 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 	}
 
 	private void handleFetchException(ConnectorHttpDocument httpDocument, URLFetchingServiceRuntimeException e) {
-		e.printStackTrace();
+
+		if ("404".equals(e.getErrorCode())) {
+			LOGGER.info("Error 404, url '" + httpDocument.getUrl() + "' not found");
+
+		} else if ("500".equals(e.getErrorCode())) {
+			LOGGER.info("Error 500, internal server error on url '" + httpDocument.getUrl() + "'");
+
+		} else {
+			LOGGER.warn("Error fetching '" + httpDocument.getUrl() + "'", e);
+		}
+
 		httpDocument.setFetched(true);
 		httpDocument.setStatus(ConnectorDocumentStatus.ERROR);
 		if (!e.getErrorCode().equals(httpDocument.getErrorCode())) {
@@ -235,18 +251,21 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 		HtmlPageParserResults results = pageParser.parse(httpDocument.getURL(), (HtmlPage) page);
 
 		List<ConnectorDocument> savedDocuments = new ArrayList<>();
-		List<String> urls = new ArrayList<>(results.getLinkedUrls());
-		int linksLevel = httpDocument.getLevel() + 1;
-		if (linksLevel <= maxLevel) {
-			for (String url : urls) {
-				if (context.isNewUrl(url)) {
-					context.markAsFetched(url);
+		List<String> urls = new ArrayList<>();
+		if (!results.isNoFollow()) {
+			urls.addAll(results.getLinkedUrls());
+			int linksLevel = httpDocument.getLevel() + 1;
+			if (linksLevel <= maxLevel) {
+                for (String url : urls) {
+                    if (context.isNewUrl(url)) {
+                        context.markAsFetched(url);
 
-					ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
-					document.setInlinks(Arrays.asList(httpDocument.getUrl()));
-					savedDocuments.add(document);
-				}
-			}
+                        ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
+                        document.setInlinks(Arrays.asList(httpDocument.getUrl()));
+                        savedDocuments.add(document);
+                    }
+                }
+            }
 		}
 
 		ensureNotStopped();

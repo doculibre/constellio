@@ -1,5 +1,28 @@
 package com.constellio.app.services.collections;
 
+import static junit.framework.TestCase.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
+
+import com.constellio.model.services.search.SearchConfigurationsManager;
+import com.constellio.model.services.search.SynonymsConfigurationsManager;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CollectionWithGivenCodeAlreadyExists;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
@@ -55,6 +78,8 @@ public class CollectionsManagerTest extends ConstellioTest {
 	@Mock ModelLayerFactory modelLayerFactory;
 	@Mock AppLayerFactory appLayerFactory;
 	@Mock ModelLayerConfiguration modelLayerConfiguration;
+	@Mock SearchConfigurationsManager searchConfigurationsManager;
+	@Mock SynonymsConfigurationsManager synonymsConfigurationsManager;
 
 	@Mock SystemGlobalConfigsManager systemGlobalConfigsManager;
 	@Mock GlobalGroupsManager globalGroupsManager;
@@ -96,6 +121,8 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(modelLayerFactory.getConfiguration()).thenReturn(modelLayerConfiguration);
 		when(modelLayerFactory.getCollectionsListManager()).thenReturn(collectionsListManager);
 		when(modelLayerFactory.getSearchBoostManager()).thenReturn(searchBoostManager);
+		when(modelLayerFactory.getSearchConfigurationsManager()).thenReturn(searchConfigurationsManager);
+		when(modelLayerFactory.getSynonymsConfigurationsManager()).thenReturn(synonymsConfigurationsManager);
 		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn("fr");
 		when(modelLayerFactory.getSearchConfigurationsManager()).thenReturn(searchConfigurationsManager);
 		when(modelLayerFactory.getSynonymsConfigurationsManager()).thenReturn(synonymsConfigurationsManager);
@@ -123,6 +150,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 		verify(collectionsManager).initializeCollection("zeCollection");
 	}
 
+	@Test
 	public void whenAddingCollectionWithNonUniqueCodeThenException()
 			throws Exception {
 
@@ -165,6 +193,8 @@ public class CollectionsManagerTest extends ConstellioTest {
 		verify(authorizationDetailsManager).createCollectionAuthorizationDetail(zeCollection);
 		verify(rolesManager).createCollectionRole(zeCollection);
 		verify(searchBoostManager).createCollectionSearchBoost(zeCollection);
+		verify(searchConfigurationsManager).createCollectionElevations(zeCollection);
+		verify(synonymsConfigurationsManager).createCollectionSynonyms(zeCollection);
 	}
 
 	@Test

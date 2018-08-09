@@ -1,5 +1,13 @@
 package com.constellio.app.modules.es.connectors.http.fetcher;
 
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import com.gargoylesoftware.htmlunit.*;
+import org.apache.http.client.CredentialsProvider;
+
 import com.constellio.app.modules.es.connectors.http.fetcher.URLFetchingServiceRuntimeException.URLFetchingServiceRuntimeException_HttpError;
 import com.constellio.app.modules.es.connectors.http.fetcher.URLFetchingServiceRuntimeException.URLFetchingServiceRuntimeException_IOException;
 import com.constellio.app.modules.es.connectors.http.fetcher.URLFetchingServiceRuntimeException.URLFetchingServiceRuntimeException_MalformedUrl;
@@ -57,8 +65,14 @@ public class HttpURLFetchingService implements AutoCloseable {
 		webClient.setRefreshHandler(emptyRefreshHandler);
 		webClient.getOptions().setUseInsecureSSL(true);
 		webClient.getOptions().setRedirectEnabled(true);
+		webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
 		try {
-			return webClient.getPage(url);
+			Page page = webClient.getPage(url);
+			WebResponse webResponse = page.getWebResponse();
+			if (webResponse.getStatusCode() < 200 || webResponse.getStatusCode() > 299) {
+				throw new FailingHttpStatusCodeException(webResponse);
+			}
+			return page;
 		} catch (FailingHttpStatusCodeException e) {
 			throw new URLFetchingServiceRuntimeException_HttpError(url, e);
 

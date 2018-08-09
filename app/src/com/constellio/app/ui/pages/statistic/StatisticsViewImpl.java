@@ -139,7 +139,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 						(String) capsuleIdField.getValue());
 
 				if (Objects.equals(statisticType, newStatisticType)) {
-					resultTable.setContainerDataSource(getContainer(initColumnsHeader()));
+					resultTable.setContainerDataSource(getContainer(initColumnsHeader(getChoosenStatisticTypeCode())));
 				} else {
 					buildResultTable();
 				}
@@ -280,7 +280,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 	}
 
 	private Layout buildResultTable() {
-		List<String> columnsHeader = initColumnsHeader();
+		List<String> columnsHeader = initColumnsHeader(getChoosenStatisticTypeCode());
 		LazyQueryContainer container = getContainer(columnsHeader);
 
 		resultTable = new BaseTable(getClass().getName() + System.currentTimeMillis(), "", container);
@@ -390,7 +390,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 		AbstractCSVProducer csvProducer;
 		if (isStatisticTypeChoice()) {
 			csvProducer = new FacetsCSVProducer(resultTable, (Long) linesField.getConvertedValue(),
-					presenter.getStatisticsFacetsDataProvider(), initColumnsHeader());
+					presenter.getStatisticsFacetsDataProvider(), initColumnsHeader(getChoosenStatisticTypeCode()));
 		} else {
 			csvProducer = new SearchEventCSVProducer(resultTable, (Long) linesField.getConvertedValue(),
 					presenter.getStatisticsDataProvider());
@@ -482,10 +482,24 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 		}
 	}
 
-	private List<String> initColumnsHeader() {
+	public List<String> initColumnsHeader(String statisticType) {
+		switch (StringUtils.trimToEmpty(statisticType)) {
+			case StatisticsPresenter.FAMOUS_REQUEST:
+			case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
+			case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
+			case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
+			case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
+				return initStatisticsColumnsHeader(statisticType);
+			default:
+				MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
+				return new ArrayList<>(isParamsShowed() ? getPropertiesWithParams(schema) : getProperties(schema));
+		}
+	}
+
+	public static List<String> initStatisticsColumnsHeader(String statisticType) {
 		List<String> properties;
 
-		switch (StringUtils.trimToEmpty(getChoosenStatisticTypeCode())) {
+		switch (StringUtils.trimToEmpty(statisticType)) {
 			case StatisticsPresenter.FAMOUS_REQUEST:
 				properties = Arrays
 						.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT,
@@ -508,8 +522,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 				properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY);
 				break;
 			default:
-				MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
-				properties = new ArrayList<>(isParamsShowed() ? getPropertiesWithParams(schema) : getProperties(schema));
+				properties = new ArrayList<>();
 		}
 
 		return properties;
@@ -517,7 +530,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 
 	private List<String> initVisibleColumns() {
 		if (isStatisticTypeChoice()) {
-			return initColumnsHeader();
+			return initColumnsHeader(getChoosenStatisticTypeCode());
 		} else {
 			MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
 			return new ArrayList<>(isParamsShowed() ? getPropertiesWithParams(schema) : getProperties(schema));

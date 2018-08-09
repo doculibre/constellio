@@ -55,6 +55,8 @@ public class Toggle {
 
 	public static AvailableToggle FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY = newToggle(false);
 
+	public static AvailableToggle SHOW_CAPSULES_FOR_ALL_LANGUAGES = newToggle(false);
+
 
 	// ------------------------------------------------
 

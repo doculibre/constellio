@@ -160,12 +160,13 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 		linesField = new BaseTextField();
 		linesField.setConversionError($("ConnectorReportView.linesFieldConversionError"));
 		linesField.setConverter(new StringToLongConverter());
-		linesField.addValueChangeListener(new Property.ValueChangeListener() {
+
+		BaseButton linesButton = new BaseButton($("ConnectorReportView.linesButton")) {
 			private Object oldValue;
 			private DownloadLink oldLink = downloadLink;
 
 			@Override
-			public void valueChange(Property.ValueChangeEvent event) {
+			protected void buttonClick(ClickEvent event) {
 				Object current = linesField.getConvertedValue();
 
 				if (!Objects.equals(oldValue, current)) {
@@ -176,9 +177,9 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 
 				oldValue = current;
 			}
-		});
+		};
 
-		layout.addComponents(labelLinesField, linesField, downloadLink);
+		layout.addComponents(labelLinesField, linesField, linesButton, downloadLink);
 		layout.setComponentAlignment(labelLinesField, Alignment.MIDDLE_LEFT);
 		layout.setComponentAlignment(linesField, Alignment.MIDDLE_CENTER);
 		layout.setComponentAlignment(downloadLink, Alignment.MIDDLE_RIGHT);

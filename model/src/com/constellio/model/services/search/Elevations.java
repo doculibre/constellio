@@ -5,10 +5,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class Elevations implements Serializable {
 	private List<QueryElevation> queryElevations = new ArrayList<>();
@@ -109,21 +106,68 @@ public class Elevations implements Serializable {
 		return EqualsBuilder.reflectionEquals(this, obj);
 	}
 
+	public static class QueryElevation implements Serializable {
+		private String query;
+		private List<DocElevation> docElevations;
 
-	public static class DocExclusion implements Serializable {
-		private String id;
-
-		public DocExclusion(String id) {
-			this.id = id;
+		public QueryElevation(String query) {
+			this.query = query;
+			this.docElevations = new ArrayList<>();
 		}
 
-		@XmlAttribute(name = "id")
-		public String getId() {
-			return id;
+		@XmlElement(name = "doc")
+		public List<DocElevation> getDocElevations() {
+			return docElevations;
+		}
+
+		@XmlAttribute(name = "text")
+		public String getQuery() {
+			return query;
 		}
 
 		public boolean equals(Object obj) {
 			return EqualsBuilder.reflectionEquals(this, obj);
+		}
+
+		public void addUpdate(List<DocElevation> docElevations) {
+			for (DocElevation newDocElevation : docElevations) {
+				for (Iterator<DocElevation> iterator = this.docElevations.iterator(); iterator.hasNext(); ) {
+					DocElevation oldDocElevation = iterator.next();
+					if (oldDocElevation.getId().equals(newDocElevation.getId())) {
+						iterator.remove();
+					}
+				}
+			}
+
+			this.docElevations.addAll(docElevations);
+		}
+
+		public QueryElevation addDocElevation(DocElevation docElevation) {
+			addUpdate(Arrays.asList(docElevation));
+			return this;
+		}
+
+		public static class DocElevation implements Serializable {
+			private String id;
+			private String query;
+
+			public DocElevation(String id, String query) {
+				this.id = id;
+				this.query = query;
+			}
+
+			public String getQuery() {
+				return query;
+			}
+
+			@XmlAttribute(name = "id")
+			public String getId() {
+				return id;
+			}
+
+			public boolean equals(Object obj) {
+				return EqualsBuilder.reflectionEquals(this, obj);
+			}
 		}
 	}
 }

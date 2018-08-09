@@ -55,6 +55,7 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		this.userServices = es.getModelLayerFactory().newUserServices();
 		ESConfigs esConfigs = new ESConfigs(es.getModelLayerFactory());
 		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
+				.showProgressionInConsole(false)
 				.withRecordsPerBatch(esConfigs.getConnectorNumberOfRecordsPerBatch()).withNumberOfThreads(esConfigs.getConnectorNumberOfThreads());
 		options.getTransactionOptions().setUnicityValidationsEnabled(false);
 		this.handler = new BulkRecordTransactionHandler(es.getRecordServices(), resourceName, options);
