@@ -36,7 +36,7 @@ public class RecordWrapper implements Serializable, CollectionObject {
 	protected Locale locale;
 
 	public RecordWrapper(Record record, MetadataSchemaTypes types, String typeRequirement) {
-		this(record, types, typeRequirement, types.getLanguages().get(0).getLocale());
+		this(record, types, typeRequirement, types == null ? null : types.getLanguages().get(0).getLocale());
 	}
 
 	public RecordWrapper(Record record, MetadataSchemaTypes types, String typeRequirement, Locale locale) {

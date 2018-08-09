@@ -164,7 +164,8 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 			// searches for number of times indicated
 			for (int i = 0; i < searchOccurence; i++) {
 				SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
-				searchEvent.setQuery(StringUtils.stripAccents(searchValue.toLowerCase())).setNumFound(numFound);
+				String query = StringUtils.stripAccents(searchValue.toLowerCase());
+				searchEvent.setQuery(query).setOriginalQuery(query).setNumFound(numFound);
 				transaction.add(searchEvent);
 			}
 		}
@@ -172,17 +173,17 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 
 		String[] emptyCustomRequestExclusion = {};
 		assertThat(searchEventServices.getMostPopularQueriesAutocomplete("av", 5, emptyCustomRequestExclusion))
-				.containsExactly("avengers", "avion", "aviation", "aviron", "avionique");
+				.containsExactly("Avengers", "Avion", "Aviation", "Aviron", "Avionique");
 		assertThat(searchEventServices.getMostPopularQueriesAutocomplete("Av", 5, emptyCustomRequestExclusion))
-				.containsExactly("avengers", "avion", "aviation", "aviron", "avionique");
+				.containsExactly("Avengers", "Avion", "Aviation", "Aviron", "Avionique");
 
 		String[] singleCustomRequestExclusion = {"aviron"};
 		assertThat(searchEventServices.getMostPopularQueriesAutocomplete("av", 5, singleCustomRequestExclusion))
-				.containsExactly("avengers", "avion", "aviation", "avionique");
+				.containsExactly("Avengers", "Avion", "Aviation", "Avionique");
 
 		String[] multipleCustomRequestExclusions = {"aviron", "avionique"};
 		assertThat(searchEventServices.getMostPopularQueriesAutocomplete("av", 5, multipleCustomRequestExclusions))
-				.containsExactly("avengers", "avion", "aviation");
+				.containsExactly("Avengers", "Avion", "Aviation");
 
 	}
 }
