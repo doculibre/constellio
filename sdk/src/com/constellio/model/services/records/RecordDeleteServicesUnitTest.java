@@ -173,6 +173,9 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 			throws Exception {
 
 		doReturn(true).when(recordDeleteServices).isRestorable(theRecord, user);
+		doReturn("abc123").when(theRecord).getId();
+		doReturn("def456").when(aRecordInTheRecordHierarchy).getId();
+		doReturn("ghi789").when(anotherRecordInTheRecordHierarchy).getId();
 
 		ArgumentCaptor<Transaction> transaction = ArgumentCaptor.forClass(Transaction.class);
 
