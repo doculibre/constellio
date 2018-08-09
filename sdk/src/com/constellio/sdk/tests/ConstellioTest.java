@@ -64,6 +64,9 @@ public class ConstellioTest extends AbstractConstellioTest {
 				//OK
 			}
 
+			// allow to change restricted http headers such as "host"
+			System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+
 			System.out.print(ANSI_RESET + "\t\t*** Exceptions displayed before this line are OK ***\n\n");
 			testSession = ConstellioTestSession.build(isUnitTest(), sdkProperties, skipTestRule, getClass(), checkRollback());
 			IS_FIRST_EXECUTED_TEST = false;
