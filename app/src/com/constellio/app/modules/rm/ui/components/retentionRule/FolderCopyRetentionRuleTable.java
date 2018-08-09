@@ -32,7 +32,6 @@ import com.constellio.app.ui.framework.components.fields.record.RecordComboBox;
 import com.constellio.app.ui.framework.components.mouseover.NiceTitle;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.data.utils.dev.Toggle;
-import com.constellio.model.entities.EnumWithSmallCode;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.BeanItemContainer;
@@ -702,18 +701,6 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 	}
 
 	private class InactiveDisposalTypeField extends EnumWithSmallCodeComboBox<DisposalType> {
-		@Override
-		public void setOptions(List<EnumWithSmallCode> enumConstants) {
-			Collections.sort(enumConstants, new Comparator<EnumWithSmallCode>() {
-				@Override
-				public int compare(EnumWithSmallCode o1, EnumWithSmallCode o2) {
-					String caption1 = $(DisposalType.class.getSimpleName() + "." + o1.getCode());
-					String caption2 = $(DisposalType.class.getSimpleName() + "." + o2.getCode());
-					return caption1.compareTo(caption2);
-				}
-			});
-			super.setOptions(enumConstants);
-		}
 
 		public InactiveDisposalTypeField(final CopyRetentionRule copyRetentionRule) {
 			super(DisposalType.class);
