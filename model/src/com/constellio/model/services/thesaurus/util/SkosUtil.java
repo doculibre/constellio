@@ -9,7 +9,7 @@ public class SkosUtil {
 	public static String normaliseTextForMatching(String text) {
 		String normalised = text.replaceAll("\\r?\\n", " ")
 				.replaceAll(" +", " ").toUpperCase();
-		return " " + normalised + " ";
+		return " " + normalised.trim() + " ";
 	}
 
 	public static String getSkosConceptId(String text) {
