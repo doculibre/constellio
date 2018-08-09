@@ -241,12 +241,14 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			return;
 		}
 
-		for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
-			ValidateDecommissioningListProcessableParams params = new ValidateDecommissioningListProcessableParams(decommissioningList);
-			extension.validateProcessable(params);
-			if (!params.getValidationErrors().isEmpty()) {
-				view.showErrorMessage($(params.getValidationErrors().getValidationErrors().get(0)));
-				return;
+		if(rmModuleExtensions != null) {
+			for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
+				ValidateDecommissioningListProcessableParams params = new ValidateDecommissioningListProcessableParams(decommissioningList);
+				extension.validateProcessable(params);
+				if (!params.getValidationErrors().isEmpty()) {
+					view.showErrorMessage($(params.getValidationErrors().getValidationErrors().get(0)));
+					return;
+				}
 			}
 		}
 
