@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -14,6 +15,8 @@ import com.constellio.model.services.contents.ParsedContentProvider;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -46,6 +49,7 @@ public class CoreSearchFieldExtensionAcceptTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
+		givenBackgroundThreadsEnabled();
 
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
@@ -57,6 +61,12 @@ public class CoreSearchFieldExtensionAcceptTest extends ConstellioTest {
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		descriptionDisplayConfig = getAppLayerFactory().getMetadataSchemasDisplayManager()
 				.getMetadata(zeCollection, Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION);
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION).setSearchable(true);
+			}
+		});
 		descriptionMetadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection)
 				.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.DESCRIPTION);
 
@@ -67,58 +77,32 @@ public class CoreSearchFieldExtensionAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+
 	public void givenTextIsNotWithInputTypeRichTextThanKeepsTagInSearchFieldPopulator()
 			throws Exception {
 
-		getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.saveMetadata(descriptionDisplayConfig.withInputType(MetadataInputType.TEXTAREA));
-
+		getAppLayerFactory().getMetadataSchemasDisplayManager().saveMetadata(descriptionDisplayConfig.withInputType(MetadataInputType.TEXTAREA));
 		Folder folder = records.getFolder_A01().setDescription(DESCRIPTION_WITH_XML_TAGS);
-
-		SearchFieldsPopulator searchFieldsPopulator = getSearchFieldPopulator();
-
-		Map<String, Object> stringObjectMap = searchFieldsPopulator
-				.populateCopyfields(rm.folder.schema(), folder.getWrappedRecord());
-
-		assertThat(stringObjectMap).contains(MapEntry.entry("description_t_fr", DESCRIPTION_WITH_XML_TAGS));
 		recordServices.update(folder);
 
-		List<String> foldersFound = getModelLayerFactory().newSearchServices()
-				.searchRecordIds(new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll()).setFreeTextQuery("strong"));
-		assertThat(foldersFound).contains(records.folder_A01);
+		SearchFieldsPopulator searchFieldsPopulator = getSearchFieldPopulator();
+		Map<String, Object> stringObjectMap = searchFieldsPopulator.populateCopyfields(descriptionMetadata, DESCRIPTION_WITH_XML_TAGS, Language.withCode("fr").getLocale());
+		assertThat(stringObjectMap).contains(MapEntry.entry("description_t_fr", DESCRIPTION_WITH_XML_TAGS));
 	}
 
 	@Test
-	public void givenTextIsWithInputTypeRichTextThanKeepsTagInSearchFieldPopulator()
+	public void givenTextIsWithInputTypeRichTextThanDoesNotKeepTagInSearchFieldPopulator()
 			throws Exception {
-
-		//		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
-		//			@Override
-		//			public void alter(MetadataSchemaTypesBuilder types) {
-		//				types.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.DESCRIPTION).setSearchable(true);
-		//			}
-		//		});
-
-		getAppLayerFactory().getMetadataSchemasDisplayManager()
-				.saveMetadata(descriptionDisplayConfig.withInputType(MetadataInputType.RICHTEXT));
-		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-
+		getAppLayerFactory().getMetadataSchemasDisplayManager().saveMetadata(descriptionDisplayConfig.withInputType(MetadataInputType.RICHTEXT));
 		Folder folder = records.getFolder_A01().setDescription(DESCRIPTION_WITH_XML_TAGS);
-
-		SearchFieldsPopulator searchFieldsPopulator = getSearchFieldPopulator();
-
-		Map<String, Object> stringObjectMap = searchFieldsPopulator
-				.populateCopyfields(rm.folder.schema(), folder.getWrappedRecord());
-		assertThat(stringObjectMap).contains(MapEntry.entry("description_t_fr", DESCRIPTION_WITHOUT_XML_TAGS));
 		recordServices.update(folder);
 
-		List<String> foldersFound = getModelLayerFactory().newSearchServices()
-				.searchRecordIds(new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll()).setFreeTextQuery("éléphants"));
-		assertThat(foldersFound).contains(records.folder_A01);
+		SearchFieldsPopulator searchFieldsPopulator = getSearchFieldPopulator();
+		Map<String, Object> stringObjectMap = searchFieldsPopulator.populateCopyfields(descriptionMetadata, DESCRIPTION_WITH_XML_TAGS, Language.withCode("fr").getLocale());
+		assertThat(stringObjectMap).contains(MapEntry.entry("description_t_fr", DESCRIPTION_WITHOUT_XML_TAGS));
 
-		foldersFound = getModelLayerFactory().newSearchServices()
-				.searchRecordIds(new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll()).setFreeTextQuery("strong"));
-		assertThat(foldersFound).doesNotContain(records.folder_A01);
+		List<String> foldersFound = getModelLayerFactory().newSearchServices().searchRecordIds(new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll()).setFreeTextQuery("éléphants"));
+		assertThat(foldersFound).contains(records.folder_A01);
 	}
 
 	private SearchFieldsPopulator getSearchFieldPopulator() {
