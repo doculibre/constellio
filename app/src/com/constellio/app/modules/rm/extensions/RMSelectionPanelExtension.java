@@ -105,6 +105,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     AppLayerFactory appLayerFactory;
     String collection;
     IOServices ioServices;
+    RMSchemasRecordsServices rm;
     private RMModuleExtensions rmModuleExtensions;
 
     public RMSelectionPanelExtension(AppLayerFactory appLayerFactory, String collection) {
@@ -112,6 +113,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
         this.collection = collection;
         this.ioServices = this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
         this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+        this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
     }
 
     @Override
@@ -132,16 +134,15 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
     }
 
     public void addPdfButton(final AvailableActionsParam param) {
+        final User currentUser = param.getUser();
         WindowButton pdfButton = new ConsolidatedPdfButton(param) {
             @Override
             public void buttonClick(ClickEvent event) {
                 List<Record> records = recordServices().getRecordsById(collection, param.getIds());
-                for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
-                    for (Record record : records) {
-                        if (!extension.isCreatePDFAActionPossible(new DocumentExtensionActionPossibleParams(record))) {
-                            showErrorMessage(i18n.$("ConstellioHeader.pdfGenerationBlockedByExtension"));
-                            return;
-                        }
+                for (Record record : records) {
+                    if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm.wrapDocument(record),currentUser)) {
+                        showErrorMessage(i18n.$("ConstellioHeader.pdfGenerationBlockedByExtension"));
+                        return;
                     }
                 }
                 super.buttonClick(event);
@@ -557,12 +558,10 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             }
                             break;
                         case Document.SCHEMA_TYPE:
-                            for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
-                                if (!extension.isMoveActionPossible(new DocumentExtensionActionPossibleParams(record))) {
-                                    isMovePossible = false;
-                                    couldNotMove.add(record.getTitle());
-                                    break;
-                                }
+                            if (!rmModuleExtensions.isMoveActionPossibleOnDocument(rm.wrapDocument(record), param.getUser())) {
+                                isMovePossible = false;
+                                couldNotMove.add(record.getTitle());
+                                break;
                             }
                             if (isMovePossible) {
                                 recordServices.update(rmSchemas.getDocument(id).setFolder(parentId));
@@ -612,12 +611,10 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
                             recordServices.add(newFolder);
                             break;
                         case Document.SCHEMA_TYPE:
-                            for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
-                                if (!extension.isCopyActionPossible(new DocumentExtensionActionPossibleParams(record))) {
-                                    isCopyPossible = false;
-                                    couldNotDuplicate.add(record.getTitle());
-                                    break;
-                                }
+                            if (!rmModuleExtensions.isCopyActionPossibleOnDocument(rm.wrapDocument(record),param.getUser())) {
+                                isCopyPossible = false;
+                                couldNotDuplicate.add(record.getTitle());
+                                break;
                             }
                             if (!isCopyPossible) break;
 

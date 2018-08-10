@@ -102,6 +102,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	private transient BatchProcessingPresenterService batchProcessingPresenterService;
 	private transient ModelLayerCollectionExtensions modelLayerExtensions;
 	private transient RMModuleExtensions rmModuleExtensions;
+	private transient RMSchemasRecordsServices rm;
 
 	public AdvancedSearchPresenter(AdvancedSearchView view) {
 		super(view);
@@ -784,14 +785,20 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public boolean isPdfGenerationActionPossible(List<String> recordIds) {
 		List<Record> records = modelLayerFactory.newRecordServices().getRecordsById(collection, recordIds);
-		for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
-			for (Record record : records) {
-				if (!extension.isCreatePDFAActionPossible(new DocumentExtension.DocumentExtensionActionPossibleParams(record))) {
-					view.showErrorMessage(i18n.$("AdvancedSearchView.actionBlockedByExtension"));
-					return false;
-				}
+		for (Record record : records) {
+			if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm().wrapDocument(record),getCurrentUser())) {
+				view.showErrorMessage(i18n.$("AdvancedSearchView.actionBlockedByExtension"));
+				return false;
 			}
 		}
 		return true;
 	}
+
+	private RMSchemasRecordsServices rm() {
+		if (rm == null) {
+			rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		}
+		return rm;
+	}
+
 }

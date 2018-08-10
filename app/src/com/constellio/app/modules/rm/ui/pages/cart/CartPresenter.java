@@ -569,12 +569,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			}
 		}
 		List<Document> documents = getCartDocuments();
-		for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
-			for (Document document : documents) {
-				if (!extension.isShareActionPossible(new DocumentExtensionActionPossibleParams(document.getWrappedRecord()))) {
-					view.showErrorMessage($("CartView.actionBlockedByExtension"));
-					return;
-				}
+		for (Document document : documents) {
+			if (!rmModuleExtensions.isShareActionPossibleOnDocument(document,getCurrentUser())) {
+				view.showErrorMessage($("CartView.actionBlockedByExtension"));
+				return;
 			}
 		}
 		cart().setSharedWithUsers(userids);
@@ -872,12 +870,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean isPdfGenerationActionPossible(List<String> recordIds) {
 		List<Record> records = rm().get(recordIds);
-		for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
-			for (Record record : records) {
-				if (!extension.isCreatePDFAActionPossible(new DocumentExtensionActionPossibleParams(record))) {
-					view.showErrorMessage(i18n.$("CartView.actionBlockedByExtension"));
-					return false;
-				}
+		for (Record record : records) {
+			if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm().wrapDocument(record),getCurrentUser())) {
+				view.showErrorMessage(i18n.$("CartView.actionBlockedByExtension"));
+				return false;
 			}
 		}
 		return true;

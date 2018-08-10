@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.extensions.api;
 import com.constellio.app.extensions.ModuleExtensions;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -120,6 +121,66 @@ public class RMModuleExtensions implements ModuleExtensions {
 			public ExtensionBooleanResult call(FolderExtension behavior) {
 				return behavior.isBorrowingActionPossible(
 						new FolderExtension.FolderExtensionActionPossibleParams(folder, user));
+			}
+		});
+	}
+
+	public boolean isCopyActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isCopyActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document,user));
+			}
+		});
+	}
+
+	public boolean isCreatePDFAActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isCreatePDFAActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document,user));
+			}
+		});
+	}
+
+	public boolean isFinalizeActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isFinalizeActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document,user));
+			}
+		});
+	}
+
+	public boolean isMoveActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isMoveActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document,user));
+			}
+		});
+	}
+
+	public boolean isPublishActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isPublishActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document,user));
+			}
+		});
+	}
+
+	public boolean isShareActionPossibleOnDocument(final Document document, final User user) {
+		return documentExtensions.getBooleanValue(true, new ExtensionUtils.BooleanCaller<DocumentExtension>() {
+			@Override
+			public ExtensionBooleanResult call(DocumentExtension behavior) {
+				return behavior.isShareActionPossible(
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document,user));
 			}
 		});
 	}
