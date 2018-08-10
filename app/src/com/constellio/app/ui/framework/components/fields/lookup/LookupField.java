@@ -55,7 +55,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	public static final String LOOKUP_WINDOW_CONTENT_STYLE_NAME = LOOKUP_WINDOW_STYLE_NAME + "-content";
 	private static final String CAPTION_PROPERTY_ID = "caption";
 
-	private TextInputDataProvider<T> suggestInputDataProvider;
+	protected TextInputDataProvider<T> suggestInputDataProvider;
 	private List<LookupTreeDataProvider<T>> lookupTreeDataProviders = new ArrayList<>();
 	private BaseAutocompleteField<T> autoCompleteField;
 	private WindowButton lookupWindowButton;
@@ -83,6 +83,17 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		}
 	}
 
+	public void setProviders(TextInputDataProvider<T> suggestInputDataProvider,
+							 LookupTreeDataProvider<T>... lookupTreeDataProviders){
+		this.suggestInputDataProvider = suggestInputDataProvider;
+		if (lookupTreeDataProviders != null) {
+			this.lookupTreeDataProviders.removeAll(this.lookupTreeDataProviders);
+			for (LookupTreeDataProvider<T> lookupTreeDataProvider : lookupTreeDataProviders) {
+				this.lookupTreeDataProviders.add(lookupTreeDataProvider);
+			}
+		}
+	}
+
 	public final Integer getWindowZIndex() {
 		return windowZIndex;
 	}
@@ -96,6 +107,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			configs = ConstellioFactories.getInstance().getModelLayerFactory().getSystemConfigs();
 		}
 		return configs.getLazyTreeBufferSize();
+	}
+
+	public List<LookupTreeDataProvider<T>> getLookupTreeDataProviders() {
+		return lookupTreeDataProviders;
 	}
 
 	@Override
@@ -212,8 +227,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	}
 
 	public void setItemConverter(Converter<String, T> itemConverter) {
-		this.itemConverter = new ConverterWithCache<>(itemConverter);
-		suggestInputDataProvider.setConverterWithCache(this.itemConverter);
+		if(itemConverter != null) {
+			this.itemConverter = new ConverterWithCache<>(itemConverter);
+			suggestInputDataProvider.setConverterWithCache(this.itemConverter);
+		}
 	}
 
 	protected String getCaption(T object) {
