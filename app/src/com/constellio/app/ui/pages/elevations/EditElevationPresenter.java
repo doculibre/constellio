@@ -6,7 +6,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.search.Elevations;
 import com.constellio.model.services.search.QueryElevation;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 

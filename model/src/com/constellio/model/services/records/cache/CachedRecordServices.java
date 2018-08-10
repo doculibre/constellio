@@ -295,6 +295,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user) {
+		return recordServices.isLogicallyDeletableAndIsSkipValidation(record, user);
+	}
+
+	@Override
 	public boolean isLogicallyThenPhysicallyDeletable(Record record,
 													  User user) {
 		return recordServices.isLogicallyThenPhysicallyDeletable(record, user);

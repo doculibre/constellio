@@ -115,6 +115,8 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration SEIZE_MULTILANGUAL_VALUES;
 	public static final SystemConfiguration ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY;
 
+	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -176,6 +178,8 @@ public class ConstellioEIMConfigs {
 		add(TABLE_DYNAMIC_CONFIGURATION = advanced.createBooleanTrueByDefault("tableDynamicConfiguration"));
 
 		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
+
+		add(ENABLE_INACTIF_SCHEMAS_IN_SEARCH = search.createBooleanTrueByDefault("enableInactifSchemasInSearch"));
 
 		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
 		add(ICAP_SCAN_ACTIVATED = icapConfigurationGroup.createBooleanFalseByDefault("icapScanActivated"));
@@ -271,6 +275,10 @@ public class ConstellioEIMConfigs {
 
 	public Boolean isTableDynamicConfiguration() {
 		return manager.getValue(TABLE_DYNAMIC_CONFIGURATION);
+	}
+
+	public Boolean areInactifSchemasEnabledInSearch() {
+		return manager.getValue(ENABLE_INACTIF_SCHEMAS_IN_SEARCH);
 	}
 
 	public Boolean isCleanDuringInstall() {

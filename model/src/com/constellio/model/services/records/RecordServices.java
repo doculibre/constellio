@@ -143,6 +143,8 @@ public interface RecordServices {
 
 	boolean isLogicallyDeletable(Record record, User user);
 
+	boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user);
+
 	boolean isLogicallyThenPhysicallyDeletable(Record record, User user);
 
 	void logicallyDelete(Record record, User user);

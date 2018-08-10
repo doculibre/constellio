@@ -134,9 +134,9 @@ public class POJOEntitiesTest extends ConstellioTest {
 	public void testThatMetadataSchemaHasValidEqualsHashcodeAndToStringBehaviors() {
 		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
 		MetadataSchema o = new MetadataSchema("a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS);
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 		MetadataSchema o2 = new MetadataSchema("a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS);
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 		assertThatToEqualsAndToStringThrowNoException(o, o2);
 		assertThat(o).isInstanceOf(Serializable.class);
 	}
@@ -145,9 +145,9 @@ public class POJOEntitiesTest extends ConstellioTest {
 	public void testThatMetadataSchemaTypeHasValidEqualsHashcodeAndToStringBehaviors() {
 		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
 		MetadataSchema defaultSchema = new MetadataSchema("a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS);
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 		MetadataSchema defaultSchema2 = new MetadataSchema("a", "a", zeCollectionInfo, labels, new ArrayList<Metadata>(), true,
-				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS);
+				true, new HashSet<RecordValidator>(), null, DataStore.RECORDS, true);
 		MetadataSchemaType o = new MetadataSchemaType("a", null, zeCollectionInfo, labels, new ArrayList<MetadataSchema>(),
 				defaultSchema,
 				true, true, true, false, "records");

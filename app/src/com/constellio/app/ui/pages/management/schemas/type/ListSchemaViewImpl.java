@@ -74,12 +74,38 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 			}
 		};
 
-		viewLayout.addComponents(addButton, buildTables());
+		viewLayout.addComponents(addButton, buildSchemasTables());
 		viewLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 		return viewLayout;
 	}
 
-	public void addSchemaToTable(final MetadataSchemaVO metadataSchemaVO, Container indexedContainer) {
+	private TabSheet buildSchemasTables() {
+		TabSheet tabSheet = new TabSheet();
+		Table activeRecordsTable = buildTables(true);
+		Table inactiveRecordsTable = buildTables(false);
+
+		VerticalLayout activeLayout = new VerticalLayout();
+		Button addButton = new AddButton() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.addButtonClicked();
+			}
+		};
+		activeLayout.addComponent(addButton);
+		activeLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+		activeLayout.addComponent(activeRecordsTable);
+
+		VerticalLayout inactiveLayout = new VerticalLayout();
+		inactiveLayout.addComponent(inactiveRecordsTable);
+
+		tabSheet.addTab(activeLayout, $("ListValueDomainRecordsViewImpl.actives", activeRecordsTable.size()));
+		tabSheet.addTab(inactiveLayout, $("ListValueDomainRecordsViewImpl.inactives", inactiveRecordsTable.size()));
+
+		return tabSheet;
+	}
+
+	public void addSchemaToTable(final MetadataSchemaVO metadataSchemaVO, final boolean active,
+								 Container indexedContainer) {
 		MenuBar menuBar = new BaseMenuBar();
 		MenuBar.MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
 
@@ -92,7 +118,27 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 
 		rootItem.addItem($("ListSchemaViewImpl.menu.edit"), EditButton.ICON_RESOURCE, editListener);
 
-		if (super.isVisible() && presenter.isDeleteButtonVisible(metadataSchemaVO.getCode())) {
+		if (active) {
+			final MenuBar.Command disableListener = new MenuBar.Command() {
+				@Override
+				public void menuSelected(MenuBar.MenuItem selectedItem) {
+					presenter.disableButtonClick(metadataSchemaVO.getCode());
+				}
+			};
+			rootItem.addItem($("ListSchemaViewImpl.menu.disable"),
+					new ThemeResource("images/commun/desactiverRouge.gif"), disableListener);
+		} else {
+			final MenuBar.Command enableListener = new MenuBar.Command() {
+				@Override
+				public void menuSelected(MenuBar.MenuItem selectedItem) {
+					presenter.enableButtonClick(metadataSchemaVO.getCode());
+				}
+			};
+			rootItem.addItem($("ListSchemaViewImpl.menu.enable"),
+					new ThemeResource("images/commun/reactiver.gif"), enableListener);
+		}
+
+		if (super.isVisible()) {
 			final MenuBar.Command deleteListener = new MenuBar.Command() {
 				@Override
 				public void menuSelected(MenuBar.MenuItem selectedItem) {
@@ -172,8 +218,8 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		indexedContainer.getContainerProperty(metadataSchemaVO, OPTIONS_COL).setValue(buttonVerticalLayout);
 	}
 
-	private Component buildTables() {
-		final SchemaVODataProvider dataProvider = presenter.getDataProvider();
+	private Table buildTables(boolean active) {
+		final SchemaVODataProvider dataProvider = presenter.getDataProvider(active);
 
 		Container indexContainer = new IndexedContainer();
 		indexContainer.addContainerProperty("localCode", String.class, "");
@@ -182,7 +228,7 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 
 		for (Integer integer : dataProvider.list()) {
 			MetadataSchemaVO metadataSchemaVO = dataProvider.getSchemaVO(integer);
-			addSchemaToTable(metadataSchemaVO, indexContainer);
+			addSchemaToTable(metadataSchemaVO, active, indexContainer);
 		}
 
 		Table table = new BaseTable(getClass().getName(), $("ListSchemaView.tableTitle", indexContainer.size()));

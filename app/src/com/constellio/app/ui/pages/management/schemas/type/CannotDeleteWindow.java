@@ -11,9 +11,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CannotDeleteWindow extends VerticalLayout {
 
-	private static final String RECORD_ID = "recordId";
-	private static final String RECORD_TITLE = "recordTitle";
-	private static final String IS_IN_TRASH_QUESTION = "isInTrashQuestion";
+	private static final String RECORD_ID = "CannotDeleteWindow.recordId";
+	private static final String RECORD_TITLE = "CannotDeleteWindow.recordTitle";
+	private static final String IS_IN_TRASH_QUESTION = "CannotDeleteWindow.isInTrashQuestion";
 
 	private Label cannotDeleteLabel;
 	private Label recordAccessLabel;
@@ -76,7 +76,7 @@ public class CannotDeleteWindow extends VerticalLayout {
 
 		int numberOfRecords = 0;
 		for (Record record : records) {
-			table.addItem(new String[]{record.getId(), record.getTitle(), record.isActive() ? $("isActive") : $("isInactive")}, numberOfRecords);
+			table.addItem(new String[]{record.getId(), record.getTitle(), record.isActive() ? $("CannotDeleteWindow.isActive") : $("CannotDeleteWindow.isInactive")}, numberOfRecords);
 			numberOfRecords++;
 		}
 
@@ -86,7 +86,7 @@ public class CannotDeleteWindow extends VerticalLayout {
 	}
 
 	public Window openWindow() {
-		Window warningWindow = new BaseWindow($("warning"), this);
+		Window warningWindow = new BaseWindow($("CannotDeleteWindow.warning"), this);
 		warningWindow.center();
 		warningWindow.setModal(true);
 		UI.getCurrent().addWindow(warningWindow);

@@ -19,8 +19,6 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
@@ -213,24 +211,6 @@ public class UserServicesUnitTest extends ConstellioTest {
 		} catch (Exception e) {
 			assertThat(e.getMessage()).isEqualTo("No such group 'heroes'");
 		}
-	}
-
-	@Test
-	public void whenGetGroupInCollectionThenReturnRecordOfCorrectCollection()
-			throws Exception {
-
-		when(bob.getCollections()).thenReturn(Arrays.asList("collection2", "collection1"));
-		when(globalGroupsManager.getGlobalGroupWithCode("legends")).thenReturn(legends);
-		ArgumentCaptor<LogicalSearchCondition> conditionCaptor = ArgumentCaptor.forClass(LogicalSearchCondition.class);
-		when(searchServices.searchSingleResult(conditionCaptor.capture())).thenReturn(groupRecord);
-
-		Group returnedGroup = userServices.getGroupInCollection("legends", "collection2");
-		assertThat(returnedGroup.getWrappedRecord()).isSameAs(groupRecord);
-
-		LogicalSearchCondition condition = conditionCaptor.getValue();
-		assertThat(condition).isEqualTo(
-				LogicalSearchQueryOperators.from(collection2GroupSchema).where(collection2GroupCodeMetadata).is("legends"));
-
 	}
 
 	@Test

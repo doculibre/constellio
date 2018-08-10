@@ -9,7 +9,7 @@ public class SkosUtilAcceptanceTest extends ConstellioTest {
 	public static final String NOT_NORMALIZED_STRING = "  Hello  1234 " +
 													   "\n    fdsfdsfds fdsfds fdsdsf " +
 													   "\nfdskg gfdf lhgflhg  ";
-	public static final String NORMALIZED_STRING_RESULT = "Hello 1234 fdsfdsfds fdsfds fdsdsf fdskg gfdf lhgflhg";
+	public static final String NORMALIZED_STRING_RESULT = " HELLO 1234 FDSFDSFDS FDSFDS FDSDSF FDSKG GFDF LHGFLHG ";
 	public static final String URL_WITH_ID = "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=147";
 
 	@Test

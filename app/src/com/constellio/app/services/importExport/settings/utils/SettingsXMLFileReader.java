@@ -5,6 +5,7 @@ import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.jgoodies.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
@@ -397,10 +398,17 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			}
 		}
 
-		if (numberOfLang == 0 && label != null) {
+		String title = child.getAttributeValue("title");
+
+		if (numberOfLang == 0 && Strings.isNotBlank(label)) {
 			for (String languageCollection : languageList) {
 				Language language = Language.withCode(languageCollection);
 				languageTitleMap.put(language, label);
+			}
+		} else if (numberOfLang == 0 && Strings.isNotBlank(title)) {
+			for(String languageCollection : languageList) {
+				Language language = Language.withCode(languageCollection);
+				languageTitleMap.put(language, title);
 			}
 		}
 		return languageTitleMap;

@@ -1,9 +1,15 @@
 package com.constellio.app.ui.pages.unicitymetadataconf;
 
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FolderUnicityVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.fields.lookup.MetadataVOLookupField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.FolderUniqueKeyContainer;
 import com.constellio.app.ui.framework.data.FolderUniqueKeyDataProvider;
@@ -12,25 +18,31 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements FolderUniqueKeyConfiguratorView {
 
 	private FolderUniqueKeyConfiguratorPresenter presenter;
 
 	@PropertyId("metadataVO")
-	private ComboBox metadataComboBox;
+	private MetadataVOLookupField metadataLookupField;
 	private String schemaCode;
 
 	private FolderUniqueKeyDataProvider folderUniqueKeyDataProvider;
 
 	private Table table;
 	private FolderUniqueKeyContainer folderUniqueKeyContainer;
+
+	List<MetadataVO> metadataVOList;
 
 	public FolderUniqueKeyConfiguratorViewImpl() {
 		presenter = new FolderUniqueKeyConfiguratorPresenter(this);
@@ -50,15 +62,15 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 
 	@Override
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-		metadataComboBox = new BaseComboBox($("FolderUniqueKeyMetadataConfiguratorViewImpl.metadata"));
+		metadataLookupField = new MetadataVOLookupField(new ArrayList<MetadataVO>());
+		metadataLookupField.setCaption($("FolderUniqueKeyMetadataConfiguratorViewImpl.metadata"));
 
 		List<FolderUnicityVO> summaryColumnVOList = presenter.folderUnicityVOList();
 
-		metadataComboBox.setTextInputAllowed(false);
-		metadataComboBox.setRequired(true);
-		metadataComboBox.setImmediate(true);
+		metadataLookupField.setRequired(true);
+		metadataLookupField.setImmediate(true);
 
-		refreshMetadataCombox();
+		refreshMetadataLookup();
 
 		table = new BaseTable(getClass().getName());
 
@@ -70,7 +82,7 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 		table.setColumnHeader(FolderUniqueKeyContainer.DELETE, "");
 		table.setColumnExpandRatio(FolderUniqueKeyContainer.METADATA_VO, 1);
 
-		BaseForm<FolderUniqueKeyParams> baseForm = new BaseForm<FolderUniqueKeyParams>(new FolderUniqueKeyParams(), this, metadataComboBox) {
+		BaseForm<FolderUniqueKeyParams> baseForm = new BaseForm<FolderUniqueKeyParams>(new FolderUniqueKeyParams(), this, metadataLookupField) {
 			@Override
 			protected void saveButtonClick(final FolderUniqueKeyParams viewObject) {
 				if (!presenter.isReindextionFlag()) {
@@ -130,13 +142,13 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 	}
 
 	private void clearFields() {
-		this.metadataComboBox.setValue(null);
+		this.metadataLookupField.setValue(null);
 	}
 
-	private void refreshMetadataCombox() {
-		metadataComboBox.removeAllItems();
-
+	private void refreshMetadataLookup() {
 		List<MetadataVO> metadataVOS = presenter.getMetadatas();
+
+		List<MetadataVO> newMetadataVOList = new ArrayList<>();
 
 		Collections.sort(metadataVOS, new Comparator<MetadataVO>() {
 			@Override
@@ -148,12 +160,15 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 
 		for (MetadataVO metadataVO : metadataVOS) {
 			if (metadataVO.getType() != MetadataValueType.STRUCTURE && !metadataVO.getLocalCode().equals("summary")) {
-				metadataComboBox.addItem(metadataVO);
+				newMetadataVOList.add(metadataVO);
 			}
 		}
+		metadataVOList = newMetadataVOList;
+		metadataLookupField.setOptions(newMetadataVOList);
 
 		removeMetadataFromPossibleSelection();
 	}
+
 
 
 	private FolderUnicityVO summaryColumnParamsToSummaryVO(FolderUniqueKeyParams folderUniqueKeyParams) {
@@ -168,16 +183,27 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 		List<FolderUnicityVO> summaryColumnVOList = presenter.folderUnicityVOList();
 
 		for (FolderUnicityVO summaryColumnVO : summaryColumnVOList) {
-			this.metadataComboBox.removeItem(summaryColumnVO.getMetadataVO());
+			removeMetadataVOFromList(summaryColumnVO.getMetadataVO().getLocalCode());
 		}
 	}
 
+	private void removeMetadataVOFromList(String code) {
+		MetadataVO foundMetadataVO = null;
+		for(MetadataVO metadataVO : metadataVOList){
+			if(metadataVO.getLocalCode().equals(code)) {
+				foundMetadataVO = metadataVO;
+				break;
+			}
+		}
+
+		metadataVOList.remove(foundMetadataVO);
+	}
 
 	public void deleteSummaryMetadata(FolderUnicityVO summaryColumnVO) {
 		this.presenter.deleteMetadataForSummaryColumn(summaryColumnVO);
 		this.folderUniqueKeyDataProvider.removeFolderUnicityVO(summaryColumnVO);
-		refreshMetadataCombox();
 		this.folderUniqueKeyDataProvider.fireDataRefreshEvent();
+		refreshMetadataLookup();
 	}
 
 	public void deleteRow(final FolderUnicityVO columnVO) {
@@ -206,5 +232,75 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 						}
 					}
 				});
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new TitleBreadcrumbTrail(this, getTitle()) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				IntermediateBreadCrumbTailItem intermediateBreadCrumbTailItem1 = new IntermediateBreadCrumbTailItem() {
+					@Override
+					public String getTitle() {
+						return $("ViewGroup.AdminViewGroup");
+					}
+
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to(CoreViews.class).adminModule();
+					}
+
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
+				};
+
+				IntermediateBreadCrumbTailItem intermediateBreadCrumbTailItem2 = new IntermediateBreadCrumbTailItem() {
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
+
+					@Override
+					public String getTitle() {
+						return $("ListSchemaTypeView.viewTitle");
+					}
+
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to(CoreViews.class).listSchemaTypes();
+					}
+				};
+
+				IntermediateBreadCrumbTailItem intermediateBreadCrumbTailItem3 = new IntermediateBreadCrumbTailItem() {
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
+
+					@Override
+					public String getTitle() {
+						return $("ListSchemaView.viewTitle");
+					}
+
+					@Override
+					public void activate(Navigation navigate) {
+						String schemaTypeCode = presenter.getSchemaCode().substring(0, presenter.getSchemaCode().indexOf("_"));
+
+						Map<String, String> paramsMap = new HashMap<>();
+						paramsMap.put("schemaTypeCode", schemaTypeCode);
+						String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, paramsMap);
+
+						navigate.to(CoreViews.class).listSchema(params);
+					}
+				};
+
+				List<IntermediateBreadCrumbTailItem> intermediateBreadCrumbTailItemsList = new ArrayList<>();
+				intermediateBreadCrumbTailItemsList.addAll(super.getIntermediateItems());
+				intermediateBreadCrumbTailItemsList.addAll(asList(intermediateBreadCrumbTailItem1, intermediateBreadCrumbTailItem2, intermediateBreadCrumbTailItem3));
+				return intermediateBreadCrumbTailItemsList;
+			}
+		};
 	}
 }
