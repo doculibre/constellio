@@ -2,9 +2,7 @@ package com.constellio.app.modules.rm.wrappers;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import org.apache.poi.ss.formula.functions.T;
 
 import java.util.List;
 
@@ -69,9 +67,5 @@ public class RMTask extends Task {
 	public RMTask setLinkedContainers(List<?> linkedContainers) {
 		set(LINKED_CONTAINERS, linkedContainers);
 		return this;
-	}
-
-	public RMTask set(Metadata metadata, T value) {
-		return super.set(metadata, value);
 	}
 }

@@ -28,7 +28,11 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends ConstellioTest {
 
@@ -158,7 +162,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		services.updateAutomaticMetadatas(record, recordProvider, reindexedMetadata, zeTransaction);
 
 		assertThat(record.<List<String>>get(zeSchema.stringCopiedFromFirstReferenceStringMeta())).isEqualTo(new ArrayList<>());
-		assertThat(record.<LocalDateTime>get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(asList(aDate));
+		assertThat(record.<List<LocalDateTime>>get(zeSchema.dateCopiedFromSecondReferenceDateMeta())).isEqualTo(asList(aDate));
 	}
 
 	@Test

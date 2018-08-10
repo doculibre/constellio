@@ -24,7 +24,9 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.services.records.RecordServicesAgregatedMetadatasMechanicAcceptTest.clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -177,7 +179,7 @@ public class RecordServicesAgregatedMinMaxMetadatasAcceptTest extends Constellio
 		waitForBatchProcess();
 		assertThat(record("merge1").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 1, 6, 0, 0, 0));
 		assertThat(record("merge2").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 3, 1, 0, 0, 0));
-		assertThat(record("merge3").<LocalDateTime>get(thirdSchema_minValue)).isEqualTo(date(2010, 1, 6));
+		assertThat(record("merge3").<LocalDate>get(thirdSchema_minValue)).isEqualTo(date(2010, 1, 6));
 		assertThat(record("merge1").<LocalDateTime>get(anotherSchema_maxValue)).isEqualTo(date(2011, 7, 1));
 		assertThat(record("merge2").<LocalDateTime>get(anotherSchema_maxValue)).isEqualTo(date(2011, 6, 1));
 		assertThat(record("merge3").<LocalDateTime>get(thirdSchema_maxValue)).isEqualTo(dateTime(2011, 7, 1, 0, 0, 0));
