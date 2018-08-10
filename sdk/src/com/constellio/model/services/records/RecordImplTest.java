@@ -176,6 +176,7 @@ public class RecordImplTest extends ConstellioTest {
 		when(factoredListMetadata.getStructureFactory()).thenReturn((StructureFactory) stringStructureFactory);
 		when(factoredListMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
 
+
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

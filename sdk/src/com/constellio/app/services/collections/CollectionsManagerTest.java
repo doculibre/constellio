@@ -23,6 +23,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchBoostManager;
+import com.constellio.model.services.search.SearchConfigurationsManager;
+import com.constellio.model.services.search.SynonymsConfigurationsManager;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -73,6 +75,8 @@ public class CollectionsManagerTest extends ConstellioTest {
 	@Mock UserCredentialsManager userCredentialsManager;
 	@Mock ConfigManager configManager;
 	@Mock Record aNewCollection, anotherNewCollection;
+	@Mock SearchConfigurationsManager searchConfigurationsManager;
+	@Mock SynonymsConfigurationsManager synonymsConfigurationsManager;
 
 	com.constellio.app.services.collections.CollectionsManager collectionsManager;
 
@@ -93,9 +97,12 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(modelLayerFactory.getCollectionsListManager()).thenReturn(collectionsListManager);
 		when(modelLayerFactory.getSearchBoostManager()).thenReturn(searchBoostManager);
 		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn("fr");
+		when(modelLayerFactory.getSearchConfigurationsManager()).thenReturn(searchConfigurationsManager);
+		when(modelLayerFactory.getSynonymsConfigurationsManager()).thenReturn(synonymsConfigurationsManager);
 
 		collectionsManager = spy(new com.constellio.app.services.collections.CollectionsManager(
 				appLayerFactory, modulesManager, new Delayed<>(migrationServices), systemGlobalConfigsManager));
+		when(collectionsListManager.getCollectionInfo(zeCollection)).thenReturn(zeCollectionInfo);
 	}
 
 	@Test

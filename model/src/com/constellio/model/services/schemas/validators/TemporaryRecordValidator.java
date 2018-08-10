@@ -12,8 +12,6 @@ public class TemporaryRecordValidator implements RecordMetadataValidator<Double>
 
 	public static final int MIN_NUMBER_OF_DAYS = -1;
 
-	public static final int MAX_NUMBER_OF_DAYS = 28;
-
 	@Override
 	public void validate(Metadata metadata, Double value, ConfigProvider configProvider,
 						 ValidationErrors validationErrors) {
@@ -25,6 +23,6 @@ public class TemporaryRecordValidator implements RecordMetadataValidator<Double>
 	}
 
 	public boolean validateNumberOfDays(Double value) {
-		return value <= MAX_NUMBER_OF_DAYS && value >= MIN_NUMBER_OF_DAYS;
+		return value >= MIN_NUMBER_OF_DAYS;
 	}
 }

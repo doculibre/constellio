@@ -5,7 +5,11 @@ import com.constellio.app.start.ApplicationStarter;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.sdk.SDKPasswords;
-import com.constellio.sdk.tests.*;
+import com.constellio.sdk.tests.ConstellioTestSession;
+import com.constellio.sdk.tests.FactoriesTestFeatures;
+import com.constellio.sdk.tests.SkipTestsRule;
+import com.constellio.sdk.tests.ZeUltimateFirefoxDriver;
+import com.constellio.sdk.tests.ZeUltimateFirefoxProfile;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
@@ -157,7 +161,6 @@ public class SeleniumTestFeatures {
 
 		JacksonJsonProvider jsonProvider = new JacksonJsonProvider();
 		jsonProvider.setMapper(mapper);
-
 
 		ClientConfig config = new ClientConfig();
 		config.property(CommonProperties.FEATURE_AUTO_DISCOVERY_DISABLE_CLIENT, true);

@@ -1,5 +1,6 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.RecordWrapperRuntimeException_CannotUseDisconnectedRecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
@@ -16,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,6 +55,8 @@ public class RecordWrapperTest extends ConstellioTest {
 		when(zeMetadata.getCode()).thenReturn(zeMetadataCode);
 		when(zeMetadata.getLocalCode()).thenReturn(zeMetadataLocalCode);
 		when(zeMetadata.getDataEntry()).thenReturn(new ManualDataEntry());
+
+		when(metadataSchemaTypes.getLanguages()).thenReturn(asList(Language.French));
 
 		wrapper = new RecordWrapper(wrappedRecord, metadataSchemaTypes, type);
 	}

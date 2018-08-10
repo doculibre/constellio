@@ -291,6 +291,19 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenGetGroupInCollectionThenReturnRecordOfCorrectCollection()
+			throws Exception {
+
+		givenCollection1And2();
+		givenLegendsGroupWithAllUsersInCollections(collection1, collection2);
+		givenHeroesGroupWithAllUsersInCollections(collection1, collection2);
+
+		assertThat(userServices.getGroupInCollection("legends", "collection1").getCollection()).isEqualTo("collection1");
+		assertThat(userServices.getGroupInCollection("legends", "collection2").getCollection()).isEqualTo("collection2");
+
+	}
+
+	@Test
 	public void givenUserInCollectionsWhenSuspendHimThenRemoveFromAllCollectionsAndChangeStatus()
 			throws Exception {
 

@@ -175,6 +175,7 @@ public class RecordServicesTest extends ConstellioTest {
 
 	MetadataSchemaTypes metadataSchemaTypes;
 	@Mock MetadataSchemaType metadataSchemaType;
+	@Mock MetadataSchema metadataSchema;
 
 	@Before
 	public void setUp()
@@ -281,6 +282,10 @@ public class RecordServicesTest extends ConstellioTest {
 		metadataSchemaTypes = schemaManager.getSchemaTypes(zeCollection);
 		when(modelFactory.getCollectionsListManager()).thenReturn(collectionsListManager);
 		when(collectionsListManager.getCollectionLanguages(anyString())).thenReturn(asList("fr"));
+		when(metadataSchemaType.getDataStore()).thenReturn("records");
+
+		when(metadataSchemaType.getSchema("zeSchemaType_default")).thenReturn(metadataSchema);
+		when(metadataSchema.getMetadata(anyString())).thenReturn(mock(Metadata.class));
 
 		when(recordsCaches.getCache(anyString())).thenReturn(recordsCache);
 	}
@@ -945,6 +950,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(recordDao.get("anId")).thenThrow(RecordDaoException.NoSuchRecordWithId.class);
 		when(zeRecord.getId()).thenReturn("anId");
 		when(zeRecord.isDirty()).thenReturn(true);
+		when(zeRecord.getSchemaCode()).thenReturn("zeSchemaType_default");
 		Transaction transaction = new Transaction(zeRecord);
 		doNothing().when(recordServices).mergeRecords(any(Transaction.class), anyString());
 		when(schemaManager.getSchemaTypeOf(any(Record.class))).thenReturn(metadataSchemaType);
@@ -952,6 +958,9 @@ public class RecordServicesTest extends ConstellioTest {
 
 		try {
 			recordServices.execute(transaction);
+
+			verifyNoMoreInteractions(recordDao);
+
 			fail("Exception expected");
 		} catch (UnresolvableOptimsiticLockingCausingInfiniteLoops e) {
 			e.printStackTrace();

@@ -165,7 +165,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				LogicalSearchQuery searchQuery = new LogicalSearchQuery(impact.getLogicalSearchCondition());
 				List<Record> recordsFound = modelFactory.newSearchServices().search(searchQuery);
 				for (Record record : recordsFound) {
-					if (!newTransaction.isContainingUpdatedRecord(record)) {
+					if (!newTransaction.getRecordIds().contains(record.getId())) {
 						newTransaction.addUpdate(record);
 					}
 				}

@@ -9,6 +9,7 @@ import com.constellio.app.modules.es.sdk.TestConnectorEventObserver;
 import com.constellio.app.modules.es.services.crawler.ConnectorCrawler;
 import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObserver;
 import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -40,6 +41,7 @@ public class ConnectorDeleteServiceAcceptanceTest extends ConstellioTest {
 	private String zeMimetypeCode = "zeMimetype";
 	private List<ConnectorHttpDocument> connectorDocuments;
 	private ConfigManager configManager;
+	private ContentDao contentDao;
 
 	private TestConnectorEventObserver eventObserver;
 
@@ -54,6 +56,7 @@ public class ConnectorDeleteServiceAcceptanceTest extends ConstellioTest {
 		eventObserver = new TestConnectorEventObserver(es, new DefaultConnectorEventObserver(es, logger, "crawlerObserver"));
 		connectorManager.setCrawler(ConnectorCrawler.runningJobsSequentially(es, eventObserver).withoutSleeps());
 		configManager = getDataLayerFactory().getConfigManager();
+		this.contentDao = getDataLayerFactory().getContentsDao();
 	}
 
 	@Test
@@ -80,12 +83,13 @@ public class ConnectorDeleteServiceAcceptanceTest extends ConstellioTest {
 
 		connectorDocuments = tickAndGetAllDocuments();
 		assertThat(connectorDocuments).isNotEmpty();
-		assertThat(configManager.folderExist("connectors/http/" + connectorInstance.getId() + "/")).isTrue();
+		assertThat(contentDao.isFolderExisting("connectors/" + connectorInstance.getId() + "/")).isTrue();
+		//assertThat(configManager.folderExist("connectors/http/" + connectorInstance.getId() + "/")).isTrue();
 
 		new ConnectorDeleteService(zeCollection, getAppLayerFactory()).deleteConnector(connectorInstance);
 
 		assertThat(connectorDocuments()).isEmpty();
-		assertThat(configManager.folderExist("connectors/http/" + connectorInstance.getId() + "/")).isFalse();
+		assertThat(contentDao.isFolderExisting("connectors/" + connectorInstance.getId() + "/")).isFalse();
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		assertThat(types.hasSchema(ConnectorHttpDocument.SCHEMA_TYPE + "_" + connectorInstance.getId())).isFalse();
 		assertThat(recordDoesNotExist(connectorInstance.getId())).isTrue();
