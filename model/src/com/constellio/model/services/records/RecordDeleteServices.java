@@ -131,11 +131,11 @@ public class RecordDeleteServices {
 		for (Record hierarchyRecord : getAllRecordsInHierarchy(record)) {
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, null);
-			if (!transaction.isContainingUpdatedRecord(hierarchyRecord)) {
+			if (!transaction.getRecordIds().contains(hierarchyRecord.getId())) {
 				transaction.add(hierarchyRecord);
 			}
 		}
-		if (!transaction.isContainingUpdatedRecord(record)) {
+		if (!transaction.getRecordIds().contains(record.getId())) {
 			record.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 			record.set(Schemas.LOGICALLY_DELETED_ON, null);
 			transaction.add(record);
@@ -765,7 +765,8 @@ public class RecordDeleteServices {
 
 	}
 
-	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user, RecordLogicalDeleteOptions options) {
+	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user,
+														   RecordLogicalDeleteOptions options) {
 		return !options.isSkipValidations() && !isLogicallyDeletable(record, user);
 	}
 }

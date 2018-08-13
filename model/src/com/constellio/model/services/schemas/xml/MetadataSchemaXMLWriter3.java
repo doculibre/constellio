@@ -157,7 +157,7 @@ public class MetadataSchemaXMLWriter3 {
 		schemaElement.setAttribute("code", schema.getLocalCode());
 		writeLabels(schemaElement, schema.getLabels());
 		schemaElement.setAttribute("undeletable", writeBoolean(schema.isUndeletable()));
-        schemaElement.setAttribute("active", writeBoolean(schema.isActive()));
+		schemaElement.setAttribute("active", writeBoolean(schema.isActive()));
 		addAllMetadataToSchema(collectionSchema, schema, schemaElement);
 		if (!schema.getValidators().isEmpty()) {
 			schemaElement.addContent(writeSchemaValidators(schema));

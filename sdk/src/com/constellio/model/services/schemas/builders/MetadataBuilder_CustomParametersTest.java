@@ -131,39 +131,4 @@ public class MetadataBuilder_CustomParametersTest extends MetadataBuilderTest {
 		assertThat(listMap4.get("isalwaysshown")).isEqualTo(false);
 		assertThat(listMap4.get("metadata")).isEqualTo("folder_default_folder");
 	}
-
-	@Test
-	public void givenRecordMetadataValidatorsDefinedDuplicatelyInMetadataAndInheritanceWhenBuildingThenNoDuplicate() {
-		inheritedMetadataBuilder.setType(STRING).setCustomParameter(customParameterMap1);
-
-
-		build();
-
-		List list1 = (List) inheritedMetadataBuilder.getCustomParameter().get("customParameter");
-		java.util.Map<String, Object> listMap1 = (Map<String, Object>) list1.get(0);
-
-		assertThat(listMap1.get("prefix")).isEqualTo("prefix1");
-		assertThat(listMap1.get("isalwaysshown")).isEqualTo(true);
-		assertThat(listMap1.get("metadata")).isEqualTo("folder_default_code");
-
-		java.util.Map<String, Object> listMap2 = (Map<String, Object>) list1.get(1);
-
-		assertThat(listMap2.get("prefix")).isEqualTo("prefix2");
-		assertThat(listMap2.get("isalwaysshown")).isEqualTo(false);
-		assertThat(listMap2.get("metadata")).isEqualTo("folder_default_title");
-
-		List list2 = (List) metadataWithInheritance.getCustomParameter().get("customParameter");
-		java.util.Map<String, Object> listMap3 = (Map<String, Object>) list2.get(0);
-
-		assertThat(listMap3.get("prefix")).isEqualTo("prefix1");
-		assertThat(listMap3.get("isalwaysshown")).isEqualTo(true);
-		assertThat(listMap3.get("metadata")).isEqualTo("folder_default_code");
-
-		java.util.Map<String, Object> listMap4 = (Map<String, Object>) list2.get(1);
-
-		assertThat(listMap4.get("prefix")).isEqualTo("prefix2");
-		assertThat(listMap4.get("isalwaysshown")).isEqualTo(false);
-		assertThat(listMap4.get("metadata")).isEqualTo("folder_default_title");
-	}
-
 }

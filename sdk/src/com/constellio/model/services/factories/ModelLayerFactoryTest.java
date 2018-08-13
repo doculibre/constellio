@@ -12,6 +12,8 @@ import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.events.EventBus;
+import com.constellio.data.events.EventBusEventsExecutionStrategy;
 import com.constellio.data.events.EventBusManager;
 import com.constellio.data.events.EventDataSerializer;
 import com.constellio.data.io.IOServicesFactory;
@@ -67,6 +69,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	@Mock BigVaultServer bigVaultServer;
 	@Mock EventBusManager eventBusManager;
 	@Mock EventDataSerializer eventDataSerializer;
+	@Mock EventBus eventBus;
 
 	ConstellioCache zeCache;
 
@@ -97,7 +100,11 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(profiles.listFiles()).thenReturn(new File[0]);
 
 		when(dataLayerFactory.getEventBusManager()).thenReturn(eventBusManager);
+		when(eventBusManager.createEventBus(anyString(), any(EventBusEventsExecutionStrategy.class))).thenReturn(eventBus);
+		when(eventBusManager.getEventBus(anyString())).thenReturn(eventBus);
 		when(eventBusManager.getEventDataSerializer()).thenReturn(eventDataSerializer);
+		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn("fr");
+
 
 		modelLayerFactory = spy(
 				new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator, modelLayerConfiguration,

@@ -292,6 +292,10 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 	}
 
 	String getContentOfDocument(Document doc) {
+		if (doc.getRootElement() == null) {
+			throw new ImpossibleRuntimeException("Document must have at least one element");
+		}
+
 		XMLOutputter xmlOutput = new XMLOutputter(Format.getPrettyFormat());
 		return xmlOutput.outputString(doc);
 	}
@@ -301,7 +305,7 @@ public class FileSystemConfigManager implements StatefulService, EventBusListene
 		try {
 			return builder.build(file);
 		} catch (JDOMException e) {
-			throw new ConfigManagerRuntimeException("JDOM2 Exception", e);
+			throw new ConfigManagerRuntimeException("JDOM2 Exception reading '" + file.getAbsolutePath() + "'", e);
 		} catch (IOException e) {
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("build Document JDOM2 from file", e);
 		}

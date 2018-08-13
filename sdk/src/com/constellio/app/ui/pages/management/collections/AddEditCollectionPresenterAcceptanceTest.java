@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.collections;
 
 import com.constellio.app.modules.es.ConstellioESModule;
+import com.constellio.app.modules.restapi.ConstellioRestApiModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
@@ -120,7 +121,7 @@ public class AddEditCollectionPresenterAcceptanceTest extends ConstellioTest {
 	public void whenGetAvailableModulesThenOk()
 			throws Exception {
 		assertThat(presenterRelatedToNewCollection.getAvailableModules()).containsOnly(ConstellioRMModule.ID,
-				TaskModule.ID, ConstellioESModule.ID, ConstellioRobotsModule.ID);
+				TaskModule.ID, ConstellioESModule.ID, ConstellioRobotsModule.ID, ConstellioRestApiModule.ID);
 	}
 
 	@Test

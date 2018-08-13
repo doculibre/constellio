@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.data.ObjectsResponse;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -14,63 +15,61 @@ import com.vaadin.server.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StringLookupField extends LookupField<String> {
-
-	public StringLookupField(List<String> options) {
+public class MetadataVOLookupField extends LookupField<MetadataVO> {
+	public MetadataVOLookupField(List<MetadataVO> options) {
 		this(options, null);
 	}
 
 	@SuppressWarnings("unchecked")
-	public StringLookupField(List<String> options, Converter<String, String> itemConverter) {
-		super(new StringTextInputDataProvider(options, itemConverter), new StringLookupTreeDataProvider(options, itemConverter));
+	public MetadataVOLookupField(List<MetadataVO> options, Converter<String, MetadataVO> itemConverter) {
+		super(new MetadataVOTextInputDataProvider(options, itemConverter), new MetadataVOLookupTreeDataProvider(options, itemConverter));
 		setItemConverter(itemConverter);
 	}
 
-	public void setOptions(List<String> options) {
-		for(LookupTreeDataProvider<String> lookUpTreeDataProviders : this.getLookupTreeDataProviders()) {
-			if(lookUpTreeDataProviders instanceof  StringLookupTreeDataProvider) {
-				(((StringLookupTreeDataProvider) lookUpTreeDataProviders).getTextInputDataProvider()).setOptions(options);
+	public void setOptions(List<MetadataVO> options) {
+		for(LookupTreeDataProvider<MetadataVO> lookUpTreeDataProviders : this.getLookupTreeDataProviders()) {
+			if(lookUpTreeDataProviders instanceof  MetadataVOLookupTreeDataProvider) {
+				(((MetadataVOLookupTreeDataProvider) lookUpTreeDataProviders).getTextInputDataProvider()).setOptions(options);
 			}
 		}
-		((StringTextInputDataProvider)this.suggestInputDataProvider).setOptions(options);
+		((MetadataVOTextInputDataProvider)this.suggestInputDataProvider).setOptions(options);
 	}
+
+
 
 	@Override
-	public Class<? extends String> getType() {
-		return String.class;
+	public Class<? extends MetadataVO> getType() {
+		return MetadataVO.class;
 	}
 
-	private static class StringTextInputDataProvider extends TextInputDataProvider<String> {
+	private static class MetadataVOTextInputDataProvider extends TextInputDataProvider<MetadataVO> {
 
-		private List<String> options;
+		private List<MetadataVO> options;
 
-		private Converter<String, String> itemConverter;
+		private Converter<String, MetadataVO> itemConverter;
 
-		private StringTextInputDataProvider(List<String> options, Converter<String, String> itemConverter) {
+		private MetadataVOTextInputDataProvider(List<MetadataVO> options, Converter<String, MetadataVO> itemConverter) {
 			this.options = options;
 			this.itemConverter = itemConverter;
 		}
 
-		public List<String> getOptions() {
+		public List<MetadataVO> getOptions() {
 			return options;
 		}
 
-		public void setOptions(List<String> options) {
+		public void setOptions(List<MetadataVO> options) {
 			this.options = options;
 		}
 
-		private List<String> filter(String text) {
-			List<String> results = new ArrayList<>();
+		private List<MetadataVO> filter(String text) {
+			List<MetadataVO> results = new ArrayList<>();
 			if (text != null) {
 				text = AccentApostropheCleaner.cleanAll(text.toLowerCase());
-				for (String option : options) {
+				for (MetadataVO option : options) {
 					String optionText;
-					if (itemConverter != null) {
-						optionText = itemConverter.convertToPresentation(option, String.class, ConstellioUI.getCurrent().getLocale());
-					} else {
-						optionText = option;
-					}
-					optionText = AccentApostropheCleaner.cleanAll(optionText.toLowerCase());
+
+					optionText = option.getLabel(ConstellioUI.getCurrent().getLocale());
+					optionText = AccentApostropheCleaner.cleanAll(optionText);
 					if (optionText.toLowerCase().contains(text)) {
 						results.add(option);
 					}
@@ -82,8 +81,8 @@ public class StringLookupField extends LookupField<String> {
 		}
 
 		@Override
-		public List<String> getData(String text, int startIndex, int count) {
-			List<String> results = filter(text);
+		public List<MetadataVO> getData(String text, int startIndex, int count) {
+			List<MetadataVO> results = filter(text);
 			int end = Math.min(startIndex + count, results.size());
 			return results.subList(startIndex, end);
 		}
@@ -114,44 +113,44 @@ public class StringLookupField extends LookupField<String> {
 		}
 	}
 
-	private static class StringLookupTreeDataProvider implements LookupTreeDataProvider<String> {
+	private static class MetadataVOLookupTreeDataProvider implements LookupTreeDataProvider<MetadataVO> {
 
-		private Converter<String, String> itemConverter;
+		private Converter<String, MetadataVO> itemConverter;
 
-		private StringTextInputDataProvider textInputDataProvider;
+		private MetadataVOLookupField.MetadataVOTextInputDataProvider textInputDataProvider;
 
-		private StringLookupTreeDataProvider(List<String> options, Converter<String, String> itemConverter) {
+		private MetadataVOLookupTreeDataProvider(List<MetadataVO> options, Converter<String, MetadataVO> itemConverter) {
 			this.itemConverter = itemConverter;
-			this.textInputDataProvider = new StringTextInputDataProvider(options, itemConverter);
+			this.textInputDataProvider = new MetadataVOLookupField.MetadataVOTextInputDataProvider(options, itemConverter);
 		}
 
-		public StringTextInputDataProvider getTextInputDataProvider() {
+		public MetadataVOLookupField.MetadataVOTextInputDataProvider getTextInputDataProvider() {
 			return textInputDataProvider;
 		}
 
 		@Override
-		public ObjectsResponse<String> getRootObjects(int start, int maxSize) {
-			List<String> results = textInputDataProvider.getData(null, start, maxSize);
+		public ObjectsResponse<MetadataVO> getRootObjects(int start, int maxSize) {
+			List<MetadataVO> results = textInputDataProvider.getData(null, start, maxSize);
 			return new ObjectsResponse<>(results, new Long(results.size()));
 		}
 
 		@Override
-		public String getParent(String child) {
+		public MetadataVO getParent(MetadataVO child) {
 			return null;
 		}
 
 		@Override
-		public ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
-			return new ObjectsResponse<String>(new ArrayList<String>(), 0L);
+		public ObjectsResponse<MetadataVO> getChildren(MetadataVO parent, int start, int maxSize) {
+			return new ObjectsResponse<MetadataVO>(new ArrayList<MetadataVO>(), 0L);
 		}
 
 		@Override
-		public boolean hasChildren(String parent) {
+		public boolean hasChildren(MetadataVO parent) {
 			return false;
 		}
 
 		@Override
-		public boolean isLeaf(String object) {
+		public boolean isLeaf(MetadataVO object) {
 			return true;
 		}
 
@@ -161,17 +160,17 @@ public class StringLookupField extends LookupField<String> {
 		}
 
 		@Override
-		public String getCaption(String id) {
-			return itemConverter != null ? itemConverter.convertToPresentation(id, String.class, ConstellioUI.getCurrent().getLocale()) : id;
+		public String getCaption(MetadataVO id) {
+			return id.getLabel();
 		}
 
 		@Override
-		public String getDescription(String id) {
+		public String getDescription(MetadataVO id) {
 			return null;
 		}
 
 		@Override
-		public Resource getIcon(String id, boolean expanded) {
+		public Resource getIcon(MetadataVO id, boolean expanded) {
 			return null;
 		}
 
@@ -181,7 +180,7 @@ public class StringLookupField extends LookupField<String> {
 		}
 
 		@Override
-		public int getEstimatedChildrenNodesCount(String parent) {
+		public int getEstimatedChildrenNodesCount(MetadataVO parent) {
 			return 0;
 		}
 
@@ -206,19 +205,18 @@ public class StringLookupField extends LookupField<String> {
 		}
 
 		@Override
-		public com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider<String> search() {
+		public com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider<MetadataVO> search() {
 			return textInputDataProvider;
 		}
 
 		@Override
-		public com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider<String> searchWithoutDisabled() {
+		public com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider<MetadataVO> searchWithoutDisabled() {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public boolean isSelectable(String selection) {
+		public boolean isSelectable(MetadataVO selection) {
 			return true;
 		}
 	}
-
 }

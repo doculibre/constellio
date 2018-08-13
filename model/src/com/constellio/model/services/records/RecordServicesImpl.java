@@ -165,7 +165,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				LogicalSearchQuery searchQuery = new LogicalSearchQuery(impact.getLogicalSearchCondition());
 				List<Record> recordsFound = modelFactory.newSearchServices().search(searchQuery);
 				for (Record record : recordsFound) {
-					if (!newTransaction.isContainingUpdatedRecord(record)) {
+					if (!newTransaction.getRecordIds().contains(record.getId())) {
 						newTransaction.addUpdate(record);
 					}
 				}
@@ -640,15 +640,16 @@ public class RecordServicesImpl extends BaseRecordServices {
 							reindexationOptionForThisRecord = TransactionRecordsReindexation.ALL();
 						}
 
-						try {
-							for (Metadata metadata : step.getMetadatas()) {
-								automaticMetadataServices
-										.updateAutomaticMetadata(context, (RecordImpl) record, recordProvider, metadata,
-												reindexationOptionForThisRecord, types, transaction);
+
+						for (Metadata metadata : step.getMetadatas()) {
+							try {
+								automaticMetadataServices.updateAutomaticMetadata(context, (RecordImpl) record,
+										recordProvider, metadata, reindexationOptionForThisRecord, types, transaction);
+							} catch (RuntimeException e) {
+								throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), metadata, e);
 							}
-						} catch (RuntimeException e) {
-							throw new RecordServicesRuntimeException_ExceptionWhileCalculating(record.getId(), e);
 						}
+
 						validationServices.validateAccess(record, transaction);
 					} else if (step instanceof UpdateCreationModificationUsersAndDateRecordPreparationStep) {
 						if (transaction.getRecordUpdateOptions().isUpdateModificationInfos()) {
@@ -1306,7 +1307,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 	@Override
 	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user) {
-		return newRecordDeleteServices().isLogicallyDeletableAndIsSkipValidation(record, user, new RecordLogicalDeleteOptions()) ;
+		return newRecordDeleteServices().isLogicallyDeletableAndIsSkipValidation(record, user, new RecordLogicalDeleteOptions());
 	}
 
 	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user) {

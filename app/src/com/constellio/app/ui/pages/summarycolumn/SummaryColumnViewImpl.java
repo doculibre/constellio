@@ -1,11 +1,17 @@
 package com.constellio.app.ui.pages.summarycolumn;
 
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.SummaryColumnVO;
 import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
+import com.constellio.app.ui.framework.components.fields.lookup.MetadataVOLookupField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.SummaryColumnContainer;
 import com.constellio.app.ui.framework.data.SummaryColumnDataProvider;
@@ -21,13 +27,14 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumnView {
 
 	private SummaryColumnPresenter presenter;
 
 	@PropertyId("metadataVO")
-	private ComboBox metadataComboBox;
+	private MetadataVOLookupField metadataLookupField;
 
 	@PropertyId("prefix")
 	private TextField prefix;
@@ -44,9 +51,14 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 	private SummaryColumnContainer summaryColumnContainer;
 	private SummaryColumnVO modifingSummaryColumnVO;
 
+	private VerticalLayout mainVerticalLayout;
+
+	List<MetadataVO> metadataVOList;
+
 	public SummaryColumnViewImpl() {
 		presenter = new SummaryColumnPresenter(this);
 	}
+
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
@@ -67,16 +79,18 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 
 	@Override
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-		metadataComboBox = new BaseComboBox($("SummaryColumnViewImpl.metadata"));
+
+		metadataLookupField = new MetadataVOLookupField(new ArrayList<MetadataVO>());
+
+		metadataLookupField.setCaption($("SummaryColumnViewImpl.metadataHeader"));
+		//$("SummaryColumnViewImpl.metadata")
 
 		List<SummaryColumnVO> summaryColumnVOList = presenter.summaryColumnVOList();
 
+		metadataLookupField.setRequired(true);
+		metadataLookupField.setImmediate(true);
 
-		metadataComboBox.setTextInputAllowed(false);
-		metadataComboBox.setRequired(true);
-		metadataComboBox.setImmediate(true);
-
-		metadataComboBox.addValueChangeListener(new Property.ValueChangeListener() {
+		metadataLookupField.addValueChangeListener(new Property.ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				if (modifingSummaryColumnVO != null) {
@@ -84,7 +98,7 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 					removeMetadataFromPossibleSelection();
 				}
 
-				MetadataVO metadataVO = (MetadataVO) metadataComboBox.getValue();
+				MetadataVO metadataVO = metadataLookupField.getValue();
 
 				if (metadataVO != null && metadataVO.getType() == MetadataValueType.REFERENCE) {
 					referenceMetadataDisplayComboBox.setRequired(true);
@@ -97,7 +111,7 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 		});
 
 
-		refreshMetadataCombox();
+		refreshMetadataLookup();
 
 		table = new BaseTable(getClass().getName());
 
@@ -127,7 +141,7 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 		referenceMetadataDisplayComboBox.addItem(SummaryColumnParams.ReferenceMetadataDisplay.CODE);
 		referenceMetadataDisplayComboBox.addItem(SummaryColumnParams.ReferenceMetadataDisplay.TITLE);
 
-		BaseForm<SummaryColumnParams> baseForm = new BaseForm<SummaryColumnParams>(new SummaryColumnParams(), this, metadataComboBox, prefix, displayCondition, referenceMetadataDisplayComboBox) {
+		BaseForm<SummaryColumnParams> baseForm = new BaseForm<SummaryColumnParams>(new SummaryColumnParams(), this, metadataLookupField, prefix, displayCondition, referenceMetadataDisplayComboBox) {
 			@Override
 			protected void saveButtonClick(final SummaryColumnParams viewObject) {
 				if (!presenter.isReindextionFlag() && presenter.isThereAModification(viewObject)) {
@@ -160,12 +174,12 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 
 		this.table.setWidth("100%");
 
-		VerticalLayout verticalLayout = new VerticalLayout();
-		verticalLayout.setSpacing(true);
-		verticalLayout.addComponent(baseForm);
-		verticalLayout.addComponent(table);
+		mainVerticalLayout = new VerticalLayout();
+		mainVerticalLayout.setSpacing(true);
+		mainVerticalLayout.addComponent(baseForm);
+		mainVerticalLayout.addComponent(table);
 
-		return verticalLayout;
+		return mainVerticalLayout;
 	}
 
 	private void addConfiguration(SummaryColumnParams viewObject) {
@@ -186,10 +200,10 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 		removeMetadataFromPossibleSelection();
 	}
 
-	private void refreshMetadataCombox() {
-		metadataComboBox.removeAllItems();
-
+	private void refreshMetadataLookup() {
 		List<MetadataVO> metadataVOS = presenter.getMetadatas();
+
+		List<MetadataVO> newMetadataVOList = new ArrayList<>();
 
 		Collections.sort(metadataVOS, new Comparator<MetadataVO>() {
 			@Override
@@ -201,9 +215,11 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 
 		for (MetadataVO metadataVO : metadataVOS) {
 			if (metadataVO.getType() != MetadataValueType.STRUCTURE && !metadataVO.getLocalCode().equals("summary")) {
-				metadataComboBox.addItem(metadataVO);
+				newMetadataVOList.add(metadataVO);
 			}
 		}
+		metadataVOList = newMetadataVOList;
+		metadataLookupField.setOptions(newMetadataVOList);
 
 		removeMetadataFromPossibleSelection();
 	}
@@ -227,8 +243,20 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 		List<SummaryColumnVO> summaryColumnVOList = presenter.summaryColumnVOList();
 
 		for (SummaryColumnVO summaryColumnVO : summaryColumnVOList) {
-			this.metadataComboBox.removeItem(summaryColumnVO.getMetadataVO());
+			removeMetadataVOFromList(summaryColumnVO.getMetadataVO().getLocalCode());
 		}
+	}
+
+	private void removeMetadataVOFromList(String code) {
+		MetadataVO foundMetadataVO = null;
+		for(MetadataVO metadataVO : metadataVOList){
+			if(metadataVO.getLocalCode().equals(code)) {
+				foundMetadataVO = metadataVO;
+				break;
+			}
+		}
+
+		metadataVOList.remove(foundMetadataVO);
 	}
 
 	private void clearFields() {
@@ -239,17 +267,21 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 		this.displayCondition.setValue(null);
 		this.prefix.setValue("");
 		if (clearMetadataTo) {
-			this.metadataComboBox.setValue(null);
+			this.metadataLookupField.setValue(null);
 		}
 		this.referenceMetadataDisplayComboBox.setValue(null);
 		this.modifingSummaryColumnVO = null;
 	}
 
+	public void addMetadataToStringLookupField(SummaryColumnVO summaryColumnVO) {
+		metadataLookupField.setValue(null);
+		metadataVOList.add(summaryColumnVO.getMetadataVO());
+		metadataLookupField.setValue(summaryColumnVO.getMetadataVO());
+	}
+
 	@Override
 	public void alterSummaryMetadata(SummaryColumnVO summaryColumnVO) {
-		this.metadataComboBox.setValue(null);
-		this.metadataComboBox.addItem(summaryColumnVO.getMetadataVO());
-		this.metadataComboBox.setValue(summaryColumnVO.getMetadataVO());
+		addMetadataToStringLookupField(summaryColumnVO);
 		this.prefix.setValue(summaryColumnVO.getPrefix());
 		if (summaryColumnVO.isAlwaysShown()) {
 			this.displayCondition.setValue(SummaryColumnParams.DisplayCondition.ALWAYS);
@@ -266,7 +298,7 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 	public void deleteSummaryMetadata(SummaryColumnVO summaryColumnVO) {
 		this.presenter.deleteMetadataForSummaryColumn(summaryColumnVO);
 		this.summaryColumnDataProvider.removeSummaryColumnVO(summaryColumnVO);
-		refreshMetadataCombox();
+		refreshMetadataLookup();
 		this.summaryColumnDataProvider.fireDataRefreshEvent();
 	}
 
@@ -310,5 +342,75 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 			return false;
 		}
 
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new TitleBreadcrumbTrail(this, getTitle()) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				IntermediateBreadCrumbTailItem intermediateBreadCrumbTailItem1 = new IntermediateBreadCrumbTailItem() {
+					@Override
+					public String getTitle() {
+						return $("ViewGroup.AdminViewGroup");
+					}
+
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to(CoreViews.class).adminModule();
+					}
+
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
+				};
+
+				IntermediateBreadCrumbTailItem intermediateBreadCrumbTailItem2 = new IntermediateBreadCrumbTailItem() {
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
+
+					@Override
+					public String getTitle() {
+						return $("ListSchemaTypeView.viewTitle");
+					}
+
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to(CoreViews.class).listSchemaTypes();
+					}
+				};
+
+				IntermediateBreadCrumbTailItem intermediateBreadCrumbTailItem3 = new IntermediateBreadCrumbTailItem() {
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
+
+					@Override
+					public String getTitle() {
+						return $("ListSchemaView.viewTitle");
+					}
+
+					@Override
+					public void activate(Navigation navigate) {
+						String schemaTypeCode = presenter.getSchemaCode().substring(0, presenter.getSchemaCode().indexOf("_"));
+
+						Map<String, String> paramsMap = new HashMap<>();
+						paramsMap.put("schemaTypeCode", schemaTypeCode);
+						String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, paramsMap);
+
+						navigate.to(CoreViews.class).listSchema(params);
+					}
+				};
+
+				List<IntermediateBreadCrumbTailItem> intermediateBreadCrumbTailItemsList = new ArrayList<>();
+				intermediateBreadCrumbTailItemsList.addAll(super.getIntermediateItems());
+				intermediateBreadCrumbTailItemsList.addAll(asList(intermediateBreadCrumbTailItem1, intermediateBreadCrumbTailItem2, intermediateBreadCrumbTailItem3));
+				return intermediateBreadCrumbTailItemsList;
+			}
+		};
 	}
 }

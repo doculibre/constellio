@@ -3,7 +3,7 @@ package com.constellio.app.modules.es.services;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
@@ -33,12 +33,10 @@ public class ConnectorDeleteService {
 					schemasManager.getSchemaTypes(collection).getSchema(documentType + "_" + connectorInstance.getId()));
 		}
 		schemasManager.deleteCustomSchemas(schemasToDelete);
-		String configFolderPath =
-				"connectors/" + es.getConnectorType(connectorInstance.getConnectorType()).getCode() + "/" + connectorInstance
-						.getId() + "/";
-		ConfigManager configManager = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getConfigManager();
-		if (configManager.folderExist(configFolderPath)) {
-			configManager.deleteFolder(configFolderPath);
+		String configFolderPath = "connectors/" + connectorInstance.getId() + "/";
+		ContentDao contentDao = es.getModelLayerFactory().getDataLayerFactory().getContentsDao();
+		if (contentDao.isFolderExisting(configFolderPath)) {
+			contentDao.deleteFolder(configFolderPath);
 		}
 		es.getConnectorManager().delete(connectorInstance);
 	}

@@ -25,8 +25,22 @@ public class DependencyUtilsParams {
 		return tolerateCyclicDependencies;
 	}
 
+	public DependencyUtilsParams(DependencyUtilsParams params) {
+		this.tieComparator = params.tieComparator;
+		this.sortTie = params.sortTie;
+		this.tolerateCyclicDependencies = params.tolerateCyclicDependencies;
+	}
+
+	public DependencyUtilsParams() {
+	}
+
 	public DependencyUtilsParams withToleratedCyclicDepencies() {
 		tolerateCyclicDependencies = true;
+		return this;
+	}
+
+	public DependencyUtilsParams withoutToleratedCyclicDepencies() {
+		tolerateCyclicDependencies = false;
 		return this;
 	}
 
