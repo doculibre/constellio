@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.FolderUniqueKeyContainer;
 import com.constellio.app.ui.framework.data.FolderUniqueKeyDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.vaadin.data.fieldgroup.PropertyId;
@@ -29,7 +30,7 @@ import java.util.*;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements FolderUniqueKeyConfiguratorView {
+public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements FolderUniqueKeyConfiguratorView, AdminViewGroup {
 
 	private FolderUniqueKeyConfiguratorPresenter presenter;
 

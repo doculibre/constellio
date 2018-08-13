@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProc
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultReportWriter;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -184,7 +185,8 @@ public class BatchProcessingPresenterService {
 													   String metadataGroup,
 													   Object defaultValue, String inputMask,
 													   Set<String> customAttributes, boolean isMultiLingual,
-													   Locale locale, Map<String, Object> customParameters) {
+													   Locale locale, Map<String, Object> customParameters,
+													   CollectionInfoVO collectionInfoVO) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -202,7 +204,7 @@ public class BatchProcessingPresenterService {
 									   unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									   metadataDisplayType,
 									   allowedReferences,
-									   enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters) :
+									   enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO) :
 							   null;
 					}
 				};
@@ -297,7 +299,8 @@ public class BatchProcessingPresenterService {
 													   String metadataGroup,
 													   Object defaultValue, String inputMask,
 													   Set<String> customAttributes, boolean isMultiLingual,
-													   Locale locale, Map<String, Object> customParameters) {
+													   Locale locale, Map<String, Object> customParameters,
+													   CollectionInfoVO collectionInfoVO) {
 						// Replace labels with customized labels
 						String customizedLabel = customizedLabels.get(metadataCode);
 						if (customizedLabel != null) {
@@ -329,7 +332,7 @@ public class BatchProcessingPresenterService {
 								unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 								metadataDisplayType,
 								allowedReferences,
-								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters);
+								enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO);
 					}
 				};
 			}
