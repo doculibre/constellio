@@ -79,14 +79,6 @@ public class ListSchemaViewImpl extends BaseViewImpl implements ListSchemaView, 
 		Table inactiveRecordsTable = buildTables(false);
 
 		VerticalLayout activeLayout = new VerticalLayout();
-		Button addButton = new AddButton() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.addButtonClicked();
-			}
-		};
-		activeLayout.addComponent(addButton);
-		activeLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 		activeLayout.addComponent(activeRecordsTable);
 
 		VerticalLayout inactiveLayout = new VerticalLayout();
