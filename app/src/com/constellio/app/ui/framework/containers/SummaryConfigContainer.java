@@ -6,8 +6,8 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.data.SummaryConfigDataProvider;
-import com.constellio.app.ui.pages.summarycolumn.SummaryConfigParams;
-import com.constellio.app.ui.pages.summarycolumn.SummaryConfigView;
+import com.constellio.app.ui.pages.summaryconfig.SummaryConfigParams;
+import com.constellio.app.ui.pages.summaryconfig.SummaryConfigView;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.server.ThemeResource;
@@ -98,7 +98,7 @@ public class SummaryConfigContainer extends DataContainer<SummaryConfigDataProvi
 
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					if (!view.getSummaryColumnPresenter().isReindextionFlag()) {
+					if (!view.getSummaryConfigPresenter().isReindextionFlag()) {
 						view.showReindexationWarningIfRequired(new ConfirmDialog.Listener() {
 							@Override
 							public void onClose(ConfirmDialog dialog) {
@@ -116,7 +116,7 @@ public class SummaryConfigContainer extends DataContainer<SummaryConfigDataProvi
 			value = new IconButton(new ThemeResource("images/icons/actions/arrow_down_blue.png"), $("DOWN"), true) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					if (!view.getSummaryColumnPresenter().isReindextionFlag()) {
+					if (!view.getSummaryConfigPresenter().isReindextionFlag()) {
 						view.showReindexationWarningIfRequired(new ConfirmDialog.Listener() {
 							@Override
 							public void onClose(ConfirmDialog dialog) {
@@ -173,7 +173,7 @@ public class SummaryConfigContainer extends DataContainer<SummaryConfigDataProvi
 			return;
 		}
 
-		view.getSummaryColumnPresenter().moveMetadataUp(summaryConfigElementVOItemId.getMetadataVO().getCode());
+		view.getSummaryConfigPresenter().moveMetadataUp(summaryConfigElementVOItemId.getMetadataVO().getCode());
 		SummaryConfigElementVO summaryConfigElementVO = summaryConfigDataProvider.removeSummaryConfigItemVO(index);
 		summaryConfigDataProvider.addSummaryConfigItemVO(index - 1, summaryConfigElementVO);
 		summaryConfigDataProvider.fireDataRefreshEvent();
@@ -188,7 +188,7 @@ public class SummaryConfigContainer extends DataContainer<SummaryConfigDataProvi
 			return;
 		}
 
-		view.getSummaryColumnPresenter().moveMetadataDown(summaryConfigElementVOItemId.getMetadataVO().getCode());
+		view.getSummaryConfigPresenter().moveMetadataDown(summaryConfigElementVOItemId.getMetadataVO().getCode());
 		SummaryConfigElementVO summaryConfigElementVO = summaryConfigDataProvider.removeSummaryConfigItemVO(index);
 		summaryConfigDataProvider.addSummaryConfigItemVO(index + 1, summaryConfigElementVO);
 		summaryConfigDataProvider.fireDataRefreshEvent();

@@ -5,7 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.summarycolumn.SummaryConfigPresenter;
+import com.constellio.app.ui.pages.summaryconfig.SummaryConfigPresenter;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.sdk.tests.ConstellioTest;

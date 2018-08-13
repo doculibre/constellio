@@ -183,8 +183,8 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 	private void removeMetadataFromPossibleSelection() {
 		List<FolderUnicityVO> unictyVOList = presenter.unicityVOList();
 
-		for (FolderUnicityVO summaryColumnVO : unictyVOList) {
-			removeMetadataVOFromList(summaryColumnVO.getMetadataVO().getLocalCode());
+		for (FolderUnicityVO uncityVO : unictyVOList) {
+			removeMetadataVOFromList(uncityVO.getMetadataVO().getLocalCode());
 		}
 	}
 
@@ -200,14 +200,14 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 		metadataVOList.remove(foundMetadataVO);
 	}
 
-	public void deleteSummaryMetadata(FolderUnicityVO summaryColumnVO) {
-		this.presenter.deleteMetadataInUnicityConfig(summaryColumnVO);
-		this.folderUniqueKeyDataProvider.removeFolderUnicityVO(summaryColumnVO);
+	public void deleteSummaryMetadata(FolderUnicityVO unicityVO) {
+		this.presenter.deleteMetadataInUnicityConfig(unicityVO);
+		this.folderUniqueKeyDataProvider.removeFolderUnicityVO(unicityVO);
 		this.folderUniqueKeyDataProvider.fireDataRefreshEvent();
 		refreshMetadataLookup();
 	}
 
-	public void deleteRow(final FolderUnicityVO columnVO) {
+	public void deleteRow(final FolderUnicityVO unicityVO) {
 
 		String message = $("FolderUniqueKeyMetadataConfiguratorViewImpl.deleteConfirmationMesssage");
 		if (!presenter.isReindextionFlag()) {
@@ -226,7 +226,7 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 					public void onClose(ConfirmDialog dialog) {
 						if (dialog.isConfirmed()) {
 							boolean isReindextionFlag = presenter.isReindextionFlag();
-							deleteSummaryMetadata(columnVO);
+							deleteSummaryMetadata(unicityVO);
 							if (!isReindextionFlag) {
 								updateUI();
 							}

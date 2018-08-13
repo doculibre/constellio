@@ -77,7 +77,7 @@ import com.constellio.app.ui.pages.search.*;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
 import com.constellio.app.ui.pages.spellchecker.DeleteSpellCheckerExclusionsViewImpl;
 import com.constellio.app.ui.pages.statistic.StatisticsViewImpl;
-import com.constellio.app.ui.pages.summarycolumn.SummaryConfigViewImpl;
+import com.constellio.app.ui.pages.summaryconfig.SummaryConfigViewImpl;
 import com.constellio.app.ui.pages.synonyms.DisplaySynonymsViewImpl;
 import com.constellio.app.ui.pages.synonyms.EditSynonymsViewImpl;
 import com.constellio.app.ui.pages.trash.TrashViewImpl;
@@ -210,7 +210,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String DELETE_EXCLUSION = "correctorExclusion";
 	public static final String THESAURUS_CONFIGURATION = "thesaurusConfiguration";
 	public static final String PROPERTIES_ANALYSER = "propertiesAnalyser";
-	public static final String SUMMARY_CONFIGURATOR = "summaryConfig";
+	public static final String SUMMARY_CONFIGURATOR = "summaryconfig";
 	public static final String FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR = "FolderUniqueKeyMetadataConfigurator";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();

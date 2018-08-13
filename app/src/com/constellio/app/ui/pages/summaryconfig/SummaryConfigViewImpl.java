@@ -1,4 +1,4 @@
-package com.constellio.app.ui.pages.summarycolumn;
+package com.constellio.app.ui.pages.summaryconfig;
 
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
@@ -70,11 +70,11 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 
 	@Override
 	public String getTitle() {
-		return $("SummaryColumnViewImpl.title");
+		return $("SummaryConfigViewImpl.title");
 	}
 
 	@Override
-	public SummaryConfigPresenter getSummaryColumnPresenter() {
+	public SummaryConfigPresenter getSummaryConfigPresenter() {
 		return presenter;
 	}
 
@@ -83,10 +83,10 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 
 		metadataLookupField = new MetadataVOLookupField(new ArrayList<MetadataVO>());
 
-		metadataLookupField.setCaption($("SummaryColumnViewImpl.metadataHeader"));
+		metadataLookupField.setCaption($("SummaryConfigViewImpl.metadataHeader"));
 		//$("SummaryConfigViewImpl.metadata")
 
-		List<SummaryConfigElementVO> summaryConfigElementVOList = presenter.summaryColumnVOList();
+		List<SummaryConfigElementVO> summaryConfigElementVOList = presenter.summaryConfigVOList();
 
 		metadataLookupField.setRequired(true);
 		metadataLookupField.setImmediate(true);
@@ -122,20 +122,20 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 		table.setContainerDataSource(summaryConfigContainer);
 		table.setColumnHeader(SummaryConfigContainer.UP, "");
 		table.setColumnHeader(SummaryConfigContainer.DOWN, "");
-		table.setColumnHeader(SummaryConfigContainer.METADATA_VO, $("SummaryColumnViewImpl.metadataHeader"));
-		table.setColumnHeader(SummaryConfigContainer.PREFIX, $("SummaryColumnViewImpl.prefixHeader"));
-		table.setColumnHeader(SummaryConfigContainer.DISPLAY_CONDITION, $("SummaryColumnViewImpl.displayConditionHeader"));
-		table.setColumnHeader(SummaryConfigContainer.REFERENCE_METADATA_DISPLAY, $("SummaryColumnViewImpl.referenceMetadataDisplay"));
+		table.setColumnHeader(SummaryConfigContainer.METADATA_VO, $("SummaryConfigViewImpl.metadataHeader"));
+		table.setColumnHeader(SummaryConfigContainer.PREFIX, $("SummaryConfigViewImpl.prefixHeader"));
+		table.setColumnHeader(SummaryConfigContainer.DISPLAY_CONDITION, $("SummaryConfigViewImpl.displayConditionHeader"));
+		table.setColumnHeader(SummaryConfigContainer.REFERENCE_METADATA_DISPLAY, $("SummaryConfigViewImpl.referenceMetadataDisplay"));
 		table.setColumnHeader(SummaryConfigContainer.MODIFY, "");
 		table.setColumnHeader(SummaryConfigContainer.DELETE, "");
 
-		prefix = new BaseTextField($("SummaryColumnViewImpl.prefix"));
-		displayCondition = new ListOptionGroup($("SummaryColumnViewImpl.displayCondition"));
+		prefix = new BaseTextField($("SummaryConfigViewImpl.prefix"));
+		displayCondition = new ListOptionGroup($("SummaryConfigViewImpl.displayCondition"));
 		displayCondition.setRequired(true);
 		displayCondition.addItem(SummaryConfigParams.DisplayCondition.COMPLETED);
 		displayCondition.addItem(SummaryConfigParams.DisplayCondition.ALWAYS);
 
-		referenceMetadataDisplayComboBox = new ComboBox($("SummaryColumnViewImpl.displayConditionHeader"));
+		referenceMetadataDisplayComboBox = new ComboBox($("SummaryConfigViewImpl.displayConditionHeader"));
 		referenceMetadataDisplayComboBox.setImmediate(true);
 		referenceMetadataDisplayComboBox.setTextInputAllowed(false);
 		referenceMetadataDisplayComboBox.setVisible(false);
@@ -148,8 +148,8 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 				if (!presenter.isReindextionFlag() && presenter.isThereAModification(viewObject)) {
 					ConfirmDialog.show(
 							UI.getCurrent(),
-							$("SummaryColumnViewImpl.save.title"),
-							$("SummaryColumnViewImpl.save.message"),
+							$("SummaryConfigViewImpl.save.title"),
+							$("SummaryConfigViewImpl.save.message"),
 							$("Ok"),
 							$("cancel"),
 							new ConfirmDialog.Listener() {
@@ -186,8 +186,8 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 	private void addConfiguration(SummaryConfigParams viewObject) {
 		SummaryConfigElementVO summaryConfigElementVO = summaryColumnParamsToSummaryVO(viewObject);
 		if (modifingSummaryConfigElementVO != null) {
-			presenter.modifyMetadataForSummaryColumn(viewObject);
-			List<SummaryConfigElementVO> summaryConfigElementVOList = presenter.summaryColumnVOList();
+			presenter.modifyMetadataForSummaryConfig(viewObject);
+			List<SummaryConfigElementVO> summaryConfigElementVOList = presenter.summaryConfigVOList();
 			int index = presenter.findMetadataIndex(summaryConfigElementVOList, viewObject.getMetadataVO().getCode());
 			summaryConfigDataProvider.removeSummaryConfigItemVO(index);
 			summaryConfigDataProvider.addSummaryConfigItemVO(index, summaryConfigElementVO);
@@ -241,7 +241,7 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 
 
 	private void removeMetadataFromPossibleSelection() {
-		List<SummaryConfigElementVO> summaryConfigElementVOList = presenter.summaryColumnVOList();
+		List<SummaryConfigElementVO> summaryConfigElementVOList = presenter.summaryConfigVOList();
 
 		for (SummaryConfigElementVO summaryConfigElementVO : summaryConfigElementVOList) {
 			removeMetadataVOFromList(summaryConfigElementVO.getMetadataVO().getLocalCode());
@@ -281,23 +281,23 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 	}
 
 	@Override
-	public void alterSummaryMetadata(SummaryConfigElementVO summaryConfigElementVO) {
-		addMetadataToStringLookupField(summaryConfigElementVO);
-		this.prefix.setValue(summaryConfigElementVO.getPrefix());
-		if (summaryConfigElementVO.isAlwaysShown()) {
+	public void alterSummaryMetadata(SummaryConfigElementVO summaryConfigView) {
+		addMetadataToStringLookupField(summaryConfigView);
+		this.prefix.setValue(summaryConfigView.getPrefix());
+		if (summaryConfigView.isAlwaysShown()) {
 			this.displayCondition.setValue(SummaryConfigParams.DisplayCondition.ALWAYS);
 		} else {
 			this.displayCondition.setValue(SummaryConfigParams.DisplayCondition.COMPLETED);
 		}
-		if (summaryConfigElementVO.getReferenceMetadataDisplay() != null) {
+		if (summaryConfigView.getReferenceMetadataDisplay() != null) {
 			this.referenceMetadataDisplayComboBox.setValue(SummaryConfigParams.ReferenceMetadataDisplay
-					.fromInteger(summaryConfigElementVO.getReferenceMetadataDisplay()));
+					.fromInteger(summaryConfigView.getReferenceMetadataDisplay()));
 		}
-		this.modifingSummaryConfigElementVO = summaryConfigElementVO;
+		this.modifingSummaryConfigElementVO = summaryConfigView;
 	}
 
 	public void deleteSummaryMetadata(SummaryConfigElementVO summaryConfigElementVO) {
-		this.presenter.deleteMetadataForSummaryColumn(summaryConfigElementVO);
+		this.presenter.deleteMetadataForSummaryConfig(summaryConfigElementVO);
 		this.summaryConfigDataProvider.removeSummaryConfigItemVO(summaryConfigElementVO);
 		refreshMetadataLookup();
 		this.summaryConfigDataProvider.fireDataRefreshEvent();
@@ -305,15 +305,15 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 
 	public void deleteRow(final SummaryConfigElementVO columnVO) {
 
-		String message = $("SummaryColumnViewImpl.deleteConfirmationMesssage");
+		String message = $("SummaryConfigViewImpl.deleteConfirmationMesssage");
 		if (!presenter.isReindextionFlag()) {
-			message = $("SummaryColumnViewImpl.save.message") + " " + message;
+			message = $("SummaryConfigViewImpl.save.message") + " " + message;
 		}
 
 
 		ConfirmDialog.show(
 				UI.getCurrent(),
-				$("SummaryColumnViewImpl.deleteConfirmation"),
+				$("SummaryConfigViewImpl.deleteConfirmation"),
 				message,
 				$("Ok"),
 				$("cancel"),
@@ -333,8 +333,8 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 		if (presenter.isReindextionFlag()) {
 			ConfirmDialog.show(
 					UI.getCurrent(),
-					$("SummaryColumnViewImpl.save.title"),
-					$("SummaryColumnViewImpl.save.message"),
+					$("SummaryConfigViewImpl.save.title"),
+					$("SummaryConfigViewImpl.save.message"),
 					$("Ok"),
 					$("cancel"),
 					confirmDialogListener);

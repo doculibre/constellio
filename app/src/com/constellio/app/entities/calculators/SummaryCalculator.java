@@ -1,6 +1,6 @@
 package com.constellio.app.entities.calculators;
 
-import com.constellio.app.ui.pages.summarycolumn.SummaryConfigParams;
+import com.constellio.app.ui.pages.summaryconfig.SummaryConfigParams;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -30,7 +30,7 @@ public class SummaryCalculator implements InitializedMetadataValueCalculator<Str
 	ConfigDependency<String> dateformat = ConstellioEIMConfigs.DATE_FORMAT.dependency();
 	ConfigDependency<String> dateTimeformat = ConstellioEIMConfigs.DATE_TIME_FORMAT.dependency();
 
-	public static final String SUMMARY_CONFIG = "summaryConfig";
+	public static final String SUMMARY_CONFIG = "summaryconfig";
 	public static final String PREFIX = "prefix";
 	public static final String METADATA_CODE = "metadataCode";
 	public static final String REFERENCE_METADATA_DISPLAY = "referenceMetadataDisplay";

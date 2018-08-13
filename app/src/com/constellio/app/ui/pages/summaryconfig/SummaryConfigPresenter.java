@@ -1,4 +1,4 @@
-package com.constellio.app.ui.pages.summarycolumn;
+package com.constellio.app.ui.pages.summaryconfig;
 
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.SummaryConfigElementVO;
@@ -28,8 +28,8 @@ public class SummaryConfigPresenter extends SingleSchemaBasePresenter<SummaryCon
 	public static final String IS_ALWAYS_SHOWN = "isAlwaysShown";
 	private String schemaCode;
 	private Map<String, String> parameters;
-	public static final String SUMMARY_CONFIG = "summaryConfig";
-	List<Map<String, Object>> originalCustomParametersSummaryColumn;
+	public static final String SUMMARY_CONFIG = "summaryconfig";
+	List<Map<String, Object>> originalCustomParametersSummaryConfig;
 
 	public SummaryConfigPresenter(SummaryConfigView view) {
 		super(view);
@@ -45,9 +45,9 @@ public class SummaryConfigPresenter extends SingleSchemaBasePresenter<SummaryCon
 		this.schemaCode = paramsMap.get(SCHEMA_CODE);
 
 		if (getSummaryMetadata().getCustomParameter() != null) {
-			originalCustomParametersSummaryColumn = (List<Map<String, Object>>) getSummaryMetadata().getCustomParameter().get(SUMMARY_CONFIG);
+			originalCustomParametersSummaryConfig = (List<Map<String, Object>>) getSummaryMetadata().getCustomParameter().get(SUMMARY_CONFIG);
 		} else {
-			originalCustomParametersSummaryColumn = null;
+			originalCustomParametersSummaryConfig = null;
 		}
 	}
 
@@ -68,7 +68,7 @@ public class SummaryConfigPresenter extends SingleSchemaBasePresenter<SummaryCon
 	}
 
 
-	public List<SummaryConfigElementVO> summaryColumnVOList() {
+	public List<SummaryConfigElementVO> summaryConfigVOList() {
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		Object objectList = getSummaryMetadata().getCustomParameter().get(SUMMARY_CONFIG);
 		List<SummaryConfigElementVO> lSummaryConfigElementVOList = new ArrayList<>();
@@ -96,7 +96,7 @@ public class SummaryConfigPresenter extends SingleSchemaBasePresenter<SummaryCon
 	}
 
 
-	public void modifyMetadataForSummaryColumn(SummaryConfigParams summaryConfigParams) {
+	public void modifyMetadataForSummaryConfig(SummaryConfigParams summaryConfigParams) {
 		Map<String, Object> modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
 
 		List<Map<String, Object>> list = (List) modifiableMap.get(SUMMARY_CONFIG);
@@ -112,12 +112,12 @@ public class SummaryConfigPresenter extends SingleSchemaBasePresenter<SummaryCon
 		saveMetadata(modifiableMap);
 	}
 
-	public void deleteMetadataForSummaryColumn(SummaryConfigElementVO summaryColumnParams) {
+	public void deleteMetadataForSummaryConfig(SummaryConfigElementVO summaryConfigParams) {
 		Map<String, Object> modifiableMap = copyUnModifiableMapToModifiableMap(getSummaryMetadata().getCustomParameter());
 
 		List<Map<String, Object>> list = (List) modifiableMap.get(SUMMARY_CONFIG);
 
-		Map<String, Object> summaryInmap = getMapInList(list, summaryColumnParams.getMetadataVO().getCode());
+		Map<String, Object> summaryInmap = getMapInList(list, summaryConfigParams.getMetadataVO().getCode());
 
 		list.remove(summaryInmap);
 
@@ -221,7 +221,7 @@ public class SummaryConfigPresenter extends SingleSchemaBasePresenter<SummaryCon
 
 	public void saveMetadata(final Map<String, Object> customParameter) {
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		if (!LangUtils.areNullableEqual(originalCustomParametersSummaryColumn, customParameter.get(SUMMARY_CONFIG))
+		if (!LangUtils.areNullableEqual(originalCustomParametersSummaryConfig, customParameter.get(SUMMARY_CONFIG))
 			&& !appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired()) {
 			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 		}
@@ -234,7 +234,7 @@ public class SummaryConfigPresenter extends SingleSchemaBasePresenter<SummaryCon
 	}
 
 	public boolean isThereAModification(SummaryConfigParams summaryConfigParams) {
-		Map<String, Object> map = getMapInList(originalCustomParametersSummaryColumn, summaryConfigParams.getMetadataVO().getCode());
+		Map<String, Object> map = getMapInList(originalCustomParametersSummaryConfig, summaryConfigParams.getMetadataVO().getCode());
 
 		if (map == null) {
 			return true;

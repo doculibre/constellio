@@ -1,4 +1,4 @@
-package com.constellio.app.ui.pages.summarycolumn;
+package com.constellio.app.ui.pages.summaryconfig;
 
 import com.constellio.app.ui.entities.MetadataVO;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -15,9 +15,9 @@ public class SummaryConfigParams {
 		@Override
 		public String toString() {
 			if (this == COMPLETED) {
-				return $("SummaryColomnParams.DisplayCondition.ifcompleted");
+				return $("SummaryConfigParams.DisplayCondition.ifcompleted");
 			} else if (this == ALWAYS) {
-				return $("SummaryColomnParams.DisplayCondition.always");
+				return $("SummaryConfigParams.DisplayCondition.always");
 			}
 
 			return this.toString();
@@ -31,9 +31,9 @@ public class SummaryConfigParams {
 		@Override
 		public String toString() {
 			if (this == CODE) {
-				return $("SummaryColomnParams.ReferenceDisplay.code");
+				return $("SummaryConfigParams.ReferenceDisplay.code");
 			} else if (this == TITLE) {
-				return $("SummaryColomnParams.ReferenceDisplay.title");
+				return $("SummaryConfigParams.ReferenceDisplay.title");
 			}
 
 			return this.toString();
