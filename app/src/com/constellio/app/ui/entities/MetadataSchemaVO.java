@@ -24,19 +24,20 @@ public class MetadataSchemaVO implements Serializable {
 	final List<String> searchMetadataCodes;
 	final List<String> tableMetadataCodes;
 	final String localCode;
+	final CollectionInfoVO collectionInfoVO;
 
-	public MetadataSchemaVO(String code, String collection, Map<Locale, String> labels) {
-		this(code, collection, null, null, null, null, null, labels);
+	public MetadataSchemaVO(String code, String collection, Map<Locale, String> labels, CollectionInfoVO collectionInfoVO) {
+		this(code, collection, null, null, null, null, null, labels, collectionInfoVO);
 	}
 
-	public MetadataSchemaVO(String code, String collection, String localCode, Map<Locale, String> labels) {
-		this(code, collection, localCode, null, null, null, null, labels);
+	public MetadataSchemaVO(String code, String collection, String localCode, Map<Locale, String> labels, CollectionInfoVO collectionInfoVO) {
+		this(code, collection, localCode, null, null, null, null, labels, collectionInfoVO);
 	}
 
 	public MetadataSchemaVO(String code, String collection, String localCode, List<String> formMetadataCodes,
 							List<String> displayMetadataCodes,
 							List<String> tableMetadataCodes, List<String> searchMetadataCodes,
-							Map<Locale, String> labels) {
+							Map<Locale, String> labels, CollectionInfoVO collectionInfoVO) {
 		super();
 		this.code = code;
 		this.collection = collection;
@@ -46,6 +47,7 @@ public class MetadataSchemaVO implements Serializable {
 		this.tableMetadataCodes = tableMetadataCodes;
 		this.labels = labels;
 		this.localCode = localCode;
+		this.collectionInfoVO = collectionInfoVO;
 	}
 
 	public String getLocalCode() {
@@ -82,6 +84,10 @@ public class MetadataSchemaVO implements Serializable {
 
 	public List<MetadataVO> getMetadatas() {
 		return metadatas;
+	}
+
+	public CollectionInfoVO getCollectionInfoVO() {
+		return collectionInfoVO;
 	}
 
 	public List<MetadataVO> getFormMetadatas() {

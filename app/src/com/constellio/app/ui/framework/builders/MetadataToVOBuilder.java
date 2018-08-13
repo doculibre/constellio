@@ -7,6 +7,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.UserVO;
@@ -148,9 +149,12 @@ public class MetadataToVOBuilder implements Serializable {
 		//		Language.withCode(sessionContext.getCurrentLocale().getLanguage())));
 		Locale currentLocale = sessionContext.getCurrentLocale();
 		String metadataLabel = metadata.getLabel(Language.withCode(currentLocale.getLanguage()));
-		if (isMultiLingual && locale != null) {
+		CollectionInfoVO collectionInfoVO = schemaVO.getCollectionInfoVO();
+
+		if (isMultiLingual && locale != null && collectionInfoVO.getCollectionLanguages() != null && collectionInfoVO.getCollectionLanguages().size() > 1) {
 			metadataLabel += " (" + locale.getLanguage().toUpperCase() + ")";
 		}
+
 		labels.put(currentLocale, metadataLabel);
 
 		Class<? extends Enum<?>> enumClass = metadata.getEnumClass(); // EnumWithSmallCode
@@ -189,7 +193,7 @@ public class MetadataToVOBuilder implements Serializable {
 		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 				enabled,
-				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters);
+				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, schemaVO.getCollectionInfoVO());
 	}
 
 }
