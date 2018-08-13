@@ -197,7 +197,7 @@ public class SolrEventBusSendingServiceAcceptanceTest extends ConstellioTest {
 
 		localSendingService.deleteOldEvents();
 		localSendingService.commit();
-		Thread.sleep(500);
+		Thread.sleep(750);
 
 		assertThat(countSolrDocumentWithBus("bus1")).isEqualTo(30002);
 		assertThat(countSolrDocumentWithBus("bus2")).isEqualTo(30002);

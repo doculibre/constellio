@@ -180,16 +180,16 @@ public class RecordServicesAgregatedMinMaxMetadatasAcceptTest extends Constellio
 		assertThat(record("merge1").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 1, 6, 0, 0, 0));
 		assertThat(record("merge2").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 3, 1, 0, 0, 0));
 		assertThat(record("merge3").<LocalDate>get(thirdSchema_minValue)).isEqualTo(date(2010, 1, 6));
-		assertThat(record("merge1").<LocalDateTime>get(anotherSchema_maxValue)).isEqualTo(date(2011, 7, 1));
-		assertThat(record("merge2").<LocalDateTime>get(anotherSchema_maxValue)).isEqualTo(date(2011, 6, 1));
+		assertThat(record("merge1").<LocalDate>get(anotherSchema_maxValue)).isEqualTo(date(2011, 7, 1));
+		assertThat(record("merge2").<LocalDate>get(anotherSchema_maxValue)).isEqualTo(date(2011, 6, 1));
 		assertThat(record("merge3").<LocalDateTime>get(thirdSchema_maxValue)).isEqualTo(dateTime(2011, 7, 1, 0, 0, 0));
 
 		int nbQueries = clearAggregateMetadatasThenReindexReturningQtyOfQueriesOf(zeSchema, anotherSchema, thirdSchema);
 		assertThat(record("merge1").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 1, 6, 0, 0, 0));
 		assertThat(record("merge2").<LocalDateTime>get(anotherSchema_minValue)).isEqualTo(dateTime(2010, 3, 1, 0, 0, 0));
-		assertThat(record("merge3").<LocalDateTime>get(thirdSchema_minValue)).isEqualTo(date(2010, 1, 6));
-		assertThat(record("merge1").<LocalDateTime>get(anotherSchema_maxValue)).isEqualTo(date(2011, 7, 1));
-		assertThat(record("merge2").<LocalDateTime>get(anotherSchema_maxValue)).isEqualTo(date(2011, 6, 1));
+		assertThat(record("merge3").<LocalDate>get(thirdSchema_minValue)).isEqualTo(date(2010, 1, 6));
+		assertThat(record("merge1").<LocalDate>get(anotherSchema_maxValue)).isEqualTo(date(2011, 7, 1));
+		assertThat(record("merge2").<LocalDate>get(anotherSchema_maxValue)).isEqualTo(date(2011, 6, 1));
 		assertThat(record("merge3").<LocalDateTime>get(thirdSchema_maxValue)).isEqualTo(dateTime(2011, 7, 1, 0, 0, 0));
 		assertThat(nbQueries).isEqualTo(10);
 	}
