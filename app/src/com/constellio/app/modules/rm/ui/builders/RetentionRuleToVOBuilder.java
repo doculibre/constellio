@@ -143,7 +143,8 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 
 		return new MetadataVO(label, MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
 				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP, MetadataDisplayType.VERTICAL,
-				new AllowedReferences(referencedSchemaType, references), groupLabel, null, false, new HashSet<String>(), false, null, new HashMap<String, Object>());
+				new AllowedReferences(referencedSchemaType, references), groupLabel, null, false, new HashSet<String>(), false, null,
+				new HashMap<String, Object>(), schema.getCollectionInfoVO());
 	}
 
 	private void insertMetadataCodeBefore(String codeToInsert, String codeToSearch, List<String> codes) {

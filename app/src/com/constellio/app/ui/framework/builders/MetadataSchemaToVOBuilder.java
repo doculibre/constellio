@@ -5,9 +5,11 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -112,8 +114,12 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		}
 
 		MetadataToVOBuilder metadataToVOBuilder = newMetadataToVOBuilder();
+		CollectionInfo collectionInfo = schema.getCollectionInfo();
+
+		CollectionInfoVO collectionInfoVO = new CollectionInfoVO(collectionInfo.getMainSystemLanguage(), collectionInfo.getCode(),collectionInfo.getCollectionLanguages(),
+				collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
 		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, localCode, formMetadataCodes, displayMetadataCodes,
-				tableMetadataCodes, searchMetadataCodes, labels);
+				tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO);
 		for (Metadata metadata : schema.getMetadatas()) {
 			if (viewMode == VIEW_MODE.FORM && metadata.isMultiLingual()) {
 				List<Locale> supportedLocales = schema.getCollectionInfo().getCollectionLocales();
