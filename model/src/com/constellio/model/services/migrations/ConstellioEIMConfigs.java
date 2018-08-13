@@ -115,6 +115,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration UNREFERENCED_CONTENTS_DELETE_SCHEDULE;
 	public static final SystemConfiguration ENABLE_STATISTIC_REPORT;
 	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
+	public static final SystemConfiguration IS_RUNNING_WITH_SOLR_6;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -166,6 +167,7 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
 		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
+		add(IS_RUNNING_WITH_SOLR_6 = search.createBooleanFalseByDefault("isRunningWithSolr6").whichIsHidden());
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
@@ -408,6 +410,10 @@ public class ConstellioEIMConfigs {
 
 	public boolean isReplaceSpacesInSimpleSearchForAnds() {
 		return manager.getValue(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS);
+	}
+
+	public boolean isRunningWithSolr6() {
+		return manager.getValue(IS_RUNNING_WITH_SOLR_6);
 	}
 
 	public String getTaxonomyOrderInHomeView() {

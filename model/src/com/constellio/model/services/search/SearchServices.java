@@ -421,8 +421,15 @@ public class SearchServices {
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
 				int mm = calcMM(query.getFreeTextQuery());
 				params.add(DisMaxParams.MM, "" + mm);
+				if(systemConfigs.isRunningWithSolr6()) {
+					params.add(DisMaxParams.MM, "1");
+					params.add("q.op", "AND");
+				}
 			} else {
 				params.add(DisMaxParams.MM, "1");
+				if(systemConfigs.isRunningWithSolr6()) {
+					params.add("q.op", "OR");
+				}
 			}
 			params.add("defType", "edismax");
 			params.add(DisMaxParams.BQ, "\"" + query.getFreeTextQuery() + "\"");
