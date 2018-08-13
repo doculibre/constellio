@@ -6,7 +6,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 
-public class SummaryColumnParams {
+public class SummaryConfigParams {
 
 	public enum DisplayCondition {
 		COMPLETED,
@@ -65,7 +65,7 @@ public class SummaryColumnParams {
 	private DisplayCondition displayCondition;
 	private ReferenceMetadataDisplay referenceMetadataDisplay;
 
-	public SummaryColumnParams() {
+	public SummaryConfigParams() {
 
 	}
 

@@ -25,7 +25,7 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class SummaryColumnCalculator implements InitializedMetadataValueCalculator<String>, MetadataValueCalculator<String> {
+public class SummaryCalculator implements InitializedMetadataValueCalculator<String>, MetadataValueCalculator<String> {
 	DynamicLocalDependency dynamicMetadatasDependency = new DynamicMetadatasDependency();
 	ConfigDependency<String> dateformat = ConstellioEIMConfigs.DATE_FORMAT.dependency();
 	ConfigDependency<String> dateTimeformat = ConstellioEIMConfigs.DATE_TIME_FORMAT.dependency();

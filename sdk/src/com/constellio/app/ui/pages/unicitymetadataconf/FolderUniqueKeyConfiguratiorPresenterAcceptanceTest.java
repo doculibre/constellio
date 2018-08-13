@@ -5,7 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.summarycolumn.SummaryColumnPresenter;
+import com.constellio.app.ui.pages.summarycolumn.SummaryConfigPresenter;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -96,6 +96,6 @@ public class FolderUniqueKeyConfiguratiorPresenterAcceptanceTest extends Constel
 
 		assertThat(summaryColomnList).isNotNull();
 		assertThat(summaryColomnList.size()).isEqualTo(1);
-		assertThat(summarymap.get(SummaryColumnPresenter.METADATA_CODE)).isEqualTo(rmSchemasRecordsServices.folderSchemaType().getSchema("employe").get("title").getCode());
+		assertThat(summarymap.get(SummaryConfigPresenter.METADATA_CODE)).isEqualTo(rmSchemasRecordsServices.folderSchemaType().getSchema("employe").get("title").getCode());
 	}
 }

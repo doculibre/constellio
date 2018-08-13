@@ -63,13 +63,13 @@ public class FolderUniqueKeyCalculatorAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenFolderWithMetadataValueAndReferenceSummaryColumnParameterThenSummaryMetadataHaveAValueTest()
+	public void givenFolderWithMetadataValueAndReferenceSummaryConfigParameterThenSummaryMetadataHaveAValueTest()
 			throws Exception {
-		FolderUniqueKeyParams summaryColumnParams = new FolderUniqueKeyParams();
+		FolderUniqueKeyParams uniqueKeyParam = new FolderUniqueKeyParams();
 
-		summaryColumnParams.setMetadataVO(findMetadata(Folder.ADMINISTRATIVE_UNIT));
+		uniqueKeyParam.setMetadataVO(findMetadata(Folder.ADMINISTRATIVE_UNIT));
 
-		folderUniqueKeyConfiguratorPresenter.addMetadaForUnicity(summaryColumnParams);
+		folderUniqueKeyConfiguratorPresenter.addMetadaForUnicity(uniqueKeyParam);
 
 		Folder folder = createFolder();
 		recordServices.add(folder);
@@ -82,7 +82,7 @@ public class FolderUniqueKeyCalculatorAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenFolderWithMetadataValueAndReferenceSummaryColumnTitleParameterThenSummaryMetadataHaveAValueTest()
+	public void givenFolderWithMetadataValueAndReferenceSummaryConfigTitleParameterThenSummaryMetadataHaveAValueTest()
 			throws Exception {
 		FolderUniqueKeyParams folderUnicityMetadataParms = new FolderUniqueKeyParams();
 

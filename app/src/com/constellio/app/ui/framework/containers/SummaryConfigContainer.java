@@ -1,13 +1,13 @@
 package com.constellio.app.ui.framework.containers;
 
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.SummaryColumnVO;
+import com.constellio.app.ui.entities.SummaryConfigElementVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.IconButton;
-import com.constellio.app.ui.framework.data.SummaryColumnDataProvider;
-import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
-import com.constellio.app.ui.pages.summarycolumn.SummaryColumnView;
+import com.constellio.app.ui.framework.data.SummaryConfigDataProvider;
+import com.constellio.app.ui.pages.summarycolumn.SummaryConfigParams;
+import com.constellio.app.ui.pages.summarycolumn.SummaryConfigView;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.server.ThemeResource;
@@ -19,7 +19,7 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvider> {
+public class SummaryConfigContainer extends DataContainer<SummaryConfigDataProvider> {
 	public static final String UP = "up";
 	public static final String DOWN = "down";
 	public static final String METADATA_VO = "metadataVo";
@@ -29,17 +29,17 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
 	public static final String MODIFY = "modify";
 	public static final String DELETE = "delete";
 
-	SummaryColumnView view;
+	SummaryConfigView view;
 
-	public SummaryColumnContainer(SummaryColumnDataProvider dataProvider, SummaryColumnView summaryColumnView) {
+	public SummaryConfigContainer(SummaryConfigDataProvider dataProvider, SummaryConfigView summaryConfigView) {
 		super(dataProvider);
-		this.view = summaryColumnView;
+		this.view = summaryConfigView;
 	}
 
 	@Override
-	protected void populateFromData(SummaryColumnDataProvider dataProvider) {
-		for (SummaryColumnVO summaryColumnVO : dataProvider.getSummaryColumnVOs()) {
-			addItem(summaryColumnVO);
+	protected void populateFromData(SummaryConfigDataProvider dataProvider) {
+		for (SummaryConfigElementVO summaryConfigElementVO : dataProvider.getSummaryConfigElementVOS()) {
+			addItem(summaryConfigElementVO);
 		}
 	}
 
@@ -71,9 +71,9 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
 		} else if (PREFIX.equals(propertyId)) {
 			type = String.class;
 		} else if (DISPLAY_CONDITION.equals(propertyId)) {
-			type = SummaryColumnParams.DisplayCondition.class;
+			type = SummaryConfigParams.DisplayCondition.class;
 		} else if (REFERENCE_METADATA_DISPLAY.equals(propertyId)) {
-			type = SummaryColumnParams.ReferenceMetadataDisplay.class;
+			type = SummaryConfigParams.ReferenceMetadataDisplay.class;
 		} else if (MODIFY.equals(propertyId)) {
 			type = BaseButton.class;
 		} else if (DELETE.equals(propertyId)) {
@@ -88,8 +88,8 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
 	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	protected Property<?> getOwnContainerProperty(Object itemId, Object propertyId) {
-		final SummaryColumnVO summaryColumnVOItemId = (SummaryColumnVO) itemId;
-		final SummaryColumnDataProvider summaryColumnDataProvider = getDataProvider();
+		final SummaryConfigElementVO summaryConfigElementVOItemId = (SummaryConfigElementVO) itemId;
+		final SummaryConfigDataProvider summaryConfigDataProvider = getDataProvider();
 		Object value;
 
 		if (UP.equals(propertyId)) {
@@ -103,12 +103,12 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
 							@Override
 							public void onClose(ConfirmDialog dialog) {
 								if (dialog.isConfirmed()) {
-									moveRowUp(summaryColumnDataProvider, summaryColumnVOItemId);
+									moveRowUp(summaryConfigDataProvider, summaryConfigElementVOItemId);
 								}
 							}
 						});
 					} else {
-						moveRowUp(summaryColumnDataProvider, summaryColumnVOItemId);
+						moveRowUp(summaryConfigDataProvider, summaryConfigElementVOItemId);
 					}
 				}
 			};
@@ -121,25 +121,25 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
 							@Override
 							public void onClose(ConfirmDialog dialog) {
 								if (dialog.isConfirmed()) {
-									moveRowDown(summaryColumnDataProvider, summaryColumnVOItemId);
+									moveRowDown(summaryConfigDataProvider, summaryConfigElementVOItemId);
 								}
 							}
 						});
 					} else {
-						moveRowDown(summaryColumnDataProvider, summaryColumnVOItemId);
+						moveRowDown(summaryConfigDataProvider, summaryConfigElementVOItemId);
 					}
 				}
 			};
 		} else if (METADATA_VO.equals(propertyId)) {
-			value = summaryColumnVOItemId.getMetadataVO();
+			value = summaryConfigElementVOItemId.getMetadataVO();
 		} else if (PREFIX.equals(propertyId)) {
-			value = summaryColumnVOItemId.getPrefix();
+			value = summaryConfigElementVOItemId.getPrefix();
 		} else if (DISPLAY_CONDITION.equals(propertyId)) {
-			value = summaryColumnVOItemId.isAlwaysShown() ? SummaryColumnParams.DisplayCondition.ALWAYS : SummaryColumnParams.DisplayCondition.COMPLETED;
+			value = summaryConfigElementVOItemId.isAlwaysShown() ? SummaryConfigParams.DisplayCondition.ALWAYS : SummaryConfigParams.DisplayCondition.COMPLETED;
 		} else if (REFERENCE_METADATA_DISPLAY.equals(propertyId)) {
-			if (summaryColumnVOItemId.getReferenceMetadataDisplay() != null) {
-				value = SummaryColumnParams.ReferenceMetadataDisplay
-						.fromInteger(summaryColumnVOItemId.getReferenceMetadataDisplay());
+			if (summaryConfigElementVOItemId.getReferenceMetadataDisplay() != null) {
+				value = SummaryConfigParams.ReferenceMetadataDisplay
+						.fromInteger(summaryConfigElementVOItemId.getReferenceMetadataDisplay());
 			} else {
 				value = null;
 			}
@@ -148,14 +148,14 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
 			value = new IconButton(EditButton.ICON_RESOURCE, $("edit"), true) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					view.alterSummaryMetadata(summaryColumnVOItemId);
+					view.alterSummaryMetadata(summaryConfigElementVOItemId);
 				}
 			};
 		} else if (DELETE.equals(propertyId)) {
 			value = new IconButton(new ThemeResource("images/icons/actions/delete.png"), $("delete"), true) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
-					view.deleteRow(summaryColumnVOItemId);
+					view.deleteRow(summaryConfigElementVOItemId);
 				}
 			};
 		} else {
@@ -165,33 +165,33 @@ public class SummaryColumnContainer extends DataContainer<SummaryColumnDataProvi
 		return new ObjectProperty(value, type);
 	}
 
-	private void moveRowUp(SummaryColumnDataProvider summaryColumnDataProvider, SummaryColumnVO summaryColumnVOItemId) {
-		List<SummaryColumnVO> summaryColumnVOS = summaryColumnDataProvider.getSummaryColumnVOs();
-		int index = summaryColumnVOS.indexOf(summaryColumnVOItemId);
+	private void moveRowUp(SummaryConfigDataProvider summaryConfigDataProvider, SummaryConfigElementVO summaryConfigElementVOItemId) {
+		List<SummaryConfigElementVO> summaryConfigElementVOS = summaryConfigDataProvider.getSummaryConfigElementVOS();
+		int index = summaryConfigElementVOS.indexOf(summaryConfigElementVOItemId);
 
 		if (index <= 0) {
 			return;
 		}
 
-		view.getSummaryColumnPresenter().moveMetadataUp(summaryColumnVOItemId.getMetadataVO().getCode());
-		SummaryColumnVO summaryColumnVO = summaryColumnDataProvider.removeSummaryColumnVO(index);
-		summaryColumnDataProvider.addSummaryColumnVO(index - 1, summaryColumnVO);
-		summaryColumnDataProvider.fireDataRefreshEvent();
+		view.getSummaryColumnPresenter().moveMetadataUp(summaryConfigElementVOItemId.getMetadataVO().getCode());
+		SummaryConfigElementVO summaryConfigElementVO = summaryConfigDataProvider.removeSummaryConfigItemVO(index);
+		summaryConfigDataProvider.addSummaryConfigItemVO(index - 1, summaryConfigElementVO);
+		summaryConfigDataProvider.fireDataRefreshEvent();
 	}
 
-	private void moveRowDown(SummaryColumnDataProvider summaryColumnDataProvider,
-							 SummaryColumnVO summaryColumnVOItemId) {
-		List<SummaryColumnVO> summaryColumnVOS = summaryColumnDataProvider.getSummaryColumnVOs();
-		int index = summaryColumnVOS.indexOf(summaryColumnVOItemId);
+	private void moveRowDown(SummaryConfigDataProvider summaryConfigDataProvider,
+							 SummaryConfigElementVO summaryConfigElementVOItemId) {
+		List<SummaryConfigElementVO> summaryConfigElementVOS = summaryConfigDataProvider.getSummaryConfigElementVOS();
+		int index = summaryConfigElementVOS.indexOf(summaryConfigElementVOItemId);
 
-		if (index >= (summaryColumnVOS.size() - 1)) {
+		if (index >= (summaryConfigElementVOS.size() - 1)) {
 			return;
 		}
 
-		view.getSummaryColumnPresenter().moveMetadataDown(summaryColumnVOItemId.getMetadataVO().getCode());
-		SummaryColumnVO summaryColumnVO = summaryColumnDataProvider.removeSummaryColumnVO(index);
-		summaryColumnDataProvider.addSummaryColumnVO(index + 1, summaryColumnVO);
-		summaryColumnDataProvider.fireDataRefreshEvent();
+		view.getSummaryColumnPresenter().moveMetadataDown(summaryConfigElementVOItemId.getMetadataVO().getCode());
+		SummaryConfigElementVO summaryConfigElementVO = summaryConfigDataProvider.removeSummaryConfigItemVO(index);
+		summaryConfigDataProvider.addSummaryConfigItemVO(index + 1, summaryConfigElementVO);
+		summaryConfigDataProvider.fireDataRefreshEvent();
 	}
 
 

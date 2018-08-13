@@ -1,7 +1,7 @@
 package com.constellio.app.ui.pages.summarycolumn;
 
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.SummaryColumnVO;
+import com.constellio.app.ui.entities.SummaryConfigElementVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
@@ -18,7 +18,7 @@ import com.constellio.model.services.schemas.xml.TypeConvertionUtil;
 
 import java.util.*;
 
-public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryColumnView> {
+public class SummaryConfigPresenter extends SingleSchemaBasePresenter<SummaryConfigView> {
 
 	private static final String SCHEMA_CODE = "schemaCode";
 	public static final String PREFIX = "prefix";
@@ -28,14 +28,14 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 	public static final String IS_ALWAYS_SHOWN = "isAlwaysShown";
 	private String schemaCode;
 	private Map<String, String> parameters;
-	public static final String SUMMARY_COLOMN = "summaryColumn";
+	public static final String SUMMARY_CONFIG = "summaryConfig";
 	List<Map<String, Object>> originalCustomParametersSummaryColumn;
 
-	public SummaryColumnPresenter(SummaryColumnView view) {
+	public SummaryConfigPresenter(SummaryConfigView view) {
 		super(view);
 	}
 
-	public SummaryColumnPresenter(SummaryColumnView view, String schemaCode) {
+	public SummaryConfigPresenter(SummaryConfigView view, String schemaCode) {
 		super(view, schemaCode);
 	}
 
@@ -45,7 +45,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 		this.schemaCode = paramsMap.get(SCHEMA_CODE);
 
 		if (getSummaryMetadata().getCustomParameter() != null) {
-			originalCustomParametersSummaryColumn = (List<Map<String, Object>>) getSummaryMetadata().getCustomParameter().get(SUMMARY_COLOMN);
+			originalCustomParametersSummaryColumn = (List<Map<String, Object>>) getSummaryMetadata().getCustomParameter().get(SUMMARY_CONFIG);
 		} else {
 			originalCustomParametersSummaryColumn = null;
 		}
@@ -68,16 +68,16 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 	}
 
 
-	public List<SummaryColumnVO> summaryColumnVOList() {
+	public List<SummaryConfigElementVO> summaryColumnVOList() {
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		Object objectList = getSummaryMetadata().getCustomParameter().get(SUMMARY_COLOMN);
-		List<SummaryColumnVO> lSummaryColumnVOList = new ArrayList<>();
+		Object objectList = getSummaryMetadata().getCustomParameter().get(SUMMARY_CONFIG);
+		List<SummaryConfigElementVO> lSummaryConfigElementVOList = new ArrayList<>();
 
 		if (objectList instanceof List) {
 			for (Object listObject : (List) objectList) {
 				Map<String, Object> mapObject = (Map<String, Object>) listObject;
 
-				SummaryColumnVO summaryCoumnVo = new SummaryColumnVO();
+				SummaryConfigElementVO summaryCoumnVo = new SummaryConfigElementVO();
 				String metadataCode = (String) mapObject.get("metadataCode");
 				Metadata metadata = schemasManager.getSchemaTypes(collection).getSchema(TypeConvertionUtil.getSchemaCode(metadataCode)).getMetadatas().getMetadataWithLocalCode(TypeConvertionUtil.getMetadataLocalCode(metadataCode));
 				MetadataToVOBuilder metadataToVOBuilder = new MetadataToVOBuilder();
@@ -88,34 +88,34 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 				summaryCoumnVo.setAlwaysShown((Boolean) mapObject.get(IS_ALWAYS_SHOWN));
 				summaryCoumnVo.setReferenceMetadataDisplay((Integer) mapObject.get(REFERENCE_METADATA_DISPLAY));
 
-				lSummaryColumnVOList.add(summaryCoumnVo);
+				lSummaryConfigElementVOList.add(summaryCoumnVo);
 			}
 		}
 
-		return lSummaryColumnVOList;
+		return lSummaryConfigElementVOList;
 	}
 
 
-	public void modifyMetadataForSummaryColumn(SummaryColumnParams summaryColumnParams) {
+	public void modifyMetadataForSummaryColumn(SummaryConfigParams summaryConfigParams) {
 		Map<String, Object> modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
 
-		List<Map<String, Object>> list = (List) modifiableMap.get(SUMMARY_COLOMN);
+		List<Map<String, Object>> list = (List) modifiableMap.get(SUMMARY_CONFIG);
 
-		Map<String, Object> summaryInmap = getMapInList(list, summaryColumnParams.getMetadataVO().getCode());
+		Map<String, Object> summaryInmap = getMapInList(list, summaryConfigParams.getMetadataVO().getCode());
 
-		summaryInmap.put(PREFIX, summaryColumnParams.getPrefix());
-		summaryInmap.put(IS_ALWAYS_SHOWN, summaryColumnParams.getDisplayCondition() == SummaryColumnParams.DisplayCondition.ALWAYS);
-		if (summaryColumnParams.getReferenceMetadataDisplay() != null) {
-			summaryInmap.put(REFERENCE_METADATA_DISPLAY, summaryColumnParams.getReferenceMetadataDisplay().ordinal());
+		summaryInmap.put(PREFIX, summaryConfigParams.getPrefix());
+		summaryInmap.put(IS_ALWAYS_SHOWN, summaryConfigParams.getDisplayCondition() == SummaryConfigParams.DisplayCondition.ALWAYS);
+		if (summaryConfigParams.getReferenceMetadataDisplay() != null) {
+			summaryInmap.put(REFERENCE_METADATA_DISPLAY, summaryConfigParams.getReferenceMetadataDisplay().ordinal());
 		}
 
 		saveMetadata(modifiableMap);
 	}
 
-	public void deleteMetadataForSummaryColumn(SummaryColumnVO summaryColumnParams) {
+	public void deleteMetadataForSummaryColumn(SummaryConfigElementVO summaryColumnParams) {
 		Map<String, Object> modifiableMap = copyUnModifiableMapToModifiableMap(getSummaryMetadata().getCustomParameter());
 
-		List<Map<String, Object>> list = (List) modifiableMap.get(SUMMARY_COLOMN);
+		List<Map<String, Object>> list = (List) modifiableMap.get(SUMMARY_CONFIG);
 
 		Map<String, Object> summaryInmap = getMapInList(list, summaryColumnParams.getMetadataVO().getCode());
 
@@ -137,10 +137,10 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 		return null;
 	}
 
-	public int findMetadataIndex(List<SummaryColumnVO> metadataList, String metadaCode) {
+	public int findMetadataIndex(List<SummaryConfigElementVO> metadataList, String metadaCode) {
 		for (int i = 0; i < metadataList.size(); i++) {
-			SummaryColumnVO summaryColumnVO = metadataList.get(i);
-			if (summaryColumnVO.getMetadataVO().getCode().equalsIgnoreCase(metadaCode)) {
+			SummaryConfigElementVO summaryConfigElementVO = metadataList.get(i);
+			if (summaryConfigElementVO.getMetadataVO().getCode().equalsIgnoreCase(metadaCode)) {
 				return i;
 			}
 		}
@@ -167,7 +167,7 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
 	public void moveMetadataDown(String metadataCode) {
 		Map<String, Object> modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
-		List<Map<String, Object>> list = (List) modifiableMap.get(SUMMARY_COLOMN);
+		List<Map<String, Object>> list = (List) modifiableMap.get(SUMMARY_CONFIG);
 
 		int index = findMetadataInMapList(list, metadataCode);
 
@@ -177,13 +177,13 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
 		Collections.swap(list, index, index + 1);
 
-		modifiableMap.put(SUMMARY_COLOMN, list);
+		modifiableMap.put(SUMMARY_CONFIG, list);
 		saveMetadata(modifiableMap);
 	}
 
 	public void moveMetadataUp(String metadataCode) {
 		Map<String, Object> modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
-		List<Map<String, Object>> list = (List) modifiableMap.get(SUMMARY_COLOMN);
+		List<Map<String, Object>> list = (List) modifiableMap.get(SUMMARY_CONFIG);
 
 		int index = findMetadataInMapList(list, metadataCode);
 
@@ -193,35 +193,35 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 
 		Collections.swap(list, index, index - 1);
 
-		modifiableMap.put(SUMMARY_COLOMN, list);
+		modifiableMap.put(SUMMARY_CONFIG, list);
 		saveMetadata(modifiableMap);
 	}
 
-	public void addMetadaForSummary(SummaryColumnParams summaryColumnParams) {
+	public void addMetadaForSummary(SummaryConfigParams summaryConfigParams) {
 		Map<String, Object> modifiableMap = copyUnModifiableMapToModifiableMap((Map) getSummaryMetadata().getCustomParameter());
 
-		List<Map<String, Object>> list = (List) modifiableMap.get(SUMMARY_COLOMN);
+		List<Map<String, Object>> list = (List) modifiableMap.get(SUMMARY_CONFIG);
 
 		if (list == null) {
 			list = new ArrayList();
 		}
 
 		Map summaryInmap = new HashMap();
-		summaryInmap.put(PREFIX, summaryColumnParams.getPrefix());
-		summaryInmap.put(IS_ALWAYS_SHOWN, summaryColumnParams.getDisplayCondition() == SummaryColumnParams.DisplayCondition.ALWAYS);
-		summaryInmap.put(METADATA_CODE, summaryColumnParams.getMetadataVO().getCode());
-		if (summaryColumnParams.getReferenceMetadataDisplay() != null) {
-			summaryInmap.put(REFERENCE_METADATA_DISPLAY, summaryColumnParams.getReferenceMetadataDisplay().ordinal());
+		summaryInmap.put(PREFIX, summaryConfigParams.getPrefix());
+		summaryInmap.put(IS_ALWAYS_SHOWN, summaryConfigParams.getDisplayCondition() == SummaryConfigParams.DisplayCondition.ALWAYS);
+		summaryInmap.put(METADATA_CODE, summaryConfigParams.getMetadataVO().getCode());
+		if (summaryConfigParams.getReferenceMetadataDisplay() != null) {
+			summaryInmap.put(REFERENCE_METADATA_DISPLAY, summaryConfigParams.getReferenceMetadataDisplay().ordinal());
 		}
 		list.add(summaryInmap);
 
-		modifiableMap.put(SUMMARY_COLOMN, list);
+		modifiableMap.put(SUMMARY_CONFIG, list);
 		saveMetadata(modifiableMap);
 	}
 
 	public void saveMetadata(final Map<String, Object> customParameter) {
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		if (!LangUtils.areNullableEqual(originalCustomParametersSummaryColumn, customParameter.get(SUMMARY_COLOMN))
+		if (!LangUtils.areNullableEqual(originalCustomParametersSummaryColumn, customParameter.get(SUMMARY_CONFIG))
 			&& !appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired()) {
 			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 		}
@@ -233,25 +233,25 @@ public class SummaryColumnPresenter extends SingleSchemaBasePresenter<SummaryCol
 		});
 	}
 
-	public boolean isThereAModification(SummaryColumnParams summaryColumnParams) {
-		Map<String, Object> map = getMapInList(originalCustomParametersSummaryColumn, summaryColumnParams.getMetadataVO().getCode());
+	public boolean isThereAModification(SummaryConfigParams summaryConfigParams) {
+		Map<String, Object> map = getMapInList(originalCustomParametersSummaryColumn, summaryConfigParams.getMetadataVO().getCode());
 
 		if (map == null) {
 			return true;
 		}
 
-		SummaryColumnParams.DisplayCondition displayCondition = SummaryColumnParams.DisplayCondition.COMPLETED;
+		SummaryConfigParams.DisplayCondition displayCondition = SummaryConfigParams.DisplayCondition.COMPLETED;
 		String alwaysShown = (String) map.get(IS_ALWAYS_SHOWN);
 		if (Boolean.TRUE.equals(alwaysShown)) {
-			displayCondition = SummaryColumnParams.DisplayCondition.ALWAYS;
+			displayCondition = SummaryConfigParams.DisplayCondition.ALWAYS;
 		}
 
-		SummaryColumnParams.ReferenceMetadataDisplay referenceMetadataDisplay = SummaryColumnParams.ReferenceMetadataDisplay.fromInteger((Integer) map.get(REFERENCE_METADATA_DISPLAY));
+		SummaryConfigParams.ReferenceMetadataDisplay referenceMetadataDisplay = SummaryConfigParams.ReferenceMetadataDisplay.fromInteger((Integer) map.get(REFERENCE_METADATA_DISPLAY));
 
-		return !(map.get(METADATA_CODE).equals(summaryColumnParams.getMetadataVO().getCode())
-				 && map.get(PREFIX).equals(summaryColumnParams.getPrefix())
-				 && displayCondition == summaryColumnParams.getDisplayCondition()
-				 && referenceMetadataDisplay == summaryColumnParams.getReferenceMetadataDisplay());
+		return !(map.get(METADATA_CODE).equals(summaryConfigParams.getMetadataVO().getCode())
+				 && map.get(PREFIX).equals(summaryConfigParams.getPrefix())
+				 && displayCondition == summaryConfigParams.getDisplayCondition()
+				 && referenceMetadataDisplay == summaryConfigParams.getReferenceMetadataDisplay());
 
 
 	}

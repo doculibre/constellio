@@ -66,7 +66,7 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 		metadataLookupField = new MetadataVOLookupField(new ArrayList<MetadataVO>());
 		metadataLookupField.setCaption($("FolderUniqueKeyMetadataConfiguratorViewImpl.metadata"));
 
-		List<FolderUnicityVO> summaryColumnVOList = presenter.folderUnicityVOList();
+		List<FolderUnicityVO> unicityVOList = presenter.unicityVOList();
 
 		metadataLookupField.setRequired(true);
 		metadataLookupField.setImmediate(true);
@@ -75,7 +75,7 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 
 		table = new BaseTable(getClass().getName());
 
-		folderUniqueKeyDataProvider = new FolderUniqueKeyDataProvider(summaryColumnVOList);
+		folderUniqueKeyDataProvider = new FolderUniqueKeyDataProvider(unicityVOList);
 		folderUniqueKeyContainer = new FolderUniqueKeyContainer(folderUniqueKeyDataProvider, this);
 
 		table.setContainerDataSource(folderUniqueKeyContainer);
@@ -132,7 +132,7 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 	}
 
 	private void addConfiguration(FolderUniqueKeyParams viewObject) {
-		FolderUnicityVO folderUnicityVO = summaryColumnParamsToSummaryVO(viewObject);
+		FolderUnicityVO folderUnicityVO = uniqueKeyparamsToUniqueKeyVO(viewObject);
 
 		presenter.addMetadaForUnicity(viewObject);
 		folderUniqueKeyDataProvider.addFolderUnicityVO(folderUnicityVO);
@@ -172,18 +172,18 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 
 
 
-	private FolderUnicityVO summaryColumnParamsToSummaryVO(FolderUniqueKeyParams folderUniqueKeyParams) {
-		FolderUnicityVO summaryColumnVO = new FolderUnicityVO();
-		summaryColumnVO.setMetadataVO(folderUniqueKeyParams.getMetadataVO());
+	private FolderUnicityVO uniqueKeyparamsToUniqueKeyVO(FolderUniqueKeyParams folderUniqueKeyParams) {
+		FolderUnicityVO unicityVO = new FolderUnicityVO();
+		unicityVO.setMetadataVO(folderUniqueKeyParams.getMetadataVO());
 
-		return summaryColumnVO;
+		return unicityVO;
 	}
 
 
 	private void removeMetadataFromPossibleSelection() {
-		List<FolderUnicityVO> summaryColumnVOList = presenter.folderUnicityVOList();
+		List<FolderUnicityVO> unictyVOList = presenter.unicityVOList();
 
-		for (FolderUnicityVO summaryColumnVO : summaryColumnVOList) {
+		for (FolderUnicityVO summaryColumnVO : unictyVOList) {
 			removeMetadataVOFromList(summaryColumnVO.getMetadataVO().getLocalCode());
 		}
 	}
@@ -201,7 +201,7 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 	}
 
 	public void deleteSummaryMetadata(FolderUnicityVO summaryColumnVO) {
-		this.presenter.deleteMetadataForSummaryColumn(summaryColumnVO);
+		this.presenter.deleteMetadataInUnicityConfig(summaryColumnVO);
 		this.folderUniqueKeyDataProvider.removeFolderUnicityVO(summaryColumnVO);
 		this.folderUniqueKeyDataProvider.fireDataRefreshEvent();
 		refreshMetadataLookup();
