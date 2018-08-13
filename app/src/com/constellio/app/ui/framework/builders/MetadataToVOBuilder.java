@@ -149,12 +149,14 @@ public class MetadataToVOBuilder implements Serializable {
 		//		Language.withCode(sessionContext.getCurrentLocale().getLanguage())));
 		Locale currentLocale = sessionContext.getCurrentLocale();
 		String metadataLabel = metadata.getLabel(Language.withCode(currentLocale.getLanguage()));
-		CollectionInfoVO collectionInfoVO = schemaVO.getCollectionInfoVO();
 
-		if (isMultiLingual && locale != null && collectionInfoVO.getCollectionLanguages() != null && collectionInfoVO.getCollectionLanguages().size() > 1) {
-			metadataLabel += " (" + locale.getLanguage().toUpperCase() + ")";
+		if(schemaVO != null) {
+			CollectionInfoVO collectionInfoVO = schemaVO.getCollectionInfoVO();
+
+			if (isMultiLingual && locale != null && collectionInfoVO.getCollectionLanguages() != null && collectionInfoVO.getCollectionLanguages().size() > 1) {
+				metadataLabel += " (" + locale.getLanguage().toUpperCase() + ")";
+			}
 		}
-
 		labels.put(currentLocale, metadataLabel);
 
 		Class<? extends Enum<?>> enumClass = metadata.getEnumClass(); // EnumWithSmallCode
