@@ -61,7 +61,7 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 				"consolidatedPdf1",
 				"consolidatedPdf1",
 				"consolidatedPdf1",
-				users.adminIn(zeCollection).getUsername(), true, Locale.FRENCH);
+				users.adminIn(zeCollection).getUsername(), true, Locale.FRENCH.getLanguage());
 
 		AsyncTaskExecutionParams params = new AsyncTaskExecutionParams() {
 			@Override
