@@ -195,7 +195,7 @@ public class MetadataToVOBuilder implements Serializable {
 		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 				enabled,
-				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, schemaVO.getCollectionInfoVO());
+				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, schemaVO != null ? schemaVO.getCollectionInfoVO() : null);
 	}
 
 }
