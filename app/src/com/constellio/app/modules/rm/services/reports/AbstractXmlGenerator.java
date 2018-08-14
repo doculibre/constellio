@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
@@ -92,6 +93,7 @@ public abstract class AbstractXmlGenerator {
 	private RecordServices recordServices;
 
 	private MetadataSchemasManager metadataSchemasManager;
+	protected SchemasDisplayManager displayManager;
 	private RMSchemasRecordsServices rm;
 
 	protected AbstractXmlGeneratorParameters xmlGeneratorParameters;
@@ -102,6 +104,7 @@ public abstract class AbstractXmlGenerator {
 		this.recordServices = this.factory.getModelLayerFactory().newRecordServices();
 		this.metadataSchemasManager = this.factory.getModelLayerFactory().getMetadataSchemasManager();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		this.displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 	}
 
 	public RecordServices getRecordServices() {

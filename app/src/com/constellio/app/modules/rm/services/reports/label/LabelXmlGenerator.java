@@ -9,7 +9,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import org.apache.commons.lang.StringUtils;
+import org.jdom2.CDATA;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
@@ -249,7 +251,13 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 		}
 
 		Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
-		String data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+		boolean isRichTextInputType = displayManager.getMetadata(getCollection(), metadata.getCode()).getInputType() == MetadataInputType.RICHTEXT;
+		String data = null;
+		if(isRichTextInputType) {
+			data = getToStringOrNull(recordElement.get(metadata));
+		} else {
+			data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+		}
 		if (metadata.isMultivalue()) {
 			StringBuilder valueBuilder = new StringBuilder();
 			List<Object> objects = recordElement.getList(metadata);
@@ -266,7 +274,12 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 		if (metadata.getLocalCode().toLowerCase().contains("path")) {
 			data = this.getPath(recordElement);
 		}
-		metadataXmlElement.setText(data);
+
+		if(data != null && isRichTextInputType) {
+			metadataXmlElement.setContent(new CDATA(data));
+		} else {
+			metadataXmlElement.setText(data);
+		}
 		return Collections.singletonList(metadataXmlElement);
 	}
 

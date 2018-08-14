@@ -6,7 +6,9 @@ import static java.util.Arrays.asList;
 
 import java.util.*;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
+import org.jdom2.CDATA;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
@@ -119,7 +121,13 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
 		metadataXmlElement.setAttribute("label", metadata.getFrenchLabel());
 		metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));
-		String data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+		boolean isRichTextInputType = displayManager.getMetadata(getCollection(), metadata.getCode()).getInputType() == MetadataInputType.RICHTEXT;
+		String data = null;
+		if(isRichTextInputType) {
+			data = getToStringOrNull(recordElement.get(metadata));
+		} else {
+			data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+		}
 		if (metadata.isMultivalue()) {
 			StringBuilder valueBuilder = new StringBuilder();
 			List<Object> objects = recordElement.getList(metadata);
@@ -136,7 +144,12 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		if (metadata.getLocalCode().toLowerCase().contains("path")) {
 			data = this.getPath(recordElement);
 		}
-		metadataXmlElement.setText(data);
+
+		if(data != null && isRichTextInputType) {
+			metadataXmlElement.setContent(new CDATA(data));
+		} else {
+			metadataXmlElement.setText(data);
+		}
 		return Collections.singletonList(metadataXmlElement);
 	}
 
