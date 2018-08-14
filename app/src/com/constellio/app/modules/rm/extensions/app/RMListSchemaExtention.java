@@ -30,7 +30,7 @@ public class RMListSchemaExtention extends ListSchemaExtention {
 					Map<String, String> parameters = new HashMap<>();
 					parameters.put("schemaCode", listSchemaExtraCommandParams.getSchemaVO().getCode());
 					String params = ParamUtils.addParams(NavigatorConfigurationService.FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR, parameters);
-					listSchemaExtraCommandParams.getView().navigate().to(RMViews.class).folderSummaryColumn(params);
+					listSchemaExtraCommandParams.getView().navigate().to(RMViews.class).folderSummaryConfig(params);
 				}
 			}, $("ListSchemaViewImpl.menu.resumeConfiguration"), new ThemeResource("images/icons/config/display-config-summary-column.png")));
 

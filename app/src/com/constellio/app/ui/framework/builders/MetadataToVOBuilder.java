@@ -165,7 +165,9 @@ public class MetadataToVOBuilder implements Serializable {
 		return newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 				enabled,
-				structureFactory, metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(), metadata.getCustomAttributes(), isMultiLingual, locale, metadata.getCustomParameter());
+				structureFactory, metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(),
+				metadata.getCustomAttributes(), isMultiLingual, locale, metadata.getCustomParameter(),
+				schemaVO != null ? schemaVO.getCollectionInfoVO() : null);
 	}
 
 	protected MetadataVO newMetadataVO(
@@ -191,11 +193,12 @@ public class MetadataToVOBuilder implements Serializable {
 			Object defaultValue,
 			String inputMask, Set<String> customAttributes,
 			boolean isMultiLingual, Locale locale,
-			Map<String, Object> customParameters) {
+			Map<String, Object> customParameters,
+			CollectionInfoVO collectionInfoVO) {
 		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 				enabled,
-				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, schemaVO.getCollectionInfoVO());
+				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO);
 	}
 
 }

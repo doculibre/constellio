@@ -704,7 +704,7 @@ public class CoreViews {
 		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.SIP_PROGRESSION, params));
 	}
 
-	public void folderSummaryColumn(String param) {
+	public void folderSummaryConfig(String param) {
 		navigator.navigateTo(NavigatorConfigurationService.SUMMARY_CONFIGURATOR + "/" + param);
 	}
 

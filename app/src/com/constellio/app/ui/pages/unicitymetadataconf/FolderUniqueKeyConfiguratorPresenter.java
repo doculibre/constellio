@@ -31,7 +31,7 @@ public class FolderUniqueKeyConfiguratorPresenter extends SingleSchemaBasePresen
 	public static final String UNIQUE_KEY_CONFIG = FolderUniqueKeyCalculator.UNIQUE_KEY_CONFIG;
 
 
-	List<Map<String, Object>> originalCustomParametersSummaryColumn;
+	List<Map<String, Object>> originalCustomParametersUniqueKeyConfig;
 
 	public FolderUniqueKeyConfiguratorPresenter(FolderUniqueKeyConfiguratorView view) {
 		super(view);
@@ -47,9 +47,9 @@ public class FolderUniqueKeyConfiguratorPresenter extends SingleSchemaBasePresen
 		this.setSchemaCode(paramsMap.get(SCHEMA_CODE));
 
 		if (getFolderUnicityMetadata().getCustomParameter() != null) {
-			originalCustomParametersSummaryColumn = (List<Map<String, Object>>) getFolderUnicityMetadata().getCustomParameter().get(UNIQUE_KEY_CONFIG);
+			originalCustomParametersUniqueKeyConfig = (List<Map<String, Object>>) getFolderUnicityMetadata().getCustomParameter().get(UNIQUE_KEY_CONFIG);
 		} else {
-			originalCustomParametersSummaryColumn = null;
+			originalCustomParametersUniqueKeyConfig = null;
 		}
 	}
 
@@ -69,10 +69,10 @@ public class FolderUniqueKeyConfiguratorPresenter extends SingleSchemaBasePresen
 		return metadataVOs;
 	}
 
-	public List<FolderUnicityVO> folderUnicityVOList() {
+	public List<FolderUnicityVO> unicityVOList() {
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		Object objectList = getFolderUnicityMetadata().getCustomParameter().get(UNIQUE_KEY_CONFIG);
-		List<FolderUnicityVO> lSummaryColumnVOList = new ArrayList<>();
+		List<FolderUnicityVO> lSummaryConfigVOList = new ArrayList<>();
 
 		if (objectList instanceof List) {
 			for (Object listObject : (List) objectList) {
@@ -87,19 +87,19 @@ public class FolderUniqueKeyConfiguratorPresenter extends SingleSchemaBasePresen
 
 				folderUnicityVO.setMetadataVO(metadataVO);
 
-				lSummaryColumnVOList.add(folderUnicityVO);
+				lSummaryConfigVOList.add(folderUnicityVO);
 			}
 		}
 
-		return lSummaryColumnVOList;
+		return lSummaryConfigVOList;
 	}
 
-	public void deleteMetadataForSummaryColumn(FolderUnicityVO summaryColumnParams) {
+	public void deleteMetadataInUnicityConfig(FolderUnicityVO folderUnicityConfigItemVO) {
 		Map<String, Object> modifiableMap = copyUnModifiableMapToModifiableMap(getFolderUnicityMetadata().getCustomParameter());
 
 		List<Map<String, Object>> list = (List) modifiableMap.get(UNIQUE_KEY_CONFIG);
 
-		Map<String, Object> summaryInmap = getMapInList(list, summaryColumnParams.getMetadataVO().getCode());
+		Map<String, Object> summaryInmap = getMapInList(list, folderUnicityConfigItemVO.getMetadataVO().getCode());
 
 		list.remove(summaryInmap);
 
@@ -138,7 +138,7 @@ public class FolderUniqueKeyConfiguratorPresenter extends SingleSchemaBasePresen
 
 	public void saveMetadata(final Map<String, Object> customParameter) {
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
-		if (!LangUtils.areNullableEqual(originalCustomParametersSummaryColumn, customParameter.get(UNIQUE_KEY_CONFIG))
+		if (!LangUtils.areNullableEqual(originalCustomParametersUniqueKeyConfig, customParameter.get(UNIQUE_KEY_CONFIG))
 			&& !appLayerFactory.getSystemGlobalConfigsManager().isReindexingRequired()) {
 			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 		}

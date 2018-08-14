@@ -6,9 +6,9 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
-import com.constellio.app.ui.pages.summarycolumn.SummaryColumnPresenter;
-import com.constellio.app.ui.pages.summarycolumn.SummaryColumnView;
+import com.constellio.app.ui.pages.summaryconfig.SummaryConfigParams;
+import com.constellio.app.ui.pages.summaryconfig.SummaryConfigPresenter;
+import com.constellio.app.ui.pages.summaryconfig.SummaryConfigView;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -27,7 +27,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
+public class SummaryCalculatorAcceptanceTest extends ConstellioTest {
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	Users users = new Users();
@@ -35,12 +35,12 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 	RecordServices recordServices;
 
 	@Mock
-	SummaryColumnView view;
+	SummaryConfigView view;
 	MockedNavigation navigator;
 	@Mock
 	SessionContext sessionContext;
 
-	SummaryColumnPresenter summaryColumnPresenter;
+	SummaryConfigPresenter summaryConfigPresenter;
 
 	@Before
 	public void setUp() {
@@ -55,21 +55,21 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 		when(sessionContext.getCurrentCollection()).thenReturn(zeCollection);
 		when(sessionContext.getCurrentLocale()).thenReturn(Locale.FRENCH);
 
-		summaryColumnPresenter = new SummaryColumnPresenter(view, Folder.DEFAULT_SCHEMA);
+		summaryConfigPresenter = new SummaryConfigPresenter(view, Folder.DEFAULT_SCHEMA);
 		recordServices = getModelLayerFactory().newRecordServices();
 	}
 
 	@Test
-	public void givenFolderWithMetadataValueAndReferenceSummaryColumnParameterThenSummaryMetadataHaveAValueTest()
+	public void givenFolderWithMetadataValueAndReferenceSummaryConfigParameterThenSummaryMetadataHaveAValueTest()
 			throws Exception {
-		SummaryColumnParams summaryColumnParams = new SummaryColumnParams();
+		SummaryConfigParams summaryConfigParams = new SummaryConfigParams();
 
-		summaryColumnParams.setMetadataVO(findMetadata(Folder.ADMINISTRATIVE_UNIT));
-		summaryColumnParams.setPrefix("prefix :");
-		summaryColumnParams.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
-		summaryColumnParams.setReferenceMetadataDisplay(SummaryColumnParams.ReferenceMetadataDisplay.CODE);
+		summaryConfigParams.setMetadataVO(findMetadata(Folder.ADMINISTRATIVE_UNIT));
+		summaryConfigParams.setPrefix("prefix :");
+		summaryConfigParams.setDisplayCondition(SummaryConfigParams.DisplayCondition.ALWAYS);
+		summaryConfigParams.setReferenceMetadataDisplay(SummaryConfigParams.ReferenceMetadataDisplay.CODE);
 
-		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams);
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams);
 
 
 		Folder folder = createFolder();
@@ -85,14 +85,14 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenFolderWithMetadataValueAndReferenceSummaryColumnTitleParameterThenSummaryMetadataHaveAValueTest()
 			throws Exception {
-		SummaryColumnParams summaryColumnParams = new SummaryColumnParams();
+		SummaryConfigParams summaryConfigParams = new SummaryConfigParams();
 
-		summaryColumnParams.setMetadataVO(findMetadata(Folder.ADMINISTRATIVE_UNIT));
-		summaryColumnParams.setPrefix("prefix :");
-		summaryColumnParams.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
-		summaryColumnParams.setReferenceMetadataDisplay(SummaryColumnParams.ReferenceMetadataDisplay.TITLE);
+		summaryConfigParams.setMetadataVO(findMetadata(Folder.ADMINISTRATIVE_UNIT));
+		summaryConfigParams.setPrefix("prefix :");
+		summaryConfigParams.setDisplayCondition(SummaryConfigParams.DisplayCondition.ALWAYS);
+		summaryConfigParams.setReferenceMetadataDisplay(SummaryConfigParams.ReferenceMetadataDisplay.TITLE);
 
-		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams);
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams);
 
 		Folder folder = createFolder();
 		recordServices.add(folder);
@@ -122,13 +122,13 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenOneFolderWithValueAndDynamicDependancyThenSummaryMetadataHaveAValueTest()
 			throws Exception {
-		SummaryColumnParams summaryColumnParams = new SummaryColumnParams();
+		SummaryConfigParams summaryConfigParams = new SummaryConfigParams();
 
-		summaryColumnParams.setMetadataVO(findMetadata(Folder.TITLE));
-		summaryColumnParams.setPrefix("prefix :");
-		summaryColumnParams.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
+		summaryConfigParams.setMetadataVO(findMetadata(Folder.TITLE));
+		summaryConfigParams.setPrefix("prefix :");
+		summaryConfigParams.setDisplayCondition(SummaryConfigParams.DisplayCondition.ALWAYS);
 
-		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams);
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams);
 
 		Folder folder = createFolder();
 		recordServices.add(folder);
@@ -144,14 +144,14 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenOneFolderWithValueAndDynamicDependancyMultiValueThenSummaryMetadataHaveAValueTest()
 			throws Exception {
-		SummaryColumnParams summaryColumnParams = new SummaryColumnParams();
+		SummaryConfigParams summaryConfigParams = new SummaryConfigParams();
 
-		summaryColumnParams.setMetadataVO(findMetadata(Folder.KEYWORDS));
-		summaryColumnParams.setPrefix("prefix :");
-		summaryColumnParams.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
-		summaryColumnParams.setReferenceMetadataDisplay(SummaryColumnParams.ReferenceMetadataDisplay.CODE);
+		summaryConfigParams.setMetadataVO(findMetadata(Folder.KEYWORDS));
+		summaryConfigParams.setPrefix("prefix :");
+		summaryConfigParams.setDisplayCondition(SummaryConfigParams.DisplayCondition.ALWAYS);
+		summaryConfigParams.setReferenceMetadataDisplay(SummaryConfigParams.ReferenceMetadataDisplay.CODE);
 
-		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams);
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams);
 
 		Folder folder = createFolder();
 
@@ -171,31 +171,31 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 	public void givenOneFolderWithValueDynamicDependancyMultiValueAndTwoDynamicDepencySingleThenSummaryMetadataHaveAValueTest()
 			throws Exception {
 
-		SummaryColumnParams summaryColumnParams1 = new SummaryColumnParams();
+		SummaryConfigParams summaryConfigParams1 = new SummaryConfigParams();
 
-		summaryColumnParams1.setMetadataVO(findMetadata(Folder.KEYWORDS));
-		summaryColumnParams1.setPrefix("prefix1 :");
-		summaryColumnParams1.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
+		summaryConfigParams1.setMetadataVO(findMetadata(Folder.KEYWORDS));
+		summaryConfigParams1.setPrefix("prefix1 :");
+		summaryConfigParams1.setDisplayCondition(SummaryConfigParams.DisplayCondition.ALWAYS);
 
-		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams1);
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams1);
 
-		SummaryColumnParams summaryColumnParams2 = new SummaryColumnParams();
+		SummaryConfigParams summaryConfigParams2 = new SummaryConfigParams();
 
-		summaryColumnParams2.setMetadataVO(findMetadata(Folder.ADMINISTRATIVE_UNIT));
-		summaryColumnParams2.setPrefix("prefix2 :");
-		summaryColumnParams2.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
-		summaryColumnParams2.setReferenceMetadataDisplay(SummaryColumnParams.ReferenceMetadataDisplay.CODE);
+		summaryConfigParams2.setMetadataVO(findMetadata(Folder.ADMINISTRATIVE_UNIT));
+		summaryConfigParams2.setPrefix("prefix2 :");
+		summaryConfigParams2.setDisplayCondition(SummaryConfigParams.DisplayCondition.ALWAYS);
+		summaryConfigParams2.setReferenceMetadataDisplay(SummaryConfigParams.ReferenceMetadataDisplay.CODE);
 
-		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams2);
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams2);
 
-		SummaryColumnParams summaryColumnParams3 = new SummaryColumnParams();
+		SummaryConfigParams summaryConfigParams3 = new SummaryConfigParams();
 
-		summaryColumnParams3.setMetadataVO(findMetadata(Folder.DESCRIPTION));
-		summaryColumnParams3.setPrefix("prefix3 :");
-		summaryColumnParams3.setDisplayCondition(SummaryColumnParams.DisplayCondition.COMPLETED);
-		summaryColumnParams3.setReferenceMetadataDisplay(SummaryColumnParams.ReferenceMetadataDisplay.CODE);
+		summaryConfigParams3.setMetadataVO(findMetadata(Folder.DESCRIPTION));
+		summaryConfigParams3.setPrefix("prefix3 :");
+		summaryConfigParams3.setDisplayCondition(SummaryConfigParams.DisplayCondition.COMPLETED);
+		summaryConfigParams3.setReferenceMetadataDisplay(SummaryConfigParams.ReferenceMetadataDisplay.CODE);
 
-		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams3);
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams3);
 
 		Folder folder = createFolder();
 
@@ -213,13 +213,13 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenDateTimeInSummaryColumnThenFormatCorrectly() throws RecordServicesException {
-		SummaryColumnParams summaryColumnParams1 = new SummaryColumnParams();
+		SummaryConfigParams summaryConfigParams1 = new SummaryConfigParams();
 
-		summaryColumnParams1.setMetadataVO(findMetadata(Folder.BORROW_DATE));
-		summaryColumnParams1.setPrefix("prefix1 :");
-		summaryColumnParams1.setDisplayCondition(SummaryColumnParams.DisplayCondition.ALWAYS);
+		summaryConfigParams1.setMetadataVO(findMetadata(Folder.BORROW_DATE));
+		summaryConfigParams1.setPrefix("prefix1 :");
+		summaryConfigParams1.setDisplayCondition(SummaryConfigParams.DisplayCondition.ALWAYS);
 
-		summaryColumnPresenter.addMetadaForSummary(summaryColumnParams1);
+		summaryConfigPresenter.addMetadaForSummary(summaryConfigParams1);
 
 		Folder folder = createFolder();
 
@@ -236,7 +236,7 @@ public class SummaryColumnCalculatorAcceptanceTest extends ConstellioTest {
 
 	private MetadataVO findMetadata(String localCode) {
 
-		for (MetadataVO metadataVO : summaryColumnPresenter.getMetadatas()) {
+		for (MetadataVO metadataVO : summaryConfigPresenter.getMetadatas()) {
 			if (metadataVO.getLocalCode().equalsIgnoreCase(localCode)) {
 				return metadataVO;
 			}
