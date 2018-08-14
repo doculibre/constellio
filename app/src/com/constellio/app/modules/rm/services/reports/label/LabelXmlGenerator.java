@@ -267,11 +267,9 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 
 		Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
 		boolean isRichTextInputType = displayManager.getMetadata(getCollection(), metadata.getCode()).getInputType() == MetadataInputType.RICHTEXT;
-		String data = null;
-		if(isRichTextInputType) {
-			data = getToStringOrNull(recordElement.get(metadata));
-		} else {
-			data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+		String data = getToStringOrNull(recordElement.get(metadata, getLocale()));
+		if(!isRichTextInputType) {
+			data = formatData(data, metadata);
 		}
 		if (metadata.isMultivalue()) {
 			StringBuilder valueBuilder = new StringBuilder();

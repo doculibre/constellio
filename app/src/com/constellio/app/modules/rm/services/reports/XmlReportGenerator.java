@@ -105,12 +105,10 @@ public class XmlReportGenerator extends AbstractXmlGenerator {
         metadataXmlElement.setAttribute("label", metadata.getFrenchLabel());
         metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));
         boolean isRichTextInputType = displayManager.getMetadata(getCollection(), metadata.getCode()).getInputType() == MetadataInputType.RICHTEXT;
-        String data = null;
-        if(isRichTextInputType) {
-            data = getToStringOrNull(recordElement.get(metadata));
-        } else {
-            data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
-        }
+		String data = getToStringOrNull(recordElement.get(metadata, getLocale()));
+		if(!isRichTextInputType) {
+			data = formatData(data, metadata);
+		}
         if(metadata.getLocalCode().toLowerCase().contains("path")) {
             data = this.getPath(recordElement);
         }
