@@ -34,7 +34,7 @@ public class RMMigrationTo8_0_1 extends MigrationHelper implements MigrationScri
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder defaultSchema = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE);
-			defaultSchema.createUndeletable(Folder.SUMMARY).setType(MetadataValueType.STRING).defineDataEntry().asCalculated(SummaryCalculator.class);
+			defaultSchema.createUndeletable(Folder.SUMMARY).setType(MetadataValueType.TEXT).defineDataEntry().asCalculated(SummaryCalculator.class);
 			// summary
 		}
 	}
