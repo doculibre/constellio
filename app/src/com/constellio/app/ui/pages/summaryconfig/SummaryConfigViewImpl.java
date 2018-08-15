@@ -1,10 +1,10 @@
-package com.constellio.app.ui.pages.summarycolumn;
+package com.constellio.app.ui.pages.summaryconfig;
 
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.SummaryColumnVO;
+import com.constellio.app.ui.entities.SummaryConfigElementVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
@@ -13,9 +13,10 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.lookup.MetadataVOLookupField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.containers.SummaryColumnContainer;
-import com.constellio.app.ui.framework.data.SummaryColumnDataProvider;
+import com.constellio.app.ui.framework.containers.SummaryConfigContainer;
+import com.constellio.app.ui.framework.data.SummaryConfigDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.vaadin.data.Property;
@@ -29,9 +30,9 @@ import java.util.*;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumnView {
+public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfigView, AdminViewGroup {
 
-	private SummaryColumnPresenter presenter;
+	private SummaryConfigPresenter presenter;
 
 	@PropertyId("metadataVO")
 	private MetadataVOLookupField metadataLookupField;
@@ -45,18 +46,18 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 	@PropertyId("referenceMetadataDisplay")
 	private ComboBox referenceMetadataDisplayComboBox;
 
-	private SummaryColumnDataProvider summaryColumnDataProvider;
+	private SummaryConfigDataProvider summaryConfigDataProvider;
 
 	private Table table;
-	private SummaryColumnContainer summaryColumnContainer;
-	private SummaryColumnVO modifingSummaryColumnVO;
+	private SummaryConfigContainer summaryConfigContainer;
+	private SummaryConfigElementVO modifingSummaryConfigElementVO;
 
 	private VerticalLayout mainVerticalLayout;
 
 	List<MetadataVO> metadataVOList;
 
-	public SummaryColumnViewImpl() {
-		presenter = new SummaryColumnPresenter(this);
+	public SummaryConfigViewImpl() {
+		presenter = new SummaryConfigPresenter(this);
 	}
 
 
@@ -69,11 +70,11 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 
 	@Override
 	public String getTitle() {
-		return $("SummaryColumnViewImpl.title");
+		return $("SummaryConfigViewImpl.title");
 	}
 
 	@Override
-	public SummaryColumnPresenter getSummaryColumnPresenter() {
+	public SummaryConfigPresenter getSummaryConfigPresenter() {
 		return presenter;
 	}
 
@@ -82,10 +83,10 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 
 		metadataLookupField = new MetadataVOLookupField(new ArrayList<MetadataVO>());
 
-		metadataLookupField.setCaption($("SummaryColumnViewImpl.metadataHeader"));
-		//$("SummaryColumnViewImpl.metadata")
+		metadataLookupField.setCaption($("SummaryConfigViewImpl.metadataHeader"));
+		//$("SummaryConfigViewImpl.metadata")
 
-		List<SummaryColumnVO> summaryColumnVOList = presenter.summaryColumnVOList();
+		List<SummaryConfigElementVO> summaryConfigElementVOList = presenter.summaryConfigVOList();
 
 		metadataLookupField.setRequired(true);
 		metadataLookupField.setImmediate(true);
@@ -93,7 +94,7 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 		metadataLookupField.addValueChangeListener(new Property.ValueChangeListener() {
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
-				if (modifingSummaryColumnVO != null) {
+				if (modifingSummaryConfigElementVO != null) {
 					clearFields(false);
 					removeMetadataFromPossibleSelection();
 				}
@@ -115,40 +116,40 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 
 		table = new BaseTable(getClass().getName());
 
-		summaryColumnDataProvider = new SummaryColumnDataProvider(summaryColumnVOList);
-		summaryColumnContainer = new SummaryColumnContainer(summaryColumnDataProvider, this);
+		summaryConfigDataProvider = new SummaryConfigDataProvider(summaryConfigElementVOList);
+		summaryConfigContainer = new SummaryConfigContainer(summaryConfigDataProvider, this);
 
-		table.setContainerDataSource(summaryColumnContainer);
-		table.setColumnHeader(SummaryColumnContainer.UP, "");
-		table.setColumnHeader(SummaryColumnContainer.DOWN, "");
-		table.setColumnHeader(SummaryColumnContainer.METADATA_VO, $("SummaryColumnViewImpl.metadataHeader"));
-		table.setColumnHeader(SummaryColumnContainer.PREFIX, $("SummaryColumnViewImpl.prefixHeader"));
-		table.setColumnHeader(SummaryColumnContainer.DISPLAY_CONDITION, $("SummaryColumnViewImpl.displayConditionHeader"));
-		table.setColumnHeader(SummaryColumnContainer.REFERENCE_METADATA_DISPLAY, $("SummaryColumnViewImpl.referenceMetadataDisplay"));
-		table.setColumnHeader(SummaryColumnContainer.MODIFY, "");
-		table.setColumnHeader(SummaryColumnContainer.DELETE, "");
+		table.setContainerDataSource(summaryConfigContainer);
+		table.setColumnHeader(SummaryConfigContainer.UP, "");
+		table.setColumnHeader(SummaryConfigContainer.DOWN, "");
+		table.setColumnHeader(SummaryConfigContainer.METADATA_VO, $("SummaryConfigViewImpl.metadataHeader"));
+		table.setColumnHeader(SummaryConfigContainer.PREFIX, $("SummaryConfigViewImpl.prefixHeader"));
+		table.setColumnHeader(SummaryConfigContainer.DISPLAY_CONDITION, $("SummaryConfigViewImpl.displayConditionHeader"));
+		table.setColumnHeader(SummaryConfigContainer.REFERENCE_METADATA_DISPLAY, $("SummaryConfigViewImpl.referenceMetadataDisplay"));
+		table.setColumnHeader(SummaryConfigContainer.MODIFY, "");
+		table.setColumnHeader(SummaryConfigContainer.DELETE, "");
 
-		prefix = new BaseTextField($("SummaryColumnViewImpl.prefix"));
-		displayCondition = new ListOptionGroup($("SummaryColumnViewImpl.displayCondition"));
+		prefix = new BaseTextField($("SummaryConfigViewImpl.prefix"));
+		displayCondition = new ListOptionGroup($("SummaryConfigViewImpl.displayCondition"));
 		displayCondition.setRequired(true);
-		displayCondition.addItem(SummaryColumnParams.DisplayCondition.COMPLETED);
-		displayCondition.addItem(SummaryColumnParams.DisplayCondition.ALWAYS);
+		displayCondition.addItem(SummaryConfigParams.DisplayCondition.COMPLETED);
+		displayCondition.addItem(SummaryConfigParams.DisplayCondition.ALWAYS);
 
-		referenceMetadataDisplayComboBox = new ComboBox($("SummaryColumnViewImpl.displayConditionHeader"));
+		referenceMetadataDisplayComboBox = new ComboBox($("SummaryConfigViewImpl.displayConditionHeader"));
 		referenceMetadataDisplayComboBox.setImmediate(true);
 		referenceMetadataDisplayComboBox.setTextInputAllowed(false);
 		referenceMetadataDisplayComboBox.setVisible(false);
-		referenceMetadataDisplayComboBox.addItem(SummaryColumnParams.ReferenceMetadataDisplay.CODE);
-		referenceMetadataDisplayComboBox.addItem(SummaryColumnParams.ReferenceMetadataDisplay.TITLE);
+		referenceMetadataDisplayComboBox.addItem(SummaryConfigParams.ReferenceMetadataDisplay.CODE);
+		referenceMetadataDisplayComboBox.addItem(SummaryConfigParams.ReferenceMetadataDisplay.TITLE);
 
-		BaseForm<SummaryColumnParams> baseForm = new BaseForm<SummaryColumnParams>(new SummaryColumnParams(), this, metadataLookupField, prefix, displayCondition, referenceMetadataDisplayComboBox) {
+		BaseForm<SummaryConfigParams> baseForm = new BaseForm<SummaryConfigParams>(new SummaryConfigParams(), this, metadataLookupField, prefix, displayCondition, referenceMetadataDisplayComboBox) {
 			@Override
-			protected void saveButtonClick(final SummaryColumnParams viewObject) {
+			protected void saveButtonClick(final SummaryConfigParams viewObject) {
 				if (!presenter.isReindextionFlag() && presenter.isThereAModification(viewObject)) {
 					ConfirmDialog.show(
 							UI.getCurrent(),
-							$("SummaryColumnViewImpl.save.title"),
-							$("SummaryColumnViewImpl.save.message"),
+							$("SummaryConfigViewImpl.save.title"),
+							$("SummaryConfigViewImpl.save.message"),
 							$("Ok"),
 							$("cancel"),
 							new ConfirmDialog.Listener() {
@@ -166,7 +167,7 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 			}
 
 			@Override
-			protected void cancelButtonClick(SummaryColumnParams viewObject) {
+			protected void cancelButtonClick(SummaryConfigParams viewObject) {
 				clearFields();
 			}
 		};
@@ -182,20 +183,20 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 		return mainVerticalLayout;
 	}
 
-	private void addConfiguration(SummaryColumnParams viewObject) {
-		SummaryColumnVO summaryColumnVO = summaryColumnParamsToSummaryVO(viewObject);
-		if (modifingSummaryColumnVO != null) {
-			presenter.modifyMetadataForSummaryColumn(viewObject);
-			List<SummaryColumnVO> summaryColumnVOList = presenter.summaryColumnVOList();
-			int index = presenter.findMetadataIndex(summaryColumnVOList, viewObject.getMetadataVO().getCode());
-			summaryColumnDataProvider.removeSummaryColumnVO(index);
-			summaryColumnDataProvider.addSummaryColumnVO(index, summaryColumnVO);
+	private void addConfiguration(SummaryConfigParams viewObject) {
+		SummaryConfigElementVO summaryConfigElementVO = summaryColumnParamsToSummaryVO(viewObject);
+		if (modifingSummaryConfigElementVO != null) {
+			presenter.modifyMetadataForSummaryConfig(viewObject);
+			List<SummaryConfigElementVO> summaryConfigElementVOList = presenter.summaryConfigVOList();
+			int index = presenter.findMetadataIndex(summaryConfigElementVOList, viewObject.getMetadataVO().getCode());
+			summaryConfigDataProvider.removeSummaryConfigItemVO(index);
+			summaryConfigDataProvider.addSummaryConfigItemVO(index, summaryConfigElementVO);
 		} else {
 			presenter.addMetadaForSummary(viewObject);
-			summaryColumnDataProvider.addSummaryColumnVO(summaryColumnVO);
+			summaryConfigDataProvider.addSummaryConfigItemVO(summaryConfigElementVO);
 		}
 
-		summaryColumnDataProvider.fireDataRefreshEvent();
+		summaryConfigDataProvider.fireDataRefreshEvent();
 		clearFields();
 		removeMetadataFromPossibleSelection();
 	}
@@ -225,25 +226,25 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 	}
 
 
-	private SummaryColumnVO summaryColumnParamsToSummaryVO(SummaryColumnParams summaryColumnParams) {
-		SummaryColumnVO summaryColumnVO = new SummaryColumnVO();
-		summaryColumnVO.setMetadataVO(summaryColumnParams.getMetadataVO());
-		summaryColumnVO.setAlwaysShown(summaryColumnParams.getDisplayCondition() == SummaryColumnParams.DisplayCondition.ALWAYS);
-		summaryColumnVO.setPrefix(summaryColumnParams.getPrefix());
-		SummaryColumnParams.ReferenceMetadataDisplay referenceMetadataDisplay = summaryColumnParams.getReferenceMetadataDisplay();
+	private SummaryConfigElementVO summaryColumnParamsToSummaryVO(SummaryConfigParams summaryConfigParams) {
+		SummaryConfigElementVO summaryConfigElementVO = new SummaryConfigElementVO();
+		summaryConfigElementVO.setMetadataVO(summaryConfigParams.getMetadataVO());
+		summaryConfigElementVO.setAlwaysShown(summaryConfigParams.getDisplayCondition() == SummaryConfigParams.DisplayCondition.ALWAYS);
+		summaryConfigElementVO.setPrefix(summaryConfigParams.getPrefix());
+		SummaryConfigParams.ReferenceMetadataDisplay referenceMetadataDisplay = summaryConfigParams.getReferenceMetadataDisplay();
 		if (referenceMetadataDisplay != null) {
-			summaryColumnVO.setReferenceMetadataDisplay((referenceMetadataDisplay.ordinal()));
+			summaryConfigElementVO.setReferenceMetadataDisplay((referenceMetadataDisplay.ordinal()));
 		}
 
-		return summaryColumnVO;
+		return summaryConfigElementVO;
 	}
 
 
 	private void removeMetadataFromPossibleSelection() {
-		List<SummaryColumnVO> summaryColumnVOList = presenter.summaryColumnVOList();
+		List<SummaryConfigElementVO> summaryConfigElementVOList = presenter.summaryConfigVOList();
 
-		for (SummaryColumnVO summaryColumnVO : summaryColumnVOList) {
-			removeMetadataVOFromList(summaryColumnVO.getMetadataVO().getLocalCode());
+		for (SummaryConfigElementVO summaryConfigElementVO : summaryConfigElementVOList) {
+			removeMetadataVOFromList(summaryConfigElementVO.getMetadataVO().getLocalCode());
 		}
 	}
 
@@ -270,49 +271,49 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 			this.metadataLookupField.setValue(null);
 		}
 		this.referenceMetadataDisplayComboBox.setValue(null);
-		this.modifingSummaryColumnVO = null;
+		this.modifingSummaryConfigElementVO = null;
 	}
 
-	public void addMetadataToStringLookupField(SummaryColumnVO summaryColumnVO) {
+	public void addMetadataToStringLookupField(SummaryConfigElementVO summaryConfigElementVO) {
 		metadataLookupField.setValue(null);
-		metadataVOList.add(summaryColumnVO.getMetadataVO());
-		metadataLookupField.setValue(summaryColumnVO.getMetadataVO());
+		metadataVOList.add(summaryConfigElementVO.getMetadataVO());
+		metadataLookupField.setValue(summaryConfigElementVO.getMetadataVO());
 	}
 
 	@Override
-	public void alterSummaryMetadata(SummaryColumnVO summaryColumnVO) {
-		addMetadataToStringLookupField(summaryColumnVO);
-		this.prefix.setValue(summaryColumnVO.getPrefix());
-		if (summaryColumnVO.isAlwaysShown()) {
-			this.displayCondition.setValue(SummaryColumnParams.DisplayCondition.ALWAYS);
+	public void alterSummaryMetadata(SummaryConfigElementVO summaryConfigView) {
+		addMetadataToStringLookupField(summaryConfigView);
+		this.prefix.setValue(summaryConfigView.getPrefix());
+		if (summaryConfigView.isAlwaysShown()) {
+			this.displayCondition.setValue(SummaryConfigParams.DisplayCondition.ALWAYS);
 		} else {
-			this.displayCondition.setValue(SummaryColumnParams.DisplayCondition.COMPLETED);
+			this.displayCondition.setValue(SummaryConfigParams.DisplayCondition.COMPLETED);
 		}
-		if (summaryColumnVO.getReferenceMetadataDisplay() != null) {
-			this.referenceMetadataDisplayComboBox.setValue(SummaryColumnParams.ReferenceMetadataDisplay
-					.fromInteger(summaryColumnVO.getReferenceMetadataDisplay()));
+		if (summaryConfigView.getReferenceMetadataDisplay() != null) {
+			this.referenceMetadataDisplayComboBox.setValue(SummaryConfigParams.ReferenceMetadataDisplay
+					.fromInteger(summaryConfigView.getReferenceMetadataDisplay()));
 		}
-		this.modifingSummaryColumnVO = summaryColumnVO;
+		this.modifingSummaryConfigElementVO = summaryConfigView;
 	}
 
-	public void deleteSummaryMetadata(SummaryColumnVO summaryColumnVO) {
-		this.presenter.deleteMetadataForSummaryColumn(summaryColumnVO);
-		this.summaryColumnDataProvider.removeSummaryColumnVO(summaryColumnVO);
+	public void deleteSummaryMetadata(SummaryConfigElementVO summaryConfigElementVO) {
+		this.presenter.deleteMetadataForSummaryConfig(summaryConfigElementVO);
+		this.summaryConfigDataProvider.removeSummaryConfigItemVO(summaryConfigElementVO);
 		refreshMetadataLookup();
-		this.summaryColumnDataProvider.fireDataRefreshEvent();
+		this.summaryConfigDataProvider.fireDataRefreshEvent();
 	}
 
-	public void deleteRow(final SummaryColumnVO columnVO) {
+	public void deleteRow(final SummaryConfigElementVO columnVO) {
 
-		String message = $("SummaryColumnViewImpl.deleteConfirmationMesssage");
+		String message = $("SummaryConfigViewImpl.deleteConfirmationMesssage");
 		if (!presenter.isReindextionFlag()) {
-			message = $("SummaryColumnViewImpl.save.message") + " " + message;
+			message = $("SummaryConfigViewImpl.save.message") + " " + message;
 		}
 
 
 		ConfirmDialog.show(
 				UI.getCurrent(),
-				$("SummaryColumnViewImpl.deleteConfirmation"),
+				$("SummaryConfigViewImpl.deleteConfirmation"),
 				message,
 				$("Ok"),
 				$("cancel"),
@@ -332,8 +333,8 @@ public class SummaryColumnViewImpl extends BaseViewImpl implements SummaryColumn
 		if (presenter.isReindextionFlag()) {
 			ConfirmDialog.show(
 					UI.getCurrent(),
-					$("SummaryColumnViewImpl.save.title"),
-					$("SummaryColumnViewImpl.save.message"),
+					$("SummaryConfigViewImpl.save.title"),
+					$("SummaryConfigViewImpl.save.message"),
 					$("Ok"),
 					$("cancel"),
 					confirmDialogListener);

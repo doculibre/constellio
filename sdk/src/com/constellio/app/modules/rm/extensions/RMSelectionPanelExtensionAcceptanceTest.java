@@ -73,12 +73,12 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
 		assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
 				.doesNotContain(records.folder_A20);
 
-		extension.parentFolderButtonClicked(records.folder_A20, param.getIds());
-		assertThatRecords(records.getDocumentWithContent_A79(), records.getDocumentWithContent_B33()).extracting(Document.FOLDER)
-				.containsOnly(records.folder_A20);
-		assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
-				.containsOnly(records.folder_A20);
-	}
+        extension.parentFolderButtonClicked(records.folder_A20, param);
+        assertThatRecords(records.getDocumentWithContent_A79(), records.getDocumentWithContent_B33()).extracting(Document.FOLDER)
+                .containsOnly(records.folder_A20);
+        assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
+                .containsOnly(records.folder_A20);
+    }
 
 	@Test
 	public void givenDuplicateButtonClickedThenDuplicatedCorrectly() throws RecordServicesException {

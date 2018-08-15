@@ -30,7 +30,7 @@ public class DocumentContentFieldImpl extends ContentVersionUploadField implemen
 	}
 
 	public DocumentContentFieldImpl(boolean isViewOnly) {
-		super(false, false, isViewOnly);
+		super(false, !isViewOnly, isViewOnly);
 
 
 		addValueChangeListener(new ValueChangeListener() {

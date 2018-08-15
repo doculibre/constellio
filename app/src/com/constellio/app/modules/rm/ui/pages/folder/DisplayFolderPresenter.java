@@ -386,7 +386,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			borrowingServices.validateCanBorrow(user, folder, null);
 			return ComponentState
 					.visibleIf(user.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_FOLDER_DIRECTLY).on(folder)
-							   && !extensions.isModifyBlocked(folder.getWrappedRecord(), user));
+							&& rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, user));
 		} catch (Exception e) {
 			return ComponentState.INVISIBLE;
 		}
@@ -467,10 +467,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			return false;
 		}
 
-		for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
-			if (!extension.isCopyActionPossible(new FolderExtensionActionPossibleParams(folder.getWrappedRecord()))) {
-				return false;
-			}
+		if (!rmModuleExtensions.isCopyActionPossibleOnFolder(folder,user)) {
+			return false;
 		}
 		return true;
 	}
@@ -497,10 +495,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			return false;
 		}
 
-		for (FolderExtension extension : rmModuleExtensions.getFolderExtensions()) {
-			if (!extension.isShareActionPossible(new FolderExtensionActionPossibleParams(folder.getWrappedRecord()))) {
-				return false;
-			}
+		if (!rmModuleExtensions.isShareActionPossibleOnFolder(folder,user)) {
+			return false;
 		}
 		return true;
 	}

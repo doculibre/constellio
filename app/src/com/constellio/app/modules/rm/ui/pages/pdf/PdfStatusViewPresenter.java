@@ -82,7 +82,7 @@ public class PdfStatusViewPresenter extends BasePresenter<PdfStatusView> {
 		consolidatedPdfId = username + String.valueOf(System.currentTimeMillis());
 
 		PdfGeneratorAsyncTask asyncTask = new PdfGeneratorAsyncTask(documentIds, consolidatedPdfId,
-				pdfFileName, pdfFileName, username, withMetadata, view.getSessionContext().getCurrentLocale());
+				pdfFileName, pdfFileName, username, withMetadata, view.getSessionContext().getCurrentLocale().getLanguage());
 
 		AsyncTaskCreationRequest request = new AsyncTaskCreationRequest(asyncTask, view.getCollection(), PDF_GENERATION);
 		request.setUsername(username);

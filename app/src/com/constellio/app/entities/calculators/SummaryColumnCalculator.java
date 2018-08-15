@@ -1,6 +1,6 @@
 package com.constellio.app.entities.calculators;
 
-import com.constellio.app.ui.pages.summarycolumn.SummaryColumnParams;
+import com.constellio.app.ui.pages.summaryconfig.SummaryConfigParams;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.utils.SimpleDateFormatSingleton;
 import com.constellio.model.entities.calculators.CalculatorParameters;
@@ -30,7 +30,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 	ConfigDependency<String> dateformat = ConstellioEIMConfigs.DATE_FORMAT.dependency();
 	ConfigDependency<String> dateTimeformat = ConstellioEIMConfigs.DATE_TIME_FORMAT.dependency();
 
-	public static final String SUMMARY_COLOMN = "summaryColumn";
+	public static final String SUMMARY_CONFIG = "summaryconfig";
 	public static final String PREFIX = "prefix";
 	public static final String METADATA_CODE = "metadataCode";
 	public static final String REFERENCE_METADATA_DISPLAY = "referenceMetadataDisplay";
@@ -44,7 +44,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 	public String calculate(CalculatorParameters parameters) {
 		DynamicDependencyValues values = parameters.get(dynamicMetadatasDependency);
 		StringBuilder summmaryColumnValue = new StringBuilder();
-		List<Map> listMap = (List<Map>) parameters.getMetadata().getCustomParameter().get(SUMMARY_COLOMN);
+		List<Map> listMap = (List<Map>) parameters.getMetadata().getCustomParameter().get(SUMMARY_CONFIG);
 
 		if (listMap != null) {
 
@@ -124,7 +124,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 
 		metadataCode = calculatedMetadata.getCode();
 
-		List<Map> summaryColumnList = (List<Map>) calculatedMetadata.getCustomParameter().get(SUMMARY_COLOMN);
+		List<Map> summaryColumnList = (List<Map>) calculatedMetadata.getCustomParameter().get(SUMMARY_CONFIG);
 		if (summaryColumnList != null) {
 			for (Map currentMap : summaryColumnList) {
 				String metadataCode = (String) currentMap.get(METADATA_CODE);
@@ -144,7 +144,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 
 		MetadataList metadataList = schema.getMetadatas();
 		Metadata metadata = metadataList.getMetadataWithLocalCode("summary");
-		List<Map> summaryColumnList = (List<Map>) metadata.getCustomParameter().get(SUMMARY_COLOMN);
+		List<Map> summaryColumnList = (List<Map>) metadata.getCustomParameter().get(SUMMARY_CONFIG);
 		if (summaryColumnList != null) {
 			for (Map currentMap : summaryColumnList) {
 
@@ -163,7 +163,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 	}
 
 	public String getReferenceMetadataDisplayStringValue(Map mapWithReferenceMetadataDisplay) {
-		SummaryColumnParams.ReferenceMetadataDisplay referenceMetadataDisplay = SummaryColumnParams.ReferenceMetadataDisplay
+		SummaryConfigParams.ReferenceMetadataDisplay referenceMetadataDisplay = SummaryConfigParams.ReferenceMetadataDisplay
 				.fromInteger((Integer) mapWithReferenceMetadataDisplay.get(REFERENCE_METADATA_DISPLAY));
 
 		return referenceMetadataDisplay.getLocalCode();
@@ -259,7 +259,7 @@ public class SummaryColumnCalculator implements InitializedMetadataValueCalculat
 		public boolean isDependentOf(Metadata metadata, Metadata aCalculatedMetadata) {
 			Map modifiableMap = aCalculatedMetadata.getCustomParameter();
 
-			List list = (List) modifiableMap.get(SUMMARY_COLOMN);
+			List list = (List) modifiableMap.get(SUMMARY_CONFIG);
 
 			if (list != null) {
 				for (Map listItem : (List<Map>) list) {

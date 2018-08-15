@@ -1,6 +1,6 @@
 package com.constellio.app.ui.entities;
 
-public class SummaryColumnVO {
+public class SummaryConfigElementVO {
 	String prefix;
 	MetadataVO metadataVO;
 	boolean isAlwaysShown;
@@ -18,7 +18,7 @@ public class SummaryColumnVO {
 		return prefix;
 	}
 
-	public SummaryColumnVO setPrefix(String prefix) {
+	public SummaryConfigElementVO setPrefix(String prefix) {
 		this.prefix = prefix;
 		return this;
 	}
@@ -27,7 +27,7 @@ public class SummaryColumnVO {
 		return metadataVO;
 	}
 
-	public SummaryColumnVO setMetadataVO(MetadataVO metadataVO) {
+	public SummaryConfigElementVO setMetadataVO(MetadataVO metadataVO) {
 		this.metadataVO = metadataVO;
 		return this;
 	}
@@ -36,7 +36,7 @@ public class SummaryColumnVO {
 		return isAlwaysShown;
 	}
 
-	public SummaryColumnVO setAlwaysShown(boolean alwaysShown) {
+	public SummaryConfigElementVO setAlwaysShown(boolean alwaysShown) {
 		isAlwaysShown = alwaysShown;
 		return this;
 	}
@@ -50,7 +50,7 @@ public class SummaryColumnVO {
 			return false;
 		}
 
-		SummaryColumnVO that = (SummaryColumnVO) o;
+		SummaryConfigElementVO that = (SummaryConfigElementVO) o;
 
 		if (isAlwaysShown != that.isAlwaysShown) {
 			return false;

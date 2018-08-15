@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.FolderUniqueKeyContainer;
 import com.constellio.app.ui.framework.data.FolderUniqueKeyDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.vaadin.data.fieldgroup.PropertyId;
@@ -29,7 +30,7 @@ import java.util.*;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements FolderUniqueKeyConfiguratorView {
+public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements FolderUniqueKeyConfiguratorView, AdminViewGroup {
 
 	private FolderUniqueKeyConfiguratorPresenter presenter;
 
@@ -65,7 +66,7 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 		metadataLookupField = new MetadataVOLookupField(new ArrayList<MetadataVO>());
 		metadataLookupField.setCaption($("FolderUniqueKeyMetadataConfiguratorViewImpl.metadata"));
 
-		List<FolderUnicityVO> summaryColumnVOList = presenter.folderUnicityVOList();
+		List<FolderUnicityVO> unicityVOList = presenter.unicityVOList();
 
 		metadataLookupField.setRequired(true);
 		metadataLookupField.setImmediate(true);
@@ -74,7 +75,7 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 
 		table = new BaseTable(getClass().getName());
 
-		folderUniqueKeyDataProvider = new FolderUniqueKeyDataProvider(summaryColumnVOList);
+		folderUniqueKeyDataProvider = new FolderUniqueKeyDataProvider(unicityVOList);
 		folderUniqueKeyContainer = new FolderUniqueKeyContainer(folderUniqueKeyDataProvider, this);
 
 		table.setContainerDataSource(folderUniqueKeyContainer);
@@ -131,7 +132,7 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 	}
 
 	private void addConfiguration(FolderUniqueKeyParams viewObject) {
-		FolderUnicityVO folderUnicityVO = summaryColumnParamsToSummaryVO(viewObject);
+		FolderUnicityVO folderUnicityVO = uniqueKeyparamsToUniqueKeyVO(viewObject);
 
 		presenter.addMetadaForUnicity(viewObject);
 		folderUniqueKeyDataProvider.addFolderUnicityVO(folderUnicityVO);
@@ -171,19 +172,19 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 
 
 
-	private FolderUnicityVO summaryColumnParamsToSummaryVO(FolderUniqueKeyParams folderUniqueKeyParams) {
-		FolderUnicityVO summaryColumnVO = new FolderUnicityVO();
-		summaryColumnVO.setMetadataVO(folderUniqueKeyParams.getMetadataVO());
+	private FolderUnicityVO uniqueKeyparamsToUniqueKeyVO(FolderUniqueKeyParams folderUniqueKeyParams) {
+		FolderUnicityVO unicityVO = new FolderUnicityVO();
+		unicityVO.setMetadataVO(folderUniqueKeyParams.getMetadataVO());
 
-		return summaryColumnVO;
+		return unicityVO;
 	}
 
 
 	private void removeMetadataFromPossibleSelection() {
-		List<FolderUnicityVO> summaryColumnVOList = presenter.folderUnicityVOList();
+		List<FolderUnicityVO> unictyVOList = presenter.unicityVOList();
 
-		for (FolderUnicityVO summaryColumnVO : summaryColumnVOList) {
-			removeMetadataVOFromList(summaryColumnVO.getMetadataVO().getLocalCode());
+		for (FolderUnicityVO uncityVO : unictyVOList) {
+			removeMetadataVOFromList(uncityVO.getMetadataVO().getLocalCode());
 		}
 	}
 
@@ -199,14 +200,14 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 		metadataVOList.remove(foundMetadataVO);
 	}
 
-	public void deleteSummaryMetadata(FolderUnicityVO summaryColumnVO) {
-		this.presenter.deleteMetadataForSummaryColumn(summaryColumnVO);
-		this.folderUniqueKeyDataProvider.removeFolderUnicityVO(summaryColumnVO);
+	public void deleteSummaryMetadata(FolderUnicityVO unicityVO) {
+		this.presenter.deleteMetadataInUnicityConfig(unicityVO);
+		this.folderUniqueKeyDataProvider.removeFolderUnicityVO(unicityVO);
 		this.folderUniqueKeyDataProvider.fireDataRefreshEvent();
 		refreshMetadataLookup();
 	}
 
-	public void deleteRow(final FolderUnicityVO columnVO) {
+	public void deleteRow(final FolderUnicityVO unicityVO) {
 
 		String message = $("FolderUniqueKeyMetadataConfiguratorViewImpl.deleteConfirmationMesssage");
 		if (!presenter.isReindextionFlag()) {
@@ -225,7 +226,7 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 					public void onClose(ConfirmDialog dialog) {
 						if (dialog.isConfirmed()) {
 							boolean isReindextionFlag = presenter.isReindextionFlag();
-							deleteSummaryMetadata(columnVO);
+							deleteSummaryMetadata(unicityVO);
 							if (!isReindextionFlag) {
 								updateUI();
 							}

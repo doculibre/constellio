@@ -35,6 +35,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.util.CapsuleUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
@@ -745,6 +746,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				}
 			}
 		}
+		sort(result);
 		return result;
 	}
 
@@ -986,5 +988,16 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			searchConfigurationsManager.setExcluded(collection, record);
 		}
 		view.refreshSearchResultsAndFacets();
+	}
+
+	protected void sort(List<MetadataVO> metadataVOs) {
+		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
+			@Override
+			public int compare(MetadataVO o1, MetadataVO o2) {
+				String firstLabel = AccentApostropheCleaner.removeAccents(o1.getLabel().toLowerCase());
+				String secondLabel = AccentApostropheCleaner.removeAccents(o2.getLabel().toLowerCase());
+				return firstLabel.compareTo(secondLabel);
+			}
+		});
 	}
 }

@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.services.reports;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -13,6 +14,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.jdom2.CDATA;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
@@ -99,16 +101,25 @@ public class XmlReportGenerator extends AbstractXmlGenerator {
 			return createMetadataTagFromMetadataOfTypeStructure(metadata, recordElement, getCollection(), getFactory());
 		}
 
-		Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
-		metadataXmlElement.setAttribute("label", metadata.getFrenchLabel());
-		metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));
-		String data = formatData(getToStringOrNull(recordElement.get(metadata, getLocale())), metadata);
-		if (metadata.getLocalCode().toLowerCase().contains("path")) {
-			data = this.getPath(recordElement);
+        Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
+        metadataXmlElement.setAttribute("label", metadata.getFrenchLabel());
+        metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));
+        boolean isRichTextInputType = displayManager.getMetadata(getCollection(), metadata.getCode()).getInputType() == MetadataInputType.RICHTEXT;
+		String data = getToStringOrNull(recordElement.get(metadata, getLocale()));
+		if(!isRichTextInputType) {
+			data = formatData(data, metadata);
 		}
-		metadataXmlElement.setText(data);
-		return Collections.singletonList(metadataXmlElement);
-	}
+        if(metadata.getLocalCode().toLowerCase().contains("path")) {
+            data = this.getPath(recordElement);
+        }
+
+        if(data != null && isRichTextInputType) {
+            metadataXmlElement.setContent(new CDATA(data));
+        } else {
+            metadataXmlElement.setText(data);
+        }
+        return Collections.singletonList(metadataXmlElement);
+    }
 
 	private Record[] getRecordFromIds(String schemaType, List<String> ids) {
 		SearchServices searchServices = getFactory().getModelLayerFactory().newSearchServices();

@@ -291,14 +291,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return ComponentState.visibleIf(isCopyDocumentPossible());
 	}
 
-	protected boolean isCopyDocumentPossible() {
-		for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
-			if (!extension.isCopyActionPossible(new DocumentExtension.DocumentExtensionActionPossibleParams(currentDocument))) {
+    protected boolean isCopyDocumentPossible() {
+		if (!rmModuleExtensions.isCopyActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument),currentUser)) {
 				return false;
-			}
 		}
 		return true;
-	}
+    }
 
 	public ComponentState getCreatePDFAState() {
 		return ComponentState.visibleIf(isCreatePDFAPossible());
@@ -310,14 +308,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			return false;
 		}
 
-		for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
-			if (!extension
-					.isCreatePDFAActionPossible(new DocumentExtension.DocumentExtensionActionPossibleParams(currentDocument()))) {
-				return false;
-			}
+		if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument()),currentUser)) {
+			return false;
 		}
-		return true;
-	}
+        return true;
+    }
 
 	private ComponentState getShareDocumentState() {
 		return ComponentState.visibleIf(isShareDocumentPossible());
@@ -345,13 +340,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			return false;
 		}
 
-		for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
-			if (!extension.isShareActionPossible(new DocumentExtensionActionPossibleParams(currentDocument()))) {
-				return false;
-			}
+		if (!rmModuleExtensions.isShareActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument()),currentUser)) {
+			return false;
 		}
-		return true;
-	}
+        return true;
+    }
 
 	public void addAuthorizationButtonClicked() {
 		if (isAddAuthorizationPossible()) {
@@ -671,26 +664,22 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			return false;
 		}
 
-		for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
-			if (!extension.isFinalizeActionPossible(new DocumentExtensionActionPossibleParams(currentDocument()))) {
-				return false;
-			}
+		if (!rmModuleExtensions.isFinalizeActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument()),currentUser)) {
+			return false;
 		}
-		return true;
+        return true;
 	}
 
 	private ComponentState getPublishButtonState() {
 		return ComponentState.visibleIf(isPublishPossible());
 	}
 
-	protected boolean isPublishPossible() {
-		for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
-			if (!extension.isPublishActionPossible(new DocumentExtensionActionPossibleParams(currentDocument()))) {
-				return false;
-			}
+    protected boolean isPublishPossible() {
+		if (!rmModuleExtensions.isPublishActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument()),currentUser)) {
+			return false;
 		}
-		return true;
-	}
+        return true;
+    }
 
 	public void updateActionsComponent() {
 		RMConfigs configs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());

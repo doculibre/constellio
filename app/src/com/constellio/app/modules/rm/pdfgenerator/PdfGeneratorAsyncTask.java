@@ -14,6 +14,7 @@ import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.records.Content;
@@ -58,6 +59,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 	private String consolidatedTitle;
 	private String username;
 	private Locale locale;
+	private String languageCode;
 
 
 	public static final String GLOBAL_ERROR_KEY = "PdfGeneratorAsyncTask.globalError";
@@ -78,14 +80,15 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
 	public PdfGeneratorAsyncTask(List<String> documentIdList, String consolidatedId,
 								 String consolidatedName, String consolidatedTitle,
-								 String username, Boolean withMetadata, Locale locale) {
+								 String username, Boolean withMetadata, String languageCode) {
 		this.documentIdList = documentIdList;
 		this.consolidatedId = consolidatedId;
 		this.consolidatedName = consolidatedName;
 		this.consolidatedTitle = consolidatedTitle;
 		this.withMetadata = withMetadata;
 		this.username = username;
-		this.locale = locale;
+		this.languageCode = languageCode;
+		this.locale = Language.withCode(languageCode).getLocale();
 	}
 
 	private PDDocument getMetadataReport(Document document, ValidationErrors errors, AsyncTaskExecutionParams params)
@@ -419,7 +422,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
 	@Override
 	public Object[] getInstanceParameters() {
-		return new Object[]{documentIdList, consolidatedId, consolidatedName, consolidatedTitle, username, withMetadata};
+		return new Object[]{documentIdList, consolidatedId, consolidatedName, consolidatedTitle, username, withMetadata, languageCode};
 	}
 
 

@@ -1,18 +1,18 @@
 package com.constellio.sdk.tests;
 
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.BaseSessionContext;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
 import java.security.Principal;
 import java.util.*;
+
+import static java.util.Arrays.asList;
 
 public class FakeSessionContext extends BaseSessionContext {
 
@@ -25,6 +25,7 @@ public class FakeSessionContext extends BaseSessionContext {
 	boolean forcedSignOut;
 	List<String> selectedRecordIds;
 	Map<String, Long> selectedRecordSchemaTypeCodes;
+	CollectionInfoVO collectionInfoVO;
 
 	Record searchEvent = null;
 
@@ -39,6 +40,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		this.selectedRecordIds = new ArrayList<>();
 		this.selectedRecordSchemaTypeCodes = new HashMap<>();
 		FakeSessionContext.current = this;
+
 		this.fake = true;
 	}
 
@@ -147,7 +149,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		labels.put(Locale.FRENCH, "Utilisateur");
 		labels.put(Locale.ENGLISH, "User");
 
-		return new MetadataSchemaVO(User.DEFAULT_SCHEMA, collection, labels);
+		return new MetadataSchemaVO(User.DEFAULT_SCHEMA, collection, labels, getCollectionInfoVO(collection));
 	}
 
 	private static MetadataVO emailMetadata(MetadataSchemaVO userSchema) {
@@ -157,7 +159,9 @@ public class FakeSessionContext extends BaseSessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.EMAIL, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, null, false, new HashSet<String>(), false, null, new HashMap<String, Object>());
+				null, null, null, null, null,
+				null, null, false, new HashSet<String>(), false,
+				null, new HashMap<String, Object>(), getCollectionInfoVO(collection));
 	}
 
 	private static MetadataVO lastNameMetadata(MetadataSchemaVO userSchema) {
@@ -167,7 +171,9 @@ public class FakeSessionContext extends BaseSessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.LASTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, null, false, new HashSet<String>(), false, null, new HashMap<String, Object>());
+				null, null, null, null, null,
+				null, null, false,
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), getCollectionInfoVO(collection));
 	}
 
 	private static MetadataVO firstNameMetadata(MetadataSchemaVO userSchema) {
@@ -177,7 +183,9 @@ public class FakeSessionContext extends BaseSessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.FIRSTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, null, false, new HashSet<String>(), false, null, new HashMap<String, Object>());
+				null, null, null, null, null,
+				null, null, false, new HashSet<String>(), false, null,
+				new HashMap<String, Object>(), getCollectionInfoVO(collection));
 	}
 
 	private static MetadataVO userNameMetadata(MetadataSchemaVO userSchema) {
@@ -187,7 +195,15 @@ public class FakeSessionContext extends BaseSessionContext {
 		String collection = userSchema.getCollection();
 
 		return new MetadataVO(User.USERNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
-				null, null, null, null, null, null, null, false, new HashSet<String>(), false, null, new HashMap<String, Object>());
+				null, null, null, null, null, null,
+				null, false, new HashSet<String>(), false, null, new HashMap<String, Object>(), getCollectionInfoVO(collection));
+	}
+
+	private static CollectionInfoVO getCollectionInfoVO(String collection) {
+
+		return new CollectionInfoVO(Language.French, "zeCollection",
+				asList(Language.French, Language.English), Locale.FRENCH, asList(Language.English.getCode()),
+				asList(Language.French.getCode(), Language.English.getCode()), asList(Locale.FRENCH, Locale.ENGLISH));
 	}
 
 	@Override

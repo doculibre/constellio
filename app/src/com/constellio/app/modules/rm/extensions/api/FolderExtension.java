@@ -1,35 +1,51 @@
 package com.constellio.app.modules.rm.extensions.api;
 
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 
 public abstract class FolderExtension {
 
-	public boolean isCopyActionPossible(FolderExtensionActionPossibleParams params) {
-		return true;
-	}
+    public ExtensionBooleanResult isCopyActionPossible(FolderExtensionActionPossibleParams params) {
+        return ExtensionBooleanResult.NOT_APPLICABLE;
+    }
 
-	public boolean isMoveActionPossible(FolderExtensionActionPossibleParams params) {
-		return true;
-	}
+    public ExtensionBooleanResult isMoveActionPossible(FolderExtensionActionPossibleParams params) {
+        return ExtensionBooleanResult.NOT_APPLICABLE;
+    }
 
-	public boolean isShareActionPossible(FolderExtensionActionPossibleParams params) {
-		return true;
-	}
+    public ExtensionBooleanResult isShareActionPossible(FolderExtensionActionPossibleParams params) {
+        return ExtensionBooleanResult.NOT_APPLICABLE;
+    }
 
-	public boolean isDecommissioningActionPossible(FolderExtensionActionPossibleParams params) {
-		return true;
-	}
+    public ExtensionBooleanResult isDecommissioningActionPossible(FolderExtensionActionPossibleParams params) {
+        return ExtensionBooleanResult.NOT_APPLICABLE;
+    }
 
-	public static class FolderExtensionActionPossibleParams {
-		private Record record;
+    public ExtensionBooleanResult isBorrowingActionPossible(FolderExtensionActionPossibleParams params) {
+        return ExtensionBooleanResult.NOT_APPLICABLE;}
 
-		public FolderExtensionActionPossibleParams(Record record) {
-			this.record = record;
-		}
+    public static class FolderExtensionActionPossibleParams {
+        private Folder folder;
+        private User user;
 
-		public Record getRecord() {
-			return record;
-		}
-	}
+        public FolderExtensionActionPossibleParams(Folder folder, User user) {
+            this.folder = folder;
+            this.user = user;
+        }
+
+        public Record getRecord() {
+            return folder.getWrappedRecord();
+        }
+
+        public Folder getFolder() {
+            return folder;
+        }
+
+        public User getUser() {
+            return user;
+        }
+    }
 
 }

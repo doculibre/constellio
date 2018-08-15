@@ -55,11 +55,11 @@ public class CannotDeleteWindow extends VerticalLayout {
 			addComponents(cannotDeleteLabel, recordsTable, okButton);
 		} else {
 			if (records.size() == 0) {
-				recordAccessMessage = $("recordAcessMessageWithNoRecords");
+				recordAccessMessage = $("CannotDeleteWindow.recordAcessMessageWithNoRecords");
 				recordAccessLabel = new Label(recordAccessMessage);
 				addComponents(cannotDeleteLabel, recordAccessLabel, okButton);
 			} else {
-				recordAccessMessage = $("recordAcessMessage");
+				recordAccessMessage = $("CannotDeleteWindow.recordAcessMessage");
 				recordAccessLabel = new Label(recordAccessMessage);
 				recordsTable = buildRecodsTable(records);
 				addComponents(cannotDeleteLabel, recordsTable, recordAccessLabel, okButton);

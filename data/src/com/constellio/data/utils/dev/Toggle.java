@@ -55,6 +55,8 @@ public class Toggle {
 
 	public static AvailableToggle FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY = newToggle(false);
 
+	public static AvailableToggle DANGER_DANGER_DANGER___ALLOW_UPDATE_TO_OLDER_VERSION___DANGER_DANGER_DANGER = newToggle(false);
+
 
 	// ------------------------------------------------
 
