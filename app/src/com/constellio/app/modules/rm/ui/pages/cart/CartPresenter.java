@@ -5,10 +5,6 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.extensions.api.DocumentExtension;
-import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
-import com.constellio.app.modules.rm.extensions.api.FolderExtension;
-import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
@@ -141,9 +137,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		}
 		List<Folder> folders = getCartFolders();
 		for (Folder folder : folders) {
-			if (!rmModuleExtensions.isCopyActionPossibleOnFolder(folder,getCurrentUser()))
+			if (!rmModuleExtensions.isCopyActionPossibleOnFolder(folder, getCurrentUser())) {
 				view.showErrorMessage($("CartView.actionBlockedByExtension"));
-			return;
+				return;
+			}
 		}
 
 		try {
@@ -567,7 +564,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		}
 		List<Document> documents = getCartDocuments();
 		for (Document document : documents) {
-			if (!rmModuleExtensions.isShareActionPossibleOnDocument(document,getCurrentUser())) {
+			if (!rmModuleExtensions.isShareActionPossibleOnDocument(document, getCurrentUser())) {
 				view.showErrorMessage($("CartView.actionBlockedByExtension"));
 				return;
 			}
@@ -868,7 +865,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	public boolean isPdfGenerationActionPossible(List<String> recordIds) {
 		List<Record> records = rm().get(recordIds);
 		for (Record record : records) {
-			if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm().wrapDocument(record),getCurrentUser())) {
+			if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm().wrapDocument(record), getCurrentUser())) {
 				view.showErrorMessage(i18n.$("CartView.actionBlockedByExtension"));
 				return false;
 			}
@@ -878,13 +875,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean isDecommissioningActionPossible() {
 		List<Record> records = rm().get(cart().getFolders());
-			for (Record record : records) {
-				Folder folder = rm.wrapFolder(record);
-				if (!rmModuleExtensions.isDecommissioningActionPossibleOnFolder(folder, getCurrentUser())) {
-					view.showErrorMessage(i18n.$("CartView.actionBlockedByExtension"));
-					return false;
-				}
+		for (Record record : records) {
+			Folder folder = rm.wrapFolder(record);
+			if (!rmModuleExtensions.isDecommissioningActionPossibleOnFolder(folder, getCurrentUser())) {
+				view.showErrorMessage(i18n.$("CartView.actionBlockedByExtension"));
+				return false;
 			}
+		}
 		return true;
 	}
 }
