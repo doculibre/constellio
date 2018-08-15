@@ -20,13 +20,15 @@ public class DownloadContentVersionLink extends DownloadLink {
 		setSizeFull();
 	}
 
-	public DownloadContentVersionLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption, UpdatableContentVersionPresenter presenter) {
+	public DownloadContentVersionLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption,
+									  UpdatableContentVersionPresenter presenter) {
 		super(new UpdatableContentVersionVOResource(recordVO, contentVersionVO, presenter), caption);
 		addStyleName(STYLE_NAME);
 		setSizeFull();
 	}
 
-	public DownloadContentVersionLink(RecordVO recordVO, ContentVersionVO contentVersionVO, Resource icon, UpdatableContentVersionPresenter presenter) {
+	public DownloadContentVersionLink(RecordVO recordVO, ContentVersionVO contentVersionVO, Resource icon,
+									  UpdatableContentVersionPresenter presenter) {
 		this(recordVO, contentVersionVO, "", presenter);
 		setIcon(icon);
 	}

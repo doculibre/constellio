@@ -7,8 +7,12 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 

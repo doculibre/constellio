@@ -37,7 +37,13 @@ import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.vaadin.data.Property;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 public class RecordWithCopyRetentionRuleParametersPresenter {
 	RecordWithCopyRetentionRuleParametersFields fields;

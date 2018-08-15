@@ -10,7 +10,11 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 import static com.constellio.app.ui.i18n.i18n.$;

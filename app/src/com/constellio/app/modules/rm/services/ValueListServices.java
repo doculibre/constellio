@@ -28,7 +28,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;

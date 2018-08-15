@@ -36,7 +36,11 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.MetadataList;
@@ -47,7 +51,11 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.vaadin.ui.Component;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;

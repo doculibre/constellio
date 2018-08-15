@@ -21,7 +21,11 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -62,7 +66,13 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;

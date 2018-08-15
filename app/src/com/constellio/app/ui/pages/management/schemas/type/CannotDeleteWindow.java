@@ -2,7 +2,12 @@ package com.constellio.app.ui.pages.management.schemas.type;
 
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.model.entities.records.Record;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.List;

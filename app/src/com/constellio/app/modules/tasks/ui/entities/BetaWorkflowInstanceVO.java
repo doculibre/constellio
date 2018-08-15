@@ -10,7 +10,10 @@ import org.joda.time.LocalDateTime;
 
 import java.util.List;
 
-import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.*;
+import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.STARTED_BY;
+import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.STARTED_ON;
+import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.STATUS;
+import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.WORKFLOW;
 
 public class BetaWorkflowInstanceVO extends RecordVO {
 

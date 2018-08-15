@@ -46,14 +46,24 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.*;
+import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.DROPDOWN;
+import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.HIDDEN;
+import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.LOOKUP;
+import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.RICHTEXT;
 import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.*;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.STANDBY;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
 import static com.constellio.model.entities.records.wrappers.ValueListItem.CODE;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static java.util.Arrays.asList;
 
 public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationScript {

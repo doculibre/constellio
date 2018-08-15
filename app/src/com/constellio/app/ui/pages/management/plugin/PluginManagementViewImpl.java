@@ -17,8 +17,17 @@ import com.vaadin.data.util.converter.Converter;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 

@@ -1,7 +1,11 @@
 package com.constellio.app.modules.es.services;
 
 import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
-import com.constellio.app.modules.es.connectors.spi.*;
+import com.constellio.app.modules.es.connectors.spi.Connector;
+import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
+import com.constellio.app.modules.es.connectors.spi.ConnectorInstanciator;
+import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
+import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.RegisteredConnector;

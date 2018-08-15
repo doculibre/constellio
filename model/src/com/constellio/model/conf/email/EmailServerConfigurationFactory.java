@@ -1,6 +1,10 @@
 package com.constellio.model.conf.email;
 
-import com.constellio.model.conf.email.EmailServerConfigurationRuntimeException.*;
+import com.constellio.model.conf.email.EmailServerConfigurationRuntimeException.InvalidBlankHostRuntimeException;
+import com.constellio.model.conf.email.EmailServerConfigurationRuntimeException.InvalidBlankUsernameRuntimeException;
+import com.constellio.model.conf.email.EmailServerConfigurationRuntimeException.InvalidEmailAddressRuntimeException;
+import com.constellio.model.conf.email.EmailServerConfigurationRuntimeException.InvalidPropertiesRuntimeException;
+import com.constellio.model.conf.email.EmailServerConfigurationRuntimeException.UnknownServerConfigurationRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.mail.internet.AddressException;

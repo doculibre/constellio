@@ -5,7 +5,13 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.model.entities.records.wrappers.ApprovalTask;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -18,7 +24,11 @@ import com.constellio.model.services.schemas.validators.DecisionValidator;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class CoreMigrationTo_5_0_1 implements MigrationScript {
 

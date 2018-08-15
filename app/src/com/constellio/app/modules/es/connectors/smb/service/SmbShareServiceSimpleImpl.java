@@ -1,7 +1,11 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
 import com.constellio.app.modules.es.connectors.smb.config.SmbRetrievalConfiguration;
-import com.constellio.app.modules.es.connectors.smb.security.*;
+import com.constellio.app.modules.es.connectors.smb.security.Credentials;
+import com.constellio.app.modules.es.connectors.smb.security.TrusteeManager;
+import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissions;
+import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissionsFactory;
+import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissionsFactoryImpl;
 import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO.SmbFileDTOStatus;
 import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;

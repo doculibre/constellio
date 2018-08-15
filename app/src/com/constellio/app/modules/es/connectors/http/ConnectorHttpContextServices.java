@@ -5,7 +5,13 @@ import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import org.apache.commons.io.FileUtils;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

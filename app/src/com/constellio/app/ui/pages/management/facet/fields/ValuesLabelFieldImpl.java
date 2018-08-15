@@ -6,9 +6,13 @@ import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationPre
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.vaadin.data.Item;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;

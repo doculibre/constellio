@@ -16,13 +16,19 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.schemas.builders.*;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class RMMigrationTo6_5_1 implements MigrationScript {
 	@Override

@@ -1,6 +1,11 @@
 package com.constellio.app.ui.application;
 
-import com.vaadin.server.*;
+import com.vaadin.server.BootstrapFragmentResponse;
+import com.vaadin.server.BootstrapListener;
+import com.vaadin.server.BootstrapPageResponse;
+import com.vaadin.server.ServiceException;
+import com.vaadin.server.SessionInitEvent;
+import com.vaadin.server.SessionInitListener;
 import org.jsoup.nodes.Element;
 
 @SuppressWarnings("serial")

@@ -13,9 +13,14 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.Collections;

@@ -13,7 +13,12 @@ import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.gargoylesoftware.htmlunit.WebResponse;
-import com.gargoylesoftware.htmlunit.html.*;
+import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.DomNode;
+import com.gargoylesoftware.htmlunit.html.DomNodeList;
+import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.IOUtils;
@@ -24,7 +29,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.Set;
 
 import static org.apache.tika.io.IOUtils.toByteArray;
 

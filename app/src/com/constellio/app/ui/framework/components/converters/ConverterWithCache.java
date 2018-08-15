@@ -2,7 +2,11 @@ package com.constellio.app.ui.framework.components.converters;
 
 import com.vaadin.data.util.converter.Converter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class ConverterWithCache<PRESENTATION, MODEL> implements Converter<PRESENTATION, MODEL> {
 

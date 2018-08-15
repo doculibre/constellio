@@ -7,12 +7,21 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getCustomSchemaDefaultDisplay;
 import static com.constellio.app.services.schemasDisplay.SchemaDisplayUtils.getDefaultSchemaDefaultDisplay;

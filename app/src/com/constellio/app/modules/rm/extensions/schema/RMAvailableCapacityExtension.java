@@ -14,7 +14,11 @@ import com.constellio.model.extensions.events.records.TransactionExecutionBefore
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.SearchServices;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 

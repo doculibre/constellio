@@ -9,9 +9,14 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 

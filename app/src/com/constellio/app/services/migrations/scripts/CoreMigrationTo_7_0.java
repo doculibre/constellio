@@ -30,14 +30,27 @@ import com.constellio.model.services.security.AuthorizationDetailsManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.*;
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.END_DATE;
+import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.ROLES;
+import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.START_DATE;
+import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.SYNCED;
+import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.TARGET;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 public class CoreMigrationTo_7_0 implements MigrationScript {

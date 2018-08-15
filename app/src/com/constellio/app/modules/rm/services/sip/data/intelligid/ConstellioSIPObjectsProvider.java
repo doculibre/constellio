@@ -10,7 +10,12 @@ import com.constellio.app.modules.rm.services.sip.model.EntityRetriever;
 import com.constellio.app.modules.rm.services.sip.model.SIPDocument;
 import com.constellio.app.modules.rm.services.sip.model.SIPFolder;
 import com.constellio.app.modules.rm.services.sip.model.SIPObject;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
@@ -31,7 +36,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 public class ConstellioSIPObjectsProvider implements SIPObjectsProvider {

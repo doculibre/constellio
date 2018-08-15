@@ -6,7 +6,8 @@ import com.constellio.app.ui.framework.components.content.UpdatableContentVersio
 import com.vaadin.ui.Component;
 
 public interface DownloadContentVersionLinkExtension {
-	
-	Component getDownloadLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption, UpdatableContentVersionPresenter presenter);
+
+	Component getDownloadLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption,
+							  UpdatableContentVersionPresenter presenter);
 
 }

@@ -11,7 +11,12 @@ import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_LogIsInInvalidStateCausedByPreviousException;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogRuntimeException.SecondTransactionLogRuntimeException_NotAllLogsWereDeletedCorrectlyException;
-import com.constellio.data.dao.services.transactionLog.kafka.*;
+import com.constellio.data.dao.services.transactionLog.kafka.BlockingDeliveryStrategy;
+import com.constellio.data.dao.services.transactionLog.kafka.ConsumerRecordPoller;
+import com.constellio.data.dao.services.transactionLog.kafka.DeliveryStrategy;
+import com.constellio.data.dao.services.transactionLog.kafka.FailedDeliveryCallback;
+import com.constellio.data.dao.services.transactionLog.kafka.Transaction;
+import com.constellio.data.dao.services.transactionLog.kafka.TransactionReplayer;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -19,7 +24,13 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
+import java.util.UUID;
 
 public class KafkaTransactionLogManager implements SecondTransactionLogManager {
 

@@ -1,6 +1,10 @@
 package com.constellio.app.ui.pages.management.Report;
 
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
+import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;

@@ -34,7 +34,9 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.utils.LangUtils.isEqual;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 /**

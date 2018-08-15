@@ -10,7 +10,16 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class Transaction {
 

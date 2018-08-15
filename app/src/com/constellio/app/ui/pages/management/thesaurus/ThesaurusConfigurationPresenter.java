@@ -29,10 +29,18 @@ import com.constellio.model.services.thesaurus.ThesaurusServiceBuilder;
 import com.constellio.model.services.thesaurus.exception.ThesaurusInvalidFileFormat;
 import com.vaadin.server.Page;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;

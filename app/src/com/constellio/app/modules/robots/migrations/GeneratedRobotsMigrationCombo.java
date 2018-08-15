@@ -12,7 +12,17 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.schemas.calculators.*;
+import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
+import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
+import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
+import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
+import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
+import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
+import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
+import com.constellio.model.services.schemas.calculators.PathCalculator;
+import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
+import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
+import com.constellio.model.services.schemas.calculators.TokensCalculator2;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.security.roles.RolesManager;
 

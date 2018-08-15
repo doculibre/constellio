@@ -17,7 +17,12 @@ import com.gargoylesoftware.htmlunit.DefaultCredentialsProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.AuthScope;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 

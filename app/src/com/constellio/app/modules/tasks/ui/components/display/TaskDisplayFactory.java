@@ -11,7 +11,11 @@ import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.display.ReferenceActiveLink;
 import com.vaadin.ui.Component;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_DOCUMENTS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_FOLDERS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDER_FREQUENCY;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
 
 public class TaskDisplayFactory extends MetadataDisplayFactory {
 	@Override

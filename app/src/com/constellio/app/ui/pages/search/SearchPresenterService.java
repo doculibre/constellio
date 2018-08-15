@@ -25,7 +25,12 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import static com.constellio.app.ui.i18n.i18n.$;

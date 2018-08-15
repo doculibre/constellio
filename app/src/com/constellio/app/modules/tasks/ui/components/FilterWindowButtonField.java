@@ -2,7 +2,13 @@ package com.constellio.app.modules.tasks.ui.components;
 
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomField;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 import static com.constellio.app.ui.i18n.i18n.$;

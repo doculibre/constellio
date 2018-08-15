@@ -1,7 +1,12 @@
 package com.constellio.app.ui.framework.components.fields;
 
 import com.vaadin.data.Property;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomField;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
 
 import static java.lang.Boolean.TRUE;
 

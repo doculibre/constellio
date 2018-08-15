@@ -7,7 +7,11 @@ import com.constellio.model.entities.calculators.ReferenceListMetadataValueCalcu
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
 import static java.util.Arrays.asList;

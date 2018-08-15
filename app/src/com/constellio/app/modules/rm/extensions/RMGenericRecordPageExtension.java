@@ -12,7 +12,9 @@ import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 
-import static com.constellio.app.modules.rm.constants.RMTypes.*;
+import static com.constellio.app.modules.rm.constants.RMTypes.CONTAINER_RECORD;
+import static com.constellio.app.modules.rm.constants.RMTypes.RETENTION_RULE;
+import static com.constellio.app.modules.rm.constants.RMTypes.UNIFORM_SUBDIVISION;
 import static com.constellio.app.modules.rm.extensions.RMListSchemaTypeExtension.RM_TAB;
 import static com.constellio.data.frameworks.extensions.ExtensionBooleanResult.FORCE_TRUE;
 import static com.constellio.data.frameworks.extensions.ExtensionBooleanResult.NOT_APPLICABLE;

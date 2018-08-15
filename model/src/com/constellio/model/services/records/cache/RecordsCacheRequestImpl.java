@@ -10,7 +10,11 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RecordsCacheRequestImpl implements RecordsCache {
 

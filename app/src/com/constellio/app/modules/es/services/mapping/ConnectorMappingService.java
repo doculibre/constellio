@@ -26,7 +26,14 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ConnectorMappingService {
 	private static final String MAPPING_METADATA_PREFIX = "MAP";

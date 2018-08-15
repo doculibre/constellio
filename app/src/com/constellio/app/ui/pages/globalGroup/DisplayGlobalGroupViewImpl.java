@@ -2,7 +2,11 @@ package com.constellio.app.ui.pages.globalGroup;
 
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
-import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.TableStringFilter;
@@ -18,9 +22,14 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;

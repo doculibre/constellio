@@ -27,7 +27,11 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;

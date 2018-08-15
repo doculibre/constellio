@@ -19,16 +19,17 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.reports.ReportServices;
-import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -168,7 +169,7 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 		}
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
-		for(ReportedMetadata reportedMetadata : report.getReportedMetadata()){
+		for (ReportedMetadata reportedMetadata : report.getReportedMetadata()) {
 			if (schemasManager.getSchemaTypes(collection).hasMetadata(reportedMetadata.getMetadataCode())) {
 				Metadata metadata = schemasManager.getSchemaTypes(collection).getMetadata(reportedMetadata.getMetadataCode());
 				if (metadata.inheritDefaultSchema()) {
@@ -224,9 +225,9 @@ public class ReportDisplayConfigPresenter extends BasePresenter<ReportConfigurat
 	public ArrayList<String> getInheritedMetadataCodesFor(List<String> selectedMetadataCodes) {
 		List<Metadata> metadataList = schemaType(getSchemaTypeCode()).getAllMetadataIncludingInheritedOnes();
 		HashSet<String> inheritedMetadataCodes = new HashSet<>();
-		for(Metadata metadata: metadataList) {
-			if(selectedMetadataCodes.contains(metadata.getCode())) {
-				if(metadata.inheritDefaultSchema()) {
+		for (Metadata metadata : metadataList) {
+			if (selectedMetadataCodes.contains(metadata.getCode())) {
+				if (metadata.inheritDefaultSchema()) {
 					inheritedMetadataCodes.add(metadata.getInheritanceCode());
 				} else {
 					inheritedMetadataCodes.add(metadata.getCode());

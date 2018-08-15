@@ -8,7 +8,16 @@ import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.PasswordField;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 
 import java.util.List;
 

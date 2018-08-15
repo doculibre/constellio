@@ -2,7 +2,11 @@ package com.constellio.app.modules.rm.ui.components.document;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.ui.components.RMRecordFieldFactory;
-import com.constellio.app.modules.rm.ui.components.document.fields.*;
+import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentFieldImpl;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentCopyRuleFieldImpl;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentFolderFieldImpl;
+import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeFieldLookupImpl;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -12,7 +16,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import static com.constellio.app.modules.rm.wrappers.Document.*;
+import static com.constellio.app.modules.rm.wrappers.Document.CONTENT;
+import static com.constellio.app.modules.rm.wrappers.Document.FOLDER;
+import static com.constellio.app.modules.rm.wrappers.Document.MAIN_COPY_RULE_ID_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 
 public class DocumentFieldFactory extends RMRecordFieldFactory {
 

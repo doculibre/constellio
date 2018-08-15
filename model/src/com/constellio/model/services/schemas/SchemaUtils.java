@@ -5,9 +5,15 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchema;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -18,7 +24,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SchemaUtils {
 

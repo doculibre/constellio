@@ -5,7 +5,11 @@ import com.constellio.app.ui.entities.UserVO;
 import com.vaadin.server.VaadinSession;
 
 import java.security.Principal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class VaadinSessionContext extends BaseSessionContext {
 

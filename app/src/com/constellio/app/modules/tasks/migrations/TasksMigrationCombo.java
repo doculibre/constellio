@@ -23,7 +23,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.*;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.STANDBY;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
 import static java.util.Arrays.asList;

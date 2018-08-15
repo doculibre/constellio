@@ -1,10 +1,19 @@
 package com.constellio.data.io.services.zip;
 
 import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.services.zip.ZipServiceException.*;
+import com.constellio.data.io.services.zip.ZipServiceException.CannotAddFileToZipException;
+import com.constellio.data.io.services.zip.ZipServiceException.CannotCreateZipOutputStreamException;
+import com.constellio.data.io.services.zip.ZipServiceException.FileToZipNotFound;
+import com.constellio.data.io.services.zip.ZipServiceException.ZipFileCannotBeParsed;
+import com.constellio.data.io.services.zip.ZipServiceException.ZipFileInvalidExtension;
+import com.constellio.data.io.services.zip.ZipServiceException.ZippedFilesInDifferentParentFolder;
 import org.apache.commons.io.IOUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;

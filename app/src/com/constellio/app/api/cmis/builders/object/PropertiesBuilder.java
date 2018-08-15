@@ -6,7 +6,13 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.*;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyBooleanImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyDateTimeImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyDecimalImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIdImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIntegerImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyStringImpl;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

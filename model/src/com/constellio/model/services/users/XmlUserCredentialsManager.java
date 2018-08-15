@@ -19,7 +19,12 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import org.jdom2.Document;
 import org.joda.time.LocalDateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.data.threads.BackgroundThreadExceptionHandling.CONTINUE;
 import static com.constellio.model.services.users.UserUtils.cleanUsername;

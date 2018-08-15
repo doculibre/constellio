@@ -12,9 +12,13 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.contextmenu.ConfirmDialogContextMenuItemClickListener;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;

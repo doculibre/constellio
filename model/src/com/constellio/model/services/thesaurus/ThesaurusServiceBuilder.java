@@ -6,14 +6,24 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.jaxen.JaxenException;
 import org.jaxen.SimpleNamespaceContext;
 import org.jaxen.jdom.JDOMXPath;
-import org.jdom.*;
+import org.jdom.Attribute;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.Namespace;
 import org.jdom.input.SAXBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class ThesaurusServiceBuilder {

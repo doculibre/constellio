@@ -2,7 +2,10 @@ package com.constellio.app.services.schemasDisplay;
 
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 
-import static com.constellio.app.services.schemasDisplay.OngoingAddMetadatasToSchemas.OngoingAddMetadatasToSchemasMode.*;
+import static com.constellio.app.services.schemasDisplay.OngoingAddMetadatasToSchemas.OngoingAddMetadatasToSchemasMode.DISPLAY;
+import static com.constellio.app.services.schemasDisplay.OngoingAddMetadatasToSchemas.OngoingAddMetadatasToSchemasMode.FORM;
+import static com.constellio.app.services.schemasDisplay.OngoingAddMetadatasToSchemas.OngoingAddMetadatasToSchemasMode.SEARCH;
+import static com.constellio.app.services.schemasDisplay.OngoingAddMetadatasToSchemas.OngoingAddMetadatasToSchemasMode.TABLE;
 import static java.util.Arrays.asList;
 
 public class SchemaTypeDisplayTransactionBuilder {

@@ -5,7 +5,11 @@ import org.joda.time.LocalDateTime;
 
 import java.util.List;
 
-import static com.constellio.model.entities.records.wrappers.UserDocument.*;
+import static com.constellio.model.entities.records.wrappers.UserDocument.CONTENT;
+import static com.constellio.model.entities.records.wrappers.UserDocument.FOLDER;
+import static com.constellio.model.entities.records.wrappers.UserDocument.FORM_CREATED_ON;
+import static com.constellio.model.entities.records.wrappers.UserDocument.FORM_MODIFIED_ON;
+import static com.constellio.model.entities.records.wrappers.UserDocument.USER_FOLDER;
 
 public class UserDocumentVO extends RecordVO {
 

@@ -1,7 +1,11 @@
 package com.constellio.app.ui.pages.base;
 
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 
 import java.util.Collection;
 

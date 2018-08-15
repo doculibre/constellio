@@ -31,16 +31,33 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChild
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static com.constellio.data.utils.LangUtils.isTrueOrNull;
-import static com.constellio.model.entities.schemas.Schemas.*;
+import static com.constellio.model.entities.schemas.Schemas.LINKABLE;
+import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
+import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
 import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
 import static com.constellio.model.services.search.StatusFilter.ACTIVES;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsIn;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsNotIn;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.*;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.childConceptsQuery;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.childrenCondition;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.directChildOf;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.fromTypeIn;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.notDirectChildOf;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.recordInHierarchyOf;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.visibleInTrees;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static java.util.Arrays.asList;
 

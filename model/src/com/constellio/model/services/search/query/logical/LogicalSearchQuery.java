@@ -21,7 +21,11 @@ import com.constellio.model.services.security.SecurityTokenManager;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 

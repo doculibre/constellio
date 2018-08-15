@@ -1,7 +1,11 @@
 package com.constellio.app.modules.es.migrations;
 
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
-import com.constellio.app.modules.es.model.connectors.*;
+import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
+import com.constellio.app.modules.es.model.connectors.ConnectorDocumentStatus;
+import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.model.connectors.ConnectorType;
+import com.constellio.app.modules.es.model.connectors.NextFetchCalculator;
 import com.constellio.app.modules.es.model.connectors.http.enums.FetchFrequency;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -16,7 +20,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 
 import java.util.Map;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
 public class EnterpriseSearchMigrationHelper {
 

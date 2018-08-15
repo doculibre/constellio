@@ -1,18 +1,5 @@
 package com.constellio.app.modules.rm.services.cart;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId;
@@ -28,6 +15,7 @@ import com.constellio.model.services.emails.EmailServices;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.emails.EmailServices.MessageAttachment;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import org.apache.commons.io.IOUtils;
 

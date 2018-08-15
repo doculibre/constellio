@@ -26,11 +26,13 @@ public class MetadataSchemaVO implements Serializable {
 	final String localCode;
 	final CollectionInfoVO collectionInfoVO;
 
-	public MetadataSchemaVO(String code, String collection, Map<Locale, String> labels, CollectionInfoVO collectionInfoVO) {
+	public MetadataSchemaVO(String code, String collection, Map<Locale, String> labels,
+							CollectionInfoVO collectionInfoVO) {
 		this(code, collection, null, null, null, null, null, labels, collectionInfoVO);
 	}
 
-	public MetadataSchemaVO(String code, String collection, String localCode, Map<Locale, String> labels, CollectionInfoVO collectionInfoVO) {
+	public MetadataSchemaVO(String code, String collection, String localCode, Map<Locale, String> labels,
+							CollectionInfoVO collectionInfoVO) {
 		this(code, collection, localCode, null, null, null, null, labels, collectionInfoVO);
 	}
 

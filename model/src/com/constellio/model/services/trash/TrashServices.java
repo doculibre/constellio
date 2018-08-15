@@ -29,7 +29,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static java.util.Arrays.asList;
 
 public class TrashServices {

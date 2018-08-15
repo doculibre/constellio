@@ -1,6 +1,11 @@
 package com.constellio.data.io.concurrent.data;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
 /**

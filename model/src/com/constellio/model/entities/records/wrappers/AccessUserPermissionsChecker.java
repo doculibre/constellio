@@ -10,7 +10,9 @@ import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.containsAnyUserGroupTokens;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.hasMatchingAuthorizationIncludingSpecifics;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
-import static com.constellio.model.entities.security.Role.*;
+import static com.constellio.model.entities.security.Role.DELETE;
+import static com.constellio.model.entities.security.Role.READ;
+import static com.constellio.model.entities.security.Role.WRITE;
 
 public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 

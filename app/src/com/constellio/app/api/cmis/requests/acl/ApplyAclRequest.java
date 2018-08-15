@@ -30,7 +30,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.constellio.app.api.cmis.builders.object.AclBuilder.*;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_DELETE;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
 import static com.constellio.data.utils.LangUtils.hasSameElementsNoMatterTheOrder;
 import static com.constellio.data.utils.LangUtils.isEqual;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;

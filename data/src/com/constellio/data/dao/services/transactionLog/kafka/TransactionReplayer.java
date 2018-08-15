@@ -10,8 +10,14 @@ import com.constellio.data.dao.services.transactionLog.reader1.ReaderTransaction
 import com.constellio.data.dao.services.transactionLog.replay.TransactionsLogImportHandler;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 
 import static com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransactionCombinator.DEFAULT_MAX_TRANSACTION_SIZE;
 

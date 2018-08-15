@@ -33,7 +33,15 @@ import org.slf4j.LoggerFactory;
 
 import javax.cache.Cache;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;

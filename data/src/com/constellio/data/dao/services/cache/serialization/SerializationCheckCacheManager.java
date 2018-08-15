@@ -6,7 +6,11 @@ import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.ConstellioCacheManagerRuntimeException.ConstellioCacheManagerRuntimeException_CacheAlreadyExist;
 import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SerializationCheckCacheManager implements ConstellioCacheManager {
 

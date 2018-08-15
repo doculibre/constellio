@@ -25,10 +25,21 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.joda.time.Duration;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
 
 import static com.constellio.app.modules.robots.model.DryRunRobotAction.dryRunRobotAction;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.impossibleCondition;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.not;
 
 public class RobotsManager implements StatefulService {
 	public static final String ID = "robotsManager";

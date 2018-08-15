@@ -4,13 +4,24 @@ import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
-import com.constellio.model.entities.enums.*;
+import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
+import com.constellio.model.entities.enums.MemoryConsumptionLevel;
+import com.constellio.model.entities.enums.MetadataPopulatePriority;
+import com.constellio.model.entities.enums.ParsingBehavior;
+import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.joda.time.LocalDate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
@@ -335,11 +346,11 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(GROUP_AUTHORIZATIONS_INHERITANCE);
 	}
 
-    public boolean isIncludingFromFieldWhenGeneratingEmails() {
+	public boolean isIncludingFromFieldWhenGeneratingEmails() {
 		return !Boolean.FALSE.equals(GROUP_AUTHORIZATIONS_INHERITANCE);
-    }
+	}
 
-    public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
+	public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
 
 		@Override
 		public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory) {
