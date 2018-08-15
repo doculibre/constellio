@@ -3,16 +3,17 @@ package com.constellio.model.services.logging;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.records.RecordServices;
@@ -177,6 +178,11 @@ public class EventFactory {
 					}
 					Object newValue = modifiedValueEntry.getValue();
 					Object oldValue = recordImpl.getRecordDTO().getFields().get(metadataDatastoreCode);
+					if(metadata.getType() == MetadataValueType.CONTENT) {
+						newValue = newValue == null? null: formatContentForDeltaMetadata(newValue);
+						oldValue = oldValue == null? null: formatContentForDeltaMetadata(oldValue);
+					}
+
 					if (newValue == null) {
 						if (oldValue != null) {
 							delta.append("-[" + metadata.getCode() + " : " + oldValue.toString() + "]\n");
@@ -196,6 +202,25 @@ public class EventFactory {
 			}
 		}
 		event.setDelta(delta.toString());
+	}
+
+	private Object formatContentForDeltaMetadata(Object content) {
+		try {
+			if(content instanceof Content && ((Content) content).getCurrentVersion() != null) {
+				StringBuilder printableValue = new StringBuilder();
+				ContentVersion currentVersion = ((Content) content).getCurrentVersion();
+				printableValue.append(currentVersion.getFilename());
+				printableValue.append(" (v" + currentVersion.getVersion() +")");
+				printableValue.append(" - " + (currentVersion.getLength()/1024) + " KB");
+				return printableValue.toString();
+			} else if(content instanceof String) {
+				return formatContentForDeltaMetadata(new ContentFactory().build((String) content, true));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return content;
 	}
 
 	private String limitContentLength(String text) {
