@@ -22,6 +22,41 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.mail.AuthenticationFailedException;
+import javax.mail.Authenticator;
+import javax.mail.BodyPart;
+import javax.mail.FolderNotFoundException;
+import javax.mail.MessageRemovedException;
+import javax.mail.MessagingException;
+import javax.mail.MethodNotSupportedException;
+import javax.mail.Multipart;
+import javax.mail.NoSuchProviderException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.ReadOnlyFolderException;
+import javax.mail.SendFailedException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
+import javax.mail.util.ByteArrayDataSource;
+
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.model.conf.email.EmailServerConfiguration;
+import com.constellio.model.services.emails.EmailServicesException.EmailPermanentException;
+import com.constellio.model.services.emails.EmailServicesException.EmailServerException;
+import com.constellio.model.services.emails.EmailServicesException.EmailTempException;
+
 public class EmailServices {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EmailQueueManager.class);
@@ -80,12 +115,12 @@ public class EmailServices {
 	public void closeSession(Session session) {
 	}
 
-	public MimeMessage createMimeMessage(String from, String subject, String body, List<MessageAttachment> attachments)
+	public MimeMessage createMimeMessage(String from, String subject, String body, List<MessageAttachment> attachments, ConstellioEIMConfigs configs)
 			throws MessagingException, IOException {
 		String charset = "UTF-8";
 		MimeMessage message = new MimeMessage(Session.getInstance(System.getProperties()));
 		message.setSentDate(LocalDateTime.now().toDate());
-		if (StringUtils.isNotBlank(from)) {
+		if (StringUtils.isNotBlank(from) && configs.isIncludingFromFieldWhenGeneratingEmails()) {
 			message.setFrom(new InternetAddress(from));
 		}
 		if (subject != null) {

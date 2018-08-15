@@ -41,10 +41,12 @@ public class PdfFileNamePanel extends VerticalLayout {
 		init();
 	}
 
-	public void init() {
-		pdfFileNameField = new BaseTextField($("PdfFileNamePanel.pdfFileName"));
-		pdfFileNameField.setRequired(true);
-		pdfFileNameField.setRequiredError($("PdfFileNamePanel.pdfFileName.required"));
+    public void init() {
+        window.setHeight("220px");
+
+        pdfFileNameField = new BaseTextField($("PdfFileNamePanel.pdfFileName"));
+        pdfFileNameField.setRequired(true);
+        pdfFileNameField.setRequiredError($("PdfFileNamePanel.pdfFileName.required"));
 
 		includeMetadatasField = new CheckBox($("PdfFileNamePanel.includeMetadatas"));
 

@@ -111,6 +111,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration UNREFERENCED_CONTENTS_DELETE_SCHEDULE;
 	public static final SystemConfiguration ENABLE_STATISTIC_REPORT;
 	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
+	public static final SystemConfiguration INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS;
 
 	public static final SystemConfiguration SEIZE_MULTILANGUAL_VALUES;
 	public static final SystemConfiguration ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY;
@@ -137,6 +138,7 @@ public class ConstellioEIMConfigs {
 				.createEnum("titleMetadataPopulatePriority", TitleMetadataPopulatePriority.class)
 				.withDefaultValue(TitleMetadataPopulatePriority.STYLES_FILENAME_PROPERTIES));
 		add(CONSTELLIO_URL = others.createString("constellioUrl", "http://localhost:8080/constellio/"));
+		add(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS = others.createBooleanTrueByDefault("includeFromFieldWhenGeneratingEmails"));
 
 		add(DATE_FORMAT = others.createString("dateFormat").withDefaultValue("yyyy-MM-dd"));
 		add(DATE_TIME_FORMAT = others.createString("dateTimeFormat").withDefaultValue("yyyy-MM-dd HH:mm:ss"));
@@ -333,7 +335,11 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(GROUP_AUTHORIZATIONS_INHERITANCE);
 	}
 
-	public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
+    public boolean isIncludingFromFieldWhenGeneratingEmails() {
+		return !Boolean.FALSE.equals(GROUP_AUTHORIZATIONS_INHERITANCE);
+    }
+
+    public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
 
 		@Override
 		public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory) {
