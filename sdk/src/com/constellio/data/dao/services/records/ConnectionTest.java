@@ -8,6 +8,7 @@ import org.apache.solr.common.params.ModifiableSolrParams;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,10 +26,10 @@ public class ConnectionTest {
 	public void test()
 			throws IOException, SolrServerException {
 
-		server = new CloudSolrClient("192.168.1.100:2381");
+		server = new CloudSolrClient.Builder(Collections.singletonList("192.168.1.100:2381")).build();
 		server.setDefaultCollection("records");
 
-		otherServer = new CloudSolrClient("192.168.1.100:2381");
+		otherServer = new CloudSolrClient.Builder(Collections.singletonList("192.168.1.100:2381")).build();
 		otherServer.setDefaultCollection("records");
 
 		server.deleteByQuery("*:*");

@@ -20,7 +20,7 @@ public class RemoveFieldUtils {
 
 		String ZE_REMOVED_FIELD = "description_t";
 
-		HttpSolrClient server = new HttpSolrClient("http://localhost:8983/solr/records");
+		HttpSolrClient server = new HttpSolrClient.Builder("http://localhost:8983/solr/records").build();
 
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", ZE_REMOVED_FIELD + ":*");

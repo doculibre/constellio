@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CloudSolrServerFactory extends AbstractSolrServerFactory {
@@ -69,8 +70,7 @@ public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 	@Override
 	public void reloadSolrServer(String core) {
 		try {
-			CollectionAdminRequest.Reload reload = new CollectionAdminRequest.Reload();
-			reload.setCollectionName(core);
+			CollectionAdminRequest.Reload reload = CollectionAdminRequest.reloadCollection(core);
 			CollectionAdminResponse response = reload.process(getAdminServer());
 			if (!response.isSuccess()) {
 				throw new RuntimeException("Core is not reloaded " + response.getErrorMessages());
@@ -82,7 +82,7 @@ public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 
 	@Override
 	SolrClient getSolrClient(String core) {
-		CloudSolrClient solrClient = new CloudSolrClient(zkHost);
+		CloudSolrClient solrClient = new CloudSolrClient.Builder(Collections.singletonList(zkHost)).build();
 		solrClient.setSoTimeout(60_000);
 		solrClient.setZkClientTimeout(60_000);
 		solrClient.setZkConnectTimeout(60_000);

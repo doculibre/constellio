@@ -42,9 +42,11 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -525,6 +527,7 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 		transactionLog.prepare(firstTransactionId, transaction);
 
 		assertThat(transactionLog.isCommitted(firstTransactionTempFile, recordDao)).isFalse();
+
 		assertThat(solrParamsArgumentCaptor.getValue()).is(sameAsFirstQuery());
 	}
 
@@ -693,17 +696,23 @@ public class XMLSecondTransactionLogManagerRealTest extends ConstellioTest {
 
 	//TODO Test flush exception
 
-	private Condition<? super SolrParams> sameAsFirstQuery() {
-		return new Condition<SolrParams>() {
+	private Condition<? super Iterable<Map.Entry<String, String[]>>> sameAsFirstQuery() {
+		return new Condition<Iterable<Map.Entry<String, String[]>>>() {
 			@Override
-			public boolean matches(SolrParams value) {
-				String strQueryValue = value.get("q");
+			public boolean matches(Iterable<Map.Entry<String, String[]>> value) {
+				String qValue = "";
+				List<String> qValues = new ArrayList<>();
 				List<String> allParamNames = new ArrayList<>();
-				for (Iterator<String> nameIterator = value.getParameterNamesIterator(); nameIterator.hasNext(); ) {
-					allParamNames.add(nameIterator.next());
+				for (Iterator<Map.Entry<String, String[]>> iterator = value.iterator(); iterator.hasNext(); ) {
+					Map.Entry<String, String[]> entry = iterator.next();
+					if (qValue.isEmpty() && entry.getKey().equals("q") && entry.getValue().length > 0) {
+						qValue = entry.getValue()[0];
+						qValues.addAll(asList(entry.getValue()));
+					}
+					allParamNames.add(entry.getKey());
 				}
 				assertThat(allParamNames).containsOnly("q");
-				assertThat(value.getParams("q")).isEqualTo(new String[]{strQueryValue});
+				assertThat(qValues).isEqualTo(singletonList(qValue));
 				return true;
 			}
 		};

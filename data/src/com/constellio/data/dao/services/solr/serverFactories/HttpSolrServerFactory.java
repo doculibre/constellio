@@ -168,7 +168,7 @@ public class HttpSolrServerFactory extends AbstractSolrServerFactory {
 
 	@Override
 	protected SolrClient getSolrClient(String core) {
-		return new HttpSolrClient(url + "/" + core);
+		return new HttpSolrClient.Builder(url + "/" + core).build();
 	}
 
 }

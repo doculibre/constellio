@@ -19,7 +19,7 @@ public class SolrMain {
 	public static void main(String argv[])
 			throws SolrServerException, IOException {
 
-		client = new HttpSolrClient("http://localhost:8983/solr/records");
+		client = new HttpSolrClient.Builder("http://localhost:8983/solr/records").build();
 		client.commit();
 		long start = new Date().getTime();
 

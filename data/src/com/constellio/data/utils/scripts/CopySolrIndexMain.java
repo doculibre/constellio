@@ -28,8 +28,8 @@ public class CopySolrIndexMain {
 		//SolrClient outputClient = new HttpSolrClient("http://localhost:8986/solr/records");
 		int batchSize = Integer.valueOf(argv[0]);
 		int nbThreads = Integer.valueOf(argv[1]);
-		SolrClient inputClient = new HttpSolrClient(argv[2]);
-		SolrClient outputClient = new HttpSolrClient(argv[3]);
+		SolrClient inputClient = new HttpSolrClient.Builder(argv[2]).build();
+		SolrClient outputClient = new HttpSolrClient.Builder(argv[3]).build();
 
 		inputClient.commit();
 		outputClient.commit();

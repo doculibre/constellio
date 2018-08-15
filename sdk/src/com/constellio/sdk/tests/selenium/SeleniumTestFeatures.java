@@ -177,7 +177,7 @@ public class SeleniumTestFeatures {
 			startApplication();
 		}
 		String url = "http://localhost:" + port + "/constellio";
-		SolrClient solrServer = new HttpSolrClient(url, null, new XMLResponseParser());
+		SolrClient solrServer = new HttpSolrClient.Builder(url).withResponseParser(new XMLResponseParser()).build();
 
 		return solrServer;
 
