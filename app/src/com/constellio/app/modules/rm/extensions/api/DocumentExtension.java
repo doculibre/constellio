@@ -3,35 +3,36 @@ package com.constellio.app.modules.rm.extensions.api;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.server.Resource;
 
 public abstract class DocumentExtension {
 
-	public boolean isCopyActionPossible(DocumentExtensionActionPossibleParams params) {
-		return true;
-	}
+    public ExtensionBooleanResult isCopyActionPossible(DocumentExtensionActionPossibleParams params) {
+        return ExtensionBooleanResult.NOT_APPLICABLE;
+    }
 
-	public boolean isCreatePDFAActionPossible(DocumentExtensionActionPossibleParams params) {
-		return true;
-	}
+    public ExtensionBooleanResult isCreatePDFAActionPossible(DocumentExtensionActionPossibleParams params) {
+        return ExtensionBooleanResult.NOT_APPLICABLE;
+    }
 
-	public boolean isFinalizeActionPossible(DocumentExtensionActionPossibleParams params) {
-		return true;
-	}
+    public ExtensionBooleanResult isFinalizeActionPossible(DocumentExtensionActionPossibleParams params) {
+        return ExtensionBooleanResult.NOT_APPLICABLE;
+    }
 
-	public boolean isMoveActionPossible(DocumentExtensionActionPossibleParams params) {
-		return true;
-	}
+    public ExtensionBooleanResult isMoveActionPossible(DocumentExtensionActionPossibleParams params) {
+        return ExtensionBooleanResult.NOT_APPLICABLE;
+    }
 
-	public boolean isPublishActionPossible(DocumentExtensionActionPossibleParams params) {
-		return true;
-	}
+    public ExtensionBooleanResult isPublishActionPossible(DocumentExtensionActionPossibleParams params) {
+        return ExtensionBooleanResult.NOT_APPLICABLE;
+    }
 
-	public boolean isShareActionPossible(DocumentExtensionActionPossibleParams params) {
-		return true;
-	}
+    public ExtensionBooleanResult isShareActionPossible(DocumentExtensionActionPossibleParams params) {
+        return ExtensionBooleanResult.NOT_APPLICABLE;
+    }
 
 	public void addMenuItems(DocumentExtensionAddMenuItemParams params) {
 	}
@@ -48,16 +49,26 @@ public abstract class DocumentExtension {
 		public abstract void registerMenuItem(String caption, Resource icon, Runnable runnable);
 	}
 
-	public static class DocumentExtensionActionPossibleParams {
-		private Record record;
+    public static class DocumentExtensionActionPossibleParams {
+        private Document document;
+        private User user;
 
-		public DocumentExtensionActionPossibleParams(Record record) {
-			this.record = record;
-		}
+        public DocumentExtensionActionPossibleParams(Document document, User user) {
+            this.document = document;
+            this.user = user;
+        }
 
-		public Record getRecord() {
-			return record;
-		}
-	}
+        public Record getRecord() {
+            return document.getWrappedRecord();
+        }
+
+        public Document getDocument() {
+            return document;
+        }
+
+        public User getUser() {
+            return user;
+        }
+    }
 
 }

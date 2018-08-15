@@ -745,6 +745,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				}
 			}
 		}
+		sort(result);
 		return result;
 	}
 
@@ -986,5 +987,16 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			searchConfigurationsManager.setExcluded(collection, record);
 		}
 		view.refreshSearchResultsAndFacets();
+	}
+
+	protected void sort(List<MetadataVO> metadataVOs) {
+		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
+			@Override
+			public int compare(MetadataVO o1, MetadataVO o2) {
+				String firstLabel = AccentApostropheCleaner.removeAccents(o1.getLabel().toLowerCase());
+				String secondLabel = AccentApostropheCleaner.removeAccents(o2.getLabel().toLowerCase());
+				return firstLabel.compareTo(secondLabel);
+			}
+		});
 	}
 }
