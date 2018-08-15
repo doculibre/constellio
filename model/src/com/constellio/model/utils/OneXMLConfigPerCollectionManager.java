@@ -11,7 +11,10 @@ import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerListener;
+import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
 import org.jdom2.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 
@@ -19,6 +22,8 @@ import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIE
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 
 public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventListener, CollectionsListManagerListener {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(OneXMLConfigPerCollectionManager.class);
 
 	private final String collectionFolderRelativeConfigPath;
 
@@ -102,7 +107,11 @@ public class OneXMLConfigPerCollectionManager<T> implements ConfigUpdatedEventLi
 		String configPath = getConfigPath(collection);
 		configManager.registerListener(configPath, this);
 		//TODO Francis : Retiré le 7 aout 2018 pour faire passer les tests de OneXMLConfigPerCollectionManagerAcceptanceTest
-		load(collection, configPath, WAS_OBTAINED);
+		try {
+			load(collection, configPath, WAS_OBTAINED);
+		} catch (MetadataSchemasManagerRuntimeException.MetadataSchemasManagerRuntimeException_NoSuchCollection e) {
+			LOGGER.debug("Cannot load in cache yet", e);
+		}
 	}
 
 	public String getConfigPath(String collectionCode) {

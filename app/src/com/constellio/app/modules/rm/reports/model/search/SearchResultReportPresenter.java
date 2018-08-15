@@ -63,8 +63,8 @@ public class SearchResultReportPresenter {
 			resultReportModel.addTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
 		}
 		Iterator<Record> recordsIterator;
-		if (searchQuery != null) {
-			recordsIterator = modelLayerFactory.newSearchServices().recordsIterator(searchQuery);
+		if(searchQuery != null) {
+			recordsIterator = modelLayerFactory.newSearchServices().recordsIteratorKeepingOrder(searchQuery, 200);
 		}
 		//TODO DO Not use searchQuery
 		else if (selectedRecords == null || selectedRecords.isEmpty()) {

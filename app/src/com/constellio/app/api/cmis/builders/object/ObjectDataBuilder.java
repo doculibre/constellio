@@ -212,6 +212,10 @@ public class ObjectDataBuilder {
 		objectInfo.setSupportsRelationships(false);
 		objectInfo.setWorkingCopyId(null);
 		objectInfo.setWorkingCopyOriginalId(null);
+
+		if("collection_default".equals(typeId)) {
+			objectInfo.setHasParent(false);
+		}
 	}
 
 }

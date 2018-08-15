@@ -26,6 +26,15 @@ public class StringLookupField extends LookupField<String> {
 		setItemConverter(itemConverter);
 	}
 
+	public void setOptions(List<String> options) {
+		for(LookupTreeDataProvider<String> lookUpTreeDataProviders : this.getLookupTreeDataProviders()) {
+			if(lookUpTreeDataProviders instanceof  StringLookupTreeDataProvider) {
+				(((StringLookupTreeDataProvider) lookUpTreeDataProviders).getTextInputDataProvider()).setOptions(options);
+			}
+		}
+		((StringTextInputDataProvider)this.suggestInputDataProvider).setOptions(options);
+	}
+
 	@Override
 	public Class<? extends String> getType() {
 		return String.class;
@@ -40,6 +49,14 @@ public class StringLookupField extends LookupField<String> {
 		private StringTextInputDataProvider(List<String> options, Converter<String, String> itemConverter) {
 			this.options = options;
 			this.itemConverter = itemConverter;
+		}
+
+		public List<String> getOptions() {
+			return options;
+		}
+
+		public void setOptions(List<String> options) {
+			this.options = options;
 		}
 
 		private List<String> filter(String text) {
@@ -106,6 +123,10 @@ public class StringLookupField extends LookupField<String> {
 		private StringLookupTreeDataProvider(List<String> options, Converter<String, String> itemConverter) {
 			this.itemConverter = itemConverter;
 			this.textInputDataProvider = new StringTextInputDataProvider(options, itemConverter);
+		}
+
+		public StringTextInputDataProvider getTextInputDataProvider() {
+			return textInputDataProvider;
 		}
 
 		@Override

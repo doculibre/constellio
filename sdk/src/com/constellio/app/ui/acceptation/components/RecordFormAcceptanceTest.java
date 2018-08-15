@@ -3,15 +3,13 @@ package com.constellio.app.ui.acceptation.components;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.tools.ApplicationRuntimeException;
 import com.constellio.app.ui.tools.RecordFormWebElement;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -79,7 +77,13 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 		when(factory.getNavigatorConfigurationService()).thenReturn(navigatorConfigurationService);
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));
-		schema = new MetadataSchemaVO("zeSchema", zeCollection, asLocaleMap("The schema", "Ze schema"));
+		CollectionInfo collectionInfo = getModelLayerFactory().getCollectionsListManager().getCollectionInfo(zeCollection);
+
+		CollectionInfoVO collectionInfoVO = new CollectionInfoVO(collectionInfo.getMainSystemLanguage(), collectionInfo.getCode(),collectionInfo.getCollectionLanguages(),
+				collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
+
+
+		schema = new MetadataSchemaVO("zeSchema", zeCollection, asLocaleMap("The schema", "Ze schema"), collectionInfoVO);
 
 		throwExceptionOnDummyViewInit = false;
 	}
@@ -89,7 +93,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, REQUIRED, SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>());
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO());
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -108,7 +112,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>());
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO());
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -125,7 +129,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>());
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO());
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -146,7 +150,7 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 
 		MetadataVO metadata = new MetadataVO("m1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE, SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>());
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO());
 		dummyViewRecord = new RecordVO("zeId", Arrays.asList(new MetadataValueVO(metadata)), VIEW_MODE.FORM);
 		driver.navigateTo().url(dummyPage);
 
@@ -190,11 +194,11 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 		MetadataVO metadata1 = new MetadataVO("metadata1", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>());
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO());
 		MetadataVO metadata2 = new MetadataVO("metadata2", MetadataValueType.STRING, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>());
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO());
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "metadata1InitialValue");
 		MetadataValueVO metadata2Value = new MetadataValueVO(metadata2, "metadata2InitialValue");
 
@@ -235,11 +239,11 @@ public class RecordFormAcceptanceTest extends ConstellioTest {
 		MetadataVO metadata1 = new MetadataVO("metadata1", MetadataValueType.REFERENCE, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m1", "Ze M1"), null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>());
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO());
 		MetadataVO metadata2 = new MetadataVO("metadata2", MetadataValueType.REFERENCE, zeCollection, schema, FACULTATIVE,
 				SINGLEVALUE,
 				READWRITE, asLocaleMap("The m2", "Ze M2"), null, null, null, null, null, null, null, null, false,
-				new HashSet<String>(), false, null, new HashMap<String, Object>());
+				new HashSet<String>(), false, null, new HashMap<String, Object>(), schema.getCollectionInfoVO());
 		MetadataValueVO metadata1Value = new MetadataValueVO(metadata1, "metadata1InitialValue");
 		MetadataValueVO metadata2Value = new MetadataValueVO(metadata2, "metadata2InitialValue");
 

@@ -1,4 +1,4 @@
-package com.constellio.app.ui.pages.summarycolumn;
+package com.constellio.app.ui.pages.summaryconfig;
 
 import com.constellio.app.ui.entities.MetadataVO;
 import org.apache.commons.lang3.NotImplementedException;
@@ -6,7 +6,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 
-public class SummaryColumnParams {
+public class SummaryConfigParams {
 
 	public enum DisplayCondition {
 		COMPLETED,
@@ -15,9 +15,9 @@ public class SummaryColumnParams {
 		@Override
 		public String toString() {
 			if (this == COMPLETED) {
-				return $("SummaryColomnParams.DisplayCondition.ifcompleted");
+				return $("SummaryConfigParams.DisplayCondition.ifcompleted");
 			} else if (this == ALWAYS) {
-				return $("SummaryColomnParams.DisplayCondition.always");
+				return $("SummaryConfigParams.DisplayCondition.always");
 			}
 
 			return this.toString();
@@ -31,9 +31,9 @@ public class SummaryColumnParams {
 		@Override
 		public String toString() {
 			if (this == CODE) {
-				return $("SummaryColomnParams.ReferenceDisplay.code");
+				return $("SummaryConfigParams.ReferenceDisplay.code");
 			} else if (this == TITLE) {
-				return $("SummaryColomnParams.ReferenceDisplay.title");
+				return $("SummaryConfigParams.ReferenceDisplay.title");
 			}
 
 			return this.toString();
@@ -65,7 +65,7 @@ public class SummaryColumnParams {
 	private DisplayCondition displayCondition;
 	private ReferenceMetadataDisplay referenceMetadataDisplay;
 
-	public SummaryColumnParams() {
+	public SummaryConfigParams() {
 
 	}
 

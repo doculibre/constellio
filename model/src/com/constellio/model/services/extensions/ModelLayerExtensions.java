@@ -30,7 +30,7 @@ public class ModelLayerExtensions implements StatefulService {
 		return forCollection(collectionObject.getCollection());
 	}
 
-	public final ModelLayerCollectionExtensions forCollection(String collection) {
+	public ModelLayerCollectionExtensions forCollection(String collection) {
 		if (!collectionExtensions.containsKey(collection)) {
 			collectionExtensions.put(collection, new ModelLayerCollectionExtensions());
 		}

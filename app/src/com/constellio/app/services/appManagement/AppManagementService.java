@@ -24,6 +24,7 @@ import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -125,7 +126,8 @@ public class AppManagementService {
 						  + currentWarVersion + "'";
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
-			if (VersionsComparator.isFirstVersionBeforeSecond(warVersion, currentWarVersion)) {
+			if (VersionsComparator.isFirstVersionBeforeSecond(warVersion, currentWarVersion)
+				&& !Toggle.DANGER_DANGER_DANGER___ALLOW_UPDATE_TO_OLDER_VERSION___DANGER_DANGER_DANGER.isEnabled()) {
 				LOGGER.warn("Trying to install lower version " + warVersion + "\n\tCurrent version is " + currentWarVersion);
 				throw new WarFileVersionMustBeHigher();
 			}

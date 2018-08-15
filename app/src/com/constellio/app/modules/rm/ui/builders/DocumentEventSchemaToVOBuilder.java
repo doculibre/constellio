@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.builders;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
@@ -36,7 +37,7 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 											   StructureFactory structureFactory, String metadataGroup,
 											   Object defaultValue, String inputMask,
 											   Set<String> customAttributes, boolean isMultiLingual, Locale locale,
-											   Map<String, Object> customParameters) {
+											   Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO) {
 				MetadataVO metadataVO;
 				String modifiedOnCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(Schemas.MODIFIED_ON.getCode());
 				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
@@ -52,7 +53,7 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									metadataDisplayType, allowedReferences,
 									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
-									isMultiLingual, locale, customParameters);
+									isMultiLingual, locale, customParameters, collectionInfoVO);
 				} else {
 					metadataVO = super
 							.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
@@ -60,7 +61,7 @@ public class DocumentEventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									metadataDisplayType, allowedReferences,
 									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes,
-									isMultiLingual, locale, customParameters);
+									isMultiLingual, locale, customParameters, collectionInfoVO);
 				}
 				return metadataVO;
 			}
