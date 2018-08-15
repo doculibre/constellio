@@ -6,7 +6,9 @@ import com.constellio.model.entities.schemas.Metadata;
 
 import java.util.List;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static java.util.Arrays.asList;
 
 public class DocumentDecomDatesDynamicLocalDependency extends DynamicLocalDependency {

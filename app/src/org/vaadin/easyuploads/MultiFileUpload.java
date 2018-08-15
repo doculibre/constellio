@@ -10,8 +10,13 @@ import com.vaadin.server.StreamVariable.StreamingErrorEvent;
 import com.vaadin.server.StreamVariable.StreamingProgressEvent;
 import com.vaadin.server.StreamVariable.StreamingStartEvent;
 import com.vaadin.server.WebBrowser;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.DragAndDropWrapper.WrapperTransferable;
+import com.vaadin.ui.Html5File;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.ProgressIndicator;
 import org.vaadin.easyuploads.MultiUpload.FileDetail;
 import org.vaadin.easyuploads.UploadField.FieldType;
 

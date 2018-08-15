@@ -22,7 +22,15 @@ import com.constellio.model.services.search.query.logical.condition.SchemaTypesF
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;

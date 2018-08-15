@@ -5,7 +5,11 @@ import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
-import com.constellio.model.conf.ldap.user.*;
+import com.constellio.model.conf.ldap.user.ADUserBuilder;
+import com.constellio.model.conf.ldap.user.EdirectoryUserBuilder;
+import com.constellio.model.conf.ldap.user.LDAPGroup;
+import com.constellio.model.conf.ldap.user.LDAPUser;
+import com.constellio.model.conf.ldap.user.LDAPUserBuilder;
 import com.constellio.model.services.users.sync.LDAPFastBind;
 import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
@@ -25,7 +29,12 @@ import javax.naming.ldap.Control;
 import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.PagedResultsControl;
 import javax.naming.ldap.PagedResultsResponseControl;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class LDAPServicesImpl implements LDAPServices {
 	Logger LOGGER = LoggerFactory.getLogger(LDAPServicesImpl.class);

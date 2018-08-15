@@ -7,7 +7,11 @@ import com.vaadin.data.util.AbstractProperty;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.ltr.feature.SolrFeature;
-import org.vaadin.addons.lazyquerycontainer.*;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;

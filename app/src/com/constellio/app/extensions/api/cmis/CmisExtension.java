@@ -1,6 +1,13 @@
 package com.constellio.app.extensions.api.cmis;
 
-import com.constellio.app.extensions.api.cmis.params.*;
+import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
+import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
+import com.constellio.app.extensions.api.cmis.params.BuildConstellioRecordFromCmisObjectParams;
+import com.constellio.app.extensions.api.cmis.params.CheckInParams;
+import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
+import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
+import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
+import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 
 public class CmisExtension {

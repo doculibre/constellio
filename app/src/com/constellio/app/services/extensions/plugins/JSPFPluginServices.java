@@ -26,7 +26,9 @@ import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.*;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.CANNOT_INSTALL_OLDER_VERSION;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_EXISTING_ID;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_VERSION;
 import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
 
 public class JSPFPluginServices implements PluginServices {

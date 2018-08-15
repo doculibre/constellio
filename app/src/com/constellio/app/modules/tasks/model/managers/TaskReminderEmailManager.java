@@ -32,9 +32,26 @@ import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.COMPLETE_TASK;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.CONSTELLIO_URL;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.DISPLAY_TASK;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.PARENT_TASK_TITLE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_BY;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_ON;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPTION;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE_TITLE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_EN;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_FR;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 

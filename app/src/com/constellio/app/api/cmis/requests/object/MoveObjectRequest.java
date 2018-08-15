@@ -18,7 +18,9 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.apache.chemistry.opencmis.commons.enums.Action.*;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CREATE_FOLDER;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_MOVE_OBJECT;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_UPDATE_PROPERTIES;
 
 public class MoveObjectRequest extends CmisCollectionRequest<ObjectData> {
 

@@ -7,8 +7,13 @@ import com.constellio.model.conf.FoldersLocator;
 import jxl.CellView;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
-import jxl.write.*;
+import jxl.write.Label;
 import jxl.write.Number;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 
 import java.io.IOException;
 import java.io.OutputStream;

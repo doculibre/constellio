@@ -15,7 +15,12 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class MetadataSchemaToVOBuilder implements Serializable {
@@ -116,7 +121,7 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		MetadataToVOBuilder metadataToVOBuilder = newMetadataToVOBuilder();
 		CollectionInfo collectionInfo = schema.getCollectionInfo();
 
-		CollectionInfoVO collectionInfoVO = new CollectionInfoVO(collectionInfo.getMainSystemLanguage(), collectionInfo.getCode(),collectionInfo.getCollectionLanguages(),
+		CollectionInfoVO collectionInfoVO = new CollectionInfoVO(collectionInfo.getMainSystemLanguage(), collectionInfo.getCode(), collectionInfo.getCollectionLanguages(),
 				collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
 		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, localCode, formMetadataCodes, displayMetadataCodes,
 				tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO);

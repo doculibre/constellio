@@ -19,7 +19,11 @@ import com.constellio.model.services.records.RecordServicesException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecommissioningListView> {
 	private Map<String, FolderDetailVO> folderDetailVOs;

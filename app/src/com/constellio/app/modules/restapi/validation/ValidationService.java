@@ -1,7 +1,12 @@
 package com.constellio.app.modules.restapi.validation;
 
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
-import com.constellio.app.modules.restapi.core.exception.*;
+import com.constellio.app.modules.restapi.core.exception.InvalidDateCombinationException;
+import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
+import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
+import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
+import com.constellio.app.modules.restapi.core.exception.RecordNotFoundException;
+import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.service.BaseService;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.ListUtils;
@@ -9,7 +14,11 @@ import com.constellio.app.modules.restapi.core.util.StringUtils;
 import com.constellio.app.modules.restapi.document.dto.AceDto;
 import com.constellio.app.modules.restapi.signature.SignatureService;
 import com.constellio.app.modules.restapi.validation.dao.ValidationDao;
-import com.constellio.app.modules.restapi.validation.exception.*;
+import com.constellio.app.modules.restapi.validation.exception.ExpiredSignedUrlException;
+import com.constellio.app.modules.restapi.validation.exception.InvalidSignatureException;
+import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
+import com.constellio.app.modules.restapi.validation.exception.UnauthenticatedUserException;
+import com.constellio.app.modules.restapi.validation.exception.UnauthorizedAccessException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -22,7 +31,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import static com.constellio.app.modules.restapi.core.util.HttpMethods.*;
+import static com.constellio.app.modules.restapi.core.util.HttpMethods.DELETE;
+import static com.constellio.app.modules.restapi.core.util.HttpMethods.GET;
+import static com.constellio.app.modules.restapi.core.util.HttpMethods.PATCH;
+import static com.constellio.app.modules.restapi.core.util.HttpMethods.POST;
+import static com.constellio.app.modules.restapi.core.util.HttpMethods.PUT;
 
 public class ValidationService extends BaseService {
 

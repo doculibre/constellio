@@ -9,7 +9,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 

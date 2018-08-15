@@ -16,7 +16,11 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SmbRecordService {
 	private ESSchemasRecordsServices es;

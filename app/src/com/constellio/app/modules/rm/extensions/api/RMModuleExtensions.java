@@ -65,11 +65,11 @@ public class RMModuleExtensions implements ModuleExtensions {
 		}
 	}
 
-    public VaultBehaviorsList<FolderExtension> getFolderExtensions() {
+	public VaultBehaviorsList<FolderExtension> getFolderExtensions() {
 		return folderExtensions;
 	}
 
-    public VaultBehaviorsList<AdvancedSearchPresenterExtension> getAdvancedSearchPresenterExtensions() {
+	public VaultBehaviorsList<AdvancedSearchPresenterExtension> getAdvancedSearchPresenterExtensions() {
 		return advancedSearchPresenterExtensions;
 	}
 
@@ -130,7 +130,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isCopyActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document,user));
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
 			}
 		});
 	}
@@ -140,7 +140,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isCreatePDFAActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document,user));
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
 			}
 		});
 	}
@@ -150,7 +150,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isFinalizeActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document,user));
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
 			}
 		});
 	}
@@ -160,7 +160,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isMoveActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document,user));
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
 			}
 		});
 	}
@@ -170,7 +170,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isPublishActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document,user));
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
 			}
 		});
 	}
@@ -180,7 +180,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 			@Override
 			public ExtensionBooleanResult call(DocumentExtension behavior) {
 				return behavior.isShareActionPossible(
-						new DocumentExtension.DocumentExtensionActionPossibleParams(document,user));
+						new DocumentExtension.DocumentExtensionActionPossibleParams(document, user));
 			}
 		});
 	}

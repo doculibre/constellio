@@ -7,7 +7,11 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
-import com.vaadin.server.*;
+import com.vaadin.server.RequestHandler;
+import com.vaadin.server.VaadinRequest;
+import com.vaadin.server.VaadinResponse;
+import com.vaadin.server.VaadinServletRequest;
+import com.vaadin.server.VaadinSession;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;

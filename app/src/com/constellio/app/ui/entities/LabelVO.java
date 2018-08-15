@@ -5,7 +5,11 @@ import com.constellio.model.entities.records.Content;
 import java.io.Serializable;
 import java.util.List;
 
-import static com.constellio.app.modules.rm.wrappers.PrintableLabel.*;
+import static com.constellio.app.modules.rm.wrappers.PrintableLabel.COLONNE;
+import static com.constellio.app.modules.rm.wrappers.PrintableLabel.JASPERFILE;
+import static com.constellio.app.modules.rm.wrappers.PrintableLabel.LIGNE;
+import static com.constellio.app.modules.rm.wrappers.PrintableLabel.TITLE;
+import static com.constellio.app.modules.rm.wrappers.PrintableLabel.TYPE_LABEL;
 
 public class LabelVO extends RecordVO implements Serializable {
 

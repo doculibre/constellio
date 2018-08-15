@@ -1,10 +1,18 @@
 package com.constellio.app.modules.restapi.document.dao;
 
 import com.constellio.app.modules.restapi.core.dao.BaseDao;
-import com.constellio.app.modules.restapi.core.exception.*;
+import com.constellio.app.modules.restapi.core.exception.OptimisticLockException;
+import com.constellio.app.modules.restapi.core.exception.RecordLogicallyDeletedException;
+import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
+import com.constellio.app.modules.restapi.core.exception.UnresolvableOptimisticLockException;
+import com.constellio.app.modules.restapi.core.exception.UnsupportedMetadataTypeException;
 import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.modules.restapi.core.util.ListUtils;
-import com.constellio.app.modules.restapi.document.dto.*;
+import com.constellio.app.modules.restapi.document.dto.ContentDto;
+import com.constellio.app.modules.restapi.document.dto.DocumentContentDto;
+import com.constellio.app.modules.restapi.document.dto.DocumentDto;
+import com.constellio.app.modules.restapi.document.dto.DocumentTypeDto;
+import com.constellio.app.modules.restapi.document.dto.ExtendedAttributeDto;
 import com.constellio.app.modules.restapi.document.exception.DocumentContentNotFoundException;
 import com.constellio.app.modules.restapi.document.exception.DocumentTypeNotFoundException;
 import com.constellio.app.modules.rm.wrappers.Document;

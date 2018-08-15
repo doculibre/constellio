@@ -1,7 +1,11 @@
 package com.constellio.app.ui.pages.collection;
 
-import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.entities.GlobalGroupVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.RoleVO;
+import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;

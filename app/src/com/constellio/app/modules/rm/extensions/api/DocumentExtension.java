@@ -10,29 +10,29 @@ import com.vaadin.server.Resource;
 
 public abstract class DocumentExtension {
 
-    public ExtensionBooleanResult isCopyActionPossible(DocumentExtensionActionPossibleParams params) {
-        return ExtensionBooleanResult.NOT_APPLICABLE;
-    }
+	public ExtensionBooleanResult isCopyActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
 
-    public ExtensionBooleanResult isCreatePDFAActionPossible(DocumentExtensionActionPossibleParams params) {
-        return ExtensionBooleanResult.NOT_APPLICABLE;
-    }
+	public ExtensionBooleanResult isCreatePDFAActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
 
-    public ExtensionBooleanResult isFinalizeActionPossible(DocumentExtensionActionPossibleParams params) {
-        return ExtensionBooleanResult.NOT_APPLICABLE;
-    }
+	public ExtensionBooleanResult isFinalizeActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
 
-    public ExtensionBooleanResult isMoveActionPossible(DocumentExtensionActionPossibleParams params) {
-        return ExtensionBooleanResult.NOT_APPLICABLE;
-    }
+	public ExtensionBooleanResult isMoveActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
 
-    public ExtensionBooleanResult isPublishActionPossible(DocumentExtensionActionPossibleParams params) {
-        return ExtensionBooleanResult.NOT_APPLICABLE;
-    }
+	public ExtensionBooleanResult isPublishActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
 
-    public ExtensionBooleanResult isShareActionPossible(DocumentExtensionActionPossibleParams params) {
-        return ExtensionBooleanResult.NOT_APPLICABLE;
-    }
+	public ExtensionBooleanResult isShareActionPossible(DocumentExtensionActionPossibleParams params) {
+		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
 
 	public void addMenuItems(DocumentExtensionAddMenuItemParams params) {
 	}
@@ -49,26 +49,26 @@ public abstract class DocumentExtension {
 		public abstract void registerMenuItem(String caption, Resource icon, Runnable runnable);
 	}
 
-    public static class DocumentExtensionActionPossibleParams {
-        private Document document;
-        private User user;
+	public static class DocumentExtensionActionPossibleParams {
+		private Document document;
+		private User user;
 
-        public DocumentExtensionActionPossibleParams(Document document, User user) {
-            this.document = document;
-            this.user = user;
-        }
+		public DocumentExtensionActionPossibleParams(Document document, User user) {
+			this.document = document;
+			this.user = user;
+		}
 
-        public Record getRecord() {
-            return document.getWrappedRecord();
-        }
+		public Record getRecord() {
+			return document.getWrappedRecord();
+		}
 
-        public Document getDocument() {
-            return document;
-        }
+		public Document getDocument() {
+			return document;
+		}
 
-        public User getUser() {
-            return user;
-        }
-    }
+		public User getUser() {
+			return user;
+		}
+	}
 
 }

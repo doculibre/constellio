@@ -11,10 +11,18 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Item;
 import org.apache.commons.collections4.CollectionUtils;
-import org.vaadin.addons.lazyquerycontainer.*;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class RecordVOLazyContainer extends LazyQueryContainer implements RefreshableContainer {

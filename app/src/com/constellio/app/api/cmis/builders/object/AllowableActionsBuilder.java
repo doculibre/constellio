@@ -23,7 +23,25 @@ import java.util.List;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static org.apache.chemistry.opencmis.commons.enums.Action.*;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_APPLY_ACL;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CHECK_IN;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CHECK_OUT;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CREATE_DOCUMENT;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CREATE_FOLDER;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_DELETE_CONTENT_STREAM;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_DELETE_OBJECT;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_DELETE_TREE;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ACL;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ALL_VERSIONS;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_CHILDREN;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_CONTENT_STREAM;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_FOLDER_PARENT;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_FOLDER_TREE;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_OBJECT_PARENTS;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_PROPERTIES;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_MOVE_OBJECT;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_SET_CONTENT_STREAM;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_UPDATE_PROPERTIES;
 
 public class AllowableActionsBuilder {
 

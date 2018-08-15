@@ -7,7 +7,13 @@ import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.Con
 import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 public class ConnectorContextServices {
 	private static final String CONTEXT_TEMP_FILE_WRITING_RESOURCE = "ConnectorContextServices-ContextTempFileWriting";

@@ -27,12 +27,12 @@ public class StringLookupField extends LookupField<String> {
 	}
 
 	public void setOptions(List<String> options) {
-		for(LookupTreeDataProvider<String> lookUpTreeDataProviders : this.getLookupTreeDataProviders()) {
-			if(lookUpTreeDataProviders instanceof  StringLookupTreeDataProvider) {
+		for (LookupTreeDataProvider<String> lookUpTreeDataProviders : this.getLookupTreeDataProviders()) {
+			if (lookUpTreeDataProviders instanceof StringLookupTreeDataProvider) {
 				(((StringLookupTreeDataProvider) lookUpTreeDataProviders).getTextInputDataProvider()).setOptions(options);
 			}
 		}
-		((StringTextInputDataProvider)this.suggestInputDataProvider).setOptions(options);
+		((StringTextInputDataProvider) this.suggestInputDataProvider).setOptions(options);
 	}
 
 	@Override

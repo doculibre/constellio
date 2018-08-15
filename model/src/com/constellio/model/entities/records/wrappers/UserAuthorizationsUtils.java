@@ -18,7 +18,9 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
-import static com.constellio.model.entities.security.Role.*;
+import static com.constellio.model.entities.security.Role.DELETE;
+import static com.constellio.model.entities.security.Role.READ;
+import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class UserAuthorizationsUtils {

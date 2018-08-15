@@ -1,34 +1,10 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
-import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.extensions.api.DocumentExtension;
-import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmailService;
@@ -38,7 +14,12 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderCategoryF
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -74,6 +55,7 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailServices;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -87,7 +69,14 @@ import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.IOUtils;
 import org.joda.time.LocalDateTime;
@@ -98,7 +87,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -106,19 +99,19 @@ import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class RMSelectionPanelExtension extends SelectionPanelExtension {
-    AppLayerFactory appLayerFactory;
-    String collection;
-    IOServices ioServices;
-    RMSchemasRecordsServices rm;
-    private RMModuleExtensions rmModuleExtensions;
+	AppLayerFactory appLayerFactory;
+	String collection;
+	IOServices ioServices;
+	RMSchemasRecordsServices rm;
+	private RMModuleExtensions rmModuleExtensions;
 
-    public RMSelectionPanelExtension(AppLayerFactory appLayerFactory, String collection) {
-        this.appLayerFactory = appLayerFactory;
-        this.collection = collection;
-        this.ioServices = this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
-        this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
-        this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-    }
+	public RMSelectionPanelExtension(AppLayerFactory appLayerFactory, String collection) {
+		this.appLayerFactory = appLayerFactory;
+		this.collection = collection;
+		this.ioServices = this.appLayerFactory.getModelLayerFactory().getDataLayerFactory().getIOServicesFactory().newIOServices();
+		this.rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+	}
 
 	@Override
 	public void addAvailableActions(AvailableActionsParam param) {
@@ -137,52 +130,52 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 		}
 	}
 
-    public void addPdfButton(final AvailableActionsParam param) {
-        final User currentUser = param.getUser();
-        WindowButton pdfButton = new ConsolidatedPdfButton(param) {
-            @Override
-            public void buttonClick(ClickEvent event) {
-                List<Record> records = recordServices().getRecordsById(collection, param.getIds());
-                for (Record record : records) {
-                    if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm.wrapDocument(record),currentUser)) {
-                        showErrorMessage(i18n.$("ConstellioHeader.pdfGenerationBlockedByExtension"));
-                        return;
-                    }
-                }
-                super.buttonClick(event);
-            }
-        };
-        setStyles(pdfButton);
-        pdfButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
-        pdfButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
-        ((VerticalLayout) param.getComponent()).addComponent(pdfButton);
-    }
+	public void addPdfButton(final AvailableActionsParam param) {
+		final User currentUser = param.getUser();
+		WindowButton pdfButton = new ConsolidatedPdfButton(param) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				List<Record> records = recordServices().getRecordsById(collection, param.getIds());
+				for (Record record : records) {
+					if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm.wrapDocument(record), currentUser)) {
+						showErrorMessage(i18n.$("ConstellioHeader.pdfGenerationBlockedByExtension"));
+						return;
+					}
+				}
+				super.buttonClick(event);
+			}
+		};
+		setStyles(pdfButton);
+		pdfButton.setEnabled(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
+		pdfButton.setVisible(containsOnly(param.getSchemaTypeCodes(), asList(Document.SCHEMA_TYPE)));
+		((VerticalLayout) param.getComponent()).addComponent(pdfButton);
+	}
 
-    public void addMoveButton(final AvailableActionsParam param) {
-        WindowButton moveInFolderButton = new WindowButton($("ConstellioHeader.selection.actions.moveInFolder"), $("ConstellioHeader.selection.actions.moveInFolder")
-                , WindowButton.WindowConfiguration.modalDialog("50%", "140px")) {
-            @Override
-            protected Component buildWindowContent() {
-                VerticalLayout verticalLayout = new VerticalLayout();
-                verticalLayout.addStyleName("no-scroll");
-                verticalLayout.setSpacing(true);
-                final LookupFolderField field = new LookupFolderField(true);
-                field.focus();
-                field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
-                verticalLayout.addComponent(field);
-                BaseButton saveButton = new BaseButton($("save")) {
-                    @Override
-                    protected void buttonClick(ClickEvent event) {
-                        String parentId = field.getValue();
-                        try {
-                            parentFolderButtonClicked(parentId, param);
-                        } catch (Throwable e) {
-//                            LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
-//                            showErrorMessage("DisplayFolderView.parentFolderException");
-                            e.printStackTrace();
-                        }
-                        getWindow().close();
-                    }
+	public void addMoveButton(final AvailableActionsParam param) {
+		WindowButton moveInFolderButton = new WindowButton($("ConstellioHeader.selection.actions.moveInFolder"), $("ConstellioHeader.selection.actions.moveInFolder")
+				, WindowButton.WindowConfiguration.modalDialog("50%", "140px")) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout verticalLayout = new VerticalLayout();
+				verticalLayout.addStyleName("no-scroll");
+				verticalLayout.setSpacing(true);
+				final LookupFolderField field = new LookupFolderField(true);
+				field.focus();
+				field.setWindowZIndex(BaseWindow.OVER_ADVANCED_SEARCH_FORM_Z_INDEX + 1);
+				verticalLayout.addComponent(field);
+				BaseButton saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						String parentId = field.getValue();
+						try {
+							parentFolderButtonClicked(parentId, param);
+						} catch (Throwable e) {
+							//                            LOGGER.warn("error when trying to modify folder parent to " + parentId, e);
+							//                            showErrorMessage("DisplayFolderView.parentFolderException");
+							e.printStackTrace();
+						}
+						getWindow().close();
+					}
 
 					@Override
 					public boolean isVisible() {
@@ -538,48 +531,48 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 		return new DecommissioningService(param.getUser().getCollection(), appLayerFactory);
 	}
 
-    public void parentFolderButtonClicked(String parentId, AvailableActionsParam param)
-            throws RecordServicesException {
-        List<String> recordIds = param.getIds();
-        List<String> couldNotMove = new ArrayList<>();
-        if (isNotBlank(parentId)) {
-            RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-            RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-            for(String id: recordIds) {
-                Record record = recordServices.getDocumentById(id);
-                boolean isMovePossible = true;
-                try {
-                    switch (record.getTypeCode()) {
-                        case Folder.SCHEMA_TYPE:
-                            Folder folder = rmSchemas.getFolder(id);
-                            if (!rmModuleExtensions.isMoveActionPossibleOnFolder(folder,param.getUser())) {
-                                isMovePossible = false;
-                                couldNotMove.add(record.getTitle());
-                                break;
-                            }
-                            if (isMovePossible) {
-                                recordServices.update(folder.setParentFolder(parentId));
-                            }
-                            break;
-                        case Document.SCHEMA_TYPE:
-                            if (!rmModuleExtensions.isMoveActionPossibleOnDocument(rm.wrapDocument(record), param.getUser())) {
-                                isMovePossible = false;
-                                couldNotMove.add(record.getTitle());
-                                break;
-                            }
-                            if (isMovePossible) {
-                                recordServices.update(rmSchemas.getDocument(id).setFolder(parentId));
-                            }
-                            break;
-                        default:
-                            couldNotMove.add(record.getTitle());
-                    }
-                } catch (RecordServicesException.ValidationException e) {
-                    e.printStackTrace();
-                    couldNotMove.add(record.getTitle());
-                }
-            }
-        }
+	public void parentFolderButtonClicked(String parentId, AvailableActionsParam param)
+			throws RecordServicesException {
+		List<String> recordIds = param.getIds();
+		List<String> couldNotMove = new ArrayList<>();
+		if (isNotBlank(parentId)) {
+			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+			RMSchemasRecordsServices rmSchemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+			for (String id : recordIds) {
+				Record record = recordServices.getDocumentById(id);
+				boolean isMovePossible = true;
+				try {
+					switch (record.getTypeCode()) {
+						case Folder.SCHEMA_TYPE:
+							Folder folder = rmSchemas.getFolder(id);
+							if (!rmModuleExtensions.isMoveActionPossibleOnFolder(folder, param.getUser())) {
+								isMovePossible = false;
+								couldNotMove.add(record.getTitle());
+								break;
+							}
+							if (isMovePossible) {
+								recordServices.update(folder.setParentFolder(parentId));
+							}
+							break;
+						case Document.SCHEMA_TYPE:
+							if (!rmModuleExtensions.isMoveActionPossibleOnDocument(rm.wrapDocument(record), param.getUser())) {
+								isMovePossible = false;
+								couldNotMove.add(record.getTitle());
+								break;
+							}
+							if (isMovePossible) {
+								recordServices.update(rmSchemas.getDocument(id).setFolder(parentId));
+							}
+							break;
+						default:
+							couldNotMove.add(record.getTitle());
+					}
+				} catch (RecordServicesException.ValidationException e) {
+					e.printStackTrace();
+					couldNotMove.add(record.getTitle());
+				}
+			}
+		}
 
 		if (couldNotMove.isEmpty()) {
 			showErrorMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
@@ -599,28 +592,32 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 				boolean isCopyPossible = true;
 				Record record = recordServices.getDocumentById(id);
 
-                try {
-                    switch (record.getTypeCode()) {
-                        case Folder.SCHEMA_TYPE:
-                            if (!rmModuleExtensions.isCopyActionPossibleOnFolder(rmSchemas.wrapFolder(record), param.getUser())) {
-                                isCopyPossible = false;
-                                couldNotDuplicate.add(record.getTitle());
-                                break;
-                            }
-                            if (!isCopyPossible) break;
+				try {
+					switch (record.getTypeCode()) {
+						case Folder.SCHEMA_TYPE:
+							if (!rmModuleExtensions.isCopyActionPossibleOnFolder(rmSchemas.wrapFolder(record), param.getUser())) {
+								isCopyPossible = false;
+								couldNotDuplicate.add(record.getTitle());
+								break;
+							}
+							if (!isCopyPossible) {
+								break;
+							}
 
-                            Folder oldFolder = rmSchemas.wrapFolder(record);
-                            Folder newFolder = decommissioningService(param).duplicateStructureAndDocuments(oldFolder, param.getUser(), false);
-                            newFolder.setParentFolder(parentId);
-                            recordServices.add(newFolder);
-                            break;
-                        case Document.SCHEMA_TYPE:
-                            if (!rmModuleExtensions.isCopyActionPossibleOnDocument(rm.wrapDocument(record),param.getUser())) {
-                                isCopyPossible = false;
-                                couldNotDuplicate.add(record.getTitle());
-                                break;
-                            }
-                            if (!isCopyPossible) break;
+							Folder oldFolder = rmSchemas.wrapFolder(record);
+							Folder newFolder = decommissioningService(param).duplicateStructureAndDocuments(oldFolder, param.getUser(), false);
+							newFolder.setParentFolder(parentId);
+							recordServices.add(newFolder);
+							break;
+						case Document.SCHEMA_TYPE:
+							if (!rmModuleExtensions.isCopyActionPossibleOnDocument(rm.wrapDocument(record), param.getUser())) {
+								isCopyPossible = false;
+								couldNotDuplicate.add(record.getTitle());
+								break;
+							}
+							if (!isCopyPossible) {
+								break;
+							}
 
 							Document oldDocument = rmSchemas.wrapDocument(record);
 							Document newDocument = rmSchemas.newDocumentWithType(oldDocument.getType());
@@ -799,7 +796,7 @@ public class RMSelectionPanelExtension extends SelectionPanelExtension {
 			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage(params);
 			if (emailMessage == null) {
 				EmailServices emailServices = new EmailServices();
-                ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
+				ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
 				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments, configs);
 				message.writeTo(outputStream);
 				String filename = "cart.eml";

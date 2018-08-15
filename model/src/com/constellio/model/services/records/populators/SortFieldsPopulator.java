@@ -1,7 +1,11 @@
 package com.constellio.model.services.records.populators;
 
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.sort.StringSortFieldNormalizer;
 import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 import com.constellio.model.services.factories.ModelLayerFactory;

@@ -1,7 +1,11 @@
 package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.ui.framework.components.converters.CollectionCodeToLabelConverter;
-import com.vaadin.ui.*;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.util.ArrayList;

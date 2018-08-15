@@ -11,13 +11,19 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.entities.Language.French;
 import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.Schemas.*;
+import static com.constellio.model.entities.schemas.Schemas.CODE;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.schemas.builders.ClassListBuilder.combine;
 
 public class Metadata implements DataStoreField {

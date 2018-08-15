@@ -9,7 +9,10 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
@@ -178,9 +181,9 @@ public class EventFactory {
 					}
 					Object newValue = modifiedValueEntry.getValue();
 					Object oldValue = recordImpl.getRecordDTO().getFields().get(metadataDatastoreCode);
-					if(metadata.getType() == MetadataValueType.CONTENT) {
-						newValue = newValue == null? null: formatContentForDeltaMetadata(newValue);
-						oldValue = oldValue == null? null: formatContentForDeltaMetadata(oldValue);
+					if (metadata.getType() == MetadataValueType.CONTENT) {
+						newValue = newValue == null ? null : formatContentForDeltaMetadata(newValue);
+						oldValue = oldValue == null ? null : formatContentForDeltaMetadata(oldValue);
 					}
 
 					if (newValue == null) {
@@ -206,14 +209,14 @@ public class EventFactory {
 
 	private Object formatContentForDeltaMetadata(Object content) {
 		try {
-			if(content instanceof Content && ((Content) content).getCurrentVersion() != null) {
+			if (content instanceof Content && ((Content) content).getCurrentVersion() != null) {
 				StringBuilder printableValue = new StringBuilder();
 				ContentVersion currentVersion = ((Content) content).getCurrentVersion();
 				printableValue.append(currentVersion.getFilename());
-				printableValue.append(" (v" + currentVersion.getVersion() +")");
-				printableValue.append(" - " + (currentVersion.getLength()/1024) + " KB");
+				printableValue.append(" (v" + currentVersion.getVersion() + ")");
+				printableValue.append(" - " + (currentVersion.getLength() / 1024) + " KB");
 				return printableValue.toString();
-			} else if(content instanceof String) {
+			} else if (content instanceof String) {
 				return formatContentForDeltaMetadata(new ContentFactory().build((String) content, true));
 			}
 		} catch (Exception e) {

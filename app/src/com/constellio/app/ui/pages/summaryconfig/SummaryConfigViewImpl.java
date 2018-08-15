@@ -22,10 +22,21 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.*;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -250,8 +261,8 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 
 	private void removeMetadataVOFromList(String code) {
 		MetadataVO foundMetadataVO = null;
-		for(MetadataVO metadataVO : metadataVOList){
-			if(metadataVO.getLocalCode().equals(code)) {
+		for (MetadataVO metadataVO : metadataVOList) {
+			if (metadataVO.getLocalCode().equals(code)) {
 				foundMetadataVO = metadataVO;
 				break;
 			}
