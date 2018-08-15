@@ -396,7 +396,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			@Override
 			protected Property<?> loadContainerProperty(Object itemId, Object propertyId) {
 				Property loadContainerProperty = null;
-				if (itemId instanceof Integer) {
+				if (itemId instanceof Integer && CommonMetadataBuilder.SUMMARY.equals(propertyId)) {
 					RecordVO recordVO = dataProvider.getRecordVO((int) itemId);
 					MetadataVO metadataVO = recordVO.getSchema().getMetadata(Folder.SUMMARY);
 					String value = recordVO.get(recordVO.getSchema().getMetadata(Folder.SUMMARY));
