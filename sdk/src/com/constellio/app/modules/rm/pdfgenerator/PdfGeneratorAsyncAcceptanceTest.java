@@ -101,7 +101,7 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 		}
 
 		if (parsedContent != null) {
-			assertThat(parsedContent.getParsedContent()).contains("La racine du mot « grenouille » vient du latin rana,  voulant dire grenouille, et ranucula ou ranunculus, petite");
+			assertThat(parsedContent.getParsedContent()).contains("La racine du mot « grenouille » vient du latin rana");
 			assertThat(parsedContent.getParsedContent()).contains("Pour une définition du mot « pêcher »");
 
 			assertThat(parsedContent.getParsedContent()).contains("germaniques ont emprunté l'étymon du latin vulgaire : anglais pear (renforcé par le normand),");
