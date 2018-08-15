@@ -1007,8 +1007,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
 			@Override
 			public int compare(MetadataVO o1, MetadataVO o2) {
-				String firstLabel = AccentApostropheCleaner.removeAccents(o1.getLabel().toLowerCase());
-				String secondLabel = AccentApostropheCleaner.removeAccents(o2.getLabel().toLowerCase());
+				String firstLabel = AccentApostropheCleaner.removeAccents(o1.getLabel(view.getSessionContext()).toLowerCase());
+				String secondLabel = AccentApostropheCleaner.removeAccents(o2.getLabel(view.getSessionContext()).toLowerCase());
 				return firstLabel.compareTo(secondLabel);
 			}
 		});
