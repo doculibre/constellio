@@ -1285,6 +1285,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		if (taskName == null) {
 			taskName = "Collections preparation similar to '" + getClass().getSimpleName() + "#" + getTestName() + "'";
 			preparationNames.put(preparators.hashCode(), taskName);
+		} else {
+			log.info("Using turbo cache : " + taskName);
 		}
 		stats.add(this, getTestName(), taskName, end - start);
 		getCurrentTestSession().getAfterTestValidationsTestFeature().startRollbackNow();
