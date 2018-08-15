@@ -516,7 +516,7 @@ public abstract class Decommissioner {
 			empty = true;
 			// Current transaction folders would not be taken into account otherwise
 			for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-				if (detail.isFolderExcluded()) {
+				if (detail.isFolderExcluded() || destroyedFolders.contains(detail.getFolderId())) {
 					continue;
 				}
 				if (container.getId().equals(detail.getContainerRecordId())) {
