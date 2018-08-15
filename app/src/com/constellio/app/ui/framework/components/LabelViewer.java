@@ -19,13 +19,15 @@ public class LabelViewer extends VerticalLayout {
 
 	public LabelViewer(File PDF, String filename, IOServices ioServices) {
 		addStyleName("no-scroll");
-		InputStream inputStream = null;
-		try {
-			inputStream = new FileInputStream(PDF);
-			byte[] PDFbytes = IOUtils.toByteArray(inputStream);
-			StreamSource source = buildSource(PDFbytes);
-			BrowserFrame viewer = new BrowserFrame();
-			viewer.setSource(new StreamResource(source, filename));
+        InputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(PDF);
+            byte[] PDFbytes = IOUtils.toByteArray(inputStream);
+            StreamSource source = buildSource(PDFbytes);
+            BrowserFrame viewer = new BrowserFrame();
+            StreamResource streamResource = new StreamResource(source, filename);
+            streamResource.setCacheTime(0);
+            viewer.setSource(streamResource);
 
 			viewer.setWidth("100%");
 			//            viewer.setHeight("900px");

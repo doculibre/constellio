@@ -9,13 +9,9 @@ import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class ConstellioEIM {
-
-	private static final Set<String> setupCollections = new HashSet<>();
 
 	public List<MigrationScript> getMigrationScripts() {
 
@@ -86,7 +82,7 @@ public class ConstellioEIM {
 	}
 
 	static public void start(AppLayerFactory appLayerFactory, String collection) {
-		if (!Collection.SYSTEM_COLLECTION.equals(collection) && setupCollections.add(collection)) {
+		if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
 			configureBaseExtensions(appLayerFactory, collection);
 		}
 	}

@@ -645,7 +645,7 @@ public class DecommissioningService {
 		CopyRetentionRule retentionRule = folder.getMainCopyRule();
 		LocalDate actualTransferDate = folder.getActualTransferDate();
 
-		boolean allowedByRetentionRule = retentionRule != null && retentionRule.canTransferToSemiActive();
+		boolean allowedByRetentionRule = getRMConfigs().isAllowTransferDateFieldWhenCopyRuleHasNoSemiActiveState() || (retentionRule != null && retentionRule.canTransferToSemiActive());
 		return (actualTransferDate != null || allowedByRetentionRule) && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
 	}
 

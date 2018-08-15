@@ -36,8 +36,8 @@ public class FolderUniqueKeyDataProvider extends AbstractDataProvider {
 		this.folderUnicityVOs = folderUnicityVOs;
 	}
 
-	public void addFolderUnicityVO(int index, FolderUnicityVO summaryColumnVO) {
-		folderUnicityVOs.add(index, summaryColumnVO);
+	public void addFolderUnicityVO(int index, FolderUnicityVO folderUnicityConfigItemVO) {
+		folderUnicityVOs.add(index, folderUnicityConfigItemVO);
 	}
 
 	public void addFolderUnicityVO(FolderUnicityVO summaryColumnVO) {

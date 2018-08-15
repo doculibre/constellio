@@ -1,5 +1,16 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.constellio.app.ui.entities.*;
+import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.easyuploads.MultiFileUpload;
+
 import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserContentContainerButton;
 import com.constellio.app.ui.entities.*;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -229,14 +240,14 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		return true;
 	}
 
-	protected Component newCaptionComponent(RecordVO recordVO) {
+	protected Component newCaptionComponent(final RecordVO recordVO) {
 		Component captionComponent;
 		if (recordVO instanceof UserDocumentVO) {
 			UserDocumentVO userDocumentVO = (UserDocumentVO) recordVO;
 			ContentVersionVO contentVersionVO = userDocumentVO.getContent();
 			if (contentVersionVO != null) {
 				String filename = contentVersionVO.getFileName();
-				captionComponent = new ContentVersionDisplay(recordVO, contentVersionVO, filename);
+				captionComponent = new ContentVersionDisplay(recordVO, contentVersionVO, filename, presenter);
 			} else {
 				captionComponent = new Label("");
 			}

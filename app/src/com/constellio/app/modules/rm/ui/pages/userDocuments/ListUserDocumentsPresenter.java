@@ -1,5 +1,19 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+
+import com.constellio.app.ui.framework.components.content.UpdatableContentVersionPresenter;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -45,7 +59,7 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUserDocumentsView> {
+public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUserDocumentsView> implements UpdatableContentVersionPresenter {
 
 	Boolean allItemsSelected = false;
 
@@ -374,5 +388,11 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		String displayURL = RMNavigationConfiguration.LIST_USER_DOCUMENTS;
 		String url = constellioUrl + "#!" + displayURL;
 		return "<a href=\"" + url + "\">" + url + "</a>";
+	}
+
+	@Override
+	public ContentVersionVO getUpdatedContentVersionVO(RecordVO recordVO, ContentVersionVO previousConventVersionVO) {
+		UserDocumentVO updatedUserDocument = voBuilder.build(recordServices().getDocumentById(recordVO.getId()), VIEW_MODE.FORM, view.getSessionContext());
+		return updatedUserDocument.getContent();
 	}
 }

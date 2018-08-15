@@ -1,5 +1,23 @@
 package com.constellio.app.modules.rm.services.reports;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jdom2.Verifier;
+import org.jsoup.Jsoup;
+
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -85,6 +103,7 @@ public abstract class AbstractXmlGenerator {
 	private Locale locale;
 
 	private MetadataSchemasManager metadataSchemasManager;
+	protected SchemasDisplayManager displayManager;
 	private RMSchemasRecordsServices rm;
 
 	protected AbstractXmlGeneratorParameters xmlGeneratorParameters;
@@ -95,7 +114,7 @@ public abstract class AbstractXmlGenerator {
 		this.recordServices = this.factory.getModelLayerFactory().newRecordServices();
 		this.metadataSchemasManager = this.factory.getModelLayerFactory().getMetadataSchemasManager();
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		this.locale = locale;
+		this.displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 	}
 
 	public RecordServices getRecordServices() {

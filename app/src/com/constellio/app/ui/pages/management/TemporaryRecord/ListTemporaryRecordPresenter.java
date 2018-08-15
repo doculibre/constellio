@@ -63,7 +63,7 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 		boolean hasPermission = !schemaType.hasSecurity() || modelLayerFactory.newAuthorizationsServices()
 				.hasRestaurationPermissionOnHierarchy(user, record, asList(recordVO.getRecord()));
 		return hasPermission && (user.has(CorePermissions.ACCESS_DELETE_ALL_TEMPORARY_RECORD).globally() || recordVO
-				.get(Schemas.CREATED_BY.getCode()).equals(view.getSessionContext().getCurrentUser().getId()));
+				.get(Schemas.CREATED_BY.getCode()).equals(getCurrentUser().getId()));
 	}
 
 	public boolean isVisible(String index, String schema) {

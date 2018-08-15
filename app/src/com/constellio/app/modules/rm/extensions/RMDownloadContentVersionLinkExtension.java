@@ -8,13 +8,14 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
+import com.constellio.app.ui.framework.components.content.UpdatableContentVersionPresenter;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.vaadin.ui.Component;
 
 public class RMDownloadContentVersionLinkExtension implements DownloadContentVersionLinkExtension {
 
 	@Override
-	public Component getDownloadLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption) {
+	public Component getDownloadLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption, UpdatableContentVersionPresenter presenter) {
 		Component downloadLink;
 		if (!isDocumentOrUserDocument(recordVO)) {
 			// Do not enable agent for non-rm entities
@@ -23,9 +24,9 @@ public class RMDownloadContentVersionLinkExtension implements DownloadContentVer
 
 		String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 		if (agentURL != null) {
-			downloadLink = new ConstellioAgentLink(agentURL, recordVO, contentVersionVO, caption);
+			downloadLink = new ConstellioAgentLink(agentURL, recordVO, contentVersionVO, caption, presenter);
 		} else {
-			downloadLink = new DownloadContentVersionLink(contentVersionVO, caption);
+			downloadLink = new DownloadContentVersionLink(recordVO, contentVersionVO, caption, presenter);
 		}
 		return downloadLink;
 	}

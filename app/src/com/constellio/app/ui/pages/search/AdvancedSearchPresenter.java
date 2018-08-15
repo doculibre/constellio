@@ -86,6 +86,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	private transient BatchProcessingPresenterService batchProcessingPresenterService;
 	private transient ModelLayerCollectionExtensions modelLayerExtensions;
 	private transient RMModuleExtensions rmModuleExtensions;
+	private transient RMSchemasRecordsServices rm;
 
 	public AdvancedSearchPresenter(AdvancedSearchView view) {
 		super(view);
@@ -573,23 +574,39 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	private LogicalSearchQuery buildLogicalSearchQuery() {
 		List<String> selectedRecordIds = view.getSelectedRecordIds();
+		LogicalSearchQuery query = null;
 		if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode) || StorageSpace.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			if (!batchProcessOnAllSearchResults) {
-				return buildUnsecuredLogicalSearchQueryWithSelectedIds();
+				query = buildUnsecuredLogicalSearchQueryWithSelectedIds();
 			} else if (selectedRecordIds != null && !selectedRecordIds.isEmpty()) {
-				return buildUnsecuredLogicalSearchQueryWithUnselectedIds();
+				query = buildUnsecuredLogicalSearchQueryWithUnselectedIds();
 			} else {
-				return buildUnsecuredLogicalSearchQueryWithAllRecords();
+				query = buildUnsecuredLogicalSearchQueryWithAllRecords();
 			}
 		} else {
 			if (!batchProcessOnAllSearchResults) {
-				return buildLogicalSearchQueryWithSelectedIds();
+				query = buildLogicalSearchQueryWithSelectedIds();
 			} else if (selectedRecordIds != null && !selectedRecordIds.isEmpty()) {
-				return buildLogicalSearchQueryWithUnselectedIds();
+				query = buildLogicalSearchQueryWithUnselectedIds();
 			} else {
-				return buildLogicalSearchQueryWithAllRecords();
+				query = buildLogicalSearchQueryWithAllRecords();
 			}
 		}
+
+		if (searchExpression != null && !searchExpression.isEmpty()) {
+			query.setFreeTextQuery(searchExpression);
+		}
+
+		if(sortCriterion != null && !sortCriterion.isEmpty()) {
+			Metadata metadata = getMetadata(sortCriterion);
+			if(sortOrder == SortOrder.ASCENDING) {
+				query.sortAsc(metadata);
+			} else {
+				query.sortDesc(metadata);
+			}
+		}
+
+		return query;
 	}
 
 	public LogicalSearchQuery buildLogicalSearchQueryWithSelectedIds() {
@@ -598,9 +615,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -610,9 +624,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -621,9 +632,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		query.setCondition(query.getCondition().andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -632,9 +640,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isIn(view.getSelectedRecordIds())
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -643,9 +648,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		query.setCondition(query.getCondition().andWhere(Schemas.IDENTIFIER).isNotIn(view.getUnselectedRecordIds())
 				.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -653,9 +655,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		LogicalSearchQuery query = getSearchQuery();
 		query.setCondition(query.getCondition().andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -663,9 +662,6 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		LogicalSearchQuery query = new LogicalSearchQuery()
 				.filteredWithUser(getCurrentUser()).filteredWithUserWrite(getCurrentUser())
 				.setPreferAnalyzedFields(isPreferAnalyzedFields());
-		if (searchExpression != null && !searchExpression.isEmpty()) {
-			query.setFreeTextQuery(searchExpression);
-		}
 		return query;
 	}
 
@@ -768,14 +764,20 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public boolean isPdfGenerationActionPossible(List<String> recordIds) {
 		List<Record> records = modelLayerFactory.newRecordServices().getRecordsById(collection, recordIds);
-		for (DocumentExtension extension : rmModuleExtensions.getDocumentExtensions()) {
-			for (Record record : records) {
-				if (!extension.isCreatePDFAActionPossible(new DocumentExtension.DocumentExtensionActionPossibleParams(record))) {
-					view.showErrorMessage(i18n.$("AdvancedSearchView.actionBlockedByExtension"));
-					return false;
-				}
+		for (Record record : records) {
+			if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm().wrapDocument(record),getCurrentUser())) {
+				view.showErrorMessage(i18n.$("AdvancedSearchView.actionBlockedByExtension"));
+				return false;
 			}
 		}
 		return true;
 	}
+
+	private RMSchemasRecordsServices rm() {
+		if (rm == null) {
+			rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		}
+		return rm;
+	}
+
 }
