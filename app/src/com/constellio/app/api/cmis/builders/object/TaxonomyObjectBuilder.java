@@ -43,6 +43,7 @@ public class TaxonomyObjectBuilder {
 		addPropertyId(properties, PropertyIds.BASE_TYPE_ID, BaseTypeId.CMIS_FOLDER.value());
 		addPropertyId(properties, PropertyIds.OBJECT_TYPE_ID, TAXONOMY_TYPE_ID);
 		addPropertyString(properties, PropertyIds.PARENT_ID, taxonomy.getCollection());
+//		addPropertyString(properties, PropertyIds.PARENT_ID, null);
 		addPropertyString(properties, PropertyIds.PATH, "/taxo_" + taxonomy.getCode());
 
 		result.setProperties(properties);
@@ -81,6 +82,7 @@ public class TaxonomyObjectBuilder {
 		objectInfo.setSupportsRelationships(false);
 		objectInfo.setWorkingCopyId(null);
 		objectInfo.setWorkingCopyOriginalId(null);
+//		objectInfo.setHasParent(false);
 	}
 
 	private void addPropertyId(PropertiesImpl props, String id, String value) {
