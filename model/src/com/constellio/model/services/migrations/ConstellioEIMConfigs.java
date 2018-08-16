@@ -122,6 +122,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration UNREFERENCED_CONTENTS_DELETE_SCHEDULE;
 	public static final SystemConfiguration ENABLE_STATISTIC_REPORT;
 	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
+	public static final SystemConfiguration ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE;
 	public static final SystemConfiguration INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS;
 
 	public static final SystemConfiguration SEIZE_MULTILANGUAL_VALUES;
@@ -191,6 +192,9 @@ public class ConstellioEIMConfigs {
 		add(TABLE_DYNAMIC_CONFIGURATION = advanced.createBooleanTrueByDefault("tableDynamicConfiguration"));
 
 		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
+
+		add(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE = search.createBooleanTrueByDefault("addSecondarySortWhenSortingByScore")
+				.whichIsHidden());
 
 		add(ENABLE_INACTIF_SCHEMAS_IN_SEARCH = search.createBooleanTrueByDefault("enableInactifSchemasInSearch"));
 
@@ -470,6 +474,10 @@ public class ConstellioEIMConfigs {
 
 	public boolean isStatisticReportEnabled() {
 		return manager.getValue(ENABLE_STATISTIC_REPORT);
+	}
+
+	public boolean isAddingSecondarySortWhenSortingByScore() {
+		return manager.getValue(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE);
 	}
 
 	public boolean isAdminPasswordChangeEnabled() {

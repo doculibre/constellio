@@ -1,5 +1,32 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
@@ -140,6 +167,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	private CorrectorExcluderManager correctorExcluderManager;
 
 	public int getSelectedPageLength() {
+		if(selectedPageLength == 0) {
+			selectedPageLength = getDefaultPageLength();
+		}
 		return selectedPageLength;
 	}
 
@@ -363,7 +393,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		//Call #4
 
 		final SearchResultVODataProvider dataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
-				view.getSessionContext()) {
+				view.getSessionContext(), getSelectedPageLength()) {
 			@Override
 			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
@@ -375,7 +405,13 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 						query.setFieldBoosts(searchBoostManager().getAllSearchBoostsByMetadataType(view.getCollection()));
 						query.setQueryBoosts(searchBoostManager().getAllSearchBoostsByQueryType(view.getCollection()));
 					}
-					return query;
+					if(new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScore()) {
+						return sortOrder == SortOrder.ASCENDING ?
+								query.sortFirstOn(new LogicalSearchQuerySort("score", true)).sortAsc(Schemas.IDENTIFIER):
+								query.sortFirstOn(new LogicalSearchQuerySort("score", false)).sortDesc(Schemas.IDENTIFIER);
+					} else {
+						return query;
+					}
 				}
 
 				Metadata metadata = getMetadata(sortCriterion);
