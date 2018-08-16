@@ -47,6 +47,13 @@ public class ContentManagerRuntimeException extends RuntimeException {
 
 	}
 
+	public static class ContentManagerRuntimeException_ContentHasNoThumbnail extends ContentManagerRuntimeException {
+
+		public ContentManagerRuntimeException_ContentHasNoThumbnail(String hash) {
+			super("Content '" + hash + "' has no thumbnail");
+		}
+	}
+
 	public static class ContentManagerRuntimeException_NoSuchContent extends ContentManagerRuntimeException {
 
 		String id;

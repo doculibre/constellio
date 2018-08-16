@@ -6,7 +6,9 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static java.util.Arrays.asList;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +21,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.constellio.model.services.contents.thumbnail.ThumbnailGenerator;
+import com.constellio.model.utils.MimeTypes;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -83,6 +87,8 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import javax.imageio.ImageIO;
+
 public class ContentManager implements StatefulService {
 
 	//TODO Increase this limit to 100
@@ -115,6 +121,7 @@ public class ContentManager implements StatefulService {
 	private final AtomicBoolean closing = new AtomicBoolean();
 	private final ModelLayerFactory modelLayerFactory;
 	private final IcapService icapService;
+	private final ThumbnailGenerator thumbnailGenerator;
 
 	private boolean serviceThreadEnabled = true;
 
@@ -140,6 +147,7 @@ public class ContentManager implements StatefulService {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.icapService = icapService;
+		this.thumbnailGenerator = new ThumbnailGenerator();
 		this.conversionManager = modelLayerFactory.getDataLayerFactory().getConversionManager();
 	}
 
@@ -166,7 +174,6 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		};
-
 
 		backgroundThreadsManager.configure(
 				BackgroundThreadConfiguration.repeatingAction(BACKGROUND_THREAD, contentActionsInBackgroundRunnable)
@@ -245,6 +252,10 @@ public class ContentManager implements StatefulService {
 		return getContentDao().isDocumentExisting(hash + ".preview");
 	}
 
+	public boolean hasContentThumbnail(String hash) {
+		return getContentDao().isDocumentExisting(hash + ".thumbnail");
+	}
+
 	public boolean doesFileExist(String hash) {
 		return getContentDao().isDocumentExisting(hash);
 	}
@@ -258,6 +269,14 @@ public class ContentManager implements StatefulService {
 			return getContentDao().getContentInputStream(hash + ".preview", streamName);
 		} catch (ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoPreview(hash);
+		}
+	}
+
+	public InputStream getContentThumbnailInputStream(String hash, String streamName) {
+		try {
+			return getContentDao().getContentInputStream(hash + ".thumbnail", streamName);
+		} catch (ContentDaoException_NoSuchContent e) {
+			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoThumbnail(hash);
 		}
 	}
 
@@ -533,7 +552,7 @@ public class ContentManager implements StatefulService {
 						for (Record record : records) {
 							if (!closing.get()) {
 								try {
-									tryConvertRecordContents(record, conversionManager, tempFolder);
+									tryConvertRecordContents(record, tempFolder);
 								} catch (NullPointerException e) {
 									//unsupported extension
 								} finally {
@@ -556,7 +575,7 @@ public class ContentManager implements StatefulService {
 		}
 	}
 
-	private boolean tryConvertRecordContents(Record record, ConversionManager conversionManager, File tempFolder) {
+	private boolean tryConvertRecordContents(Record record, File tempFolder) {
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 		boolean isConversionSuccessful = true;
 		for (Metadata contentMetadata : schema.getMetadatas().onlyWithType(MetadataValueType.CONTENT)) {
@@ -564,36 +583,63 @@ public class ContentManager implements StatefulService {
 				Content content = record.get(contentMetadata);
 				if (content != null) {
 					isConversionSuccessful = isConversionSuccessful &&
-							tryConvertContentForPreview(content, conversionManager, tempFolder);
+							tryConvertContentForPreview(content, tempFolder);
 				}
 			}
 		}
 		return isConversionSuccessful;
 	}
 
-	private boolean tryConvertContentForPreview(Content content, ConversionManager conversionManager, File tempFolder) {
+	private boolean tryConvertContentForPreview(Content content, File tempFolder) {
 		String hash = content.getCurrentVersion().getHash();
 		String filename = content.getCurrentVersion().getFilename();
+		String mimeType = content.getCurrentVersion().getMimetype();
 		ContentDao contentDao = getContentDao();
-		boolean isConversionSuccessful = true;
+
+		InputStream thumbnailSourceInputStream = null;
 		if (!contentDao.isDocumentExisting(hash + ".preview")) {
-			InputStream inputStream = null;
-			try {
-				inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION);
-				if(LOG_CONVERSION_FILENAME_AND_SIZE.isEnabled()) {
+			try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
+				if (LOG_CONVERSION_FILENAME_AND_SIZE.isEnabled()) {
 					LOGGER.info("Converting file " + filename + " : " + content.getCurrentVersion().getLength()/(1024*1024));
 				}
-
-				File file = conversionManager.convertToPDF(inputStream, filename, tempFolder);
-				contentDao.moveFileToVault(file, hash + ".preview");
+				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
+				thumbnailSourceInputStream = new FileInputStream(pdfPreviewFile);
+				contentDao.moveFileToVault(pdfPreviewFile, hash + ".preview");
 			} catch (Throwable t) {
-				LOGGER.warn("Cannot convert content '" + filename + "' with hash '" + hash + "'", t);
-				isConversionSuccessful = false;
-			} finally {
-				ioServices.closeQuietly(inputStream);
+				LOGGER.warn("Cannot generate preview for content '" + filename + "' with hash '" + hash + "'", t);
+				return false;
 			}
 		}
-		return isConversionSuccessful;
+
+		try {
+			boolean hasThumbnail = contentDao.isDocumentExisting(hash + ".thumbnail");
+			if (new ConstellioEIMConfigs(modelLayerFactory).isThumbnailGenerationEnabled() &&
+					!contentDao.isDocumentExisting(hash + ".thumbnail")) {
+				if (mimeType.startsWith("image/")) {
+					thumbnailSourceInputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION);
+				} else if (thumbnailSourceInputStream == null) {
+					thumbnailSourceInputStream = contentDao.getContentInputStream(hash + ".preview", READ_CONTENT_FOR_PREVIEW_CONVERSION);
+					mimeType = MimeTypes.MIME_APPLICATION_PDF;
+				} else {
+					mimeType = MimeTypes.MIME_APPLICATION_PDF;
+				}
+
+				BufferedImage thumbnailImage = thumbnailGenerator.generate(thumbnailSourceInputStream, mimeType);
+				String tempFilename = tempFolder + filename + "_thumbnail_" + ".png";
+				File thumbnailFile = new File(tempFilename);
+				ImageIO.write(thumbnailImage, "png", thumbnailFile);
+				contentDao.moveFileToVault(thumbnailFile, hash + ".thumbnail");
+
+				LOGGER.info("Generated a thumbnail for content '" + filename + "' with hash '" + hash + "'");
+			}
+		} catch (Throwable t) {
+			LOGGER.warn("Cannot generate thumbnail for content '" + filename + "' with hash '" + hash + "'", t);
+			return false;
+		} finally {
+			ioServices.closeQuietly(thumbnailSourceInputStream);
+		}
+
+		return true;
 	}
 
 	public void handleRecordsMarkedForParsing() {
@@ -693,6 +739,7 @@ public class ContentManager implements StatefulService {
 					hashToDelete.add(hash);
 					hashToDelete.add(hash + "__parsed");
 					hashToDelete.add(hash + ".preview");
+					hashToDelete.add(hash + ".thumbnail");
 				}
 				if (!hashToDelete.isEmpty()) {
 					getContentDao().delete(hashToDelete);

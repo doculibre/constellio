@@ -60,9 +60,9 @@ subprojects {
         compile "com.google.code.gson:gson:2.8.1"
         compile group: 'jaxen', name: 'jaxen', version: '1.1.6'
         compile group: 'jdom', name: 'jdom', version: '1.0'
-        compile "org.apache.pdfbox:pdfbox:2.0.8"
-        compile "org.apache.pdfbox:pdfbox-debugger:2.0.8"
-        compile "org.apache.pdfbox:pdfbox-tools:2.0.8"
+        compile "org.apache.pdfbox:pdfbox:2.0.11"
+        compile "org.apache.pdfbox:pdfbox-debugger:2.0.11"
+        compile "org.apache.pdfbox:pdfbox-tools:2.0.11"
         compile "org.apache.solr:solr-ltr:6.5.0"
 
         compile group: 'org.camunda.bpm.model', name: 'camunda-bpmn-model', version: '7.7.0'
