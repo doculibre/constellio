@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.constellio.model.entities.schemas.*;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
@@ -71,11 +73,6 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -126,6 +123,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	private CorrectorExcluderManager correctorExcluderManager;
 
 	public int getSelectedPageLength() {
+		if(selectedPageLength == 0) {
+			selectedPageLength = getDefaultPageLength();
+		}
 		return selectedPageLength;
 	}
 
@@ -310,7 +310,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		//Call #4
 
 		final SearchResultVODataProvider dataProvider = new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory,
-				view.getSessionContext()) {
+				view.getSessionContext(), getSelectedPageLength()) {
 			@Override
 			public LogicalSearchQuery getQuery() {
 				LogicalSearchQuery query = getSearchQuery().setHighlighting(highlighter).setOverridedQueryParams(extraSolrParams);
@@ -321,6 +321,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 					if (StringUtils.isNotBlank(getUserSearchExpression())) {
 						query.setFieldBoosts(searchBoostManager().getAllSearchBoostsByMetadataType(view.getCollection()));
 						query.setQueryBoosts(searchBoostManager().getAllSearchBoostsByQueryType(view.getCollection()));
+						return sortOrder == SortOrder.ASCENDING ?
+								query.sortFirstOn(new LogicalSearchQuerySort("score", true)).sortAsc(Schemas.IDENTIFIER):
+								query.sortFirstOn(new LogicalSearchQuerySort("score", false)).sortDesc(Schemas.IDENTIFIER);
 					}
 					return query;
 				}
