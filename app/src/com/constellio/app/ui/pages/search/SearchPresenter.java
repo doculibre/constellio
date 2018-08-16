@@ -20,6 +20,7 @@ import java.util.Set;
 import com.constellio.model.entities.schemas.*;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDateTime;
@@ -407,8 +408,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 					}
 					if(new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScore()) {
 						return sortOrder == SortOrder.ASCENDING ?
-								query.sortFirstOn(new LogicalSearchQuerySort("score", true)).sortAsc(Schemas.IDENTIFIER):
-								query.sortFirstOn(new LogicalSearchQuerySort("score", false)).sortDesc(Schemas.IDENTIFIER);
+								query.sortFirstOn(new ScoreLogicalSearchQuerySort(true)).sortAsc(Schemas.IDENTIFIER):
+								query.sortFirstOn(new ScoreLogicalSearchQuerySort(false)).sortDesc(Schemas.IDENTIFIER);
 					} else {
 						return query;
 					}

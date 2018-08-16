@@ -48,6 +48,8 @@ public class LogicalSearchQuerySignature implements Serializable {
 			} else if (sortField instanceof FunctionLogicalSearchQuerySort) {
 				signatureBuilder.append(((FunctionLogicalSearchQuerySort) sortField).getFunction());
 
+			} else if (sortField instanceof ScoreLogicalSearchQuerySort) {
+				signatureBuilder.append(((ScoreLogicalSearchQuerySort) sortField).getField());
 			} else {
 				throw new IllegalArgumentException("Unsupported sort field of type " + sortField.getClass().getSimpleName());
 
