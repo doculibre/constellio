@@ -26,7 +26,9 @@ import com.constellio.app.ui.framework.components.capsule.CapsuleComponent;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
+import com.constellio.app.ui.framework.components.search.ViewableSearchResultsPanel;
 import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
+import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
@@ -40,7 +42,6 @@ import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -53,6 +54,7 @@ import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
@@ -73,7 +75,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout resultsArea;
 	private FacetsPanel facetsArea;
 	private VerticalLayout capsuleArea;
-	private SearchResultTable results;
+	
+	private ViewableSearchResultsPanel viewableSearchResultsPanel;
+	private SearchResultTable resultsTable;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
@@ -224,23 +228,34 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
 		spellCheckerSuggestions.removeAllComponents();
-		results = buildResultTable(dataProvider);
-		
+		resultsTable = buildResultTable(dataProvider);
 
 		List<String> disambiguationSuggestions = presenter.getDisambiguationSuggestions();
 		buildThesaurusDisambiguation(disambiguationSuggestions);
 		buildSpellCheckerSuggestions(dataProvider, disambiguationSuggestions);
 
 		summary.removeAllComponents();
-		summary.addComponent(buildSummary(results));
+		summary.addComponent(buildSummary(resultsTable));
+		
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			Table table;
+			if (resultsTable instanceof Table) {
+				table = (Table) resultsTable;
+			} else {
+				SelectionTableAdapter selectionTableAdapter = (SelectionTableAdapter) resultsTable;
+				table = selectionTableAdapter.getTable();
+			}
+			viewableSearchResultsPanel.setTable(table);
+		}
+		
 
 		if (isDetailedView()) {
 			resultsArea.removeAllComponents();
-			resultsArea.addComponents(results, ((SearchResultDetailedTable) results).createControls());
-			((SearchResultDetailedTable) results).setItemsPerPageValue(presenter.getSelectedPageLength());
+			resultsArea.addComponents(resultsTable, ((SearchResultDetailedTable) resultsTable).createControls());
+			((SearchResultDetailedTable) resultsTable).setItemsPerPageValue(presenter.getSelectedPageLength());
 		} else {
 			resultsArea.removeAllComponents();
-			resultsArea.addComponent(results);
+			resultsArea.addComponent(resultsTable);
 		}
 
 		refreshCapsule();
@@ -265,12 +280,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Override
 	public List<String> getSelectedRecordIds() {
-		return results.getSelectedRecordIds();
+		return resultsTable.getSelectedRecordIds();
 	}
 
 	@Override
 	public List<String> getUnselectedRecordIds() {
-		return results.getUnselectedRecordIds();
+		return resultsTable.getUnselectedRecordIds();
 	}
 
 	protected abstract Component buildSearchUI();
@@ -339,10 +354,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		facetsArea.setSpacing(true);
 		
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			viewableSearchResultsPanel = new ViewableSearchResultsPanel(resultsArea);
+			
 			CollapsibleHorizontalSplitPanel body = new CollapsibleHorizontalSplitPanel("search-result-and-facets-container");
 			body.addStyleName("search-result-and-facets-container");
 			body.setSecondComponentWidth(300, Unit.PIXELS);
-			body.setFirstComponent(resultsArea);
+			body.setFirstComponent(viewableSearchResultsPanel);
 			body.setSecondComponent(facetsArea);
 			
 			resultsAndFacetsPanel = body;
@@ -430,13 +447,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setPageLength(selectedPageLength);
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
-
-		srTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				System.out.println("Jonathan Plamndon");
-			}
-		});
 
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
@@ -590,18 +600,18 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			@Override
 			protected void onSelectAll(ClickEvent event) {
 				if (isDetailedView()) {
-					((SearchResultDetailedTable) results).selectCurrentPage();
+					((SearchResultDetailedTable) resultsTable).selectCurrentPage();
 				} else {
-					((SearchResultSimpleTable) results).askSelectionRange();
+					((SearchResultSimpleTable) resultsTable).askSelectionRange();
 				}
 			}
 
 			@Override
 			protected void onDeselectAll(ClickEvent event) {
 				if (isDetailedView()) {
-					((SearchResultDetailedTable) results).deselectCurrentPage();
+					((SearchResultDetailedTable) resultsTable).deselectCurrentPage();
 				} else {
-					((SearchResultSimpleTable) results).askSelectionRange();
+					((SearchResultSimpleTable) resultsTable).askSelectionRange();
 				}
 			}
 
@@ -694,6 +704,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	public SearchResultTable getResult() {
-		return this.results;
+		return this.resultsTable;
 	}
 }

@@ -1,15 +1,32 @@
 package com.constellio.app.ui.framework.containers;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
+import javax.imageio.ImageIO;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.imgscalr.Scalr;
+
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
-import com.vaadin.server.ThemeResource;
+import com.vaadin.server.StreamResource;
+import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Image;
@@ -18,6 +35,7 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 	
 	public final static String THUMBNAIL_PROPERTY = "thumbnail";
 	public final static String SEARCH_RESULT_PROPERTY = "searchResult";
+	public final static int THUMBNAIL_WIDTH = 90;
 
 	private RecordDisplayFactory displayFactory;
 	String query;
@@ -34,7 +52,11 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 
 	@Override
 	protected Collection<?> getOwnContainerPropertyIds() {
-		return Arrays.asList(THUMBNAIL_PROPERTY, SEARCH_RESULT_PROPERTY);
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			return Arrays.asList(THUMBNAIL_PROPERTY, SEARCH_RESULT_PROPERTY);
+		} else {
+			return Arrays.asList(SEARCH_RESULT_PROPERTY);
+		}
 	}
 
 	@Override
@@ -67,7 +89,40 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 		return new AbstractProperty<Image>() {
 			@Override
 			public Image getValue() {
-				return new Image(null, new ThemeResource("images/commun/chargement.gif"));
+				Image image = new Image(null);
+				Integer index = (Integer) itemId;
+				RecordVO recordVO = getRecordVO(index);
+				String schemaTypeCode = recordVO.getSchema().getTypeCode();
+				boolean thumbnail;
+				if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
+					final ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
+					if (contentVersionVO != null) {
+						String filename = contentVersionVO.getFileName();
+						String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
+						if (isThumbnailPossible(extension)) {
+							thumbnail = true;
+							InputStream imageIn = contentVersionVO.getInputStreamProvider().getInputStream(SearchResultContainer.class.getName());
+							final ByteArrayInputStream thumbnailIn = getThumbnail(imageIn, extension);
+							image.setSource(new StreamResource(new StreamSource() {
+								@Override
+								public InputStream getStream() {
+									return thumbnailIn;
+								}
+								
+							}, filename));
+						} else {
+							thumbnail = false;
+						}
+					} else {
+						thumbnail = false;
+					}
+				} else {
+					thumbnail = false;
+				}
+				if (!thumbnail) {
+					image.setVisible(false);
+				}
+				return image;
 			}
 
 			@Override
@@ -80,6 +135,29 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 				return Image.class;
 			}
 		};
+	}
+	
+	private static boolean isThumbnailPossible(String extension) {
+		List<String> supportedExtensions = Arrays.asList("png", "jpg", "jpeg", "gif", "bmp");
+		return supportedExtensions.contains(StringUtils.lowerCase(extension));
+	}
+	
+	private static ByteArrayInputStream getThumbnail(InputStream imageInputStream, String extension) {
+		ByteArrayInputStream thumnailInputStream;
+		try {
+			int targetSize = 80;
+			BufferedImage originalImage = ImageIO.read(imageInputStream);
+			IOUtils.closeQuietly(imageInputStream);
+			BufferedImage scaledImg = Scalr.resize(originalImage, targetSize);
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			ImageIO.write(scaledImg, extension, outputStream);
+			byte[] imagetteBytes = outputStream.toByteArray();
+			IOUtils.closeQuietly(outputStream);
+			thumnailInputStream = new ByteArrayInputStream(imagetteBytes);
+		} catch (IOException e) {
+			thumnailInputStream = null;
+		}
+		return thumnailInputStream;
 	}
 
 	private Property<Component> newSearchResultProperty(final Object itemId) {

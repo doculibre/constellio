@@ -2,30 +2,31 @@ package com.constellio.app.ui.framework.components.search;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-import java.io.File;
-
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.IconButton;
+import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
-import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
-import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
-import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
-import com.vaadin.data.Item;
+import com.constellio.app.ui.framework.components.viewers.ContentViewer;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.containers.SearchResultContainer;
+import com.jensjansson.pagedtable.PagedTableContainer;
+import com.vaadin.data.Container;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
-import com.vaadin.event.LayoutEvents.LayoutClickEvent;
-import com.vaadin.event.LayoutEvents.LayoutClickListener;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Panel;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.MenuBar.Command;
-import com.vaadin.ui.MenuBar.MenuItem;
-import com.vaadin.ui.Table.ColumnHeaderMode;
 
 public class ViewableSearchResultsPanel extends I18NHorizontalLayout {
 	
@@ -33,7 +34,9 @@ public class ViewableSearchResultsPanel extends I18NHorizontalLayout {
 	
 	private VerticalLayout closeButtonViewerMetadataLayout;
 	
-	private SelectionTableAdapter resultsTableAdapter;
+	private Component resultsComponent;
+	
+	private Table resultsTable;
 	
 	private ViewerMetadataPanel viewerMetadataPanel;
 	
@@ -43,7 +46,8 @@ public class ViewableSearchResultsPanel extends I18NHorizontalLayout {
 	
 	private Integer rowSelected;
 
-	public ViewableSearchResultsPanel() {
+	public ViewableSearchResultsPanel(Component resultsComponent) {
+		this.resultsComponent = resultsComponent;
 		buildUI();
 	}
 	
@@ -56,7 +60,12 @@ public class ViewableSearchResultsPanel extends I18NHorizontalLayout {
 		buildActionsMenuBar();
 		buildCloseViewerButton();
 		
-		actionsMenuBarTableLayout = new VerticalLayout(actionsMenuBar, resultsTableAdapter);
+		actionsMenuBarTableLayout = new VerticalLayout(actionsMenuBar);
+		if (resultsComponent != null) {
+			actionsMenuBarTableLayout.addComponent(resultsComponent);
+		} else {
+			actionsMenuBarTableLayout.addComponent(resultsTable);
+		}
 		closeButtonViewerMetadataLayout = new VerticalLayout(closeViewerButton, viewerMetadataPanel);
 		
 		actionsMenuBarTableLayout.setHeight("100%");
@@ -88,54 +97,9 @@ public class ViewableSearchResultsPanel extends I18NHorizontalLayout {
 		}
 	}
 	
-	void rowClicked(Object itemId) {
-		rowSelected = (Integer) itemId;
-		adjustTableExpansion();
-	}
-	
-	void closeViewerButtonClicked() {
-		rowSelected = null;
-		adjustTableExpansion();
-	}
-	
-	@SuppressWarnings("unchecked")
-	private void buildResultsTable() {
-		BaseTable resultsTable = new BaseTable(getClass().getName());
+	public void setTable(Table resultsTable) {
+		this.resultsTable = resultsTable;
 		resultsTable.addStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
-		resultsTable.setWidth("100%");
-		
-		resultsTable.addContainerProperty("image", String.class, null);
-		resultsTable.addContainerProperty("metadatas", Component.class, null);
-		resultsTable.addContainerProperty("actions", MenuBar.class, null);
-		
-		resultsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
-		resultsTable.setColumnWidth("image", 100);
-		resultsTable.setColumnExpandRatio("metadatas", 1);
-		
-		for (int i = 0; i < 20; i++) {
-			final Object itemId = resultsTable.addItem();
-			Item item = resultsTable.getItem(itemId);
-			
-			String title = "Image " + (i + 1);
-			VerticalLayout metadatas = new VerticalLayout();
-			metadatas.addComponent(new Label("Titre " + (i + 1)));
-			metadatas.addComponent(new Label("Extrait"));
-			metadatas.addComponent(new Label("Metadata 1"));
-			metadatas.addComponent(new Label("Metadata 2"));
-			metadatas.addLayoutClickListener(new LayoutClickListener() {
-				@Override
-				public void layoutClick(LayoutClickEvent event) {
-					rowClicked(itemId);
-				}
-			});
-			
-			MenuBar actionsMenuBar = new MenuBar();
-			
-			item.getItemProperty("image").setValue(title);
-			item.getItemProperty("metadatas").setValue(metadatas);
-			item.getItemProperty("actions").setValue(actionsMenuBar);
-		}
-		
 		resultsTable.addItemClickListener(new ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
@@ -143,37 +107,53 @@ public class ViewableSearchResultsPanel extends I18NHorizontalLayout {
 				rowClicked(itemId);
 			}
 		});
-		
-		resultsTableAdapter = new SelectionTableAdapter(resultsTable) {
-			@Override
-			public void setSelected(Object itemId, boolean selected) {
+	}
+	
+	void rowClicked(Object itemId) {
+		Integer newRowSelected = (Integer) itemId;
+		if (!newRowSelected.equals(this.rowSelected)) {
+			rowSelected = newRowSelected;
+			
+			RecordVO recordVO;
+			Container container = resultsTable.getContainerDataSource();
+			if (container instanceof RecordVOLazyContainer) {
+				RecordVOLazyContainer recordVOLazyContainer = (RecordVOLazyContainer) container;
+				recordVO = recordVOLazyContainer.getRecordVO(rowSelected);
+			} else if (container instanceof SearchResultContainer) {
+				SearchResultContainer searchResultContainer = (SearchResultContainer) container;
+				recordVO = searchResultContainer.getRecordVO(rowSelected);
+			} else if (container instanceof PagedTableContainer) {
+				PagedTableContainer pagedTableContainer = (PagedTableContainer) container;
+				Container nestedContainer = pagedTableContainer.getContainer();
+				if (nestedContainer instanceof RecordVOLazyContainer) {
+					RecordVOLazyContainer recordVOLazyContainer = (RecordVOLazyContainer) nestedContainer;
+					recordVO = recordVOLazyContainer.getRecordVO(rowSelected);
+				} else if (nestedContainer instanceof SearchResultContainer) {
+					SearchResultContainer searchResultContainer = (SearchResultContainer) nestedContainer;
+					recordVO = searchResultContainer.getRecordVO(rowSelected);
+				} else {
+					recordVO = null;
+				}	
+			} else {
+				recordVO = null;
 			}
 			
-			@Override
-			public void selectAll() {
-			}
-			
-			@Override
-			public boolean isSelected(Object itemId) {
-				return false;
-			}
-			
-			@Override
-			public boolean isAllItemsSelected() {
-				return false;
-			}
-			
-			@Override
-			public boolean isAllItemsDeselected() {
-				return false;
-			}
-			
-			@Override
-			public void deselectAll() {
-				
-			}
-		};
-		resultsTableAdapter.setWidth("100%");
+			viewerMetadataPanel.setRecordVO(recordVO);
+			adjustTableExpansion();
+		}
+	}
+	
+	void closeViewerButtonClicked() {
+		rowSelected = null;
+		adjustTableExpansion();
+	}
+	
+	private void buildResultsTable() {
+		if (resultsComponent != null) {
+			resultsComponent.setWidth("100%");
+		} else {
+			resultsTable.setWidth("100%");
+		}
 	}
 	
 	private void buildViewerMetadataPanel() {
@@ -182,12 +162,13 @@ public class ViewableSearchResultsPanel extends I18NHorizontalLayout {
 	
 	private void buildActionsMenuBar() {
 		actionsMenuBar = new MenuBar();
-		actionsMenuBar.addItem("Action 1", new Command() {
-			@Override
-			public void menuSelected(MenuItem selectedItem) {
-				
-			}
-		});
+//		actionsMenuBar.addItem("Action 1", new Command() {
+//			@Override
+//			public void menuSelected(MenuItem selectedItem) {
+//				
+//			}
+//		});
+		actionsMenuBar.setVisible(false);
 	}
 	
 	private void buildCloseViewerButton() {
@@ -201,36 +182,47 @@ public class ViewableSearchResultsPanel extends I18NHorizontalLayout {
 	
 	private static class ViewerMetadataPanel extends VerticalLayout {
 		
-		private DocumentViewer contentViewer;
-		
 		private Panel metadataPanel;
 		
 		public ViewerMetadataPanel() {
 			buildUI();
 		}
 		
+		private void setRecordVO(RecordVO recordVO) {
+			removeAllComponents();
+			
+			if (recordVO != null) {
+				metadataPanel = new Panel();
+				metadataPanel.setCaption("Métadonnées");
+				
+				UserVO currentUser = ConstellioUI.getCurrentSessionContext().getCurrentUser();
+				RecordDisplay recordDisplay = new RecordDisplayFactory(currentUser).build(recordVO);
+				metadataPanel.setContent(recordDisplay);
+				
+				ContentViewer contentViewer;
+				String schemaTypeCode = recordVO.getSchema().getTypeCode();
+				if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
+					ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
+					if (contentVersionVO != null) {
+						contentViewer = new ContentViewer(recordVO, Document.CONTENT, contentVersionVO);
+					} else {
+						contentViewer = null;
+					}
+				} else {
+					contentViewer = null;
+				}
+				
+				if (contentViewer != null) {
+					addComponents(contentViewer, metadataPanel);
+					setExpandRatio(contentViewer, 1);
+				} else {
+					addComponent(metadataPanel);
+				}
+			}
+		}
+		
 		private void buildUI() {
 			setSizeFull();
-			
-			String filePath = "C:\\Users\\Vincent\\Desktop\\temp\\Demande de soutien - CSOB_Création de dossiers.pdf";
-			
-			contentViewer = new DocumentViewer(new File(filePath));
-			
-			metadataPanel = new Panel();
-			metadataPanel.setCaption("Métadonnées");
-			
-			VerticalLayout metadataLayout = new VerticalLayout();
-			for (int i = 0; i < 10; i++) {
-				Label metadataLabel = new Label();
-				metadataLabel.setCaption("Some text label");
-				metadataLabel.setValue("Some text value");
-				metadataLayout.addComponent(metadataLabel);
-			}
-			
-			addComponents(contentViewer, metadataPanel);
-			metadataPanel.setContent(metadataLayout);
-			
-			setExpandRatio(contentViewer, 1);
 		}
 		
 	}

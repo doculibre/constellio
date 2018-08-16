@@ -75,7 +75,9 @@ public class ComponentTreeUtils {
 			final Iterator<Component> subComponents = componentContainer.iterator();
 			while (subComponents.hasNext()) {
 				Component subComponent = subComponents.next();
-				traverse(component.toString(), subComponent, invocation);
+				if (subComponent != null) {
+					traverse(component.toString(), subComponent, invocation);
+				}
 			}
 		}
 	}

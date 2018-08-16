@@ -13253,8 +13253,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .clickable-row .v-table-body tr:hover, .constellio .clickable-row .v-table-body .reference-display:hover {
-	color: white;
-	background-color: #197de1;
+	background-color: #e6e6e6;
 	text-decoration: none;
 }
 

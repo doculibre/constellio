@@ -89,6 +89,7 @@ dependencies {
     compile files("../libs/vaadin-breadcrumb-1.7.3.jar")
     compile "org.ow2.asm:asm:5.0.3"
     compile "org.vaadin.addons:activelink:7.3.1"
+    compile "org.imgscalr:imgscalr-lib:4.2"
 }
 
 war {
