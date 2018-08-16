@@ -613,7 +613,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				if (resourceFile.isDirectory()) {
 					FileUtils.copyDirectory(resourceFile, new File(comboFolder, resourceFile.getName()));
 				} else {
-					FileUtils.copyFile(resourceFile, new File(comboFolder, resourceFile.getName()));
+					System.out.println("Copying " + resourceFile.getName());
+					FileUtils.copyFile(resourceFile, new File(comboFolder, resourceFile.getAbsolutePath()));
 				}
 			}
 		}
@@ -966,7 +967,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 							Metadata referenceMetadata = schema.getMetadata(dataEntry.getReferenceMetadata());
 							Metadata copiedMetadata = types.getSchemaType(referenceMetadata.getReferencedSchemaType()).
-									getDefaultSchema().getMetadata(dataEntry.getReferenceMetadata());
+									getDefaultSchema().getMetadata(dataEntry.getCopiedMetadata());
 
 							main.addStatement("$L.get($S).defineDataEntry().asCopied($L.get($S), typesBuilder.getMetadata($S))",
 									variableOf(schema),
@@ -1242,7 +1243,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				Set<String> referencedSchemas = metadata.getAllowedReferences().getAllowedSchemas();
 				List<String> referencedSchemasVariables = new ArrayList<>();
 				for (String referencedSchema : referencedSchemas) {
-					referencedSchemasVariables.add(variableOf(types.getSchema(referencedSchema)));
+					referencedSchemasVariables.add("types.getSchema(\"" + referencedSchema + "\")");
 				}
 				String argument = asListLitteralWithoutQuotes(referencedSchemasVariables);
 				if (metadata.isTaxonomyRelationship()) {
