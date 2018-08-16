@@ -65,6 +65,7 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.entities.SearchBoost;
+import com.constellio.model.services.security.roles.RolesManager;
 
 public class CoreMigrationCombo implements ComboMigrationScript {
 	@Override
@@ -165,6 +166,15 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
 				.setValue(ConstellioEIMConfigs.TRASH_PURGE_DELAI, 90);
 
+		changeAdminRoleNameIfMultilingualCollection(appLayerFactory,collection);
+	}
+
+	private void changeAdminRoleNameIfMultilingualCollection(AppLayerFactory appLayerFactory, String collection){
+		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
+		if (appLayerFactory.getCollectionsManager().getCollectionInfo(collection).getCollectionLanguages().size() > 1){
+			rolesManager.updateRole(rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR)
+					.withTitle("Administrateur / Administrator"));
+		}
 	}
 
 	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {

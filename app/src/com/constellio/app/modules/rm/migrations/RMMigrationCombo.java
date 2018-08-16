@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.constellio.app.modules.rm.constants.RMRoles;
+import com.constellio.model.services.security.roles.RolesManager;
 import org.apache.commons.io.IOUtils;
 
 import com.constellio.app.entities.modules.ComboMigrationScript;
@@ -178,6 +180,19 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		taxonomiesManager.editTaxonomy(taxonomiesManager.getEnabledTaxonomyWithCode(collection, "admUnits"));
 
 		RMMigrationTo7_2.reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
+		changeRolesNamesIfMultilingualCollection(appLayerFactory, collection);
+	}
+
+	private void changeRolesNamesIfMultilingualCollection(AppLayerFactory appLayerFactory, String collection){
+		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
+		if (appLayerFactory.getCollectionsManager().getCollectionInfo(collection).getCollectionLanguages().size() > 1){
+			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.USER)
+					.withTitle("Utilisateur / User"));
+			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.MANAGER)
+					.withTitle("Gestionnaire / Manager"));
+			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.RGD)
+					.withTitle("Responsable de la gestion documentaire / Responsible of document management"));
+		}
 	}
 
 	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {
