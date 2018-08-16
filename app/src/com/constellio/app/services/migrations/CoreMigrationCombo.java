@@ -4,7 +4,6 @@ import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_1;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_5_0_4;
@@ -47,7 +46,21 @@ import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_5;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_2;
 import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_2_1;
-import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_8_8;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_6;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_6_45;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_6_9;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_7_0_2;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_7_1;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_7_1_2;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_7_1_6;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_7_2;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_7_4;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_7_4_11;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_7_5;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_7_6;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_7_7_7;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_0_1;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_0_2;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
@@ -57,6 +70,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.entities.SearchBoost;
 
@@ -112,7 +126,21 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		scripts.add(new CoreMigrationTo_7_6());
 		scripts.add(new CoreMigrationTo_7_6_2());
 		scripts.add(new CoreMigrationTo_7_6_2_1());
-		scripts.add(new CoreMigrationTo_8_8_8());
+		scripts.add(new CoreMigrationTo_7_6_6());
+		scripts.add(new CoreMigrationTo_7_6_6_45());
+		scripts.add(new CoreMigrationTo_7_6_9());
+		scripts.add(new CoreMigrationTo_7_7_0_2());
+		scripts.add(new CoreMigrationTo_7_7_1());
+		scripts.add(new CoreMigrationTo_7_7_1_2());
+		scripts.add(new CoreMigrationTo_7_7_1_6());
+		scripts.add(new CoreMigrationTo_7_7_2());
+		scripts.add(new CoreMigrationTo_7_7_4());
+		scripts.add(new CoreMigrationTo_7_7_5());
+		scripts.add(new CoreMigrationTo_7_7_4_11());
+		scripts.add(new CoreMigrationTo_7_7_6());
+		scripts.add(new CoreMigrationTo_7_7_7());
+		scripts.add(new CoreMigrationTo_8_0_1());
+		scripts.add(new CoreMigrationTo_8_0_2());
 
 		return scripts;
 	}
@@ -145,6 +173,7 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 			generatedFastCoreMigration.applyGeneratedRoles();
 			generatedFastCoreMigration.applySchemasDisplay(appLayerFactory.getMetadataSchemasDisplayManager());
 		}
+		adjustRoles(collection, modelLayerFactory);
 		applySchemasDisplay2(collection, appLayerFactory.getMetadataSchemasDisplayManager());
 
 		appLayerFactory.getModelLayerFactory().getSearchBoostManager().add(collection,
@@ -165,6 +194,20 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 
 		appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
 				.setValue(ConstellioEIMConfigs.TRASH_PURGE_DELAI, 90);
+
+	}
+
+	private void adjustRoles(String collection, ModelLayerFactory modelLayerFactory) {
+		//			RolesManager rolesManager = modelLayerFactory.getRolesManager();
+		//			Role role = rolesManager.getRole(collection, "ADM");
+		//
+		//			List<String> permissions = new ArrayList<>(role.getOperationPermissions());
+		//			permissions.add("core.accessDeleteAllTemporaryRecords");
+		//			permissions.add("core.deletePublicSavedSearch");
+		//			permissions.add("core.manageSystemGroupsActivation");
+		//			permissions.remove("core.manageSearchReports");
+		//
+		//			rolesManager.updateRole(role.withPermissions(permissions));
 
 	}
 
@@ -198,15 +241,15 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 												AppLayerFactory appLayerFactory, MetadataSchemaTypes types) {
 		Transaction transaction = new Transaction();
 
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(types.getCollection(), appLayerFactory.getModelLayerFactory());
+		SchemasRecordsServices schemas = new SchemasRecordsServices(types.getCollection(), appLayerFactory.getModelLayerFactory());
 
-		transaction.add(rm.newFacetField().setOrder(0)
+		transaction.add(schemas.newFacetField().setOrder(0)
 				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.type"))
 				.setActive(true)
 				.setOpenByDefault(true)
 				.setFieldDataStoreCode(Schemas.SCHEMA.getDataStoreCode()));
 
-		transaction.add(rm.newFacetQuery().setOrder(1)
+		transaction.add(schemas.newFacetQuery().setOrder(1)
 				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.createModification"))
 				.setActive(false)
 				.setOpenByDefault(true)
@@ -214,6 +257,11 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 				.withQuery("modifiedOn_dt:[NOW-7DAY TO NOW]", "Modifiés les 7 derniers jours")
 				.withQuery("createdOn_dt:[NOW-1MONTH TO NOW]", "Créés les 30 derniers jours")
 				.withQuery("createdOn_dt:[NOW-7DAY TO NOW]", "Créés les 7 derniers jours"));
+
+		if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
+			CoreMigrationTo_8_0_1.createDefaultCapsuleLanguages(migrationResourcesProvider, transaction, schemas);
+		}
+
 		return transaction;
 	}
 
@@ -234,10 +282,6 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 			} else {
 				generatedFastCoreMigration.applyGeneratedSchemaAlteration(typesBuilder);
 
-			}
-
-			for (String metadata : asList("facet_default_title", "report_default_title", "printable_default_title")) {
-				typesBuilder.getMetadata(metadata).setMultiLingual(true);
 			}
 
 			//

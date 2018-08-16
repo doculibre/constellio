@@ -6,11 +6,7 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.ContentImpl;
 
-/**
- * Classe Wrapper pour les Rapports.
- *
- * @author Nicolas D'Amours & Charles Blanchette.
- */
+
 public class Printable extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "printable";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";

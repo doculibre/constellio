@@ -5,6 +5,7 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.ValueListServices;
+import com.constellio.app.modules.rm.services.ValueListServices.CreateValueListOptions;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
@@ -20,7 +21,6 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
@@ -38,18 +38,11 @@ public class CoreMigrationTo_8_0_1 implements MigrationScript {
 
 		if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
 
-			Map<Language, String> titles = new HashMap<>();
-			//todo
-			titles.put(Language.French, "Langue de la capsule");
-			titles.put(Language.English, "Capsule language");
-
-			new ValueListServices(appLayerFactory, collection).createValueDomain("ddvCapsuleLanguage", titles, true);
 			new CoreSchemaAlterationFor_8_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
 			Transaction transaction = new Transaction();
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
-			transaction.add(schemas.newValueListItem("ddvCapsuleLanguage_default").setCode("fr").setTitle("Francais"));
-			transaction.add(schemas.newValueListItem("ddvCapsuleLanguage_default").setCode("en").setTitle("Anglais"));
+			createDefaultCapsuleLanguages(migrationResourcesProvider, transaction, schemas);
 
 			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 			recordServices.execute(transaction);
@@ -72,6 +65,14 @@ public class CoreMigrationTo_8_0_1 implements MigrationScript {
 
 	}
 
+	public static void createDefaultCapsuleLanguages(MigrationResourcesProvider migrationResourcesProvider,
+													 Transaction transaction, SchemasRecordsServices schemas) {
+		transaction.add(schemas.newValueListItem("ddvCapsuleLanguage_default").setCode("fr")
+				.setTitles(migrationResourcesProvider.getLanguagesString("languages.fr")));
+		transaction.add(schemas.newValueListItem("ddvCapsuleLanguage_default").setCode("en")
+				.setTitles(migrationResourcesProvider.getLanguagesString("languages.en")));
+	}
+
 	class CoreSchemaAlterationFor_8_0_1 extends MetadataSchemasAlterationHelper {
 
 		protected CoreSchemaAlterationFor_8_0_1(String collection,
@@ -82,6 +83,15 @@ public class CoreMigrationTo_8_0_1 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+
+			Map<Language, String> titles = migrationResourcesProvider.getLanguagesString("init.ddvCapsuleLanguage");
+
+			CreateValueListOptions options = new CreateValueListOptions();
+			options.setMultilingual(true);
+
+			new ValueListServices(appLayerFactory, collection)
+					.createValueDomain(CapsuleLanguage.SCHEMA_TYPE, titles, options, typesBuilder);
+
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE)
 					.createCustomSchema(VaultScanReport.SCHEMA);
 			schema.createUndeletable(VaultScanReport.NUMBER_OF_DELETED_CONTENTS).setType(MetadataValueType.NUMBER)

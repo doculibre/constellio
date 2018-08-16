@@ -63,6 +63,7 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 					.addValidator(JasperFilePrintableValidator.class);
 			builder.create(Printable.ISDELETABLE).setType(MetadataValueType.BOOLEAN).setUndeletable(true).setDefaultValue(true)
 					.defineDataEntry().asManual();
+			builder.get(Printable.TITLE).setMultiLingual(true);
 
 			MetadataSchemaBuilder UserBuilder = typesBuilder.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema();
 			UserBuilder.create(User.FAX).setEssential(false).setType(MetadataValueType.STRING).defineDataEntry().asManual();
