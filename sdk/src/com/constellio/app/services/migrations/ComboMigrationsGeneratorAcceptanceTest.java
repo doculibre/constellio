@@ -130,7 +130,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(null))
+				.addMethods(generateTypes(null))
 				.addMethod(generateDisplayConfigs(new ArrayList<String>()))
 				.addMethod(generateRoles(new ArrayList<Role>()))
 				.addMethod(generateConstructor())
@@ -183,7 +183,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(null))
+				.addMethods(generateTypes(null))
 				.addMethod(generateDisplayConfigs(new ArrayList<String>()))
 				.addMethod(generateRoles(new ArrayList<Role>()))
 				.addMethod(generateConstructor())
@@ -247,7 +247,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(typesBefore))
+				.addMethods(generateTypes(typesBefore))
 				.addMethod(generateDisplayConfigs(codesBefore))
 				.addMethod(generateRoles(rolesBefore))
 				.addMethod(generateConstructor())
@@ -307,7 +307,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(typesBefore))
+				.addMethods(generateTypes(typesBefore))
 				.addMethod(generateDisplayConfigs(codesBefore))
 				.addMethod(generateRoles(rolesBefore))
 				.addMethod(generateConstructor())
@@ -369,7 +369,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(typesBefore))
+				.addMethods(generateTypes(typesBefore))
 				.addMethod(generateDisplayConfigs(codesBefore))
 				.addMethod(generateRoles(rolesBefore))
 				.addMethod(generateConstructor())
@@ -430,7 +430,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(typesBefore))
+				.addMethods(generateTypes(typesBefore))
 				.addMethod(generateDisplayConfigs(codesBefore))
 				.addMethod(generateRoles(rolesBefore))
 				.addMethod(generateConstructor())
@@ -501,7 +501,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(typesBefore))
+				.addMethods(generateTypes(typesBefore))
 				.addMethod(generateDisplayConfigs(codesBefore))
 				.addMethod(generateRoles(rolesBefore))
 				.addMethod(generateConstructor())
@@ -834,13 +834,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	protected MethodSpec generateTypes(MetadataSchemaTypes typesBeforeMigration) {
+	protected List<MethodSpec> generateTypes(MetadataSchemaTypes typesBeforeMigration) {
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		Builder main = MethodSpec.methodBuilder("applyGeneratedSchemaAlteration")
 				.addModifiers(Modifier.PUBLIC)
 				.returns(void.class)
 				.addParameter(MetadataSchemaTypesBuilder.class, "typesBuilder");
+
+		Map<String, Builder> typeMethadatasMethodsBuilder = new HashMap<>();
 
 		List<MetadataSchemaType> metadataSchemaTypes = sorted(types.getSchemaTypes());
 
@@ -891,17 +893,40 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			}
 		}
 
+
 		for (MetadataSchemaType type : metadataSchemaTypes) {
+
+			String methodName = "create" + StringUtils.capitalize(type.getCode()) + "SchemaTypeMetadatas";
+			Builder typeMetadatasMethod = MethodSpec.methodBuilder(methodName)
+					.addModifiers(Modifier.PRIVATE)
+					.returns(void.class)
+					.addParameter(MetadataSchemaTypesBuilder.class, "types")
+					.addParameter(MetadataSchemaTypeBuilder.class, variableOf(type));
+			typeMethadatasMethodsBuilder.put(type.getCode(), typeMetadatasMethod);
+
+			StringBuilder createTypeMetadatasMethodCall = new StringBuilder(methodName);
+			createTypeMetadatasMethodCall.append("(typesBuilder,");
+			createTypeMetadatasMethodCall.append(variableOf(type));
+
+			for (MetadataSchema schema : type.getAllSchemas()) {
+				typeMetadatasMethod.addParameter(MetadataSchemaBuilder.class, variableOf(schema));
+				createTypeMetadatasMethodCall.append(", ");
+				createTypeMetadatasMethodCall.append(variableOf(schema));
+			}
+
+			createTypeMetadatasMethodCall.append(")");
+			main.addStatement(createTypeMetadatasMethodCall.toString());
+
 			for (MetadataSchema schema : type.getAllSchemas()) {
 				for (Metadata metadata : schema.getMetadatas()) {
 					String variable = variableOf(metadata);
 					if (metadata.getInheritance() == null && (typesBeforeMigration == null || !typesBeforeMigration
 							.hasMetadata(metadata.getCode()))) {
 						//if (!Schemas.isGlobalMetadata(metadata.getLocalCode()) || "url".equals(metadata.getLocalCode())) {
-						main.addStatement("$T $L = $L.create($S).setType(MetadataValueType.$L)",
+						typeMetadatasMethod.addStatement("$T $L = $L.create($S).setType(MetadataValueType.$L)",
 								MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode(),
 								metadata.getType().name());
-						configureMetadata(main, variable, metadata);
+						configureMetadata(typeMetadatasMethod, variable, metadata);
 						//						} else {
 						//
 						//							main.addStatement("$T $L = $L.get($S)",
@@ -909,7 +934,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 						//							configureMetadata(main, variable, metadata);
 						//						}
 						for (RecordMetadataValidator validator : metadata.getValidators()) {
-							main.addStatement("$L.defineValidators().add($T.class)", variableOf(metadata),
+							typeMetadatasMethod.addStatement("$L.defineValidators().add($T.class)", variableOf(metadata),
 									validator.getClass());
 						}
 					}
@@ -918,48 +943,61 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 
 		for (MetadataSchemaType type : metadataSchemaTypes) {
+			Builder typeMetadatasMethod = typeMethadatasMethodsBuilder.get(type.getCode());
 			for (MetadataSchema schema : type.getAllSchemas()) {
 				for (Metadata metadata : schema.getMetadatas()) {
 					String variable = variableOf(metadata);
 					if (metadata.getInheritance() != null) {
-						main.addStatement("$T $L = $L.get($S)",
+						typeMetadatasMethod.addStatement("$T $L = $L.get($S)",
 								MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode());
-						configureInheritedMetadata(main, variable, metadata);
+						configureInheritedMetadata(typeMetadatasMethod, variable, metadata);
 					}
 				}
 			}
 		}
 
 		for (MetadataSchemaType type : metadataSchemaTypes) {
-
 			for (MetadataSchema schema : type.getAllSchemas()) {
 				for (Metadata metadata : schema.getMetadatas()) {
 					if (metadata.getInheritance() == null && (typesBeforeMigration == null || !typesBeforeMigration
 							.hasMetadata(metadata.getCode()))) {
 						if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
 							CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
-							main.addStatement("$L.defineDataEntry().asCopied($L, $L)",
-									variableOf(metadata),
-									variableOfMetadata(dataEntry.getReferenceMetadata()),
-									variableOfMetadata(dataEntry.getCopiedMetadata()));
+
+							Metadata referenceMetadata = schema.getMetadata(dataEntry.getReferenceMetadata());
+							Metadata copiedMetadata = types.getSchemaType(referenceMetadata.getReferencedSchemaType()).
+									getDefaultSchema().getMetadata(dataEntry.getReferenceMetadata());
+
+							main.addStatement("$L.get($S).defineDataEntry().asCopied($L.get($S), typesBuilder.getMetadata($S))",
+									variableOf(schema),
+									metadata.getLocalCode(),
+									variableOf(schema),
+									referenceMetadata.getLocalCode(),
+									copiedMetadata.getCode());
 						}
 						if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 							CalculatedDataEntry dataEntry = (CalculatedDataEntry) metadata.getDataEntry();
-							main.addStatement("$L.defineDataEntry().asCalculated($T.class)",
-									variableOf(metadata),
+							main.addStatement("$L.get($S).defineDataEntry().asCalculated($T.class)",
+									variableOf(schema),
+									metadata.getLocalCode(),
 									dataEntry.getCalculator().getClass());
 						}
 						if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
 							AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
+
 							if (dataEntry.getAgregationType().equals(AggregationType.REFERENCE_COUNT)) {
-								main.addStatement("$L.defineDataEntry().asReferenceCount($L)",
-										variableOf(metadata),
-										variableOfMetadata(dataEntry.getReferenceMetadata()));
+								Metadata referenceMetadata = schema.getMetadata(dataEntry.getReferenceMetadata());
+								main.addStatement("$L.get($S).defineDataEntry().asReferenceCount(types.get($S))",
+										variableOf(schema),
+										metadata.getLocalCode(),
+										referenceMetadata.getCode());
 							}
 							if (dataEntry.getAgregationType().equals(AggregationType.SUM)) {
-								main.addStatement("$L.defineDataEntry().asSum($L, $L)",
-										variableOf(metadata),
-										variableOfMetadata(dataEntry.getReferenceMetadata()),
+								Metadata referenceMetadata = schema.getMetadata(dataEntry.getReferenceMetadata());
+								main.addStatement("$L.get($S).defineDataEntry().asSum(types.get($S), $L)",
+										variableOf(schema),
+										metadata.getLocalCode(),
+										referenceMetadata.getCode(),
 										variableOfMetadata(StringUtils.join(dataEntry.getInputMetadatas(), ", ")));
 							}
 						}
@@ -969,9 +1007,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		}
 
+		List<MethodSpec> specs = new ArrayList<>();
+		specs.add(main.build());
+		//System.out.println(spec.toString());
+		for (Builder builder : typeMethadatasMethodsBuilder.values()) {
+			specs.add(builder.build());
+		}
+
 		MethodSpec spec = main.build();
-		System.out.println(spec.toString());
-		return spec;
+		return specs;
 	}
 
 	protected List<MetadataSchemaType> sorted(List<MetadataSchemaType> schemaTypes) {
@@ -1184,15 +1228,14 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 			if (metadata.getAllowedReferences().getAllowedSchemas().isEmpty()) {
 				String referencedType = metadata.getAllowedReferences().getAllowedSchemaType();
-				String referencedTypeVariable = variableOf(types.getSchemaType(referencedType));
 				if (metadata.isTaxonomyRelationship()) {
-					method.addStatement("$L.defineTaxonomyRelationshipToType($L)", variable, referencedTypeVariable);
+					method.addStatement("$L.defineTaxonomyRelationshipToType(types.getSchemaType($S))", variable, referencedType);
 
 				} else if (metadata.isChildOfRelationship()) {
-					method.addStatement("$L.defineChildOfRelationshipToType($L)", variable, referencedTypeVariable);
+					method.addStatement("$L.defineChildOfRelationshipToType(types.getSchemaType($S))", variable, referencedType);
 
 				} else {
-					method.addStatement("$L.defineReferencesTo($L)", variable, referencedTypeVariable);
+					method.addStatement("$L.defineReferencesTo(types.getSchemaType($S))", variable, referencedType);
 
 				}
 			} else {
