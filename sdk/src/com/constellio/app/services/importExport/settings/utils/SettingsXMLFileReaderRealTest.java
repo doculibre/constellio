@@ -1,5 +1,6 @@
 package com.constellio.app.services.importExport.settings.utils;
 
+import com.constellio.app.services.importExport.settings.SettingsExportServices;
 import com.constellio.app.services.importExport.settings.SettingsImportServicesTestUtils;
 import com.constellio.app.services.importExport.settings.model.*;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
@@ -20,15 +21,46 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 
 	private Document document;
 	private Document document2;
+	private Document document3;
 	private SettingsXMLFileReader reader;
 	private SettingsXMLFileReader reader2;
+	private SettingsXMLFileReader reader3;
+	private SettingsXMLFileReader reader4;
 
 	@Before
 	public void setup() {
 		document = getDocument("settings-input.xml");
 		document2 = getDocument("settings-input2.xml");
-		reader = new SettingsXMLFileReader(document, getModelLayerFactory());
-		reader2 = new SettingsXMLFileReader(document2, getModelLayerFactory());
+		document3 = getDocument("settings-input3.xml");
+		reader = new SettingsXMLFileReader(document, zeCollection, getModelLayerFactory());
+		reader2 = new SettingsXMLFileReader(document2,zeCollection, getModelLayerFactory());
+		reader3 = new SettingsXMLFileReader(document3, zeCollection, getModelLayerFactory());
+
+		reader4 = new SettingsXMLFileReader(document3, null, getModelLayerFactory());
+	}
+
+	@Test
+	public void givenAValiddocumentWithcurrentCollectionParameter() {
+		ImportedSettings importedSettings = reader3.read();
+
+		List<ImportedCollectionSettings> collectionSettings = importedSettings.getCollectionsSettings();
+
+		collectionSettings.get(0).getCode().equals(SettingsExportServices.CURRENT_COLLECTION_IMPORTATION_MODE);
+
+		java.util.Map<Language, String> titleLanguage1 = collectionSettings.get(0).getTaxonomies().get(0).getTitle();
+		java.util.Map<Language, String> titleLanguage2 = collectionSettings.get(0).getTaxonomies().get(1).getTitle();
+
+
+		assertThat(titleLanguage1.get(Language.French)).isEqualTo("taxo1Titre1Fr");
+		assertThat(titleLanguage1.get(Language.English)).isEqualTo("taxo1Title1En");
+
+		assertThat(titleLanguage2.get(Language.French)).isEqualTo("taxo2Titre2Fr");
+		assertThat(titleLanguage2.get(Language.English)).isEqualTo("taxo2Title2En");
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void givenAValiddocumentWithWithcurrentCollectionParameterAndNoCollectionSpecifiedInTheReaderThenThrowException() {
+		reader4.read();
 	}
 
 	@Test
