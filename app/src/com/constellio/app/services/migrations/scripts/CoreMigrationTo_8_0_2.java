@@ -4,6 +4,7 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.CapsuleLanguage;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.records.RecordServices;
@@ -23,7 +24,7 @@ public class CoreMigrationTo_8_0_2 implements MigrationScript {
 			Transaction transaction = new Transaction();
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 
-			MetadataSchemaType metadataSchemaType = schemas.getTypes().getSchemaType("ddvCapsuleLanguage");
+			MetadataSchemaType metadataSchemaType = schemas.getTypes().getSchemaType(CapsuleLanguage.SCHEMA_TYPE);
 
 			transaction.update(schemas.wrapValueListItem(schemas.getByCode(metadataSchemaType, "fr")).setTitle("Français").getWrappedRecord());
 

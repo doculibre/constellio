@@ -18,6 +18,7 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.HashMapBuilder;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
@@ -559,11 +560,11 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	protected void generateI18n(File moduleFolder, String module)
 			throws IOException {
-		generateI18n(moduleFolder, module, new HashMap<String, String>(), new HashMap<String, String>());
+		generateI18n(moduleFolder, module, new HashMap<String, String>(), new HashMap<String, String>(), new HashMap<String, String>());
 	}
 
 	protected void generateI18n(File moduleFolder, String module, Map<String, String> extraFrenchLabels,
-								Map<String, String> extraEnglishLabels)
+								Map<String, String> extraEnglishLabels, Map<String, String> extraArabicLabels)
 			throws IOException {
 
 		File comboFolder = new File(moduleFolder, "combo");
@@ -575,6 +576,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 			List<File> properties = new ArrayList<>();
 			List<File> frProperties = new ArrayList<>();
+			List<File> arProperties = new ArrayList<>();
 			List<File> enProperties = new ArrayList<>();
 			List<File> resourcesFiles = new ArrayList<>();
 
@@ -587,6 +589,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 								enProperties.add(file);
 							} else if (file.getName().endsWith("_fr.properties")) {
 								frProperties.add(file);
+							} else if (file.getName().endsWith("_ar.properties")) {
+								arProperties.add(file);
 							} else if (file.getName().endsWith(".properties")) {
 								properties.add(file);
 							} else {
@@ -601,6 +605,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 					.combine(properties, new File(comboFolder, module + "_combo.properties"), extraFrenchLabels);
 			CombinePropertyFilesServices
 					.combine(enProperties, new File(comboFolder, module + "_combo_en.properties"), extraEnglishLabels);
+			CombinePropertyFilesServices
+					.combine(arProperties, new File(comboFolder, module + "_combo_ar.properties"), extraArabicLabels);
 			CombinePropertyFilesServices
 					.combine(frProperties, new File(comboFolder, module + "_combo_fr.properties"), new HashMap<String, String>());
 
@@ -867,7 +873,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		for (MetadataSchemaType type : metadataSchemaTypes) {
 			if (typesBeforeMigration == null || !typesBeforeMigration.hasType(type.getCode())) {
-				main.addStatement("$T $LSchemaType = typesBuilder.createNewSchemaType($S)$L",
+				main.addStatement("$T $LSchemaType = typesBuilder.createNewSchemaType($S,false)$L",
 						MetadataSchemaTypeBuilder.class, type.getCode(), type.getCode(), typeAlterations(type));
 
 				for (MetadataSchema schema : type.getAllSchemas()) {
@@ -882,6 +888,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 						main.addStatement("$L.defineValidators().add($T.class)", variableOf(schema), validator.getClass());
 					}
 				}
+
 			}
 		}
 
@@ -891,17 +898,17 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 					String variable = variableOf(metadata);
 					if (metadata.getInheritance() == null && (typesBeforeMigration == null || !typesBeforeMigration
 							.hasMetadata(metadata.getCode()))) {
-						if (!Schemas.isGlobalMetadata(metadata.getLocalCode()) || "url".equals(metadata.getLocalCode())) {
-							main.addStatement("$T $L = $L.create($S).setType(MetadataValueType.$L)",
-									MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode(),
-									metadata.getType().name());
-							configureMetadata(main, variable, metadata);
-						} else {
-
-							main.addStatement("$T $L = $L.get($S)",
-									MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode());
-							configureMetadata(main, variable, metadata);
-						}
+						//if (!Schemas.isGlobalMetadata(metadata.getLocalCode()) || "url".equals(metadata.getLocalCode())) {
+						main.addStatement("$T $L = $L.create($S).setType(MetadataValueType.$L)",
+								MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode(),
+								metadata.getType().name());
+						configureMetadata(main, variable, metadata);
+						//						} else {
+						//
+						//							main.addStatement("$T $L = $L.get($S)",
+						//									MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode());
+						//							configureMetadata(main, variable, metadata);
+						//						}
 						for (RecordMetadataValidator validator : metadata.getValidators()) {
 							main.addStatement("$L.defineValidators().add($T.class)", variableOf(metadata),
 									validator.getClass());
@@ -1067,6 +1074,9 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		if (type.isUndeletable()) {
 			stringBuilder.append(".setUndeletable(true)");
 		}
+		if (!DataStore.RECORDS.equals(type.getDataStore())) {
+			stringBuilder.append(".setDataStore(\"" + type.getDataStore() + "\")");
+		}
 
 		return stringBuilder.toString();
 	}
@@ -1109,6 +1119,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		if (metadata.isEssential()) {
 			method.addStatement("$L.setEssential(true)", variable);
+		}
+
+		if (metadata.isMultiLingual() || metadata.isGlobal()) {
+			method.addStatement("$L.setMultiLingual(" + metadata.isMultiLingual() + ")", variable);
 		}
 
 		if (metadata.isEssentialInSummary()) {
