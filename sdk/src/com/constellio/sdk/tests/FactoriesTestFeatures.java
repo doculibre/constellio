@@ -124,6 +124,8 @@ public class FactoriesTestFeatures {
 					@Override
 					public void run() {
 						deleteServerRecords(server);
+						server.getSolrServerFactory().clear();
+						CloseableUtils.closeQuietly(server.getNestedSolrServer());
 					}
 				});
 			}
@@ -237,10 +239,6 @@ public class FactoriesTestFeatures {
 		try {
 			vaultServer
 					.addAll(new BigVaultServerTransaction(NOW).addDeletedQuery("*:*"));
-		} catch (BigVaultException e) {
-			throw new RuntimeException("Cannot deleteLogically by query *:*");
-		}
-		try {
 
 			if (!vaultServer.query(allRecordsSolrParams).getResults().isEmpty()) {
 				if (attempt < 10) {
@@ -254,9 +252,13 @@ public class FactoriesTestFeatures {
 					throw new RuntimeException("Invalid solr core initial state ");
 				}
 			}
-
 		} catch (CouldNotExecuteQuery couldNotExecuteQuery) {
 			throw new RuntimeException(couldNotExecuteQuery);
+		} catch (BigVaultException e) {
+			throw new RuntimeException("Cannot deleteLogically by query *:*");
+		} finally {
+			vaultServer.getSolrServerFactory().clear();
+			CloseableUtils.closeQuietly(vaultServer.getNestedSolrServer());
 		}
 	}
 
