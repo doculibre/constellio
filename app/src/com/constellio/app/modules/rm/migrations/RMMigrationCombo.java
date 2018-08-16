@@ -191,7 +191,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.MANAGER)
 					.withTitle("Gestionnaire / Manager"));
 			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.RGD)
-					.withTitle("Responsable de la gestion documentaire / Responsible of document management"));
+					.withTitle("Responsable de la gestion documentaire / Records General Director"));
 		}
 	}
 
