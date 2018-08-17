@@ -43,17 +43,19 @@ public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTe
 		instance1Cache.invalidateUser(users.aliceIn(zeCollection));
 
 		assertThatInvalidatedUsers().containsOnly(alice);
+		//La méthode assertThatInvalidatedUsers reload la cache avant le return
 
 		instance1Cache.invalidateUsersInGroup(users.legends());
+		assertThatInvalidatedUsers().containsOnly(alice, edouard, gandalf, sasquatch);
 
-		assertThatInvalidatedUsers().containsOnly(alice);
+
+		instance1Cache.invalidateUsersInGroup(users.heroes());
+		assertThatInvalidatedUsers().containsOnly(charles, dakota, robin, gandalf);
 
 	}
 
 
 	private void loadCache() {
-
-
 		for (User user : getModelLayerFactory().newUserServices().getAllUsersInCollection(zeCollection)) {
 
 			for (AppLayerFactory appLayerFactory : asList(getAppLayerFactory(), getAppLayerFactory("other-instance"))) {

@@ -51,7 +51,7 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 
 		this.eventBus.register(this);
 
-		ConstellioCacheManager recordsCacheManager = this.modelLayerFactory.getDataLayerFactory().getRecordsCacheManager();
+		ConstellioCacheManager recordsCacheManager = this.modelLayerFactory.getDataLayerFactory().getDistributedCacheManager();
 		cache = new HashMap<>();
 
 		collectionsListManager = this.modelLayerFactory.getCollectionsListManager();

@@ -27,7 +27,7 @@ public class UnreadTasksUserCache implements UserCache {
 	public UnreadTasksUserCache(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.userServices = appLayerFactory.getModelLayerFactory().newUserServices();
-		this.cache = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getSettingsCacheManager()
+		this.cache = appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDistributedCacheManager()
 				.createCache(NAME, new ConstellioCacheOptions());
 	}
 

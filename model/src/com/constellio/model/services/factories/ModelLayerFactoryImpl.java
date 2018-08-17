@@ -169,11 +169,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.foldersLocator = foldersLocator;
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
-		ConstellioCacheManager cacheManager = dataLayerFactory.getSettingsCacheManager();
+		ConstellioCacheManager cacheManager = dataLayerFactory.getLocalCacheManager();
 		this.securityTokenManager = add(new SecurityTokenManager(this));
 		this.systemConfigurationsManager = add(
 				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed,
-						dataLayerFactory.getRecordsCacheManager()));
+						dataLayerFactory.getDistributedCacheManager()));
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));

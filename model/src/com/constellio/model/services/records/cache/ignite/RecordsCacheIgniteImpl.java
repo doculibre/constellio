@@ -96,7 +96,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 		this.modelLayerFactory = modelLayerFactory;
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.recordsCacheManager = (ConstellioIgniteCacheManager) modelLayerFactory.getDataLayerFactory()
-				.getRecordsCacheManager();
+				.getDistributedCacheManager();
 
 		this.permanentRecordHoldersCacheName = collection + ".recordHolders.permanent";
 		this.volatileRecordHoldersCacheName = collection + ".recordHolders.volatile";
