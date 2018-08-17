@@ -1,12 +1,19 @@
 package com.constellio.app.services.migrations;
 
-import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.security.roles.RolesManager;
+import java.util.ArrayList;
+import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
+import static java.util.Arrays.asList;
+
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.model.calculators.TemporaryRecordDestructionDateCalculator;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.pages.search.criteria.CriterionFactory;
 import com.constellio.app.ui.pages.search.criteria.FacetSelectionsFactory;
@@ -17,7 +24,6 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.structure.FacetOrderType;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadataFactory;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.EmailAddressFactory;
@@ -49,11 +55,7 @@ import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.schemas.validators.JasperFilePrintableValidator;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.schemas.validators.TemporaryRecordValidator;
-import com.constellio.model.services.security.roles.RolesManager;
-
-import java.util.ArrayList;
-
-import static java.util.Arrays.asList;
+import java.lang.String;
 
 public final class GeneratedCoreMigrationCombo {
   String collection;
@@ -148,7 +150,7 @@ public final class GeneratedCoreMigrationCombo {
     groupSchema.get("allauthorizations").defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
     groupSchema.get("attachedAncestors").defineDataEntry().asCalculated(AttachedAncestorsCalculator.class);
     groupSchema.get("autocomplete").defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
-    groupSchema.get("inheritedauthorizations").defineDataEntry().asCopied(groupSchema.get("parent"), typesBuilder.getMetadata("group_default_parent"));
+    groupSchema.get("inheritedauthorizations").defineDataEntry().asCopied(groupSchema.get("parent"), typesBuilder.getMetadata("group_default_allauthorizations"));
     groupSchema.get("parentpath").defineDataEntry().asCalculated(ParentPathCalculator.class);
     groupSchema.get("path").defineDataEntry().asCalculated(PathCalculator.class);
     groupSchema.get("pathParts").defineDataEntry().asCalculated(PathPartsCalculator.class);
@@ -4664,7 +4666,7 @@ public final class GeneratedCoreMigrationCombo {
     group_nonTaxonomyAuthorizations.setMultiLingual(false);
     MetadataBuilder group_parent = groupSchema.create("parent").setType(MetadataValueType.REFERENCE);
     group_parent.setUndeletable(true);
-    group_parent.defineReferencesTo(asList(groupSchema));
+    group_parent.defineReferencesTo(asList(types.getSchema("group_default")));
     MetadataBuilder group_parentpath = groupSchema.create("parentpath").setType(MetadataValueType.STRING);
     group_parentpath.setMultivalue(true);
     group_parentpath.setSystemReserved(true);

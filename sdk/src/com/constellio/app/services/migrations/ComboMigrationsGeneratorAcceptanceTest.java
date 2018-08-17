@@ -614,8 +614,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				if (resourceFile.isDirectory()) {
 					FileUtils.copyDirectory(resourceFile, new File(comboFolder, resourceFile.getName()));
 				} else {
-					System.out.println("Copying " + resourceFile.getName());
-					FileUtils.copyFile(resourceFile, new File(comboFolder, resourceFile.getAbsolutePath()));
+					System.out.println("Copying " + resourceFile.getAbsolutePath());
+					FileUtils.copyFile(resourceFile, new File(comboFolder, resourceFile.getName()));
 				}
 			}
 		}
