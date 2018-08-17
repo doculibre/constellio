@@ -98,7 +98,6 @@ public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScri
 				Document.COMPANY,
 				Email.SUBJECT_TO_BROADCAST_RULE,
 				Document.AUTHOR,
-				Email.EMAIL_CONTENT,
 				Document.COMMENTS);
 		transaction.add(
 				schemaDisplayEmailConfig.withFormMetadataCodes(schemaFormEmailConfig.getFormMetadataCodes()));
@@ -155,7 +154,8 @@ public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScri
 			emailSchema.createUndeletable(Email.EMAIL_ATTACHMENTS_LIST).setType(MetadataValueType.STRING).setMultivalue(true);
 			emailSchema.createUndeletable(Email.EMAIL_OBJECT).setType(MetadataValueType.STRING);
 			emailSchema.createUndeletable(Email.EMAIL_COMPANY).setType(MetadataValueType.STRING);
-			emailSchema.createUndeletable(Email.EMAIL_CONTENT).setType(MetadataValueType.TEXT);
+			//emailSchema.createUndeletable(Email.EMAIL_CONTENT).setType(MetadataValueType.TEXT);
+			//Deleted in script 7.7.1
 			emailSchema.createUndeletable(Email.EMAIL_SENT_ON).setType(MetadataValueType.DATE_TIME);
 			emailSchema.createUndeletable(Email.EMAIL_RECEIVED_ON).setType(MetadataValueType.DATE_TIME);
 

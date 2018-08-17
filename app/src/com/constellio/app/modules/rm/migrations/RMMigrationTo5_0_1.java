@@ -303,22 +303,6 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		transaction.add(manager.getMetadata(collection, Folder.DEFAULT_SCHEMA + "_" + Folder.MEDIUM_TYPES)
 				.withInputType(MetadataInputType.CHECKBOXES));
 
-		SchemaDisplayConfig schemaDisplayUserConfig = order(collection, appLayerFactory, "display",
-				manager.getSchema(collection, User.DEFAULT_SCHEMA),
-				User.USERNAME,
-				User.FIRSTNAME,
-				User.LASTNAME,
-				Schemas.TITLE.getLocalCode(),
-				User.EMAIL,
-				User.ROLES,
-				User.GROUPS,
-				User.JOB_TITLE,
-				User.PHONE,
-				User.STATUS,
-				Schemas.CREATED_ON.getLocalCode(),
-				Schemas.MODIFIED_ON.getLocalCode());
-		transaction.add(schemaDisplayUserConfig);
-
 		// DOCUMENT TYPE
 		SchemaDisplayConfig schemaFormDocumentTypeConfig = order(collection, appLayerFactory, "form",
 				manager.getSchema(collection, DocumentType.DEFAULT_SCHEMA),

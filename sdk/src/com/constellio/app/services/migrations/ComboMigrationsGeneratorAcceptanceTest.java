@@ -988,19 +988,44 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 							AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
 							if (dataEntry.getAgregationType().equals(AggregationType.REFERENCE_COUNT)) {
-								Metadata referenceMetadata = schema.getMetadata(dataEntry.getReferenceMetadata());
-								main.addStatement("$L.get($S).defineDataEntry().asReferenceCount(types.get($S))",
+								Metadata referenceMetadata = types.getMetadata(dataEntry.getReferenceMetadata());
+								main.addStatement("$L.get($S).defineDataEntry().asReferenceCount(typesBuilder.getMetadata($S))",
 										variableOf(schema),
 										metadata.getLocalCode(),
 										referenceMetadata.getCode());
 							}
 							if (dataEntry.getAgregationType().equals(AggregationType.SUM)) {
-								Metadata referenceMetadata = schema.getMetadata(dataEntry.getReferenceMetadata());
-								main.addStatement("$L.get($S).defineDataEntry().asSum(types.get($S), $L)",
+								Metadata referenceMetadata = types.getMetadata(dataEntry.getReferenceMetadata());
+
+								List<String> inputMetadatasCalls = new ArrayList<>();
+								//types.getMetadata($S)
+
+								for (String inputMetadata : dataEntry.getInputMetadatas()) {
+									inputMetadatasCalls.add("typesBuilder.getMetadata(\"" + inputMetadata + "\")");
+								}
+
+								main.addStatement("$L.get($S).defineDataEntry().asSum(typesBuilder.getMetadata($S), $L)",
 										variableOf(schema),
 										metadata.getLocalCode(),
 										referenceMetadata.getCode(),
-										variableOfMetadata(StringUtils.join(dataEntry.getInputMetadatas(), ", ")));
+										StringUtils.join(inputMetadatasCalls, ", "));
+							}
+
+							if (dataEntry.getAgregationType().equals(AggregationType.VALUES_UNION)) {
+								Metadata referenceMetadata = types.getMetadata(dataEntry.getReferenceMetadata());
+
+								List<String> inputMetadatasCalls = new ArrayList<>();
+								//types.getMetadata($S)
+
+								for (String inputMetadata : dataEntry.getInputMetadatas()) {
+									inputMetadatasCalls.add("typesBuilder.getMetadata(\"" + inputMetadata + "\")");
+								}
+
+								main.addStatement("$L.get($S).defineDataEntry().asUnion(typesBuilder.getMetadata($S), $L)",
+										variableOf(schema),
+										metadata.getLocalCode(),
+										referenceMetadata.getCode(),
+										StringUtils.join(inputMetadatasCalls, ", "));
 							}
 						}
 					}
@@ -1119,6 +1144,12 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		if (type.isUndeletable()) {
 			stringBuilder.append(".setUndeletable(true)");
 		}
+
+		if (type.getSmallCode() != null) {
+			stringBuilder.append(".setSmallCode(\"" + type.getSmallCode() + "\")");
+		}
+
+
 		if (!DataStore.RECORDS.equals(type.getDataStore())) {
 			stringBuilder.append(".setDataStore(\"" + type.getDataStore() + "\")");
 		}

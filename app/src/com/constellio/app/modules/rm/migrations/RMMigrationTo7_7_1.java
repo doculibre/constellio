@@ -5,16 +5,14 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.DocumentListPDF;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class RMMigrationTo7_7_1 extends MigrationHelper implements MigrationScript {
 	@Override
 	public String getVersion() {
-		return "7.7.0";
+		return "7.7.1";
 	}
 
 	@Override
@@ -33,9 +31,7 @@ public class RMMigrationTo7_7_1 extends MigrationHelper implements MigrationScri
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaBuilder builder = typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE).createCustomSchema(DocumentListPDF.SCHEMA)
-					.addLabel(Language.French, "Liste de document pdf")
-					.addLabel(Language.English, "Document pdf list").getDefaultSchema();
+			typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE).createCustomSchema(DocumentListPDF.SCHEMA);
 		}
 	}
 }
