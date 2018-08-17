@@ -7,7 +7,11 @@ import org.apache.solr.common.SolrInputDocument;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

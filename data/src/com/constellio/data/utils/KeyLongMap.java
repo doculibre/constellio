@@ -1,6 +1,10 @@
 package com.constellio.data.utils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 
 public class KeyLongMap<K> extends HashMap<K, Long> {
 

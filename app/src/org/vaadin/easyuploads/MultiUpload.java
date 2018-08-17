@@ -8,7 +8,11 @@ import com.vaadin.ui.LegacyComponent;
 
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Server side component for the VMultiUpload widget. Pretty much hacked up

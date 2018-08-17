@@ -6,7 +6,9 @@ import org.joda.time.LocalDateTime;
 
 import java.util.List;
 
-import static com.constellio.model.entities.records.wrappers.UserFolder.*;
+import static com.constellio.model.entities.records.wrappers.UserFolder.FORM_CREATED_ON;
+import static com.constellio.model.entities.records.wrappers.UserFolder.FORM_MODIFIED_ON;
+import static com.constellio.model.entities.records.wrappers.UserFolder.PARENT_USER_FOLDER;
 
 public class UserFolderVO extends RecordVO {
 

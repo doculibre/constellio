@@ -17,7 +17,9 @@ import org.joda.time.LocalDate;
 import java.util.List;
 
 import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS;
-import static com.constellio.app.modules.rm.wrappers.Document.*;
+import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_DEPOSIT_DATE;
+import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_DESTRUCTION_DATE;
+import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_TRANSFER_DATE;
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.SCOPE;
 import static java.util.Arrays.asList;
 

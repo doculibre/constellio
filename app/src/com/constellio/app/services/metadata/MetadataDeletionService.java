@@ -2,7 +2,14 @@ package com.constellio.app.services.metadata;
 
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.metadata.MetadataDeletionException.*;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CalculatedMetadataSource;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataReference;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataSource;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_ExtractedMetadataSource;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_FacetMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_InheritedMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_PopulatedMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_SystemMetadata;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
@@ -24,9 +31,19 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.*;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.CALCULATED_METADATA_SOURCE;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.COPIED_METADATA_REFERENCE;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.COPIED_METADATA_SOURCE;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.EXTRACTED_METADATA_SOURCE;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.FACET_METADATA;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.INHERITED_METADATA;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.POPULATED_METADATA;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class MetadataDeletionService {

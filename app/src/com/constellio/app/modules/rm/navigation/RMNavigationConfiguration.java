@@ -20,7 +20,13 @@ import com.constellio.app.modules.rm.ui.pages.containers.ContainersInAdministrat
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInFilingSpaceViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.*;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.AddExistingContainerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.AddNewContainerViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningMainViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DocumentDecommissioningListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.EditDecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.email.AddEmailAttachmentsToFolderViewImpl;

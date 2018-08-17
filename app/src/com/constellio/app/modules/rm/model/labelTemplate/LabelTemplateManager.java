@@ -10,7 +10,11 @@ import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.utils.comparators.AbstractTextComparator;
 import org.jdom2.Document;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class LabelTemplateManager {
 

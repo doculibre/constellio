@@ -15,7 +15,9 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 
 import java.util.Map;
 
-import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.*;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.ACTION_AFTER_CLASSIFICATION;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.IN_FOLDER;
+import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters.MAJOR_VERSIONS;
 import static java.util.Arrays.asList;
 
 public class ESRMRobotsMigrationTo5_1_9 implements MigrationScript {

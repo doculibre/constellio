@@ -10,7 +10,12 @@ import org.apache.solr.common.util.ContentStreamBase;
 import org.apache.solr.ltr.feature.SolrFeature;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class SolrFeatureRequest extends AbstractSchemaRequest<SolrResponse> {
 	List<SolrFeature> features;

@@ -13,10 +13,16 @@ import com.google.common.collect.Maps;
 import org.restlet.engine.util.StringUtils;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.modules.restapi.core.util.ListUtils.nullToEmpty;
-import static com.constellio.app.modules.restapi.core.util.Permissions.*;
+import static com.constellio.app.modules.restapi.core.util.Permissions.DELETE;
+import static com.constellio.app.modules.restapi.core.util.Permissions.READ;
+import static com.constellio.app.modules.restapi.core.util.Permissions.WRITE;
 import static java.util.Arrays.asList;
 import static org.hibernate.validator.internal.util.CollectionHelper.asSet;
 

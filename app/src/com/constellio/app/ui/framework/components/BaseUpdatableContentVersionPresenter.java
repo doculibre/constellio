@@ -12,35 +12,35 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 
 public class BaseUpdatableContentVersionPresenter implements UpdatableContentVersionPresenter {
-    AppLayerFactory appLayerFactory = null;
-    SessionContext sessionContext = null;
+	AppLayerFactory appLayerFactory = null;
+	SessionContext sessionContext = null;
 
-    public BaseUpdatableContentVersionPresenter() {
-    }
+	public BaseUpdatableContentVersionPresenter() {
+	}
 
-    public BaseUpdatableContentVersionPresenter(AppLayerFactory appLayerFactory) {
-        this.appLayerFactory = appLayerFactory;
-    }
+	public BaseUpdatableContentVersionPresenter(AppLayerFactory appLayerFactory) {
+		this.appLayerFactory = appLayerFactory;
+	}
 
-    @Override
-    public ContentVersionVO getUpdatedContentVersionVO(RecordVO recordVO, ContentVersionVO previousConventVersionVO) {
-        ensureAppLayerFactory();
-        ensureSessionContext();
-        Record updatedRecord = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(recordVO.getId());
-        UserDocumentToVOBuilder voBuilder = new UserDocumentToVOBuilder();
-        UserDocumentVO updatedUserDocument = voBuilder.build(updatedRecord, RecordVO.VIEW_MODE.FORM, sessionContext);
-        return updatedUserDocument.getContent();
-    }
+	@Override
+	public ContentVersionVO getUpdatedContentVersionVO(RecordVO recordVO, ContentVersionVO previousConventVersionVO) {
+		ensureAppLayerFactory();
+		ensureSessionContext();
+		Record updatedRecord = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(recordVO.getId());
+		UserDocumentToVOBuilder voBuilder = new UserDocumentToVOBuilder();
+		UserDocumentVO updatedUserDocument = voBuilder.build(updatedRecord, RecordVO.VIEW_MODE.FORM, sessionContext);
+		return updatedUserDocument.getContent();
+	}
 
-    public void ensureAppLayerFactory() {
-        if(appLayerFactory == null) {
-            appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-        }
-    }
+	public void ensureAppLayerFactory() {
+		if (appLayerFactory == null) {
+			appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		}
+	}
 
-    public void ensureSessionContext() {
-        if(sessionContext == null) {
-            sessionContext = ConstellioUI.getCurrentSessionContext();
-        }
-    }
+	public void ensureSessionContext() {
+		if (sessionContext == null) {
+			sessionContext = ConstellioUI.getCurrentSessionContext();
+		}
+	}
 }

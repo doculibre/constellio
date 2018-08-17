@@ -11,7 +11,11 @@ import com.vaadin.ui.Component;
 import java.util.List;
 import java.util.Locale;
 
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.*;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_COPY_RETENTION_RULES;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.DOCUMENT_TYPES_DETAILS;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE;
 
 public class RetentionRuleDisplayFactory extends RMMetadataDisplayFactory {
 	private final RetentionRuleDisplayPresenter presenter;

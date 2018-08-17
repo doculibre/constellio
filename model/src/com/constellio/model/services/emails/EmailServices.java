@@ -4,23 +4,11 @@ import com.constellio.model.conf.email.EmailServerConfiguration;
 import com.constellio.model.services.emails.EmailServicesException.EmailPermanentException;
 import com.constellio.model.services.emails.EmailServicesException.EmailServerException;
 import com.constellio.model.services.emails.EmailServicesException.EmailTempException;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.mail.*;
-import javax.mail.internet.*;
-import javax.mail.util.ByteArrayDataSource;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -44,18 +32,13 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 import javax.mail.util.ByteArrayDataSource;
-
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.model.conf.email.EmailServerConfiguration;
-import com.constellio.model.services.emails.EmailServicesException.EmailPermanentException;
-import com.constellio.model.services.emails.EmailServicesException.EmailServerException;
-import com.constellio.model.services.emails.EmailServicesException.EmailTempException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class EmailServices {
 
@@ -115,7 +98,8 @@ public class EmailServices {
 	public void closeSession(Session session) {
 	}
 
-	public MimeMessage createMimeMessage(String from, String subject, String body, List<MessageAttachment> attachments, ConstellioEIMConfigs configs)
+	public MimeMessage createMimeMessage(String from, String subject, String body, List<MessageAttachment> attachments,
+										 ConstellioEIMConfigs configs)
 			throws MessagingException, IOException {
 		String charset = "UTF-8";
 		MimeMessage message = new MimeMessage(Session.getInstance(System.getProperties()));

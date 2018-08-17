@@ -16,8 +16,10 @@ public class CollectionInfoVO {
 	private final List<Locale> collectionLocales;
 
 
-	public CollectionInfoVO(Language mainSystemLanguage, String code, List<Language> collectionLanguages, Locale mainSystemLocale,
-							List<String> secondaryCollectionLanguagesCodes, List<String> collectionLangaugesCodes, List<Locale> collectionLocales) {
+	public CollectionInfoVO(Language mainSystemLanguage, String code, List<Language> collectionLanguages,
+							Locale mainSystemLocale,
+							List<String> secondaryCollectionLanguagesCodes, List<String> collectionLangaugesCodes,
+							List<Locale> collectionLocales) {
 		this.mainSystemLanguage = mainSystemLanguage;
 		this.code = code;
 		this.collectionLanguages = collectionLanguages;

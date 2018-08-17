@@ -20,7 +20,11 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.*;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -512,7 +516,7 @@ public abstract class Decommissioner {
 			empty = true;
 			// Current transaction folders would not be taken into account otherwise
 			for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-				if (detail.isFolderExcluded()) {
+				if (detail.isFolderExcluded() || destroyedFolders.contains(detail.getFolderId())) {
 					continue;
 				}
 				if (container.getId().equals(detail.getContainerRecordId())) {

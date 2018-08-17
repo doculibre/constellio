@@ -27,7 +27,11 @@ import com.constellio.model.services.users.UserServices;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("serial")
 public class MetadataToVOBuilder implements Serializable {
@@ -150,7 +154,7 @@ public class MetadataToVOBuilder implements Serializable {
 		Locale currentLocale = sessionContext.getCurrentLocale();
 		String metadataLabel = metadata.getLabel(Language.withCode(currentLocale.getLanguage()));
 
-		if(schemaVO != null) {
+		if (schemaVO != null) {
 			CollectionInfoVO collectionInfoVO = schemaVO.getCollectionInfoVO();
 
 			if (isMultiLingual && locale != null && collectionInfoVO.getCollectionLanguages() != null && collectionInfoVO.getCollectionLanguages().size() > 1) {

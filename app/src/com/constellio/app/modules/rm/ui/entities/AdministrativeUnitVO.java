@@ -5,7 +5,10 @@ import com.constellio.app.ui.entities.RecordVO;
 
 import java.util.List;
 
-import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.*;
+import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.CODE;
+import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.DESCRIPTION;
+import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.FILING_SPACES;
+import static com.constellio.app.modules.rm.wrappers.AdministrativeUnit.PARENT;
 
 public class AdministrativeUnitVO extends RecordVO {
 

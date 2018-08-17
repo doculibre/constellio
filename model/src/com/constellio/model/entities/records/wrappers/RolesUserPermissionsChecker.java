@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.constellio.model.entities.security.Role.*;
+import static com.constellio.model.entities.security.Role.DELETE;
+import static com.constellio.model.entities.security.Role.READ;
+import static com.constellio.model.entities.security.Role.WRITE;
 import static java.util.Arrays.asList;
 
 public class RolesUserPermissionsChecker extends UserPermissionsChecker {

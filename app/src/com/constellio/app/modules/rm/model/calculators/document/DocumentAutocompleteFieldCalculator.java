@@ -10,7 +10,11 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator.LocalAutocompleteMetadatasDependency;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator.splitInLowerCasedTermsRemovingAccents;
 import static java.util.Arrays.asList;

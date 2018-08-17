@@ -10,7 +10,8 @@ public class UpdatableContentVersionVOResource extends StreamResource {
 
 	private static final String STREAM_NAME = "ContentVersionVOResource-InputStream";
 
-	public UpdatableContentVersionVOResource(final RecordVO recordVO, final ContentVersionVO contentVersionVO, final UpdatableContentVersionPresenter presenter) {
+	public UpdatableContentVersionVOResource(final RecordVO recordVO, final ContentVersionVO contentVersionVO,
+											 final UpdatableContentVersionPresenter presenter) {
 		super(new StreamSource() {
 			@Override
 			public InputStream getStream() {
@@ -19,7 +20,7 @@ public class UpdatableContentVersionVOResource extends StreamResource {
 			}
 		}, getFilename(contentVersionVO));
 	}
-	
+
 	private static String getFilename(ContentVersionVO contentVersionVO) {
 		String filename = contentVersionVO.getFileName();
 		filename = filename.replace("%", "");

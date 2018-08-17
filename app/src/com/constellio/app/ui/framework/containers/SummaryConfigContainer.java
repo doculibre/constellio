@@ -165,7 +165,8 @@ public class SummaryConfigContainer extends DataContainer<SummaryConfigDataProvi
 		return new ObjectProperty(value, type);
 	}
 
-	private void moveRowUp(SummaryConfigDataProvider summaryConfigDataProvider, SummaryConfigElementVO summaryConfigElementVOItemId) {
+	private void moveRowUp(SummaryConfigDataProvider summaryConfigDataProvider,
+						   SummaryConfigElementVO summaryConfigElementVOItemId) {
 		List<SummaryConfigElementVO> summaryConfigElementVOS = summaryConfigDataProvider.getSummaryConfigElementVOS();
 		int index = summaryConfigElementVOS.indexOf(summaryConfigElementVOItemId);
 

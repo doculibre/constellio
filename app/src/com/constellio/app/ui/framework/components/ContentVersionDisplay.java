@@ -12,7 +12,6 @@ import com.constellio.app.ui.framework.components.content.DownloadContentVersion
 import com.constellio.app.ui.framework.components.content.UpdatableContentVersionPresenter;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
-import com.vaadin.ui.VerticalLayout;
 
 import java.util.List;
 
@@ -22,11 +21,13 @@ public class ContentVersionDisplay extends CustomComponent {
 		this(recordVO, (ContentVersionVO) recordVO.get(metadataVO), presenter);
 	}
 
-	public ContentVersionDisplay(RecordVO recordVO, ContentVersionVO contentVersionVO, UpdatableContentVersionPresenter presenter) {
+	public ContentVersionDisplay(RecordVO recordVO, ContentVersionVO contentVersionVO,
+								 UpdatableContentVersionPresenter presenter) {
 		this(recordVO, contentVersionVO, contentVersionVO.toString(), presenter);
 	}
 
-	public ContentVersionDisplay(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption, UpdatableContentVersionPresenter presenter) {
+	public ContentVersionDisplay(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption,
+								 UpdatableContentVersionPresenter presenter) {
 		// TODO Remove singleton use
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();

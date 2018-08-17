@@ -2,7 +2,15 @@ package com.constellio.data.utils;
 
 import org.apache.commons.io.IOUtils;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;

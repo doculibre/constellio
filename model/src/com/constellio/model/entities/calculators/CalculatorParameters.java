@@ -1,6 +1,11 @@
 package com.constellio.model.entities.calculators;
 
-import com.constellio.model.entities.calculators.dependencies.*;
+import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 

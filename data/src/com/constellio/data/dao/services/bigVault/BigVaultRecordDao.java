@@ -1,11 +1,22 @@
 package com.constellio.data.dao.services.bigVault;
 
-import com.constellio.data.dao.dto.records.*;
+import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
+import com.constellio.data.dao.dto.records.QueryResponseDTO;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.RecordsFlushing;
+import com.constellio.data.dao.dto.records.TransactionDTO;
+import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.dao.services.bigVault.RecordDaoException.NoSuchRecordWithId;
 import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.RecordDaoRuntimeException_RecordsFlushingFailed;
-import com.constellio.data.dao.services.bigVault.solr.*;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultException;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
 import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
@@ -34,10 +45,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
-import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.*;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_ITEM_LOCALDATE;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_ITEM_LOCAL_DATE_TIME;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.convertLocalDateTimeToSolrDate;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.convertLocalDateToSolrDate;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.convertNullToSolrValue;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.isMultiValueStringOrText;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.isMultivalue;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.isSingleValueStringOrText;
 
 public class BigVaultRecordDao implements RecordDao {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BigVaultRecordDao.class);

@@ -3,7 +3,11 @@ package com.constellio.app.modules.rm.services.events;
 import com.constellio.model.entities.records.wrappers.Event;
 import org.joda.time.LocalDateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Nouha on 2015-01-28.

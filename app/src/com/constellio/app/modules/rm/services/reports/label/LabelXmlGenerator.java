@@ -1,25 +1,7 @@
 package com.constellio.app.modules.rm.services.reports.label;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
-import org.apache.commons.lang.StringUtils;
-import org.jdom2.CDATA;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.AbstractXmlGeneratorParameters;
@@ -40,6 +22,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import org.apache.commons.lang.StringUtils;
+import org.jdom2.CDATA;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.Format;
@@ -47,7 +30,12 @@ import org.jdom2.output.XMLOutputter;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -268,7 +256,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 		Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
 		boolean isRichTextInputType = displayManager.getMetadata(getCollection(), metadata.getCode()).getInputType() == MetadataInputType.RICHTEXT;
 		String data = getToStringOrNull(recordElement.get(metadata, getLocale()));
-		if(!isRichTextInputType) {
+		if (!isRichTextInputType) {
 			data = formatData(data, metadata);
 		}
 		if (metadata.isMultivalue()) {
@@ -288,7 +276,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 			data = this.getPath(recordElement);
 		}
 
-		if(data != null && isRichTextInputType) {
+		if (data != null && isRichTextInputType) {
 			metadataXmlElement.setContent(new CDATA(data));
 		} else {
 			metadataXmlElement.setText(data);

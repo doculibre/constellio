@@ -10,7 +10,11 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Table;
-import com.vaadin.ui.Table.*;
+import com.vaadin.ui.Table.Align;
+import com.vaadin.ui.Table.ColumnCollapseEvent;
+import com.vaadin.ui.Table.ColumnCollapseListener;
+import com.vaadin.ui.Table.ColumnReorderEvent;
+import com.vaadin.ui.Table.ColumnReorderListener;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;

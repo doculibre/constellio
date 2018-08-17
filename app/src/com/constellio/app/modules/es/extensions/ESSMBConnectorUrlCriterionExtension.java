@@ -18,7 +18,11 @@ import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
 import com.vaadin.data.Property;
-import com.vaadin.ui.*;
+import com.vaadin.ui.AbstractSelect;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 
 import java.util.Arrays;
 import java.util.Locale;

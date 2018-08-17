@@ -29,7 +29,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 public class TransactionLogRecoveryManager implements RecoveryService, BigVaultServerAddEditListener,
 		BigVaultServerQueryListener {

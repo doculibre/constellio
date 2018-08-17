@@ -25,7 +25,11 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 

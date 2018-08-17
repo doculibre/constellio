@@ -12,7 +12,9 @@ import org.joda.time.LocalDate;
 
 import java.util.List;
 
-import static com.constellio.app.modules.rm.wrappers.Document.*;
+import static com.constellio.app.modules.rm.wrappers.Document.ACTUAL_DEPOSIT_DATE_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Document.ACTUAL_DESTRUCTION_DATE_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Document.FOLDER;
 import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_DESTRUCTION_DATE;
 import static java.util.Arrays.asList;
 

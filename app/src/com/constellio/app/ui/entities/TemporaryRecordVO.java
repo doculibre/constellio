@@ -5,7 +5,9 @@ import org.joda.time.LocalDateTime;
 
 import java.util.List;
 
-import static com.constellio.model.entities.records.wrappers.TemporaryRecord.*;
+import static com.constellio.model.entities.records.wrappers.TemporaryRecord.CONTENT;
+import static com.constellio.model.entities.records.wrappers.TemporaryRecord.DAY_BEFORE_DESTRUCTION;
+import static com.constellio.model.entities.records.wrappers.TemporaryRecord.DESTRUCTION_DATE;
 
 public class TemporaryRecordVO extends RecordVO {
 

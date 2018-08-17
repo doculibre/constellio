@@ -1,6 +1,19 @@
 package com.constellio.app.modules.rm.services.sip;
 
-import au.edu.apsr.mtk.base.*;
+import au.edu.apsr.mtk.base.Agent;
+import au.edu.apsr.mtk.base.Div;
+import au.edu.apsr.mtk.base.DmdSec;
+import au.edu.apsr.mtk.base.FLocat;
+import au.edu.apsr.mtk.base.FileGrp;
+import au.edu.apsr.mtk.base.FileSec;
+import au.edu.apsr.mtk.base.Fptr;
+import au.edu.apsr.mtk.base.METS;
+import au.edu.apsr.mtk.base.METSException;
+import au.edu.apsr.mtk.base.METSWrapper;
+import au.edu.apsr.mtk.base.MdRef;
+import au.edu.apsr.mtk.base.MdWrap;
+import au.edu.apsr.mtk.base.MetsHdr;
+import au.edu.apsr.mtk.base.StructMap;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.services.sip.data.SIPObjectsProvider;
 import com.constellio.app.modules.rm.services.sip.ead.EAD;
@@ -36,10 +49,20 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import java.io.File;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 /**
  * metsHdr CREATEDATE="..." RECORDSTATUS="Complete"

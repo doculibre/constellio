@@ -1,18 +1,5 @@
 package com.constellio.app.ui.framework.components.resource;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.VaadinSessionContext;
@@ -29,14 +16,25 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
-import com.vaadin.server.*;
+import com.vaadin.server.ExternalResource;
+import com.vaadin.server.RequestHandler;
+import com.vaadin.server.Resource;
+import com.vaadin.server.VaadinRequest;
+import com.vaadin.server.VaadinResponse;
+import com.vaadin.server.VaadinServletRequest;
+import com.vaadin.server.VaadinSession;
 import com.vaadin.util.FileTypeResolver;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 public class ConstellioResourceHandler implements RequestHandler {
@@ -146,7 +144,8 @@ public class ConstellioResourceHandler implements RequestHandler {
 		return createResource(recordId, metadataCode, version, filename, false);
 	}
 
-	public static Resource createResource(String recordId, String metadataCode, String version, String filename, boolean preview) {
+	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
+										  boolean preview) {
 		return createResource(recordId, metadataCode, version, filename, preview, false);
 	}
 
@@ -158,7 +157,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 		params.put("preview", "" + preview);
 		params.put("version", version);
 		params.put("z-filename", filename);
-		if(!useBrowserCache) {
+		if (!useBrowserCache) {
 			Random random = new Random();
 			params.put("cacheRandomizer", String.valueOf(random.nextLong()));
 		}
