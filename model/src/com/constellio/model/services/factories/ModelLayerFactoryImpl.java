@@ -21,6 +21,7 @@ import com.constellio.model.services.background.ModelLayerBackgroundThreadsManag
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.batch.state.StoredBatchProcessProgressionServices;
+import com.constellio.model.services.caches.ModelLayerCachesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -134,6 +135,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
 
+	private final ModelLayerCachesManager modelLayerCachesManager;
 
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 								 ModelLayerConfiguration modelLayerConfiguration,
@@ -145,7 +147,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
 
-		systemCollectionListeners = new ArrayList<>();
+		this.modelLayerCachesManager = new ModelLayerCachesManager();
+		this.systemCollectionListeners = new ArrayList<>();
 
 		this.dataLayerFactory = dataLayerFactory;
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
@@ -227,6 +230,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	}
 
+
 	public RecordMigrationsManager getRecordMigrationsManager() {
 		return recordMigrationsManager;
 	}
@@ -252,6 +256,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 			thesaurusManager = add(new ThesaurusManager(this));
 		}
 		return thesaurusManager;
+	}
+
+	@Override
+	public ModelLayerCachesManager getCachesManager() {
+		return modelLayerCachesManager;
 	}
 
 	public RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches) {

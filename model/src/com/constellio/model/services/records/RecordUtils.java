@@ -140,6 +140,15 @@ public class RecordUtils {
 		return idList;
 	}
 
+	public static Set<String> toWrappedRecordIdsSet(List<? extends RecordWrapper> records) {
+		Set<String> idList = new HashSet<>();
+
+		for (RecordWrapper record : records) {
+			idList.add(record.getId());
+		}
+		return idList;
+	}
+
 	public Map<String, List<Record>> splitRecordsBySchemaTypes(List<Record> records) {
 		KeyListMap<String, Record> recordsSplittedByTypes = new KeyListMap<>();
 
@@ -596,15 +605,11 @@ public class RecordUtils {
 
 		}
 		for (
-				String idWithPossibleNewChildren : idsWithPossibleNewChildren)
-
-		{
+				String idWithPossibleNewChildren : idsWithPossibleNewChildren) {
 			cache.invalidateWithoutChildren(idWithPossibleNewChildren);
 		}
 		for (
-				String idWithPossibleNewChildren : idsWithPossibleRemovedChildren)
-
-		{
+				String idWithPossibleNewChildren : idsWithPossibleRemovedChildren) {
 			cache.invalidateWithChildren(idWithPossibleNewChildren);
 		}
 

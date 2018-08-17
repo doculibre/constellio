@@ -1162,4 +1162,24 @@ public class UserServices {
 			return true;
 		}
 	}
+
+	public List<User> getUserForEachCollection(UserCredential userCredential) {
+
+		List<User> users = new ArrayList<>();
+		for (String collection : userCredential.getCollections()) {
+			users.add(getUserInCollection(userCredential.getUsername(), collection));
+		}
+
+		return users;
+	}
+
+	public List<Group> getGroupForEachCollection(GlobalGroup globalGroup) {
+
+		List<Group> groups = new ArrayList<>();
+		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
+			groups.add(getGroupInCollection(globalGroup.getCode(), collection));
+		}
+
+		return groups;
+	}
 }

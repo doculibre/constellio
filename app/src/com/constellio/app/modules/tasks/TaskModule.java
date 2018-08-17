@@ -8,6 +8,7 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.core.LockedRecordsExtension;
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
+import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension;
@@ -178,11 +179,15 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 	private void registerManagers(String collection, AppLayerFactory appLayerFactory) {
 		appLayerFactory.registerManager(collection, ID, TaskReminderEmailManager.ID,
 				new TaskReminderEmailManager(appLayerFactory, collection));
+
+
 	}
 
 	@Override
 	public void start(AppLayerFactory appLayerFactory) {
 		TasksNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
+
+		appLayerFactory.getModelLayerFactory().getCachesManager().register(new UnreadTasksUserCache(appLayerFactory));
 	}
 
 	@Override
