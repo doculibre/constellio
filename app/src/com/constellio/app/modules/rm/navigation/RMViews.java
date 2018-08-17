@@ -17,6 +17,13 @@ public class RMViews extends CoreViews {
 
 	// FOLDER MANAGEMENT
 
+	public void displayFolderFromContainer(String id, String containerId) {
+		Map<String,String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("containerId", containerId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_FOLDER, params));
+	}
+
 	public void displayFolder(String id, String batchId) {
 		Map<String, String> params = new HashMap<>();
 		params.put("batchId", batchId);
@@ -72,6 +79,13 @@ public class RMViews extends CoreViews {
 
 	public void displayDocument(String id) {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
+	}
+
+	public void displayDocumentFromContainer(String id, String containerId) {
+		Map<String,String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("containerId", containerId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_DOCUMENT, params));
 	}
 
 	public void displayDocument(String id, String lotNumber) {

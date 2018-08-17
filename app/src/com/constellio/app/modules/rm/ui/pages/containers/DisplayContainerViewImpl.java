@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -10,6 +12,7 @@ import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -17,6 +20,7 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.data.utils.Factory;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
@@ -320,5 +324,18 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			borrowedLabel.setVisible(false);
 			borrowedLabel.setValue(null);
 		}
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		String searchId = getUIContext().getAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+		SearchType searchType = getUIContext().getAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+		BaseBreadcrumbTrail breadcrumbTrail = null;
+
+		if(searchId == null) {
+			return new FolderDocumentContainerBreadcrumbTrail(null, null, presenter.getContainer().getId(), this);
+		}
+
+		return null;
 	}
 }

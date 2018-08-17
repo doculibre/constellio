@@ -3,10 +3,9 @@ package com.constellio.app.modules.rm.ui.pages.document;
 import com.constellio.app.api.extensions.params.DocumentBreadcrumParams;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
-import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
@@ -23,7 +22,6 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
@@ -292,9 +290,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			return breadcrumbTrail;
 		} else if (saveSearchDecommissioning != null) {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
-					saveSearchDecommissioning, presenter.getRecord().getId(), this);
+					saveSearchDecommissioning, presenter.getRecord().getId(),this);
 		} else {
-			return new FolderDocumentBreadcrumbTrail(documentVO.getId(), taxonomyCode, this);
+			String containerId = null;
+			if(presenter.getParams() != null && presenter.getParams() instanceof Map) {
+				containerId = presenter.getParams().get("containerId");
+			}
+
+			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), taxonomyCode, containerId,this);
 		}
 	}
 

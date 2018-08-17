@@ -10,7 +10,7 @@ import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
@@ -211,7 +211,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 		MockedNavigation navigator = new MockedNavigation();
 
 		UIContext uiContext = mock(UIContext.class);
-		when(uiContext.getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE)).thenReturn(null);
+		when(uiContext.getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE)).thenReturn(null);
 		when(displayFolderView.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(displayFolderView.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
 		when(displayFolderView.getUIContext()).thenReturn(uiContext);

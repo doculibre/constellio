@@ -5,7 +5,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -93,7 +93,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
-		if (recordVO != null) {
+		if (recordVO != null && params == null) {
 			forParams(recordVO.getId());
 		}
 	}
@@ -130,7 +130,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 
 
-		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
+		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
 
 		this.record = getRecord(id);

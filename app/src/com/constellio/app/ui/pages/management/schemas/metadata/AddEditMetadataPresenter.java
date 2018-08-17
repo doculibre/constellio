@@ -1,26 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import com.constellio.data.dao.dto.records.FacetValue;
-import com.constellio.model.services.schemas.builders.*;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -32,8 +11,10 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
@@ -87,6 +68,25 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		this.parameters = params;
 		this.schemaCode = parameters.get("schemaCode");
 		this.schemaTypeCode = parameters.get("schemaTypeCode");
+
+	}
+
+	public String getParamSchemaCode() {
+		return this.schemaCode;
+	}
+
+	public FormMetadataSchemaVO getSchemaVO() {
+		FormMetadataSchemaVO schemaVO = null;
+		MetadataSchemasManager manager = modelLayerFactory.getMetadataSchemasManager();
+		MetadataSchema schema = manager.getSchemaTypes(collection).getSchema(schemaCode);
+		schemaVO = new MetadataSchemaToFormVOBuilder().build(schema, schema.getLocalCode(),
+				view.getSessionContext(), null, true);
+
+		return schemaVO;
+	}
+
+	public String getSchemaTypeCode() {
+		return schemaTypeCode;
 	}
 
 	public void setMetadataCode(String metadataCode) {

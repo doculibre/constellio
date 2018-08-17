@@ -2,10 +2,7 @@ package com.constellio.app.modules.rm.ui.components.breadcrumb;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
@@ -41,7 +38,9 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private String collection;
 
-	private FolderDocumentBreadcrumbTrail breadcrumbTrail;
+	private String containerId;
+
+	private FolderDocumentContainerBreadcrumbTrail breadcrumbTrail;
 
 	private transient TaxonomiesManager taxonomiesManager;
 
@@ -50,10 +49,11 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 
 	public FolderDocumentBreadcrumbTrailPresenter(String recordId, String taxonomyCode,
-												  FolderDocumentBreadcrumbTrail breadcrumbTrail) {
+												  FolderDocumentContainerBreadcrumbTrail breadcrumbTrail, String containerId) {
 		this.recordId = recordId;
 		this.taxonomyCode = taxonomyCode;
 		this.breadcrumbTrail = breadcrumbTrail;
+		this.containerId = containerId;
 		initTransientObjects();
 		addBreadcrumbItems();
 	}
@@ -78,6 +78,11 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private void addBreadcrumbItems() {
 		List<BreadcrumbItem> breadcrumbItems = new ArrayList<>();
+		int folderOffSet = 0;
+		if(containerId != null) {
+			breadcrumbItems.add(new ContainerBreadcrumbItem(containerId));
+			folderOffSet = 1;
+		}
 
 		String currentRecordId = recordId;
 		while (currentRecordId != null) {
@@ -85,7 +90,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			String currentSchemaCode = currentRecord.getSchemaCode();
 			String currentSchemaTypeCode = SchemaUtils.getSchemaTypeCode(currentSchemaCode);
 			if (Folder.SCHEMA_TYPE.equals(currentSchemaTypeCode)) {
-				breadcrumbItems.add(0, new FolderBreadcrumbItem(currentRecordId));
+				breadcrumbItems.add(folderOffSet, new FolderBreadcrumbItem(currentRecordId));
 
 				Folder folder = rmSchemasRecordsServices.wrapFolder(currentRecord);
 				currentRecordId = folder.getParentFolder();
@@ -206,10 +211,44 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			} else {
 				breadcrumbTrail.navigate().to().simpleSearchReplay(searchId);
 			}
+		} else if (item instanceof ContainerBreadcrumbItem) {
+			handled = true;
+			ContainerBreadcrumbItem containerBreadcrumbItem = (ContainerBreadcrumbItem) item;
+			breadcrumbTrail.navigate().to(RMViews.class).displayContainer(containerBreadcrumbItem.getContainerId());
 		} else {
 			handled = false;
 		}
 		return handled;
+	}
+
+	class ContainerBreadcrumbItem implements BreadcrumbItem {
+		private String folderId;
+
+		public ContainerBreadcrumbItem(String containerId) {
+			this.folderId = containerId;
+		}
+
+		public final String getContainerId() {
+			return folderId;
+		}
+
+		@Override
+		public String getLabel() {
+			return SchemaCaptionUtils.getCaptionForRecordId(folderId);
+		}
+
+		@Override
+		public boolean isEnabled() {
+			boolean enabled;
+			if (folderId.equals(recordId)) {
+				enabled = false;
+			} else {
+				Record record = folderPresenterUtils.getRecord(folderId);
+				User user = folderPresenterUtils.getCurrentUser();
+				enabled = user.hasReadAccess().on(record);
+			}
+			return enabled;
+		}
 	}
 
 	class TaxonomyBreadcrumbItem implements BreadcrumbItem {

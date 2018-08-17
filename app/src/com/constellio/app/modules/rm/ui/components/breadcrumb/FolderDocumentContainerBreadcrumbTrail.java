@@ -1,9 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.breadcrumb;
 
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.DocumentBreadcrumbItem;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.FolderBreadcrumbItem;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.TaxonomyBreadcrumbItem;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.TaxonomyElementBreadcrumbItem;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.*;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
@@ -16,13 +13,18 @@ import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 
-public class FolderDocumentBreadcrumbTrail extends TitleBreadcrumbTrail implements UIContextProvider {
+public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail implements UIContextProvider {
 
 	private FolderDocumentBreadcrumbTrailPresenter presenter;
 
-	public FolderDocumentBreadcrumbTrail(String recordId, String taxonomyCode, BaseView view) {
-		super(view, null);
-		this.presenter = new FolderDocumentBreadcrumbTrailPresenter(recordId, taxonomyCode, this);
+
+	public FolderDocumentContainerBreadcrumbTrail(String recordId, String taxonomyCode, BaseView view) {
+		this(recordId, taxonomyCode, null, view);
+	}
+
+	public FolderDocumentContainerBreadcrumbTrail(String recordId, String taxonomyCode, String containerId, BaseView view) {
+		super(view, null, false);
+		this.presenter = new FolderDocumentBreadcrumbTrailPresenter(recordId, taxonomyCode, this, containerId);
 	}
 
 	@Override
@@ -40,6 +42,10 @@ public class FolderDocumentBreadcrumbTrail extends TitleBreadcrumbTrail implemen
 		} else if (item instanceof CollectionBreadcrumbItem) {
 			recordId = null;
 		} else if (item instanceof SearchResultsBreadcrumbItem) {
+			recordId = null;
+		} else if(item instanceof ContainerBreadcrumbItem) {
+			recordId = ((ContainerBreadcrumbItem) item).getContainerId();
+		} else if (item instanceof ViewGroupBreadcrumbItem) {
 			recordId = null;
 		} else {
 			throw new RuntimeException("Unrecognized breadcrumb item type : " + item.getClass());

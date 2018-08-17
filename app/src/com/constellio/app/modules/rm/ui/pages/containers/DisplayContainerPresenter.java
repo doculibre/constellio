@@ -22,10 +22,12 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -166,7 +168,12 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public void displayFolderButtonClicked(RecordVO folder) {
-		view.navigate().to(RMViews.class).displayFolder(folder.getId());
+		if(view.getUIContext().getAttribute(BaseBreadcrumbTrail.SEARCH_ID) != null && containerId != null) {
+			view.navigate().to(RMViews.class).displayFolderFromContainer(folder.getId(), containerId);
+		} else {
+			view.navigate().to(RMViews.class).displayFolder(folder.getId());
+		}
+
 	}
 
 	@Override

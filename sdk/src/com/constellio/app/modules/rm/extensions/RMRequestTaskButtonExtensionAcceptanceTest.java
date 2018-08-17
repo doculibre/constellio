@@ -2,7 +2,7 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerPresenter;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
@@ -95,7 +95,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
 		when(folderView.navigate()).thenReturn(navigator);
 		when(folderView.getUIContext()).thenReturn(uiContext);
 		when(folderView.getRecord()).thenReturn(folderVO);
-		when(uiContext.getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE)).thenReturn("plan");
+		when(uiContext.getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE)).thenReturn("plan");
 
 		when(containerView.getSessionContext()).thenReturn(sessionContext);
 		when(containerView.getCollection()).thenReturn(zeCollection);

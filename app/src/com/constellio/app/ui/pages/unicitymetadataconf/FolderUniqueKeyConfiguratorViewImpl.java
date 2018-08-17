@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.unicitymetadataconf;
 
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FolderUnicityVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -15,6 +12,7 @@ import com.constellio.app.ui.framework.containers.FolderUniqueKeyContainer;
 import com.constellio.app.ui.framework.data.FolderUniqueKeyDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
+import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.vaadin.data.fieldgroup.PropertyId;
@@ -28,7 +26,6 @@ import org.vaadin.dialogs.ConfirmDialog;
 import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements FolderUniqueKeyConfiguratorView, AdminViewGroup {
 
@@ -237,70 +234,11 @@ public class FolderUniqueKeyConfiguratorViewImpl extends BaseViewImpl implements
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+
 		return new TitleBreadcrumbTrail(this, getTitle()) {
 			@Override
 			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
-				IntermediateBreadCrumbTailItem intermediateBreadCrumbTailItem1 = new IntermediateBreadCrumbTailItem() {
-					@Override
-					public String getTitle() {
-						return $("ViewGroup.AdminViewGroup");
-					}
-
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to(CoreViews.class).adminModule();
-					}
-
-					@Override
-					public boolean isEnabled() {
-						return true;
-					}
-				};
-
-				IntermediateBreadCrumbTailItem intermediateBreadCrumbTailItem2 = new IntermediateBreadCrumbTailItem() {
-					@Override
-					public boolean isEnabled() {
-						return true;
-					}
-
-					@Override
-					public String getTitle() {
-						return $("ListSchemaTypeView.viewTitle");
-					}
-
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to(CoreViews.class).listSchemaTypes();
-					}
-				};
-
-				IntermediateBreadCrumbTailItem intermediateBreadCrumbTailItem3 = new IntermediateBreadCrumbTailItem() {
-					@Override
-					public boolean isEnabled() {
-						return true;
-					}
-
-					@Override
-					public String getTitle() {
-						return $("ListSchemaView.viewTitle");
-					}
-
-					@Override
-					public void activate(Navigation navigate) {
-						String schemaTypeCode = presenter.getSchemaCode().substring(0, presenter.getSchemaCode().indexOf("_"));
-
-						Map<String, String> paramsMap = new HashMap<>();
-						paramsMap.put("schemaTypeCode", schemaTypeCode);
-						String params = ParamUtils.addParams(NavigatorConfigurationService.DISPLAY_SCHEMA, paramsMap);
-
-						navigate.to(CoreViews.class).listSchema(params);
-					}
-				};
-
-				List<IntermediateBreadCrumbTailItem> intermediateBreadCrumbTailItemsList = new ArrayList<>();
-				intermediateBreadCrumbTailItemsList.addAll(super.getIntermediateItems());
-				intermediateBreadCrumbTailItemsList.addAll(asList(intermediateBreadCrumbTailItem1, intermediateBreadCrumbTailItem2, intermediateBreadCrumbTailItem3));
-				return intermediateBreadCrumbTailItemsList;
+				return BreadcrumbTrailUtil.llistSchemaTypeSchemaList(presenter.getSchemaCode());
 			}
 		};
 	}

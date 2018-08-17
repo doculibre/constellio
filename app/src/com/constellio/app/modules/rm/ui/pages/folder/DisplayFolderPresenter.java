@@ -6,8 +6,6 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.extensions.api.FolderExtension;
-import com.constellio.app.modules.rm.extensions.api.FolderExtension.FolderExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
@@ -20,7 +18,7 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSer
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
@@ -162,7 +160,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			id = params;
 		}
 
-		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
+		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
 
 		Record record = getRecord(id);
@@ -714,13 +712,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void displayDocumentButtonClicked(RecordVO record) {
-		navigate().to(RMViews.class).displayDocument(record.getId());
+		navigateToDocument(record);
 	}
 
 	public void documentClicked(RecordVO recordVO) {
 		ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
 		if (contentVersionVO == null) {
-			navigate().to(RMViews.class).displayDocument(recordVO.getId());
+			navigateToDocument(recordVO);
 			return;
 		}
 		String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
@@ -728,12 +726,36 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			//			view.openAgentURL(agentURL);
 			new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
 		} else {
+			navigateToDocument(recordVO);
+		}
+	}
+
+	private void navigateToDocument(RecordVO recordVO) {
+		String containerId = null;
+
+		if(params instanceof Map) {
+			containerId = params.get("containerId");
+		}
+
+		if(containerId != null) {
+			navigate().to(RMViews.class).displayDocumentFromContainer(recordVO.getId(), containerId);
+		} else {
 			navigate().to(RMViews.class).displayDocument(recordVO.getId());
 		}
 	}
 
 	public void subFolderClicked(RecordVO subFolderVO) {
-		navigate().to(RMViews.class).displayFolder(subFolderVO.getId());
+		String containerId = null;
+
+		if(params instanceof Map) {
+			containerId = params.get("containerId");
+		}
+
+		if(containerId != null) {
+			navigate().to(RMViews.class).displayFolderFromContainer(subFolderVO.getId(), containerId);
+		} else {
+			navigate().to(RMViews.class).displayFolder(subFolderVO.getId());
+		}
 	}
 
 	public void taskClicked(RecordVO taskVO) {
