@@ -1,15 +1,19 @@
 package com.constellio.app.services.migrations.scripts;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
+import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreRoles;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -39,6 +43,24 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 		new CoreSchemaAlterationFor7_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
 		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+
+		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+		SchemaDisplayConfig schemaDisplayUserConfig = MigrationHelper.order(collection, appLayerFactory, "display",
+				manager.getSchema(collection, User.DEFAULT_SCHEMA),
+				User.USERNAME,
+				User.FIRSTNAME,
+				User.LASTNAME,
+				Schemas.TITLE.getLocalCode(),
+				User.EMAIL,
+				User.ROLES,
+				User.GROUPS,
+				User.JOB_TITLE,
+				User.PHONE,
+				User.STATUS,
+				Schemas.CREATED_ON.getLocalCode(),
+				Schemas.MODIFIED_ON.getLocalCode(),
+				User.ALL_ROLES);
+		manager.saveSchema(schemaDisplayUserConfig);
 
 	}
 

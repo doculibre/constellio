@@ -112,7 +112,7 @@ public final class GeneratedTasksMigrationCombo {
     ddvTaskStatusSchema.defineValidators().add(TaskStatusValidator.class);
     MetadataSchemaTypeBuilder ddvTaskTypeSchemaType = typesBuilder.createNewSchemaType("ddvTaskType",false).setSecurity(false);
     MetadataSchemaBuilder ddvTaskTypeSchema = ddvTaskTypeSchemaType.getDefaultSchema();
-    MetadataSchemaTypeBuilder userTaskSchemaType = typesBuilder.createNewSchemaType("userTask",false);
+    MetadataSchemaTypeBuilder userTaskSchemaType = typesBuilder.createNewSchemaType("userTask",false).setSmallCode("t");
     MetadataSchemaBuilder userTaskSchema = userTaskSchemaType.getDefaultSchema();
     userTaskSchema.defineValidators().add(TaskValidator.class);
     MetadataSchemaTypeBuilder workflowSchemaType = typesBuilder.createNewSchemaType("workflow",false).setSecurity(false);

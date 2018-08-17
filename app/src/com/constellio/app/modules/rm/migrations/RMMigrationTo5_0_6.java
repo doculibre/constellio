@@ -16,7 +16,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -90,11 +89,6 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 				.in(Folder.SCHEMA_TYPE)
 				.addToDisplay(Folder.LINEAR_SIZE)
 				.beforeTheHugeCommentMetadata();
-
-		transactionBuilder
-				.in(User.SCHEMA_TYPE)
-				.addToDisplay(User.ALL_ROLES)
-				.atTheEnd();
 
 		transactionBuilder
 				.in(VariableRetentionPeriod.SCHEMA_TYPE)

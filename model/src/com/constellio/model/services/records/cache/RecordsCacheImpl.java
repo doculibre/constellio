@@ -530,11 +530,14 @@ public class RecordsCacheImpl implements RecordsCache {
 		recordByMetadataCache.put(cacheConfig.getSchemaType(), new RecordByMetadataCache(cacheConfig));
 
 		if (cacheConfig.isLoadedInitially()) {
-			LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
+
 			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(collection).getSchemaType(cacheConfig.getSchemaType());
-			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 10000 || asList(User.SCHEMA_TYPE,
-					Group.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE).contains(cacheConfig.getSchemaType())) {
+			long resultCount = searchServices.getResultsCount(from(schemaType).returnAll());
+			if (resultCount > 0 && (resultCount < 10000 || asList(User.SCHEMA_TYPE,
+					Group.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE).contains(cacheConfig.getSchemaType()))) {
+
+				LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
 				searchServices.getAllRecords(schemaType);
 			}
 		}
