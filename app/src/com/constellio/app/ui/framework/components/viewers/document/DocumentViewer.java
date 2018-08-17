@@ -114,12 +114,12 @@ public class DocumentViewer extends CustomComponent {
 					boolean preview = Arrays.asList(CONVERSION_EXTENSIONS).contains(extension);
 					if (preview) {
 						if (ConstellioResourceHandler.hasContentPreview(recordVO.getId(), metadataCode, version)) {
-							contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, fileName + ".pdf", true);
+							contentResource = ConstellioResourceHandler.createPreviewResource(recordVO.getId(), metadataCode, version, fileName + ".pdf");
 						} else {
 							contentResource = null;
 						}
 					} else {
-						contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, fileName, false);
+						contentResource = ConstellioResourceHandler.createResource(recordVO.getId(), metadataCode, version, fileName);
 					}
 				}
 			} else if (file != null) {

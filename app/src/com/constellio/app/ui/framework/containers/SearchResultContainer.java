@@ -1,32 +1,19 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-
-import javax.imageio.ImageIO;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.imgscalr.Scalr;
 
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
+import com.constellio.app.ui.framework.components.resource.ConstellioResourceHandler;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
-import com.vaadin.server.StreamResource;
-import com.vaadin.server.StreamResource.StreamSource;
+import com.vaadin.server.Resource;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Image;
@@ -98,18 +85,14 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 					final ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
 					if (contentVersionVO != null) {
 						String filename = contentVersionVO.getFileName();
-						String extension = StringUtils.lowerCase(FilenameUtils.getExtension(filename));
-						if (isThumbnailPossible(extension)) {
+						String recordId = recordVO.getId();
+						String metadataCode = recordVO.getMetadata(Document.CONTENT).getLocalCode();
+						String version = contentVersionVO.getVersion();
+						
+						if (ConstellioResourceHandler.hasContentThumbnail(recordId, metadataCode, version)) {
 							thumbnail = true;
-							InputStream imageIn = contentVersionVO.getInputStreamProvider().getInputStream(SearchResultContainer.class.getName());
-							final ByteArrayInputStream thumbnailIn = getThumbnail(imageIn, extension);
-							image.setSource(new StreamResource(new StreamSource() {
-								@Override
-								public InputStream getStream() {
-									return thumbnailIn;
-								}
-								
-							}, filename));
+							Resource thumnailResource = ConstellioResourceHandler.createThumbnailResource(recordId, metadataCode, version, filename);
+							image.setSource(thumnailResource);
 						} else {
 							thumbnail = false;
 						}
@@ -135,29 +118,6 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 				return Image.class;
 			}
 		};
-	}
-	
-	private static boolean isThumbnailPossible(String extension) {
-		List<String> supportedExtensions = Arrays.asList("png", "jpg", "jpeg", "gif", "bmp");
-		return supportedExtensions.contains(StringUtils.lowerCase(extension));
-	}
-	
-	private static ByteArrayInputStream getThumbnail(InputStream imageInputStream, String extension) {
-		ByteArrayInputStream thumnailInputStream;
-		try {
-			int targetSize = 80;
-			BufferedImage originalImage = ImageIO.read(imageInputStream);
-			IOUtils.closeQuietly(imageInputStream);
-			BufferedImage scaledImg = Scalr.resize(originalImage, targetSize);
-			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-			ImageIO.write(scaledImg, extension, outputStream);
-			byte[] imagetteBytes = outputStream.toByteArray();
-			IOUtils.closeQuietly(outputStream);
-			thumnailInputStream = new ByteArrayInputStream(imagetteBytes);
-		} catch (IOException e) {
-			thumnailInputStream = null;
-		}
-		return thumnailInputStream;
 	}
 
 	private Property<Component> newSearchResultProperty(final Object itemId) {

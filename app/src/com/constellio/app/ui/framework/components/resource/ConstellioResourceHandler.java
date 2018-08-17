@@ -55,6 +55,7 @@ public class ConstellioResourceHandler implements RequestHandler {
     		String metadataCode = paramsMap.get("metadataCode");
     		String version = paramsMap.get("version");
     		String preview = paramsMap.get("preview");
+    		String thumbnail = paramsMap.get("thumbnail");
     		String filePath = paramsMap.get("file");
     		String hashParam = paramsMap.get("hash");
     		String filenameParam = paramsMap.get("z-filename");
@@ -94,6 +95,12 @@ public class ConstellioResourceHandler implements RequestHandler {
 			    			if ("true".equals(preview)) {
 			    				if (contentManager.hasContentPreview(hash)) {
 					    			in = contentManager.getContentPreviewInputStream(hash, getClass().getSimpleName() + ".handleRequest");
+			    				} else {
+			    					in = null;
+			    				}
+			    			} else if ("true".equals(thumbnail)) {
+			    				if (contentManager.hasContentThumbnail(hash)) {
+					    			in = contentManager.getContentThumbnailInputStream(hash, getClass().getSimpleName() + ".handleRequest");
 			    				} else {
 			    					in = null;
 			    				}
@@ -141,14 +148,23 @@ public class ConstellioResourceHandler implements RequestHandler {
     }
 
     public static Resource createResource(String recordId, String metadataCode, String version, String filename) {
-    	return createResource(recordId, metadataCode, version, filename, false);
+    	return createResource(recordId, metadataCode, version, filename, false, false);
     }
 
-    public static Resource createResource(String recordId, String metadataCode, String version, String filename, boolean preview) {
+    public static Resource createPreviewResource(String recordId, String metadataCode, String version, String filename) {
+    	return createResource(recordId, metadataCode, version, filename, true, false);
+    }
+
+    public static Resource createThumbnailResource(String recordId, String metadataCode, String version, String filename) {
+    	return createResource(recordId, metadataCode, version, filename, false, true);
+    }
+
+    private static Resource createResource(String recordId, String metadataCode, String version, String filename, boolean preview, boolean thumbnail) {
     	Map<String, String> params = new LinkedHashMap<>();
     	params.put("recordId", recordId);
     	params.put("metadataCode", metadataCode);
     	params.put("preview", "" + preview);
+    	params.put("thumbnail", "" + thumbnail);
     	params.put("version", version);
     	params.put("z-filename", filename);
     	String resourcePath = ParamUtils.addParams(PATH , params);
@@ -199,6 +215,37 @@ public class ConstellioResourceHandler implements RequestHandler {
 			contentPreview = false;
 		}
 		return contentPreview;
+    }
+    
+    public static boolean hasContentThumbnail(String recordId, String metadataCode, String version) {
+    	boolean contentThumnail;
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		UserServices userServices = modelLayerFactory.newUserServices();
+		RecordServices recordServices = modelLayerFactory.newRecordServices();
+		ContentManager contentManager = modelLayerFactory.getContentManager();
+		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		
+		VaadinSession vaadinSession = VaadinSession.getCurrent();
+		UserVO userVO = (UserVO) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_USER_ATTRIBUTE);
+		String collection = (String) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE);
+		
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
+		User user = userServices.getUserInCollection(userVO.getUsername(), collection);
+		Record record = recordServices.getDocumentById(recordId);
+		
+		if (user.hasReadAccess().on(record)) {
+			String schemaCode = record.getSchemaCode();
+			Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
+			Content content = (Content) record.get(metadata);
+			ContentVersion contentVersion = content.getVersion(version);
+			
+			String hash = contentVersion.getHash();
+			contentThumnail = contentManager.hasContentThumbnail(hash);
+		} else {
+			contentThumnail = false;
+		}
+		return contentThumnail;
     }
 
 }
