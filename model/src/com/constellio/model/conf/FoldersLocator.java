@@ -170,7 +170,7 @@ public class FoldersLocator {
 	}
 
 	public File getSolrHomeConfFolder() {
-		return new File(getConstellioWebappFolder(), "solrHome5");
+		return new File(getConstellioWebappFolder(), "solrHome7");
 	}
 
 	public File getWrapperCommandFolder() {

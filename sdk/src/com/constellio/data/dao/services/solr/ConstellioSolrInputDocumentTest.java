@@ -8,8 +8,6 @@ import static java.util.Arrays.asList;
 
 public class ConstellioSolrInputDocumentTest {
 
-	float boost = 1.0f;
-
 	ConstellioSolrInputDocument document = new ConstellioSolrInputDocument();
 
 	@Test
@@ -52,29 +50,5 @@ public class ConstellioSolrInputDocumentTest {
 	public void whenAddIdWithNonStringValueThenException()
 			throws Exception {
 		document.addField("id", 42);
-	}
-
-	@Test
-	public void whenSetNonNullKeyAndValueAndBoostThenOK()
-			throws Exception {
-		document.setField("key", 42, boost);
-	}
-
-	@Test(expected = ImpossibleRuntimeException.class)
-	public void whenSetMapWithListWithNullValueAndBoostThenException()
-			throws Exception {
-		document.setField("key", asMap("set", asList((String) null)), boost);
-	}
-
-	@Test(expected = ImpossibleRuntimeException.class)
-	public void whenSetNullNameAndBoostThenException()
-			throws Exception {
-		document.setField(null, 42, boost);
-	}
-
-	@Test(expected = ImpossibleRuntimeException.class)
-	public void whenSetIdWithNonStringValueAndBoostThenException()
-			throws Exception {
-		document.setField("id", 42, boost);
 	}
 }

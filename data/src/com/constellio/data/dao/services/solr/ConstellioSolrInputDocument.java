@@ -24,17 +24,8 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 		}
 	}
 
-	public void setField(String name, Object value, float boost) {
-		value = convertEmptyToNull(value);
-		if (value == null) {
-			super.remove(name);
-		} else {
-			validate(name, value);
-			super.setField(name, value);    // FIXME?
-		}
-	}
-
-	public void addField(String name, Object value, float boost) {
+	@Override
+	public void addField(String name, Object value) {
 
 		value = convertEmptyToNull(value);
 
@@ -42,7 +33,7 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 			super.remove(name);
 		} else {
 			validate(name, value);
-			super.addField(name, value);    // FIXME ?
+			super.addField(name, value);
 		}
 	}
 
