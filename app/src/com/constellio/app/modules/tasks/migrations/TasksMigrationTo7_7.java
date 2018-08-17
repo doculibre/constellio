@@ -50,6 +50,7 @@ public class TasksMigrationTo7_7 extends MigrationHelper implements MigrationScr
 		}
 	}
 
+
 	class SchemaAlterationFor7_7 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_7(String collection, MigrationResourcesProvider migrationResourcesProvider,
