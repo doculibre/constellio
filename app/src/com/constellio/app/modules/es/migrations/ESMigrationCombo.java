@@ -26,7 +26,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
@@ -36,23 +36,31 @@ import static java.util.Arrays.asList;
 public class ESMigrationCombo implements ComboMigrationScript {
 	@Override
 	public List<MigrationScript> getVersions() {
-		return Arrays.asList(
-				new ESMigrationTo5_1_6(),
-				new ESMigrationTo6_1(),
-				new ESMigrationTo6_2(),
-				new ESMigrationTo6_4(),
-				new ESMigrationTo6_5_42(),
-				new ESMigrationTo6_5_58(),
-				new ESMigrationTo7_1_3(),
-				new ESMigrationTo7_4_1(),
-				new ESMigrationTo7_4_2(),
-				new ESMigrationTo7_4_3(),
-				new ESMigrationTo7_5(),
-				new ESMigrationTo7_6_1(),
-				new ESMigrationTo7_6_1_1(),
-				new ESMigrationTo7_6_2(),
-				new ESMigrationTo7_6_3()
-		);
+		List<MigrationScript> scripts = new ArrayList<>();
+
+		scripts.add(new ESMigrationTo5_1_6());
+		scripts.add(new ESMigrationTo6_1());
+		scripts.add(new ESMigrationTo6_2());
+		scripts.add(new ESMigrationTo6_4());
+		scripts.add(new ESMigrationTo6_5_42());
+		scripts.add(new ESMigrationTo6_5_58());
+		scripts.add(new ESMigrationTo7_1_3());
+		scripts.add(new ESMigrationTo7_4_1());
+		scripts.add(new ESMigrationTo7_4_2());
+		scripts.add(new ESMigrationTo7_4_3());
+		scripts.add(new ESMigrationTo7_5());
+		scripts.add(new ESMigrationTo7_6_1());
+		scripts.add(new ESMigrationTo7_6_1_1());
+		scripts.add(new ESMigrationTo7_6_2());
+		scripts.add(new ESMigrationTo7_6_3());
+		scripts.add(new ESMigrationTo7_6_6());
+		scripts.add(new ESMigrationTo7_7());
+		scripts.add(new ESMigrationTo7_7_0_42());
+		scripts.add(new ESMigrationTo8_0());
+		scripts.add(new ESMigrationTo8_0_1());
+		scripts.add(new ESMigrationTo8_0_2());
+
+		return scripts;
 	}
 
 	@Override
