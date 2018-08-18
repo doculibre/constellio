@@ -36,8 +36,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -112,7 +110,7 @@ public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScri
 
 		if (schemas.getDocumentTypeByCode(DocumentType.EMAIL_DOCUMENT_TYPE) == null) {
 			transaction.add(schemas.newDocumentType().setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
-					.setTitle($("DocumentType.emailDocumentType")).setLinkedSchema(Email.SCHEMA));
+					.setTitles(migrationResourcesProvider.getLanguagesString("DocumentType.emailDocumentType")).setLinkedSchema(Email.SCHEMA));
 		}
 
 		try {

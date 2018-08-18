@@ -111,9 +111,9 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 											AppLayerFactory appLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		VariableRetentionPeriod period888 = rm.newVariableRetentionPeriod().setCode("888")
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod888"));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod888"));
 		VariableRetentionPeriod period999 = rm.newVariableRetentionPeriod().setCode("999")
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod999"));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod999"));
 		try {
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(period888, period999));
 		} catch (RecordServicesException e) {
