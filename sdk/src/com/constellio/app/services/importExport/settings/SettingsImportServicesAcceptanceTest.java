@@ -3503,7 +3503,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		Document outDocument = new SettingsXMLFileWriter().writeSettings(settings);
 
 		// read file1 to setting1
-		ImportedSettings settingsRead1 = new SettingsXMLFileReader(outDocument, getModelLayerFactory()).read();
+		ImportedSettings settingsRead1 = new SettingsXMLFileReader(outDocument, zeCollection, getModelLayerFactory()).read();
 		//		assertThat(settingsRead1.toString()).isEqualTo(settings.toString());
 		assertThat(settingsRead1).isEqualToComparingFieldByField(settings);
 
@@ -3511,7 +3511,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		Document outDocument1 = new SettingsXMLFileWriter().writeSettings(settingsRead1);
 
 		// read file2 to setting2
-		ImportedSettings settingsRead2 = new SettingsXMLFileReader(outDocument1, getModelLayerFactory()).read();
+		ImportedSettings settingsRead2 = new SettingsXMLFileReader(outDocument1, zeCollection, getModelLayerFactory()).read();
 		assertThat(settingsRead2).isEqualToComparingFieldByField(settingsRead1);
 
 	}
@@ -3563,7 +3563,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		try {
 			// write settings1 to file ==> file2
 			Document writtenSettings = new SettingsXMLFileWriter().writeSettings(settings);
-			ImportedSettings settings2 = new SettingsXMLFileReader(writtenSettings, getModelLayerFactory()).read();
+			ImportedSettings settings2 = new SettingsXMLFileReader(writtenSettings, zeCollection, getModelLayerFactory()).read();
 			assertThat(trimLines(settings2.toString())).isEqualTo(trimLines(settings.toString()));
 			assertThat(settings2).isEqualToComparingFieldByField(settings);
 

@@ -3,10 +3,7 @@ package com.constellio.app.ui.pages.management.valueDomains;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.DeleteButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
-import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.*;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.TabWithTable;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
@@ -45,9 +42,21 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 	private VerticalLayout mainLayout;
 	private TabSheet sheet;
 	private List<TabWithTable> tabs;
+	private Button addValueDomainButton;
 
 	public ListValueDomainViewImpl() {
 		presenter = new ListValueDomainPresenter(this);
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<Button>();
+
+		addValueDomainButton = new DomainCreationWindowButton($("ListValueDomainViewImpl.addValueDomain"));
+		addValueDomainButton.addStyleName(WindowButton.STYLE_NAME);
+
+		actionMenuButtons.add(addValueDomainButton);
+		return actionMenuButtons;
 	}
 
 	@Override
@@ -58,7 +67,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		initTabs();
-		mainLayout = new VerticalLayout(buildCreationComponent(), sheet);
+		mainLayout = new VerticalLayout(sheet);
 		mainLayout.setSpacing(true);
 		mainLayout.setWidth("100%");
 		return mainLayout;
@@ -110,13 +119,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 			tab.refreshTable();
 		}
 	}
-
-	private Component buildCreationComponent() {
-		DomainCreationWindowButton domainCreationWindowButton = new DomainCreationWindowButton($("add"));
-		domainCreationWindowButton.addStyleName(WindowButton.STYLE_NAME);
-		return domainCreationWindowButton;
-	}
-
+	
 	public class DomainCreationWindowButton extends WindowButton {
 		private java.util.Map<Language, BaseTextField> baseTextFieldMap;
 		private String originalStyleName;
