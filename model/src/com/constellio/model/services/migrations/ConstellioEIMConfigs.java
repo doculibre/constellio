@@ -115,6 +115,7 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration UNREFERENCED_CONTENTS_DELETE_SCHEDULE;
 	public static final SystemConfiguration ENABLE_STATISTIC_REPORT;
 	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
+	public static final SystemConfiguration PRIVACY_POLICY;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -130,6 +131,7 @@ public class ConstellioEIMConfigs {
 		add(LOGO = others.createBinary("logo"));
 		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
 		add(AUTHENTIFICATION_IMAGE = others.createBinary("authentificationImage"));
+		add(PRIVACY_POLICY = others.createBinary("privacyPolicy").whichIsHidden());
 		add(METADATA_POPULATE_PRIORITY = others.createEnum("metadataPopulatePriority", MetadataPopulatePriority.class)
 				.withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
 		add(TITLE_METADATA_POPULATE_PRIORITY = others

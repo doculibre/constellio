@@ -1,11 +1,28 @@
 package com.constellio.app.ui.pages.login;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.components.BaseWindow;
+import com.constellio.app.ui.framework.components.fields.BaseRichTextArea;
+import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.vaadin.server.FileResource;
+import com.vaadin.server.Resource;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.*;
+import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -119,26 +136,10 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 						LOGGER.error("Unable to update user : " + username, e);
 					}
 					*/
-
-					modelLayerFactory.newLoggingServices().login(userInLastCollection);
-					Locale userLocale = getSessionLanguage(userInLastCollection);
-					SessionContext sessionContext = view.getSessionContext();
-					UserVO currentUser = voBuilder
-							.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
-					sessionContext.setCurrentUser(currentUser);
-					sessionContext.setCurrentCollection(userInLastCollection.getCollection());
-					sessionContext.setForcedSignOut(false);
-					i18n.setLocale(userLocale);
-					sessionContext.setCurrentLocale(userLocale);
-
-					view.updateUIContent();
-					String currentState = view.navigateTo().getState();
-					if (StringUtils.contains(currentState, "/")) {
-						currentState = StringUtils.substringBefore(currentState, "/");
-					}
-					boolean homePage = NavigatorConfigurationService.HOME.equals(currentState);
-					if (homePage && hasUserDocuments(userInLastCollection, lastCollection)) {
-						view.navigate().to(RMViews.class).listUserDocuments();
+					if(userCredential.hasAgreedToPrivacyPolicy() || getPrivacyPolicyConfigValue() == null) {
+						signInValidated(userInLastCollection, lastCollection);
+					} else {
+						buildPrivacyPolicyWindow(userInLastCollection, lastCollection);
 					}
 				}
 			} else {
@@ -151,6 +152,29 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 			}
 		} else {
 			view.showBadLoginMessage();
+		}
+	}
+
+	private void signInValidated(User userInLastCollection, String lastCollection) {
+		modelLayerFactory.newLoggingServices().login(userInLastCollection);
+		Locale userLocale = getSessionLanguage(userInLastCollection);
+		SessionContext sessionContext = view.getSessionContext();
+		UserVO currentUser = voBuilder
+				.build(userInLastCollection.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
+		sessionContext.setCurrentUser(currentUser);
+		sessionContext.setCurrentCollection(userInLastCollection.getCollection());
+		sessionContext.setForcedSignOut(false);
+		i18n.setLocale(userLocale);
+		sessionContext.setCurrentLocale(userLocale);
+
+		view.updateUIContent();
+		String currentState = view.navigateTo().getState();
+		if (StringUtils.contains(currentState, "/")) {
+			currentState = StringUtils.substringBefore(currentState, "/");
+		}
+		boolean homePage = NavigatorConfigurationService.HOME.equals(currentState);
+		if (homePage && hasUserDocuments(userInLastCollection, lastCollection)) {
+			view.navigate().to(RMViews.class).listUserDocuments();
 		}
 	}
 
@@ -200,5 +224,81 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 			linkTarget = "http://www.constellio.com";
 		}
 		return linkTarget;
+	}
+
+	public void buildPrivacyPolicyWindow(final User userInLastCollection, final String lastCollection) {
+		WindowButton windowButton = new WindowButton($("LoginView.privacyPolicyWindow"), $("LoginView.privacyPolicyWindow")) {
+			@Override
+			protected Component buildWindowContent() {
+				SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+				StreamFactory<InputStream> streamFactory = manager.getValue(ConstellioEIMConfigs.PRIVACY_POLICY);
+				VerticalLayout mainLayout = new VerticalLayout();
+				mainLayout.setSizeFull();
+				mainLayout.setSpacing(true);
+				VerticalLayout textLayout = new VerticalLayout();
+				HorizontalLayout buttonLayout = new HorizontalLayout();
+				buttonLayout.setSpacing(true);
+
+				textLayout.addComponent(new DocumentViewer(getPrivacyPolicyFile()));
+				BaseButton cancelButton = new BaseButton($("cancel")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						getWindow().close();
+					}
+				};
+				BaseButton acceptButton = new BaseButton($("accept")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						UserServices userServices = modelLayerFactory.newUserServices();
+						userServices.addUpdateUserCredential(userServices.getUserCredential(userInLastCollection.getUsername())
+								.withAgreedPrivacyPolicy(true));
+						signInValidated(userInLastCollection, lastCollection);
+						getWindow().close();
+					}
+				};
+				acceptButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				buttonLayout.addComponents(cancelButton, acceptButton);
+				mainLayout.addComponents(textLayout, buttonLayout);
+				mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_LEFT);
+				return mainLayout;
+			}
+		};
+		windowButton.click();
+	}
+
+	public File getPrivacyPolicyFile() {
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+		StreamFactory<InputStream> streamFactory = manager.getValue(ConstellioEIMConfigs.PRIVACY_POLICY);
+		InputStream returnStream = null;
+		if (streamFactory != null) {
+			try {
+				returnStream = streamFactory.create("privacyPolicy_eimUSR");
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		if (returnStream == null) {
+			return null;
+		}
+
+		File file = new File("privacyPolicy_eimUSR");
+		try {
+			FileUtils.copyInputStreamToFile(returnStream, file);
+			//TODO Francis file created by resource is not removed from file system
+			modelLayerFactory.getDataLayerFactory().getIOServicesFactory().newIOServices().closeQuietly(returnStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		} finally {
+			IOUtils.closeQuietly(returnStream);
+		}
+		return file;
+	}
+
+	public Object getPrivacyPolicyConfigValue() {
+		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+		return manager.getValue(ConstellioEIMConfigs.PRIVACY_POLICY);
 	}
 }

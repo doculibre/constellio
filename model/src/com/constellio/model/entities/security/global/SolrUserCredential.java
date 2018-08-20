@@ -37,6 +37,7 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	public static final String JOB_TITLE = "jobTitle";
 	public static final String ADDRESS = "address";
 	public static final String AGENT_STATUS = "agentStatus";
+	public static final String HAS_AGREED_TO_PRIVACY_POLICY = "hasAgreedToPrivacyPolicy";
 
 	public SolrUserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -366,4 +367,12 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 		return set(AGENT_STATUS, agentStatus);
 	}
 
+	public boolean hasAgreedToPrivacyPolicy() {
+		return Boolean.TRUE.equals(get(HAS_AGREED_TO_PRIVACY_POLICY));
+	}
+
+	public UserCredential withAgreedPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy) {
+		set(HAS_AGREED_TO_PRIVACY_POLICY, hasAgreedToPrivacyPolicy);
+		return this;
+	}
 }
