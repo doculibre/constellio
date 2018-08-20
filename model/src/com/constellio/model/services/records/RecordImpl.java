@@ -236,6 +236,9 @@ public class RecordImpl implements Record {
 		if (code.startsWith("global_default")) {
 			return;
 		}
+		if (code.startsWith(schemaTypeCode + "_default")) {
+			return;
+		}
 		if (!code.startsWith(schemaCode)) {
 			throw new InvalidMetadata(code);
 		}
