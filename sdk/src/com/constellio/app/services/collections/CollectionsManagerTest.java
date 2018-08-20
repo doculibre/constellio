@@ -1,28 +1,5 @@
 package com.constellio.app.services.collections;
 
-import static junit.framework.TestCase.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-
-import com.constellio.model.services.search.SearchConfigurationsManager;
-import com.constellio.model.services.search.SynonymsConfigurationsManager;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CollectionWithGivenCodeAlreadyExists;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
@@ -67,7 +44,14 @@ import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class CollectionsManagerTest extends ConstellioTest {
 
@@ -100,8 +84,6 @@ public class CollectionsManagerTest extends ConstellioTest {
 	@Mock UserCredentialsManager userCredentialsManager;
 	@Mock ConfigManager configManager;
 	@Mock Record aNewCollection, anotherNewCollection;
-	@Mock SearchConfigurationsManager searchConfigurationsManager;
-	@Mock SynonymsConfigurationsManager synonymsConfigurationsManager;
 
 	com.constellio.app.services.collections.CollectionsManager collectionsManager;
 
