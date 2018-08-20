@@ -17,6 +17,7 @@ import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellK
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.jensjansson.pagedtable.PagedTable;
 import com.vaadin.data.Item;
@@ -134,25 +135,31 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 				Object propertyValue = property.getValue();
 				if (propertyValue instanceof AbstractOrderedLayout) {
 					AbstractOrderedLayout layout = (AbstractOrderedLayout) propertyValue;
-					layout.addLayoutClickListener(new LayoutClickListener() {
-						@Override
-						public void layoutClick(LayoutClickEvent event) {
-							if (!(event.getSource() instanceof MenuBar)) {
-								Collection<?> itemClickListeners = getListeners(ItemClickEvent.class); 
-								MouseEventDetails mouseEventDetails = new MouseEventDetails();
-								mouseEventDetails.setButton(event.getButton());
-								mouseEventDetails.setClientX(event.getClientX());
-								mouseEventDetails.setClientY(event.getClientY());
-								mouseEventDetails.setRelativeX(event.getRelativeX());
-								mouseEventDetails.setRelativeY(event.getRelativeY());
-								Item item = getItem(itemId);
-								for (Object itemClickListenerObj : itemClickListeners) {
-									ItemClickListener itemClickListener = (ItemClickListener) itemClickListenerObj;
-									itemClickListener.itemClick(new ItemClickEvent(SearchResultDetailedTable.this, item, itemId, propertyId, mouseEventDetails));
+					List<AbstractOrderedLayout> subLayouts = ComponentTreeUtils.getChildren(layout, AbstractOrderedLayout.class);
+					List<AbstractOrderedLayout> layouts = new ArrayList<>();
+					layouts.add(layout);
+					layouts.addAll(subLayouts);
+					for (AbstractOrderedLayout layoutOrSubLayout : layouts) {
+						layoutOrSubLayout.addLayoutClickListener(new LayoutClickListener() {
+							@Override
+							public void layoutClick(LayoutClickEvent event) {
+								if (!(event.getSource() instanceof MenuBar)) {
+									Collection<?> itemClickListeners = getListeners(ItemClickEvent.class); 
+									MouseEventDetails mouseEventDetails = new MouseEventDetails();
+									mouseEventDetails.setButton(event.getButton());
+									mouseEventDetails.setClientX(event.getClientX());
+									mouseEventDetails.setClientY(event.getClientY());
+									mouseEventDetails.setRelativeX(event.getRelativeX());
+									mouseEventDetails.setRelativeY(event.getRelativeY());
+									Item item = getItem(itemId);
+									for (Object itemClickListenerObj : itemClickListeners) {
+										ItemClickListener itemClickListener = (ItemClickListener) itemClickListenerObj;
+										itemClickListener.itemClick(new ItemClickEvent(SearchResultDetailedTable.this, item, itemId, propertyId, mouseEventDetails));
+									}
 								}
 							}
-						}
-					});
+						});
+					}
 					property = new ObjectProperty<>(layout);
 				} 
 			} else if (SearchResultContainer.THUMBNAIL_PROPERTY.equals(propertyId)) {

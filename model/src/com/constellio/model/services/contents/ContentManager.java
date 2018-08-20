@@ -603,7 +603,7 @@ public class ContentManager implements StatefulService {
 					LOGGER.info("Converting file " + filename + " : " + content.getCurrentVersion().getLength()/(1024*1024));
 				}
 				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
-				thumbnailSourceInputStream = new FileInputStream(pdfPreviewFile);
+//				thumbnailSourceInputStream = new FileInputStream(pdfPreviewFile);
 				contentDao.moveFileToVault(pdfPreviewFile, hash + ".preview");
 			} catch (Throwable t) {
 				LOGGER.warn("Cannot generate preview for content '" + filename + "' with hash '" + hash + "'", t);

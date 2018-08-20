@@ -106,7 +106,8 @@ public class ImageViewer extends CustomComponent {
 				ResourceReference contentResourceReference = ResourceReference.create(contentResource, this, "ImageViewer.file");
 				String contentURL = contentResourceReference.getURL();
 				
-				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:" + width + "px; height:"+ height + "px;\"></div>";
+//				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:" + width + "px; height:"+ height + "px;\"></div>";
+				String divHTML = "<div id=\"" + divId + "\" class=\"viewer\" style=\"position:relative; width:100%; height:"+ height + "px;\"></div>";
 				
 				StringBuffer js = new StringBuffer();
 				js.append("var $ = jQuery;");
