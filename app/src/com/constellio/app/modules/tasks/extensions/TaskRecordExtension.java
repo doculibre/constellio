@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.extensions;
 
+import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
@@ -17,11 +18,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.behaviors.RecordExtension;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
-import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
-import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
-import com.constellio.model.extensions.events.records.RecordModificationEvent;
+import com.constellio.model.extensions.events.records.*;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -79,6 +76,7 @@ public class TaskRecordExtension extends RecordExtension {
 	RecordServices recordServices;
 	UserServices userServices;
 	ConstellioEIMConfigs eimConfigs;
+	UnreadTasksUserCache cache;
 
 	public TaskRecordExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -87,6 +85,7 @@ public class TaskRecordExtension extends RecordExtension {
 		recordServices = this.modelLayerFactory.newRecordServices();
 		userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		eimConfigs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
+		cache = appLayerFactory.getModelLayerFactory().getCachesManager().getUserCache(UnreadTasksUserCache.NAME);
 	}
 
 	@Override
@@ -94,6 +93,14 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			sendDeletionEventToFollowers(task);
+			invalidateAllAssignees(event);
+		}
+	}
+
+	@Override
+	public void recordPhysicallyDeleted(RecordPhysicalDeletionEvent event) {
+		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
+			invalidateAllAssignees(event);
 		}
 	}
 
@@ -120,6 +127,44 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			taskInCreation(task, event);
+		}
+	}
+
+
+	@Override
+	public void recordInCreationBeforeSave(final RecordInCreationBeforeSaveEvent event) {
+		final Record record = event.getRecord();
+
+		if (record.getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
+			final Task task = tasksSchema.wrapTask(record);
+
+			//
+			addAssignerAsCompletionEventFollower(task);
+		}
+	}
+
+	@Override
+	public void recordCreated(RecordCreationEvent event) {
+		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
+//			invalidateAllAssignees(event);
+		}
+	}
+
+	private void invalidateAllAssignees(RecordEvent event){
+		Task task = tasksSchema.wrapTask(event.getRecord());
+		if(task.getAssignee() != null ){
+			for (User user : userServices.getAllUsersInCollection(collection)){
+				if(user.getId().equals(task.getAssignee()) || task.getAssigneeUsersCandidates().contains(user.getId())){
+					cache.invalidateUser(user);
+				}
+			}
+			List<Group> groups = userServices.getCollectionGroups(collection);
+			List<String> groups1 = task.getAssigneeGroupsCandidates();
+			for (Group group : userServices.getCollectionGroups(collection)){
+				if(task.getAssigneeGroupsCandidates().contains(group.getId())){
+					cache.invalidateGroup(group);
+				}
+			}
 		}
 	}
 
@@ -534,18 +579,6 @@ public class TaskRecordExtension extends RecordExtension {
 			}
 		}
 		return followersIds;
-	}
-
-	@Override
-	public void recordInCreationBeforeSave(final RecordInCreationBeforeSaveEvent event) {
-		final Record record = event.getRecord();
-
-		if (record.getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
-			final Task task = tasksSchema.wrapTask(record);
-
-			//
-			addAssignerAsCompletionEventFollower(task);
-		}
 	}
 
 	private void addAssignerAsCompletionEventFollower(final Task task) {
