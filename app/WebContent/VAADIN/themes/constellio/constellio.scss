@@ -1173,6 +1173,26 @@ $popup-view-z-index: 3;
 			.v-context-menu-item-basic-icon-container {
 				float: left;
 				padding-right: 3px;
+				float: left;
+				width: 26px;
+				height: 26px;
+				margin-right: 5px;
+				border-right: 1px solid #d0d0d0;
+				text-align: center;
+
+				.v-icon {
+					float: left;
+					width: 16px;
+					height: 16px;
+					padding: 5px;
+				}
+			}
+			
+			.v-context-menu-item-basic-text {
+				float: left;
+				height: 26px;
+				line-height: 26px;
+				padding: 0 20px 0 10px;
 			}
 		}
 
