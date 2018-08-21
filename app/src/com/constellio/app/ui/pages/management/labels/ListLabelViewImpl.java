@@ -16,6 +16,8 @@ import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.model.entities.schemas.Schemas;
 import org.apache.commons.io.FileUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -213,6 +215,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
         tableFolder.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
         tableFolder.setColumnExpandRatio("caption", 1);
         tableFolder.addStyleName(TYPE_TABLE);
+        setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelFolderDataProvider(), tableFolder);
 
         Table tableContainer = new RecordVOTable($("ListSchemaTypeView.tableTitle"), conteneurContainer);
         tableContainer.setSizeFull();
@@ -221,7 +224,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
         tableContainer.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
         tableContainer.setColumnExpandRatio("caption", 1);
         tableContainer.addStyleName(TYPE_TABLE);
-
+        setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelContainerDataProvider(), tableContainer);
 
         tabSheet = new TabSheet();
         tabSheet.addTab(tableFolder, $("DisplayLabelViewImpl.tabs.folder"));
@@ -239,6 +242,12 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 
         mainLayout.addComponent(tabSheet);
         return mainLayout;
+    }
+
+    private void setDefaultOrderBy(String localCode, RecordVODataProvider dataProvider, Table table) {
+        Object[] properties = { dataProvider.getSchema().getMetadata(localCode) };
+        boolean[] ordering = { true };
+        table.sort(properties, ordering);
     }
 
     @Override

@@ -22,6 +22,7 @@ import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Factory;
@@ -40,12 +41,12 @@ import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.*;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -209,10 +210,11 @@ public class LabelButtonV2 extends WindowButton {
     }
 
     private void setItemsForFormatFields(List<? extends Dimensionnable> listOfAllTemplates) {
+        sortListOfAllTemplates();
         for (Dimensionnable template : listOfAllTemplates) {
             formatField.addItem(template);
             //Check the captions of the current template.
-            String itemCaption = template instanceof PrintableLabel ? ((PrintableLabel) template).getTitle() : $(((LabelTemplate) template).getName());
+            String itemCaption = template instanceof PrintableLabel ? ((PrintableLabel) template).getTitle(i18n.getLocale()): $(((LabelTemplate) template).getName());
             formatField.setItemCaption(template, itemCaption);
         }
 
@@ -236,6 +238,17 @@ public class LabelButtonV2 extends WindowButton {
         LogicalSearchCondition condition = from(metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType)).where(Schemas.IDENTIFIER).isEqualTo(id);
         return this.recordToVOBuilder.build(searchServices.searchSingleResult(condition), RecordVO.VIEW_MODE.DISPLAY, sessionContext);
 
+    }
+
+    private void sortListOfAllTemplates(){
+        Collections.sort(listOfAllTemplates, new Comparator<Dimensionnable>() {
+            @Override
+            public int compare(Dimensionnable o1, Dimensionnable o2) {
+                String caption1 = ((PrintableLabel) o1).getTitle(i18n.getLocale());
+                String caption2 = ((PrintableLabel) o2).getTitle(i18n.getLocale());
+                return StringUtils.lowerCase(caption1).compareTo(StringUtils.lowerCase(caption2));
+            }
+        });
     }
 
     private class TemplateValueChangeListener implements Property.ValueChangeListener {
