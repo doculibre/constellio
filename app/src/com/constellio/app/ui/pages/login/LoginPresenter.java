@@ -10,17 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.constellio.app.ui.framework.buttons.BaseButton;
-import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.components.BaseWindow;
-import com.constellio.app.ui.framework.components.fields.BaseRichTextArea;
-import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.vaadin.server.FileResource;
-import com.vaadin.server.Resource;
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,12 +21,16 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
@@ -56,6 +49,11 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class LoginPresenter extends BasePresenter<LoginView> {
 
@@ -137,7 +135,8 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					}
 					*/
 					if(userCredential.hasAgreedToPrivacyPolicy() || getPrivacyPolicyConfigValue() == null) {
-						signInValidated(userInLastCollection, lastCollection);
+//						signInValidated(userInLastCollection, lastCollection);
+						buildPrivacyPolicyWindow(userInLastCollection, lastCollection);
 					} else {
 						buildPrivacyPolicyWindow(userInLastCollection, lastCollection);
 					}
@@ -227,44 +226,52 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 	}
 
 	public void buildPrivacyPolicyWindow(final User userInLastCollection, final String lastCollection) {
-		WindowButton windowButton = new WindowButton($("LoginView.privacyPolicyWindow"), $("LoginView.privacyPolicyWindow")) {
+		final Window window = new Window();
+		window.setWidth("90%");
+		window.setHeight("90%");
+		window.setModal(true);
+		window.setCaption($("LoginView.privacyPolicyWindow"));
+		
+//		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
+//		StreamFactory<InputStream> streamFactory = manager.getValue(ConstellioEIMConfigs.PRIVACY_POLICY);
+		
+		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.setSizeFull();
+		mainLayout.setSpacing(true);
+		
+		VerticalLayout textLayout = new VerticalLayout();
+		
+		HorizontalLayout buttonLayout = new HorizontalLayout();
+		buttonLayout.setSpacing(true);
+		buttonLayout.setHeight("50px");
+
+		BaseButton cancelButton = new BaseButton($("cancel")) {
 			@Override
-			protected Component buildWindowContent() {
-				SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
-				StreamFactory<InputStream> streamFactory = manager.getValue(ConstellioEIMConfigs.PRIVACY_POLICY);
-				VerticalLayout mainLayout = new VerticalLayout();
-				mainLayout.setSizeFull();
-				mainLayout.setSpacing(true);
-				VerticalLayout textLayout = new VerticalLayout();
-				HorizontalLayout buttonLayout = new HorizontalLayout();
-				buttonLayout.setSpacing(true);
-
-				textLayout.addComponent(new DocumentViewer(getPrivacyPolicyFile()));
-				BaseButton cancelButton = new BaseButton($("cancel")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						getWindow().close();
-					}
-				};
-				BaseButton acceptButton = new BaseButton($("accept")) {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						UserServices userServices = modelLayerFactory.newUserServices();
-						userServices.addUpdateUserCredential(userServices.getUserCredential(userInLastCollection.getUsername())
-								.withAgreedPrivacyPolicy(true));
-						signInValidated(userInLastCollection, lastCollection);
-						getWindow().close();
-					}
-				};
-				acceptButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-				buttonLayout.addComponents(cancelButton, acceptButton);
-				mainLayout.addComponents(textLayout, buttonLayout);
-				mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_LEFT);
-				return mainLayout;
+			protected void buttonClick(ClickEvent event) {
+				window.close();
 			}
 		};
-		windowButton.click();
+		BaseButton acceptButton = new BaseButton($("accept")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				UserServices userServices = modelLayerFactory.newUserServices();
+				userServices.addUpdateUserCredential(userServices.getUserCredential(userInLastCollection.getUsername())
+						.withAgreedPrivacyPolicy(true));
+				signInValidated(userInLastCollection, lastCollection);
+				window.close();
+			}
+		};
+		acceptButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+		textLayout.addComponent(new DocumentViewer(getPrivacyPolicyFile()));
+		buttonLayout.addComponents(acceptButton, cancelButton);
+		
+		mainLayout.addComponents(textLayout, buttonLayout);
+		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
+		
+		window.setContent(mainLayout);
+		
+		ConstellioUI.getCurrent().addWindow(window);
 	}
 
 	public File getPrivacyPolicyFile() {
