@@ -1,29 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
-import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -55,6 +31,28 @@ import com.constellio.model.services.records.RecordImplRuntimeException.RecordIm
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 
 public class RecordImpl implements Record {
 
@@ -236,6 +234,9 @@ public class RecordImpl implements Record {
 			throw new InvalidMetadata("null");
 		}
 		if (code.startsWith("global_default")) {
+			return;
+		}
+		if (code.startsWith(schemaTypeCode + "_default")) {
 			return;
 		}
 		if (!code.startsWith(schemaCode)) {
