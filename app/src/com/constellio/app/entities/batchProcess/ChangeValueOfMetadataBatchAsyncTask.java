@@ -26,6 +26,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.*;
+import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.batch.controller.RecordFromIdListIterator;
 import com.constellio.model.services.batch.state.BatchProcessProgressionServices;
@@ -101,11 +102,14 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		params.setProgressionUpperLimit(totalNumberOfRecords);
 
 		try {
+			User batchUser = batchProcess.getUsername() == null?
+					null: userServices.getUserInCollection(batchProcess.getUsername(), batchProcess.getCollection());
 			while (batchIterator.hasNext()) {
 				List<Record> records = batchIterator.next();
 				for (int i = 0; i < records.size(); i += numberOfRecordsPerTask) {
 					List<Record> recordsForTransaction = records.subList(i, Math.min(records.size(), i + numberOfRecordsPerTask));
-					Transaction transaction = buildTransactionForBatch(recordsForTransaction, schemaTypes, recordProvider);
+					Transaction transaction = buildTransactionForBatch(appLayerFactory.getModelLayerFactory(), batchUser,
+							recordsForTransaction, schemaTypes, recordProvider);
 					try {
 						recordServices.prepareRecords(transaction);
 						appendCsvReport(transaction, appLayerFactory, params);
@@ -127,8 +131,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 
 			csvInputStream = new FileInputStream(csvReport);
 			ContentVersionDataSummary contentVersion = contentManager.upload(csvInputStream, csvReport.getName()).getContentVersionDataSummary();
-			Content content = contentManager.createMajor(userServices.getUserInCollection(batchProcess.getUsername(), batchProcess.getCollection()),
-					csvReport.getName(), contentVersion);
+			Content content = contentManager.createMajor(batchUser, csvReport.getName(), contentVersion);
 			report.setContent(content);
 			updateBatchProcessReport(report, appLayerFactory, RecordsFlushing.NOW());
 		} catch (IOException e) {
@@ -173,7 +176,8 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		return new BatchBuilderIterator<>(iterator, 1000);
 	}
 
-	private Transaction buildTransactionForBatch(List<Record> batch, MetadataSchemaTypes schemaTypes, RecordProvider recordProvider) {
+	private Transaction buildTransactionForBatch(ModelLayerFactory modelLayerFactory, User batchUser, List<Record> batch,
+												 MetadataSchemaTypes schemaTypes, RecordProvider recordProvider) {
 		SchemaUtils utils = new SchemaUtils();
 		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
 		for (Record record : batch) {
@@ -195,6 +199,8 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 					}
 				}
 			}
+			modelLayerFactory.getExtensions().forCollection(schemaTypes.getCollection())
+					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, batchUser));
 		}
 		transaction.addUpdate(batch);
 		return transaction;
