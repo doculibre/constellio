@@ -21,7 +21,9 @@ import java.util.List;
 
 import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
 import static com.constellio.data.conf.HashingEncoding.BASE32;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorator {
 

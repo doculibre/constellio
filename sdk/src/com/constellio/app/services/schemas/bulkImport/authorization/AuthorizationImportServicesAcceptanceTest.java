@@ -29,7 +29,13 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
-import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.*;
+import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.AUTHORIZATION_PRINCIPALS_MISSING;
+import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.AUTHORIZATION_TARGETS_MISSING;
+import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.INVALID_ACCESS;
+import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.INVALID_PRINCIPAL_TYPE;
+import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.INVALID_ROLE;
+import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.INVALID_TARGET_TYPE;
+import static com.constellio.app.services.schemas.bulkImport.authorization.AuthorizationImportServices.USE_ROLE_OR_ACCESS;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollectionWithId;
 import static org.assertj.core.api.Assertions.assertThat;

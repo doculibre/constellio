@@ -45,9 +45,21 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 	private VerticalLayout mainLayout;
 	private TabSheet sheet;
 	private List<TabWithTable> tabs;
+	private Button addValueDomainButton;
 
 	public ListValueDomainViewImpl() {
 		presenter = new ListValueDomainPresenter(this);
+	}
+
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<Button>();
+
+		addValueDomainButton = new DomainCreationWindowButton($("ListValueDomainViewImpl.addValueDomain"));
+		addValueDomainButton.addStyleName(WindowButton.STYLE_NAME);
+
+		actionMenuButtons.add(addValueDomainButton);
+		return actionMenuButtons;
 	}
 
 	@Override
@@ -58,7 +70,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		initTabs();
-		mainLayout = new VerticalLayout(buildCreationComponent(), sheet);
+		mainLayout = new VerticalLayout(sheet);
 		mainLayout.setSpacing(true);
 		mainLayout.setWidth("100%");
 		return mainLayout;
@@ -109,12 +121,6 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 		for (TabWithTable tab : tabs) {
 			tab.refreshTable();
 		}
-	}
-
-	private Component buildCreationComponent() {
-		DomainCreationWindowButton domainCreationWindowButton = new DomainCreationWindowButton($("add"));
-		domainCreationWindowButton.addStyleName(WindowButton.STYLE_NAME);
-		return domainCreationWindowButton;
 	}
 
 	public class DomainCreationWindowButton extends WindowButton {

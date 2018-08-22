@@ -22,7 +22,12 @@ import com.constellio.sdk.tests.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.FIELD;
 import static com.constellio.app.entities.schemasDisplay.enums.MetadataInputType.TEXTAREA;

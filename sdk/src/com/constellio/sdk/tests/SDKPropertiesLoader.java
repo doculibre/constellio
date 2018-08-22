@@ -19,7 +19,7 @@ public class SDKPropertiesLoader {
 	Map<String, String> sdkProperties;
 
 	Map<String, String> getSDKProperties() {
-//		if (locked) {
+		//		if (locked) {
 		//			return new HashMap<String, String>();
 		//		}
 		if (sdkProperties == null) {

@@ -2,7 +2,10 @@ package com.constellio.app.ui.framework.components;
 
 import org.junit.Test;
 
-import static com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource.*;
+import static com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource.EXCEL_MIMETYPE;
+import static com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource.PDF_MIMETYPE;
+import static com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource.SPREADSHEET_MIMETYPE;
+import static com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource.ZIP_MIMETYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReportViewerTest {

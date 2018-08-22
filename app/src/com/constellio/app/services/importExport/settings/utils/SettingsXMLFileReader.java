@@ -51,9 +51,10 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 	private Document document;
 	private ModelLayerFactory modelLayerFactory;
 
-	public SettingsXMLFileReader(Document document, ModelLayerFactory modelLayerFactory) {
+	public SettingsXMLFileReader(Document document, String currentCollection, ModelLayerFactory modelLayerFactory) {
 		this.document = document;
 		this.modelLayerFactory = modelLayerFactory;
+		this.currentCollection = currentCollection;
 	}
 
 	public ImportedSettings read() {
@@ -104,7 +105,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		String collectionCode = collectionElement.getAttributeValue(CODE);
 		if (SettingsExportServices.CURRENT_COLLECTION_IMPORTATION_MODE.equals(collectionCode)) {
 			collectionCode = currentCollection;
-			if (currentCollection.equals(null)) {
+			if (currentCollection == null) {
 				throw new RuntimeException(
 						"ERROR: tried to import settings as currentCollection but currentCollection was not set");
 			}
@@ -529,7 +530,8 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 				.setValue(childElement.getAttributeValue("value"));
 	}
 
-	public static ImportedSettings readFromFile(File file, ModelLayerFactory modelLayerFactory) {
+	public static ImportedSettings readFromFile(File file, String currentCollection,
+												ModelLayerFactory modelLayerFactory) {
 
 		SAXBuilder builder = new SAXBuilder();
 		Document document;
@@ -541,7 +543,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("build Document JDOM2 from file", e);
 		}
 
-		SettingsXMLFileReader reader = new SettingsXMLFileReader(document, modelLayerFactory);
+		SettingsXMLFileReader reader = new SettingsXMLFileReader(document, currentCollection, modelLayerFactory);
 
 		return reader.read();
 

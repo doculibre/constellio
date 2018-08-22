@@ -2,7 +2,12 @@ package com.constellio.app.ui.tools;
 
 import com.constellio.app.ui.tools.components.basic.DateFieldWebElement;
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
-import com.constellio.app.ui.tools.components.listAddRemove.*;
+import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveDateFieldWebElement;
+import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveDateTimeFieldWebElement;
+import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveDropDownWebElement;
+import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveLookupWebElement;
+import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveRichTextFieldWebElement;
+import com.constellio.app.ui.tools.components.listAddRemove.ListAddRemoveTextFieldWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 import org.openqa.selenium.By;

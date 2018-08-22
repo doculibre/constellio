@@ -5,7 +5,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRunti
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
 import org.junit.Test;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataBuilder_ValueTypeTest extends MetadataBuilderTest {

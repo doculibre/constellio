@@ -8,7 +8,16 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
@@ -30,12 +39,21 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.structures.*;
+import com.constellio.model.entities.structures.EmailAddress;
+import com.constellio.model.entities.structures.MapStringListStringStructure;
+import com.constellio.model.entities.structures.MapStringListStringStructureFactory;
+import com.constellio.model.entities.structures.MapStringStringStructure;
+import com.constellio.model.entities.structures.MapStringStringStructureFactory;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -64,7 +82,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -611,19 +632,19 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
-		assertThatRecords(rmAnotherCollection.searchEvents(ALL)).extractingMetadatas("username","title")
-				.containsOnly(tuple( "charles","Abeille"),
-						tuple( "charles",null), tuple("charles", null),
-						tuple( "charles",null), tuple( "charles","Belette"),
-						tuple( "charles","Bob 'Elvis' Gratton"), tuple("charles","Chuck Norris"),
-						tuple( "charles","Bob 'Elvis' Gratton"), tuple("charles", "Chuck Norris"),
-						tuple( "charles","Gandalf Leblanc"), tuple("charles", "group1"),
-						tuple( "charles","group2"), tuple( "charles","Aigle"),
-						tuple("bob",null), tuple("dakota", null),
-						tuple( "bob",null), tuple( "bob","Aigle"),
-						tuple("bob","30_C_01"), tuple("bob", "Aigle"),
-						tuple( "charles","Alouette"), tuple( "admin",null),
-						tuple("charles",null), tuple("charles", null));
+		assertThatRecords(rmAnotherCollection.searchEvents(ALL)).extractingMetadatas("username", "title")
+				.containsOnly(tuple("charles", "Abeille"),
+						tuple("charles", null), tuple("charles", null),
+						tuple("charles", null), tuple("charles", "Belette"),
+						tuple("charles", "Bob 'Elvis' Gratton"), tuple("charles", "Chuck Norris"),
+						tuple("charles", "Bob 'Elvis' Gratton"), tuple("charles", "Chuck Norris"),
+						tuple("charles", "Gandalf Leblanc"), tuple("charles", "group1"),
+						tuple("charles", "group2"), tuple("charles", "Aigle"),
+						tuple("bob", null), tuple("dakota", null),
+						tuple("bob", null), tuple("bob", "Aigle"),
+						tuple("bob", "30_C_01"), tuple("bob", "Aigle"),
+						tuple("charles", "Alouette"), tuple("admin", null),
+						tuple("charles", null), tuple("charles", null));
 	}
 
 

@@ -44,7 +44,11 @@ import org.joda.time.LocalDateTime;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;

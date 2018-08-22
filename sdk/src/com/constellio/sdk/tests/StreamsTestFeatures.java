@@ -16,7 +16,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class StreamsTestFeatures {
 

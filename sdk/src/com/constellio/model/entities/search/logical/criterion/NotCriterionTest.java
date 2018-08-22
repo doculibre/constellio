@@ -10,7 +10,10 @@ import com.constellio.model.services.search.query.logical.condition.SchemaFilter
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import org.mockito.Mock;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.endingWithText;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.not;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.willReturn;

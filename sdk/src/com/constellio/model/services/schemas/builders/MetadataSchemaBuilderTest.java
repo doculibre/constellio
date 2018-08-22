@@ -25,7 +25,9 @@ import java.util.Comparator;
 import static com.constellio.sdk.tests.TestUtils.onlyElementsOfClass;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MetadataSchemaBuilderTest extends ConstellioTest {

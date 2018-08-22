@@ -14,6 +14,8 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
+import static com.constellio.data.utils.dev.Toggle.SHOW_CAPSULES_FOR_ALL_LANGUAGES;
+
 public class CapsuleUtils {
 
 	public static Capsule findCapsule(String collection, String language, String query,
@@ -38,7 +40,7 @@ public class CapsuleUtils {
 			loop1:
 			for (Capsule capsule : schemasRecordsServices.getAllCapsules()) {
 				boolean validLanguage;
-				if (capsule.getLanguage() == null) {
+				if (SHOW_CAPSULES_FOR_ALL_LANGUAGES.isEnabled() || capsule.getLanguage() == null) {
 					validLanguage = true;
 				} else {
 					String languageId = capsule.getLanguage();
