@@ -31,11 +31,8 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.QueryElevation.DocElevation;
 import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
-import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
-import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.*;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -717,6 +714,12 @@ public class SearchServices {
 			} else if (sort instanceof FunctionLogicalSearchQuerySort) {
 				String function = ((FunctionLogicalSearchQuerySort) sort).getFunction();
 				stringBuilder.append(function);
+				stringBuilder.append(" ");
+				stringBuilder.append(sort.isAscending() ? "asc" : "desc");
+
+			} else if (sort instanceof ScoreLogicalSearchQuerySort) {
+				String field = ((ScoreLogicalSearchQuerySort) sort).getField();
+				stringBuilder.append(field);
 				stringBuilder.append(" ");
 				stringBuilder.append(sort.isAscending() ? "asc" : "desc");
 
