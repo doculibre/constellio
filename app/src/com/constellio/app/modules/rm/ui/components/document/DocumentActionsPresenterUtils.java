@@ -369,11 +369,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public boolean isDeleteContentVersionPossible() {
-		return presenterUtils.getCurrentUser().has(CorePermissions.DELETE_CONTENT_VERSION).on(currentDocument());
+		return presenterUtils.getCurrentUser().has(CorePermissions.DELETE_CONTENT_VERSION).on(currentDocument()) &&
+			   !extensions.isModifyBlocked(currentDocument(), getCurrentUser());
 	}
 
 	public boolean isDeleteContentVersionPossible(ContentVersionVO contentVersionVO) {
-		return getContent().isDeleteContentVersionPossible(contentVersionVO.getVersion());
+		return getContent().isDeleteContentVersionPossible(contentVersionVO.getVersion()) &&
+			   !extensions.isModifyBlocked(currentDocument(), getCurrentUser());
 	}
 
 	public void deleteContentVersionButtonClicked(ContentVersionVO contentVersionVO) {

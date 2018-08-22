@@ -17,9 +17,11 @@ import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrai
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FileDownloader;
@@ -205,22 +207,23 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		folderContainer = buttonsContainerForFolder;
 		conteneurContainer = buttonsContainerForContainer;
 
-		final Table tableFolder = new RecordVOTable($("ListSchemaTypeView.tableTitle"), folderContainer);
-		tableFolder.setSizeFull();
-		tableFolder.setPageLength(Math.min(15, folderContainer.size()));
-		tableFolder.setColumnHeader("buttons", "");
-		tableFolder.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
-		tableFolder.setColumnExpandRatio("caption", 1);
-		tableFolder.addStyleName(TYPE_TABLE);
+        final Table tableFolder = new RecordVOTable($("ListSchemaTypeView.tableTitle"), folderContainer);
+        tableFolder.setSizeFull();
+        tableFolder.setPageLength(Math.min(15, folderContainer.size()));
+        tableFolder.setColumnHeader("buttons", "");
+        tableFolder.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
+        tableFolder.setColumnExpandRatio("caption", 1);
+        tableFolder.addStyleName(TYPE_TABLE);
+        setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelFolderDataProvider(), tableFolder);
 
-		Table tableContainer = new RecordVOTable($("ListSchemaTypeView.tableTitle"), conteneurContainer);
-		tableContainer.setSizeFull();
-		tableContainer.setPageLength(Math.min(15, conteneurContainer.size()));
-		tableContainer.setColumnHeader("buttons", "");
-		tableContainer.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
-		tableContainer.setColumnExpandRatio("caption", 1);
-		tableContainer.addStyleName(TYPE_TABLE);
-
+        Table tableContainer = new RecordVOTable($("ListSchemaTypeView.tableTitle"), conteneurContainer);
+        tableContainer.setSizeFull();
+        tableContainer.setPageLength(Math.min(15, conteneurContainer.size()));
+        tableContainer.setColumnHeader("buttons", "");
+        tableContainer.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
+        tableContainer.setColumnExpandRatio("caption", 1);
+        tableContainer.addStyleName(TYPE_TABLE);
+        setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelContainerDataProvider(), tableContainer);
 
 		tabSheet = new TabSheet();
 		tabSheet.addTab(tableFolder, $("DisplayLabelViewImpl.tabs.folder"));
@@ -240,9 +243,15 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		return mainLayout;
 	}
 
-	@Override
-	protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
-		List<Button> actionMenuButtons = new ArrayList<Button>();
+    private void setDefaultOrderBy(String localCode, RecordVODataProvider dataProvider, Table table) {
+        Object[] properties = { dataProvider.getSchema().getMetadata(localCode) };
+        boolean[] ordering = { true };
+        table.sort(properties, ordering);
+    }
+
+    @Override
+    protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
+        List<Button> actionMenuButtons = new ArrayList<Button>();
 
 		addLabelButton = new AddButton($("DisplayLabelViewImpl.menu.addLabelButton")) {
 			@Override
