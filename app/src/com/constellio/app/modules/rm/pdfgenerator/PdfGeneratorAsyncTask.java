@@ -1,5 +1,28 @@
 package com.constellio.app.modules.rm.pdfgenerator;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitWidthDestination;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
+import org.apache.tika.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.JasperPdfGenerator;
@@ -162,7 +185,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 			if (content != null) {
 				String hash = document.getContent().getCurrentVersion().getHash();
 				String extension = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename());
-				if ("pdf".equals(extension)) {
+				if ("pdf".equals(StringUtils.defaultIfBlank(extension, "").toLowerCase())) {
 					try (InputStream documentIn = contentManager.getContentInputStream(hash, getClass().getSimpleName() + hash + ".PdfGenerator")) {
 						result = PDDocument.load(documentIn);
 						result.getDocumentCatalog().setDocumentOutline(null);
