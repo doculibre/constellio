@@ -17,201 +17,201 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SearchServicesElevationAcceptTest extends ConstellioTest {
-    protected SearchConfigurationsManager searchConfigurationsManager;
-    protected RecordServices recordServices;
-    protected SearchServices searchServices;
+	protected SearchConfigurationsManager searchConfigurationsManager;
+	protected RecordServices recordServices;
+	protected SearchServices searchServices;
 
-    Users users = new Users();
-    RMTestRecords records = new RMTestRecords(zeCollection);
+	Users users = new Users();
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
-    @Before
-    public void setUp()
-            throws Exception {
-        prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
-                .withFoldersAndContainersOfEveryStatus());
+	@Before
+	public void setUp()
+			throws Exception {
+		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
+				.withFoldersAndContainersOfEveryStatus());
 
-        recordServices = getModelLayerFactory().newRecordServices();
-        searchServices = new SearchServices(getDataLayerFactory().newRecordDao(), getModelLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		searchServices = new SearchServices(getDataLayerFactory().newRecordDao(), getModelLayerFactory());
 
-        searchConfigurationsManager = getModelLayerFactory().getSearchConfigurationsManager();
-    }
+		searchConfigurationsManager = getModelLayerFactory().getSearchConfigurationsManager();
+	}
 
-    protected List loadRecords(String query) {
-        LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
-        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
-        logicalSearchQuery.setFreeTextQuery(query);
+	protected List loadRecords(String query) {
+		LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+		logicalSearchQuery.setFreeTextQuery(query);
 
-        return searchServices.search(logicalSearchQuery);
-    }
+		return searchServices.search(logicalSearchQuery);
+	}
 
-    @Test
-    public void givenElevatedIdThenTopOfTheResults() {
-        Random random = new Random();
-        String query = "abeil";
+	@Test
+	public void givenElevatedIdThenTopOfTheResults() {
+		Random random = new Random();
+		String query = "abeil";
 
-        List<Record> recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		List<Record> recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        Record record = recordList.get(random.nextInt(recordList.size()));
-        String idElevated = record.getId();
+		Record record = recordList.get(random.nextInt(recordList.size()));
+		String idElevated = record.getId();
 
-        searchConfigurationsManager.setElevated(zeCollection, query, idElevated);
+		searchConfigurationsManager.setElevated(zeCollection, query, idElevated);
 
-        recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        record = recordList.get(0);
-        assertThat(record.getId()).isEqualTo(idElevated);
-    }
+		record = recordList.get(0);
+		assertThat(record.getId()).isEqualTo(idElevated);
+	}
 
-    @Test
-    public void givenElevatedIdWhenRemoveElevatedThenBackToInitialIndex() {
-        Random random = new Random();
-        String query = "abeil";
+	@Test
+	public void givenElevatedIdWhenRemoveElevatedThenBackToInitialIndex() {
+		Random random = new Random();
+		String query = "abeil";
 
-        List<Record> recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		List<Record> recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        int index = random.nextInt(recordList.size());
+		int index = random.nextInt(recordList.size());
 
-        Record record = recordList.get(index);
-        String idElevated = record.getId();
+		Record record = recordList.get(index);
+		String idElevated = record.getId();
 
-        searchConfigurationsManager.setElevated(zeCollection, query, idElevated);
+		searchConfigurationsManager.setElevated(zeCollection, query, idElevated);
 
-        recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        record = recordList.get(0);
-        assertThat(record.getId()).isEqualTo(idElevated);
+		record = recordList.get(0);
+		assertThat(record.getId()).isEqualTo(idElevated);
 
-        searchConfigurationsManager.removeElevated(zeCollection, query, idElevated);
+		searchConfigurationsManager.removeElevated(zeCollection, query, idElevated);
 
-        recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        record = recordList.get(index);
-        assertThat(record.getId()).isEqualTo(idElevated);
-    }
+		record = recordList.get(index);
+		assertThat(record.getId()).isEqualTo(idElevated);
+	}
 
-    @Test
-    public void givenElevatedIdWhenRemoveQueryElevationThenBackToInitialIndex() {
-        Random random = new Random();
-        String query = "abeil";
+	@Test
+	public void givenElevatedIdWhenRemoveQueryElevationThenBackToInitialIndex() {
+		Random random = new Random();
+		String query = "abeil";
 
-        List<Record> recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		List<Record> recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        int index = random.nextInt(recordList.size());
+		int index = random.nextInt(recordList.size());
 
-        Record record = recordList.get(index);
-        String idElevated = record.getId();
+		Record record = recordList.get(index);
+		String idElevated = record.getId();
 
-        searchConfigurationsManager.setElevated(zeCollection, query, idElevated);
+		searchConfigurationsManager.setElevated(zeCollection, query, idElevated);
 
-        recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        record = recordList.get(0);
-        assertThat(record.getId()).isEqualTo(idElevated);
+		record = recordList.get(0);
+		assertThat(record.getId()).isEqualTo(idElevated);
 
-        searchConfigurationsManager.removeQueryElevation(zeCollection, query);
+		searchConfigurationsManager.removeQueryElevation(zeCollection, query);
 
-        recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        record = recordList.get(index);
-        assertThat(record.getId()).isEqualTo(idElevated);
-    }
+		record = recordList.get(index);
+		assertThat(record.getId()).isEqualTo(idElevated);
+	}
 
-    @Test
-    public void givenElevatedIdWhenRemoveAllElevationThenBackToInitialIndex() {
-        Random random = new Random();
-        String query = "abeil";
+	@Test
+	public void givenElevatedIdWhenRemoveAllElevationThenBackToInitialIndex() {
+		Random random = new Random();
+		String query = "abeil";
 
-        List<Record> recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		List<Record> recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        int index = random.nextInt(recordList.size());
+		int index = random.nextInt(recordList.size());
 
-        Record record = recordList.get(index);
-        String idElevated = record.getId();
+		Record record = recordList.get(index);
+		String idElevated = record.getId();
 
-        searchConfigurationsManager.setElevated(zeCollection, query, idElevated);
+		searchConfigurationsManager.setElevated(zeCollection, query, idElevated);
 
-        recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        record = recordList.get(0);
-        assertThat(record.getId()).isEqualTo(idElevated);
+		record = recordList.get(0);
+		assertThat(record.getId()).isEqualTo(idElevated);
 
-        searchConfigurationsManager.removeAllElevation(zeCollection);
+		searchConfigurationsManager.removeAllElevation(zeCollection);
 
-        recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        record = recordList.get(index);
-        assertThat(record.getId()).isEqualTo(idElevated);
-    }
+		record = recordList.get(index);
+		assertThat(record.getId()).isEqualTo(idElevated);
+	}
 
-    @Test
-    public void givenExcludedIdThenNotInResults() {
-        Random random = new Random();
-        String query = "abeil";
+	@Test
+	public void givenExcludedIdThenNotInResults() {
+		Random random = new Random();
+		String query = "abeil";
 
-        List<Record> recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		List<Record> recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        Record record = recordList.get(random.nextInt(recordList.size()));
-        String idExcluded = record.getId();
+		Record record = recordList.get(random.nextInt(recordList.size()));
+		String idExcluded = record.getId();
 
-        searchConfigurationsManager.setExcluded(zeCollection, idExcluded);
+		searchConfigurationsManager.setExcluded(zeCollection, idExcluded);
 
-        recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty().extracting("id").doesNotContain(idExcluded);
-    }
+		recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty().extracting("id").doesNotContain(idExcluded);
+	}
 
-    @Test
-    public void givenExcludedIdWhenRemoveExclusionThenInResults() {
-        Random random = new Random();
-        String query = "abeil";
+	@Test
+	public void givenExcludedIdWhenRemoveExclusionThenInResults() {
+		Random random = new Random();
+		String query = "abeil";
 
-        List<Record> recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		List<Record> recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        Record record = recordList.get(random.nextInt(recordList.size()));
-        String idExcluded = record.getId();
+		Record record = recordList.get(random.nextInt(recordList.size()));
+		String idExcluded = record.getId();
 
-        searchConfigurationsManager.setExcluded(zeCollection, idExcluded);
+		searchConfigurationsManager.setExcluded(zeCollection, idExcluded);
 
-        recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty().extracting("id").doesNotContain(idExcluded);
+		recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty().extracting("id").doesNotContain(idExcluded);
 
-        searchConfigurationsManager.removeExclusion(zeCollection, idExcluded);
+		searchConfigurationsManager.removeExclusion(zeCollection, idExcluded);
 
-        recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty().extracting("id").contains(idExcluded);
-    }
+		recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty().extracting("id").contains(idExcluded);
+	}
 
-    @Test
-    public void givenExcludedIdWhenRemoveAllExclusionThenInResults() {
-        Random random = new Random();
-        String query = "abeil";
+	@Test
+	public void givenExcludedIdWhenRemoveAllExclusionThenInResults() {
+		Random random = new Random();
+		String query = "abeil";
 
-        List<Record> recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty();
+		List<Record> recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty();
 
-        Record record = recordList.get(random.nextInt(recordList.size()));
-        String idExcluded = record.getId();
+		Record record = recordList.get(random.nextInt(recordList.size()));
+		String idExcluded = record.getId();
 
-        searchConfigurationsManager.setExcluded(zeCollection, idExcluded);
+		searchConfigurationsManager.setExcluded(zeCollection, idExcluded);
 
-        recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty().extracting("id").doesNotContain(idExcluded);
+		recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty().extracting("id").doesNotContain(idExcluded);
 
-        searchConfigurationsManager.removeAllExclusion(zeCollection);
+		searchConfigurationsManager.removeAllExclusion(zeCollection);
 
-        recordList = loadRecords(query);
-        assertThat(recordList).isNotEmpty().extracting("id").contains(idExcluded);
-    }
+		recordList = loadRecords(query);
+		assertThat(recordList).isNotEmpty().extracting("id").contains(idExcluded);
+	}
 }

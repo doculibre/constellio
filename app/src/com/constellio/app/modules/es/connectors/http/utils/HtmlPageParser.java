@@ -53,9 +53,9 @@ public class HtmlPageParser {
 		this.fileParser = fileParser;
 	}
 
-    public HtmlPageParserResults parse(String url, HtmlPage page)
-            throws ConnectorHttpDocumentFetchException {
-        HtmlPageParserResults htmlPageParserResults;
+	public HtmlPageParserResults parse(String url, HtmlPage page)
+			throws ConnectorHttpDocumentFetchException {
+		HtmlPageParserResults htmlPageParserResults;
 
 		if (!isNoIndexContent(page)) {
 			ParsedContent parsedContent;
@@ -74,41 +74,41 @@ public class HtmlPageParser {
 				throw new ConnectorHttpDocumentFetchException_CannotParseDocument(url, e);
 			}
 
-            htmlPageParserResults = finalizeHtmlPageParserResults(url, page, parsedContent, uniqueAnchors);
-        } else {
-            htmlPageParserResults = createNoIndexHtmlPageParserResults();
-        }
+			htmlPageParserResults = finalizeHtmlPageParserResults(url, page, parsedContent, uniqueAnchors);
+		} else {
+			htmlPageParserResults = createNoIndexHtmlPageParserResults();
+		}
 
-        htmlPageParserResults.setNoFollow(isNoFollowLinks(page));
+		htmlPageParserResults.setNoFollow(isNoFollowLinks(page));
 
-        return htmlPageParserResults;
-    }
+		return htmlPageParserResults;
+	}
 
-    private boolean isNoIndexContent(HtmlPage page) {
-        return hasContentRestriction(page, "noindex");
-    }
+	private boolean isNoIndexContent(HtmlPage page) {
+		return hasContentRestriction(page, "noindex");
+	}
 
-    private boolean isNoFollowLinks(HtmlPage page) {
-        return hasContentRestriction(page, "nofollow");
-    }
+	private boolean isNoFollowLinks(HtmlPage page) {
+		return hasContentRestriction(page, "nofollow");
+	}
 
-    private boolean hasContentRestriction(HtmlPage page, String typeOfRestriction) {
-        DomNodeList<DomElement> metas = page.getElementsByTagName("meta");
-        if(metas != null) {
-            ListIterator<DomElement> listIterator = metas.listIterator();
-            while (listIterator.hasNext()) {
-                DomElement element = listIterator.next();
-                String name = element.getAttribute("name");
-                if("robots".equalsIgnoreCase(name)) {
-                    String content = element.getAttribute("content");
-                    if(StringUtils.containsIgnoreCase(content, typeOfRestriction)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
+	private boolean hasContentRestriction(HtmlPage page, String typeOfRestriction) {
+		DomNodeList<DomElement> metas = page.getElementsByTagName("meta");
+		if (metas != null) {
+			ListIterator<DomElement> listIterator = metas.listIterator();
+			while (listIterator.hasNext()) {
+				DomElement element = listIterator.next();
+				String name = element.getAttribute("name");
+				if ("robots".equalsIgnoreCase(name)) {
+					String content = element.getAttribute("content");
+					if (StringUtils.containsIgnoreCase(content, typeOfRestriction)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
 
 	private HtmlPageParserResults createNoIndexHtmlPageParserResults() {
 		try {
@@ -270,18 +270,19 @@ public class HtmlPageParser {
 
 		private String description;
 
-        private boolean noFollow;
+		private boolean noFollow;
 
-        public HtmlPageParserResults(String digest, String parsedContent, String title, Set<String> linkedUrls, String mimetype,
-                                     String language, String description) {
-            this.digest = digest;
-            this.parsedContent = parsedContent;
-            this.title = title;
-            this.linkedUrls = linkedUrls;
-            this.mimetype = mimetype;
-            this.language = language;
-            this.description = description;
-        }
+		public HtmlPageParserResults(String digest, String parsedContent, String title, Set<String> linkedUrls,
+									 String mimetype,
+									 String language, String description) {
+			this.digest = digest;
+			this.parsedContent = parsedContent;
+			this.title = title;
+			this.linkedUrls = linkedUrls;
+			this.mimetype = mimetype;
+			this.language = language;
+			this.description = description;
+		}
 
 		public String getDigest() {
 			return digest;
@@ -307,16 +308,16 @@ public class HtmlPageParser {
 			return language;
 		}
 
-        public String getDescription() {
-            return description;
-        }
+		public String getDescription() {
+			return description;
+		}
 
-        public boolean isNoFollow() {
-            return noFollow;
-        }
+		public boolean isNoFollow() {
+			return noFollow;
+		}
 
-        public void setNoFollow(boolean noFollow) {
-            this.noFollow = noFollow;
-        }
-    }
+		public void setNoFollow(boolean noFollow) {
+			this.noFollow = noFollow;
+		}
+	}
 }

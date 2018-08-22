@@ -53,9 +53,9 @@ public class StatisticsPresenter extends SingleSchemaBasePresenter<StatisticsVie
 		return true;
 	}
 
-    public SearchEventVODataProvider getStatisticsDataProvider() {
-        return new SearchEventVODataProvider(schemaVO, view.getSessionContext(), modelLayerFactory, composeQuery());
-    }
+	public SearchEventVODataProvider getStatisticsDataProvider() {
+		return new SearchEventVODataProvider(schemaVO, view.getSessionContext(), modelLayerFactory, composeQuery());
+	}
 
 	public FacetsDataProvider getStatisticsFacetsDataProvider() {
 		return new FacetsDataProvider() {

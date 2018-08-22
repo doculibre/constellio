@@ -6,7 +6,12 @@ import com.constellio.app.modules.restapi.core.exception.InvalidParameterCombina
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
 import com.constellio.app.modules.restapi.core.exception.InvalidParameterWithHttpMethodException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
-import com.constellio.app.modules.restapi.core.util.*;
+import com.constellio.app.modules.restapi.core.util.DateUtils;
+import com.constellio.app.modules.restapi.core.util.HashingUtils;
+import com.constellio.app.modules.restapi.core.util.HttpMethods;
+import com.constellio.app.modules.restapi.core.util.SchemaTypes;
+import com.constellio.app.modules.restapi.core.util.StringUtils;
+import com.constellio.app.modules.restapi.core.util.UrlUtils;
 import com.constellio.app.modules.restapi.validation.exception.UnallowedHostException;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.ui.i18n.i18n;

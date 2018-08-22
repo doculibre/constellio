@@ -35,7 +35,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -256,16 +255,16 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 			urls.addAll(results.getLinkedUrls());
 			int linksLevel = httpDocument.getLevel() + 1;
 			if (linksLevel <= maxLevel) {
-                for (String url : urls) {
-                    if (context.isNewUrl(url)) {
-                        context.markAsFetched(url);
+				for (String url : urls) {
+					if (context.isNewUrl(url)) {
+						context.markAsFetched(url);
 
-                        ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
-                        document.setInlinks(Arrays.asList(httpDocument.getUrl()));
-                        savedDocuments.add(document);
-                    }
-                }
-            }
+						ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
+						document.setInlinks(Arrays.asList(httpDocument.getUrl()));
+						savedDocuments.add(document);
+					}
+				}
+			}
 		}
 
 		ensureNotStopped();

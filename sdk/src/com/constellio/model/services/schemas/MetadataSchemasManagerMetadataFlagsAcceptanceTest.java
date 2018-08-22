@@ -14,13 +14,21 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.*;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasCustomAttributes;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransiency;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIncreaseDependencyLevel;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDuplicable;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssential;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEssentialInSummary;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMarkedForDeletion;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsScripted;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 

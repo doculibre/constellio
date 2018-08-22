@@ -167,12 +167,12 @@ public class CoreMigrationCombo implements ComboMigrationScript {
 		appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager()
 				.setValue(ConstellioEIMConfigs.TRASH_PURGE_DELAI, 90);
 
-		changeAdminRoleNameIfMultilingualCollection(appLayerFactory,collection);
+		changeAdminRoleNameIfMultilingualCollection(appLayerFactory, collection);
 	}
 
-	private void changeAdminRoleNameIfMultilingualCollection(AppLayerFactory appLayerFactory, String collection){
+	private void changeAdminRoleNameIfMultilingualCollection(AppLayerFactory appLayerFactory, String collection) {
 		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
-		if (appLayerFactory.getCollectionsManager().getCollectionInfo(collection).getCollectionLanguages().size() > 1){
+		if (appLayerFactory.getCollectionsManager().getCollectionInfo(collection).getCollectionLanguages().size() > 1) {
 			rolesManager.updateRole(rolesManager.getRole(collection, CoreRoles.ADMINISTRATOR)
 					.withTitle("Administrateur / Administrator"));
 		}

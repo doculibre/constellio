@@ -183,9 +183,9 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		changeRolesNamesIfMultilingualCollection(appLayerFactory, collection);
 	}
 
-	private void changeRolesNamesIfMultilingualCollection(AppLayerFactory appLayerFactory, String collection){
+	private void changeRolesNamesIfMultilingualCollection(AppLayerFactory appLayerFactory, String collection) {
 		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
-		if (appLayerFactory.getCollectionsManager().getCollectionInfo(collection).getCollectionLanguages().size() > 1){
+		if (appLayerFactory.getCollectionsManager().getCollectionInfo(collection).getCollectionLanguages().size() > 1) {
 			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.USER)
 					.withTitle("Utilisateur / User"));
 			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.MANAGER)

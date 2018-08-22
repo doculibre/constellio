@@ -21,22 +21,23 @@ public class SearchEventVODataProvider extends AbstractDataProvider {
 	private MetadataSchemaVO schemaVO;
 	private LogicalSearchQuery query;
 
-    public SearchEventVODataProvider(MetadataSchemaVO schemaVO, SessionContext sessionContext, ModelLayerFactory modelLayerFactory, LogicalSearchQuery query) {
-        this.schemaVO = schemaVO;
-        this.sessionContext = sessionContext;
-        this.modelLayerFactory = modelLayerFactory;
-        this.voBuilder = new RecordToVOBuilder();
-        this.query = query;
-    }
+	public SearchEventVODataProvider(MetadataSchemaVO schemaVO, SessionContext sessionContext,
+									 ModelLayerFactory modelLayerFactory, LogicalSearchQuery query) {
+		this.schemaVO = schemaVO;
+		this.sessionContext = sessionContext;
+		this.modelLayerFactory = modelLayerFactory;
+		this.voBuilder = new RecordToVOBuilder();
+		this.query = query;
+	}
 
-    public SearchEventVODataProvider(MetadataSchemaVO schemaVO, LogicalSearchQuery query) {
-        this(schemaVO, ConstellioUI.getCurrent().getSessionContext(), ConstellioFactories.getInstance().getModelLayerFactory(), query);
-    }
+	public SearchEventVODataProvider(MetadataSchemaVO schemaVO, LogicalSearchQuery query) {
+		this(schemaVO, ConstellioUI.getCurrent().getSessionContext(), ConstellioFactories.getInstance().getModelLayerFactory(), query);
+	}
 
-    private SPEQueryResponse prepareQuery(int startRow, int numberOfRows) {
-        query.setStartRow(startRow).setNumberOfRows(numberOfRows);
-        return modelLayerFactory.newSearchServices().query(query);
-    }
+	private SPEQueryResponse prepareQuery(int startRow, int numberOfRows) {
+		query.setStartRow(startRow).setNumberOfRows(numberOfRows);
+		return modelLayerFactory.newSearchServices().query(query);
+	}
 
 	public List<RecordVO> listRecordVOs(int startIndex, int numberOfItems) {
 		List<RecordVO> recordVOs = new ArrayList<>();

@@ -19,7 +19,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.security.Key;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.sdk.tests.QueryCounter.ON_COLLECTION;

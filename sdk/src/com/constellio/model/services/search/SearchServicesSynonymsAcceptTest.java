@@ -21,114 +21,114 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SearchServicesSynonymsAcceptTest extends ConstellioTest {
-    protected SynonymsConfigurationsManager synonymsConfigurationsManager;
-    protected RecordServices recordServices;
-    protected SearchServices searchServices;
+	protected SynonymsConfigurationsManager synonymsConfigurationsManager;
+	protected RecordServices recordServices;
+	protected SearchServices searchServices;
 
-    Users users = new Users();
-    RMTestRecords records = new RMTestRecords(zeCollection);
+	Users users = new Users();
+	RMTestRecords records = new RMTestRecords(zeCollection);
 
-    @Before
-    public void setUp()
-            throws Exception {
-        prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
-                .withFoldersAndContainersOfEveryStatus());
+	@Before
+	public void setUp()
+			throws Exception {
+		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records).withAllTest(users)
+				.withFoldersAndContainersOfEveryStatus());
 
-        recordServices = getModelLayerFactory().newRecordServices();
-        searchServices = new SearchServices(getDataLayerFactory().newRecordDao(), getModelLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		searchServices = new SearchServices(getDataLayerFactory().newRecordDao(), getModelLayerFactory());
 
-        synonymsConfigurationsManager = getModelLayerFactory().getSynonymsConfigurationsManager();
-    }
+		synonymsConfigurationsManager = getModelLayerFactory().getSynonymsConfigurationsManager();
+	}
 
-    protected List<Record> loadRecords(String query) {
-        LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
-        LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
-        logicalSearchQuery.setFreeTextQuery(query);
+	protected List<Record> loadRecords(String query) {
+		LogicalSearchCondition logicalSearchCondition = fromAllSchemasIn(zeCollection).returnAll();
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+		logicalSearchQuery.setFreeTextQuery(query);
 
-        return searchServices.search(logicalSearchQuery);
-    }
+		return searchServices.search(logicalSearchQuery);
+	}
 
-    @Test
-    public void givenSynonymsThenResultsTitlesContainAnyOfThem() {
-        Random random = new Random();
-        final String[] synonyms = {"chat", "lion", "abeille"};
-        String query = synonyms[random.nextInt(synonyms.length)];
+	@Test
+	public void givenSynonymsThenResultsTitlesContainAnyOfThem() {
+		Random random = new Random();
+		final String[] synonyms = {"chat", "lion", "abeille"};
+		String query = synonyms[random.nextInt(synonyms.length)];
 
-        synonymsConfigurationsManager.setSynonyms(zeCollection, Arrays.asList(StringUtils.join(synonyms, ", ")));
+		synonymsConfigurationsManager.setSynonyms(zeCollection, Arrays.asList(StringUtils.join(synonyms, ", ")));
 
-        List<Record> records = loadRecords(query);
-        assertThat(records).isNotEmpty();
+		List<Record> records = loadRecords(query);
+		assertThat(records).isNotEmpty();
 
-        assertThat(records).extracting("title").has(new Condition<List<Object>>() {
-            @Override
-            public boolean matches(List<Object> values) {
-                for (Object title:values) {
-                    String synonym = null;
+		assertThat(records).extracting("title").has(new Condition<List<Object>>() {
+			@Override
+			public boolean matches(List<Object> values) {
+				for (Object title : values) {
+					String synonym = null;
 
-                    for (int i = 0; i < synonyms.length && synonym == null; i++) {
-                        if(StringUtils.containsIgnoreCase((String) title, synonyms[i])) {
-                            synonym = synonyms[i];
-                        }
-                    }
+					for (int i = 0; i < synonyms.length && synonym == null; i++) {
+						if (StringUtils.containsIgnoreCase((String) title, synonyms[i])) {
+							synonym = synonyms[i];
+						}
+					}
 
-                    if(synonym == null) {
-                        return false;
-                    }
-                }
+					if (synonym == null) {
+						return false;
+					}
+				}
 
-                return true;
-            }
-        });
-    }
+				return true;
+			}
+		});
+	}
 
-    @Test
-    public void givenSynonymsWhenResetThenResultsTitlesContainOnlyTheQuery() {
-        Random random = new Random();
-        final String[] synonyms = {"chat", "lion", "abeille"};
-        final String query = synonyms[random.nextInt(synonyms.length)];
+	@Test
+	public void givenSynonymsWhenResetThenResultsTitlesContainOnlyTheQuery() {
+		Random random = new Random();
+		final String[] synonyms = {"chat", "lion", "abeille"};
+		final String query = synonyms[random.nextInt(synonyms.length)];
 
-        synonymsConfigurationsManager.setSynonyms(zeCollection, Arrays.asList(StringUtils.join(synonyms, ", ")));
+		synonymsConfigurationsManager.setSynonyms(zeCollection, Arrays.asList(StringUtils.join(synonyms, ", ")));
 
-        List<Record> records = loadRecords(query);
-        assertThat(records).isNotEmpty();
+		List<Record> records = loadRecords(query);
+		assertThat(records).isNotEmpty();
 
-        assertThat(records).extracting("title").has(new Condition<List<Object>>() {
-            @Override
-            public boolean matches(List<Object> values) {
-                for (Object title:values) {
-                    String synonym = null;
+		assertThat(records).extracting("title").has(new Condition<List<Object>>() {
+			@Override
+			public boolean matches(List<Object> values) {
+				for (Object title : values) {
+					String synonym = null;
 
-                    for (int i = 0; i < synonyms.length && synonym == null; i++) {
-                        if(StringUtils.containsIgnoreCase((String) title, synonyms[i])) {
-                            synonym = synonyms[i];
-                        }
-                    }
+					for (int i = 0; i < synonyms.length && synonym == null; i++) {
+						if (StringUtils.containsIgnoreCase((String) title, synonyms[i])) {
+							synonym = synonyms[i];
+						}
+					}
 
-                    if(synonym == null) {
-                        return false;
-                    }
-                }
+					if (synonym == null) {
+						return false;
+					}
+				}
 
-                return true;
-            }
-        });
+				return true;
+			}
+		});
 
-        synonymsConfigurationsManager.setSynonyms(zeCollection, Collections.<String>emptyList());
+		synonymsConfigurationsManager.setSynonyms(zeCollection, Collections.<String>emptyList());
 
-        records = loadRecords(query);
-        assertThat(records).isNotEmpty();
+		records = loadRecords(query);
+		assertThat(records).isNotEmpty();
 
-        assertThat(records).extracting("title").has(new Condition<List<Object>>() {
-            @Override
-            public boolean matches(List<Object> values) {
-                for (Object title:values) {
-                    if(!StringUtils.containsIgnoreCase((String) title, query)) {
-                        return false;
-                    }
-                }
+		assertThat(records).extracting("title").has(new Condition<List<Object>>() {
+			@Override
+			public boolean matches(List<Object> values) {
+				for (Object title : values) {
+					if (!StringUtils.containsIgnoreCase((String) title, query)) {
+						return false;
+					}
+				}
 
-                return true;
-            }
-        });
-    }
+				return true;
+			}
+		});
+	}
 }

@@ -4,7 +4,13 @@ import org.apache.solr.common.SolrInputDocument;
 import org.assertj.core.api.ObjectAssert;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransactionCombinator.combineAll;

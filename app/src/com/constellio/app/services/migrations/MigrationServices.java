@@ -147,9 +147,7 @@ public class MigrationServices {
 
 		for (
 				MigrationScript script
-				: constellioEIM.getMigrationScripts())
-
-		{
+				: constellioEIM.getMigrationScripts()) {
 			migrations.add(new Migration(collection, null, script));
 		}
 
