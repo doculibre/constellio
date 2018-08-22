@@ -135,10 +135,9 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 					}
 					*/
 					if(userCredential.hasAgreedToPrivacyPolicy() || getPrivacyPolicyConfigValue() == null) {
-//						signInValidated(userInLastCollection, lastCollection);
-						buildPrivacyPolicyWindow(userInLastCollection, lastCollection);
+						signInValidated(userInLastCollection, lastCollection);
 					} else {
-						buildPrivacyPolicyWindow(userInLastCollection, lastCollection);
+						view.popPrivacyPolicyWindow(modelLayerFactory, userInLastCollection, lastCollection);
 					}
 				}
 			} else {
@@ -154,7 +153,7 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 		}
 	}
 
-	private void signInValidated(User userInLastCollection, String lastCollection) {
+	public void signInValidated(User userInLastCollection, String lastCollection) {
 		modelLayerFactory.newLoggingServices().login(userInLastCollection);
 		Locale userLocale = getSessionLanguage(userInLastCollection);
 		SessionContext sessionContext = view.getSessionContext();
@@ -223,55 +222,6 @@ public class LoginPresenter extends BasePresenter<LoginView> {
 			linkTarget = "http://www.constellio.com";
 		}
 		return linkTarget;
-	}
-
-	public void buildPrivacyPolicyWindow(final User userInLastCollection, final String lastCollection) {
-		final Window window = new Window();
-		window.setWidth("90%");
-		window.setHeight("90%");
-		window.setModal(true);
-		window.setCaption($("LoginView.privacyPolicyWindow"));
-		
-//		SystemConfigurationsManager manager = modelLayerFactory.getSystemConfigurationsManager();
-//		StreamFactory<InputStream> streamFactory = manager.getValue(ConstellioEIMConfigs.PRIVACY_POLICY);
-		
-		VerticalLayout mainLayout = new VerticalLayout();
-		mainLayout.setSizeFull();
-		mainLayout.setSpacing(true);
-		
-		VerticalLayout textLayout = new VerticalLayout();
-		
-		HorizontalLayout buttonLayout = new HorizontalLayout();
-		buttonLayout.setSpacing(true);
-		buttonLayout.setHeight("50px");
-
-		BaseButton cancelButton = new BaseButton($("cancel")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				window.close();
-			}
-		};
-		BaseButton acceptButton = new BaseButton($("accept")) {
-			@Override
-			protected void buttonClick(ClickEvent event) {
-				UserServices userServices = modelLayerFactory.newUserServices();
-				userServices.addUpdateUserCredential(userServices.getUserCredential(userInLastCollection.getUsername())
-						.withAgreedPrivacyPolicy(true));
-				signInValidated(userInLastCollection, lastCollection);
-				window.close();
-			}
-		};
-		acceptButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-		textLayout.addComponent(new DocumentViewer(getPrivacyPolicyFile()));
-		buttonLayout.addComponents(acceptButton, cancelButton);
-		
-		mainLayout.addComponents(textLayout, buttonLayout);
-		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
-		
-		window.setContent(mainLayout);
-		
-		ConstellioUI.getCurrent().addWindow(window);
 	}
 
 	public File getPrivacyPolicyFile() {
