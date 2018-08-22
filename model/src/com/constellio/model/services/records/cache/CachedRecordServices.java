@@ -149,6 +149,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public void prepareRecords(Transaction transaction) throws ValidationException {
+		recordServices.prepareRecords(transaction);
+	}
+
+	@Override
 	public void refresh(List<?> records) {
 		recordServices.refresh(records);
 	}

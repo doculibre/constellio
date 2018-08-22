@@ -1,5 +1,16 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+
+import java.io.InputStream;
+import java.util.*;
+
+import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncTask;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
@@ -38,13 +49,15 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.enums.BatchProcessingMode;
@@ -61,25 +74,11 @@ import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import org.apache.solr.common.params.ModifiableSolrParams;
 
 public class CartPresenter extends SingleSchemaBasePresenter<CartView> implements BatchProcessingPresenter, NewReportPresenter {
 	private transient RMSchemasRecordsServices rm;
@@ -170,7 +169,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean canDelete() {
 		return cartHasRecords() && cart().getContainers().isEmpty()
-			   && canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser());
+				&& canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser());
 	}
 
 	public void deletionRequested(String reason) {
@@ -267,8 +266,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	private boolean canDuplicateFolders(User user) {
 		for (Folder folder : getCartFolders()) {
 			RecordWrapper parent = folder.getParentFolder() != null ?
-								   rm().getFolder(folder.getParentFolder()) :
-								   rm().getAdministrativeUnit(folder.getAdministrativeUnitEntered());
+					rm().getFolder(folder.getParentFolder()) :
+					rm().getAdministrativeUnit(folder.getAdministrativeUnitEntered());
 			if (!user.hasWriteAccess().on(parent)) {
 				return false;
 			}
@@ -352,18 +351,18 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		Iterator<Folder> iterator = cartFolders.iterator();
 		while (iterator.hasNext()) {
 			Folder currentFolder = iterator.next();
-			if (currentFolder.isLogicallyDeletedStatus()) {
+			if(currentFolder.isLogicallyDeletedStatus()) {
 				iterator.remove();
 			}
 		}
 		return cartFolders;
 	}
 
-	List<FolderVO> getNotDeletedCartFoldersVO() {
+	List<FolderVO> getNotDeletedCartFoldersVO(){
 		FolderToVOBuilder builder = new FolderToVOBuilder();
 		List<FolderVO> folderVOS = new ArrayList<>();
-		for (Folder folder : this.getCartFolders()) {
-			if (!folder.isLogicallyDeletedStatus()) {
+		for(Folder folder : this.getCartFolders()){
+			if(!folder.isLogicallyDeletedStatus()) {
 				folderVOS.add(builder.build(folder.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext()));
 			}
 		}
@@ -373,8 +372,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	List<DocumentVO> getNotDeletedCartDocumentVO() {
 		DocumentToVOBuilder builder = new DocumentToVOBuilder(modelLayerFactory);
 		List<DocumentVO> documentVOS = new ArrayList<>();
-		for (Document document : this.getCartDocuments()) {
-			if (!document.isLogicallyDeletedStatus()) {
+		for(Document document : this.getCartDocuments()) {
+			if(!document.isLogicallyDeletedStatus()) {
 				documentVOS.add(builder.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext()));
 			}
 		}
@@ -432,8 +431,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	private List<String> getNonDeletedRecordsIds(List<? extends RecordWrapper> records, User currentUser) {
 		ArrayList<String> ids = new ArrayList<>();
-		for (RecordWrapper record : records) {
-			if (!record.isLogicallyDeletedStatus() && currentUser.hasReadAccess().on(record)) {
+		for(RecordWrapper record: records) {
+			if(!record.isLogicallyDeletedStatus() && currentUser.hasReadAccess().on(record)) {
 				ids.add(record.getId());
 			}
 		}
@@ -477,7 +476,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return processBatchButtonClicked(selectedType, getNotDeletedRecordsIds(schemaType), viewObject);
 	}
 
-	private boolean processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
+	public boolean processBatchButtonClicked(String selectedType, List<String> records, RecordVO viewObject)
 			throws RecordServicesException {
 		for (Record record : recordServices().getRecordsById(view.getCollection(), records)) {
 			if (modelLayerExtensions.isModifyBlocked(record, getCurrentUser())) {
@@ -631,7 +630,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			types.add(DecommissioningListType.FOLDERS_TO_CLOSE);
 
 		}
-		if (folder.getCloseDate() != null || folder.hasExpectedDates()) {
+		if(folder.getCloseDate() != null || folder.hasExpectedDates()){
 			if (folder.getArchivisticStatus() == ACTIVE) {
 				types.add(DecommissioningListType.FOLDERS_TO_TRANSFER);
 			}
@@ -759,8 +758,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		List<ReportWithCaptionVO> supportedReports = new ArrayList<>();
 		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
 		List<String> userReports = reportServices.getUserReportTitles(getCurrentUser(), view.getCurrentSchemaType());
-		if (userReports != null) {
-			for (String reportTitle : userReports) {
+		if(userReports != null) {
+			for(String reportTitle: userReports) {
 				supportedReports.add(new ReportWithCaptionVO(reportTitle, reportTitle));
 			}
 		}
@@ -827,13 +826,21 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
-		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(collection).where(IDENTIFIER)
+				.isIn(getNotDeletedRecordsIds(schemaType))).filteredWithUserWrite(getCurrentUser());
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		ModifiableSolrParams params = searchServices.addSolrModifiableParams(query);
+
+		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(changes, SolrUtils.toSingleQueryString(params),
+				null, searchServices().getResultsCount(query));
+
 		String username = getCurrentUser() == null ? null : getCurrentUser().getUsername();
+		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, "userBatchProcess");
+		asyncTaskRequest.setUsername(username);
 
 		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
-		LogicalSearchCondition condition = fromAllSchemasIn(collection).where(IDENTIFIER).isIn(getNotDeletedRecordsIds(schemaType));
-		BatchProcess process = manager.addBatchProcessInStandby(condition, action, username, "userBatchProcess");
-		manager.markAsPending(process);
+		manager.addAsyncTask(asyncTaskRequest);
 		return true;
 	}
 
@@ -852,13 +859,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	private boolean isBatchEditable(Metadata metadata) {
 		return !metadata.isSystemReserved()
-			   && !metadata.isUnmodifiable()
-			   && metadata.isEnabled()
-			   && !metadata.getType().isStructureOrContent()
-			   && metadata.getDataEntry().getType() == DataEntryType.MANUAL
-			   && isNotHidden(metadata)
-			   // XXX: Not supported in the backend
-			   && metadata.getType() != MetadataValueType.ENUM
+				&& !metadata.isUnmodifiable()
+				&& metadata.isEnabled()
+				&& !metadata.getType().isStructureOrContent()
+				&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
+				&& isNotHidden(metadata)
+				// XXX: Not supported in the backend
+				&& metadata.getType() != MetadataValueType.ENUM
 				;
 	}
 
@@ -869,14 +876,14 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean canCurrentUserBuildDecommissioningList() {
 		return getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() ||
-			   getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
+				getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 	}
 
 	public boolean isPdfGenerationActionPossible(List<String> recordIds) {
 		List<Record> records = rm().get(recordIds);
 		for (Record record : records) {
 			if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm().wrapDocument(record), getCurrentUser())) {
-				view.showErrorMessage(i18n.$("CartView.actionBlockedByExtension"));
+				view.showErrorMessage($("CartView.actionBlockedByExtension"));
 				return false;
 			}
 		}
@@ -888,7 +895,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		for (Record record : records) {
 			Folder folder = rm.wrapFolder(record);
 			if (!rmModuleExtensions.isDecommissioningActionPossibleOnFolder(folder, getCurrentUser())) {
-				view.showErrorMessage(i18n.$("CartView.actionBlockedByExtension"));
+				view.showErrorMessage($("CartView.actionBlockedByExtension"));
 				return false;
 			}
 		}

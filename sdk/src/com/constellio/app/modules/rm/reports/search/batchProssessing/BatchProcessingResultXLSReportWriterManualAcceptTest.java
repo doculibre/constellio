@@ -2,7 +2,7 @@ package com.constellio.app.modules.rm.reports.search.batchProssessing;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
-import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultReportWriter;
+import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultXLSReportWriter;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class BatchProcessingResultReportWriterManualAcceptTest extends ReportBuilderTestFramework {
+public class BatchProcessingResultXLSReportWriterManualAcceptTest extends ReportBuilderTestFramework {
 	BatchProcessingResultModel model;
 	RMTestRecords records = new RMTestRecords(zeCollection);
 
@@ -40,13 +40,13 @@ public class BatchProcessingResultReportWriterManualAcceptTest extends ReportBui
 	@Test
 	public void whenBuildEmptyReportThenOk() {
 		model = new BatchProcessingResultModel(new BatchProcessResults(new ArrayList<BatchProcessRecordModifications>()), Language.French);
-		build(new BatchProcessingResultReportWriter(model, new Locale("fr")));
+		build(new BatchProcessingResultXLSReportWriter(model, new Locale("fr")));
 	}
 
 	@Test
 	public void whenBuildReportWithResultsThenOk() {
 		model = configModel();
-		build(new BatchProcessingResultReportWriter(model, new Locale("fr")));
+		build(new BatchProcessingResultXLSReportWriter(model, new Locale("fr")));
 	}
 
 	private BatchProcessingResultModel configModel() {
@@ -82,4 +82,3 @@ public class BatchProcessingResultReportWriterManualAcceptTest extends ReportBui
 		return new BatchProcessingResultModel(new BatchProcessResults(modif), Language.French);
 	}
 }
-
