@@ -207,12 +207,14 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
 						)
 						.filteredWithUser(getCurrentUser());
+				Metadata userMetadata = userDocumentSchema.getMetadata(UserDocument.USER);
 				List<Document> duplicateDocuments = rm.searchDocuments(duplicateDocumentsQuery);
 				LogicalSearchQuery duplicateUserDocumentsQuery = new LogicalSearchQuery()
 						.setCondition(LogicalSearchQueryOperators.from(rm.userDocumentSchemaType())
 								.where(rm.userDocument.content()).is(ContentFactory.isHash(contentVersionVO.getDuplicatedHash()))
 								.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-								.andWhere(Schemas.IDENTIFIER).isNotEqual(newRecord.getId()))
+								.andWhere(Schemas.IDENTIFIER).isNotEqual(newRecord.getId())
+								.andWhere(userMetadata).is(currentUser.getWrappedRecord()))
 						.filteredWithUser(getCurrentUser());
 				List<UserDocument> duplicateUserDocuments = rm.searchUserDocuments(duplicateUserDocumentsQuery);
 				if (duplicateDocuments.size() > 0 || duplicateUserDocuments.size() > 0) {
