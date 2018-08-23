@@ -1,5 +1,6 @@
 package com.constellio.model.entities;
 
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -7,7 +8,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class LanguageTest {
+public class LanguageTest extends ConstellioTest {
     @Test
     public void givenLanguageElementsThenSupported() {
         Language[] values = Language.values();
@@ -29,7 +30,11 @@ public class LanguageTest {
     public void givenLanguageElementsThenWithLocaleOk() {
         Language[] values = Language.values();
         for(Language l:values) {
-            assertThat(Language.withLocale(l.locale)).isEqualTo(l);
+            if (l.locale != null) {
+                assertThat(Language.withLocale(l.locale)).isEqualTo(l);
+            } else {
+                assertThat(Language.withLocale(l.locale)).isEqualTo(Language.French);
+            }
         }
     }
 
