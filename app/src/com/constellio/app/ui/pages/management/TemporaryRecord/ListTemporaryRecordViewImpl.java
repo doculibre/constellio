@@ -65,13 +65,19 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
         initTabWithDefaultValues();
         tabSheet = new TabSheet();
         tabs = new HashMap<>();
-        for(Map.Entry<String, String> currentTabs : tabsSchemasAndLabel.entrySet()) {
+        for(final Map.Entry<String, String> currentTabs : tabsSchemasAndLabel.entrySet()) {
             RecordVODataProvider provider = presenter.getDataProviderFromType(currentTabs.getKey());
             if(provider.size() > 0 ) {
                 tabs.put(tabSheet.addTab(buildTable(provider), currentTabs.getValue()), currentTabs.getKey());
                 if(currentSchema == null) {
                     currentSchema = currentTabs.getKey();
                 }
+                tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+                    @Override
+                    public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+                        currentSchema = ((RecordVOTable)event.getTabSheet().getSelectedTab()).getSchemas().get(0).getCode();
+                    }
+                });
             }
         }
         if(tabSheet.getComponentCount() > 0) {

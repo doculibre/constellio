@@ -62,8 +62,8 @@ public class ListTemporaryRecordPresenter extends BasePresenter<ListTemporaryRec
 		MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypeOf(record);
 		boolean hasPermission = !schemaType.hasSecurity() || modelLayerFactory.newAuthorizationsServices()
 				.hasRestaurationPermissionOnHierarchy(user, record, asList(recordVO.getRecord()));
-		return hasPermission && (user.has(CorePermissions.ACCESS_DELETE_ALL_TEMPORARY_RECORD).globally() || recordVO
-				.get(Schemas.CREATED_BY.getCode()).equals(getCurrentUser().getId()));
+		return hasPermission && (user.has(CorePermissions.ACCESS_DELETE_ALL_TEMPORARY_RECORD).globally() ||
+								 getCurrentUser().getId().equals(recordVO.get(Schemas.CREATED_BY.getCode())));
 	}
 
 	public boolean isVisible(String index, String schema) {
