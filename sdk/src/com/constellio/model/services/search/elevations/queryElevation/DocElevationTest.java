@@ -1,11 +1,12 @@
 package com.constellio.model.services.search.elevations.queryElevation;
 
 import com.constellio.model.services.search.QueryElevation.DocElevation;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DocElevationTest {
+public class DocElevationTest extends ConstellioTest {
 	private DocElevation docElevation;
 
 	@Test

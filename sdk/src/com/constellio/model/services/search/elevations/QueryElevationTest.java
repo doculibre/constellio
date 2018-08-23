@@ -2,6 +2,7 @@ package com.constellio.model.services.search.elevations;
 
 import com.constellio.model.services.search.QueryElevation;
 import com.constellio.model.services.search.QueryElevation.DocElevation;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.assertj.core.api.Condition;
 import org.assertj.core.data.Index;
 import org.junit.Before;
@@ -12,7 +13,7 @@ import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class QueryElevationTest {
+public class QueryElevationTest extends ConstellioTest {
 	public static final String QUERY = "query";
 	public static final String ID_DOC_ELEVATION = "id";
 	public static final String QUERY_DOC_ELEVATION = "query1";

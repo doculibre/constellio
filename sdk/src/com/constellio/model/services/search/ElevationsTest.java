@@ -1,6 +1,7 @@
 package com.constellio.model.services.search;
 
 import com.constellio.model.services.search.QueryElevation.DocElevation;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -10,7 +11,7 @@ import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ElevationsTest {
+public class ElevationsTest extends ConstellioTest {
 	protected Elevations elevations;
 
 	@Before

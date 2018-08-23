@@ -1,6 +1,7 @@
 package com.constellio.model.services.search;
 
 import com.constellio.model.services.search.QueryElevation.DocElevation;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.junit.Before;
@@ -17,7 +18,7 @@ import static com.constellio.model.services.search.ElevationsXml.QUERY_TEXT_ATTR
 import static com.constellio.model.services.search.ElevationsXml.ROOT;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ElevationsWriterTest {
+public class ElevationsWriterTest extends ConstellioTest {
 	public static final String ELEVATION_QUERY = "query";
 	public static final String ELEVATION_ID = "idElevation";
 	public static final String EXCLUSION_ID = "idExclusion";
