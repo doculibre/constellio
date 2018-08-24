@@ -33,39 +33,9 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.joda.time.LocalDate;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_ASSIGNEE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_STATUS;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.COMPLETE_TASK;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.CONSTELLIO_URL;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.DISPLAY_TASK;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.PARENT_TASK_TITLE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.PREVIOUS_ASSIGNEE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.PREVIOUS_STATUS;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_BY;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_ON;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_TO_YOU;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMPLETED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DELETED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPTION;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE_TITLE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_END_DATE;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_REASON;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_EN;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_FR;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_MODIFIED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED;
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
 
 public class TaskRecordExtension extends RecordExtension {
 	private static final Logger LOGGER = LogManager.getLogger(TaskRecordExtension.class);
@@ -109,6 +79,7 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			taskModified(task, event);
+			invalidateAllAssignees(event);
 		}
 	}
 
@@ -146,7 +117,7 @@ public class TaskRecordExtension extends RecordExtension {
 	@Override
 	public void recordCreated(RecordCreationEvent event) {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
-//			invalidateAllAssignees(event);
+			invalidateAllAssignees(event);
 		}
 	}
 
@@ -158,9 +129,7 @@ public class TaskRecordExtension extends RecordExtension {
 					cache.invalidateUser(user);
 				}
 			}
-			List<Group> groups = userServices.getCollectionGroups(collection);
-			List<String> groups1 = task.getAssigneeGroupsCandidates();
-			for (Group group : userServices.getCollectionGroups(collection)){
+			for (Group group : userServices.getAllGroupsInCollections(collection)) {
 				if(task.getAssigneeGroupsCandidates().contains(group.getId())){
 					cache.invalidateGroup(group);
 				}
