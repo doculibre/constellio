@@ -20,7 +20,10 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SerializedCacheSearchServiceWithSerializedRecordsAcceptTest extends ConstellioTest {

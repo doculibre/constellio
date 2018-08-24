@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.ContentDaoException;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
@@ -75,6 +76,21 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 
 			@Override
 			public void logError(String code, Map<String, Object> parameters) {
+			}
+
+			@Override
+			public void incrementProgression(int numberToAdd) {
+
+			}
+
+			@Override
+			public void setProgressionUpperLimit(long progressionUpperLimit) {
+
+			}
+
+			@Override
+			public AsyncTaskBatchProcess getBatchProcess() {
+				return null;
 			}
 		};
 		pdfGeneratorAsyncTask.execute(params);

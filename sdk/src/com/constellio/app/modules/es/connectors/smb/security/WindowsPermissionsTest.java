@@ -5,7 +5,10 @@ import jcifs.smb.SmbFile;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class WindowsPermissionsTest extends ConstellioTest {
 	private TrusteeManager trusteeManager;

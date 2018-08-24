@@ -10,7 +10,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.naming.ldap.LdapContext;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPServicesImpl.computeSearchFilter;
 import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPServicesImpl.getSimpleName;

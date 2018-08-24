@@ -596,15 +596,11 @@ public class RecordUtils {
 
 		}
 		for (
-				String idWithPossibleNewChildren : idsWithPossibleNewChildren)
-
-		{
+				String idWithPossibleNewChildren : idsWithPossibleNewChildren) {
 			cache.invalidateWithoutChildren(idWithPossibleNewChildren);
 		}
 		for (
-				String idWithPossibleNewChildren : idsWithPossibleRemovedChildren)
-
-		{
+				String idWithPossibleNewChildren : idsWithPossibleRemovedChildren) {
 			cache.invalidateWithChildren(idWithPossibleNewChildren);
 		}
 

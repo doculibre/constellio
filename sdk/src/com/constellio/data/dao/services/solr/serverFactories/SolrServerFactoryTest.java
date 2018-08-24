@@ -16,7 +16,9 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @RunWith(value = Parameterized.class)
 public class SolrServerFactoryTest {

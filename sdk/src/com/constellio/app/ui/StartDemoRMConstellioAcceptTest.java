@@ -30,7 +30,9 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 @UiTest
 @MainTest

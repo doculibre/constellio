@@ -4,7 +4,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class BatchProcessReport extends TemporaryRecord {
 	public static final String SCHEMA = "batchProcessReport";
@@ -59,10 +61,10 @@ public class BatchProcessReport extends TemporaryRecord {
 
 	public BatchProcessReport addSkippedRecords(List<String> stringList) {
 		List<String> previousSkippedRecords = getList(SKIPPED_RECORDS);
-		ArrayList<Object> currentSkippedRecords = new ArrayList<>();
+		Set<Object> currentSkippedRecords = new HashSet<>();
 		currentSkippedRecords.addAll(previousSkippedRecords);
 		currentSkippedRecords.addAll(stringList);
-		set(SKIPPED_RECORDS, currentSkippedRecords);
+		set(SKIPPED_RECORDS, new ArrayList<>(currentSkippedRecords));
 		return this;
 	}
 

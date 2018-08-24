@@ -16,7 +16,11 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
-import com.constellio.model.services.taxonomies.*;
+import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -32,13 +36,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
-import static com.constellio.app.modules.rm.constants.RMPermissionsTo.*;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.SHARE_DOCUMENT;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.SHARE_FOLDER;
 import static com.constellio.model.entities.CorePermissions.MANAGE_SECURITY;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.fail;
 import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
-import static org.apache.chemistry.opencmis.commons.enums.Action.*;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_APPLY_ACL;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ACL;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_CHILDREN;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DriverTest

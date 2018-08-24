@@ -4,7 +4,12 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilderWithDefinedIds;
-import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DecomListStatus;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.model.enums.FolderMediaType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -24,7 +29,10 @@ import org.junit.Test;
 
 import java.util.Arrays;
 
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.*;
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ANALOG;
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ELECTRONIC;
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.HYBRID;
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.UNKNOWN;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;

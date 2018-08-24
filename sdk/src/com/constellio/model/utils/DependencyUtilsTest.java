@@ -4,7 +4,12 @@ import com.constellio.model.utils.DependencyUtils.MultiMapDependencyResults;
 import com.constellio.model.utils.DependencyUtilsRuntimeException.CyclicDependency;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static java.util.Arrays.asList;

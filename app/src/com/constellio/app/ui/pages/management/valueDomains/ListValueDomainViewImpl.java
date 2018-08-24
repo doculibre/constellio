@@ -3,7 +3,10 @@ package com.constellio.app.ui.pages.management.valueDomains;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.TabWithTable;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
@@ -119,7 +122,7 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 			tab.refreshTable();
 		}
 	}
-	
+
 	public class DomainCreationWindowButton extends WindowButton {
 		private java.util.Map<Language, BaseTextField> baseTextFieldMap;
 		private String originalStyleName;

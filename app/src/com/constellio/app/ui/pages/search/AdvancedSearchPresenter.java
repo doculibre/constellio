@@ -1,13 +1,37 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncTask;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.AdvancedSearchPresenterExtension;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
+import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.services.search.SearchServices;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.extensions.api.AdvancedSearchPresenterExtension;
-import com.constellio.app.modules.rm.extensions.api.AdvancedSearchPresenterExtension.AddAdditionalSearchQueryFiltersParams;
-import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportParameters;
@@ -29,8 +53,6 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultTable;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
-import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
-import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
@@ -56,7 +78,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -67,22 +88,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
@@ -198,13 +203,20 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public boolean batchEditRequested(String code, Object value, String schemaType) {
 		Map<String, Object> changes = new HashMap<>();
 		changes.put(code, value);
-		BatchProcessAction action = new ChangeValueOfMetadataBatchProcessAction(changes);
+
+		LogicalSearchQuery query = buildBatchProcessLogicalSearchQuery();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		ModifiableSolrParams params = searchServices.addSolrModifiableParams(query);
+
+		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(changes, SolrUtils.toSingleQueryString(params),
+				null, searchServices().getResultsCount(query));
+
 		String username = getCurrentUser() == null ? null : getCurrentUser().getUsername();
+		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, "userBatchProcess");
+		asyncTaskRequest.setUsername(username);
 
 		BatchProcessesManager manager = modelLayerFactory.getBatchProcessesManager();
-		LogicalSearchQuery query = buildBatchProcessLogicalSearchQuery();
-		BatchProcess process = manager.addBatchProcessInStandby(query, action, username, "userBatchProcess");
-		manager.markAsPending(process);
+		manager.addAsyncTask(asyncTaskRequest);
 		return true;
 	}
 
@@ -276,19 +288,19 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		String languageCode = searchServices().getLanguageCode(view.getCollection());
 		MetadataSchemaType type = schemaType(schemaTypeCode);
 		condition = (view.getSearchCriteria().isEmpty()) ?
-					from(type).returnAll() :
-					new ConditionBuilder(type, languageCode).build(view.getSearchCriteria());
+				from(type).returnAll() :
+				new ConditionBuilder(type, languageCode).build(view.getSearchCriteria());
 	}
 
 	private boolean isBatchEditable(Metadata metadata) {
 		return !metadata.isSystemReserved()
-			   && !metadata.isUnmodifiable()
-			   && metadata.isEnabled()
-			   && !metadata.getType().isStructureOrContent()
-			   && metadata.getDataEntry().getType() == DataEntryType.MANUAL
-			   && isNotHidden(metadata)
-			   // XXX: Not supported in the backend
-			   && metadata.getType() != MetadataValueType.ENUM;
+				&& !metadata.isUnmodifiable()
+				&& metadata.isEnabled()
+				&& !metadata.getType().isStructureOrContent()
+				&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
+				&& isNotHidden(metadata)
+				// XXX: Not supported in the backend
+				&& metadata.getType() != MetadataValueType.ENUM;
 	}
 
 	private boolean isNotHidden(Metadata metadata) {
@@ -315,8 +327,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		List<ReportWithCaptionVO> supportedReports = super.getSupportedReports();
 		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
 		List<String> userReports = reportServices.getUserReportTitles(getCurrentUser(), view.getSchemaType());
-		if (userReports != null) {
-			for (String reportTitle : userReports) {
+		if(userReports != null) {
+			for(String reportTitle: userReports) {
 				supportedReports.add(new ReportWithCaptionVO(reportTitle, reportTitle));
 			}
 		}
@@ -581,7 +593,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	public LogicalSearchQuery buildBatchProcessLogicalSearchQuery() {
 		LogicalSearchQuery query = buildLogicalSearchQuery();
 		for (AdvancedSearchPresenterExtension extension : rmModuleExtensions.getAdvancedSearchPresenterExtensions()) {
-			query = extension.addAdditionalSearchQueryFilters(new AddAdditionalSearchQueryFiltersParams(query, schemaTypeCode));
+			query = extension.addAdditionalSearchQueryFilters(new AdvancedSearchPresenterExtension.AddAdditionalSearchQueryFiltersParams(query, schemaTypeCode));
 		}
 		return query;
 	}
@@ -780,7 +792,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		List<Record> records = modelLayerFactory.newRecordServices().getRecordsById(collection, recordIds);
 		for (Record record : records) {
 			if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rm().wrapDocument(record), getCurrentUser())) {
-				view.showErrorMessage(i18n.$("AdvancedSearchView.actionBlockedByExtension"));
+				view.showErrorMessage($("AdvancedSearchView.actionBlockedByExtension"));
 				return false;
 			}
 		}

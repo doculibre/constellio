@@ -84,7 +84,7 @@ public class MetadataDisplayFactory implements Serializable {
 			Collection<?> collectionDisplayValue = (Collection<?>) displayValue;
 			if (collectionDisplayValue.isEmpty()) {
 				displayComponent = null;
-			} else if (MetadataValueType.STRING.equals(metadataValueType)) {
+			} else if (MetadataValueType.STRING.equals(metadataValueType) && metadataVO.getMetadataInputType() != MetadataInputType.URL) {
 				displayComponent = newStringCollectionValueDisplayComponent((Collection<String>) collectionDisplayValue);
 			} else {
 				List<Component> elementDisplayComponents = new ArrayList<Component>();
@@ -184,7 +184,7 @@ public class MetadataDisplayFactory implements Serializable {
 						displayComponent = null;
 					} else if (MetadataInputType.URL.equals(metadataInputType)) {
 						String url = displayValue.toString();
-						if (!url.startsWith("http://")) {
+						if (!url.startsWith("http://") && !url.startsWith("https://")) {
 							url = "http://" + url;
 						}
 						Link link = new Link(url, new ExternalResource(url));

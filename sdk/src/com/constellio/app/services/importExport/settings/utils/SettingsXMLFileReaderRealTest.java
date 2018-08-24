@@ -2,7 +2,16 @@ package com.constellio.app.services.importExport.settings.utils;
 
 import com.constellio.app.services.importExport.settings.SettingsExportServices;
 import com.constellio.app.services.importExport.settings.SettingsImportServicesTestUtils;
-import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedTab;
+import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
+import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.model.entities.Language;
 import org.jdom2.Document;
@@ -33,7 +42,7 @@ public class SettingsXMLFileReaderRealTest extends SettingsImportServicesTestUti
 		document2 = getDocument("settings-input2.xml");
 		document3 = getDocument("settings-input3.xml");
 		reader = new SettingsXMLFileReader(document, zeCollection, getModelLayerFactory());
-		reader2 = new SettingsXMLFileReader(document2,zeCollection, getModelLayerFactory());
+		reader2 = new SettingsXMLFileReader(document2, zeCollection, getModelLayerFactory());
 		reader3 = new SettingsXMLFileReader(document3, zeCollection, getModelLayerFactory());
 
 		reader4 = new SettingsXMLFileReader(document3, null, getModelLayerFactory());

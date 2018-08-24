@@ -55,6 +55,7 @@ public class HtmlPageParser {
 
 	public HtmlPageParserResults parse(String url, HtmlPage page)
 			throws ConnectorHttpDocumentFetchException {
+		HtmlPageParserResults htmlPageParserResults;
 
 		if (!isNoIndexContent(page)) {
 			ParsedContent parsedContent;
@@ -73,13 +74,25 @@ public class HtmlPageParser {
 				throw new ConnectorHttpDocumentFetchException_CannotParseDocument(url, e);
 			}
 
-			return finalizeHtmlPageParserResults(url, page, parsedContent, uniqueAnchors);
+			htmlPageParserResults = finalizeHtmlPageParserResults(url, page, parsedContent, uniqueAnchors);
 		} else {
-			return createNoIndexHtmlPageParserResults();
+			htmlPageParserResults = createNoIndexHtmlPageParserResults();
 		}
+
+		htmlPageParserResults.setNoFollow(isNoFollowLinks(page));
+
+		return htmlPageParserResults;
 	}
 
 	private boolean isNoIndexContent(HtmlPage page) {
+		return hasContentRestriction(page, "noindex");
+	}
+
+	private boolean isNoFollowLinks(HtmlPage page) {
+		return hasContentRestriction(page, "nofollow");
+	}
+
+	private boolean hasContentRestriction(HtmlPage page, String typeOfRestriction) {
 		DomNodeList<DomElement> metas = page.getElementsByTagName("meta");
 		if (metas != null) {
 			ListIterator<DomElement> listIterator = metas.listIterator();
@@ -88,7 +101,7 @@ public class HtmlPageParser {
 				String name = element.getAttribute("name");
 				if ("robots".equalsIgnoreCase(name)) {
 					String content = element.getAttribute("content");
-					if (StringUtils.containsIgnoreCase(content, "noindex")) {
+					if (StringUtils.containsIgnoreCase(content, typeOfRestriction)) {
 						return true;
 					}
 				}
@@ -257,6 +270,8 @@ public class HtmlPageParser {
 
 		private String description;
 
+		private boolean noFollow;
+
 		public HtmlPageParserResults(String digest, String parsedContent, String title, Set<String> linkedUrls,
 									 String mimetype,
 									 String language, String description) {
@@ -295,6 +310,14 @@ public class HtmlPageParser {
 
 		public String getDescription() {
 			return description;
+		}
+
+		public boolean isNoFollow() {
+			return noFollow;
+		}
+
+		public void setNoFollow(boolean noFollow) {
+			this.noFollow = noFollow;
 		}
 	}
 }

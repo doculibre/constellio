@@ -18,8 +18,12 @@ import java.util.Arrays;
 
 import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
 import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-import static com.constellio.app.modules.rm.model.enums.DisposalType.*;
-import static com.constellio.app.modules.rm.model.enums.RetentionType.*;
+import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
+import static com.constellio.app.modules.rm.model.enums.DisposalType.SORT;
+import static com.constellio.app.modules.rm.model.enums.RetentionType.FIXED;
+import static com.constellio.app.modules.rm.model.enums.RetentionType.OPEN;
+import static com.constellio.app.modules.rm.model.enums.RetentionType.UNTIL_REPLACED;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 

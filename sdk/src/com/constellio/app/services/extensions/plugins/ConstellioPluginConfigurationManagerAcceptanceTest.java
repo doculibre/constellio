@@ -20,7 +20,10 @@ import org.junit.Test;
 
 import static com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager.PLUGINS_CONFIG_PATH;
 import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.CANNOT_INSTALL_OLDER_VERSION;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.*;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.DISABLED;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstellioPluginConfigurationManagerAcceptanceTest extends ConstellioTest {

@@ -1,6 +1,12 @@
 package com.constellio.model.services.schemas;
 
-import com.constellio.model.entities.schemas.preparationSteps.*;
+import com.constellio.model.entities.schemas.preparationSteps.CalculateMetadatasRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.SequenceRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.UpdateCreationModificationUsersAndDateRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.ValidateCyclicReferencesRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.ValidateMetadatasRecordPreparationStep;
+import com.constellio.model.entities.schemas.preparationSteps.ValidateUsingSchemaValidatorsRecordPreparationStep;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.testimpl.TestRecordValidator1;

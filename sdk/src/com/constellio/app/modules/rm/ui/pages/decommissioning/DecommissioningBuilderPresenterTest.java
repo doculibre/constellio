@@ -19,7 +19,10 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 	public static final String FACET_CODE = "schemaType_default_zeField";

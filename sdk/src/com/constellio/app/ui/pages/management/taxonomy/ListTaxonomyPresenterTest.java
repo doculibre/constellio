@@ -18,7 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ListTaxonomyPresenterTest extends ConstellioTest {
 
