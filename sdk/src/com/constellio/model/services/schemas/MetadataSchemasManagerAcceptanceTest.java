@@ -117,7 +117,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsProvidin
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsTaxonomyRelationship;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUndeletable;
-import static java.util.Arrays.asList.asList;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;

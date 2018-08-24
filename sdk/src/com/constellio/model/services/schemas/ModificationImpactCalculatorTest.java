@@ -31,7 +31,7 @@ import java.util.List;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asSet;
 import static com.constellio.sdk.tests.TestUtils.mockMetadata;
-import static java.util.Arrays.asList
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
