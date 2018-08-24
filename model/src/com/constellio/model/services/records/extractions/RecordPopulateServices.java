@@ -51,24 +51,33 @@ public class RecordPopulateServices {
 	}
 
 	public void populate(Record record) {
+		populate(record, null, new ParsedContentProvider(contentManager));
+	}
+
+	public void populate(Record record, Record originalRecord) {
 		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(contentManager);
-		populate(record, parsedContentProvider);
+		populate(record, originalRecord, parsedContentProvider);
 	}
 
 	public void populate(Record record, ParsedContentProvider parsedContentProvider) {
+		populate(record, null, parsedContentProvider);
+	}
+
+	public void populate(Record record, Record originalRecord, ParsedContentProvider parsedContentProvider) {
 
 		try {
 			MetadataSchema schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 
 			List<Metadata> contentMetadatas = schema.getContentMetadatasForPopulate();
-			//if (!contentMetadatas.isEmpty() || record.getI) {
 			if (!record.isSaved()) {
 				String category = getCategory(parsedContentProvider, contentMetadatas, record);
 				setCategoryToRecord(record, category);
 
 			}
 			schema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
-			Record originalRecord = record.isSaved() ? record.getCopyOfOriginalRecord() : null;
+			if (originalRecord == null) {
+				originalRecord = record.isSaved() ? record.getCopyOfOriginalRecord() : null;
+			}
 
 			MetadataPopulatePriority priority = eimConfigs.getMetadataPopulatePriority();
 			TitleMetadataPopulatePriority titlePriority = eimConfigs.getTitleMetadataPopulatePriority();
@@ -134,13 +143,13 @@ public class RecordPopulateServices {
 		if (originalRecord == null) {
 			if (metadata.isMultivalue()) {
 				List<String> values = record.getList(metadata);
-				return values.isEmpty() || isValueWritenBySystem(record, metadata, values, contentMetadatas);
+				return values.isEmpty() || isValueWrittenBySystem(record, metadata, values, contentMetadatas);
 			} else {
 				if (Schemas.TITLE.equals(metadata.getLocalCode()) && metadata.isSchemaAutocomplete()) {
 					return false;
 				}
 				String value = record.get(metadata);
-				return record.get(metadata) == null || isValueWritenBySystem(record, metadata, value, contentMetadatas);
+				return record.get(metadata) == null || isValueWrittenBySystem(record, metadata, value, contentMetadatas);
 			}
 		}
 
@@ -171,8 +180,8 @@ public class RecordPopulateServices {
 
 	}
 
-	private boolean isValueWritenBySystem(Record record, Metadata metadata, String value,
-										  List<Metadata> contentMetadatas) {
+	private boolean isValueWrittenBySystem(Record record, Metadata metadata, String value,
+										   List<Metadata> contentMetadatas) {
 		if (metadata.isSameLocalCode(Schemas.TITLE)) {
 			for (Content content : getContents(record, contentMetadatas)) {
 				if (content.getCurrentVersion().getFilename().equals(value)) {
@@ -183,8 +192,8 @@ public class RecordPopulateServices {
 		return value.equals(metadata.getDefaultValue());
 	}
 
-	private boolean isValueWritenBySystem(Record record, Metadata metadata, List<String> value,
-										  List<Metadata> contentMetadatas) {
+	private boolean isValueWrittenBySystem(Record record, Metadata metadata, List<String> value,
+										   List<Metadata> contentMetadatas) {
 		return value.equals(metadata.getDefaultValue());
 	}
 

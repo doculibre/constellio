@@ -485,6 +485,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
+		request.setModifiedMetadatas(modifications);
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
 				records.getAdmin().getUsername(), "Edit records");
 
@@ -513,6 +514,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
+		request.setModifiedMetadatas(modifications);
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
 				records.getAdmin().getUsername(), "Edit records");
 
@@ -978,6 +980,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TYPE, records.folderTypeMeeting().getId());
+		request.setModifiedMetadatas(modifications);
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
 				records.getAdmin().getUsername(), "Edit records");
 
