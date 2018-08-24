@@ -15,6 +15,8 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.Locale;
+
 public class TasksMigrationTo7_7 extends MigrationHelper implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -40,13 +42,14 @@ public class TasksMigrationTo7_7 extends MigrationHelper implements MigrationScr
 		TasksSchemasRecordsServices taskRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		try {
 			TaskStatus completedTaskStatus = taskRecordsServices.getTaskStatusWithCode("TER");
-			if (completedTaskStatus != null && completedTaskStatus.getTitle().equals("Terminée")) {
-				recordServices.update(completedTaskStatus.setTitle("Complétée"));
+			if (completedTaskStatus != null && completedTaskStatus.getTitle(Locale.FRENCH).equals("Terminée")) {
+				recordServices.update(completedTaskStatus.setTitle(Locale.FRENCH, "Complétée"));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
 
 	class SchemaAlterationFor7_7 extends MetadataSchemasAlterationHelper {
 

@@ -18,6 +18,7 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
+import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.HashMapBuilder;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
@@ -35,6 +36,18 @@ import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
+import com.constellio.model.entities.schemas.entries.AggregationType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
@@ -130,7 +143,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(null))
+				.addMethods(generateTypes(null))
 				.addMethod(generateDisplayConfigs(new ArrayList<String>()))
 				.addMethod(generateRoles(new ArrayList<Role>()))
 				.addMethod(generateConstructor())
@@ -183,7 +196,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(null))
+				.addMethods(generateTypes(null))
 				.addMethod(generateDisplayConfigs(new ArrayList<String>()))
 				.addMethod(generateRoles(new ArrayList<Role>()))
 				.addMethod(generateConstructor())
@@ -247,7 +260,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(typesBefore))
+				.addMethods(generateTypes(typesBefore))
 				.addMethod(generateDisplayConfigs(codesBefore))
 				.addMethod(generateRoles(rolesBefore))
 				.addMethod(generateConstructor())
@@ -307,7 +320,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(typesBefore))
+				.addMethods(generateTypes(typesBefore))
 				.addMethod(generateDisplayConfigs(codesBefore))
 				.addMethod(generateRoles(rolesBefore))
 				.addMethod(generateConstructor())
@@ -369,7 +382,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(typesBefore))
+				.addMethods(generateTypes(typesBefore))
 				.addMethod(generateDisplayConfigs(codesBefore))
 				.addMethod(generateRoles(rolesBefore))
 				.addMethod(generateConstructor())
@@ -430,7 +443,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(typesBefore))
+				.addMethods(generateTypes(typesBefore))
 				.addMethod(generateDisplayConfigs(codesBefore))
 				.addMethod(generateRoles(rolesBefore))
 				.addMethod(generateConstructor())
@@ -501,7 +514,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addField(AppLayerFactory.class, "appLayerFactory")
 				.addField(MigrationResourcesProvider.class, "resourcesProvider")
 				//.addMethod(generateRecords())
-				.addMethod(generateTypes(typesBefore))
+				.addMethods(generateTypes(typesBefore))
 				.addMethod(generateDisplayConfigs(codesBefore))
 				.addMethod(generateRoles(rolesBefore))
 				.addMethod(generateConstructor())
@@ -559,11 +572,11 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 	protected void generateI18n(File moduleFolder, String module)
 			throws IOException {
-		generateI18n(moduleFolder, module, new HashMap<String, String>(), new HashMap<String, String>());
+		generateI18n(moduleFolder, module, new HashMap<String, String>(), new HashMap<String, String>(), new HashMap<String, String>());
 	}
 
 	protected void generateI18n(File moduleFolder, String module, Map<String, String> extraFrenchLabels,
-								Map<String, String> extraEnglishLabels)
+								Map<String, String> extraEnglishLabels, Map<String, String> extraArabicLabels)
 			throws IOException {
 
 		File comboFolder = new File(moduleFolder, "combo");
@@ -575,6 +588,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 			List<File> properties = new ArrayList<>();
 			List<File> frProperties = new ArrayList<>();
+			List<File> arProperties = new ArrayList<>();
 			List<File> enProperties = new ArrayList<>();
 			List<File> resourcesFiles = new ArrayList<>();
 
@@ -587,6 +601,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 								enProperties.add(file);
 							} else if (file.getName().endsWith("_fr.properties")) {
 								frProperties.add(file);
+							} else if (file.getName().endsWith("_ar.properties")) {
+								arProperties.add(file);
 							} else if (file.getName().endsWith(".properties")) {
 								properties.add(file);
 							} else {
@@ -602,12 +618,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			CombinePropertyFilesServices
 					.combine(enProperties, new File(comboFolder, module + "_combo_en.properties"), extraEnglishLabels);
 			CombinePropertyFilesServices
+					.combine(arProperties, new File(comboFolder, module + "_combo_ar.properties"), extraArabicLabels);
+			CombinePropertyFilesServices
 					.combine(frProperties, new File(comboFolder, module + "_combo_fr.properties"), new HashMap<String, String>());
 
 			for (File resourceFile : resourcesFiles) {
 				if (resourceFile.isDirectory()) {
 					FileUtils.copyDirectory(resourceFile, new File(comboFolder, resourceFile.getName()));
 				} else {
+					System.out.println("Copying " + resourceFile.getAbsolutePath());
 					FileUtils.copyFile(resourceFile, new File(comboFolder, resourceFile.getName()));
 				}
 			}
@@ -829,13 +848,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	protected MethodSpec generateTypes(MetadataSchemaTypes typesBeforeMigration) {
+	protected List<MethodSpec> generateTypes(MetadataSchemaTypes typesBeforeMigration) {
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 
 		Builder main = MethodSpec.methodBuilder("applyGeneratedSchemaAlteration")
 				.addModifiers(Modifier.PUBLIC)
 				.returns(void.class)
 				.addParameter(MetadataSchemaTypesBuilder.class, "typesBuilder");
+
+		Map<String, Builder> typeMethadatasMethodsBuilder = new HashMap<>();
 
 		List<MetadataSchemaType> metadataSchemaTypes = sorted(types.getSchemaTypes());
 
@@ -867,7 +888,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		for (MetadataSchemaType type : metadataSchemaTypes) {
 			if (typesBeforeMigration == null || !typesBeforeMigration.hasType(type.getCode())) {
-				main.addStatement("$T $LSchemaType = typesBuilder.createNewSchemaType($S)$L",
+				main.addStatement("$T $LSchemaType = typesBuilder.createNewSchemaType($S,false)$L",
 						MetadataSchemaTypeBuilder.class, type.getCode(), type.getCode(), typeAlterations(type));
 
 				for (MetadataSchema schema : type.getAllSchemas()) {
@@ -882,28 +903,52 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 						main.addStatement("$L.defineValidators().add($T.class)", variableOf(schema), validator.getClass());
 					}
 				}
+
 			}
 		}
 
+
 		for (MetadataSchemaType type : metadataSchemaTypes) {
+
+			String methodName = "create" + StringUtils.capitalize(type.getCode()) + "SchemaTypeMetadatas";
+			Builder typeMetadatasMethod = MethodSpec.methodBuilder(methodName)
+					.addModifiers(Modifier.PRIVATE)
+					.returns(void.class)
+					.addParameter(MetadataSchemaTypesBuilder.class, "types")
+					.addParameter(MetadataSchemaTypeBuilder.class, variableOf(type));
+			typeMethadatasMethodsBuilder.put(type.getCode(), typeMetadatasMethod);
+
+			StringBuilder createTypeMetadatasMethodCall = new StringBuilder(methodName);
+			createTypeMetadatasMethodCall.append("(typesBuilder,");
+			createTypeMetadatasMethodCall.append(variableOf(type));
+
+			for (MetadataSchema schema : type.getAllSchemas()) {
+				typeMetadatasMethod.addParameter(MetadataSchemaBuilder.class, variableOf(schema));
+				createTypeMetadatasMethodCall.append(", ");
+				createTypeMetadatasMethodCall.append(variableOf(schema));
+			}
+
+			createTypeMetadatasMethodCall.append(")");
+			main.addStatement(createTypeMetadatasMethodCall.toString());
+
 			for (MetadataSchema schema : type.getAllSchemas()) {
 				for (Metadata metadata : schema.getMetadatas()) {
 					String variable = variableOf(metadata);
 					if (metadata.getInheritance() == null && (typesBeforeMigration == null || !typesBeforeMigration
 							.hasMetadata(metadata.getCode()))) {
-						if (!Schemas.isGlobalMetadata(metadata.getLocalCode()) || "url".equals(metadata.getLocalCode())) {
-							main.addStatement("$T $L = $L.create($S).setType(MetadataValueType.$L)",
-									MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode(),
-									metadata.getType().name());
-							configureMetadata(main, variable, metadata);
-						} else {
-
-							main.addStatement("$T $L = $L.get($S)",
-									MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode());
-							configureMetadata(main, variable, metadata);
-						}
+						//if (!Schemas.isGlobalMetadata(metadata.getLocalCode()) || "url".equals(metadata.getLocalCode())) {
+						typeMetadatasMethod.addStatement("$T $L = $L.create($S).setType(MetadataValueType.$L)",
+								MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode(),
+								metadata.getType().name());
+						configureMetadata(typeMetadatasMethod, variable, metadata);
+						//						} else {
+						//
+						//							main.addStatement("$T $L = $L.get($S)",
+						//									MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode());
+						//							configureMetadata(main, variable, metadata);
+						//						}
 						for (RecordMetadataValidator validator : metadata.getValidators()) {
-							main.addStatement("$L.defineValidators().add($T.class)", variableOf(metadata),
+							typeMetadatasMethod.addStatement("$L.defineValidators().add($T.class)", variableOf(metadata),
 									validator.getClass());
 						}
 					}
@@ -912,49 +957,87 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 		}
 
 		for (MetadataSchemaType type : metadataSchemaTypes) {
+			Builder typeMetadatasMethod = typeMethadatasMethodsBuilder.get(type.getCode());
 			for (MetadataSchema schema : type.getAllSchemas()) {
 				for (Metadata metadata : schema.getMetadatas()) {
 					String variable = variableOf(metadata);
 					if (metadata.getInheritance() != null) {
-						main.addStatement("$T $L = $L.get($S)",
+						typeMetadatasMethod.addStatement("$T $L = $L.get($S)",
 								MetadataBuilder.class, variable, variableOf(schema), metadata.getLocalCode());
-						configureInheritedMetadata(main, variable, metadata);
+						configureInheritedMetadata(typeMetadatasMethod, variable, metadata);
 					}
 				}
 			}
 		}
 
 		for (MetadataSchemaType type : metadataSchemaTypes) {
-
 			for (MetadataSchema schema : type.getAllSchemas()) {
 				for (Metadata metadata : schema.getMetadatas()) {
 					if (metadata.getInheritance() == null && (typesBeforeMigration == null || !typesBeforeMigration
 							.hasMetadata(metadata.getCode()))) {
 						if (metadata.getDataEntry().getType() == DataEntryType.COPIED) {
 							CopiedDataEntry dataEntry = (CopiedDataEntry) metadata.getDataEntry();
-							main.addStatement("$L.defineDataEntry().asCopied($L, $L)",
-									variableOf(metadata),
-									variableOfMetadata(dataEntry.getReferenceMetadata()),
-									variableOfMetadata(dataEntry.getCopiedMetadata()));
+
+							Metadata referenceMetadata = schema.getMetadata(dataEntry.getReferenceMetadata());
+							Metadata copiedMetadata = types.getSchemaType(referenceMetadata.getReferencedSchemaType()).
+									getDefaultSchema().getMetadata(dataEntry.getCopiedMetadata());
+
+							main.addStatement("$L.get($S).defineDataEntry().asCopied($L.get($S), typesBuilder.getMetadata($S))",
+									variableOf(schema),
+									metadata.getLocalCode(),
+									variableOf(schema),
+									referenceMetadata.getLocalCode(),
+									copiedMetadata.getCode());
 						}
 						if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 							CalculatedDataEntry dataEntry = (CalculatedDataEntry) metadata.getDataEntry();
-							main.addStatement("$L.defineDataEntry().asCalculated($T.class)",
-									variableOf(metadata),
+							main.addStatement("$L.get($S).defineDataEntry().asCalculated($T.class)",
+									variableOf(schema),
+									metadata.getLocalCode(),
 									dataEntry.getCalculator().getClass());
 						}
 						if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
 							AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
+
 							if (dataEntry.getAgregationType().equals(AggregationType.REFERENCE_COUNT)) {
-								main.addStatement("$L.defineDataEntry().asReferenceCount($L)",
-										variableOf(metadata),
-										variableOfMetadata(dataEntry.getReferenceMetadata()));
+								Metadata referenceMetadata = types.getMetadata(dataEntry.getReferenceMetadata());
+								main.addStatement("$L.get($S).defineDataEntry().asReferenceCount(typesBuilder.getMetadata($S))",
+										variableOf(schema),
+										metadata.getLocalCode(),
+										referenceMetadata.getCode());
 							}
 							if (dataEntry.getAgregationType().equals(AggregationType.SUM)) {
-								main.addStatement("$L.defineDataEntry().asSum($L, $L)",
-										variableOf(metadata),
-										variableOfMetadata(dataEntry.getReferenceMetadata()),
-										variableOfMetadata(StringUtils.join(dataEntry.getInputMetadatas(), ", ")));
+								Metadata referenceMetadata = types.getMetadata(dataEntry.getReferenceMetadata());
+
+								List<String> inputMetadatasCalls = new ArrayList<>();
+								//types.getMetadata($S)
+
+								for (String inputMetadata : dataEntry.getInputMetadatas()) {
+									inputMetadatasCalls.add("typesBuilder.getMetadata(\"" + inputMetadata + "\")");
+								}
+
+								main.addStatement("$L.get($S).defineDataEntry().asSum(typesBuilder.getMetadata($S), $L)",
+										variableOf(schema),
+										metadata.getLocalCode(),
+										referenceMetadata.getCode(),
+										StringUtils.join(inputMetadatasCalls, ", "));
+							}
+
+							if (dataEntry.getAgregationType().equals(AggregationType.VALUES_UNION)) {
+								Metadata referenceMetadata = types.getMetadata(dataEntry.getReferenceMetadata());
+
+								List<String> inputMetadatasCalls = new ArrayList<>();
+								//types.getMetadata($S)
+
+								for (String inputMetadata : dataEntry.getInputMetadatas()) {
+									inputMetadatasCalls.add("typesBuilder.getMetadata(\"" + inputMetadata + "\")");
+								}
+
+								main.addStatement("$L.get($S).defineDataEntry().asUnion(typesBuilder.getMetadata($S), $L)",
+										variableOf(schema),
+										metadata.getLocalCode(),
+										referenceMetadata.getCode(),
+										StringUtils.join(inputMetadatasCalls, ", "));
 							}
 						}
 					}
@@ -963,9 +1046,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		}
 
+		List<MethodSpec> specs = new ArrayList<>();
+		specs.add(main.build());
+		//System.out.println(spec.toString());
+		for (Builder builder : typeMethadatasMethodsBuilder.values()) {
+			specs.add(builder.build());
+		}
+
 		MethodSpec spec = main.build();
-		System.out.println(spec.toString());
-		return spec;
+		return specs;
 	}
 
 	protected List<MetadataSchemaType> sorted(List<MetadataSchemaType> schemaTypes) {
@@ -1068,6 +1157,15 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			stringBuilder.append(".setUndeletable(true)");
 		}
 
+		if (type.getSmallCode() != null) {
+			stringBuilder.append(".setSmallCode(\"" + type.getSmallCode() + "\")");
+		}
+
+
+		if (!DataStore.RECORDS.equals(type.getDataStore())) {
+			stringBuilder.append(".setDataStore(\"" + type.getDataStore() + "\")");
+		}
+
 		return stringBuilder.toString();
 	}
 
@@ -1109,6 +1207,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 
 		if (metadata.isEssential()) {
 			method.addStatement("$L.setEssential(true)", variable);
+		}
+
+		if (metadata.isMultiLingual() || metadata.isGlobal()) {
+			method.addStatement("$L.setMultiLingual(" + metadata.isMultiLingual() + ")", variable);
 		}
 
 		if (metadata.isEssentialInSummary()) {
@@ -1167,26 +1269,25 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 					asListLitteral(metadata.getPopulateConfigs().getProperties()));
 		}
 
-		if (metadata.getType() == MetadataValueType.REFERENCE && !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+		if (metadata.getType() == MetadataValueType.REFERENCE /*&& !Schemas.isGlobalMetadata(metadata.getLocalCode()) */) {
 			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 			if (metadata.getAllowedReferences().getAllowedSchemas().isEmpty()) {
 				String referencedType = metadata.getAllowedReferences().getAllowedSchemaType();
-				String referencedTypeVariable = variableOf(types.getSchemaType(referencedType));
 				if (metadata.isTaxonomyRelationship()) {
-					method.addStatement("$L.defineTaxonomyRelationshipToType($L)", variable, referencedTypeVariable);
+					method.addStatement("$L.defineTaxonomyRelationshipToType(types.getSchemaType($S))", variable, referencedType);
 
 				} else if (metadata.isChildOfRelationship()) {
-					method.addStatement("$L.defineChildOfRelationshipToType($L)", variable, referencedTypeVariable);
+					method.addStatement("$L.defineChildOfRelationshipToType(types.getSchemaType($S))", variable, referencedType);
 
 				} else {
-					method.addStatement("$L.defineReferencesTo($L)", variable, referencedTypeVariable);
+					method.addStatement("$L.defineReferencesTo(types.getSchemaType($S))", variable, referencedType);
 
 				}
 			} else {
 				Set<String> referencedSchemas = metadata.getAllowedReferences().getAllowedSchemas();
 				List<String> referencedSchemasVariables = new ArrayList<>();
 				for (String referencedSchema : referencedSchemas) {
-					referencedSchemasVariables.add(variableOf(types.getSchema(referencedSchema)));
+					referencedSchemasVariables.add("types.getSchema(\"" + referencedSchema + "\")");
 				}
 				String argument = asListLitteralWithoutQuotes(referencedSchemasVariables);
 				if (metadata.isTaxonomyRelationship()) {
