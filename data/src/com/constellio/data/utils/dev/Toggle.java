@@ -59,6 +59,8 @@ public class Toggle {
 
 	public static AvailableToggle DANGER_DANGER_DANGER___ALLOW_UPDATE_TO_OLDER_VERSION___DANGER_DANGER_DANGER = newToggle(false);
 
+	public static AvailableToggle SHOW_UNREAD_TASKS = newToggle(false);
+
 
 	// ------------------------------------------------
 

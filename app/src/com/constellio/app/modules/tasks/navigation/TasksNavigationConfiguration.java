@@ -26,6 +26,7 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.management.AdminView;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
@@ -113,8 +114,14 @@ public class TasksNavigationConfiguration implements Serializable {
 			public String getBadge(User user, AppLayerFactory appLayerFactory) {
 				TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(user.getCollection(), appLayerFactory);
 				TasksSearchServices tasksSearchServices = new TasksSearchServices(tasksSchemasRecordsServices);
-				long unreadCount = tasksSearchServices.getCountUnreadTasksToUserQuery(user);
-				return unreadCount > 0 ? "" + unreadCount : "";
+
+				if (Toggle.SHOW_UNREAD_TASKS.isEnabled()) {
+					long unreadCount = tasksSearchServices.getCountUnreadTasksToUserQuery(user);
+					return unreadCount > 0 ? "" + unreadCount : "";
+
+				} else {
+					return "";
+				}
 			}
 		});
 	}
