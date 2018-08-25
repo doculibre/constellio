@@ -6,7 +6,6 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
-import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -42,7 +41,6 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
@@ -201,20 +199,8 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		taxonomiesManager.editTaxonomy(taxonomiesManager.getEnabledTaxonomyWithCode(collection, "admUnits"));
 
 		RMMigrationTo7_2.reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
-		changeRolesNamesIfMultilingualCollection(appLayerFactory, collection);
 	}
 
-	private void changeRolesNamesIfMultilingualCollection(AppLayerFactory appLayerFactory, String collection) {
-		RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();
-		if (appLayerFactory.getCollectionsManager().getCollectionInfo(collection).getCollectionLanguages().size() > 1) {
-			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.USER)
-					.withTitle("Utilisateur / User"));
-			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.MANAGER)
-					.withTitle("Gestionnaire / Manager"));
-			rolesManager.updateRole(rolesManager.getRole(collection, RMRoles.RGD)
-					.withTitle("Responsable de la gestion documentaire / Records General Director"));
-		}
-	}
 
 	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);

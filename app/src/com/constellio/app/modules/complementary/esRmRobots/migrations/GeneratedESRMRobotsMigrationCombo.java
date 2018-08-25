@@ -1,23 +1,27 @@
 package com.constellio.app.modules.complementary.esRmRobots.migrations;
 
-import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.model.entities.schemas.MetadataTransiency;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.security.roles.RolesManager;
+import java.util.ArrayList;
+import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
+import static java.util.Arrays.asList;
+
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.modules.complementary.esRmRobots.validators.ClassifyConnectorTaxonomyActionParametersValidator;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.security.roles.RolesManager;
-
-import static java.util.Arrays.asList;
+import java.lang.String;
 
 public final class GeneratedESRMRobotsMigrationCombo {
   String collection;

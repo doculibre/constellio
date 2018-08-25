@@ -35,19 +35,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
-import com.constellio.model.entities.schemas.entries.AggregationType;
-import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
-import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
@@ -712,8 +699,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			}
 
 			if (!roleWithSameCode) {
-				main.addStatement("rolesManager.addRole(new $T(collection, $S, $S, $L))", Role.class, role.getCode(),
-						role.getTitle(),
+				main.addStatement("rolesManager.addRole(new $T(collection, $S, resourcesProvider.getValuesOfAllLanguagesWithSeparator($S, \" / \"), $L))", Role.class, role.getCode(),
+						"init.roles." + role.getCode(),
 						asListLitteral(role.getOperationPermissions()));
 			} else {
 				main.addStatement("rolesManager.updateRole(rolesManager.getRole(collection, $S).withNewPermissions($L))",
