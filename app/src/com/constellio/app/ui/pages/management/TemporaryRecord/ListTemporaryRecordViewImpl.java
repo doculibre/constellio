@@ -58,31 +58,37 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
 		return $("ListTemporaryRecordViewImpl.title");
 	}
 
-	@Override
-	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-		VerticalLayout mainLayout = new VerticalLayout();
-		mainLayout.addStyleName("batch-processes");
-		mainLayout.setSizeFull();
-		mainLayout.setSpacing(true);
-		initTabWithDefaultValues();
-		tabSheet = new TabSheet();
-		tabs = new HashMap<>();
-		for (Map.Entry<String, String> currentTabs : tabsSchemasAndLabel.entrySet()) {
-			RecordVODataProvider provider = presenter.getDataProviderFromType(currentTabs.getKey());
-			if (provider.size() > 0) {
-				tabs.put(tabSheet.addTab(buildTable(provider), currentTabs.getValue()), currentTabs.getKey());
-				if (currentSchema == null) {
-					currentSchema = currentTabs.getKey();
-				}
-			}
-		}
-		if (tabSheet.getComponentCount() > 0) {
-			mainLayout.addComponent(tabSheet);
-		} else {
-			mainLayout.addComponent(new TitlePanel($("ListTemporaryRecordViewImpl.noTemporaryReportAvailable")));
-		}
-		return mainLayout;
-	}
+    @Override
+    protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+        VerticalLayout mainLayout = new VerticalLayout();
+        mainLayout.addStyleName("batch-processes");
+        mainLayout.setSizeFull();
+        mainLayout.setSpacing(true);
+        initTabWithDefaultValues();
+        tabSheet = new TabSheet();
+        tabs = new HashMap<>();
+        for (final Map.Entry<String, String> currentTabs : tabsSchemasAndLabel.entrySet()) {
+            RecordVODataProvider provider = presenter.getDataProviderFromType(currentTabs.getKey());
+            if (provider.size() > 0) {
+                tabs.put(tabSheet.addTab(buildTable(provider), currentTabs.getValue()), currentTabs.getKey());
+                if(currentSchema == null) {
+                    currentSchema = currentTabs.getKey();
+                }
+                tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+                    @Override
+                    public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+                        currentSchema = ((RecordVOTable)event.getTabSheet().getSelectedTab()).getSchemas().get(0).getCode();
+                    }
+                });
+            }
+        }
+        if (tabSheet.getComponentCount() > 0) {
+            mainLayout.addComponent(tabSheet);
+        } else {
+            mainLayout.addComponent(new TitlePanel($("ListTemporaryRecordViewImpl.noTemporaryReportAvailable")));
+        }
+        return mainLayout;
+    }
 
 	private BaseTable buildTable(RecordVODataProvider provider) {
 		Container container = new RecordVOLazyContainer(provider);
