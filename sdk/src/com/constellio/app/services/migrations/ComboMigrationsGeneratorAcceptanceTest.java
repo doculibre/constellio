@@ -23,6 +23,7 @@ import com.constellio.data.utils.HashMapBuilder;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -690,7 +691,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addModifiers(Modifier.PUBLIC)
 				.returns(void.class);
 
-		main.addStatement("RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();");
+		main.addStatement("$T rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();", RolesManager.class);
 		for (Role role : rolesManager.getAllRoles(collection)) {
 
 			boolean roleWithSameCode = false;
@@ -978,10 +979,18 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 						}
 						if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 							CalculatedDataEntry dataEntry = (CalculatedDataEntry) metadata.getDataEntry();
-							main.addStatement("$L.get($S).defineDataEntry().asCalculated($T.class)",
-									variableOf(schema),
-									metadata.getLocalCode(),
-									dataEntry.getCalculator().getClass());
+							if (dataEntry.getCalculator() instanceof JEXLMetadataValueCalculator) {
+								main.addStatement("$L.get($S).defineDataEntry().asCalculated(new $T($S))",
+										variableOf(schema),
+										metadata.getLocalCode(),
+										dataEntry.getCalculator().getClass(),
+										((JEXLMetadataValueCalculator) dataEntry.getCalculator()).getExpression());
+							} else {
+								main.addStatement("$L.get($S).defineDataEntry().asCalculated($T.class)",
+										variableOf(schema),
+										metadata.getLocalCode(),
+										dataEntry.getCalculator().getClass());
+							}
 						}
 						if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
 							AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
