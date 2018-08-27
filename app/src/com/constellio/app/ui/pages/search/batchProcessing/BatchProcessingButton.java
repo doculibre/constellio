@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-
-import java.io.InputStream;
-import java.util.Locale;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -17,6 +8,7 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.Property;
@@ -30,6 +22,14 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 
 public class BatchProcessingButton extends WindowButton {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BatchProcessingButton.class);
@@ -83,6 +83,11 @@ public class BatchProcessingButton extends WindowButton {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.allSearchResultsButtonClicked();
+				ValidationErrors validationErrors = presenter.validateBatchProcessing();
+				if (!validationErrors.isEmpty()) {
+					view.showErrorMessage($(validationErrors.getValidationErrors().get(0)));
+					getWindow().close();
+				}
 				getWindow().setContent(buildBatchProcessingForm());
 				getWindow().setHeight(BatchProcessingButton.this.getConfiguration().getHeight());
 				getWindow().setPosition(getWindow().getPositionX(), 30);
@@ -93,6 +98,11 @@ public class BatchProcessingButton extends WindowButton {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.selectedSearchResultsButtonClicked();
+				ValidationErrors validationErrors = presenter.validateBatchProcessing();
+				if (!validationErrors.isEmpty()) {
+					view.showErrorMessage($(validationErrors.getValidationErrors().get(0)));
+					getWindow().close();
+				}
 				getWindow().setContent(buildBatchProcessingForm());
 				getWindow().setHeight(BatchProcessingButton.this.getConfiguration().getHeight());
 				getWindow().setPosition(getWindow().getPositionX(), 30);
