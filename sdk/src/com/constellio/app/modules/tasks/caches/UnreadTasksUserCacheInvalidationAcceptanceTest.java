@@ -33,12 +33,6 @@ public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTe
 	Task task;
 	TasksSchemasRecordsServices schemas;
 	RecordServices recordServices;
-	User userAdmin;
-	User userAlice;
-	User userBob;
-	User userChuck;
-	User userCharles;
-
 
 	@Before
 	public void setUp() throws Exception {
@@ -72,10 +66,10 @@ public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTe
 
 	@Test
 	public void whenCreatingNewTaskThenInvalidateAssignees() throws RecordServicesException {
-		String aliceId = (userAlice = users.aliceIn(zeCollection)).getId();
-		String adminId = (userAdmin = users.adminIn(zeCollection)).getId();
-		String bobId = (userBob = users.bobIn(zeCollection)).getId();
-		String chuckId = (userChuck = users.chuckNorrisIn(zeCollection)).getId();
+		String aliceId = users.aliceIn(zeCollection).getId();
+		String adminId = users.adminIn(zeCollection).getId();
+		String bobId = users.bobIn(zeCollection).getId();
+		String chuckId = users.chuckNorrisIn(zeCollection).getId();
 		List<String> usersCandidates = asList(bobId, chuckId);
 		List<String> groupsCandidates = asList(users.legendsIn(zeCollection).getId());
 		task = schemas.newTask();
@@ -90,10 +84,10 @@ public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTe
 
 	@Test
 	public void whenDeletingTaskThenInvalidateAssignees() throws RecordServicesException {
-		String aliceId = (userAlice = users.aliceIn(zeCollection)).getId();
-		String adminId = (userAdmin = users.adminIn(zeCollection)).getId();
-		String bobId = (userBob = users.bobIn(zeCollection)).getId();
-		String chuckId = (userChuck = users.chuckNorrisIn(zeCollection)).getId();
+		String aliceId = users.aliceIn(zeCollection).getId();
+		String adminId = users.adminIn(zeCollection).getId();
+		String bobId = users.bobIn(zeCollection).getId();
+		String chuckId = users.chuckNorrisIn(zeCollection).getId();
 		List<String> usersCandidates = asList(bobId, chuckId);
 		List<String> groupsCandidates = asList(users.legendsIn(zeCollection).getId());
 		task = schemas.newTask();
@@ -110,11 +104,12 @@ public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTe
 
 	@Test
 	public void whenModifyingTaskThenInvalidateAssignees() throws RecordServicesException {
-		String aliceId = (userAlice = users.aliceIn(zeCollection)).getId();
-		String adminId = (userAdmin = users.adminIn(zeCollection)).getId();
-		String bobId = (userBob = users.bobIn(zeCollection)).getId();
-		String charlesId = (userCharles = users.charlesIn(zeCollection)).getId();
-		String chuckId = (userChuck = users.chuckNorrisIn(zeCollection)).getId();
+		String aliceId = users.aliceIn(zeCollection).getId();
+		String adminId = users.adminIn(zeCollection).getId();
+		String bobId = users.bobIn(zeCollection).getId();
+		String charlesId = users.charlesIn(zeCollection).getId();
+		String chuckId = (users.chuckNorrisIn(zeCollection)).getId();
+
 		List<String> usersCandidates = asList(bobId, chuckId);
 		List<String> groupsCandidates = asList(users.legendsIn(zeCollection).getId());
 		task = schemas.newTask();
@@ -123,11 +118,10 @@ public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTe
 				.setAssigneeGroupsCandidates(groupsCandidates)
 				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
 		save(task);
-
 		task.setAssignee(charlesId);
+		task.setAssigneeUsersCandidates(new ArrayList<String>());
 		recordServices.update(task.getWrappedRecord());
-		System.out.println(task.getAssignee());
-
+		System.out.println("AssigneeUsersCandidates:" + task.getAssigneeUsersCandidates());
 		assertThatInvalidatedUsers().containsOnly(alice, bob, charles, chuck, edouard, gandalf, sasquatch);
 	}
 
@@ -138,14 +132,12 @@ public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTe
 
 	private void loadCache() {
 		for (User user : getModelLayerFactory().newUserServices().getAllUsersInCollection(zeCollection)) {
-
 			for (AppLayerFactory appLayerFactory : asList(getAppLayerFactory(), getAppLayerFactory("other-instance"))) {
 				TasksSchemasRecordsServices schemas = new TasksSchemasRecordsServices(zeCollection, appLayerFactory);
 				TasksSearchServices tasksSearchServices = new TasksSearchServices(schemas);
 				tasksSearchServices.getCountUnreadTasksToUserQuery(user);
 			}
 		}
-
 	}
 
 	private ListAssert<String> assertThatInvalidatedUsers() {
