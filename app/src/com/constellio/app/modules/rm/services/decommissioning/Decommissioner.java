@@ -111,7 +111,8 @@ public abstract class Decommissioner {
 		loggingServices = new DecommissioningLoggingService(modelLayerFactory);
 	}
 
-	public void process(DecommissioningList decommissioningList, User user, LocalDate processingDate) {
+	public void process(DecommissioningList decommissioningList, User user, LocalDate processingDate)
+			throws RecordServicesException.OptimisticLocking {
 		prepare(decommissioningList, user, processingDate);
 		validate();
 		saveCertificates(decommissioningList);
@@ -128,14 +129,16 @@ public abstract class Decommissioner {
 		execute(true);
 	}
 
-	public void approve(DecommissioningList decommissioningList, User user, LocalDate processingDate) {
+	public void approve(DecommissioningList decommissioningList, User user, LocalDate processingDate)
+			throws RecordServicesException.OptimisticLocking {
 		prepare(decommissioningList, user, processingDate);
 		approveFolders();
 		markApproved();
 		execute(false);
 	}
 
-	public void denyApproval(DecommissioningList decommissioningList, User denier, String comment) {
+	public void denyApproval(DecommissioningList decommissioningList, User denier, String comment)
+			throws RecordServicesException.OptimisticLocking {
 		prepare(decommissioningList, user, processingDate);
 		String approvalRequester = decommissioningList.getApprovalRequest();
 		removeApprovalRequest();
@@ -538,7 +541,7 @@ public abstract class Decommissioner {
 		add(decommissioningList.setProcessingDate(processingDate).setProcessingUser(user));
 	}
 
-	private void execute(boolean logging) {
+	private void execute(boolean logging) throws RecordServicesException.OptimisticLocking {
 		if (logging) {
 			loggingServices.logDecommissioning(decommissioningList, user);
 		}
@@ -568,6 +571,9 @@ public abstract class Decommissioner {
 					recordServices.logicallyDelete(record, user);
 				}
 			}
+		} catch (RecordServicesException.OptimisticLocking e) {
+			throw e;
+
 		} catch (RecordServicesException e) {
 			// TODO: Proper exception
 			throw new RecordServicesWrapperRuntimeException(e);

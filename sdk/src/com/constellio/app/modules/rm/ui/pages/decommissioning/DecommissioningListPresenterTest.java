@@ -153,7 +153,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenProcessButtonClickedThenProcessTheListAndRefreshWithMessage() {
+	public void givenProcessButtonClickedThenProcessTheListAndRefreshWithMessage() throws Exception {
 		doReturn(true).when(presenter).isListReadyToBeProcessed();
 		presenter.processButtonClicked();
 		verify(service, times(1)).decommission(list, user);
@@ -244,7 +244,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenApprovedButtonClickedThenApproveTheListAndRefreshWithMessage() {
+	public void givenApprovedButtonClickedThenApproveTheListAndRefreshWithMessage() throws Exception {
 		presenter.approvalButtonClicked();
 		verify(service, times(1)).approveList(list, user);
 		verify(view, times(1)).showMessage(anyString());

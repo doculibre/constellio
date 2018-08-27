@@ -904,12 +904,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 				executedAfterTransaction);
 	}
 
-	void refreshRecordsAndCaches(String collection, List<Record> records, TransactionResponseDTO transactionResponseDTO,
+	void refreshRecordsAndCaches(String collection, List<Record> records, Set<String> idsMarkedForReindexing,
+								 TransactionResponseDTO transactionResponseDTO,
 								 MetadataSchemaTypes types, RecordProvider recordProvider) {
 
 		invalidateTaxonomiesCache(records, types, recordProvider, modelLayerFactory.getTaxonomiesSearchServicesCache());
 
 		List<Record> recordsToInsert = new ArrayList<>();
+		Set<String> recordIdsInTransaction = new HashSet<>();
 		for (Record record : records) {
 			RecordImpl recordImpl = (RecordImpl) record;
 			if (transactionResponseDTO != null) {
@@ -920,9 +922,25 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 					recordImpl.markAsSaved(version, schema);
 					recordsToInsert.add(record);
+					recordIdsInTransaction.add(record.getId());
 				}
 			}
 		}
+
+		for (String idMarkedForReindexing : idsMarkedForReindexing) {
+			if (transactionResponseDTO != null && !recordIdsInTransaction.contains(idMarkedForReindexing)) {
+				Long version = transactionResponseDTO.getNewDocumentVersion(idMarkedForReindexing);
+				if (version != null) {
+
+					Record record = recordsCaches.getRecord(idMarkedForReindexing);
+					if (record != null) {
+						((RecordImpl) record).markAsSaved(version, metadataSchemasManager.getSchemaOf(record));
+						recordsToInsert.add(record);
+					}
+				}
+			}
+		}
+
 		insertInCache(collection, recordsToInsert, WAS_MODIFIED);
 
 	}
@@ -979,7 +997,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 						throw new ImpossibleRuntimeException("Unsupported datastore : " + transactionDTOEntry.getKey());
 					}
 
-					refreshRecordsAndCaches(transaction.getCollection(), modifiedOrUnsavedRecords, transactionResponseDTO,
+					refreshRecordsAndCaches(transaction.getCollection(), modifiedOrUnsavedRecords, transaction.getIdsToReindex(), transactionResponseDTO,
 							metadataSchemaTypes, newRecordProvider(null, transaction));
 
 					if (modificationImpactHandler != null) {
@@ -1104,7 +1122,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 
-			boolean isSupportingReindexing = "records".equals(dataStore);
+			boolean isSupportingReindexing = DataStore.RECORDS.equals(dataStore);
 
 			boolean isChangingSomething = !addedRecords.isEmpty() || !modifiedRecordDTOs.isEmpty() ||
 										  (isSupportingReindexing && !markedForReindexing.isEmpty());
