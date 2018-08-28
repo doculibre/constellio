@@ -1,5 +1,18 @@
 package com.constellio.app.modules.tasks.caches;
 
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.assertj.core.api.ListAssert;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
@@ -10,18 +23,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
-import org.assertj.core.api.ListAssert;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.linkEventBus;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTest {
 
@@ -65,21 +66,45 @@ public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTe
 	}
 
 	@Test
-	public void whenCreatingNewTaskThenInvalidateAssignees() throws RecordServicesException {
-		String aliceId = users.aliceIn(zeCollection).getId();
+	public void whenCreatingNewTaskThenInvalidateAllAssignees()
+			throws RecordServicesException {
 		String adminId = users.adminIn(zeCollection).getId();
 		String bobId = users.bobIn(zeCollection).getId();
 		String chuckId = users.chuckNorrisIn(zeCollection).getId();
 		List<String> usersCandidates = asList(bobId, chuckId);
 		List<String> groupsCandidates = asList(users.legendsIn(zeCollection).getId());
 		task = schemas.newTask();
-		task.setTitle("task").setAssignee(aliceId).setAssigner(adminId)
+		task.setTitle("task").setAssigner(adminId)
 				.setAssigneeUsersCandidates(usersCandidates)
 				.setAssigneeGroupsCandidates(groupsCandidates)
 				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
 		save(task);
 
 		assertThatInvalidatedUsers().containsOnly(alice, bob, chuck, edouard, gandalf, sasquatch);
+	}
+
+	@Test
+	public void whenCreatingNewTaskThenInvalidateAssignee()
+			throws RecordServicesException {
+		String adminId = users.adminIn(zeCollection).getId();
+		String aliceId = users.aliceIn(zeCollection).getId();
+
+		task = schemas.newTask();
+		task.setTitle("task").setAssigner(adminId).setAssignee(aliceId)
+				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
+		save(task);
+
+		assertThatInvalidatedUsers().containsOnly(alice);
+	}
+
+	@Test
+	public void whenCreatingNewTaskWithNoAssigneeThenInvalidatedUsersIsEmpty()
+			throws RecordServicesException {
+		task = schemas.newTask();
+		task.setTitle("task");
+		save(task);
+
+		assertThatInvalidatedUsers().isEmpty();
 	}
 
 	@Test
@@ -103,7 +128,8 @@ public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTe
 	}
 
 	@Test
-	public void whenModifyingTaskThenInvalidateAssignees() throws RecordServicesException {
+	public void whenModifyingTaskAssigneesThenInvalidateOldAndNewAssignees()
+			throws RecordServicesException {
 		String aliceId = users.aliceIn(zeCollection).getId();
 		String adminId = users.adminIn(zeCollection).getId();
 		String bobId = users.bobIn(zeCollection).getId();
