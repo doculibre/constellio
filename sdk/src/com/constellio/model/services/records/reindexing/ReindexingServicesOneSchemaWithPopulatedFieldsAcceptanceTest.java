@@ -19,7 +19,9 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static com.constellio.model.services.records.reindexing.ReindexationMode.*;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
+import static com.constellio.model.services.records.reindexing.ReindexationMode.REWRITE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;

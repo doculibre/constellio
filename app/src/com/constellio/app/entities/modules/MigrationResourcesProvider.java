@@ -41,6 +41,21 @@ public class MigrationResourcesProvider {
 
 	}
 
+	public String getValuesOfAllLanguagesWithSeparator(String key, String separator) {
+		StringBuilder sb = new StringBuilder();
+
+		for (Language language : collectionLanguages) {
+
+			if (sb.length() > 0) {
+				sb.append(separator);
+			}
+
+			sb.append(getString(key, language.getLocale()));
+		}
+
+		return sb.toString();
+	}
+
 	public String get(String key) {
 		return getDefaultLanguageString(key);
 	}

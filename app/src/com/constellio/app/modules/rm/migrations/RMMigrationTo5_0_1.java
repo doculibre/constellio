@@ -128,7 +128,7 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		new SchemaAlterationFor5_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		setupTaxonomies(collection, appLayerFactory.getModelLayerFactory(), migrationResourcesProvider);
 		setupDisplayConfig(collection, appLayerFactory);
-		setupRoles(collection, appLayerFactory.getModelLayerFactory());
+		setupRoles(collection, appLayerFactory.getModelLayerFactory(), migrationResourcesProvider);
 	}
 
 	private static void setupTaxonomies(String collection, ModelLayerFactory modelLayerFactory,
@@ -302,22 +302,6 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 				schemaDisplayFolderConfig.withFormMetadataCodes(schemaFormFolderConfig.getFormMetadataCodes()));
 		transaction.add(manager.getMetadata(collection, Folder.DEFAULT_SCHEMA + "_" + Folder.MEDIUM_TYPES)
 				.withInputType(MetadataInputType.CHECKBOXES));
-
-		SchemaDisplayConfig schemaDisplayUserConfig = order(collection, appLayerFactory, "display",
-				manager.getSchema(collection, User.DEFAULT_SCHEMA),
-				User.USERNAME,
-				User.FIRSTNAME,
-				User.LASTNAME,
-				Schemas.TITLE.getLocalCode(),
-				User.EMAIL,
-				User.ROLES,
-				User.GROUPS,
-				User.JOB_TITLE,
-				User.PHONE,
-				User.STATUS,
-				Schemas.CREATED_ON.getLocalCode(),
-				Schemas.MODIFIED_ON.getLocalCode());
-		transaction.add(schemaDisplayUserConfig);
 
 		// DOCUMENT TYPE
 		SchemaDisplayConfig schemaFormDocumentTypeConfig = order(collection, appLayerFactory, "form",
@@ -603,7 +587,8 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		manager.execute(transaction);
 	}
 
-	private void setupRoles(String collection, ModelLayerFactory modelLayerFactory) {
+	private void setupRoles(String collection, ModelLayerFactory modelLayerFactory,
+							MigrationResourcesProvider migrationResourcesProvider) {
 		RolesManager rolesManager = modelLayerFactory.getRolesManager();
 
 		List<String> userPermissions = new ArrayList<>();
@@ -624,10 +609,12 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 		rgdPermissions.addAll(RMPermissionsTo.PERMISSIONS.getAll());
 		rgdPermissions.addAll(CorePermissions.PERMISSIONS.getAll());
 
-		rolesManager.addRole(new Role(collection, RMRoles.USER, "Utilisateur", userPermissions));
-		rolesManager.addRole(new Role(collection, RMRoles.MANAGER, "Gestionnaire", managerPermissions));
+		rolesManager.addRole(new Role(collection, RMRoles.USER,
+				migrationResourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.U", " / "), userPermissions));
+		rolesManager.addRole(new Role(collection, RMRoles.MANAGER,
+				migrationResourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.M", " / "), managerPermissions));
 		rolesManager.addRole(
-				new Role(collection, RMRoles.RGD, "Responsable de la gestion documentaire", rgdPermissions));
+				new Role(collection, RMRoles.RGD, migrationResourcesProvider.getValuesOfAllLanguagesWithSeparator("init.roles.RGD", " / "), rgdPermissions));
 	}
 }
 

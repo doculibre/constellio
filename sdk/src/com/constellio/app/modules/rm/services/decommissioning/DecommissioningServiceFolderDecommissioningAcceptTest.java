@@ -569,7 +569,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	}
 
 	@Test
-	public void givenListToCloseThenAllFoldersAreClosed() {
+	public void givenListToCloseThenAllFoldersAreClosed() throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
@@ -581,7 +581,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	}
 
 	@Test
-	public void givenListToTransferThenAllFoldersAreTransferred() {
+	public void givenListToTransferThenAllFoldersAreTransferred() throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
@@ -594,7 +594,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	}
 
 	@Test
-	public void givenListToTransferWhenPurgeMinorVersionOnTransferThenMinorVersionsArePurged() {
+	public void givenListToTransferWhenPurgeMinorVersionOnTransferThenMinorVersionsArePurged() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.MINOR_VERSIONS_PURGED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(packed(records.getList05(), records.containerId_bac15)), records.getChuckNorris());
@@ -603,7 +603,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 	@Test
 	@SlowTest
-	public void givenListToTransferWhenCreatePDFaOnTransferThenPDFaCreated() {
+	public void givenListToTransferWhenCreatePDFaOnTransferThenPDFaCreated() throws Exception {
 		getConfigurationManager().setValue(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, SYNC_PARSING_FOR_ALL_CONTENTS);
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
@@ -613,7 +613,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	}
 
 	@Test
-	public void givenListToDepositThenAllFoldersAreDeposited() {
+	public void givenListToDepositThenAllFoldersAreDeposited() throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
@@ -628,7 +628,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	}
 
 	@Test
-	public void givenListToDepositWhenPurgeMinorVersionOnTransferThenMinorVersionsArePurged() {
+	public void givenListToDepositWhenPurgeMinorVersionOnTransferThenMinorVersionsArePurged() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.MINOR_VERSIONS_PURGED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(packed(records.getList20(), records.containerId_bac16)), records.getChuckNorris());
@@ -636,7 +636,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	}
 
 	@Test
-	public void givenListToDepositWhenPurgeMinorVersionsOnDepositThenMinorVersionsArePurged() {
+	public void givenListToDepositWhenPurgeMinorVersionsOnDepositThenMinorVersionsArePurged() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.MINOR_VERSIONS_PURGED_ON, DecommissioningPhase.ON_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList17()), records.getChuckNorris());
@@ -645,7 +645,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 	@Test
 	@SlowTest
-	public void givenListToDepositWhenCreatePDFaOnTransferThenPDFaCreated() {
+	public void givenListToDepositWhenCreatePDFaOnTransferThenPDFaCreated() throws Exception {
 		getConfigurationManager().setValue(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, SYNC_PARSING_FOR_ALL_CONTENTS);
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
@@ -656,7 +656,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 
 	@Test
 	@SlowTest
-	public void givenListToDepositWhenCreatePDFaOnDepositThenPDFaCreated() {
+	public void givenListToDepositWhenCreatePDFaOnDepositThenPDFaCreated() throws Exception {
 		getConfigurationManager().setValue(ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR, SYNC_PARSING_FOR_ALL_CONTENTS);
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_DEPOSIT);
 		givenDisabledAfterTestValidations();
@@ -666,7 +666,7 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	}
 
 	@Test
-	public void givenListToDestroyThenAllFoldersAreDestroyed() {
+	public void givenListToDestroyThenAllFoldersAreDestroyed() throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
@@ -679,14 +679,14 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	}
 
 	@Test
-	public void givenListToDestroyThenDocumentsContentsAreDestroyed() {
+	public void givenListToDestroyThenDocumentsContentsAreDestroyed() throws Exception {
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList21()), records.getChuckNorris());
 		assertThat(records.getDocumentWithContent_A19().getContent()).isNull();
 	}
 
 	@Test
-	public void givenListToDestroyWhenDocumentDeletionIsEnabledThenDocumentsAreDeleted() {
+	public void givenListToDestroyWhenDocumentDeletionIsEnabledThenDocumentsAreDeleted() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.DELETE_DOCUMENT_RECORDS_WITH_DESTRUCTION, true);
 		givenDisabledAfterTestValidations();
 		service.decommission(approved(records.getList21()), records.getChuckNorris());
@@ -714,7 +714,8 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	}
 
 	@Test
-	public void givenListToDepositWithSortThenRegularFoldersAreDepositedAndReversedFoldersAreDestroyed() {
+	public void givenListToDepositWithSortThenRegularFoldersAreDepositedAndReversedFoldersAreDestroyed()
+			throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
@@ -727,7 +728,8 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	}
 
 	@Test
-	public void givenListToDestroyWithSortThenRegularFoldersAreDestroyedAndReversedFoldersAreDeposited() {
+	public void givenListToDestroyWithSortThenRegularFoldersAreDestroyedAndReversedFoldersAreDeposited()
+			throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);

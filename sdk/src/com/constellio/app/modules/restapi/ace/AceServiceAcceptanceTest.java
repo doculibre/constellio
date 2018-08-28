@@ -26,9 +26,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import static com.constellio.app.modules.restapi.core.util.Permissions.*;
+import static com.constellio.app.modules.restapi.core.util.Permissions.DELETE;
+import static com.constellio.app.modules.restapi.core.util.Permissions.READ;
+import static com.constellio.app.modules.restapi.core.util.Permissions.WRITE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.sdk.tests.TestUtils.comparingListAnyOrder;
 import static com.google.common.collect.Sets.newHashSet;

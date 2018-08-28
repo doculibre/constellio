@@ -24,7 +24,7 @@ public class CoreMigrationTo_5_1_2 implements MigrationScript {
 	}
 
 	private void setupRoles(String collection, RolesManager manager, MigrationResourcesProvider provider) {
-		String label = provider.getDefaultLanguageString("roles.administrator");
+		String label = provider.getValuesOfAllLanguagesWithSeparator("init.roles.ADM", " / ");
 		List<String> permissions = new ArrayList<>(CorePermissions.PERMISSIONS.getAll());
 		manager.addRole(new Role(collection, CoreRoles.ADMINISTRATOR, label, permissions));
 	}

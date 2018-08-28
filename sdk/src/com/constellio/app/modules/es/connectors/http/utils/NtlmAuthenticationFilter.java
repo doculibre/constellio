@@ -3,7 +3,12 @@ package com.constellio.app.modules.es.connectors.http.utils;
 import jcifs.ntlmssp.Type3Message;
 import org.apache.commons.codec.binary.Base64;
 
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

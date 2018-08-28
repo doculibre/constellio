@@ -19,7 +19,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.*;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_ASUSER;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_DURATION;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_USERNAME_PASSWORD;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_DURATION_REQUIRED;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_PASSWORD_REQUIRED;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_USERNAME_REQUIRED;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.REQUIRE_ADMIN_RIGHTS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioTest {

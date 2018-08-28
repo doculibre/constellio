@@ -7,6 +7,7 @@ import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.RefreshHandler;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.WebResponse;
 import org.apache.http.client.CredentialsProvider;
 
 import java.io.IOException;
@@ -57,8 +58,14 @@ public class HttpURLFetchingService implements AutoCloseable {
 		webClient.setRefreshHandler(emptyRefreshHandler);
 		webClient.getOptions().setUseInsecureSSL(true);
 		webClient.getOptions().setRedirectEnabled(true);
+		webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
 		try {
-			return webClient.getPage(url);
+			Page page = webClient.getPage(url);
+			WebResponse webResponse = page.getWebResponse();
+			if (webResponse.getStatusCode() < 200 || webResponse.getStatusCode() > 299) {
+				throw new FailingHttpStatusCodeException(webResponse);
+			}
+			return page;
 		} catch (FailingHttpStatusCodeException e) {
 			throw new URLFetchingServiceRuntimeException_HttpError(url, e);
 

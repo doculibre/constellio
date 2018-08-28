@@ -1,12 +1,13 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
+import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncTask;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
-import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultReportWriter;
+import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultXLSReportWriter;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.CollectionInfoVO;
@@ -26,6 +27,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessR
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -34,6 +36,8 @@ import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Content;
@@ -68,6 +72,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
@@ -267,8 +272,12 @@ public class BatchProcessingPresenterService {
 		Transaction transaction = prepareTransactionWithIds(request, true);
 		recordServices.validateTransaction(transaction);
 
+		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(request.getModifiedMetadatas(), null, records, Long.valueOf(records.size()));
+		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, title);
+		asyncTaskRequest.setUsername(username);
+
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-		batchProcessesManager.addPendingBatchProcess(records, action, username, title, collection);
+		batchProcessesManager.addAsyncTask(asyncTaskRequest);
 
 		return null;
 	}
@@ -394,10 +403,21 @@ public class BatchProcessingPresenterService {
 			recordServices.validateTransaction(transaction);
 		}
 
+		AsyncTask asyncTask = new ChangeValueOfMetadataBatchAsyncTask(request.getModifiedMetadatas(), toQueryString(query), null, searchServices.getResultsCount(query));
+		AsyncTaskCreationRequest asyncTaskRequest = new AsyncTaskCreationRequest(asyncTask, collection, title);
+		asyncTaskRequest.setUsername(username);
+
 		BatchProcessesManager batchProcessesManager = modelLayerFactory.getBatchProcessesManager();
-		batchProcessesManager.addPendingBatchProcess(query, action, username, title);
+		batchProcessesManager.addAsyncTask(asyncTaskRequest);
 
 		return null;
+	}
+
+	private String toQueryString(LogicalSearchQuery query) {
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		ModifiableSolrParams params = searchServices.addSolrModifiableParams(query);
+		String solrQuery = SolrUtils.toSingleQueryString(params);
+		return solrQuery;
 	}
 
 	public BatchProcessResults simulate(String selectedType, LogicalSearchQuery query, RecordVO viewObject, User user)
@@ -916,7 +936,7 @@ public class BatchProcessingPresenterService {
 		try {
 			resultsFile = ioServices.newTemporaryFile(TMP_BATCH_FILE);
 			outputStream = new FileOutputStream(resultsFile);
-			new BatchProcessingResultReportWriter(new BatchProcessingResultModel(results, locale), i18n.getLocale())
+			new BatchProcessingResultXLSReportWriter(new BatchProcessingResultModel(results, locale), i18n.getLocale())
 					.write((OutputStream) outputStream);
 			IOUtils.closeQuietly(outputStream);
 			return new FileInputStream(resultsFile);
@@ -928,4 +948,3 @@ public class BatchProcessingPresenterService {
 		}
 	}
 }
-

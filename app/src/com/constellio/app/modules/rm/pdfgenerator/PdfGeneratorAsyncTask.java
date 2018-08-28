@@ -34,6 +34,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 import net.sf.jasperreports.engine.JRException;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -162,7 +163,7 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 			if (content != null) {
 				String hash = document.getContent().getCurrentVersion().getHash();
 				String extension = FilenameUtils.getExtension(document.getContent().getCurrentVersion().getFilename());
-				if ("pdf".equals(extension)) {
+				if ("pdf".equals(StringUtils.defaultIfBlank(extension, "").toLowerCase())) {
 					try (InputStream documentIn = contentManager.getContentInputStream(hash, getClass().getSimpleName() + hash + ".PdfGenerator")) {
 						result = PDDocument.load(documentIn);
 						result.getDocumentCatalog().setDocumentOutline(null);

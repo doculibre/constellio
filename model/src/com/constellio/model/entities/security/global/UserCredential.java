@@ -92,4 +92,8 @@ public interface UserCredential {
 
 	boolean isActiveUser();
 
+	boolean hasAgreedToPrivacyPolicy();
+
+	UserCredential withAgreedPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy);
+
 }

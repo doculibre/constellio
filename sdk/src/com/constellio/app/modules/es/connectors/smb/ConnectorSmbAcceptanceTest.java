@@ -31,7 +31,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.*;
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.ADD_EVENT;
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.DELETE_EVENT;
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.MODIFY_EVENT;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static org.assertj.core.api.Assertions.assertThat;

@@ -46,6 +46,12 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 		scripts.add(new TasksMigrationTo7_5_0_1());
 		scripts.add(new TasksMigrationTo7_6_1());
 		scripts.add(new TasksMigrationTo7_6_3());
+		scripts.add(new TasksMigrationTo7_6_6());
+		scripts.add(new TasksMigrationTo7_6_6_1());
+		scripts.add(new TasksMigrationTo7_7());
+		scripts.add(new TasksMigrationTo7_7_3());
+		scripts.add(new TasksMigrationTo7_7_4());
+		scripts.add(new TasksMigrationTo7_7_4_1());
 
 		return scripts;
 	}

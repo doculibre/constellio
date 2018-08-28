@@ -12,7 +12,9 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.constellio.sdk.tests.TestUtils.*;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.extractingWarningsSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 

@@ -1,7 +1,11 @@
 package com.constellio.app.services.factories;
 
-import com.constellio.data.conf.*;
+import com.constellio.data.conf.ConfigManagerType;
+import com.constellio.data.conf.ContentDaoType;
+import com.constellio.data.conf.DataLayerConfiguration;
+import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
+import com.constellio.data.conf.SolrServerType;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;

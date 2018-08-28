@@ -57,6 +57,7 @@ import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.STANDBY;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
+import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE;
 import static com.constellio.model.entities.records.wrappers.ValueListItem.CODE;
 import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
@@ -180,16 +181,16 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		String closedCode = CLOSED_CODE;
 
 		transaction.add(schemas.newTaskStatus().setCode(standByCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.STitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.STitle"))
 				.setStatusType(STANDBY));
 		transaction.add(schemas.newTaskStatus().setCode(inProcessCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.ITitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.ITitle"))
 				.setStatusType(IN_PROGRESS));
 		transaction.add(schemas.newTaskStatus().setCode(finishedCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.FTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.FTitle"))
 				.setStatusType(FINISHED));
 		transaction.add(schemas.newTaskStatus().setCode(closedCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.CTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.CTitle"))
 				.setStatusType(CLOSED));
 
 		try {
@@ -256,6 +257,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 			defaultSchema.defineValidators().add(TaskStatusValidator.class);
 			defaultSchema.getMetadata(CODE).setUniqueValue(true).setUnmodifiable(true);
+			defaultSchema.getMetadata(TITLE).setMultiLingual(true);
 			defaultSchema.createUndeletable(TaskStatus.STATUS_TYPE).defineAsEnum(TaskStatusType.class)
 					.setDefaultRequirement(true);
 
@@ -292,7 +294,7 @@ public class TasksMigrationTo5_0_7 extends MigrationHelper implements MigrationS
 		private MetadataSchemaTypeBuilder createTaskSchemaType(MetadataSchemaTypesBuilder typesBuilder,
 															   MetadataSchemaBuilder taskType) {
 			MetadataSchemaTypeBuilder taskStatusType = typesBuilder.getSchemaType(TaskStatus.SCHEMA_TYPE);
-			MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(Task.SCHEMA_TYPE).setSecurity(true);
+			MetadataSchemaTypeBuilder schemaType = types().createNewSchemaType(Task.SCHEMA_TYPE).setSecurity(true).setSmallCode("t");
 			MetadataSchemaBuilder defaultSchema = schemaType.getDefaultSchema();
 			defaultSchema.defineValidators().add(TaskValidator.class);
 

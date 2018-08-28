@@ -62,11 +62,11 @@ import org.joda.time.LocalDateTime;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
 
@@ -505,7 +505,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				recordServices().recalculate(record);
 				documentVO.set(Document.APPLICABLE_COPY_RULES, record.getApplicableCopyRules());
 			}
-			List<String> ignoredMetadataCodes = Arrays.asList(Document.FOLDER);
+			List<String> ignoredMetadataCodes = asList(Document.FOLDER);
 			reloadFormAndPopulateCurrentMetadatasExcept(ignoredMetadataCodes);
 			view.getForm().getCustomField(Document.FOLDER).focus();
 		}
@@ -735,7 +735,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 								ioServices.closeQuietly(inputStream);
 							}
 						}
-						modelLayerFactory.newRecordPopulateServices().populate(documentRecord);
+						modelLayerFactory.newRecordPopulateServices().populate(documentRecord, documentVO.getRecord());
 						documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
 						documentVO.getContent().setMajorVersion(null);
 						documentVO.getContent().setHash(null);
@@ -745,6 +745,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 						documentVO.setTitle(filename);
 						view.setRecord(documentVO);
 						view.getForm().reload();
+						addContentFieldListeners();
 					} catch (final IcapException e) {
 						view.showErrorMessage(e.getMessage());
 

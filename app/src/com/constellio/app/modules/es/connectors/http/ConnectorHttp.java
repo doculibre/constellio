@@ -9,8 +9,6 @@ import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
-import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.ConfigurationAlreadyExists;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServicesException;
@@ -32,8 +30,6 @@ public class ConnectorHttp extends Connector {
 
 	private ConnectorHttpContext context;
 
-	ConfigManager configManager;
-
 	String connectorId;
 
 	ConnectorHttpContextServices contextServices;
@@ -41,7 +37,6 @@ public class ConnectorHttp extends Connector {
 	@Override
 	public void initialize(Record instanceRecord) {
 		this.connectorId = instanceRecord.getId();
-		this.configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
 		this.contextServices = new ConnectorHttpContextServices(es);
 	}
 
@@ -82,13 +77,7 @@ public class ConnectorHttp extends Connector {
 	}
 
 	public void start() {
-		try {
-			context = contextServices.createContext(connectorId);
-
-		} catch (ConfigurationAlreadyExists e) {
-			contextServices.deleteContext(connectorId);
-			context = contextServices.createContext(connectorId);
-		}
+		context = contextServices.createContext(connectorId);
 
 		ConnectorHttpInstance connectorInstance = getConnectorInstance();
 		List<ConnectorDocument> documents = new ArrayList<>();
@@ -172,11 +161,7 @@ public class ConnectorHttp extends Connector {
 
 	@Override
 	public void onAllDocumentsDeleted() {
-		String configFolderPath = "connectors/http/" + connectorId + "/";
-		ConfigManager configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
-		if (configManager.folderExist(configFolderPath)) {
-			configManager.deleteFolder(configFolderPath);
-		}
+		contextServices.deleteContext(connectorId);
 	}
 
 	@Override

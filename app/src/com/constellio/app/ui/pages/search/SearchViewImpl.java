@@ -386,9 +386,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		int currentPage = presenter.getPageNumber();
 
 		int selectedPageLength = presenter.getSelectedPageLength();
-		if (selectedPageLength == 0) {
-			selectedPageLength = Math.min(totalResults, presenter.getDefaultPageLength());
-		}
 		presenter.setSelectedPageLength(selectedPageLength);
 
 		srTable.setPageLength(selectedPageLength);
@@ -398,7 +395,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
-				System.out.println("Jonathan Plamndon");
 			}
 		});
 

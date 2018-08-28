@@ -1,12 +1,16 @@
 package com.constellio.app.ui.pages.login;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.LogoUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ExternalResource;
@@ -27,6 +31,7 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 import javax.servlet.http.Cookie;
@@ -222,4 +227,50 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		VaadinService.getCurrentResponse().addCookie(usernameCookie);
 	}
 
+	public void popPrivacyPolicyWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
+									   final String lastCollection) {
+		final Window window = new Window();
+		window.setWidth("90%");
+		window.setHeight("90%");
+		window.setModal(true);
+		window.setCaption($("LoginView.privacyPolicyWindow"));
+
+		VerticalLayout mainLayout = new VerticalLayout();
+		mainLayout.setSizeFull();
+		mainLayout.setSpacing(true);
+
+		VerticalLayout textLayout = new VerticalLayout();
+
+		HorizontalLayout buttonLayout = new HorizontalLayout();
+		buttonLayout.setSpacing(true);
+		buttonLayout.setHeight("50px");
+
+		BaseButton cancelButton = new BaseButton($("cancel")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				window.close();
+			}
+		};
+		BaseButton acceptButton = new BaseButton($("accept")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				UserServices userServices = modelLayerFactory.newUserServices();
+				userServices.addUpdateUserCredential(userServices.getUserCredential(userInLastCollection.getUsername())
+						.withAgreedPrivacyPolicy(true));
+				presenter.signInValidated(userInLastCollection, lastCollection);
+				window.close();
+			}
+		};
+		acceptButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+		textLayout.addComponent(new DocumentViewer(presenter.getPrivacyPolicyFile()));
+		buttonLayout.addComponents(acceptButton, cancelButton);
+
+		mainLayout.addComponents(textLayout, buttonLayout);
+		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
+
+		window.setContent(mainLayout);
+
+		ConstellioUI.getCurrent().addWindow(window);
+	}
 }

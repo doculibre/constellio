@@ -15,6 +15,8 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEma
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
@@ -977,6 +979,12 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			decommissioningList.setComments(comments);
 		}
 
-		decommissioningService().denyApprovalOnList(decommissioningList, getCurrentUser(), commentString);
+		try {
+			decommissioningService().denyApprovalOnList(decommissioningList, getCurrentUser(), commentString);
+		} catch (DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission e) {
+			view.showMessage($("DecommissioningListView.tooMuchOptimisticLocking"));
+		} catch (DecommissioningServiceException e) {
+			view.showMessage($(e));
+		}
 	}
 }

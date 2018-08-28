@@ -21,7 +21,7 @@ public abstract class SolrFeatureRequest extends AbstractSchemaRequest<SolrRespo
 	List<SolrFeature> features;
 
 	public SolrFeatureRequest(METHOD m, SolrParams params) {
-		super(m, "/records/schema/feature-store", params);
+		super(m, "/schema/feature-store", params);
 	}
 
 	public SolrFeatureRequest(METHOD m) {

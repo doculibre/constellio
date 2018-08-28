@@ -13,7 +13,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
 
-import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.*;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.BORROWED_DOCUMENTS_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.BY_FOLDER_EVENTS_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.BY_USER_EVENTS_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.CURRENTLY_BORROWED_DOCUMENTS_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.DECOMMISSIONING_EVENTS_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.FILING_SPACE_EVENTS_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.RECORDS_CREATION_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.RECORDS_DELETION_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.RECORDS_MODIFICATION_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.SYSTEM_USAGE_LINK_BUTTON;
+import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.USERS_AND_GROUPS_LINK_BUTTON;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest

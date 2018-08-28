@@ -17,7 +17,14 @@ import org.junit.Test;
 import java.io.StringReader;
 import java.util.List;
 
-import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.*;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedAllauthorizationsMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedDdvContainerMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedDdvDocumentMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedDocumentDefaultSchemaMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedDocumentEmailSchemaMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedFolderDefaultSchemaMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedKeywordMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedTypeMetadatas;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstellioGetSchemaMetadatasAcceptTest extends ConstellioTest {

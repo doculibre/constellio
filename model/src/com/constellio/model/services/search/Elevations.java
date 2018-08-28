@@ -3,7 +3,6 @@ package com.constellio.model.services.search;
 import com.constellio.model.services.search.QueryElevation.DocElevation;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
-import javax.xml.bind.annotation.XmlAttribute;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -110,20 +109,4 @@ public class Elevations implements Serializable {
 	}
 
 
-	public static class DocExclusion implements Serializable {
-		private String id;
-
-		public DocExclusion(String id) {
-			this.id = id;
-		}
-
-		@XmlAttribute(name = "id")
-		public String getId() {
-			return id;
-		}
-
-		public boolean equals(Object obj) {
-			return EqualsBuilder.reflectionEquals(this, obj);
-		}
-	}
 }

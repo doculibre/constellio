@@ -131,7 +131,7 @@ public class MetadataDeletionService {
 			String referenceMetadata = dataEntry.getReferenceMetadata();
 			if (referenceMetadata != null && (referenceMetadata.equals(dependOnMetadataCode) || referenceMetadata
 					.equals(dependOnMetadataLocalCode))
-					) {
+			) {
 				metadataDependency.addCopyReferenceDependency(dependentMetadata.getCode());
 			}
 			String sourceMetadata = dataEntry.getCopiedMetadata();

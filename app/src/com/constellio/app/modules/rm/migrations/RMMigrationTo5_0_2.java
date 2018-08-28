@@ -62,19 +62,19 @@ public class RMMigrationTo5_0_2 implements MigrationScript {
 
 		if (schemas.getMediumTypeByCode(paperCode) == null) {
 			transaction.add(schemas.newMediumType().setCode(paperCode)
-					.setTitle(migrationResourcesProvider.getDefaultLanguageString("MediumType.paperTitle"))
+					.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.paperTitle"))
 					.setAnalogical(true));
 		}
 
 		if (schemas.getMediumTypeByCode(filmCode) == null) {
 			transaction.add(schemas.newMediumType().setCode(filmCode)
-					.setTitle(migrationResourcesProvider.getDefaultLanguageString("MediumType.filmTitle"))
+					.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.filmTitle"))
 					.setAnalogical(true));
 		}
 
 		if (schemas.getMediumTypeByCode(driveCode) == null) {
 			transaction.add(schemas.newMediumType().setCode(driveCode)
-					.setTitle(migrationResourcesProvider.getDefaultLanguageString("MediumType.driveTitle"))
+					.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.driveTitle"))
 					.setAnalogical(false));
 		}
 

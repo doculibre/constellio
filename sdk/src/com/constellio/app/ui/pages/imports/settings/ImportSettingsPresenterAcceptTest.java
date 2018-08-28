@@ -26,7 +26,9 @@ import java.io.IOException;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ImportSettingsPresenterAcceptTest extends ConstellioTest {
 

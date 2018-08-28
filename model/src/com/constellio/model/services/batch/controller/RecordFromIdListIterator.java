@@ -16,7 +16,7 @@ public class RecordFromIdListIterator implements Iterator<Record> {
 	int nextIndex;
 	RecordServices recordServices;
 
-	RecordFromIdListIterator(List<String> records, ModelLayerFactory modelLayerFactory) {
+	public RecordFromIdListIterator(List<String> records, ModelLayerFactory modelLayerFactory) {
 		this.records = records;
 		nextIndex = 0;
 		recordServices = modelLayerFactory.newRecordServices();

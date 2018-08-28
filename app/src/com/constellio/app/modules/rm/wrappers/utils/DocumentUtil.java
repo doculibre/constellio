@@ -2,20 +2,29 @@ package com.constellio.app.modules.rm.wrappers.utils;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
-import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
-import org.apache.commons.lang3.StringUtils;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DocumentUtil {
-	public static Document createCopyFrom(Document document) {
+	public static Document createCopyFrom(Document document, AppLayerFactory appLayerFactory) {
 		String collection = document.getCollection();
-		Document doc = createNewDocument(collection);
+		Document doc = createNewDocument(collection, appLayerFactory);
 
 		for (Metadata metadata : document.getSchema().getMetadatas()) {
 			if (!metadata.isSystemReserved() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
@@ -26,19 +35,38 @@ public class DocumentUtil {
 		return doc;
 	}
 
-	public static Document createNewDocument(String collection) {
-		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
-
-		if (StringUtils.isBlank(collection)) {
-			collection = sessionContext.getCurrentCollection();
-		}
-
+	public static Document createNewDocument(String collection, AppLayerFactory appLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		SchemaPresenterUtils presenterUtils = new SchemaPresenterUtils(Document.DEFAULT_SCHEMA, constellioFactories, sessionContext);
+		return rm.newDocument();
+	}
 
-		Record record = presenterUtils.newRecord();
-		return rm.wrapDocument(record);
+	public static List<Document> getDocumentsInFolder(String folderId, String collection,
+													  AppLayerFactory appLayerFactory) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		return getDocumentsInFolder(rm.getFolder(folderId), appLayerFactory);
+	}
+
+	public static List<Document> getDocumentsInFolder(Folder folder, AppLayerFactory appLayerFactory) {
+		LogicalSearchQuery query = new LogicalSearchQuery();
+
+		MetadataSchemasManager metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(folder.getCollection());
+
+		query.setCondition(from(types.getSchemaType(Document.SCHEMA_TYPE)).where(types.getSchema(Document.DEFAULT_SCHEMA).getMetadata(Document.FOLDER)).is(folder));
+		query.sortAsc(Schemas.TITLE);
+
+
+		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(folder.getCollection(), appLayerFactory);
+		Function<Record, Document> recordToDocument = new Function<Record, Document>() {
+			@Nullable
+			@Override
+			public Document apply(@Nullable Record input) {
+				return rm.wrapDocument(input);
+			}
+		};
+
+		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		List<Record> records = searchServices.query(query).getRecords();
+		return Lists.transform((List<Record>) CollectionUtils.emptyIfNull(records), recordToDocument);
 	}
 }

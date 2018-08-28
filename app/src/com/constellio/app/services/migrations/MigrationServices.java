@@ -147,9 +147,7 @@ public class MigrationServices {
 
 		for (
 				MigrationScript script
-				: constellioEIM.getMigrationScripts())
-
-		{
+				: constellioEIM.getMigrationScripts()) {
 			migrations.add(new Migration(collection, null, script));
 		}
 
@@ -313,6 +311,7 @@ public class MigrationServices {
 	private void ensureSchemasHaveCommonMetadata(String collection, int attempt) {
 		MetadataSchemasManager manager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaTypesBuilder types = manager.modify(collection);
+
 		new CommonMetadataBuilder().addCommonMetadataToAllExistingSchemas(types);
 		try {
 			manager.saveUpdateSchemaTypes(types);

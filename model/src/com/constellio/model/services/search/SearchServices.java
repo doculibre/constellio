@@ -36,6 +36,7 @@ import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQ
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -481,8 +482,15 @@ public class SearchServices {
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
 				int mm = calcMM(query.getFreeTextQuery());
 				params.add(DisMaxParams.MM, "" + mm);
+				if (systemConfigs.isRunningWithSolr6()) {
+					params.add(DisMaxParams.MM, "1");
+					params.add("q.op", "AND");
+				}
 			} else {
 				params.add(DisMaxParams.MM, "1");
+				if (systemConfigs.isRunningWithSolr6()) {
+					params.add("q.op", "OR");
+				}
 			}
 			params.add("defType", "edismax");
 			params.add(DisMaxParams.BQ, "\"" + query.getFreeTextQuery() + "\"");
@@ -717,6 +725,12 @@ public class SearchServices {
 			} else if (sort instanceof FunctionLogicalSearchQuerySort) {
 				String function = ((FunctionLogicalSearchQuerySort) sort).getFunction();
 				stringBuilder.append(function);
+				stringBuilder.append(" ");
+				stringBuilder.append(sort.isAscending() ? "asc" : "desc");
+
+			} else if (sort instanceof ScoreLogicalSearchQuerySort) {
+				String field = ((ScoreLogicalSearchQuerySort) sort).getField();
+				stringBuilder.append(field);
 				stringBuilder.append(" ");
 				stringBuilder.append(sort.isAscending() ? "asc" : "desc");
 

@@ -15,10 +15,17 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.sdk.tests.TestUtils.asList;
 
 public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
@@ -113,9 +120,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 	}
 
-	public static class CalculatorCopyingZeSchemaTitleLengthPlusTwo implements MetadataValueCalculator<Double>
-
-	{
+	public static class CalculatorCopyingZeSchemaTitleLengthPlusTwo implements MetadataValueCalculator<Double> {
 
 		ReferenceDependency<Double> reference = ReferenceDependency
 				.toANumber("referenceFromAnotherSchemaToZeSchema", "titleLength").whichIsRequired();
@@ -148,9 +153,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 	}
 
-	public static class CalculatorCopyingZeSchemaTitleLengths implements MetadataValueCalculator<List<Double>>
-
-	{
+	public static class CalculatorCopyingZeSchemaTitleLengths implements MetadataValueCalculator<List<Double>> {
 
 		ReferenceDependency<List<Double>> reference = ReferenceDependency
 				.toANumber("referenceFromAnotherSchemaToZeSchema", "titleLength").whichIsRequired().whichIsMultivalue();
@@ -183,9 +186,7 @@ public class ModificationImpactCalculatorAcceptSetup extends TestsSchemasSetup {
 
 	}
 
-	public static class CalculatorUsingZeSchemaStringMetadata implements MetadataValueCalculator<Double>
-
-	{
+	public static class CalculatorUsingZeSchemaStringMetadata implements MetadataValueCalculator<Double> {
 
 		ReferenceDependency<String> reference = ReferenceDependency
 				.toAString("reference1ToZeSchema", "stringMetadata");
