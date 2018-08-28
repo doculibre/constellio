@@ -1,5 +1,33 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT;
+import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
+import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
+import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE;
+import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE;
+import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
+import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -32,6 +60,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewRe
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionField;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -60,33 +89,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT;
-import static com.constellio.app.modules.rm.wrappers.Folder.ADMINISTRATIVE_UNIT_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY;
-import static com.constellio.app.modules.rm.wrappers.Folder.CATEGORY_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
-import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE;
-import static com.constellio.app.modules.rm.wrappers.Folder.MAIN_COPY_RULE_ID_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE;
-import static com.constellio.app.modules.rm.wrappers.Folder.RETENTION_RULE_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION;
-import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFolderView> {
 
@@ -110,6 +112,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient BorrowingServices borrowingServices;
+	private Map<String, String> params;
 
 	public AddEditFolderPresenter(AddEditFolderView view) {
 		super(view, Folder.DEFAULT_SCHEMA);
@@ -137,11 +140,13 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		String id = paramsMap.get(ID);
 		String parentId = paramsMap.get(PARENT_ID);
 		userFolderId = paramsMap.get(USER_FOLDER_ID);
+		this.params = paramsMap;
 
 		Record record;
 		if (StringUtils.isNotBlank(id)) {
 			record = getRecord(id);
 			addView = false;
+
 		} else if (parentId == null) {
 			record = newRecord();
 			addView = true;
@@ -256,9 +261,18 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	public void cancelButtonClicked() {
 		if (addView) {
+
+			boolean areDecommissionTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
 			String parentId = folderVO.getParentFolder();
 			if (parentId != null) {
-				view.navigate().to(RMViews.class).displayFolder(parentId);
+				if (areDecommissionTypeAndSearchIdPresent) {
+					view.navigate().to(RMViews.class)
+							.displayFolderFromDecommission(parentId, DecommissionNavUtil.getHomeUri(appLayerFactory),
+									false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+				} else {
+					view.navigate().to(RMViews.class).displayFolder(parentId);
+				}
 			} else if (userFolderId != null) {
 				view.navigate().to(RMViews.class).listUserDocuments();
 			} else {
@@ -333,7 +347,15 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 		}
 
-		view.navigate().to(RMViews.class).displayFolder(folder.getId());
+		boolean areDecommissionTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+		if (areDecommissionTypeAndSearchIdPresent) {
+			view.navigate().to(RMViews.class)
+					.displayFolderFromDecommission(folder.getId(), DecommissionNavUtil.getHomeUri(appLayerFactory),
+							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else {
+			view.navigate().to(RMViews.class).displayFolder(folder.getId());
+		}
 	}
 
 	public void customFieldValueChanged(CustomFolderField<?> customField) {
