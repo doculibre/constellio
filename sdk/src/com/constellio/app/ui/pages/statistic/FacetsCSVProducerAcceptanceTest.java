@@ -18,6 +18,7 @@ import static com.constellio.app.ui.pages.statistic.StatisticsPresenter.FAMOUS_R
 import static com.constellio.app.ui.pages.statistic.StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT;
 import static com.constellio.app.ui.pages.statistic.StatisticsViewImpl.initStatisticsColumnsHeader;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.when;
 
 public class FacetsCSVProducerAcceptanceTest extends StatisticsAcceptanceTest {
@@ -49,7 +50,9 @@ public class FacetsCSVProducerAcceptanceTest extends StatisticsAcceptanceTest {
 		givenSearchEventWithStatisticsTypeThenCSVFileProduced(FAMOUS_REQUEST_WITHOUT_RESULT);
 	}
 
-	public void givenSearchEventWithStatisticsTypeThenCSVFileProduced(String statisticsType) throws IOException {
+	private void givenSearchEventWithStatisticsTypeThenCSVFileProduced(String statisticsType) throws IOException {
+		assumeTrue(getSolrVersion() >= 6);
+
 		int nb = 10;
 		List<String> properties = initStatisticsColumnsHeader(statisticsType);
 
