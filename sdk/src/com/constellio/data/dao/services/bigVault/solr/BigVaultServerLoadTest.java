@@ -11,7 +11,11 @@ import org.apache.solr.common.params.SolrParams;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
 import static java.util.Arrays.asList;

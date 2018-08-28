@@ -47,7 +47,10 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.sdk.tests.QueryCounter.ON_SCHEMA_TYPES;
-import static com.constellio.sdk.tests.TestUtils.*;
+import static com.constellio.sdk.tests.TestUtils.assertThatAllRecordsOf;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static com.constellio.sdk.tests.TestUtils.getNetworkLinksOf;
+import static com.constellio.sdk.tests.TestUtils.solrInputDocumentRemovingMetadatas;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;

@@ -40,7 +40,12 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DecommissioningListPresenterTest extends ConstellioTest {
 	public static final String ZE_LIST = "zeList";
@@ -148,7 +153,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenProcessButtonClickedThenProcessTheListAndRefreshWithMessage() {
+	public void givenProcessButtonClickedThenProcessTheListAndRefreshWithMessage() throws Exception {
 		doReturn(true).when(presenter).isListReadyToBeProcessed();
 		presenter.processButtonClicked();
 		verify(service, times(1)).decommission(list, user);
@@ -239,7 +244,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenApprovedButtonClickedThenApproveTheListAndRefreshWithMessage() {
+	public void givenApprovedButtonClickedThenApproveTheListAndRefreshWithMessage() throws Exception {
 		presenter.approvalButtonClicked();
 		verify(service, times(1)).approveList(list, user);
 		verify(view, times(1)).showMessage(anyString());

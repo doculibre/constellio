@@ -13,7 +13,9 @@ import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class RecordServicesAcceptanceTestUtils {
 

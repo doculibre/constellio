@@ -198,17 +198,23 @@ public class TaskAcceptTest extends ConstellioTest {
 		assertThat(zeTask.getStatus()).isEqualTo(standbyStatusId);
 	}
 
-	@Test(expected = RecordRuntimeException.CannotSetManualValueInAutomaticField.class)
+	@Test
 	public void whenTrySetCalculatedMetadataThenThrowUnsupportedSetOnCalculatedMetadata()
 			throws Exception {
 		setUpWithOneCollection();
 		try {
-			zeTask.set(Task.FOLLOWERS_IDS, null);
+			zeTask.set(Task.FOLLOWERS_IDS, asList("pouet"));
 			fail("");
 		} catch (RecordRuntimeException.CannotSetManualValueInAutomaticField e) {
 			//OK
 		}
-		zeTask.set(Task.NEXT_REMINDER_ON, null);
+
+		try {
+			zeTask.set(Task.NEXT_REMINDER_ON, new LocalDate());
+			fail("");
+		} catch (RecordRuntimeException.CannotSetManualValueInAutomaticField e) {
+			//OK
+		}
 	}
 
 	@Test

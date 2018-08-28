@@ -11,6 +11,8 @@ import com.constellio.app.ui.pages.summaryconfig.SummaryConfigView;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.HorizontalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
@@ -26,8 +28,7 @@ public class SummaryConfigContainer extends DataContainer<SummaryConfigDataProvi
 	public static final String PREFIX = "prefix";
 	public static final String DISPLAY_CONDITION = "displayCondition";
 	public static final String REFERENCE_METADATA_DISPLAY = "referenceMetadataDisplay";
-	public static final String MODIFY = "modify";
-	public static final String DELETE = "delete";
+	public static final String MODIFY_DELETE = "modify-delete";
 
 	SummaryConfigView view;
 
@@ -52,9 +53,7 @@ public class SummaryConfigContainer extends DataContainer<SummaryConfigDataProvi
 		containerPropertyIds.add(PREFIX);
 		containerPropertyIds.add(DISPLAY_CONDITION);
 		containerPropertyIds.add(REFERENCE_METADATA_DISPLAY);
-		containerPropertyIds.add(MODIFY);
-		containerPropertyIds.add(DELETE);
-
+		containerPropertyIds.add(MODIFY_DELETE);
 
 		return containerPropertyIds;
 	}
@@ -74,10 +73,8 @@ public class SummaryConfigContainer extends DataContainer<SummaryConfigDataProvi
 			type = SummaryConfigParams.DisplayCondition.class;
 		} else if (REFERENCE_METADATA_DISPLAY.equals(propertyId)) {
 			type = SummaryConfigParams.ReferenceMetadataDisplay.class;
-		} else if (MODIFY.equals(propertyId)) {
-			type = BaseButton.class;
-		} else if (DELETE.equals(propertyId)) {
-			type = BaseButton.class;
+		} else if (MODIFY_DELETE.equals(propertyId)) {
+			type = HorizontalLayout.class;
 		} else {
 			throw new IllegalArgumentException("Invalid propertyId : " + propertyId);
 		}
@@ -144,20 +141,23 @@ public class SummaryConfigContainer extends DataContainer<SummaryConfigDataProvi
 				value = null;
 			}
 
-		} else if (MODIFY.equals(propertyId)) {
-			value = new IconButton(EditButton.ICON_RESOURCE, $("edit"), true) {
+		} else if (MODIFY_DELETE.equals(propertyId)) {
+			HorizontalLayout horizontalLayout = new HorizontalLayout();
+			Button btnEdit = new IconButton(EditButton.ICON_RESOURCE, $("edit"), true) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					view.alterSummaryMetadata(summaryConfigElementVOItemId);
 				}
 			};
-		} else if (DELETE.equals(propertyId)) {
-			value = new IconButton(new ThemeResource("images/icons/actions/delete.png"), $("delete"), true) {
+			Button btnDelete = new IconButton(new ThemeResource("images/icons/actions/delete.png"), $("delete"), true) {
 				@Override
 				protected void buttonClick(ClickEvent event) {
 					view.deleteRow(summaryConfigElementVOItemId);
 				}
 			};
+			horizontalLayout.addComponent(btnEdit);
+			horizontalLayout.addComponent(btnDelete);
+			value = horizontalLayout;
 		} else {
 			throw new IllegalArgumentException("Invalid propertyId : " + propertyId);
 		}
@@ -165,7 +165,8 @@ public class SummaryConfigContainer extends DataContainer<SummaryConfigDataProvi
 		return new ObjectProperty(value, type);
 	}
 
-	private void moveRowUp(SummaryConfigDataProvider summaryConfigDataProvider, SummaryConfigElementVO summaryConfigElementVOItemId) {
+	private void moveRowUp(SummaryConfigDataProvider summaryConfigDataProvider,
+						   SummaryConfigElementVO summaryConfigElementVOItemId) {
 		List<SummaryConfigElementVO> summaryConfigElementVOS = summaryConfigDataProvider.getSummaryConfigElementVOS();
 		int index = summaryConfigElementVOS.indexOf(summaryConfigElementVOItemId);
 

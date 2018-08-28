@@ -8,10 +8,15 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.ui.Field;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -34,6 +39,12 @@ public abstract class BatchProcessingExtension implements Serializable {
 
 	public boolean hasMetadataSpecificAssociatedField(MetadataVO metadataVO) {
 		return false;
+	}
+
+	public void validateBatchProcess(BatchProcessFeededByQueryParams params) {
+	}
+
+	public void validateBatchProcess(BatchProcessFeededByIdsParams params) {
 	}
 
 	public static class IsMetadataDisplayedWhenModifiedParams {
@@ -121,5 +132,19 @@ public abstract class BatchProcessingExtension implements Serializable {
 		public boolean isSchemaType(String schemaType) {
 			return schema.getCode().startsWith(schemaType + "_");
 		}
+	}
+
+	@AllArgsConstructor
+	public static class BatchProcessFeededByQueryParams {
+		@Getter ValidationErrors validationErrors;
+		@Getter LogicalSearchQuery query;
+		@Getter String schemaTypeCode;
+	}
+
+	@AllArgsConstructor
+	public static class BatchProcessFeededByIdsParams {
+		@Getter ValidationErrors validationErrors;
+		@Getter List<String> ids;
+		@Getter String schemaTypeCode;
 	}
 }

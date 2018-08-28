@@ -25,8 +25,14 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
-import static com.constellio.sdk.tests.TestUtils.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordAcceptTest extends ConstellioTest {

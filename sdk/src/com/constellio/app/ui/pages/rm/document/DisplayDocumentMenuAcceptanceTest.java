@@ -21,7 +21,11 @@ import org.openqa.selenium.By;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.*;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.DELETE;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.MANAGE_AUTHORIZATIONS;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.MODIFY;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.SHARE;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.UPLOAD;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 

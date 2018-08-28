@@ -9,7 +9,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -35,6 +39,21 @@ public class MigrationResourcesProvider {
 		this.propertiesFolder = moduleResourcesLocator.getModuleMigrationResourcesFolder(module, version);
 		this.bundles = moduleResourcesLocator.getModuleMigrationI18nBundle(module, version);
 
+	}
+
+	public String getValuesOfAllLanguagesWithSeparator(String key, String separator) {
+		StringBuilder sb = new StringBuilder();
+
+		for (Language language : collectionLanguages) {
+
+			if (sb.length() > 0) {
+				sb.append(separator);
+			}
+
+			sb.append(getString(key, language.getLocale()));
+		}
+
+		return sb.toString();
 	}
 
 	public String get(String key) {

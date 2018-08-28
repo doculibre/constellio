@@ -8,8 +8,13 @@ import jxl.Workbook;
 import jxl.WorkbookSettings;
 import jxl.format.Colour;
 import jxl.format.UnderlineStyle;
-import jxl.write.*;
+import jxl.write.Label;
 import jxl.write.Number;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -20,13 +25,13 @@ import static com.constellio.app.modules.rm.reports.builders.BatchProssessing.Ba
 import static java.util.Arrays.asList;
 
 
-public class BatchProcessingResultReportWriter implements ReportWriter {
+public class BatchProcessingResultXLSReportWriter implements ReportWriter {
 	private static final WritableFont.FontName FONT = WritableFont.TIMES;
 	private static final int FONT_SIZE = 10;
 	BatchProcessingResultModel model;
 	Locale locale;
 
-	public BatchProcessingResultReportWriter(BatchProcessingResultModel model, Locale locale) {
+	public BatchProcessingResultXLSReportWriter(BatchProcessingResultModel model, Locale locale) {
 		this.model = model;
 		this.locale = locale;
 	}

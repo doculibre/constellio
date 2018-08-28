@@ -14,7 +14,11 @@ import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -32,16 +36,32 @@ import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQ
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.*;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.common.params.FacetParams;
+import org.apache.solr.common.params.HighlightParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.MoreLikeThisParams;
+import org.apache.solr.common.params.ShardParams;
+import org.apache.solr.common.params.StatsParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
@@ -462,8 +482,15 @@ public class SearchServices {
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
 				int mm = calcMM(query.getFreeTextQuery());
 				params.add(DisMaxParams.MM, "" + mm);
+				if (systemConfigs.isRunningWithSolr6()) {
+					params.add(DisMaxParams.MM, "1");
+					params.add("q.op", "AND");
+				}
 			} else {
 				params.add(DisMaxParams.MM, "1");
+				if (systemConfigs.isRunningWithSolr6()) {
+					params.add("q.op", "OR");
+				}
 			}
 			params.add("defType", "edismax");
 			params.add(DisMaxParams.BQ, "\"" + query.getFreeTextQuery() + "\"");
@@ -698,6 +725,12 @@ public class SearchServices {
 			} else if (sort instanceof FunctionLogicalSearchQuerySort) {
 				String function = ((FunctionLogicalSearchQuerySort) sort).getFunction();
 				stringBuilder.append(function);
+				stringBuilder.append(" ");
+				stringBuilder.append(sort.isAscending() ? "asc" : "desc");
+
+			} else if (sort instanceof ScoreLogicalSearchQuerySort) {
+				String field = ((ScoreLogicalSearchQuerySort) sort).getField();
+				stringBuilder.append(field);
 				stringBuilder.append(" ");
 				stringBuilder.append(sort.isAscending() ? "asc" : "desc");
 

@@ -2,7 +2,11 @@ package com.constellio.app.ui.framework.buttons.report;
 
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FormMetadataVO;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.tepi.listbuilder.ListBuilder;
 

@@ -776,6 +776,7 @@ public class ConnectorHttpAcceptanceTest extends ConstellioTest {
 				WEBSITE + "copy/singes/macaque.html"
 		);
 
+		//
 		assertThat(context.documentUrlsClassifiedByDigests).containsOnly(
 				entry(INDEX_DIGEST_V3, WEBSITE + "index.html"),
 				entry(INDEX_COPY_DIGEST_V3, WEBSITE + "copy/index.html"),

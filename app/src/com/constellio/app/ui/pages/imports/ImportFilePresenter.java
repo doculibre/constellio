@@ -1,6 +1,11 @@
 package com.constellio.app.ui.pages.imports;
 
-import com.constellio.app.services.schemas.bulkImport.*;
+import com.constellio.app.services.schemas.bulkImport.BulkImportParams;
+import com.constellio.app.services.schemas.bulkImport.BulkImportProgressionListener;
+import com.constellio.app.services.schemas.bulkImport.BulkImportResults;
+import com.constellio.app.services.schemas.bulkImport.ImportError;
+import com.constellio.app.services.schemas.bulkImport.LoggerBulkImportProgressionListener;
+import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;

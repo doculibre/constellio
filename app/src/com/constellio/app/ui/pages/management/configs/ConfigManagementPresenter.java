@@ -96,8 +96,8 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 			SystemConfiguration systemConfiguration = previousConfigs.get(i);
 			SystemConfigurationVO systemConfigurationVO = systemConfigurationGroup.getSystemConfigurationVO(i);
 			if (systemConfigurationVO.isUpdated()) {
-				reindexingRequired = reindexingRequired || systemConfigurationsManager
-						.setValue(systemConfiguration, systemConfigurationVO.getValue());
+				reindexingRequired = systemConfigurationsManager.setValue(systemConfiguration, systemConfigurationVO.getValue())
+									 || reindexingRequired;
 				systemConfigurationVO.afterSetValue();
 				systemConfigurationGroup.valueSave(i);
 			}

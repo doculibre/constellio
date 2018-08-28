@@ -1,7 +1,11 @@
 package com.constellio.app.ui.framework.containers;
 
 import com.vaadin.data.Container;
-import com.vaadin.data.Container.*;
+import com.vaadin.data.Container.Filterable;
+import com.vaadin.data.Container.Indexed;
+import com.vaadin.data.Container.ItemSetChangeNotifier;
+import com.vaadin.data.Container.PropertySetChangeNotifier;
+import com.vaadin.data.Container.Sortable;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeListener;

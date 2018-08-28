@@ -70,18 +70,39 @@ import org.apache.solr.client.solrj.SolrClient;
 import org.joda.time.Duration;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
-import java.io.*;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
@@ -1599,5 +1620,18 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	public void setFailMessage(String failMessage) {
 		this.failMessage = failMessage;
+	}
+
+	public double getSolrVersion() {
+		Response response = ClientBuilder.newClient()
+				.target(sdkProperties.get("dao.records.http.url").concat("admin/info/system?wt=json"))
+				.request().get();
+		String json = response.readEntity(String.class);
+
+		int start = json.indexOf("solr-spec-version");
+		int end = json.indexOf(",", start);
+		String version = json.substring(start + "solr-spec-version".length() + 2, end);
+		String[] parts = version.trim().replace("\"", "").split(Pattern.quote("."));
+		return Double.valueOf(parts[0] + "." + parts[1]);
 	}
 }

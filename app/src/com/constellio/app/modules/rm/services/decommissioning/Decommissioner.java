@@ -20,7 +20,11 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.records.*;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -107,7 +111,8 @@ public abstract class Decommissioner {
 		loggingServices = new DecommissioningLoggingService(modelLayerFactory);
 	}
 
-	public void process(DecommissioningList decommissioningList, User user, LocalDate processingDate) {
+	public void process(DecommissioningList decommissioningList, User user, LocalDate processingDate)
+			throws RecordServicesException.OptimisticLocking {
 		prepare(decommissioningList, user, processingDate);
 		validate();
 		saveCertificates(decommissioningList);
@@ -124,14 +129,16 @@ public abstract class Decommissioner {
 		execute(true);
 	}
 
-	public void approve(DecommissioningList decommissioningList, User user, LocalDate processingDate) {
+	public void approve(DecommissioningList decommissioningList, User user, LocalDate processingDate)
+			throws RecordServicesException.OptimisticLocking {
 		prepare(decommissioningList, user, processingDate);
 		approveFolders();
 		markApproved();
 		execute(false);
 	}
 
-	public void denyApproval(DecommissioningList decommissioningList, User denier, String comment) {
+	public void denyApproval(DecommissioningList decommissioningList, User denier, String comment)
+			throws RecordServicesException.OptimisticLocking {
 		prepare(decommissioningList, user, processingDate);
 		String approvalRequester = decommissioningList.getApprovalRequest();
 		removeApprovalRequest();
@@ -512,7 +519,7 @@ public abstract class Decommissioner {
 			empty = true;
 			// Current transaction folders would not be taken into account otherwise
 			for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-				if (detail.isFolderExcluded()) {
+				if (detail.isFolderExcluded() || destroyedFolders.contains(detail.getFolderId())) {
 					continue;
 				}
 				if (container.getId().equals(detail.getContainerRecordId())) {
@@ -534,7 +541,7 @@ public abstract class Decommissioner {
 		add(decommissioningList.setProcessingDate(processingDate).setProcessingUser(user));
 	}
 
-	private void execute(boolean logging) {
+	private void execute(boolean logging) throws RecordServicesException.OptimisticLocking {
 		if (logging) {
 			loggingServices.logDecommissioning(decommissioningList, user);
 		}
@@ -564,6 +571,9 @@ public abstract class Decommissioner {
 					recordServices.logicallyDelete(record, user);
 				}
 			}
+		} catch (RecordServicesException.OptimisticLocking e) {
+			throw e;
+
 		} catch (RecordServicesException e) {
 			// TODO: Proper exception
 			throw new RecordServicesWrapperRuntimeException(e);

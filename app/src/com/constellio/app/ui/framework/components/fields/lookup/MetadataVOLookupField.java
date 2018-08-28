@@ -27,14 +27,13 @@ public class MetadataVOLookupField extends LookupField<MetadataVO> {
 	}
 
 	public void setOptions(List<MetadataVO> options) {
-		for(LookupTreeDataProvider<MetadataVO> lookUpTreeDataProviders : this.getLookupTreeDataProviders()) {
-			if(lookUpTreeDataProviders instanceof  MetadataVOLookupTreeDataProvider) {
+		for (LookupTreeDataProvider<MetadataVO> lookUpTreeDataProviders : this.getLookupTreeDataProviders()) {
+			if (lookUpTreeDataProviders instanceof MetadataVOLookupTreeDataProvider) {
 				(((MetadataVOLookupTreeDataProvider) lookUpTreeDataProviders).getTextInputDataProvider()).setOptions(options);
 			}
 		}
-		((MetadataVOTextInputDataProvider)this.suggestInputDataProvider).setOptions(options);
+		((MetadataVOTextInputDataProvider) this.suggestInputDataProvider).setOptions(options);
 	}
-
 
 
 	@Override
@@ -119,7 +118,8 @@ public class MetadataVOLookupField extends LookupField<MetadataVO> {
 
 		private MetadataVOLookupField.MetadataVOTextInputDataProvider textInputDataProvider;
 
-		private MetadataVOLookupTreeDataProvider(List<MetadataVO> options, Converter<String, MetadataVO> itemConverter) {
+		private MetadataVOLookupTreeDataProvider(List<MetadataVO> options,
+												 Converter<String, MetadataVO> itemConverter) {
 			this.itemConverter = itemConverter;
 			this.textInputDataProvider = new MetadataVOLookupField.MetadataVOTextInputDataProvider(options, itemConverter);
 		}

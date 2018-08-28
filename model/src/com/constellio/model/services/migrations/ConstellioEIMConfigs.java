@@ -4,13 +4,24 @@ import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
-import com.constellio.model.entities.enums.*;
+import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
+import com.constellio.model.entities.enums.MemoryConsumptionLevel;
+import com.constellio.model.entities.enums.MetadataPopulatePriority;
+import com.constellio.model.entities.enums.ParsingBehavior;
+import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import org.joda.time.LocalDate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
@@ -111,6 +122,9 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration UNREFERENCED_CONTENTS_DELETE_SCHEDULE;
 	public static final SystemConfiguration ENABLE_STATISTIC_REPORT;
 	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
+	public static final SystemConfiguration IS_RUNNING_WITH_SOLR_6;
+	public static final SystemConfiguration PRIVACY_POLICY;
+	public static final SystemConfiguration ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE;
 	public static final SystemConfiguration INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS;
 
 	public static final SystemConfiguration SEIZE_MULTILANGUAL_VALUES;
@@ -132,6 +146,7 @@ public class ConstellioEIMConfigs {
 		add(LOGO = others.createBinary("logo"));
 		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
 		add(AUTHENTIFICATION_IMAGE = others.createBinary("authentificationImage"));
+		add(PRIVACY_POLICY = others.createBinary("privacyPolicy").whichIsHidden());
 		add(METADATA_POPULATE_PRIORITY = others.createEnum("metadataPopulatePriority", MetadataPopulatePriority.class)
 				.withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
@@ -169,6 +184,7 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
 		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
+		add(IS_RUNNING_WITH_SOLR_6 = search.createBooleanFalseByDefault("isRunningWithSolr6").whichIsHidden());
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
@@ -180,6 +196,9 @@ public class ConstellioEIMConfigs {
 		add(TABLE_DYNAMIC_CONFIGURATION = advanced.createBooleanTrueByDefault("tableDynamicConfiguration"));
 
 		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
+
+		add(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE = search.createBooleanTrueByDefault("addSecondarySortWhenSortingByScore")
+				.whichIsHidden());
 
 		add(ENABLE_INACTIF_SCHEMAS_IN_SEARCH = search.createBooleanTrueByDefault("enableInactifSchemasInSearch"));
 
@@ -335,11 +354,11 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(GROUP_AUTHORIZATIONS_INHERITANCE);
 	}
 
-    public boolean isIncludingFromFieldWhenGeneratingEmails() {
+	public boolean isIncludingFromFieldWhenGeneratingEmails() {
 		return !Boolean.FALSE.equals(GROUP_AUTHORIZATIONS_INHERITANCE);
-    }
+	}
 
-    public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
+	public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
 
 		@Override
 		public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory) {
@@ -428,6 +447,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS);
 	}
 
+	public boolean isRunningWithSolr6() {
+		return manager.getValue(IS_RUNNING_WITH_SOLR_6);
+	}
+
 	public String getTaxonomyOrderInHomeView() {
 		return manager.getValue(TAXONOMY_ORDER_IN_HOME_VIEW);
 	}
@@ -459,6 +482,10 @@ public class ConstellioEIMConfigs {
 
 	public boolean isStatisticReportEnabled() {
 		return manager.getValue(ENABLE_STATISTIC_REPORT);
+	}
+
+	public boolean isAddingSecondarySortWhenSortingByScore() {
+		return manager.getValue(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE);
 	}
 
 	public boolean isAdminPasswordChangeEnabled() {

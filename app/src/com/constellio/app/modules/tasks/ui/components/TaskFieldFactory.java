@@ -2,8 +2,24 @@ package com.constellio.app.modules.tasks.ui.components;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
-import com.constellio.app.modules.tasks.ui.components.fields.*;
-import com.constellio.app.modules.tasks.ui.components.fields.list.*;
+import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAcceptedFieldImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationEnumField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListRecordLookupField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskDecisionFieldImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskProgressPercentageFieldImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskQuestionFieldImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskReasonFieldImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskRelativeDueDateFieldImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskReminderFrequencyFieldImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldComboBoxImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldLookupImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskTypeFieldOptionGroupImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskReminderField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
+import com.constellio.app.modules.tasks.ui.components.fields.list.TaskListAddRemoveLinkedDocumentsLookupField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.TaskListAddRemoveLinkedFoldersLookupField;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -16,7 +32,15 @@ import java.util.List;
 import java.util.Locale;
 
 import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
-import static com.constellio.app.modules.tasks.model.wrappers.Task.*;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.DECISION;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_DOCUMENTS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_FOLDERS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.PROGRESS_PERCENTAGE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.QUESTION;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.RELATIVE_DUE_DATE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDERS;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.REMINDER_FREQUENCY;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.TASK_FOLLOWERS;
 
 public class TaskFieldFactory extends MetadataFieldFactory {
 

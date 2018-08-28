@@ -6,21 +6,32 @@ import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.LabelVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.GetXMLButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.io.FileUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -203,6 +214,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		tableFolder.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
 		tableFolder.setColumnExpandRatio("caption", 1);
 		tableFolder.addStyleName(TYPE_TABLE);
+		setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelFolderDataProvider(), tableFolder);
 
 		Table tableContainer = new RecordVOTable($("ListSchemaTypeView.tableTitle"), conteneurContainer);
 		tableContainer.setSizeFull();
@@ -211,7 +223,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		tableContainer.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
 		tableContainer.setColumnExpandRatio("caption", 1);
 		tableContainer.addStyleName(TYPE_TABLE);
-
+		setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelContainerDataProvider(), tableContainer);
 
 		tabSheet = new TabSheet();
 		tabSheet.addTab(tableFolder, $("DisplayLabelViewImpl.tabs.folder"));
@@ -229,6 +241,12 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 
 		mainLayout.addComponent(tabSheet);
 		return mainLayout;
+	}
+
+	private void setDefaultOrderBy(String localCode, RecordVODataProvider dataProvider, Table table) {
+		Object[] properties = {dataProvider.getSchema().getMetadata(localCode)};
+		boolean[] ordering = {true};
+		table.sort(properties, ordering);
 	}
 
 	@Override

@@ -41,14 +41,14 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	private List<DataRefreshListener> dataRefreshListeners = new ArrayList<>();
 
 	public SearchResultVODataProvider(RecordToVOBuilder voBuilder, AppLayerFactory appLayerFactory,
-									  SessionContext sessionContext) {
+									  SessionContext sessionContext, int resultsPerPage) {
 		this.voBuilder = voBuilder;
 		//		String username = sessionContext.getCurrentUser().getUsername();
 		//
 		//		SolrUserCredential userCredential = (SolrUserCredential) appLayerFactory.getModelLayerFactory().getUserCredentialsManager()
 		//				.getUserCredential(username);
 
-		this.resultsPerPage = sessionContext.getCurrentUser().getDefaultPageLength();
+		this.resultsPerPage = resultsPerPage;
 
 		init(appLayerFactory, sessionContext);
 	}

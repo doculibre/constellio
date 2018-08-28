@@ -1,6 +1,10 @@
 package com.constellio.app.ui.framework.components;
 
-import com.vaadin.ui.*;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.FormLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.VerticalLayout;
 
 public class SIPForm extends CustomComponent {
 	private Layout mainLayout;

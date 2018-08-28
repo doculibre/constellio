@@ -11,7 +11,11 @@ import com.vaadin.ui.VerticalLayout;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -19,15 +23,15 @@ public class LabelViewer extends VerticalLayout {
 
 	public LabelViewer(File PDF, String filename, IOServices ioServices) {
 		addStyleName("no-scroll");
-        InputStream inputStream = null;
-        try {
-            inputStream = new FileInputStream(PDF);
-            byte[] PDFbytes = IOUtils.toByteArray(inputStream);
-            StreamSource source = buildSource(PDFbytes);
-            BrowserFrame viewer = new BrowserFrame();
-            StreamResource streamResource = new StreamResource(source, filename);
-            streamResource.setCacheTime(0);
-            viewer.setSource(streamResource);
+		InputStream inputStream = null;
+		try {
+			inputStream = new FileInputStream(PDF);
+			byte[] PDFbytes = IOUtils.toByteArray(inputStream);
+			StreamSource source = buildSource(PDFbytes);
+			BrowserFrame viewer = new BrowserFrame();
+			StreamResource streamResource = new StreamResource(source, filename);
+			streamResource.setCacheTime(0);
+			viewer.setSource(streamResource);
 
 			viewer.setWidth("100%");
 			//            viewer.setHeight("900px");

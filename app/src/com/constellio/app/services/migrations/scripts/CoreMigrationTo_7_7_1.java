@@ -15,7 +15,9 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.OVERRIDE_INHERITED;
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class CoreMigrationTo_7_7_1 implements MigrationScript {
 	@Override

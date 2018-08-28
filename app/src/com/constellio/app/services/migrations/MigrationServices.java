@@ -1,6 +1,12 @@
 package com.constellio.app.services.migrations;
 
-import com.constellio.app.entities.modules.*;
+import com.constellio.app.entities.modules.ComboMigrationScript;
+import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
+import com.constellio.app.entities.modules.Migration;
+import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.modules.locators.ModuleResourcesLocator;
 import com.constellio.app.entities.modules.locators.PropertiesLocatorFactory;
 import com.constellio.app.services.collections.CollectionsManager;
@@ -24,7 +30,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static java.util.Arrays.asList;
@@ -135,9 +147,7 @@ public class MigrationServices {
 
 		for (
 				MigrationScript script
-				: constellioEIM.getMigrationScripts())
-
-		{
+				: constellioEIM.getMigrationScripts()) {
 			migrations.add(new Migration(collection, null, script));
 		}
 
@@ -301,6 +311,7 @@ public class MigrationServices {
 	private void ensureSchemasHaveCommonMetadata(String collection, int attempt) {
 		MetadataSchemasManager manager = modelLayerFactory.getMetadataSchemasManager();
 		MetadataSchemaTypesBuilder types = manager.modify(collection);
+
 		new CommonMetadataBuilder().addCommonMetadataToAllExistingSchemas(types);
 		try {
 			manager.saveUpdateSchemaTypes(types);

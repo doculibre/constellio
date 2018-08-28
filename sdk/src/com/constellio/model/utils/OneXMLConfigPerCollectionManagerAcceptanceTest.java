@@ -25,7 +25,9 @@ import java.util.List;
 import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class OneXMLConfigPerCollectionManagerAcceptanceTest extends ConstellioTest {
 

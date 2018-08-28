@@ -10,7 +10,17 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
+import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileReader;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -21,8 +31,16 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.schemas.*;
-import com.constellio.model.entities.schemas.entries.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntry;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -41,7 +59,12 @@ import org.mockito.Mock;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static com.constellio.app.modules.rm.wrappers.Folder.DESCRIPTION;
 import static com.constellio.model.entities.Language.English;
@@ -54,7 +77,9 @@ import static com.constellio.sdk.tests.TestUtils.asMap;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static java.util.Arrays.asList;
 import static java.util.Locale.ENGLISH;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
@@ -3503,7 +3528,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		Document outDocument = new SettingsXMLFileWriter().writeSettings(settings);
 
 		// read file1 to setting1
-		ImportedSettings settingsRead1 = new SettingsXMLFileReader(outDocument, getModelLayerFactory()).read();
+		ImportedSettings settingsRead1 = new SettingsXMLFileReader(outDocument, zeCollection, getModelLayerFactory()).read();
 		//		assertThat(settingsRead1.toString()).isEqualTo(settings.toString());
 		assertThat(settingsRead1).isEqualToComparingFieldByField(settings);
 
@@ -3511,7 +3536,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		Document outDocument1 = new SettingsXMLFileWriter().writeSettings(settingsRead1);
 
 		// read file2 to setting2
-		ImportedSettings settingsRead2 = new SettingsXMLFileReader(outDocument1, getModelLayerFactory()).read();
+		ImportedSettings settingsRead2 = new SettingsXMLFileReader(outDocument1, zeCollection, getModelLayerFactory()).read();
 		assertThat(settingsRead2).isEqualToComparingFieldByField(settingsRead1);
 
 	}
@@ -3563,7 +3588,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		try {
 			// write settings1 to file ==> file2
 			Document writtenSettings = new SettingsXMLFileWriter().writeSettings(settings);
-			ImportedSettings settings2 = new SettingsXMLFileReader(writtenSettings, getModelLayerFactory()).read();
+			ImportedSettings settings2 = new SettingsXMLFileReader(writtenSettings, zeCollection, getModelLayerFactory()).read();
 			assertThat(trimLines(settings2.toString())).isEqualTo(trimLines(settings.toString()));
 			assertThat(settings2).isEqualToComparingFieldByField(settings);
 

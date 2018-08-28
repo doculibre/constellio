@@ -15,7 +15,8 @@ import com.vaadin.ui.Component;
 public class RMDownloadContentVersionLinkExtension implements DownloadContentVersionLinkExtension {
 
 	@Override
-	public Component getDownloadLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption, UpdatableContentVersionPresenter presenter) {
+	public Component getDownloadLink(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption,
+									 UpdatableContentVersionPresenter presenter) {
 		Component downloadLink;
 		if (!isDocumentOrUserDocument(recordVO)) {
 			// Do not enable agent for non-rm entities

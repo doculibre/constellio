@@ -8,13 +8,19 @@ import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.vaadin.data.Property;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +82,11 @@ public class BatchProcessingButton extends WindowButton {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.allSearchResultsButtonClicked();
+				ValidationErrors validationErrors = presenter.validateBatchProcessing();
+				if (!validationErrors.isEmpty()) {
+					view.showErrorMessage($(validationErrors.getValidationErrors().get(0)));
+					getWindow().close();
+				}
 				getWindow().setContent(buildBatchProcessingForm());
 				getWindow().setHeight(BatchProcessingButton.this.getConfiguration().getHeight());
 				getWindow().setPosition(getWindow().getPositionX(), 30);
@@ -86,6 +97,11 @@ public class BatchProcessingButton extends WindowButton {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				presenter.selectedSearchResultsButtonClicked();
+				ValidationErrors validationErrors = presenter.validateBatchProcessing();
+				if (!validationErrors.isEmpty()) {
+					view.showErrorMessage($(validationErrors.getValidationErrors().get(0)));
+					getWindow().close();
+				}
 				getWindow().setContent(buildBatchProcessingForm());
 				getWindow().setHeight(BatchProcessingButton.this.getConfiguration().getHeight());
 				getWindow().setPosition(getWindow().getPositionX(), 30);

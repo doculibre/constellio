@@ -16,7 +16,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -92,11 +91,6 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 				.beforeTheHugeCommentMetadata();
 
 		transactionBuilder
-				.in(User.SCHEMA_TYPE)
-				.addToDisplay(User.ALL_ROLES)
-				.atTheEnd();
-
-		transactionBuilder
 				.in(VariableRetentionPeriod.SCHEMA_TYPE)
 				.addToSearchResult(VariableRetentionPeriod.CODE)
 				.atFirstPosition();
@@ -117,9 +111,9 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 											AppLayerFactory appLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		VariableRetentionPeriod period888 = rm.newVariableRetentionPeriod().setCode("888")
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod888"));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod888"));
 		VariableRetentionPeriod period999 = rm.newVariableRetentionPeriod().setCode("999")
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod999"));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod999"));
 		try {
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(period888, period999));
 		} catch (RecordServicesException e) {

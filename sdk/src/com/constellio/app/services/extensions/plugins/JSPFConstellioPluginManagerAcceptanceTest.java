@@ -20,12 +20,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.*;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.*;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.ID_MISMATCH;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_EXISTING_ID;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_ID_FORMAT;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_JAR;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_MANIFEST;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_MIGRATION_SCRIPT;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_START;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_VERSION;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.MORE_THAN_ONE_INSTALLABLE_MODULE_PER_JAR;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.NO_ID;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.NO_INSTALLABLE_MODULE_DETECTED_FROM_JAR;
+import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.NO_VERSION;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 	private ConstellioPluginManager pluginManager;

@@ -7,7 +7,14 @@ import com.constellio.data.utils.OfficeDocumentsServicesException.PropertyDoesnt
 import com.constellio.data.utils.OfficeDocumentsServicesException.RTFFileIsNotCompatible;
 import org.apache.commons.io.IOUtils;
 import org.apache.poi.POIXMLDocument;
-import org.apache.poi.hpsf.*;
+import org.apache.poi.hpsf.CustomProperties;
+import org.apache.poi.hpsf.DocumentSummaryInformation;
+import org.apache.poi.hpsf.MarkUnsupportedException;
+import org.apache.poi.hpsf.NoPropertySetStreamException;
+import org.apache.poi.hpsf.PropertySet;
+import org.apache.poi.hpsf.PropertySetFactory;
+import org.apache.poi.hpsf.UnexpectedPropertySetTypeException;
+import org.apache.poi.hpsf.WritingNotSupportedException;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.poifs.filesystem.DirectoryEntry;

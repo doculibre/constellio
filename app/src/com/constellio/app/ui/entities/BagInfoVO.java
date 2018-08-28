@@ -2,7 +2,21 @@ package com.constellio.app.ui.entities;
 
 import java.util.List;
 
-import static com.constellio.app.modules.rm.wrappers.BagInfo.*;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.ADRESSE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.ARCHIVE_TITLE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.CATEGORIE_DOCUMENT;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.COURRIEL_RESPONSABLE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.DESCRIPTION_SOMMAIRE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.ENCODAGE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.ENTITE_RESPONSABLE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.IDENTIFICATION_RESPONSABLE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.ID_ORGANISME_VERSEUR_OU_DONATEUR;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.METHODE_TRANSFERE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.NOTE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.NUMERO_TELEPHONE_RESPONSABLE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.REGION_ADMINISTRATIVE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.RESTRICTION_ACCESSIBILITE;
 
 public class BagInfoVO extends RecordVO {
 

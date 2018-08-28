@@ -26,11 +26,23 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-import static com.constellio.model.services.thesaurus.util.SkosUtil.*;
+import static com.constellio.model.services.thesaurus.util.SkosUtil.containsWithParsing;
+import static com.constellio.model.services.thesaurus.util.SkosUtil.equalsWithParsing;
+import static com.constellio.model.services.thesaurus.util.SkosUtil.getToLowerCase;
+import static com.constellio.model.services.thesaurus.util.SkosUtil.parseForSearch;
 
 @SuppressWarnings("serial")
 public class ThesaurusService implements Serializable {

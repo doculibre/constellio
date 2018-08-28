@@ -1372,9 +1372,7 @@ public class RecordFormMetadatasAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenTextFieldMetadataDatetimeMultivaluesThenOK()
-			throws Exception
-
-	{
+			throws Exception {
 		updateDefaultFolderSchema(MetadataInputType.FIELD, new MetadataBuilderConfigurator() {
 
 			@Override

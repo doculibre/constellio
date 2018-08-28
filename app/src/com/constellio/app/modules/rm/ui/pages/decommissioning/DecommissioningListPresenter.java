@@ -11,7 +11,13 @@ import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.decommissioning.*;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
@@ -46,10 +52,22 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
@@ -243,7 +261,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			return;
 		}
 
-		if(rmModuleExtensions != null) {
+		if (rmModuleExtensions != null) {
 			for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
 				ValidateDecommissioningListProcessableParams params = new ValidateDecommissioningListProcessableParams(decommissioningList);
 				extension.validateProcessable(params);
@@ -963,6 +981,12 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			decommissioningList.setComments(comments);
 		}
 
-		decommissioningService().denyApprovalOnList(decommissioningList, getCurrentUser(), commentString);
+		try {
+			decommissioningService().denyApprovalOnList(decommissioningList, getCurrentUser(), commentString);
+		} catch (DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission e) {
+			view.showMessage($("DecommissioningListView.tooMuchOptimisticLocking"));
+		} catch (DecommissioningServiceException e) {
+			view.showMessage($(e));
+		}
 	}
 }

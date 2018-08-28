@@ -1,9 +1,12 @@
 package com.constellio.app.ui.framework.builders;
 
 import com.constellio.app.ui.entities.BatchProcessVO;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
+import com.constellio.model.services.batch.controller.BatchProcessState;
+import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import org.joda.time.LocalDateTime;
 
 import java.io.Serializable;
@@ -11,6 +14,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BatchProcessToVOBuilder implements Serializable {
+
+	BatchProcessesManager batchProcessesManager;
+
+	public BatchProcessToVOBuilder(BatchProcessesManager batchProcessesManager) {
+		this.batchProcessesManager = batchProcessesManager;
+	}
 
 	public BatchProcessVO build(BatchProcess batchProcess) {
 		String id = batchProcess.getId();
@@ -29,6 +38,10 @@ public class BatchProcessToVOBuilder implements Serializable {
 			totalRecordsCount = recordBatchProcess.getTotalRecordsCount();
 			query = recordBatchProcess.getQuery();
 			records = recordBatchProcess.getRecords();
+		} else if (batchProcess instanceof AsyncTaskBatchProcess) {
+			BatchProcessState batchProcessState = batchProcessesManager.getBatchProcessState(batchProcess.getId());
+			handledRecordsCount = Long.valueOf(batchProcessState.getCurrentlyProcessed()).intValue();
+			totalRecordsCount = Long.valueOf(batchProcessState.getTotalToProcess()).intValue();
 		}
 		int errors = batchProcess.getErrors();
 		String username = batchProcess.getUsername();

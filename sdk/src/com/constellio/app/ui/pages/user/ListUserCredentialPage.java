@@ -1,7 +1,11 @@
 package com.constellio.app.ui.pages.user;
 
 import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.BackButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;

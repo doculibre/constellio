@@ -4,7 +4,11 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import org.joda.time.LocalDateTime;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("serial")
 public class UserCredentialVO implements Serializable {

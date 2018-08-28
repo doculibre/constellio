@@ -12,7 +12,11 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 import static com.constellio.data.conf.HashingEncoding.BASE32;
 import static org.assertj.core.api.Assertions.assertThat;

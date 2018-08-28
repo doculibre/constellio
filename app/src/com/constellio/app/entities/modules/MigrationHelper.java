@@ -18,8 +18,8 @@ public class MigrationHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MigrationHelper.class);
 
-	protected SchemaDisplayConfig order(String collection, AppLayerFactory appLayerFactory, String type,
-										SchemaDisplayConfig schema, String... localCodes) {
+	public static SchemaDisplayConfig order(String collection, AppLayerFactory appLayerFactory, String type,
+											SchemaDisplayConfig schema, String... localCodes) {
 
 		MetadataSchemaTypes schemaTypes = appLayerFactory.getModelLayerFactory()
 				.getMetadataSchemasManager().getSchemaTypes(collection);

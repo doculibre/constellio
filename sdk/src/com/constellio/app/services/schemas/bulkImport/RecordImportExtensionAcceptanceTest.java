@@ -12,7 +12,11 @@ import org.joda.time.LocalDateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 import static com.constellio.sdk.tests.TestUtils.frenchMessages;
@@ -55,9 +59,9 @@ public class RecordImportExtensionAcceptanceTest extends ConstellioTest {
 			importServices.bulkImport(folder, progressionListener, admin);
 		} catch (ValidationException e) {
 			assertThat((frenchMessages(e.getValidationErrors()))).containsOnly(
-					"Dossier 661 : Le dossier «661» a une date de transfert alors que son statut archivistique est \"Active\".",
-					"Dossier 661 : Le dossier «661» a une date de versement alors que son statut archivistique est \"Active\".",
-					"Dossier 661 : Le dossier «661» a une date de destruction alors que son statut archivistique est \"Active\"."
+					"Dossier 661 : Le dossier «661» a une date de transfert alors que son statut archivistique est \"Actif\".",
+					"Dossier 661 : Le dossier «661» a une date de versement alors que son statut archivistique est \"Actif\".",
+					"Dossier 661 : Le dossier «661» a une date de destruction alors que son statut archivistique est \"Actif\"."
 			);
 		}
 	}
@@ -71,8 +75,8 @@ public class RecordImportExtensionAcceptanceTest extends ConstellioTest {
 			importServices.bulkImport(folder, progressionListener, admin);
 		} catch (ValidationException e) {
 			assertThat((frenchMessages(e.getValidationErrors()))).containsOnly(
-					"Dossier 662 : Le dossier «662» a une date de versement alors que son statut archivistique est \"Semi-active\".",
-					"Dossier 662 : Le dossier «662» a une date de destruction alors que son statut archivistique est \"Semi-active\"."
+					"Dossier 662 : Le dossier «662» a une date de versement alors que son statut archivistique est \"Semi-actif\".",
+					"Dossier 662 : Le dossier «662» a une date de destruction alors que son statut archivistique est \"Semi-actif\"."
 			);
 		}
 	}
@@ -85,7 +89,7 @@ public class RecordImportExtensionAcceptanceTest extends ConstellioTest {
 			importServices.bulkImport(folder, progressionListener, admin);
 		} catch (ValidationException e) {
 			assertThat((frenchMessages(e.getValidationErrors()))).containsOnly(
-					"Dossier 663 : Le dossier «663» n'a pas de date de transfert alors que son statut archivistique est \"Semi-active\"."
+					"Dossier 663 : Le dossier «663» n'a pas de date de transfert alors que son statut archivistique est \"Semi-actif\"."
 			);
 		}
 	}

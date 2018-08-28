@@ -1,6 +1,18 @@
 package com.constellio.sdk.tests;
 
-import com.constellio.sdk.tests.annotations.*;
+import com.constellio.sdk.tests.annotations.CloudTest;
+import com.constellio.sdk.tests.annotations.DoNotRunOnIntegrationServer;
+import com.constellio.sdk.tests.annotations.DriverTest;
+import com.constellio.sdk.tests.annotations.IgniteTest;
+import com.constellio.sdk.tests.annotations.ImportTest;
+import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
+import com.constellio.sdk.tests.annotations.LoadTest;
+import com.constellio.sdk.tests.annotations.MainTest;
+import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
+import com.constellio.sdk.tests.annotations.PerformanceTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import com.constellio.sdk.tests.annotations.UiTest;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.internal.AssumptionViolatedException;
 import org.junit.rules.TestRule;

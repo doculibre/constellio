@@ -14,7 +14,10 @@ import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.constellio.app.modules.rm.constants.RMPermissionsTo.*;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.DELETE_CONTAINERS;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.DISPLAY_CONTAINERS;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_CONTAINERS;
+import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_STORAGE_SPACES;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asList;

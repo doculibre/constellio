@@ -21,7 +21,13 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -68,6 +74,12 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
 				if (currentSchema == null) {
 					currentSchema = currentTabs.getKey();
 				}
+				tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+					@Override
+					public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+						currentSchema = ((RecordVOTable) event.getTabSheet().getSelectedTab()).getSchemas().get(0).getCode();
+					}
+				});
 			}
 		}
 		if (tabSheet.getComponentCount() > 0) {

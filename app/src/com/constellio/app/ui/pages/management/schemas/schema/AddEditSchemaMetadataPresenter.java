@@ -1,7 +1,14 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
 import com.constellio.app.services.metadata.MetadataDeletionException;
-import com.constellio.app.services.metadata.MetadataDeletionException.*;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CalculatedMetadataSource;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataReference;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CopiedMetadataSource;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_ExtractedMetadataSource;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_FacetMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_InheritedMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_PopulatedMetadata;
+import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_SystemMetadata;
 import com.constellio.app.services.metadata.MetadataDeletionService;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataSchemaVO;
@@ -22,7 +29,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.*;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_BY;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.entities.schemas.Schemas.MODIFIED_BY;
+import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
+import static com.constellio.model.entities.schemas.Schemas.PATH;
 
 public class AddEditSchemaMetadataPresenter extends SingleSchemaBasePresenter<AddEditSchemaMetadataView> {
 	private transient MetadataDeletionService metadataDeletionService;

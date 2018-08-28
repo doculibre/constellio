@@ -19,9 +19,17 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,11 +68,17 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	private List<ActionMenuButtonsDecorator> actionMenuButtonsDecorators = new ArrayList<>();
 
 	public BaseViewImpl() {
+		this(ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory());
+	}
+
+	public BaseViewImpl(AppLayerFactory appLayerFactory) {
+		this(ConstellioUI.getCurrentSessionContext().getCurrentCollection(), appLayerFactory);
+	}
+
+	public BaseViewImpl(String collection, AppLayerFactory appLayerFactory) {
 		DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this);
-		AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
 
 		appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewInstanciated(params);
-		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		if (collection != null) {
 			appLayerFactory.getExtensions().forCollection(collection).decorateMainComponentBeforeViewInstanciated(params);
 		}

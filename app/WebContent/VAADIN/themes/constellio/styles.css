@@ -12762,7 +12762,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-contextmenu .popupContent .gwt-MenuBar {
-  overflow-y: auto;
+	overflow-y: auto;
 }
 
 .constellio body, .constellio div, .constellio p, .constellio h2, .constellio h3, .constellio pre {
@@ -13367,6 +13367,26 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-context-menu .v-context-menu-item-basic .v-context-menu-item-basic-icon-container, .constellio .v-context-menu .v-context-menu-item-basic-submenu .v-context-menu-item-basic-icon-container {
 	float: left;
 	padding-right: 3px;
+	float: left;
+	width: 26px;
+	height: 26px;
+	margin-right: 5px;
+	border-right: 1px solid #d0d0d0;
+	text-align: center;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic .v-context-menu-item-basic-icon-container .v-icon, .constellio .v-context-menu .v-context-menu-item-basic-submenu .v-context-menu-item-basic-icon-container .v-icon {
+	float: left;
+	width: 16px;
+	height: 16px;
+	padding: 5px;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic .v-context-menu-item-basic-text, .constellio .v-context-menu .v-context-menu-item-basic-submenu .v-context-menu-item-basic-text {
+	float: left;
+	height: 26px;
+	line-height: 26px;
+	padding: 0 20px 0 10px;
 }
 
 .constellio .v-context-menu .v-context-menu-item-basic:hover {

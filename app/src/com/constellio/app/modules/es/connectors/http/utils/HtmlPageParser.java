@@ -13,7 +13,12 @@ import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.gargoylesoftware.htmlunit.WebResponse;
-import com.gargoylesoftware.htmlunit.html.*;
+import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.DomNode;
+import com.gargoylesoftware.htmlunit.html.DomNodeList;
+import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.io.IOUtils;
@@ -24,7 +29,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.Set;
 
 import static org.apache.tika.io.IOUtils.toByteArray;
 
@@ -46,6 +55,7 @@ public class HtmlPageParser {
 
 	public HtmlPageParserResults parse(String url, HtmlPage page)
 			throws ConnectorHttpDocumentFetchException {
+		HtmlPageParserResults htmlPageParserResults;
 
 		if (!isNoIndexContent(page)) {
 			ParsedContent parsedContent;
@@ -64,13 +74,25 @@ public class HtmlPageParser {
 				throw new ConnectorHttpDocumentFetchException_CannotParseDocument(url, e);
 			}
 
-			return finalizeHtmlPageParserResults(url, page, parsedContent, uniqueAnchors);
+			htmlPageParserResults = finalizeHtmlPageParserResults(url, page, parsedContent, uniqueAnchors);
 		} else {
-			return createNoIndexHtmlPageParserResults();
+			htmlPageParserResults = createNoIndexHtmlPageParserResults();
 		}
+
+		htmlPageParserResults.setNoFollow(isNoFollowLinks(page));
+
+		return htmlPageParserResults;
 	}
 
 	private boolean isNoIndexContent(HtmlPage page) {
+		return hasContentRestriction(page, "noindex");
+	}
+
+	private boolean isNoFollowLinks(HtmlPage page) {
+		return hasContentRestriction(page, "nofollow");
+	}
+
+	private boolean hasContentRestriction(HtmlPage page, String typeOfRestriction) {
 		DomNodeList<DomElement> metas = page.getElementsByTagName("meta");
 		if (metas != null) {
 			ListIterator<DomElement> listIterator = metas.listIterator();
@@ -79,7 +101,7 @@ public class HtmlPageParser {
 				String name = element.getAttribute("name");
 				if ("robots".equalsIgnoreCase(name)) {
 					String content = element.getAttribute("content");
-					if (StringUtils.containsIgnoreCase(content, "noindex")) {
+					if (StringUtils.containsIgnoreCase(content, typeOfRestriction)) {
 						return true;
 					}
 				}
@@ -248,6 +270,8 @@ public class HtmlPageParser {
 
 		private String description;
 
+		private boolean noFollow;
+
 		public HtmlPageParserResults(String digest, String parsedContent, String title, Set<String> linkedUrls,
 									 String mimetype,
 									 String language, String description) {
@@ -286,6 +310,14 @@ public class HtmlPageParser {
 
 		public String getDescription() {
 			return description;
+		}
+
+		public boolean isNoFollow() {
+			return noFollow;
+		}
+
+		public void setNoFollow(boolean noFollow) {
+			this.noFollow = noFollow;
 		}
 	}
 }

@@ -25,8 +25,12 @@ import org.junit.Test;
 import java.util.List;
 import java.util.UUID;
 
-import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.*;
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.*;
+import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.DISTINGUISHED_NAME;
+import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.EMAIL;
+import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.WORK_TITLE;
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.ADD_EVENT;
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.DELETE_EVENT;
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.MODIFY_EVENT;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.sdk.tests.TestUtils.asList;

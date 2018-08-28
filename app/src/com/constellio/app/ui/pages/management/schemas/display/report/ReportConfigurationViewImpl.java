@@ -5,14 +5,24 @@ import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.tepi.listbuilder.ListBuilder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -73,9 +83,9 @@ public class ReportConfigurationViewImpl extends BaseViewImpl implements ReportC
 		}
 		select.setValue(new ArrayList<MetadataVO>());
 		List<String> selectedMetadataCodes = null;
-		if(presenter.isEditMode()) {
-			 selectedMetadataCodes = presenter.getInheritedMetadataCodesFor(
-			 		presenter.getReport().getReportedMetadataVOCodeList());
+		if (presenter.isEditMode()) {
+			selectedMetadataCodes = presenter.getInheritedMetadataCodesFor(
+					presenter.getReport().getReportedMetadataVOCodeList());
 		}
 
 		for (MetadataVO form : metadataVOProvider.listMetadataVO()) {

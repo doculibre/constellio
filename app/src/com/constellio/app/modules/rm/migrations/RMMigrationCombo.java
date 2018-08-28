@@ -8,7 +8,11 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
@@ -18,7 +22,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.UserDocument;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
@@ -37,7 +45,11 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.IOUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,70 +63,91 @@ import static java.util.Arrays.asList;
 public class RMMigrationCombo implements ComboMigrationScript {
 	@Override
 	public List<MigrationScript> getVersions() {
-		return asList(
-				new RMMigrationTo5_0_1(),
-				new RMMigrationTo5_0_2(),
-				new RMMigrationTo5_0_3(),
-				new RMMigrationTo5_0_4(),
-				new RMMigrationTo5_0_4_1(),
-				new RMMigrationTo5_0_5(),
-				new RMMigrationTo5_0_6(),
-				new RMMigrationTo5_0_7(),
-				new RMMigrationTo5_1_0_3(),
-				new RMMigrationTo5_1_0_4(),
-				new RMMigrationTo5_1_0_6(),
-				new RMMigrationTo5_1_2(),
-				new RMMigrationTo5_1_2_2(),
-				new RMMigrationTo5_1_3(),
-				new RMMigrationTo5_1_3(),
-				new RMMigrationTo5_1_4_1(),
-				new RMMigrationTo5_1_5(),
-				new RMMigrationTo5_1_7(),
-				new RMMigrationTo5_1_9(),
-				new RMMigrationTo6_1(),
-				new RMMigrationTo6_1_4(),
-				new RMMigrationTo6_2(),
-				new RMMigrationTo6_2_0_7(),
-				new RMMigrationTo6_3(),
-				new RMMigrationTo6_4(),
-				new RMMigrationTo6_5(),
-				new RMMigrationTo6_5_1(),
-				new RMMigrationTo6_5_7(),
-				new RMMigrationTo6_5_20(),
-				new RMMigrationTo6_5_21(),
-				new RMMigrationTo6_5_33(),
-				new RMMigrationTo6_5_34(),
-				new RMMigrationTo6_5_36(),
-				new RMMigrationTo6_5_37(),
-				new RMMigrationTo6_5_50(),
-				new RMMigrationTo6_5_54(),
-				new RMMigrationTo6_6(),
-				new RMMigrationTo6_7(),
-				new RMMigrationTo7_0_5(),
-				new RMMigrationTo7_0_10_5(),
-				new RMMigrationTo7_1(),
-				new RMMigrationTo7_1_1(),
-				new RMMigrationTo7_1_2(),
-				new RMMigrationTo7_2(),
-				new RMMigrationTo7_2_0_1(),
-				new RMMigrationTo7_2_0_2(),
-				new RMMigrationTo7_2_0_3(),
-				new RMMigrationTo7_2_0_4(),
-				new RMMigrationTo7_3(),
-				new RMMigrationTo7_3_1(),
-				new RMMigrationTo7_4(),
-				new RMMigrationTo7_4_2(),
-				new RMMigrationTo7_4_48(),
-				new RMMigrationTo7_4_48_1(),
-				new RMMigrationTo7_4_49(),
-				new RMMigrationTo7_5(),
-				new RMMigrationTo7_5_2(),
-				new RMMigrationTo7_5_3(),
-				new RMMigrationTo7_5_5(),
-				new RMMigrationTo7_6(),
-				new RMMigrationTo7_6_2(),
-				new RMMigrationTo7_6_3()
-		);
+		List<MigrationScript> scripts = new ArrayList<>();
+		scripts.add(new RMMigrationTo5_0_1());
+		scripts.add(new RMMigrationTo5_0_2());
+		scripts.add(new RMMigrationTo5_0_3());
+		scripts.add(new RMMigrationTo5_0_4());
+		scripts.add(new RMMigrationTo5_0_4_1());
+		scripts.add(new RMMigrationTo5_0_5());
+		scripts.add(new RMMigrationTo5_0_6());
+		scripts.add(new RMMigrationTo5_0_7());
+		scripts.add(new RMMigrationTo5_1_0_3());
+		scripts.add(new RMMigrationTo5_1_0_4());
+		scripts.add(new RMMigrationTo5_1_0_6());
+		scripts.add(new RMMigrationTo5_1_2());
+		scripts.add(new RMMigrationTo5_1_2_2());
+		scripts.add(new RMMigrationTo5_1_3());
+		scripts.add(new RMMigrationTo5_1_3());
+		scripts.add(new RMMigrationTo5_1_4_1());
+		scripts.add(new RMMigrationTo5_1_5());
+		scripts.add(new RMMigrationTo5_1_7());
+		scripts.add(new RMMigrationTo5_1_9());
+		scripts.add(new RMMigrationTo6_1());
+		scripts.add(new RMMigrationTo6_1_4());
+		scripts.add(new RMMigrationTo6_2());
+		scripts.add(new RMMigrationTo6_2_0_7());
+		scripts.add(new RMMigrationTo6_3());
+		scripts.add(new RMMigrationTo6_4());
+		scripts.add(new RMMigrationTo6_5());
+		scripts.add(new RMMigrationTo6_5_1());
+		scripts.add(new RMMigrationTo6_5_7());
+		scripts.add(new RMMigrationTo6_5_20());
+		scripts.add(new RMMigrationTo6_5_21());
+		scripts.add(new RMMigrationTo6_5_33());
+		scripts.add(new RMMigrationTo6_5_34());
+		scripts.add(new RMMigrationTo6_5_36());
+		scripts.add(new RMMigrationTo6_5_37());
+		scripts.add(new RMMigrationTo6_5_50());
+		scripts.add(new RMMigrationTo6_5_54());
+		scripts.add(new RMMigrationTo6_6());
+		scripts.add(new RMMigrationTo6_7());
+		scripts.add(new RMMigrationTo7_0_5());
+		scripts.add(new RMMigrationTo7_0_10_5());
+		scripts.add(new RMMigrationTo7_1());
+		scripts.add(new RMMigrationTo7_1_1());
+		scripts.add(new RMMigrationTo7_1_2());
+		scripts.add(new RMMigrationTo7_2());
+		scripts.add(new RMMigrationTo7_2_0_1());
+		scripts.add(new RMMigrationTo7_2_0_2());
+		scripts.add(new RMMigrationTo7_2_0_3());
+		scripts.add(new RMMigrationTo7_2_0_4());
+		scripts.add(new RMMigrationTo7_3());
+		scripts.add(new RMMigrationTo7_3_1());
+		scripts.add(new RMMigrationTo7_4());
+		scripts.add(new RMMigrationTo7_4_2());
+		scripts.add(new RMMigrationTo7_4_48());
+		scripts.add(new RMMigrationTo7_4_48_1());
+		scripts.add(new RMMigrationTo7_4_49());
+		scripts.add(new RMMigrationTo7_5());
+		scripts.add(new RMMigrationTo7_5_2());
+		scripts.add(new RMMigrationTo7_5_3());
+		scripts.add(new RMMigrationTo7_5_5());
+		scripts.add(new RMMigrationTo7_6());
+		scripts.add(new RMMigrationTo7_6_2());
+		scripts.add(new RMMigrationTo7_6_3());
+		scripts.add(new RMMigrationTo7_6_6());
+		scripts.add(new RMMigrationTo7_6_6_1());
+		scripts.add(new RMMigrationTo7_6_6_2());
+		scripts.add(new RMMigrationTo7_6_8());
+		scripts.add(new RMMigrationTo7_6_9());
+		scripts.add(new RMMigrationTo7_6_10());
+		scripts.add(new RMMigrationTo7_6_11());
+		scripts.add(new RMMigrationTo7_7());
+		scripts.add(new RMMigrationTo7_7_0_42());
+		scripts.add(new RMMigrationTo7_7_1());
+		scripts.add(new RMMigrationTo7_7_2());
+		scripts.add(new RMMigrationTo7_7_3());
+		scripts.add(new RMMigrationTo7_7_4());
+		scripts.add(new RMMigrationTo7_7_4_33());
+		scripts.add(new RMMigrationTo7_7_5_4());
+		scripts.add(new RMMigrationTo7_7_5_5());
+		scripts.add(new RMMigrationTo8_0_1());
+		scripts.add(new RMMigrationTo8_0_2());
+		scripts.add(new RMMigrationTo8_0_3());
+		scripts.add(new RMMigrationTo8_1());
+
+		return scripts;
 	}
 
 	@Override
@@ -167,6 +200,7 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 		RMMigrationTo7_2.reloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 	}
+
 
 	private void applySchemasDisplay2(String collection, SchemasDisplayManager manager) {
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
@@ -403,6 +437,18 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		addEmailTemplates(appLayerFactory, migrationResourcesProvider, collection,
 				"alertWhenDecommissioningListCreatedTemplate.html",
 				RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
+
+		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
+				.equals("fr")) {
+			addEmailTemplates(appLayerFactory, migrationResourcesProvider,
+					collection, "approvalRequestDeniedForDecomListTemplate.html",
+					RMEmailTemplateConstants.APPROVAL_REQUEST_DENIED_TEMPLATE_ID);
+		} else {
+			addEmailTemplates(appLayerFactory, migrationResourcesProvider,
+					collection, "approvalRequestDeniedForDecomListTemplate_en.html",
+					RMEmailTemplateConstants.APPROVAL_REQUEST_DENIED_TEMPLATE_ID);
+
+		}
 	}
 
 	private void addEmailTemplates(AppLayerFactory appLayerFactory,

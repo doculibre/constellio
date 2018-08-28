@@ -3,8 +3,6 @@ package com.constellio.app.modules.rm.ui.components.document;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.extensions.api.DocumentExtension;
-import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionActionPossibleParams;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -291,12 +289,12 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return ComponentState.visibleIf(isCopyDocumentPossible());
 	}
 
-    protected boolean isCopyDocumentPossible() {
-		if (!rmModuleExtensions.isCopyActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument),currentUser)) {
-				return false;
+	protected boolean isCopyDocumentPossible() {
+		if (!rmModuleExtensions.isCopyActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument), currentUser)) {
+			return false;
 		}
 		return true;
-    }
+	}
 
 	public ComponentState getCreatePDFAState() {
 		return ComponentState.visibleIf(isCreatePDFAPossible());
@@ -308,11 +306,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			return false;
 		}
 
-		if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument()),currentUser)) {
+		if (!rmModuleExtensions.isCreatePDFAActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument()), currentUser)) {
 			return false;
 		}
-        return true;
-    }
+		return true;
+	}
 
 	private ComponentState getShareDocumentState() {
 		return ComponentState.visibleIf(isShareDocumentPossible());
@@ -340,11 +338,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			return false;
 		}
 
-		if (!rmModuleExtensions.isShareActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument()),currentUser)) {
+		if (!rmModuleExtensions.isShareActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument()), currentUser)) {
 			return false;
 		}
-        return true;
-    }
+		return true;
+	}
 
 	public void addAuthorizationButtonClicked() {
 		if (isAddAuthorizationPossible()) {
@@ -371,11 +369,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public boolean isDeleteContentVersionPossible() {
-		return presenterUtils.getCurrentUser().has(CorePermissions.DELETE_CONTENT_VERSION).on(currentDocument());
+		return presenterUtils.getCurrentUser().has(CorePermissions.DELETE_CONTENT_VERSION).on(currentDocument()) &&
+			   !extensions.isModifyBlocked(currentDocument(), getCurrentUser());
 	}
 
 	public boolean isDeleteContentVersionPossible(ContentVersionVO contentVersionVO) {
-		return getContent().isDeleteContentVersionPossible(contentVersionVO.getVersion());
+		return getContent().isDeleteContentVersionPossible(contentVersionVO.getVersion()) &&
+			   !extensions.isModifyBlocked(currentDocument(), getCurrentUser());
 	}
 
 	public void deleteContentVersionButtonClicked(ContentVersionVO contentVersionVO) {
@@ -664,22 +664,22 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			return false;
 		}
 
-		if (!rmModuleExtensions.isFinalizeActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument()),currentUser)) {
+		if (!rmModuleExtensions.isFinalizeActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument()), currentUser)) {
 			return false;
 		}
-        return true;
+		return true;
 	}
 
 	private ComponentState getPublishButtonState() {
 		return ComponentState.visibleIf(isPublishPossible());
 	}
 
-    protected boolean isPublishPossible() {
-		if (!rmModuleExtensions.isPublishActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument()),currentUser)) {
+	protected boolean isPublishPossible() {
+		if (!rmModuleExtensions.isPublishActionPossibleOnDocument(rmSchemasRecordsServices.wrapDocument(currentDocument()), currentUser)) {
 			return false;
 		}
-        return true;
-    }
+		return true;
+	}
 
 	public void updateActionsComponent() {
 		RMConfigs configs = new RMConfigs(getModelLayerFactory().getSystemConfigurationsManager());

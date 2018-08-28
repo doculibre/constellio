@@ -6,7 +6,11 @@ import com.constellio.app.ui.entities.RecordVO;
 
 import java.util.List;
 
-import static com.constellio.app.modules.rm.wrappers.Document.*;
+import static com.constellio.app.modules.rm.wrappers.Document.CONTENT;
+import static com.constellio.app.modules.rm.wrappers.Document.DESCRIPTION;
+import static com.constellio.app.modules.rm.wrappers.Document.FOLDER;
+import static com.constellio.app.modules.rm.wrappers.Document.KEYWORDS;
+import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 
 public class DocumentVO extends RecordVO {
 

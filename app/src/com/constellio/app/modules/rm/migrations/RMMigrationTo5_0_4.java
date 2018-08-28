@@ -8,8 +8,20 @@ import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.model.calculators.ContainerRecordTreeVisibilityCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderTreeVisibilityCalculator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
-import com.constellio.app.modules.rm.wrappers.type.*;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Email;
+import com.constellio.app.modules.rm.wrappers.FilingSpace;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
+import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.app.modules.rm.wrappers.type.DocumentType;
+import com.constellio.app.modules.rm.wrappers.type.FolderType;
+import com.constellio.app.modules.rm.wrappers.type.MediumType;
+import com.constellio.app.modules.rm.wrappers.type.StorageSpaceType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaDisplayManagerTransaction;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -18,9 +30,11 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.builders.*;
-
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScript {
 	@Override
@@ -82,7 +96,6 @@ public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScri
 				Document.COMPANY,
 				Email.SUBJECT_TO_BROADCAST_RULE,
 				Document.AUTHOR,
-				Email.EMAIL_CONTENT,
 				Document.COMMENTS);
 		transaction.add(
 				schemaDisplayEmailConfig.withFormMetadataCodes(schemaFormEmailConfig.getFormMetadataCodes()));
@@ -97,7 +110,7 @@ public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScri
 
 		if (schemas.getDocumentTypeByCode(DocumentType.EMAIL_DOCUMENT_TYPE) == null) {
 			transaction.add(schemas.newDocumentType().setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
-					.setTitle($("DocumentType.emailDocumentType")).setLinkedSchema(Email.SCHEMA));
+					.setTitles(migrationResourcesProvider.getLanguagesString("DocumentType.emailDocumentType")).setLinkedSchema(Email.SCHEMA));
 		}
 
 		try {
@@ -139,7 +152,8 @@ public class RMMigrationTo5_0_4 extends MigrationHelper implements MigrationScri
 			emailSchema.createUndeletable(Email.EMAIL_ATTACHMENTS_LIST).setType(MetadataValueType.STRING).setMultivalue(true);
 			emailSchema.createUndeletable(Email.EMAIL_OBJECT).setType(MetadataValueType.STRING);
 			emailSchema.createUndeletable(Email.EMAIL_COMPANY).setType(MetadataValueType.STRING);
-			emailSchema.createUndeletable(Email.EMAIL_CONTENT).setType(MetadataValueType.TEXT);
+			//emailSchema.createUndeletable(Email.EMAIL_CONTENT).setType(MetadataValueType.TEXT);
+			//Deleted in script 7.7.1
 			emailSchema.createUndeletable(Email.EMAIL_SENT_ON).setType(MetadataValueType.DATE_TIME);
 			emailSchema.createUndeletable(Email.EMAIL_RECEIVED_ON).setType(MetadataValueType.DATE_TIME);
 

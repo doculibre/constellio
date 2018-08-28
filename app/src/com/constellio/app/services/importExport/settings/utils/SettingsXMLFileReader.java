@@ -1,7 +1,19 @@
 package com.constellio.app.services.importExport.settings.utils;
 
 import com.constellio.app.services.importExport.settings.SettingsExportServices;
-import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
+import com.constellio.app.services.importExport.settings.model.ImportedLabelTemplate;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedRegexConfigs;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedTab;
+import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
+import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -39,9 +51,10 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 	private Document document;
 	private ModelLayerFactory modelLayerFactory;
 
-	public SettingsXMLFileReader(Document document, ModelLayerFactory modelLayerFactory) {
+	public SettingsXMLFileReader(Document document, String currentCollection, ModelLayerFactory modelLayerFactory) {
 		this.document = document;
 		this.modelLayerFactory = modelLayerFactory;
+		this.currentCollection = currentCollection;
 	}
 
 	public ImportedSettings read() {
@@ -92,7 +105,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		String collectionCode = collectionElement.getAttributeValue(CODE);
 		if (SettingsExportServices.CURRENT_COLLECTION_IMPORTATION_MODE.equals(collectionCode)) {
 			collectionCode = currentCollection;
-			if (currentCollection.equals(null)) {
+			if (currentCollection == null) {
 				throw new RuntimeException(
 						"ERROR: tried to import settings as currentCollection but currentCollection was not set");
 			}
@@ -406,7 +419,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 				languageTitleMap.put(language, label);
 			}
 		} else if (numberOfLang == 0 && Strings.isNotBlank(title)) {
-			for(String languageCollection : languageList) {
+			for (String languageCollection : languageList) {
 				Language language = Language.withCode(languageCollection);
 				languageTitleMap.put(language, title);
 			}
@@ -517,7 +530,8 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 				.setValue(childElement.getAttributeValue("value"));
 	}
 
-	public static ImportedSettings readFromFile(File file, ModelLayerFactory modelLayerFactory) {
+	public static ImportedSettings readFromFile(File file, String currentCollection,
+												ModelLayerFactory modelLayerFactory) {
 
 		SAXBuilder builder = new SAXBuilder();
 		Document document;
@@ -529,7 +543,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("build Document JDOM2 from file", e);
 		}
 
-		SettingsXMLFileReader reader = new SettingsXMLFileReader(document, modelLayerFactory);
+		SettingsXMLFileReader reader = new SettingsXMLFileReader(document, currentCollection, modelLayerFactory);
 
 		return reader.read();
 

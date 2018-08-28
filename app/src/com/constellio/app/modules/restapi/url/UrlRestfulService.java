@@ -1,6 +1,10 @@
 package com.constellio.app.modules.restapi.url;
 
-import com.constellio.app.modules.restapi.core.exception.*;
+import com.constellio.app.modules.restapi.core.exception.AtLeastOneParameterRequiredException;
+import com.constellio.app.modules.restapi.core.exception.InvalidParameterCombinationException;
+import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
+import com.constellio.app.modules.restapi.core.exception.InvalidParameterWithHttpMethodException;
+import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
 import com.constellio.app.modules.restapi.core.exception.mapper.RestApiErrorResponse;
 import com.constellio.app.modules.restapi.core.util.HttpMethods;
 import com.constellio.app.modules.restapi.core.util.SchemaTypes;
@@ -15,12 +19,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
-import javax.ws.rs.*;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static com.constellio.app.modules.restapi.core.util.HttpMethods.*;
+import static com.constellio.app.modules.restapi.core.util.HttpMethods.DELETE;
+import static com.constellio.app.modules.restapi.core.util.HttpMethods.GET;
+import static com.constellio.app.modules.restapi.core.util.HttpMethods.POST;
 
 @Path("urls")
 @Tag(name = "urls")

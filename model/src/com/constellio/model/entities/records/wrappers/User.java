@@ -12,9 +12,15 @@ import com.constellio.model.entities.structures.MapStringListStringStructure;
 import com.constellio.model.services.security.roles.Roles;
 import org.joda.time.LocalDateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import static com.constellio.model.entities.security.Role.*;
+import static com.constellio.model.entities.security.Role.DELETE;
+import static com.constellio.model.entities.security.Role.READ;
+import static com.constellio.model.entities.security.Role.WRITE;
 import static java.util.Arrays.asList;
 
 public class User extends RecordWrapper {

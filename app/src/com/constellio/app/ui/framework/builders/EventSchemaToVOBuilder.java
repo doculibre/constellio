@@ -35,7 +35,8 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 											   StructureFactory structureFactory, String metadataGroup,
 											   Object defaultValue, String inputMask, Set<String> customAttributes,
 											   boolean isMultiLingual, Locale locale,
-											   Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO) {
+											   Map<String, Object> customParameters,
+											   CollectionInfoVO collectionInfoVO) {
 				MetadataVO metadataVO;
 				String modifiedOnCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(Schemas.MODIFIED_ON.getCode());
 				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);

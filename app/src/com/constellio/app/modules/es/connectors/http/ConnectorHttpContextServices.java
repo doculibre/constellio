@@ -1,12 +1,17 @@
 package com.constellio.app.modules.es.connectors.http;
 
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
 import org.apache.commons.io.FileUtils;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -102,8 +107,8 @@ public class ConnectorHttpContextServices {
 			return (ConnectorHttpContext) binaryConfigurationInputStream.readObject();
 
 		} catch (IOException | ClassNotFoundException e) {
+			this.deleteContext(connectorId);
 			throw new RuntimeException(e);
-
 		} catch (ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
 			throw new RuntimeException(contentDaoException_noSuchContent);
 		} finally {
@@ -129,8 +134,10 @@ public class ConnectorHttpContextServices {
 	}
 
 	public void deleteContext(String connectorId) {
-		ConfigManager configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
-		String path = "/connectors/http/" + connectorId + "/fetchedUrls.txt";
-		configManager.delete(path);
+		ContentDao contentDao = es.getModelLayerFactory().getDataLayerFactory().getContentsDao();
+		String vaultFilePath = "connectors/" + connectorId;
+		if (contentDao.isFolderExisting(vaultFilePath)) {
+			contentDao.deleteFolder(vaultFilePath);
+		}
 	}
 }

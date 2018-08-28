@@ -9,7 +9,12 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordCacheExtension;
 import com.constellio.model.extensions.behaviors.UserAuthenticationExtension;
-import com.constellio.model.extensions.events.recordsCache.*;
+import com.constellio.model.extensions.events.recordsCache.CacheHitParams;
+import com.constellio.model.extensions.events.recordsCache.CacheMissParams;
+import com.constellio.model.extensions.events.recordsCache.CachePutParams;
+import com.constellio.model.extensions.events.recordsCache.CacheQueryHitParams;
+import com.constellio.model.extensions.events.recordsCache.CacheQueryMissParams;
+import com.constellio.model.extensions.events.recordsCache.CacheQueryPutParams;
 import com.constellio.model.extensions.params.CanAuthenticateUsingPasswordFileIfLDAPFailedParams;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySignature;
 

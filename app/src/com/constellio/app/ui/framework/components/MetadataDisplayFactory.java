@@ -6,8 +6,11 @@ import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.*;
-import com.constellio.app.ui.framework.components.content.UpdatableContentVersionPresenter;
+import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateConverter;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateTimeConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
@@ -37,7 +40,11 @@ import org.joda.time.LocalDateTime;
 
 import java.io.Serializable;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -77,7 +84,7 @@ public class MetadataDisplayFactory implements Serializable {
 			Collection<?> collectionDisplayValue = (Collection<?>) displayValue;
 			if (collectionDisplayValue.isEmpty()) {
 				displayComponent = null;
-			} else if (MetadataValueType.STRING.equals(metadataValueType)) {
+			} else if (MetadataValueType.STRING.equals(metadataValueType) && metadataVO.getMetadataInputType() != MetadataInputType.URL) {
 				displayComponent = newStringCollectionValueDisplayComponent((Collection<String>) collectionDisplayValue);
 			} else {
 				List<Component> elementDisplayComponents = new ArrayList<Component>();
@@ -177,7 +184,7 @@ public class MetadataDisplayFactory implements Serializable {
 						displayComponent = null;
 					} else if (MetadataInputType.URL.equals(metadataInputType)) {
 						String url = displayValue.toString();
-						if (!url.startsWith("http://")) {
+						if (!url.startsWith("http://") && !url.startsWith("https://")) {
 							url = "http://" + url;
 						}
 						Link link = new Link(url, new ExternalResource(url));

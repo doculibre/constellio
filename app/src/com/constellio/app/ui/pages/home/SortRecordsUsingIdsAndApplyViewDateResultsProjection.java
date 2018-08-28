@@ -8,7 +8,11 @@ import com.constellio.model.services.search.query.ResultsProjection;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.joda.time.LocalDateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 public class SortRecordsUsingIdsAndApplyViewDateResultsProjection implements ResultsProjection {
 

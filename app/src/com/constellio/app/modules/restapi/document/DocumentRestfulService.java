@@ -1,7 +1,15 @@
 package com.constellio.app.modules.restapi.document;
 
-import com.constellio.app.modules.restapi.core.exception.*;
-import com.constellio.app.modules.restapi.core.util.*;
+import com.constellio.app.modules.restapi.core.exception.AtLeastOneParameterRequiredException;
+import com.constellio.app.modules.restapi.core.exception.InvalidParameterCombinationException;
+import com.constellio.app.modules.restapi.core.exception.InvalidParameterException;
+import com.constellio.app.modules.restapi.core.exception.ParametersMustMatchException;
+import com.constellio.app.modules.restapi.core.exception.RequiredParameterException;
+import com.constellio.app.modules.restapi.core.util.CustomHttpHeaders;
+import com.constellio.app.modules.restapi.core.util.HttpMethods;
+import com.constellio.app.modules.restapi.core.util.ListUtils;
+import com.constellio.app.modules.restapi.core.util.Permissions;
+import com.constellio.app.modules.restapi.core.util.StringUtils;
 import com.constellio.app.modules.restapi.document.dto.AceDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentContentDto;
 import com.constellio.app.modules.restapi.document.dto.DocumentDto;
@@ -19,7 +27,17 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.PATCH;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;

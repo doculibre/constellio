@@ -21,7 +21,10 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.*;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.DISABLED;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
 
 public class PluginManagementPresenter extends BasePresenter<PluginManagementView> {
 	transient ConstellioPluginManager pluginManager;

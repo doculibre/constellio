@@ -11,9 +11,37 @@ import com.constellio.app.modules.es.connectors.http.ConnectorHttpUtilsServices;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPUtilsServices;
 import com.constellio.app.modules.es.connectors.smb.SMBConnectorUtilsServices;
 import com.constellio.app.modules.es.constants.ESPermissionsTo;
-import com.constellio.app.modules.es.extensions.*;
+import com.constellio.app.modules.es.extensions.ESRecordAppExtension;
+import com.constellio.app.modules.es.extensions.ESRecordExportExtension;
+import com.constellio.app.modules.es.extensions.ESRecordExtension;
+import com.constellio.app.modules.es.extensions.ESRecordNavigationExtension;
+import com.constellio.app.modules.es.extensions.ESSMBConnectorUrlCriterionExtension;
+import com.constellio.app.modules.es.extensions.ESSchemaExtension;
+import com.constellio.app.modules.es.extensions.ESSearchPageExtension;
+import com.constellio.app.modules.es.extensions.ESTaxonomyPageExtension;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
-import com.constellio.app.modules.es.migrations.*;
+import com.constellio.app.modules.es.migrations.ESMigrationCombo;
+import com.constellio.app.modules.es.migrations.ESMigrationTo5_1_6;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_4;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_42;
+import com.constellio.app.modules.es.migrations.ESMigrationTo6_5_58;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_1_3;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_4_3;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_5;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_1_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_2;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_3;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_6_6;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_7;
+import com.constellio.app.modules.es.migrations.ESMigrationTo7_7_0_42;
+import com.constellio.app.modules.es.migrations.ESMigrationTo8_0;
+import com.constellio.app.modules.es.migrations.ESMigrationTo8_0_1;
+import com.constellio.app.modules.es.migrations.ESMigrationTo8_0_2;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -38,10 +66,15 @@ import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.extensions.api.scripts.Scripts.registerScript;
-import static com.constellio.app.modules.es.model.connectors.ConnectorType.*;
+import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_HTTP;
+import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_LDAP;
+import static com.constellio.app.modules.es.model.connectors.ConnectorType.CODE_SMB;
 import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 
 public class ConstellioESModule implements InstallableSystemModule, ModuleWithComboMigration {
@@ -67,29 +100,32 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 	@Override
 	public List<MigrationScript> getMigrationScripts() {
-		return Arrays.asList(
-				new ESMigrationTo5_1_6(),
-				new ESMigrationTo6_1(),
-				new ESMigrationTo6_2(),
-				new ESMigrationTo6_4(),
-				new ESMigrationTo6_5_42(),
-				new ESMigrationTo6_5_58(),
-				new ESMigrationTo7_1_3(),
-				new ESMigrationTo7_4_1(),
-				new ESMigrationTo7_4_2(),
-				new ESMigrationTo7_4_3(),
-				new ESMigrationTo7_5(),
-				new ESMigrationTo7_6_1(),
-				new ESMigrationTo7_6_1_1(),
-				new ESMigrationTo7_6_2(),
-				new ESMigrationTo7_6_3(),
-				new ESMigrationTo7_6_6(),
-				new ESMigrationTo7_7(),
-				new ESMigrationTo7_7_0_42(),
-				new ESMigrationTo8_0(),
-				new ESMigrationTo8_0_1(),
-				new ESMigrationTo8_0_2()
-		);
+
+		List<MigrationScript> scripts = new ArrayList<>();
+
+		scripts.add(new ESMigrationTo5_1_6());
+		scripts.add(new ESMigrationTo6_1());
+		scripts.add(new ESMigrationTo6_2());
+		scripts.add(new ESMigrationTo6_4());
+		scripts.add(new ESMigrationTo6_5_42());
+		scripts.add(new ESMigrationTo6_5_58());
+		scripts.add(new ESMigrationTo7_1_3());
+		scripts.add(new ESMigrationTo7_4_1());
+		scripts.add(new ESMigrationTo7_4_2());
+		scripts.add(new ESMigrationTo7_4_3());
+		scripts.add(new ESMigrationTo7_5());
+		scripts.add(new ESMigrationTo7_6_1());
+		scripts.add(new ESMigrationTo7_6_1_1());
+		scripts.add(new ESMigrationTo7_6_2());
+		scripts.add(new ESMigrationTo7_6_3());
+		scripts.add(new ESMigrationTo7_6_6());
+		scripts.add(new ESMigrationTo7_7());
+		scripts.add(new ESMigrationTo7_7_0_42());
+		scripts.add(new ESMigrationTo8_0());
+		scripts.add(new ESMigrationTo8_0_1());
+		scripts.add(new ESMigrationTo8_0_2());
+
+		return scripts;
 	}
 
 	@Override

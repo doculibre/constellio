@@ -8,14 +8,18 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.BasePagedTable;
 import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.vaadin.data.Property;
 import com.vaadin.data.util.converter.StringToLongConverter;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.VerticalLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,12 +164,13 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 		linesField = new BaseTextField();
 		linesField.setConversionError($("ConnectorReportView.linesFieldConversionError"));
 		linesField.setConverter(new StringToLongConverter());
-		linesField.addValueChangeListener(new Property.ValueChangeListener() {
+
+		BaseButton linesButton = new BaseButton($("ConnectorReportView.linesButton")) {
 			private Object oldValue;
 			private DownloadLink oldLink = downloadLink;
 
 			@Override
-			public void valueChange(Property.ValueChangeEvent event) {
+			protected void buttonClick(ClickEvent event) {
 				Object current = linesField.getConvertedValue();
 
 				if (!Objects.equals(oldValue, current)) {
@@ -176,9 +181,9 @@ public class ConnectorReportViewImpl extends BaseViewImpl implements ConnectorRe
 
 				oldValue = current;
 			}
-		});
+		};
 
-		layout.addComponents(labelLinesField, linesField, downloadLink);
+		layout.addComponents(labelLinesField, linesField, linesButton, downloadLink);
 		layout.setComponentAlignment(labelLinesField, Alignment.MIDDLE_LEFT);
 		layout.setComponentAlignment(linesField, Alignment.MIDDLE_CENTER);
 		layout.setComponentAlignment(downloadLink, Alignment.MIDDLE_RIGHT);

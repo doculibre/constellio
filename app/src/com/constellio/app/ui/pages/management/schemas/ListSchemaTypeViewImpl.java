@@ -14,14 +14,20 @@ import com.vaadin.data.Container;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.app.api.extensions.GenericRecordPageExtension.*;
+import static com.constellio.app.api.extensions.GenericRecordPageExtension.DDV_TAB;
+import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
+import static com.constellio.app.api.extensions.GenericRecordPageExtension.TAXONOMY_TAB;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTypeView, ClickListener {

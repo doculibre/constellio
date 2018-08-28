@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.data.dao.services.contents.ContentDaoException;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
@@ -76,6 +77,21 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 			@Override
 			public void logError(String code, Map<String, Object> parameters) {
 			}
+
+			@Override
+			public void incrementProgression(int numberToAdd) {
+
+			}
+
+			@Override
+			public void setProgressionUpperLimit(long progressionUpperLimit) {
+
+			}
+
+			@Override
+			public AsyncTaskBatchProcess getBatchProcess() {
+				return null;
+			}
 		};
 		pdfGeneratorAsyncTask.execute(params);
 
@@ -100,12 +116,13 @@ public class PdfGeneratorAsyncAcceptanceTest extends ConstellioTest {
 			ioServices.closeQuietly(newConsolidatedFileAsInputStream);
 		}
 
-		if (parsedContent != null) {
-			assertThat(parsedContent.getParsedContent()).contains("La racine du mot « grenouille » vient du latin rana,  voulant dire grenouille, et ranucula ou ranunculus, petite");
-			assertThat(parsedContent.getParsedContent()).contains("Pour une définition du mot « pêcher »");
 
-			assertThat(parsedContent.getParsedContent()).contains("germaniques ont emprunté l'étymon du latin vulgaire : anglais pear (renforcé par le normand),");
-			assertThat(parsedContent.getParsedContent()).contains("Lynx");
+		if (parsedContent != null) {
+			String parsedContentText = parsedContent.getParsedContent().replace("\n", "").replace("\r", "");
+			assertThat(parsedContentText).contains("La racine du mot « grenouille » vient du latin rana");
+			assertThat(parsedContentText).contains("Pour une définition du mot « pêcher »");
+			assertThat(parsedContentText).contains("germaniques ont emprunté l'étymon du latin vulgaire : anglais pear (renforcé par le normand),");
+			assertThat(parsedContentText).contains("Lynx");
 		}
 	}
 }

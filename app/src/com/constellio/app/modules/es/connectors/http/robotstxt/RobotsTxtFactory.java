@@ -29,6 +29,7 @@ public class RobotsTxtFactory {
 						.isBeforeNow())) {
 					URL base = new URL(baseUrl);
 
+					LOGGER.info("Getting robots.txt of '" + baseUrl + "' (from url " + url + ")");
 					try (InputStream robotsTxtStream = new URL(base, ROBOT_TXT_FILE).openStream()) {
 						robotsTxt = RobotsTxt.read(robotsTxtStream);
 						this.robotsTxt.put(baseUrl, robotsTxt);

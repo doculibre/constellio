@@ -8,7 +8,12 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataListFilter;
@@ -18,7 +23,14 @@ import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsParams;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
@@ -584,15 +596,11 @@ public class RecordUtils {
 
 		}
 		for (
-				String idWithPossibleNewChildren : idsWithPossibleNewChildren)
-
-		{
+				String idWithPossibleNewChildren : idsWithPossibleNewChildren) {
 			cache.invalidateWithoutChildren(idWithPossibleNewChildren);
 		}
 		for (
-				String idWithPossibleNewChildren : idsWithPossibleRemovedChildren)
-
-		{
+				String idWithPossibleNewChildren : idsWithPossibleRemovedChildren) {
 			cache.invalidateWithChildren(idWithPossibleNewChildren);
 		}
 

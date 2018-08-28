@@ -101,25 +101,25 @@ public class XmlReportGenerator extends AbstractXmlGenerator {
 			return createMetadataTagFromMetadataOfTypeStructure(metadata, recordElement, getCollection(), getFactory());
 		}
 
-        Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
-        metadataXmlElement.setAttribute("label", metadata.getFrenchLabel());
-        metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));
-        boolean isRichTextInputType = displayManager.getMetadata(getCollection(), metadata.getCode()).getInputType() == MetadataInputType.RICHTEXT;
+		Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
+		metadataXmlElement.setAttribute("label", metadata.getFrenchLabel());
+		metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));
+		boolean isRichTextInputType = displayManager.getMetadata(getCollection(), metadata.getCode()).getInputType() == MetadataInputType.RICHTEXT;
 		String data = getToStringOrNull(recordElement.get(metadata, getLocale()));
-		if(!isRichTextInputType) {
+		if (!isRichTextInputType) {
 			data = formatData(data, metadata);
 		}
-        if(metadata.getLocalCode().toLowerCase().contains("path")) {
-            data = this.getPath(recordElement);
-        }
+		if (metadata.getLocalCode().toLowerCase().contains("path")) {
+			data = this.getPath(recordElement);
+		}
 
-        if(data != null && isRichTextInputType) {
-            metadataXmlElement.setContent(new CDATA(data));
-        } else {
-            metadataXmlElement.setText(data);
-        }
-        return Collections.singletonList(metadataXmlElement);
-    }
+		if (data != null && isRichTextInputType) {
+			metadataXmlElement.setContent(new CDATA(data));
+		} else {
+			metadataXmlElement.setText(data);
+		}
+		return Collections.singletonList(metadataXmlElement);
+	}
 
 	private Record[] getRecordFromIds(String schemaType, List<String> ids) {
 		SearchServices searchServices = getFactory().getModelLayerFactory().newSearchServices();

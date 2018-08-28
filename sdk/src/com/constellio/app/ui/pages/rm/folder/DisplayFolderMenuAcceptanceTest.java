@@ -21,7 +21,14 @@ import org.openqa.selenium.By;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.*;
+import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.CREATE_DOCUMENT;
+import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.CREATE_SUB_FOLDER;
+import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.DELETE;
+import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.DUPLICATE;
+import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.MANAGE_AUTHORIZATIONS;
+import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.MODIFY;
+import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.PRINT_LABELS;
+import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.SHARE;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 

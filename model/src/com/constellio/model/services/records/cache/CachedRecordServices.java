@@ -11,8 +11,15 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.*;
+import com.constellio.model.services.records.BaseRecordServices;
+import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.records.RecordLogicalDeleteOptions;
+import com.constellio.model.services.records.RecordModificationImpactHandler;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -139,6 +146,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		//		}
 
 		return recordServices.getRecordsById(collection, ids);
+	}
+
+	@Override
+	public void prepareRecords(Transaction transaction) throws ValidationException {
+		recordServices.prepareRecords(transaction);
 	}
 
 	@Override

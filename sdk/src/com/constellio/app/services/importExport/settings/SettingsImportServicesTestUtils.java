@@ -4,7 +4,11 @@ import com.constellio.app.services.importExport.settings.model.ImportedTab;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileConstants;
 import com.constellio.sdk.tests.ConstellioTest;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SettingsImportServicesTestUtils extends ConstellioTest implements SettingsXMLFileConstants {
 

@@ -4,7 +4,11 @@ import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.threads.ConstellioThread;
 import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.model.entities.batchprocess.*;
+import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
+import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
@@ -128,6 +132,23 @@ public class BatchProcessControllerThread extends ConstellioThread {
 							public void logError(String code, Map<String, Object> parameters) {
 								state.getErrors().add(new ValidationError(taskClass, code, parameters));
 								batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);
+							}
+
+							@Override
+							public void incrementProgression(int numberToAdd) {
+								state.incrementCurrentlyProcessed(numberToAdd);
+								batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);
+							}
+
+							@Override
+							public void setProgressionUpperLimit(long progressionUpperLimit) {
+								state.setTotalToProcess(progressionUpperLimit);
+								batchProcessesManager.updateBatchProcessState(batchProcess.getId(), state);
+							}
+
+							@Override
+							public AsyncTaskBatchProcess getBatchProcess() {
+								return process;
 							}
 
 						};

@@ -32,7 +32,11 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Constellio on 2017-02-16.
@@ -73,12 +77,12 @@ public class RMSelectionPanelExtensionAcceptanceTest extends ConstellioTest {
 		assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
 				.doesNotContain(records.folder_A20);
 
-        extension.parentFolderButtonClicked(records.folder_A20, param);
-        assertThatRecords(records.getDocumentWithContent_A79(), records.getDocumentWithContent_B33()).extracting(Document.FOLDER)
-                .containsOnly(records.folder_A20);
-        assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
-                .containsOnly(records.folder_A20);
-    }
+		extension.parentFolderButtonClicked(records.folder_A20, param);
+		assertThatRecords(records.getDocumentWithContent_A79(), records.getDocumentWithContent_B33()).extracting(Document.FOLDER)
+				.containsOnly(records.folder_A20);
+		assertThatRecords(records.getFolder_A01(), records.getFolder_A02()).extracting(Folder.PARENT_FOLDER)
+				.containsOnly(records.folder_A20);
+	}
 
 	@Test
 	public void givenDuplicateButtonClickedThenDuplicatedCorrectly() throws RecordServicesException {

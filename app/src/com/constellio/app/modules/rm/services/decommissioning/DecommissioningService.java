@@ -6,11 +6,25 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
-import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DecomListStatus;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMTask;
+import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -48,7 +62,11 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.taxonomies.*;
+import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -59,7 +77,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -252,12 +276,44 @@ public class DecommissioningService {
 		return securityService().canValidate(decommissioningList, user);
 	}
 
-	public void approveList(DecommissioningList decommissioningList, User user) {
-		decommissioner(decommissioningList).approve(decommissioningList, user, TimeProvider.getLocalDate());
+	public void approveList(DecommissioningList decommissioningList, User user) throws DecommissioningServiceException {
+		approveList(decommissioningList, user, 0);
 	}
 
-	public void denyApprovalOnList(DecommissioningList decommissioningList, User denier, String comment) {
-		decommissioner(decommissioningList).denyApproval(decommissioningList, denier, comment);
+	public void approveList(DecommissioningList decommissioningList, User user, int attempt)
+			throws DecommissioningServiceException {
+
+		try {
+			decommissioner(decommissioningList).approve(decommissioningList, user, TimeProvider.getLocalDate());
+
+		} catch (RecordServicesException.OptimisticLocking e) {
+			if (attempt < 3) {
+				LOGGER.warn("Operation failed, retrying...", e);
+				approveList(rm.getDecommissioningList(decommissioningList.getId()), user, attempt + 1);
+			} else {
+				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
+			}
+		}
+	}
+
+	public void denyApprovalOnList(DecommissioningList decommissioningList, User denier, String comment)
+			throws DecommissioningServiceException {
+		denyApprovalOnList(decommissioningList, denier, comment, 0);
+	}
+
+	public void denyApprovalOnList(DecommissioningList decommissioningList, User denier, String comment, int attempt)
+			throws DecommissioningServiceException {
+		try {
+
+			decommissioner(decommissioningList).denyApproval(decommissioningList, denier, comment);
+		} catch (RecordServicesException.OptimisticLocking e) {
+			if (attempt < 3) {
+				LOGGER.warn("Operation failed, retrying...", e);
+				denyApprovalOnList(rm.getDecommissioningList(decommissioningList.getId()), denier, comment, attempt + 1);
+			} else {
+				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
+			}
+		}
 	}
 
 	public void approvalRequest(List<User> managerList, DecommissioningList decommissioningList, User approvalUser)
@@ -390,8 +446,33 @@ public class DecommissioningService {
 		return returnAddresses;
 	}
 
-	public void decommission(DecommissioningList decommissioningList, User user) {
-		decommissioner(decommissioningList).process(decommissioningList, user, TimeProvider.getLocalDate());
+	public void decommission(DecommissioningList decommissioningList, User user)
+			throws DecommissioningServiceException {
+
+		decommission(decommissioningList, user, 0);
+	}
+
+	public void decommission(DecommissioningList decommissioningList, User user, int attempt)
+			throws DecommissioningServiceException {
+
+		try {
+			decommissioner(decommissioningList).process(decommissioningList, user, TimeProvider.getLocalDate());
+
+		} catch (RecordServicesException.OptimisticLocking e) {
+			modelLayerFactory.getRecordsCaches().getCache(decommissioningList.getCollection())
+					.invalidateRecordsOfType(Folder.SCHEMA_TYPE);
+
+			modelLayerFactory.getRecordsCaches().getCache(decommissioningList.getCollection())
+					.invalidateRecordsOfType(ContainerRecord.SCHEMA_TYPE);
+
+			if (attempt < 3) {
+				LOGGER.warn("Decommission failed, retrying...", e);
+				decommission(rm.getDecommissioningList(decommissioningList.getId()), user, attempt + 1);
+			} else {
+				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
+			}
+		}
+
 	}
 
 	public void recycleContainer(ContainerRecord container, User user) {

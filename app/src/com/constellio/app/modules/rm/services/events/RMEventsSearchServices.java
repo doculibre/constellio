@@ -25,7 +25,10 @@ import java.util.List;
 
 import static com.constellio.model.entities.records.wrappers.Event.EVENT_PRINCIPAL_PATH;
 import static com.constellio.model.services.contents.ContentFactory.checkedOut;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.endingWithText;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
 
 public class RMEventsSearchServices {
 	private ModelLayerFactory modelLayerFactory;

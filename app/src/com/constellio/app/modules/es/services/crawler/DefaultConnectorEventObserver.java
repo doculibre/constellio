@@ -16,7 +16,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.records.*;
+import com.constellio.model.services.records.BulkRecordTransactionHandler;
+import com.constellio.model.services.records.BulkRecordTransactionHandlerOptions;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
+import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 import org.slf4j.Logger;
@@ -55,6 +59,7 @@ public class DefaultConnectorEventObserver implements ConnectorEventObserver {
 		this.userServices = es.getModelLayerFactory().newUserServices();
 		ESConfigs esConfigs = new ESConfigs(es.getModelLayerFactory());
 		BulkRecordTransactionHandlerOptions options = new BulkRecordTransactionHandlerOptions()
+				.showProgressionInConsole(false)
 				.withRecordsPerBatch(esConfigs.getConnectorNumberOfRecordsPerBatch()).withNumberOfThreads(esConfigs.getConnectorNumberOfThreads());
 		options.getTransactionOptions().setUnicityValidationsEnabled(false);
 		this.handler = new BulkRecordTransactionHandler(es.getRecordServices(), resourceName, options);

@@ -15,7 +15,11 @@ import com.vaadin.ui.AbstractSelect.ItemDescriptionGenerator;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.Tree;
-import com.vaadin.ui.Tree.*;
+import com.vaadin.ui.Tree.CollapseEvent;
+import com.vaadin.ui.Tree.CollapseListener;
+import com.vaadin.ui.Tree.ExpandEvent;
+import com.vaadin.ui.Tree.ExpandListener;
+import com.vaadin.ui.Tree.ItemStyleGenerator;
 
 import java.io.Serializable;
 import java.util.ArrayList;

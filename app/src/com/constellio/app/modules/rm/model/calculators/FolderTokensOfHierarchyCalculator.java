@@ -7,9 +7,15 @@ import com.constellio.model.entities.calculators.StringListMetadataValueCalculat
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.*;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.LOGICALLY_DELETED;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.VISIBLE_IN_TREES;
 import static java.util.Arrays.asList;
 
 public class FolderTokensOfHierarchyCalculator extends StringListMetadataValueCalculator {
