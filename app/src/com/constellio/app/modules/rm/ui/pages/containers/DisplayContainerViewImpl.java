@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -328,8 +329,8 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		String searchId = getUIContext().getAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
-		SearchType searchType = getUIContext().getAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+		String searchId = getUIContext().getAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+		SearchType searchType = getUIContext().getAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 		BaseBreadcrumbTrail breadcrumbTrail = null;
 
 		if(searchId == null) {

@@ -6,14 +6,6 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningBuilderPresenterExtension;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningBuilderPresenterExtension.AddAdditionalSearchFiltersParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.pages.search.SearchCriteriaPresenterUtils;
-import com.constellio.app.ui.pages.search.SearchViewImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -29,6 +21,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
 import com.constellio.app.ui.pages.search.SearchCriteriaPresenterUtils;
 import com.constellio.app.ui.pages.search.SearchPresenter;
+import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionException;
 import com.constellio.app.ui.pages.search.criteria.ConditionException.ConditionException_EmptyCondition;
@@ -43,6 +36,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.rometools.utils.Strings;
 import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,23 +74,37 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	@Override
 	public DecommissioningBuilderPresenter forRequestParameters(String params) {
 		String[] parts = params.split("/", 3);
+		List<String> partsList = Arrays.asList(parts);
+		if(partsList.contains("new")) {
+			view.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+			view.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+		}
 
-		view.getUIContext().clearAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
-		view.getUIContext().clearAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+		String saveSearchFromSession = view.getUIContext().getAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+
 
 		if (!addMode) {
-			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
-			searchType = SearchType.valueOf(parts[0]);
-			view.setCriteriaSchemaType(getSchemaType());
-			view.addEmptyCriterion();
-			view.addEmptyCriterion();
-			this.displayResults = false;
-			pageNumber = 1;
-		} else if (parts.length > 1) {
+			if(saveSearchFromSession == null || Strings.isBlank(saveSearchFromSession)) {
+				searchType = SearchType.valueOf(parts[0]);
+				view.setCriteriaSchemaType(getSchemaType());
+				view.addEmptyCriterion();
+				view.addEmptyCriterion();
+				this.displayResults = false;
+				pageNumber = 1;
+			} else {
+				searchType = SearchType.valueOf(parts[0]);
+				setSavedSearch(getSavedSearch(saveSearchFromSession));
+				this.displayResults = true;
+			}
+		} else if (parts.length > 2) {
 			searchType = SearchType.valueOf(parts[0]);
 			SavedSearch search = getSavedSearch(parts[2]);
+
+			searchType = SearchType.valueOf(parts[0]);
 			setSavedSearch(search);
 			this.displayResults = true;
+			view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, search.getId());
+			view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType.toString());
 		} else {
 			searchType = SearchType.valueOf(params);
 			view.setCriteriaSchemaType(getSchemaType());

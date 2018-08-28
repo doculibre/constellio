@@ -24,7 +24,6 @@ import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
-import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
@@ -103,7 +102,7 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
 
-	public VaultBehaviorsList<DocumentBreadcrumExtention> documentBreadcrumExtentions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<DocumentFolderBreadcrumExtention> documentBreadcrumExtentions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -640,11 +639,11 @@ public class AppLayerCollectionExtensions {
 		return new ArrayList<>(unwantedTaxonomies);
 	}
 
-	public BaseBreadcrumbTrail getBreadcrumtrail(DocumentBreadcrumParams documentBreadcrumParams) {
+	public BaseBreadcrumbTrail getBreadcrumtrail(DocumentFolderBreadcrumParams documentBreadcrumParams) {
 		BaseBreadcrumbTrail breadcrumbTrail = null;
 
-		for(DocumentBreadcrumExtention documentBreadcrumExtention : documentBreadcrumExtentions) {
-			breadcrumbTrail = documentBreadcrumExtention.getBreadcrumTrail(documentBreadcrumParams);
+		for(DocumentFolderBreadcrumExtention documentFolderBreadcrumExtention : documentBreadcrumExtentions) {
+			breadcrumbTrail = documentFolderBreadcrumExtention.getBreadcrumTrail(documentBreadcrumParams);
 
 			if(breadcrumbTrail != null) {
 				break;

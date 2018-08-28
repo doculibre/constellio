@@ -108,4 +108,42 @@ public class BreadcrumbTrailUtil {
 			}
 		};
 	}
+
+	public static IntermediateBreadCrumbTailItem valueDomain() {
+		return new IntermediateBreadCrumbTailItem() {
+			@Override
+			public String getTitle() {
+				return $("ListValueDomainView.viewTitle");
+			}
+
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().listValueDomains();
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return true;
+			}
+		};
+	}
+
+	public static IntermediateBreadCrumbTailItem listSchemaRecord(final String schemaCode) {
+		return new IntermediateBreadCrumbTailItem() {
+			@Override
+			public String getTitle() {
+				return $("ListSchemaRecordsView.viewTitle");
+			}
+
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to().listSchemaRecords(schemaCode);
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return true;
+			}
+		};
+	}
 }

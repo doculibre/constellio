@@ -100,7 +100,7 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void creationRequested(SearchType type) {
-		view.navigate().to(RMViews.class).decommissioningListBuilder(type.toString());
+		view.navigate().to(RMViews.class).decommissioningListBuilder(type.toString(), true);
 	}
 
 	public void displayButtonClicked(RecordVO entity) {

@@ -1,10 +1,11 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import com.constellio.app.api.extensions.params.DocumentBreadcrumParams;
+import com.constellio.app.api.extensions.params.DocumentFolderBreadcrumParams;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -36,7 +37,6 @@ import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
-import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -279,18 +279,32 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 
-		String saveSearchDecommissioning = getUIContext().getAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
-		SearchType searchType = getUIContext().getAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+		String saveSearchDecommissioningId = getUIContext().getAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+		String searchTypeAsString = getUIContext().getAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+
+		if(presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
+			saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
+
+		}
+
+		if(presenter.getParams() != null && presenter.getParams().get("decommissioningType") != null) {
+			searchTypeAsString = presenter.getParams().get("decommissioningType");
+		}
+
+		SearchType searchType = null;
+		if(searchTypeAsString != null) {
+			searchType = SearchType.valueOf((searchTypeAsString));
+		}
 
 		BaseBreadcrumbTrail breadcrumbTrail;
 
-		breadcrumbTrail = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getBreadcrumtrail(new DocumentBreadcrumParams(presenter.getDocument().getId(),presenter.getParams(), this));
+		breadcrumbTrail = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getBreadcrumtrail(new DocumentFolderBreadcrumParams(presenter.getDocument().getId(),presenter.getParams(), this));
 
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;
-		} else if (saveSearchDecommissioning != null) {
+		} else if (saveSearchDecommissioningId != null && searchType != null) {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
-					saveSearchDecommissioning, presenter.getRecord().getId(),this);
+					saveSearchDecommissioningId, presenter.getRecord().getId(),this);
 		} else {
 			String containerId = null;
 			if(presenter.getParams() != null && presenter.getParams() instanceof Map) {

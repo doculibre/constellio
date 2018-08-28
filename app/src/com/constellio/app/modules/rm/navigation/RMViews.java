@@ -40,6 +40,16 @@ public class RMViews extends CoreViews {
 		navigateTo(homePageUrl, RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id, isToOpenInNewTab);
 	}
 
+	public void displayFolderFromDecommission(String id, String homePageUrl, boolean isToOpenInNewTab, String decommissioningSearchId, String decommissioningType) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("decommissioningSearchId", decommissioningSearchId);
+		params.put("decommissioningType", decommissioningType);
+
+		navigateTo(homePageUrl, addParams(RMNavigationConfiguration.DISPLAY_FOLDER, params), isToOpenInNewTab);
+	}
+
+
 	public void addFolder() {
 		addFolder(null, null);
 	}
@@ -99,6 +109,16 @@ public class RMViews extends CoreViews {
 	public void displayDocument(String id, String homePageUrl, boolean isToOpenInNewTab) {
 		navigateTo(homePageUrl, RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id, isToOpenInNewTab);
 	}
+
+	public void displayDocumentFromDecommission(String id, String homePageUrl, boolean isToOpenInNewTab, String decommissioningSearchId, String decommissioningType) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("decommissioningSearchId", decommissioningSearchId);
+		params.put("decommissioningType", decommissioningType);
+
+		navigateTo(homePageUrl, addParams(RMNavigationConfiguration.DISPLAY_DOCUMENT, params), isToOpenInNewTab);
+	}
+
 
 	public void newDocument() {
 		Map<String, String> params = new HashMap<>();
@@ -176,6 +196,14 @@ public class RMViews extends CoreViews {
 
 	public void decommissioning() {
 		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING);
+	}
+
+	public void decommissioningListBuilder(String type, boolean newSearch) {
+		if(!newSearch) {
+			navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type + "/new/" + newSearch);
+		} else {
+			navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type);
+		}
 	}
 
 	public void decommissioningListBuilder(String type) {

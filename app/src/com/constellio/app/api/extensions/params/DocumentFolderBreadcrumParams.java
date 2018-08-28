@@ -5,13 +5,13 @@ import com.constellio.app.ui.pages.base.UIContext;
 
 import java.util.Map;
 
-public class DocumentBreadcrumParams {
+public class DocumentFolderBreadcrumParams {
 	String id;
 	Map<String,String> documentParams;
 	BaseView baseView;
 	UIContext uiContext;
 
-	public DocumentBreadcrumParams(String id, Map<String,String> documentParams, BaseView baseView) {
+	public DocumentFolderBreadcrumParams(String id, Map<String,String> documentParams, BaseView baseView) {
 		this.id = id;
 		this.documentParams = documentParams;
 		this.baseView = baseView;

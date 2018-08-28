@@ -16,6 +16,7 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.schemaRecords.SchemaRecordViewBreadcrumbTrail;
+import com.constellio.app.ui.pages.viewGroups.AdminViewGroup;
 import com.constellio.app.ui.util.ViewErrorDisplay;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
@@ -34,7 +35,7 @@ import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDomainView {
+public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDomainView, AdminViewGroup {
 	private final ListValueDomainPresenter presenter;
 	private VerticalLayout mainLayout;
 	private TabSheet sheet;
@@ -336,16 +337,6 @@ public class ListValueDomainViewImpl extends BaseViewImpl implements ListValueDo
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new SchemaRecordViewBreadcrumbTrail(this, getTitle()) {
-			@Override
-			protected MetadataSchemaVO getSchemaVO() {
-				return null;
-			}
-
-			@Override
-			protected RecordVO getCurrentRecordVO() {
-				return null;
-			}
-		};
+		return null;
 	}
 }

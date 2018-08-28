@@ -63,12 +63,19 @@ public class SearchResultDisplay extends VerticalLayout {
 	BaseButton elevateButton;
 
 	String query;
+	Map<String, String> extraParam;
 
 	private Component titleComponent;
 
 	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
 							   AppLayerFactory appLayerFactory, String query) {
+		this(searchResultVO, componentFactory, appLayerFactory, query, null);
+	}
+
+	public SearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
+							   AppLayerFactory appLayerFactory, String query, Map<String,String> extraParam) {
 		this.appLayerFactory = appLayerFactory;
+		this.extraParam = extraParam;
 		schemasRecordsService = new SchemasRecordsServices(ConstellioUI.getCurrentSessionContext().getCurrentCollection(),
 				getAppLayerFactory().getModelLayerFactory());
 		this.query = query;
@@ -76,6 +83,14 @@ public class SearchResultDisplay extends VerticalLayout {
 
 		this.sessionContext = getCurrent().getSessionContext();
 		init(searchResultVO, componentFactory);
+	}
+
+	public Map<String, String> getExtraParam() {
+		return extraParam;
+	}
+
+	public void setExtraParam(Map<String, String> extraParam) {
+		this.extraParam = extraParam;
 	}
 
 	protected void init(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {
@@ -145,7 +160,7 @@ public class SearchResultDisplay extends VerticalLayout {
 	}
 
 	protected Component newTitleLink(SearchResultVO searchResultVO) {
-		return new ReferenceDisplay(searchResultVO.getRecordVO());
+		return new ReferenceDisplay(searchResultVO.getRecordVO(), true, extraParam);
 	}
 
 	protected Component newMetadataComponent(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory) {

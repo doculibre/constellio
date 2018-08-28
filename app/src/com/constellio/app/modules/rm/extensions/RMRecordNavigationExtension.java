@@ -4,6 +4,7 @@ import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.RecordNavigationExtensionUtils;
 import com.constellio.app.extensions.records.params.NavigationParams;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -57,12 +58,47 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 		constellioNavigator.closeAllWindows();
 		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
 
+		Component component = navigationParams.getComponent();
+
 		String schemaTypeCode = navigationParams.getSchemaTypeCode();
 		String recordId = navigationParams.getRecordId();
 		if (Folder.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			constellioNavigator.displayFolder(recordId, configs.getConstellioUrl(), navigationParams.isOpenInNewTab());
+			String decommissioningSearchId = null;
+			String decommissioningType = null;
+
+			if(component instanceof ReferenceDisplay) {
+				Map<String,String> extraParameters = ((ReferenceDisplay) component).getExtraParameters();
+				if(extraParameters != null) {
+					decommissioningSearchId = extraParameters.get(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+					decommissioningType = extraParameters.get(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+				}
+			}
+
+			if(decommissioningSearchId != null || decommissioningType != null) {
+				constellioNavigator.displayFolderFromDecommission(recordId, configs.getConstellioUrl(), navigationParams.isOpenInNewTab(), decommissioningSearchId, decommissioningType);
+			}
+			else{
+				constellioNavigator.displayFolder(recordId, configs.getConstellioUrl(), navigationParams.isOpenInNewTab());
+			}
 		} else if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-			constellioNavigator.displayDocument(recordId, configs.getConstellioUrl(), navigationParams.isOpenInNewTab());
+			String decommissioningSearchId = null;
+			String decommissioningType = null;
+
+			if(component instanceof ReferenceDisplay) {
+				Map<String,String> extraParameters = ((ReferenceDisplay) component).getExtraParameters();
+				if(extraParameters != null) {
+					decommissioningSearchId = extraParameters.get(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+					decommissioningType = extraParameters.get(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+				}
+			}
+
+			if(decommissioningSearchId != null || decommissioningType != null) {
+				constellioNavigator.displayDocumentFromDecommission(recordId, configs.getConstellioUrl(),
+						navigationParams.isOpenInNewTab(), decommissioningSearchId, decommissioningType);
+			}
+			else{
+				constellioNavigator.displayDocument(recordId, configs.getConstellioUrl(), navigationParams.isOpenInNewTab());
+			}
 		} else if (ContainerRecord.SCHEMA_TYPE.equals(schemaTypeCode)) {
 			constellioNavigator.displayContainer(recordId);
 		} else if (RetentionRule.SCHEMA_TYPE.equals(schemaTypeCode)) {
@@ -113,6 +149,7 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 				};
 				referenceDisplay.setEnabled(true);
 				referenceDisplay.addClickListener(clickListener);
+
 			} else if (component instanceof Table) {
 				// FIXME Assumes that it is called by an item click listener
 				if (isRecordInTrash) {

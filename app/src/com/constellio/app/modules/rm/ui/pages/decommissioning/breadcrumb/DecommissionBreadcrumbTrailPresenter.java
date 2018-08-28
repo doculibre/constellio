@@ -10,7 +10,6 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -127,25 +126,25 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 			handled = true;
 			String folderId = ((DecommissionBreadcrumbTrailPresenter.FolderBreadcrumbItem) item).getFolderId();
 
-			breadcrumbTrail.getUIContext().setAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType);
-			breadcrumbTrail.getUIContext().setAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING, searchId);
+//			breadcrumbTrail.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType);
+//			breadcrumbTrail.getUIContext().setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, searchId);
 
 			breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
 
-			breadcrumbTrail.getUIContext().clearAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
-			breadcrumbTrail.getUIContext().clearAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+//			breadcrumbTrail.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+//			breadcrumbTrail.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 
 		} else if (item instanceof FolderDocumentBreadcrumbTrailPresenter.DocumentBreadcrumbItem) {
 			handled = true;
 			String documentId = ((FolderDocumentBreadcrumbTrailPresenter.DocumentBreadcrumbItem) item).getDocumentId();
 
-			breadcrumbTrail.getUIContext().setAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType);
-			breadcrumbTrail.getUIContext().setAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING, searchId);
+//			breadcrumbTrail.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType);
+//			breadcrumbTrail.getUIContext().setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, searchId);
 
 			breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
 
-			breadcrumbTrail.getUIContext().clearAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
-			breadcrumbTrail.getUIContext().clearAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+//			breadcrumbTrail.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+//			breadcrumbTrail.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 
 		} else if(item instanceof  DispositionListBreadcrumbItem) {
 			handled = true;

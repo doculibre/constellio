@@ -70,6 +70,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.jgoodies.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -739,6 +740,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		if(containerId != null) {
 			navigate().to(RMViews.class).displayDocumentFromContainer(recordVO.getId(), containerId);
+		} else if (params != null && Strings.isNotBlank(params.get("decommissioningType")) && Strings.isNotBlank(params.get("decommissioningSearchId"))) {
+			ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
+			navigate().to(RMViews.class).displayDocumentFromDecommission(recordVO.getId(), configs.getConstellioUrl(),
+					false, params.get("decommissioningSearchId"),params.get("decommissioningType"));
 		} else {
 			navigate().to(RMViews.class).displayDocument(recordVO.getId());
 		}
@@ -753,6 +758,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		if(containerId != null) {
 			navigate().to(RMViews.class).displayFolderFromContainer(subFolderVO.getId(), containerId);
+		} else if (params != null && Strings.isNotBlank(params.get("decommissioningType")) && Strings.isNotBlank(params.get("decommissioningSearchId"))) {
+			ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
+			navigate().to(RMViews.class).displayFolderFromDecommission(subFolderVO.getId(), configs.getConstellioUrl(),
+					false, params.get("decommissioningSearchId"), params.get("decommissioningType"));
 		} else {
 			navigate().to(RMViews.class).displayFolder(subFolderVO.getId());
 		}

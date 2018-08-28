@@ -58,9 +58,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public static final String SORT_BOX_STYLE = "sort-box";
 	public static final String SORT_TITLE_STYLE = "sort-title";
 	public static final String SAVE_SEARCH = "save-search";
-	public static final String SAVE_SEARCH_DECOMMISSIONING = "save-search-decommissioning";
 
-	public static final String DECOMMISSIONING_BUILDER_TYPE = "decommissioning-builder-title";
 
 	protected T presenter;
 	private VerticalLayout thesaurusDisambiguation;
@@ -74,7 +72,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private Button addToSelectionButton;
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
 	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
-
+	private Map<String, String> extraParameters = null;
 
 	public void addSaveSearchListenerList(SaveSearchListener saveSearchListener) {
 		saveSearchListenerList.add(saveSearchListener);
@@ -111,6 +109,14 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			refreshSearchResultsAndFacets(false);
 		}
 		return layout;
+	}
+
+	protected Map<String, String> getExtraParameters() {
+		return extraParameters;
+	}
+
+	protected void setExtraParameters(Map<String, String> extraParameters) {
+		this.extraParameters = extraParameters;
 	}
 
 	private void buildThesaurusDisambiguation(List<String> disambiguationSuggestions) {
@@ -428,7 +434,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected SearchResultContainer buildResultContainer(SearchResultVODataProvider dataProvider) {
-		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
+		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
 		SearchResultContainer container = new SearchResultContainer(results, displayFactory,
 				presenter.getSearchQuery().getFreeTextQuery()) {

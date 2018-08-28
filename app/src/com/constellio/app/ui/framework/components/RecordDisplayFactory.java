@@ -9,24 +9,28 @@ import com.constellio.app.ui.entities.UserVO;
 import com.vaadin.ui.Button.ClickListener;
 
 import java.io.Serializable;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class RecordDisplayFactory implements Serializable {
 	private UserVO currentUser;
 	private MetadataDisplayFactory componentFactory;
+	private Map<String, String> extraParameters;
 
-	public RecordDisplayFactory(UserVO currentUser, MetadataDisplayFactory componentFactory) {
+	public RecordDisplayFactory(UserVO currentUser, MetadataDisplayFactory componentFactory, Map<String,String> extraParameters) {
 		this.currentUser = currentUser;
 		this.componentFactory = componentFactory;
+		this.extraParameters = extraParameters;
 	}
 
-	public RecordDisplayFactory(UserVO currentUser) {
-		this(currentUser, new MetadataDisplayFactory());
+	public RecordDisplayFactory(UserVO currentUser, Map<String,String> extraParameters) {
+		this(currentUser, new MetadataDisplayFactory(),extraParameters);
 	}
 
 	public RecordDisplay build(RecordVO recordVO) {
 		return new RecordDisplay(recordVO, componentFactory);
 	}
+
 
 	public SearchResultDisplay build(SearchResultVO searchResultVO, String query, ClickListener clickListener,
 									 ClickListener elevationClickListener, ClickListener exclusionClickListener) {
@@ -38,10 +42,12 @@ public class RecordDisplayFactory implements Serializable {
 				.forCollection(currentUser.getSchema().getCollection()).getCustomResultDisplayFor(param);
 
 		if (searchResultDisplay == null) {
-			result = new SearchResultDisplay(searchResultVO, componentFactory, appLayerFactory, query);
+			result = new SearchResultDisplay(searchResultVO, componentFactory, appLayerFactory, query, extraParameters);
 		} else {
 			result = searchResultDisplay;
 		}
+		result.setExtraParam(extraParameters);
+
 		if (clickListener != null) {
 			result.addClickListener(clickListener);
 		}

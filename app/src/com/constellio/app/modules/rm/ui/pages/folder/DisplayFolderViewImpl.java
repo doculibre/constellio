@@ -1,6 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import com.constellio.app.api.extensions.params.DocumentBreadcrumParams;
+import com.constellio.app.api.extensions.params.DocumentFolderBreadcrumParams;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersio
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -45,7 +46,6 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
-import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
@@ -208,12 +208,26 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 
-		String saveSearchDecommissioningId = getUIContext().getAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING);
-		SearchType searchType = getUIContext().getAttribute(SearchViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+		String saveSearchDecommissioningId = getUIContext().getAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+		String searchTypeAsString = getUIContext().getAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+
+		if(presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
+			saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
+
+		}
+
+		if(presenter.getParams() != null && presenter.getParams().get("decommissioningType") != null) {
+			searchTypeAsString = presenter.getParams().get("decommissioningType");
+		}
+
+		SearchType searchType = null;
+		if(searchTypeAsString != null) {
+			searchType = SearchType.valueOf((searchTypeAsString));
+		}
 		BaseBreadcrumbTrail breadcrumbTrail;
 
 
-		breadcrumbTrail = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getBreadcrumtrail(new DocumentBreadcrumParams(presenter.getFolderId(), presenter.getParams(), this));
+		breadcrumbTrail = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getBreadcrumtrail(new DocumentFolderBreadcrumParams(presenter.getFolderId(), presenter.getParams(), this));
 
 
 		if (breadcrumbTrail != null) {
@@ -655,20 +669,20 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 
 				@Override
-				public boolean isSelected(Object itemId) {
-					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-					RecordVO recordVO = item.getRecord();
-					return presenter.isSelected(recordVO);
-				}
+			public boolean isSelected(Object itemId) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				return presenter.isSelected(recordVO);
+			}
 
-				@Override
-				public void setSelected(Object itemId, boolean selected) {
-					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-					RecordVO recordVO = item.getRecord();
-					presenter.recordSelectionChanged(recordVO, selected);
-					adjustSelectAllButton(selected);
-				}
-			};
+			@Override
+			public void setSelected(Object itemId, boolean selected) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				presenter.recordSelectionChanged(recordVO, selected);
+				adjustSelectAllButton(selected);
+			}
+		};
 			tabSheet.replaceComponent(folderContentComponent, tableAdapter);
 			folderContentComponent = tableAdapter;
 

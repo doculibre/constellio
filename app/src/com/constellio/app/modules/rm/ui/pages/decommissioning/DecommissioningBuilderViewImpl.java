@@ -26,7 +26,9 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -37,12 +39,14 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 	public static final String SEARCH = "search";
 	public static final String CREATE_LIST = "create-list";
 
+	public static final String DECOMMISSIONING_BUILDER_TYPE = "decommissioning-builder-title";
+	public static final String SAVE_SEARCH_DECOMMISSIONING = "save-search-decommissioning";
 
 	private AdvancedSearchCriteriaComponent criteria;
 	private Button searchButton;
 	private Button addToListButton;
 	private LookupRecordField adminUnit;
-	private String saveEvent = null;
+	private String saveEventId = null;
 
 	public DecommissioningBuilderViewImpl() {
 		presenter = new DecommissioningBuilderPresenter(this);
@@ -59,9 +63,14 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		addSaveSearchListenerList(new SaveSearchListener() {
 			@Override
 			protected void save(Event event) {
-				saveEvent = event.getSavedSearch().getId();
-				getUIContext().setAttribute(DECOMMISSIONING_BUILDER_TYPE, presenter.getSearchType());
-				getUIContext().setAttribute(SearchViewImpl.SAVE_SEARCH_DECOMMISSIONING, saveEvent);
+				saveEventId = event.getSavedSearch().getId();
+				getUIContext().setAttribute(DECOMMISSIONING_BUILDER_TYPE, presenter.getSearchType().toString());
+				getUIContext().setAttribute(SAVE_SEARCH_DECOMMISSIONING, saveEventId);
+				Map<String,String> extraParameters = new HashMap<>();
+				extraParameters.put(DECOMMISSIONING_BUILDER_TYPE, presenter.getSearchType().toString());
+				extraParameters.put(SAVE_SEARCH_DECOMMISSIONING, saveEventId);
+
+				DecommissioningBuilderViewImpl.this.setExtraParameters(extraParameters);
 			}
 		});
 
