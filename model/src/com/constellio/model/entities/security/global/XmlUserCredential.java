@@ -447,13 +447,13 @@ public class XmlUserCredential implements UserCredential {
 		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
 	}
 
-    @Override
-    public boolean hasAgreedToPrivacyPolicy() {
-        return false;
-    }
+	@Override
+	public boolean hasAgreedToPrivacyPolicy() {
+		return false;
+	}
 
-    @Override
-    public UserCredential withAgreedPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy) {
-        return this;
-    }
+	@Override
+	public UserCredential withAgreedPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy) {
+		return this;
+	}
 }

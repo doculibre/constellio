@@ -1,4 +1,3 @@
-
 package com.constellio.app.modules.rm.migrations;
 
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;

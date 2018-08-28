@@ -41,7 +41,7 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	private List<DataRefreshListener> dataRefreshListeners = new ArrayList<>();
 
 	public SearchResultVODataProvider(RecordToVOBuilder voBuilder, AppLayerFactory appLayerFactory,
-			SessionContext sessionContext, int resultsPerPage) {
+									  SessionContext sessionContext, int resultsPerPage) {
 		this.voBuilder = voBuilder;
 		//		String username = sessionContext.getCurrentUser().getUsername();
 		//

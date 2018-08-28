@@ -31,8 +31,12 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.QueryElevation.DocElevation;
 import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
-import com.constellio.model.services.search.query.logical.*;
+import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -478,13 +482,13 @@ public class SearchServices {
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
 				int mm = calcMM(query.getFreeTextQuery());
 				params.add(DisMaxParams.MM, "" + mm);
-				if(systemConfigs.isRunningWithSolr6()) {
+				if (systemConfigs.isRunningWithSolr6()) {
 					params.add(DisMaxParams.MM, "1");
 					params.add("q.op", "AND");
 				}
 			} else {
 				params.add(DisMaxParams.MM, "1");
-				if(systemConfigs.isRunningWithSolr6()) {
+				if (systemConfigs.isRunningWithSolr6()) {
 					params.add("q.op", "OR");
 				}
 			}

@@ -1,11 +1,11 @@
 package com.constellio.model.services.batch.controller;
 
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.constellio.model.frameworks.validation.ValidationError;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 
 public class BatchProcessState implements Serializable {
 

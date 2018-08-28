@@ -3,7 +3,6 @@ package com.constellio.app.entities.batchProcess;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultCSVReportWriter;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
-import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultXLSReportWriter;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessPossibleImpact;
@@ -13,19 +12,24 @@ import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessR
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
-import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.batchprocess.*;
+import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
+import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
+import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.batch.controller.RecordFromIdListIterator;
@@ -51,8 +55,17 @@ import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -69,7 +82,8 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 	final String query;
 	List<String> recordIds;
 
-	public ChangeValueOfMetadataBatchAsyncTask(Map<String, Object> metadataChangedValues, String query, List<String> recordIds, Long totalNumberOfRecords) {
+	public ChangeValueOfMetadataBatchAsyncTask(Map<String, Object> metadataChangedValues, String query,
+											   List<String> recordIds, Long totalNumberOfRecords) {
 		this.metadataChangedValues = new HashMap<>(metadataChangedValues);
 		this.query = query;
 		this.recordIds = recordIds;
@@ -78,7 +92,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 
 	@Override
 	public Object[] getInstanceParameters() {
-		return new Object[] { metadataChangedValues, query, recordIds, totalNumberOfRecords };
+		return new Object[]{metadataChangedValues, query, recordIds, totalNumberOfRecords};
 	}
 
 	@Override
@@ -102,8 +116,8 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		params.setProgressionUpperLimit(totalNumberOfRecords);
 
 		try {
-			User batchUser = batchProcess.getUsername() == null?
-					null: userServices.getUserInCollection(batchProcess.getUsername(), batchProcess.getCollection());
+			User batchUser = batchProcess.getUsername() == null ?
+							 null : userServices.getUserInCollection(batchProcess.getUsername(), batchProcess.getCollection());
 			while (batchIterator.hasNext()) {
 				List<Record> records = batchIterator.next();
 				for (int i = 0; i < records.size(); i += numberOfRecordsPerTask) {
@@ -143,16 +157,18 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		}
 	}
 
-	private void appendCsvReport(Transaction transaction, AppLayerFactory appLayerFactory, AsyncTaskExecutionParams params)
+	private void appendCsvReport(Transaction transaction, AppLayerFactory appLayerFactory,
+								 AsyncTaskExecutionParams params)
 			throws IOException {
 		BatchProcessResults batchProcessResults = toBatchProcessResults(transaction, appLayerFactory, params.getCollection());
 		writeBatchProcessingResultsToCsvReport(batchProcessResults, appLayerFactory, params);
 	}
 
-	private BatchBuilderIterator<Record> getBatchIterator(AppLayerFactory appLayerFactory, StoredBatchProcessPart previousPart) {
+	private BatchBuilderIterator<Record> getBatchIterator(AppLayerFactory appLayerFactory,
+														  StoredBatchProcessPart previousPart) {
 		Iterator iterator;
 
-		if(recordIds == null) {
+		if (recordIds == null) {
 			ModifiableSolrParams params = new ModifiableSolrParams();
 			try {
 				params = SolrUtils.parseQueryString(query);
@@ -176,7 +192,8 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		return new BatchBuilderIterator<>(iterator, 1000);
 	}
 
-	private Transaction buildTransactionForBatch(ModelLayerFactory modelLayerFactory, User batchUser, List<Record> batch,
+	private Transaction buildTransactionForBatch(ModelLayerFactory modelLayerFactory, User batchUser,
+												 List<Record> batch,
 												 MetadataSchemaTypes schemaTypes, RecordProvider recordProvider) {
 		SchemaUtils utils = new SchemaUtils();
 		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
@@ -237,7 +254,8 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		return report;
 	}
 
-	private void updateBatchProcessReport(BatchProcessReport report, AppLayerFactory appLayerFactory, RecordsFlushing recordsFlushing) {
+	private void updateBatchProcessReport(BatchProcessReport report, AppLayerFactory appLayerFactory,
+										  RecordsFlushing recordsFlushing) {
 		try {
 			Transaction transaction = new Transaction();
 			transaction.addUpdate(report.getWrappedRecord());
@@ -254,7 +272,8 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		}
 	}
 
-	private BatchProcessResults toBatchProcessResults(Transaction transaction, AppLayerFactory appLayerFactory, String collection) {
+	private BatchProcessResults toBatchProcessResults(Transaction transaction, AppLayerFactory appLayerFactory,
+													  String collection) {
 
 		List<BatchProcessRecordModifications> recordModificationses = new ArrayList<>();
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
@@ -311,7 +330,8 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		}
 	}
 
-	private String convertScalarToString(Metadata metadata, Object value, Locale locale, AppLayerFactory appLayerFactory) {
+	private String convertScalarToString(Metadata metadata, Object value, Locale locale,
+										 AppLayerFactory appLayerFactory) {
 		if (value == null) {
 			return null;
 		}
@@ -356,7 +376,8 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		throw new ImpossibleRuntimeException("Unsupported type : " + metadata.getType());
 	}
 
-	private void writeBatchProcessingResultsToCsvReport(BatchProcessResults results, AppLayerFactory appLayerFactory, AsyncTaskExecutionParams params)
+	private void writeBatchProcessingResultsToCsvReport(BatchProcessResults results, AppLayerFactory appLayerFactory,
+														AsyncTaskExecutionParams params)
 			throws IOException {
 		List<String> collectionLanguages = appLayerFactory.getCollectionsManager().getCollectionLanguages(params.getCollection());
 		Language language = Language.withCode(collectionLanguages.get(0));
@@ -372,7 +393,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 	}
 
 	private File createOrGetTempFile(AsyncTaskExecutionParams params) {
-		if(csvReport == null) {
+		if (csvReport == null) {
 			return csvReport = new File(new FoldersLocator().getWorkFolder(), params.getBatchProcess().getId() + File.separator + "batchProcessReport.csv");
 		} else {
 			return csvReport;

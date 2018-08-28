@@ -77,7 +77,7 @@ public class ListTemporaryRecordViewImpl extends BaseViewImpl implements ListTem
 				tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
 					@Override
 					public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
-						currentSchema = ((RecordVOTable)event.getTabSheet().getSelectedTab()).getSchemas().get(0).getCode();
+						currentSchema = ((RecordVOTable) event.getTabSheet().getSelectedTab()).getSchemas().get(0).getCode();
 					}
 				});
 			}

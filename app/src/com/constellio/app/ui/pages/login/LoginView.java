@@ -24,6 +24,7 @@ public interface LoginView extends BaseView {
 
 	void setUsernameCookie(String username);
 
-	void popPrivacyPolicyWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection, final String lastCollection);
+	void popPrivacyPolicyWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
+								final String lastCollection);
 
 }

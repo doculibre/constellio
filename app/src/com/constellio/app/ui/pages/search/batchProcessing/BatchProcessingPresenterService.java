@@ -1,46 +1,16 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
-import static java.util.Arrays.asList;
-import static org.slf4j.LoggerFactory.getLogger;
-
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncTask;
-import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultXLSReportWriter;
-import com.constellio.app.ui.entities.CollectionInfoVO;
-import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
-import com.constellio.model.entities.batchprocess.AsyncTask;
-import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-
 import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
+import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncTask;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
 import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultModel;
+import com.constellio.app.modules.rm.reports.builders.BatchProssessing.BatchProcessingResultXLSReportWriter;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -57,6 +27,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessR
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -65,6 +36,8 @@ import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.batchprocess.AsyncTask;
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.records.Content;
@@ -83,6 +56,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -96,6 +70,31 @@ import com.constellio.model.services.schemas.ModificationImpactCalculatorRespons
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
+import static java.util.Arrays.asList;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class BatchProcessingPresenterService {
 	private static final String TMP_BATCH_FILE = "BatchProcessingPresenterService-formatBatchProcessingResults";
@@ -850,10 +849,10 @@ public class BatchProcessingPresenterService {
 
 			LOGGER.info(metadata.getCode() + ":" + value);
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
-					&& value != null
-					&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
-					&& (!metadata.isMultivalue() || !((List) value).isEmpty())
-					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
+				&& value != null
+				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
+				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
+				&& !excludedMetadatas.contains(metadata.getLocalCode())) {
 
 				LOGGER.info("");
 				fieldsModifications.put(metadataVO.getCode(), value);
@@ -881,10 +880,10 @@ public class BatchProcessingPresenterService {
 
 			LOGGER.info(metadata.getCode() + ":" + value);
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
-					&& value != null
-					&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
-					&& (!metadata.isMultivalue() || !((List) value).isEmpty())
-					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
+				&& value != null
+				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
+				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
+				&& !excludedMetadatas.contains(metadata.getLocalCode())) {
 
 				LOGGER.info("");
 				fieldsModifications.put(metadataVO.getCode(), value);
@@ -911,10 +910,10 @@ public class BatchProcessingPresenterService {
 
 			LOGGER.info(metadata.getCode() + ":" + value);
 			if (metadata.getDataEntry().getType() == DataEntryType.MANUAL
-					&& value != null
-					&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
-					&& (!metadata.isMultivalue() || !((List) value).isEmpty())
-					&& !excludedMetadatas.contains(metadata.getLocalCode())) {
+				&& value != null
+				&& (!metadata.isSystemReserved() || Schemas.TITLE_CODE.equals(metadata.getLocalCode()))
+				&& (!metadata.isMultivalue() || !((List) value).isEmpty())
+				&& !excludedMetadatas.contains(metadata.getLocalCode())) {
 
 				LOGGER.info("");
 				fieldsModifications.put(metadataVO.getCode(), value);

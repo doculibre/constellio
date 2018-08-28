@@ -207,23 +207,23 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		folderContainer = buttonsContainerForFolder;
 		conteneurContainer = buttonsContainerForContainer;
 
-        final Table tableFolder = new RecordVOTable($("ListSchemaTypeView.tableTitle"), folderContainer);
-        tableFolder.setSizeFull();
-        tableFolder.setPageLength(Math.min(15, folderContainer.size()));
-        tableFolder.setColumnHeader("buttons", "");
-        tableFolder.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
-        tableFolder.setColumnExpandRatio("caption", 1);
-        tableFolder.addStyleName(TYPE_TABLE);
-        setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelFolderDataProvider(), tableFolder);
+		final Table tableFolder = new RecordVOTable($("ListSchemaTypeView.tableTitle"), folderContainer);
+		tableFolder.setSizeFull();
+		tableFolder.setPageLength(Math.min(15, folderContainer.size()));
+		tableFolder.setColumnHeader("buttons", "");
+		tableFolder.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
+		tableFolder.setColumnExpandRatio("caption", 1);
+		tableFolder.addStyleName(TYPE_TABLE);
+		setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelFolderDataProvider(), tableFolder);
 
-        Table tableContainer = new RecordVOTable($("ListSchemaTypeView.tableTitle"), conteneurContainer);
-        tableContainer.setSizeFull();
-        tableContainer.setPageLength(Math.min(15, conteneurContainer.size()));
-        tableContainer.setColumnHeader("buttons", "");
-        tableContainer.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
-        tableContainer.setColumnExpandRatio("caption", 1);
-        tableContainer.addStyleName(TYPE_TABLE);
-        setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelContainerDataProvider(), tableContainer);
+		Table tableContainer = new RecordVOTable($("ListSchemaTypeView.tableTitle"), conteneurContainer);
+		tableContainer.setSizeFull();
+		tableContainer.setPageLength(Math.min(15, conteneurContainer.size()));
+		tableContainer.setColumnHeader("buttons", "");
+		tableContainer.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
+		tableContainer.setColumnExpandRatio("caption", 1);
+		tableContainer.addStyleName(TYPE_TABLE);
+		setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelContainerDataProvider(), tableContainer);
 
 		tabSheet = new TabSheet();
 		tabSheet.addTab(tableFolder, $("DisplayLabelViewImpl.tabs.folder"));
@@ -243,15 +243,15 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		return mainLayout;
 	}
 
-    private void setDefaultOrderBy(String localCode, RecordVODataProvider dataProvider, Table table) {
-        Object[] properties = { dataProvider.getSchema().getMetadata(localCode) };
-        boolean[] ordering = { true };
-        table.sort(properties, ordering);
-    }
+	private void setDefaultOrderBy(String localCode, RecordVODataProvider dataProvider, Table table) {
+		Object[] properties = {dataProvider.getSchema().getMetadata(localCode)};
+		boolean[] ordering = {true};
+		table.sort(properties, ordering);
+	}
 
-    @Override
-    protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
-        List<Button> actionMenuButtons = new ArrayList<Button>();
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<Button>();
 
 		addLabelButton = new AddButton($("DisplayLabelViewImpl.menu.addLabelButton")) {
 			@Override

@@ -17,9 +17,21 @@ import com.vaadin.server.ExternalResource;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.VaadinService;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.PasswordField;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 import javax.servlet.http.Cookie;
@@ -215,7 +227,8 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		VaadinService.getCurrentResponse().addCookie(usernameCookie);
 	}
 
-	public void popPrivacyPolicyWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection, final String lastCollection) {
+	public void popPrivacyPolicyWindow(final ModelLayerFactory modelLayerFactory, final User userInLastCollection,
+									   final String lastCollection) {
 		final Window window = new Window();
 		window.setWidth("90%");
 		window.setHeight("90%");

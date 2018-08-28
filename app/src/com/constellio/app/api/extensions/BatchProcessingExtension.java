@@ -20,10 +20,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import java.io.Serializable;
-import java.util.Locale;
-import java.util.Map;
-
 public abstract class BatchProcessingExtension implements Serializable {
 
 	public ExtensionBooleanResult isMetadataDisplayedWhenModified(IsMetadataDisplayedWhenModifiedParams params) {

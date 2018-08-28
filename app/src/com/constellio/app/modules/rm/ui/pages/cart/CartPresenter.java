@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-
-import java.io.InputStream;
-import java.util.*;
-
 import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncTask;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -182,7 +172,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean canDelete() {
 		return cartHasRecords() && cart().getContainers().isEmpty()
-				&& canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser());
+			   && canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser());
 	}
 
 	public void deletionRequested(String reason) {
@@ -279,8 +269,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	private boolean canDuplicateFolders(User user) {
 		for (Folder folder : getCartFolders()) {
 			RecordWrapper parent = folder.getParentFolder() != null ?
-					rm().getFolder(folder.getParentFolder()) :
-					rm().getAdministrativeUnit(folder.getAdministrativeUnitEntered());
+								   rm().getFolder(folder.getParentFolder()) :
+								   rm().getAdministrativeUnit(folder.getAdministrativeUnitEntered());
 			if (!user.hasWriteAccess().on(parent)) {
 				return false;
 			}
@@ -364,18 +354,18 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		Iterator<Folder> iterator = cartFolders.iterator();
 		while (iterator.hasNext()) {
 			Folder currentFolder = iterator.next();
-			if(currentFolder.isLogicallyDeletedStatus()) {
+			if (currentFolder.isLogicallyDeletedStatus()) {
 				iterator.remove();
 			}
 		}
 		return cartFolders;
 	}
 
-	List<FolderVO> getNotDeletedCartFoldersVO(){
+	List<FolderVO> getNotDeletedCartFoldersVO() {
 		FolderToVOBuilder builder = new FolderToVOBuilder();
 		List<FolderVO> folderVOS = new ArrayList<>();
-		for(Folder folder : this.getCartFolders()){
-			if(!folder.isLogicallyDeletedStatus()) {
+		for (Folder folder : this.getCartFolders()) {
+			if (!folder.isLogicallyDeletedStatus()) {
 				folderVOS.add(builder.build(folder.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext()));
 			}
 		}
@@ -385,8 +375,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	List<DocumentVO> getNotDeletedCartDocumentVO() {
 		DocumentToVOBuilder builder = new DocumentToVOBuilder(modelLayerFactory);
 		List<DocumentVO> documentVOS = new ArrayList<>();
-		for(Document document : this.getCartDocuments()) {
-			if(!document.isLogicallyDeletedStatus()) {
+		for (Document document : this.getCartDocuments()) {
+			if (!document.isLogicallyDeletedStatus()) {
 				documentVOS.add(builder.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext()));
 			}
 		}
@@ -444,8 +434,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	private List<String> getNonDeletedRecordsIds(List<? extends RecordWrapper> records, User currentUser) {
 		ArrayList<String> ids = new ArrayList<>();
-		for(RecordWrapper record: records) {
-			if(!record.isLogicallyDeletedStatus() && currentUser.hasReadAccess().on(record)) {
+		for (RecordWrapper record : records) {
+			if (!record.isLogicallyDeletedStatus() && currentUser.hasReadAccess().on(record)) {
 				ids.add(record.getId());
 			}
 		}
@@ -643,7 +633,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			types.add(DecommissioningListType.FOLDERS_TO_CLOSE);
 
 		}
-		if(folder.getCloseDate() != null || folder.hasExpectedDates()){
+		if (folder.getCloseDate() != null || folder.hasExpectedDates()) {
 			if (folder.getArchivisticStatus() == ACTIVE) {
 				types.add(DecommissioningListType.FOLDERS_TO_TRANSFER);
 			}
@@ -771,8 +761,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		List<ReportWithCaptionVO> supportedReports = new ArrayList<>();
 		ReportServices reportServices = new ReportServices(modelLayerFactory, collection);
 		List<String> userReports = reportServices.getUserReportTitles(getCurrentUser(), view.getCurrentSchemaType());
-		if(userReports != null) {
-			for(String reportTitle: userReports) {
+		if (userReports != null) {
+			for (String reportTitle : userReports) {
 				supportedReports.add(new ReportWithCaptionVO(reportTitle, reportTitle));
 			}
 		}
@@ -878,13 +868,13 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	private boolean isBatchEditable(Metadata metadata) {
 		return !metadata.isSystemReserved()
-				&& !metadata.isUnmodifiable()
-				&& metadata.isEnabled()
-				&& !metadata.getType().isStructureOrContent()
-				&& metadata.getDataEntry().getType() == DataEntryType.MANUAL
-				&& isNotHidden(metadata)
-				// XXX: Not supported in the backend
-				&& metadata.getType() != MetadataValueType.ENUM
+			   && !metadata.isUnmodifiable()
+			   && metadata.isEnabled()
+			   && !metadata.getType().isStructureOrContent()
+			   && metadata.getDataEntry().getType() == DataEntryType.MANUAL
+			   && isNotHidden(metadata)
+			   // XXX: Not supported in the backend
+			   && metadata.getType() != MetadataValueType.ENUM
 				;
 	}
 
@@ -895,7 +885,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean canCurrentUserBuildDecommissioningList() {
 		return getCurrentUser().has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).onSomething() ||
-				getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
+			   getCurrentUser().has(RMPermissionsTo.CREATE_TRANSFER_DECOMMISSIONING_LIST).onSomething();
 	}
 
 	public boolean isPdfGenerationActionPossible(List<String> recordIds) {
