@@ -137,8 +137,8 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 		table.setColumnHeader(SummaryConfigContainer.PREFIX, $("SummaryConfigViewImpl.prefixHeader"));
 		table.setColumnHeader(SummaryConfigContainer.DISPLAY_CONDITION, $("SummaryConfigViewImpl.displayConditionHeader"));
 		table.setColumnHeader(SummaryConfigContainer.REFERENCE_METADATA_DISPLAY, $("SummaryConfigViewImpl.referenceMetadataDisplay"));
-		table.setColumnHeader(SummaryConfigContainer.MODIFY, "");
-		table.setColumnHeader(SummaryConfigContainer.DELETE, "");
+		table.setColumnHeader(SummaryConfigContainer.MODIFY_DELETE, "");
+
 
 		prefix = new BaseTextField($("SummaryConfigViewImpl.prefix"));
 		displayCondition = new ListOptionGroup($("SummaryConfigViewImpl.displayCondition"));
@@ -146,7 +146,7 @@ public class SummaryConfigViewImpl extends BaseViewImpl implements SummaryConfig
 		displayCondition.addItem(SummaryConfigParams.DisplayCondition.COMPLETED);
 		displayCondition.addItem(SummaryConfigParams.DisplayCondition.ALWAYS);
 
-		referenceMetadataDisplayComboBox = new ComboBox($("SummaryConfigViewImpl.displayConditionHeader"));
+		referenceMetadataDisplayComboBox = new ComboBox($("SummaryConfigViewImpl.referenceMetadataDisplay"));
 		referenceMetadataDisplayComboBox.setImmediate(true);
 		referenceMetadataDisplayComboBox.setTextInputAllowed(false);
 		referenceMetadataDisplayComboBox.setVisible(false);
