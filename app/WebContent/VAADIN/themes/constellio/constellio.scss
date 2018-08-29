@@ -1384,6 +1384,64 @@ $popup-view-z-index: 3;
 		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel-second-hidden:before {
 		    content: "\f100";
 		}
+	   
+	    .viewable-record-table-panel {
+	  
+	  		.close-button-viewer-metadata-layout {
+			    position: absolute;
+	  		} 	
+	  	
+	  		.folder-content-table.viewable-record-table-compressed {
+	  			.search-result-record {
+	  				padding-right: 210px;
+	  			} 
+	  		}
+	  	
+	  		.folder-content-table.viewable-record-table-uncompressed {
+
+				.search-result-table {
+
+					.v-table-table {
+						// box-shadow: none;
+
+						.v-table-cell-content {
+							vertical-align: middle;
+
+							.v-checkbox {
+								margin-top: 13px;
+							}
+							
+							.v-spacing {
+								height: 5px;
+							}
+						}
+					}
+				}
+	  		}
+	   	
+	    }
+	}
+		
+	.collapsible-horizontal-splitpanel-second-visible2 {
+	    .viewable-search-results-panel {
+	  		.close-button-viewer-metadata-layout {
+			    width: calc(100% - 960px);
+			    
+			    .viewer-metadata-panel {
+			    }
+	  		} 	 
+	    }
+	}
+	
+	.collapsible-horizontal-splitpanel-second-hidden2 {
+	    .viewable-search-results-panel {
+	  		.close-button-viewer-metadata-layout {
+			    width: calc(100% - 660px);
+			    
+			    .viewer-metadata-panel {
+			    }
+	  		} 	
+	    }
 	}
 	
     .constellio-layout {
@@ -1620,6 +1678,7 @@ $popup-view-z-index: 3;
 									padding-top: 8px;
 									font-size: 18px;
 									text-align: left;
+									font-weight: bold;
 								}
 								
 								.document-search-result-title {
@@ -1842,6 +1901,9 @@ $popup-view-z-index: 3;
 						}
 
 					    .action-menu-bar {
+					    	position: absolute;
+					    	top: -40px;
+					    	right: 30px;
 						}
 
 					}

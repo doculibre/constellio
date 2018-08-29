@@ -170,19 +170,19 @@ public class DocumentContentVersionPresenter implements Serializable {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
-		SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
-		if (searchEvent != null) {SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(), presenterUtils.modelLayerFactory());
-
-
-		searchEventServices.incrementClickCounter(searchEvent.getId());
-
-			String url = null;
-			try {
-				url = documentVO.get("url");
-			} catch (RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e) {
+			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			if (searchEvent != null) {
+				SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(), presenterUtils.modelLayerFactory());
+				searchEventServices.incrementClickCounter(searchEvent.getId());
+	
+				String url = null;
+				try {
+					url = documentVO.get("url");
+				} catch (RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e) {
+				}
+				String clicks = defaultIfBlank(url, documentVO.getId());
+				searchEventServices.updateClicks(searchEvent, clicks);
 			}
-			String clicks = defaultIfBlank(url, documentVO.getId());
-			searchEventServices.updateClicks(searchEvent, clicks);
-		}
+		}	
 	}
 }

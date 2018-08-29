@@ -412,6 +412,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private void refreshCapsule() {
 		if (capsuleArea == null) {
 			capsuleArea = new VerticalLayout();
+			capsuleArea.addStyleName("search-capsule");
 		} else {
 			capsuleArea.removeAllComponents();
 		}
@@ -425,7 +426,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		}
 
 		if (capsuleComponent != null) {
+			if (!capsuleArea.isVisible()) {
+				capsuleArea.setVisible(true);
+			}
 			capsuleArea.addComponent(capsuleComponent);
+		} else {
+			capsuleArea.setVisible(false);
 		}
 	}
 

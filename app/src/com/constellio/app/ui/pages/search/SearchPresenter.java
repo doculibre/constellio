@@ -940,14 +940,15 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 			searchEventServices.incrementClickCounter(searchEvent.getId());
 
-		String url = null;
-		try {
-			url = recordVO.get("url");
-
-			String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
-			searchEventServices.updateClicks(searchEvent, clicks);
-		} catch (RecordVORuntimeException_NoSuchMetadata e) {
-//			LOGGER.warn(e.getMessage(), e);
+			String url = null;
+			try {
+				url = recordVO.get("url");
+	
+				String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
+				searchEventServices.updateClicks(searchEvent, clicks);
+			} catch (RecordVORuntimeException_NoSuchMetadata e) {
+	//			LOGGER.warn(e.getMessage(), e);
+			}
 		}
 	}
 

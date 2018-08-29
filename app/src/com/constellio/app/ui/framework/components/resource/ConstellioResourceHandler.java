@@ -161,11 +161,11 @@ public class ConstellioResourceHandler implements RequestHandler {
 
     private static Resource createResource(String recordId, String metadataCode, String version, String filename,
 										  boolean preview, boolean thumbnail) {
-		return createResource(recordId, metadataCode, version, filename, preview, false);
+		return createResource(recordId, metadataCode, version, filename, preview, false, thumbnail);
 	}
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
-										  boolean preview, boolean useBrowserCache) {
+										  boolean preview, boolean useBrowserCache, boolean thumbnail) {
 		Map<String, String> params = new LinkedHashMap<>();
 		params.put("recordId", recordId);
 		params.put("metadataCode", metadataCode);

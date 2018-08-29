@@ -686,7 +686,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				});
 			}
 			folderContentTable.addStyleName("folder-content-table");
-			folderContentTable.addStyleName("search-result-table");
 
 			RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(folderContentTable) {
 				@Override
