@@ -378,6 +378,10 @@ public class Transaction {
 		return null;
 	}
 
+	public int getRecordCount() {
+		return records.size();
+	}
+
 	public String getTitle() {
 		return title;
 	}
