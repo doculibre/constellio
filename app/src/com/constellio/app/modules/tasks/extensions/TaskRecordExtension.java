@@ -117,7 +117,9 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			taskModified(task, event);
-			invalidateOldAndNewAssignees(task, event);
+			if (event.hasModifiedMetadata(Task.READ_BY_USER)) {
+				invalidateOldAndNewAssignees(task, event);
+			}
 		}
 	}
 
