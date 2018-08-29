@@ -302,7 +302,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void editDocumentButtonClicked() {
-		presenterUtils.editDocumentButtonClicked();
+		presenterUtils.editDocumentButtonClicked(params);
 	}
 
 	public void deleteDocumentButtonClicked() {

@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter;
+import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -131,6 +132,14 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 
 			breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
 
+			if(searchId != null && searchType != null) {
+				breadcrumbTrail.navigate().to(RMViews.class).displayFolderFromDecommission(folderId,
+						DecommissionNavUtil.getHomeUri(breadcrumbTrail.getConstellioFactories().getAppLayerFactory()), false,
+						searchId, searchType.toString());
+			} else {
+				breadcrumbTrail.navigate().to(RMViews.class).displayDocument(folderId);
+			}
+
 //			breadcrumbTrail.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 //			breadcrumbTrail.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 
@@ -140,8 +149,13 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 
 //			breadcrumbTrail.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType);
 //			breadcrumbTrail.getUIContext().setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, searchId);
-
-			breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
+			if(searchId != null && searchType != null) {
+				breadcrumbTrail.navigate().to(RMViews.class).displayDocumentFromDecommission(documentId,
+						DecommissionNavUtil.getHomeUri(breadcrumbTrail.getConstellioFactories().getAppLayerFactory()), false,
+						searchId, searchType.toString());
+			} else {
+				breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
+			}
 
 //			breadcrumbTrail.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 //			breadcrumbTrail.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);

@@ -158,7 +158,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			editDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.editDocumentButtonClicked();
+					presenter.editDocumentButtonClicked(null);
 				}
 			});
 		}

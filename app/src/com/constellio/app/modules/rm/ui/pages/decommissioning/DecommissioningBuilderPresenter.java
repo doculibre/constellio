@@ -87,7 +87,6 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 		String saveSearchFromSession = view.getUIContext().getAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 
-
 		if (!addMode) {
 			if(saveSearchFromSession == null || Strings.isBlank(saveSearchFromSession)) {
 				searchType = SearchType.valueOf(parts[0]);
@@ -105,18 +104,24 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 			searchType = SearchType.valueOf(parts[0]);
 			SavedSearch search = getSavedSearch(parts[2]);
 
-			searchType = SearchType.valueOf(parts[0]);
 			setSavedSearch(search);
 			this.displayResults = true;
 			view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, search.getId());
 			view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType.toString());
 		} else {
-			searchType = SearchType.valueOf(params);
-			view.setCriteriaSchemaType(getSchemaType());
-			view.addEmptyCriterion();
-			view.addEmptyCriterion();
-			this.displayResults = false;
-			pageNumber = 1;
+
+			if(saveSearchFromSession != null) {
+				searchType = SearchType.valueOf(params);
+				setSavedSearch(getSavedSearch(saveSearchFromSession));
+				this.displayResults = true;
+			} else {
+				searchType = SearchType.valueOf(params);
+				view.setCriteriaSchemaType(getSchemaType());
+				view.addEmptyCriterion();
+				view.addEmptyCriterion();
+				this.displayResults = false;
+				pageNumber = 1;
+			}
 		}
 
 		return this;

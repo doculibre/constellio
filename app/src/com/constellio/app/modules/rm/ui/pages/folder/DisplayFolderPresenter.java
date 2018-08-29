@@ -23,6 +23,7 @@ import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickH
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -657,7 +658,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void editFolderButtonClicked() {
-		navigate().to(RMViews.class).editFolder(folderVO.getId());
+		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+		if(areTypeAndSearchIdPresent) {
+			navigate().to(RMViews.class).editFolderFromDecommission(folderVO.getId(),
+					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else
+		{
+			navigate().to(RMViews.class).editFolder(folderVO.getId());
+		}
 	}
 
 	public void deleteFolderButtonClicked(String reason) {
@@ -681,7 +690,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void duplicateFolderButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
 		if (isDuplicateFolderPossible(getCurrentUser(), folder)) {
-			navigate().to(RMViews.class).duplicateFolder(folder.getId(), false);
+			boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+			if(areTypeAndSearchIdPresent) {
+				navigate().to(RMViews.class).duplicateFolderFromDecommission(folderVO.getId(), false,
+						DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+			} else
+			{
+				navigate().to(RMViews.class).duplicateFolder(folder.getId(), false);
+			}
 		}
 		if (!popup) {
 			view.closeAllWindows();
@@ -691,7 +708,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void duplicateStructureButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
 		if (isDuplicateFolderPossible(getCurrentUser(), folder)) {
-			navigate().to(RMViews.class).duplicateFolder(folder.getId(), true);
+			boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+			if(areTypeAndSearchIdPresent) {
+				navigate().to(RMViews.class).duplicateFolderFromDecommission(folderVO.getId(), true,
+						DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+			} else
+			{
+				navigate().to(RMViews.class).duplicateFolder(folder.getId(), true);
+			}
 		}
 		if (!popup) {
 			view.closeAllWindows();
@@ -717,7 +742,16 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void editDocumentButtonClicked(RecordVO recordVO) {
-		navigate().to(RMViews.class).editDocument(recordVO.getId());
+		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+		if(areTypeAndSearchIdPresent) {
+			navigate().to(RMViews.class).editDocumentFromDecommission(recordVO.getId(),
+					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else
+		{
+			navigate().to(RMViews.class).editDocument(recordVO.getId());
+		}
+
 	}
 
 	public void downloadDocumentButtonClicked(RecordVO recordVO) {
@@ -738,7 +772,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 		if (agentURL != null) {
 			//			view.openAgentURL(agentURL);
-			new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
+			new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO, params);
 		} else {
 			navigateToDocument(recordVO);
 		}

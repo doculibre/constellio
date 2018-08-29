@@ -75,6 +75,14 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_FOLDER, params));
 	}
 
+	public void editFolderFromDecommission(String id, String decommissioningSearchId, String decommissioningType) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("decommissioningSearchId", decommissioningSearchId);
+		params.put("decommissioningType", decommissioningType);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_FOLDER, params));
+	}
+
 	public void duplicateFolder(String id, boolean structure) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
@@ -82,6 +90,20 @@ public class RMViews extends CoreViews {
 		if (structure) {
 			params.put("structure", Boolean.TRUE.toString());
 		}
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DUPLICATE_FOLDER, params));
+	}
+
+	public void duplicateFolderFromDecommission(String id, boolean structure, String decommissioningSearchId, String decommissioningType){
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("duplicate", Boolean.TRUE.toString());
+		if (structure) {
+			params.put("structure", Boolean.TRUE.toString());
+		}
+
+		params.put("decommissioningSearchId", decommissioningSearchId);
+		params.put("decommissioningType", decommissioningType);
+
 		navigator.navigateTo(addParams(RMNavigationConfiguration.DUPLICATE_FOLDER, params));
 	}
 
@@ -176,6 +198,15 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
 	}
 
+	public void editDocumentFromDecommission(String id,String decommissioningSearchId, String decommissioningType) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("decommissioningSearchId", decommissioningSearchId);
+		params.put("decommissioningType", decommissioningType);
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
+	}
+
 	// RETENTION RULES
 
 	public void listRetentionRules() {
@@ -196,14 +227,6 @@ public class RMViews extends CoreViews {
 
 	public void decommissioning() {
 		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING);
-	}
-
-	public void decommissioningListBuilder(String type, boolean newSearch) {
-		if(!newSearch) {
-			navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type + "/new/" + newSearch);
-		} else {
-			navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type);
-		}
 	}
 
 	public void decommissioningListBuilder(String type) {
@@ -336,5 +359,6 @@ public class RMViews extends CoreViews {
 	public void displayRetentionRule(String id) {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_RETENTION_RULE + "/" + id);
 	}
+
 
 }

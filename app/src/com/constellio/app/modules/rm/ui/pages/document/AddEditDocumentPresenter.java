@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeF
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -82,6 +83,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private boolean newFile;
 	private boolean newFileAtStart;
 	ConstellioEIMConfigs eimConfigs;
+	private Map<String, String> params;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view) {
 		super(view, Document.DEFAULT_SCHEMA);
@@ -116,6 +118,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		String idCopy = paramsMap.get("idCopy");
 		String parentId = paramsMap.get("parentId");
 		userDocumentId = paramsMap.get("userDocumentId");
+		this.params = paramsMap;
 		newFile = false;
 		newFileAtStart = "true".equals(paramsMap.get("newFile"));
 
@@ -290,15 +293,28 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		} else if (addView) {
 			String parentId = documentVO.getFolder();
 			if (parentId != null) {
-				view.navigate().to(RMViews.class).displayFolder(parentId);
+				navigateToDocumentDisplay(parentId);
 			} else if (userDocumentId != null) {
 				view.navigate().to(RMViews.class).listUserDocuments();
 			} else {
 				view.navigate().to().home();
 			}
 		} else {
-			view.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+			navigateToDocumentDisplay(documentVO.getId());
 		}
+	}
+
+	private void navigateToDocumentDisplay(String id) {
+		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+		if(areSearchTypeAndSearchIdPresent) {
+			view.navigate().to(RMViews.class)
+					.displayDocumentFromDecommission(id, DecommissionNavUtil.getHomeUri(appLayerFactory),
+							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else {
+			view.navigate().to(RMViews.class).displayDocument(id);
+		}
+
 	}
 
 	private void setAsNewVersionOfContent(Document document) {
@@ -377,7 +393,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			User userDocumentUser = userServices.getUserInCollection(currentUser.getUsername(), userDocumentCollection);
 			userDocumentPresenterUtils.delete(userDocumentRecord, null, userDocumentUser);
 		}
-		view.navigate().to(RMViews.class).displayDocument(record.getId());
+		navigateToDocumentDisplay(record.getId());
 		if (newFile && rmConfigs.areDocumentCheckedOutAfterCreation()) {
 			String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent());
 			if (agentURL != null) {

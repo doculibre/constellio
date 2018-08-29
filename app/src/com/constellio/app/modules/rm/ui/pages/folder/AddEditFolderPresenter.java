@@ -261,26 +261,30 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	public void cancelButtonClicked() {
 		if (addView) {
-
-			boolean areDecommissionTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
 			String parentId = folderVO.getParentFolder();
 			if (parentId != null) {
-				if (areDecommissionTypeAndSearchIdPresent) {
-					view.navigate().to(RMViews.class)
-							.displayFolderFromDecommission(parentId, DecommissionNavUtil.getHomeUri(appLayerFactory),
-									false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-				} else {
-					view.navigate().to(RMViews.class).displayFolder(parentId);
-				}
+				navigateToFolderDisplay(parentId);
 			} else if (userFolderId != null) {
 				view.navigate().to(RMViews.class).listUserDocuments();
 			} else {
 				view.navigate().to().recordsManagement();
 			}
 		} else {
-			view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
+			navigateToFolderDisplay(folderVO.getId());
 		}
+	}
+
+	private void navigateToFolderDisplay(String id) {
+		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+		if(areSearchTypeAndSearchIdPresent) {
+			view.navigate().to(RMViews.class)
+					.displayFolderFromDecommission(id, DecommissionNavUtil.getHomeUri(appLayerFactory),
+							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else {
+			view.navigate().to(RMViews.class).displayFolder(id);
+		}
+
 	}
 
 	public FolderVO getFolderVO() {
@@ -347,15 +351,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 		}
 
-		boolean areDecommissionTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-		if (areDecommissionTypeAndSearchIdPresent) {
-			view.navigate().to(RMViews.class)
-					.displayFolderFromDecommission(folder.getId(), DecommissionNavUtil.getHomeUri(appLayerFactory),
-							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else {
-			view.navigate().to(RMViews.class).displayFolder(folder.getId());
-		}
+		navigateToFolderDisplay(folder.getId());
 	}
 
 	public void customFieldValueChanged(CustomFolderField<?> customField) {

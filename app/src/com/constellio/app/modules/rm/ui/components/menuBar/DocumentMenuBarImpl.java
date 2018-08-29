@@ -146,7 +146,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 			editDocumentItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
-					presenter.editDocumentButtonClicked();
+					presenter.editDocumentButtonClicked(null);
 				}
 			});
 		}

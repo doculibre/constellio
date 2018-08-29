@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -25,6 +26,7 @@ import com.constellio.model.services.logging.SearchEventServices;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
@@ -32,6 +34,7 @@ import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DW
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 public class DocumentContentVersionPresenter implements Serializable {
+
 
 	private DocumentContentVersionWindow window;
 
@@ -52,9 +55,11 @@ public class DocumentContentVersionPresenter implements Serializable {
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 
-	public DocumentContentVersionPresenter(DocumentContentVersionWindow window) {
-		this.window = window;
+	private Map<String,String> params;
 
+	public DocumentContentVersionPresenter(DocumentContentVersionWindow window, Map<String, String> params) {
+		this.window = window;
+		this.params = params;
 		initTransientObjects();
 
 		RecordVO recordVO = window.getRecordVO();
@@ -138,8 +143,18 @@ public class DocumentContentVersionPresenter implements Serializable {
 	public void displayDocumentLinkClicked() {
 		window.closeWindow();
 		String documentId = documentVO.getId();
-		window.navigate().to(RMViews.class).displayDocument(documentId);
-		updateSearchResultClicked();
+		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+		if(areTypeAndSearchIdPresent) {
+			window.navigate().to(RMViews.class).displayDocumentFromDecommission(documentId,
+					DecommissionNavUtil.getHomeUri(window.getConstellioFactories().getAppLayerFactory()), false,
+					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else
+		{
+			window.navigate().to(RMViews.class).editDocument(documentId);
+		}
+
+		 updateSearchResultClicked();
 	}
 
 	void checkOutLinkClicked() {

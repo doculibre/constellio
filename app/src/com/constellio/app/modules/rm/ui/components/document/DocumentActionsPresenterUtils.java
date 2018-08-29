@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingServ
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -64,6 +65,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
@@ -147,9 +149,19 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 										&& extensions.isRecordModifiableBy(record, user) && !extensions.isModifyBlocked(record, user));
 	}
 
-	public void editDocumentButtonClicked() {
+	public void editDocumentButtonClicked(Map<String, String> params) {
 		if (isEditDocumentPossible()) {
-			actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
+
+			boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+			if(areTypeAndSearchIdPresent) {
+				actionsComponent.navigate().to(RMViews.class).editDocumentFromDecommission(documentVO.getId(),
+						DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+			} else
+			{
+				actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
+			}
+
 			updateSearchResultClicked();
 		}
 	}

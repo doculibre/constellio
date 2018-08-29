@@ -228,17 +228,18 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		String saveSearchDecommissioningId = null;
+		String searchTypeAsString = null;
 
-		String saveSearchDecommissioningId = getUIContext().getAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
-		String searchTypeAsString = getUIContext().getAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 
 		if(presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
 			saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
-
+			getUIContext().setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, saveSearchDecommissioningId);
 		}
 
 		if(presenter.getParams() != null && presenter.getParams().get("decommissioningType") != null) {
 			searchTypeAsString = presenter.getParams().get("decommissioningType");
+			getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchTypeAsString);
 		}
 
 		SearchType searchType = null;
@@ -1074,7 +1075,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void openDocumentContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO) {
-		documentVersionWindow.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO));
+		documentVersionWindow.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO, presenter.getParams()));
 		UI.getCurrent().addWindow(documentVersionWindow);
 	}
 
