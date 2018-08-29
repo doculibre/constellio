@@ -23,10 +23,14 @@ import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
+import com.constellio.app.ui.pages.search.SearchPresenter;
+import com.constellio.app.ui.pages.search.SearchView;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.data.utils.dev.Toggle;
+import com.vaadin.data.Container;
+import com.vaadin.data.Container.Indexed;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
@@ -38,6 +42,7 @@ import com.vaadin.event.LayoutEvents.LayoutClickListener;
 import com.vaadin.event.MouseEvents.ClickEvent;
 import com.vaadin.event.MouseEvents.ClickListener;
 import com.vaadin.shared.MouseEventDetails;
+import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -46,6 +51,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Image;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
+import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -62,12 +68,12 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	private Set<Object> selectedItemIds;
 	private Set<Object> deselectedItemIds;
 	private Set<SelectionChangeListener> listeners;
-	private RecordVOLazyContainer recordVOContainer;
+	private Container recordVOContainer;
 	private boolean allItemsSelected;
 	private RecordVOTable adaptee;
-	private AdvancedSearchPresenter presenter;
+	private SearchPresenter<? extends SearchView> presenter;
 
-	public SearchResultSimpleTable(RecordVOLazyContainer container, final AdvancedSearchPresenter presenter) {
+	public SearchResultSimpleTable(Container container, final SearchPresenter<? extends SearchView> presenter) {
 		super();
 		this.recordVOContainer = container;
 		this.presenter = presenter;
@@ -100,6 +106,28 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 									}
 								}
 							});
+							
+							List<Button> buttons = ComponentTreeUtils.getChildren(layout, Button.class);
+							for (Button button : buttons) {
+								button.addClickListener(new Button.ClickListener() {
+									@Override
+									public void buttonClick(com.vaadin.ui.Button.ClickEvent event) {
+										MouseEventDetails mouseEventDetails = new MouseEventDetails();
+										mouseEventDetails.setButton(MouseButton.LEFT);
+										mouseEventDetails.setClientX(event.getClientX());
+										mouseEventDetails.setClientY(event.getClientY());
+										mouseEventDetails.setRelativeX(event.getRelativeX());
+										mouseEventDetails.setRelativeY(event.getRelativeY());
+										
+										Item item = getItem(itemId);
+										Collection<?> itemClickListeners = getListeners(ItemClickEvent.class);
+										for (Object itemClickListenerObj : itemClickListeners) {
+											ItemClickListener itemClickListener = (ItemClickListener) itemClickListenerObj;
+											itemClickListener.itemClick(new ItemClickEvent(adaptee, item, itemId, propertyId, mouseEventDetails));
+										}
+									}
+								});
+							}
 							property = new ObjectProperty<>(layout);
 						} 
 					} else if (SearchResultContainer.THUMBNAIL_PROPERTY.equals(propertyId)) {
@@ -131,35 +159,36 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 			}
 		};
 		adaptee.setWidth("100%");
-
+		adaptee.addStyleName("search-result-table");
 		adaptee.setColumnCollapsingAllowed(true);
 		adaptee.setColumnReorderingAllowed(true);
-		adaptee.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				//				if (event.isDoubleClick()) {
-				Object itemId = event.getItemId();
-				RecordVO recordVO = recordVOContainer.getRecordVO((int) itemId);
+		
+		if (!Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			adaptee.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					Object itemId = event.getItemId();
+					RecordVO recordVO = getRecordVO((int) itemId);
 
-				Window recordWindow = new BaseWindow();
-				recordWindow.setWidth("95%");
-				recordWindow.setHeight("98%");
-				recordWindow.center();
+					Window recordWindow = new BaseWindow();
+					recordWindow.setWidth("95%");
+					recordWindow.setHeight("98%");
+					recordWindow.center();
 
-				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-				GetSearchResultSimpleTableWindowComponentParam param = new GetSearchResultSimpleTableWindowComponentParam(recordVO, presenter.getUser());
+					AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+					GetSearchResultSimpleTableWindowComponentParam param = new GetSearchResultSimpleTableWindowComponentParam(recordVO, presenter.getUser());
 
-				Component windowComponent = appLayerFactory.getExtensions()
-						.forCollection(recordVO.getSchema().getCollection()).getSimpleTableWindowComponent(param);
-				if (windowComponent == null) {
-					windowComponent = new RecordDisplay(recordVO);
+					Component windowComponent = appLayerFactory.getExtensions()
+							.forCollection(recordVO.getSchema().getCollection()).getSimpleTableWindowComponent(param);
+					if (windowComponent == null) {
+						windowComponent = new RecordDisplay(recordVO);
+					}
+					recordWindow.setContent(windowComponent);
+					presenter.logRecordView(recordVO);
+					UI.getCurrent().addWindow(recordWindow);
 				}
-				recordWindow.setContent(windowComponent);
-				presenter.logRecordView(recordVO);
-				UI.getCurrent().addWindow(recordWindow);
-				//				}
-			}
-		});
+			});
+		}
 
 		// TODO Make header visible
 		// TODO Make all columns appear (DataProvider in AdvancedSearchPresenter
@@ -169,12 +198,35 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		deselectedItemIds = new LinkedHashSet<>();
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
 			adaptee.setColumnWidth(SearchResultContainer.THUMBNAIL_PROPERTY, SearchResultContainer.THUMBNAIL_WIDTH);
+//			adaptee.setPageLength(10);
 		}
 		adaptee.setColumnExpandRatio(SearchResultContainer.SEARCH_RESULT_PROPERTY, 1);
 		//		addStyleName(TABLE_STYLE);
 
 		setTable(adaptee);
 		getToggleButton().setVisible(false);
+		
+		adaptee.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+	}
+	
+	private RecordVO getRecordVO(int itemId) {
+		RecordVO recordVO;
+		if (recordVOContainer instanceof RecordVOLazyContainer) {
+			recordVO = ((RecordVOLazyContainer) recordVOContainer).getRecordVO(itemId);
+		} else {
+			recordVO = ((SearchResultContainer) recordVOContainer).getRecordVO(itemId);
+		}
+		return recordVO;
+	}
+	
+	private String getLastCallQTime() {
+		String lastCallQTime;
+		if (recordVOContainer instanceof RecordVOLazyContainer) {
+			lastCallQTime = ((RecordVOLazyContainer) recordVOContainer).getLastCallQTime();
+		} else {
+			lastCallQTime = ((SearchResultContainer) recordVOContainer).getLastCallQTime();
+		}
+		return lastCallQTime;
 	}
 
 	protected void searchResultClicked(Object itemId) {
@@ -183,7 +235,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public List<String> getSelectedRecordIds() {
 		List<String> result = new ArrayList<>();
 		for (Object itemId : selectedItemIds) {
-//			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
+//			RecordVO record = getRecordVO((int) itemId);
 			result.add((String) itemId);
 		}
 		return result;
@@ -192,7 +244,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public List<String> getUnselectedRecordIds() {
 		List<String> result = new ArrayList<>();
 		for (Object itemId : deselectedItemIds) {
-//			RecordVO record = recordVOContainer.getRecordVO((int) itemId);
+//			RecordVO record = getRecordVO((int) itemId);
 			result.add((String) itemId);
 		}
 		return result;
@@ -218,7 +270,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 
 		int size = recordVOContainer.size();
 		String key = size <= 1 ? "SearchResultTable.count1" : "SearchResultTable.counts";
-		Label totalCount = new Label($(key, size, recordVOContainer.getLastCallQTime()));
+		Label totalCount = new Label($(key, size, getLastCallQTime()));
 		totalCount.addStyleName(ValoTheme.LABEL_BOLD);
 
 		HorizontalLayout count = new HorizontalLayout(totalCount);
@@ -343,9 +395,9 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public boolean isSelected(Object itemId) {
 		boolean selectedItem;
 		if (allItemsSelected) {
-			selectedItem = !this.deselectedItemIds.contains(recordVOContainer.getRecordVO((int) itemId).getId());
+			selectedItem = !this.deselectedItemIds.contains(getRecordVO((int) itemId).getId());
 		} else {
-			selectedItem = this.selectedItemIds.contains(recordVOContainer.getRecordVO((int) itemId).getId());
+			selectedItem = this.selectedItemIds.contains(getRecordVO((int) itemId).getId());
 		}
 		return selectedItem;
 	}
@@ -357,12 +409,12 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 
 	private void setSelected(Object itemId, boolean selected, boolean fireSelectionChangeEvent) {
 		if (selected) {
-			this.selectedItemIds.add(recordVOContainer.getRecordVO((int) itemId).getId());
-			deselectedItemIds.remove(recordVOContainer.getRecordVO((int) itemId).getId());
+			this.selectedItemIds.add(getRecordVO((int) itemId).getId());
+			deselectedItemIds.remove(getRecordVO((int) itemId).getId());
 			presenter.fireSomeRecordsSelected();
 		} else {
-			this.selectedItemIds.remove(recordVOContainer.getRecordVO((int) itemId).getId());
-			deselectedItemIds.add(recordVOContainer.getRecordVO((int) itemId).getId());
+			this.selectedItemIds.remove(getRecordVO((int) itemId).getId());
+			deselectedItemIds.add(getRecordVO((int) itemId).getId());
 			if (selectedItemIds.isEmpty()) {
 				presenter.fireNoRecordSelected();
 			}
@@ -387,7 +439,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 				if (fromField.isValid() && toField.isValid()) {
 					int start = (Integer) fromField.getConvertedValue() - 1;
 					int end = (Integer) toField.getConvertedValue();
-					List<?> itemIds = recordVOContainer.getItemIds(start, Math.min(MAX_SELECTION_RANGE, (end - start)));
+					List<?> itemIds = ((Indexed) recordVOContainer).getItemIds(start, Math.min(MAX_SELECTION_RANGE, (end - start)));
 					for (Object itemId : itemIds) {
 						setSelected(itemId, true, false);
 					}

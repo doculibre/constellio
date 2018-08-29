@@ -33,6 +33,11 @@ public class BaseDisplay extends CustomComponent {
 	private Map<String, VerticalLayout> tabs = new HashMap<>();
 
 	public BaseDisplay(List<CaptionAndComponent> captionsAndDisplayComponents) {
+		this(captionsAndDisplayComponents, false);
+	}
+
+	public BaseDisplay(List<CaptionAndComponent> captionsAndDisplayComponents, boolean useTabSheet) {
+		this.useTabSheet = useTabSheet;
 		addStyleName(STYLE_NAME);
 		
 		setSizeFull();
@@ -42,15 +47,15 @@ public class BaseDisplay extends CustomComponent {
 		mainLayout = newMainLayout();
 		
 		if (isUseTabsheet()) {
-			boolean atLeastOneTabCaption = false;
+			int tabCaptionCount = 0;
 			for (CaptionAndComponent captionAndComponent : captionsAndDisplayComponents) {
 				String tabCaption = captionAndComponent.tabCaption;
 				if (StringUtils.isNotBlank(tabCaption)) {
-					atLeastOneTabCaption = true;
+					tabCaptionCount++;
 					break;
 				}
 			}
-			useTabSheet = atLeastOneTabCaption;
+			useTabSheet = tabCaptionCount > 0;
 		} else {
 			useTabSheet = false;
 		}
@@ -67,6 +72,10 @@ public class BaseDisplay extends CustomComponent {
 	protected void setCaptionsAndComponents(List<CaptionAndComponent> captionsAndDisplayComponents) {
 		if (mainLayout.iterator().hasNext()) {
 			mainLayout.removeAllComponents();
+		}
+		if (tabSheet != null) {
+			tabs.clear();
+			tabSheet.removeAllComponents();
 		}
 		for (CaptionAndComponent captionAndComponent : captionsAndDisplayComponents) {
 			Label captionLabel = captionAndComponent.captionLabel;
@@ -135,7 +144,7 @@ public class BaseDisplay extends CustomComponent {
 	}
 	
 	protected boolean isUseTabsheet() {
-		return false;
+		return useTabSheet;
 	}
 	
 	public static class CaptionAndComponent implements Serializable {

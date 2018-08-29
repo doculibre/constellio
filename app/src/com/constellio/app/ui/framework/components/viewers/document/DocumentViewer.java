@@ -51,7 +51,7 @@ public class DocumentViewer extends CustomComponent {
 	
 	private static final int DEFAULT_WIDTH = 750;
 	
-	private static final int DEFAULT_HEIGHT = 600;
+	private static final int DEFAULT_HEIGHT = 1000;
 	
 	private RecordVO recordVO;
 	

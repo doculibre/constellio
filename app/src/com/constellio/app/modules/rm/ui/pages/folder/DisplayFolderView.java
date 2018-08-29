@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.viewGroups.RecordsManagementViewGroup;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -18,7 +16,7 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void setEvents(RecordVODataProvider dataProvider);
 
-	void setFolderContent(List<RecordVODataProvider> dataProviders);
+	void setFolderContent(RecordVODataProvider dataProvider);
 
 	void setTasks(RecordVODataProvider dataProvider);
 
@@ -75,5 +73,9 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 	void setTaxonomyCode(String taxonomyCode);
 
 	void clearUploadField();
+
+	void refreshFolderContentAndFacets();
+
+	void refreshFolderContent();
 	
 }

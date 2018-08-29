@@ -51,7 +51,7 @@ public class SearchPresenterService {
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 	}
 
-	List<FacetVO> getFacets(LogicalSearchQuery query, Map<String, Boolean> facetStatus, Locale locale) {
+	public List<FacetVO> getFacets(LogicalSearchQuery query, Map<String, Boolean> facetStatus, Locale locale) {
 		LogicalSearchQuery facetQuery = cloneQueryReturningOneWithFacetQuery(query);
 		SPEQueryResponse response = searchServices.query(facetQuery);
 		return buildFacetVOs(response.getFieldFacetValues(), response.getQueryFacetsValues(), facetStatus, locale);

@@ -163,4 +163,8 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 	public SearchResultVO getSearchResultVO(int itemId) {
 		return adapted.getSearchResultVO(itemId);
 	}
+
+	public String getLastCallQTime() {
+		return adapted.getLastCallQTime();
+	}
 }

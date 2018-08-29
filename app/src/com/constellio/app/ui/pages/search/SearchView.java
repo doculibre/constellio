@@ -21,4 +21,9 @@ public interface SearchView extends BaseView {
 	void setSearchExpression(String expression);
 
 	Boolean computeStatistics();
+
+    void fireSomeRecordsSelected();
+
+	void fireNoRecordSelected();
+	
 }

@@ -42,6 +42,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -353,28 +354,25 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
     }
 
     @Override
-    protected SearchResultTable buildResultTable(SearchResultVODataProvider dataProvider) {
-        if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
-            return buildSimpleResultsTable(dataProvider);
-        } else {
-            return buildDetailedResultsTable(dataProvider);
-        }
-    }
-
-    private SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
-        //Fixme : use dataProvider instead
-        final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
-        SearchResultSimpleTable table = new SearchResultSimpleTable(container, presenter);
-        table.setWidth("100%");
-        table.getTable().addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				Object itemId = event.getItemId();
-				RecordVOItem item = (RecordVOItem) container.getItem(itemId);
-				RecordVO recordVO = item.getRecord();
-				((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO);
-			}
-		});
+    protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
+    	SearchResultTable table;
+    	if (!Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+            //Fixme : use dataProvider instead
+            final RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getSearchResultsAsRecordVOs());
+            table = new SearchResultSimpleTable(container, presenter);
+            table.setWidth("100%");
+            ((SearchResultSimpleTable) table).getTable().addItemClickListener(new ItemClickListener() {
+    			@Override
+    			public void itemClick(ItemClickEvent event) {
+    				Object itemId = event.getItemId();
+    				RecordVOItem item = (RecordVOItem) container.getItem(itemId);
+    				RecordVO recordVO = item.getRecord();
+    				((AdvancedSearchPresenter) presenter).searchResultClicked(recordVO);
+    			}
+    		});
+    	} else {
+    		table = super.buildSimpleResultsTable(dataProvider);
+    	}
         return table;
     }
 

@@ -160,7 +160,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			}
 
 			actionMenu = buildActionMenu(event);
-			if (actionMenu != null || (!isFullWidthIfActionMenuAbsent() && !isActionMenuBar())) {
+			if ((actionMenu != null  && !isActionMenuBar()) || !isFullWidthIfActionMenuAbsent()) {
 				addStyleName("action-menu-wrapper");
 			}
 
@@ -331,7 +331,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
             if (isActionMenuBar()) {
                 MenuBar menuBar = new MenuBar();
                 menuBar.addStyleName("action-menu-bar");
-                menuBar.setAutoOpen(true);
+                menuBar.setAutoOpen(false);
                 menuBar.setIcon(FontAwesome.ELLIPSIS_H);
                 result = menuBar;
 

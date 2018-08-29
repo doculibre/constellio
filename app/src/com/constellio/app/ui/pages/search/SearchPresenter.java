@@ -82,6 +82,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -110,6 +111,8 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	public static final String SEARCH_EVENT_DWELL_TIME = "SEARCH_EVENT_DWELL_TIME";
 	public static final String CURRENT_SEARCH_EVENT = "CURRENT_SEARCH_EVENT";
 
+	public static final String DEFAULT_VIEW_MODE = Toggle.SEARCH_RESULTS_VIEWER.isEnabled() ? SearchResultsViewMode.TABLE : SearchResultsViewMode.DETAILED;
+
 	public int getDefaultPageLength() {
 		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
 		return defaultPageLength != null ? defaultPageLength.getValue() : SearchResultDetailedTable.DEFAULT_PAGE_LENGTH;
@@ -125,7 +128,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	List<String> suggestions;
 	String sortCriterion;
 	SortOrder sortOrder;
-	String resultsViewMode;
+	String resultsViewMode = DEFAULT_VIEW_MODE;
 	String collection;
 	transient SchemasDisplayManager schemasDisplayManager;
 	transient SearchPresenterService service;
@@ -921,11 +924,12 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		String url = null;
 		try {
 			url = recordVO.get("url");
+			
+			String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
+			searchEventServices.updateClicks(searchEvent, clicks);
 		} catch (RecordVORuntimeException_NoSuchMetadata e) {
-			LOGGER.warn(e.getMessage(), e);
+//			LOGGER.warn(e.getMessage(), e);
 		}
-		String clicks = StringUtils.defaultIfBlank(url, recordVO.getId());
-		searchEventServices.updateClicks(searchEvent, clicks);
 	}
 
 	public void searchNavigationButtonClicked() {
@@ -991,4 +995,26 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		}
 		view.refreshSearchResultsAndFacets();
 	}
+
+	public void fireSomeRecordsSelected() {
+		view.fireSomeRecordsSelected();
+	}
+
+	public void fireNoRecordSelected() {
+		view.fireNoRecordSelected();
+	}
+
+	public User getUser() {
+		return getCurrentUser();
+	}
+
+	public void logRecordView(RecordVO recordVO) {
+		Record record = presenterService().getRecord(recordVO.getId());
+		ModelLayerFactory modelLayerFactory = view.getConstellioFactories().getModelLayerFactory();
+		User user = getCurrentUser();
+		modelLayerFactory.newLoggingServices().logRecordView(record, user);
+		setChanged();
+		notifyObservers(recordVO);
+	}
+	
 }

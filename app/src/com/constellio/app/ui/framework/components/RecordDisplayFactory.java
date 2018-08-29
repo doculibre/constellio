@@ -25,7 +25,11 @@ public class RecordDisplayFactory implements Serializable {
 	}
 
 	public RecordDisplay build(RecordVO recordVO) {
-		return new RecordDisplay(recordVO, componentFactory);
+		return build(recordVO, false);
+	}	
+
+	public RecordDisplay build(RecordVO recordVO, boolean useTabSheet) {
+		return new RecordDisplay(recordVO, componentFactory, useTabSheet);
 	}
 
 	public SearchResultDisplay build(SearchResultVO searchResultVO, String query, ClickListener clickListener, ClickListener elevationClickListener, ClickListener exclusionClickListener) {

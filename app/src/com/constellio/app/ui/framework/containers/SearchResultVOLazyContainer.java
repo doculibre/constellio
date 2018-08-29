@@ -107,4 +107,8 @@ public class SearchResultVOLazyContainer extends LazyQueryContainer {
 		private static interface SerializableQuery extends Query, Serializable {
 		}
 	}
+
+	public String getLastCallQTime() {
+		return "" + dataProvider.getQTime();
+	}
 }

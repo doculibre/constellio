@@ -5,10 +5,10 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import com.constellio.app.ui.util.MessageUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,12 +24,14 @@ import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.SearchResultVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -46,6 +48,7 @@ import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -53,19 +56,30 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
+import com.constellio.app.ui.framework.components.search.FacetsPanel;
+import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
 import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOContainer;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTable;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel.TableCompressEvent;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel.TableCompressListener;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.User;
@@ -93,6 +107,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
@@ -121,9 +136,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private Window documentVersionWindow;
 
-	private List<RecordVODataProvider> folderContentDataProviders;
+	private RecordVODataProvider folderContentDataProvider;
 	private RecordVODataProvider tasksDataProvider;
 	private RecordVODataProvider eventsDataProvider;
+	
+	private ViewableRecordVOTable folderContentTable;
+	
+	private FacetsPanel facetsPanel;
 
 	public DisplayFolderViewImpl() {
 		this(null, false);
@@ -546,8 +565,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	}
 
 	@Override
-	public void setFolderContent(List<RecordVODataProvider> dataProviders) {
-		this.folderContentDataProviders = dataProviders;
+	public void setFolderContent(RecordVODataProvider dataProvider) {
+		this.folderContentDataProvider = dataProvider;
 	}
 
 	@Override
@@ -558,14 +577,30 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void selectFolderContentTab() {
 		if (!(folderContentComponent instanceof Table)) {
-			final RecordVOLazyContainer nestedContainer = new RecordVOLazyContainer(folderContentDataProviders);
+			final RecordVOLazyContainer recordVOContainer = new RecordVOLazyContainer(folderContentDataProvider);
+			UserVO currentUser = getSessionContext().getCurrentUser();
+			RecordDisplayFactory displayFactory = new RecordDisplayFactory(currentUser);
+			
+			final ViewableRecordVOContainer adapted = new ViewableRecordVOContainer(recordVOContainer) {
+				@Override
+				protected RecordVO getRecordVO(Integer index) {
+					return recordVOContainer.getRecordVO(index);
+				}
+				
+				@Override
+				protected Component getRecordDisplay(Integer index) {
+					RecordVO recordVO = getRecordVO(index);
+					SearchResultVO searchResultVO = new SearchResultVO(recordVO, new HashMap<>());
+					return displayFactory.build(searchResultVO, null, null, null, null);
+				}
+			}; 
 
-			ButtonsContainer<RecordVOLazyContainer> container = new ButtonsContainer<RecordVOLazyContainer>(nestedContainer);
+			ButtonsContainer<ViewableRecordVOContainer> container = new ButtonsContainer<>(adapted);
 			container.addButton(new ContainerButton() {
 				@Override
 				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 					int index = (int) itemId;
-					final RecordVO record = nestedContainer.getRecordVO(index);
+					final RecordVO record = recordVOContainer.getRecordVO(index);
 					Button button = new EditButton() {
 						@Override
 						protected void buttonClick(ClickEvent event) {
@@ -584,7 +619,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				@Override
 				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 					int index = (int) itemId;
-					final RecordVO record = nestedContainer.getRecordVO(index);
+					final RecordVO record = recordVOContainer.getRecordVO(index);
 					Button button = new IconButton(new ThemeResource("images/icons/actions/download.png"),
 							$("DisplayFolderView.download")) {
 						@Override
@@ -604,7 +639,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				@Override
 				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
 					int index = (int) itemId;
-					final RecordVO record = nestedContainer.getRecordVO(index);
+					final RecordVO record = recordVOContainer.getRecordVO(index);
 					Button button = new DisplayButton() {
 						@Override
 						protected void buttonClick(ClickEvent event) {
@@ -618,26 +653,31 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					return button;
 				}
 			});
-			final Table table = new RecordVOTable();
-			table.setSizeFull();
-			table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
-			table.addItemClickListener(new ItemClickListener() {
-				@Override
-				public void itemClick(ItemClickEvent event) {
-					if (event.getButton() == MouseButton.LEFT) {
-						RecordVOItem item = (RecordVOItem) event.getItem();
-						RecordVO recordVO = item.getRecord();
-						if (presenter.isDocument(recordVO)) {
-							presenter.documentClicked(recordVO);
-						} else {
-							presenter.subFolderClicked(recordVO);
+			
+			folderContentTable = new ViewableRecordVOTable(container);
+			
+			folderContentTable.setSizeFull();
+			folderContentTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+			if (!Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+				folderContentTable.addItemClickListener(new ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						if (event.getButton() == MouseButton.LEFT) {
+							Object itemId = event.getItemId();
+							RecordVO recordVO = recordVOContainer.getRecordVO((int) itemId);
+							if (presenter.isDocument(recordVO)) {
+								presenter.documentClicked(recordVO);
+							} else {
+								presenter.subFolderClicked(recordVO);
+							}
 						}
 					}
-				}
-			});
-			table.setContainerDataSource(nestedContainer);
+				});
+			}
+			folderContentTable.addStyleName("folder-content-table");
+			folderContentTable.addStyleName("search-result-table");
 
-			RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(table) {
+			RecordVOSelectionTableAdapter tableAdapter = new RecordVOSelectionTableAdapter(folderContentTable) {
 				@Override
 				public void selectAll() {
 					presenter.selectAllClicked();
@@ -660,22 +700,75 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 				@Override
 				public boolean isSelected(Object itemId) {
-					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-					RecordVO recordVO = item.getRecord();
+					RecordVO recordVO = recordVOContainer.getRecordVO((int) itemId);
 					return presenter.isSelected(recordVO);
 				}
 
 				@Override
 				public void setSelected(Object itemId, boolean selected) {
-					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-					RecordVO recordVO = item.getRecord();
+					RecordVO recordVO = recordVOContainer.getRecordVO((int) itemId);
 					presenter.recordSelectionChanged(recordVO, selected);
 					adjustSelectAllButton(selected);
 				}
 			};
-			tabSheet.replaceComponent(folderContentComponent, tableAdapter);
-			folderContentComponent = tableAdapter;
 
+			if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+				folderContentTable.addStyleName("search-result-title");
+				folderContentTable.setWidth("100%");
+				folderContentTable.setColumnWidth(SearchResultContainer.THUMBNAIL_PROPERTY, SearchResultContainer.THUMBNAIL_WIDTH);
+				folderContentTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+			}
+			
+			facetsPanel = new FacetsPanel() {
+				@Override
+				protected void sortCriterionSelected(String sortCriterion, SortOrder sortOrder) {
+					presenter.sortCriterionSelected(sortCriterion, sortOrder);
+				}
+				
+				@Override
+				protected void facetValueSelected(String facetId, String value) {
+					presenter.facetValueSelected(facetId, value);
+				}
+				
+				@Override
+				protected void facetValueDeselected(String facetId, String value) {
+					presenter.facetValueDeselected(facetId, value);
+				}
+				
+				@Override
+				protected void facetOpened(String id) {
+					presenter.facetOpened(id);
+				}
+				
+				@Override
+				protected void facetDeselected(String id) {
+					presenter.facetDeselected(id);
+				}
+				
+				@Override
+				protected void facetClosed(String id) {
+					presenter.facetClosed(id);
+				}
+			};
+			refreshFacets(folderContentDataProvider);
+			
+			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel("FolderContent");
+			splitPanel.setSizeFull();
+			
+			ViewableRecordTablePanel viewerPanel = new ViewableRecordTablePanel(tableAdapter);
+			viewerPanel.addTableCompressListener(new TableCompressListener() {
+				@Override
+				public void tableCompressChange(TableCompressEvent event) {
+					folderContentTable.setCompressed(event.isCompressed());
+				}
+			});
+			viewerPanel.setTable(tableAdapter.getTable());
+			splitPanel.setFirstComponent(viewerPanel);
+			splitPanel.setSecondComponent(facetsPanel);
+			splitPanel.setSecondComponentWidth(300, Unit.PIXELS);
+			
+			tabSheet.replaceComponent(folderContentComponent, splitPanel);
+			folderContentComponent = splitPanel;
 		}
 		tabSheet.setSelectedTab(folderContentComponent);
 	}
@@ -1106,6 +1199,30 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	protected boolean isActionMenuBar() {
 		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+	}
+
+	@Override
+	public void refreshFolderContentAndFacets() {
+		
+	}
+
+	@Override
+	public void refreshFolderContent() {
+	}
+
+//	@Override
+	public void refreshFacets(RecordVODataProvider dataProvider) {
+		List<FacetVO> facets = presenter.getFacets(dataProvider);
+		KeySetMap<String, String> facetSelections = presenter.getFacetSelections();
+		List<MetadataVO> sortableMetadata = presenter.getMetadataAllowedInSort();
+		String sortCriterionValue = presenter.getSortCriterionValueAmong(sortableMetadata);
+		SortOrder sortOrder = presenter.getSortOrder();
+		facetsPanel.refresh(facets, facetSelections, sortableMetadata, sortCriterionValue, sortOrder);
 	}
 	
 }

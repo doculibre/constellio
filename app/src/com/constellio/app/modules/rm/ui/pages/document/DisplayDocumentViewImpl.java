@@ -200,12 +200,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		tabSheet = new TabSheet();
 
-		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory()) {
-			@Override
-			protected boolean isUseTabsheet() {
-				return true;
-			}
-		};
+		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory(), Toggle.SEARCH_RESULTS_VIEWER.isEnabled());
 		versionTable = new ContentVersionVOTable("DocumentVersions", presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
 			@Override
 			protected boolean isSelectionColumn() {

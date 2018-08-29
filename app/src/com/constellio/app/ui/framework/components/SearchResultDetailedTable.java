@@ -30,8 +30,10 @@ import com.vaadin.event.LayoutEvents.LayoutClickListener;
 import com.vaadin.event.MouseEvents.ClickEvent;
 import com.vaadin.event.MouseEvents.ClickListener;
 import com.vaadin.shared.MouseEventDetails;
+import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -135,27 +137,44 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 				Object propertyValue = property.getValue();
 				if (propertyValue instanceof AbstractOrderedLayout) {
 					AbstractOrderedLayout layout = (AbstractOrderedLayout) propertyValue;
-					List<AbstractOrderedLayout> subLayouts = ComponentTreeUtils.getChildren(layout, AbstractOrderedLayout.class);
-					List<AbstractOrderedLayout> layouts = new ArrayList<>();
-					layouts.add(layout);
-					layouts.addAll(subLayouts);
-					for (AbstractOrderedLayout layoutOrSubLayout : layouts) {
-						layoutOrSubLayout.addLayoutClickListener(new LayoutClickListener() {
+					layout.addLayoutClickListener(new LayoutClickListener() {
+						@Override
+						public void layoutClick(LayoutClickEvent event) {
+							if (!(event.getSource() instanceof MenuBar)) { 
+								MouseEventDetails mouseEventDetails = new MouseEventDetails();
+								mouseEventDetails.setButton(event.getButton());
+								mouseEventDetails.setClientX(event.getClientX());
+								mouseEventDetails.setClientY(event.getClientY());
+								mouseEventDetails.setRelativeX(event.getRelativeX());
+								mouseEventDetails.setRelativeY(event.getRelativeY());
+								
+								Item item = getItem(itemId);
+								Collection<?> itemClickListeners = getListeners(ItemClickEvent.class);
+								for (Object itemClickListenerObj : itemClickListeners) {
+									ItemClickListener itemClickListener = (ItemClickListener) itemClickListenerObj;
+									itemClickListener.itemClick(new ItemClickEvent(SearchResultDetailedTable.this, item, itemId, propertyId, mouseEventDetails));
+								}
+							}
+						}
+					});
+					
+					List<Button> buttons = ComponentTreeUtils.getChildren(layout, Button.class);
+					for (Button button : buttons) {
+						button.addClickListener(new Button.ClickListener() {
 							@Override
-							public void layoutClick(LayoutClickEvent event) {
-								if (!(event.getSource() instanceof MenuBar)) {
-									Collection<?> itemClickListeners = getListeners(ItemClickEvent.class); 
-									MouseEventDetails mouseEventDetails = new MouseEventDetails();
-									mouseEventDetails.setButton(event.getButton());
-									mouseEventDetails.setClientX(event.getClientX());
-									mouseEventDetails.setClientY(event.getClientY());
-									mouseEventDetails.setRelativeX(event.getRelativeX());
-									mouseEventDetails.setRelativeY(event.getRelativeY());
-									Item item = getItem(itemId);
-									for (Object itemClickListenerObj : itemClickListeners) {
-										ItemClickListener itemClickListener = (ItemClickListener) itemClickListenerObj;
-										itemClickListener.itemClick(new ItemClickEvent(SearchResultDetailedTable.this, item, itemId, propertyId, mouseEventDetails));
-									}
+							public void buttonClick(com.vaadin.ui.Button.ClickEvent event) {
+								MouseEventDetails mouseEventDetails = new MouseEventDetails();
+								mouseEventDetails.setButton(MouseButton.LEFT);
+								mouseEventDetails.setClientX(event.getClientX());
+								mouseEventDetails.setClientY(event.getClientY());
+								mouseEventDetails.setRelativeX(event.getRelativeX());
+								mouseEventDetails.setRelativeY(event.getRelativeY());
+								
+								Item item = getItem(itemId);
+								Collection<?> itemClickListeners = getListeners(ItemClickEvent.class);
+								for (Object itemClickListenerObj : itemClickListeners) {
+									ItemClickListener itemClickListener = (ItemClickListener) itemClickListenerObj;
+									itemClickListener.itemClick(new ItemClickEvent(SearchResultDetailedTable.this, item, itemId, propertyId, mouseEventDetails));
 								}
 							}
 						});

@@ -19,20 +19,33 @@ import java.util.Locale;
 
 @SuppressWarnings("serial")
 public class RecordDisplay extends BaseDisplay {
+	
 	public static final String STYLE_NAME = "record-display";
 	private RecordVO recordVO;
 	private MetadataDisplayFactory metadataDisplayFactory;
 
 	public RecordDisplay(RecordVO recordVO) {
-		this(recordVO, new MetadataDisplayFactory(), STYLE_NAME);
+		this(recordVO, false);
 	}
 
+	public RecordDisplay(RecordVO recordVO, boolean useTabSheet) {
+		this(recordVO, new MetadataDisplayFactory(), STYLE_NAME, useTabSheet);
+	}	
+
 	public RecordDisplay(RecordVO recordVO, MetadataDisplayFactory metadataDisplayFactory) {
-		this(recordVO, metadataDisplayFactory, STYLE_NAME);
+		this(recordVO, metadataDisplayFactory, false);
+	}
+
+	public RecordDisplay(RecordVO recordVO, MetadataDisplayFactory metadataDisplayFactory, boolean useTabSheet) {
+		this(recordVO, metadataDisplayFactory, STYLE_NAME, useTabSheet);
 	}
 
 	public RecordDisplay(RecordVO recordVO, MetadataDisplayFactory metadataDisplayFactory, String styleName) {
-		super(toCaptionsAndComponents(recordVO, metadataDisplayFactory));
+		this(recordVO, metadataDisplayFactory, styleName, false);
+	}
+
+	public RecordDisplay(RecordVO recordVO, MetadataDisplayFactory metadataDisplayFactory, String styleName, boolean useTabSheet) {
+		super(toCaptionsAndComponents(recordVO, metadataDisplayFactory), useTabSheet);
 		this.recordVO = recordVO;
 		this.metadataDisplayFactory = metadataDisplayFactory;
 		addStyleName(styleName);

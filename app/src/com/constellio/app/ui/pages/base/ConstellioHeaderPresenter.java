@@ -161,7 +161,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				.setTemporary(true)
 				.setSearchType(searchType)
 				.setPageNumber(1)
-				.setResultsViewMode(SearchResultsViewMode.DETAILED)
+				.setResultsViewMode(SearchPresenter.DEFAULT_VIEW_MODE)
 				.setPageLength(0);
 
 		if (StringUtils.isNotBlank(expression)) {

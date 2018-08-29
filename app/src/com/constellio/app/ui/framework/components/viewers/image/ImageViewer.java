@@ -32,7 +32,7 @@ public class ImageViewer extends CustomComponent {
 	
 	private static final int DEFAULT_WIDTH = 800;
 	
-	private static final int DEFAULT_HEIGHT = 600;
+	private static final int DEFAULT_HEIGHT = 1000;
 	
 	private RecordVO recordVO;
 	

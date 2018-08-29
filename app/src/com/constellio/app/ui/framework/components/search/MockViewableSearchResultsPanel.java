@@ -12,6 +12,7 @@ import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
 import com.vaadin.data.Item;
+import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.LayoutEvents.LayoutClickEvent;
@@ -21,11 +22,11 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
-import com.vaadin.ui.Panel;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.VerticalLayout;
 
 public class MockViewableSearchResultsPanel extends I18NHorizontalLayout {
 	
@@ -100,13 +101,15 @@ public class MockViewableSearchResultsPanel extends I18NHorizontalLayout {
 	
 	@SuppressWarnings("unchecked")
 	private void buildResultsTable() {
-		BaseTable resultsTable = new BaseTable(getClass().getName());
+		final IndexedContainer container = new IndexedContainer();
+		container.addContainerProperty("image", String.class, null);
+		container.addContainerProperty("metadatas", Component.class, null);
+		container.addContainerProperty("actions", MenuBar.class, null);
+		
+		final BaseTable resultsTable = new BaseTable(getClass().getName());
+		resultsTable.setContainerDataSource(container);
 		resultsTable.addStyleName(RecordVOTable.CLICKABLE_ROW_STYLE_NAME);
 		resultsTable.setWidth("100%");
-		
-		resultsTable.addContainerProperty("image", String.class, null);
-		resultsTable.addContainerProperty("metadatas", Component.class, null);
-		resultsTable.addContainerProperty("actions", MenuBar.class, null);
 		
 		resultsTable.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		resultsTable.setColumnWidth("image", 100);
@@ -123,9 +126,19 @@ public class MockViewableSearchResultsPanel extends I18NHorizontalLayout {
 			metadatas.addComponent(new Label("Metadata 1"));
 			metadatas.addComponent(new Label("Metadata 2"));
 			metadatas.addLayoutClickListener(new LayoutClickListener() {
+				boolean toggle = false;
 				@Override
 				public void layoutClick(LayoutClickEvent event) {
 					rowClicked(itemId);
+					
+					if (toggle) {
+						container.addContainerProperty("test", String.class, "Test");
+						resultsTable.setVisibleColumns("image", "metadatas", "actions", "test");
+					} else {
+						container.removeContainerProperty("test");
+						resultsTable.setVisibleColumns("image", "metadatas", "actions");
+					}
+					toggle = !toggle;
 				}
 			});
 			

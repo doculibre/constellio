@@ -76,6 +76,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 		List<MetadataSchemaVO> schemas = new ArrayList<>();
 		for (RecordVODataProvider dataProvider : dataProviders) {
 			schemas.add(dataProvider.getSchema());
+			schemas.addAll(dataProvider.getExtraSchemas());
 		}
 		return schemas;
 	}
@@ -154,24 +155,30 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 			List<MetadataVO> queryMetadataVOs = new ArrayList<>();
 
 			for (RecordVODataProvider dataProvider : dataProviders) {
-				MetadataSchemaVO schema = dataProvider.getSchema();
-				List<MetadataVO> dataProviderTableMetadataVOs = schema.getTableMetadatas();
-				tablePropertyMetadataVOs.addAll(dataProviderTableMetadataVOs);
-				List<MetadataVO> dataProviderQueryMetadataVOs = new ArrayList<>(dataProviderTableMetadataVOs);
-				if (!tableMetadatasOnly) {
-					List<MetadataVO> dataProviderDisplayMetadataVOs = schema.getDisplayMetadatas();
-					for (MetadataVO metadataVO : dataProviderDisplayMetadataVOs) {
-						if (!dataProviderQueryMetadataVOs.contains(metadataVO)) {
-							dataProviderQueryMetadataVOs.add(metadataVO);
+				List<MetadataSchemaVO> schemas = new ArrayList<>();
+				MetadataSchemaVO defaultSchema = dataProvider.getSchema();
+				schemas.add(defaultSchema);
+				schemas.addAll(dataProvider.getExtraSchemas());
+				
+				for (MetadataSchemaVO schema : schemas) {
+					List<MetadataVO> dataProviderTableMetadataVOs = schema.getTableMetadatas();
+					tablePropertyMetadataVOs.addAll(dataProviderTableMetadataVOs);
+					List<MetadataVO> dataProviderQueryMetadataVOs = new ArrayList<>(dataProviderTableMetadataVOs);
+					if (!tableMetadatasOnly) {
+						List<MetadataVO> dataProviderDisplayMetadataVOs = schema.getDisplayMetadatas();
+						for (MetadataVO metadataVO : dataProviderDisplayMetadataVOs) {
+							if (!dataProviderQueryMetadataVOs.contains(metadataVO)) {
+								dataProviderQueryMetadataVOs.add(metadataVO);
+							}
 						}
 					}
-				}
-				for (MetadataVO metadataVO : dataProviderQueryMetadataVOs) {
-					if (!queryMetadataVOs.contains(metadataVO)) {
-						if (dataProviderTableMetadataVOs.contains(metadataVO)) {
-							tablePropertyMetadataVOs.add(metadataVO);
-						} else {
-							extraPropertyMetadataVOs.add(metadataVO);
+					for (MetadataVO metadataVO : dataProviderQueryMetadataVOs) {
+						if (!queryMetadataVOs.contains(metadataVO)) {
+							if (dataProviderTableMetadataVOs.contains(metadataVO)) {
+								tablePropertyMetadataVOs.add(metadataVO);
+							} else {
+								extraPropertyMetadataVOs.add(metadataVO);
+							}
 						}
 					}
 				}

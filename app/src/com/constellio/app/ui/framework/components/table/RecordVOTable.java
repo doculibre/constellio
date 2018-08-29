@@ -23,6 +23,7 @@ import com.constellio.app.ui.framework.components.menuBar.RecordMenuBarHandler;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOContainer;
 import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
@@ -290,6 +291,9 @@ public class RecordVOTable extends BaseTable {
 		} else if (container instanceof ContainerAdapter) {
 			ContainerAdapter<?> containerAdapter = (ContainerAdapter<?>) container;
 			findSchemaVOs(containerAdapter.getNestedContainer());
+		} else if (container instanceof ViewableRecordVOContainer) {
+			ViewableRecordVOContainer viewableRecordVOContainer = (ViewableRecordVOContainer) container;
+			findSchemaVOs(viewableRecordVOContainer.getRecordVOContainer());
 		}
 	}
 

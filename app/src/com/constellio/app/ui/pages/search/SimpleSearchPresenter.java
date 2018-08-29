@@ -20,6 +20,7 @@ import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
@@ -62,12 +63,12 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				updateUIContext(search);
 			} else {
 				searchID = null;
-				resultsViewMode = SearchResultsViewMode.DETAILED;
+				resultsViewMode = DEFAULT_VIEW_MODE;
 				saveTemporarySearch(false);
 			}
 		} else {
 			searchExpression = "";
-			resultsViewMode = SearchResultsViewMode.DETAILED;
+			resultsViewMode = DEFAULT_VIEW_MODE;
 		}
 		return this;
 	}
@@ -78,7 +79,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		sortCriterion = search.getSortField();
 		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
 		pageNumber = search.getPageNumber();
-		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode() : SearchResultsViewMode.DETAILED;
+		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode() : DEFAULT_VIEW_MODE;
 		setSelectedPageLength(search.getPageLength());
 	}
 

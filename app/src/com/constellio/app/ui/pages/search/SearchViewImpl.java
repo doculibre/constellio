@@ -12,6 +12,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -26,12 +27,13 @@ import com.constellio.app.ui.framework.components.capsule.CapsuleComponent;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
-import com.constellio.app.ui.framework.components.search.ViewableSearchResultsPanel;
 import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
 import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.containers.SearchResultVOLazyContainer;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
@@ -42,6 +44,8 @@ import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeListener;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -76,7 +80,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private FacetsPanel facetsArea;
 	private VerticalLayout capsuleArea;
 	
-	private ViewableSearchResultsPanel viewableSearchResultsPanel;
+	private ViewableRecordTablePanel viewableSearchResultsPanel;
 	private SearchResultTable resultsTable;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
@@ -354,7 +358,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		facetsArea.setSpacing(true);
 		
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
-			viewableSearchResultsPanel = new ViewableSearchResultsPanel(resultsArea);
+			viewableSearchResultsPanel = new ViewableRecordTablePanel(resultsArea);
 			
 			CollapsibleHorizontalSplitPanel body = new CollapsibleHorizontalSplitPanel("search-result-and-facets-container");
 			body.addStyleName("search-result-and-facets-container");
@@ -407,8 +411,29 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected SearchResultTable buildResultTable(SearchResultVODataProvider dataProvider) {
-		return buildDetailedResultsTable(dataProvider);
+        if (presenter.getResultsViewMode().equals(SearchResultsViewMode.TABLE)) {
+            return buildSimpleResultsTable(dataProvider);
+        } else {
+            return buildDetailedResultsTable(dataProvider);
+        }
 	}
+
+    protected SearchResultTable buildSimpleResultsTable(SearchResultVODataProvider dataProvider) {
+        //Fixme : use dataProvider instead
+		SearchResultContainer container = buildResultContainer(dataProvider);
+        SearchResultSimpleTable table = new SearchResultSimpleTable(container, presenter);
+        table.setWidth("100%");
+        table.getTable().addItemClickListener(new ItemClickListener() {
+			@SuppressWarnings("rawtypes")
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Object itemId = event.getItemId();
+				RecordVO recordVO = container.getRecordVO((int) itemId);
+				((SearchPresenter) presenter).searchResultClicked(recordVO);
+			}
+		});
+        return table;
+    }
 
 	protected SearchResultTable buildDetailedResultsTable(SearchResultVODataProvider dataProvider) {
 		SearchResultContainer container = buildResultContainer(dataProvider);
@@ -706,4 +731,14 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public SearchResultTable getResult() {
 		return this.resultsTable;
 	}
+
+	@Override
+	public void fireSomeRecordsSelected() {
+		
+	}
+
+	@Override
+	public void fireNoRecordSelected() {
+	}
+	
 }
