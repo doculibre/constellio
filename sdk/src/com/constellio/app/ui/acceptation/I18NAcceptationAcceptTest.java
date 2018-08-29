@@ -54,6 +54,14 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenUsingI18nThenAllBundlesFound() {
+		givenEnglishSystem();
+
+		assertThat(i18n.getDefaultBundle()).extracting("bundleName")
+				.containsOnly("baseView", "imports", "managementViews", "model", "schemasManagementViews", "search", "security", "usersAndGroupsManagementViews", "userViews", "webservices", "i18n", "i18n", "audits", "decommissioningViews", "demo", "foldersAndDocumentsViews", "managementViews", "model", "reports", "storageAndContainersViews", "userViews", "i18n", "model", "views", "workflowBeta");
+	}
+
+	@Test
 	public void givenEnglishSystemEnsureAllObjectsHasATitle()
 			throws Exception {
 		givenEnglishSystem();
