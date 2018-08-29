@@ -186,7 +186,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.createPDFA();
+					presenter.createPDFA(null);
 				}
 			});
 		}

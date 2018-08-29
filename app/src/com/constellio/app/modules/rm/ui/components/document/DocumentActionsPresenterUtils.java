@@ -442,7 +442,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 	}
 
-	public synchronized void createPDFA() {
+	public synchronized void createPDFA(Map<String, String> params) {
 		if (!isCreatePDFAPossible()) {
 			return;
 		}
@@ -460,7 +460,16 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 					decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
 
-					actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
+					boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+					if(areSearchTypeAndSearchIdPresent) {
+						actionsComponent.navigate().to(RMViews.class)
+								.displayDocumentFromDecommission(document.getId(), DecommissionNavUtil.getHomeUri(actionsComponent.getConstellioFactories().getAppLayerFactory()),
+										false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+					} else {
+						actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
+					}
+
 					actionsComponent.showMessage($("DocumentActionsComponent.createPDFASuccess"));
 				} catch (Exception e) {
 					actionsComponent.showErrorMessage(

@@ -198,7 +198,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.createPDFA();
+					presenter.createPDFA(null);
 				}
 			});
 		}
