@@ -1,8 +1,8 @@
 package com.constellio.app.ui.pages.base;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -60,6 +60,7 @@ import com.constellio.app.ui.pages.search.SearchResultsViewMode;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
@@ -391,7 +392,9 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
 			@Override
 			public int compare(MetadataVO o1, MetadataVO o2) {
-				return o1.getLabel().toLowerCase().compareTo(o2.getLabel().toLowerCase());
+				String label1 = AccentApostropheCleaner.removeAccents(o1.getLabel());
+				String label2 = AccentApostropheCleaner.removeAccents(o2.getLabel());
+				return label1.toLowerCase().compareTo(label2.toLowerCase());
 			}
 		});
 	}

@@ -323,6 +323,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			super();
 
 			setSizeFull();
+			setHeight("95%");
 
 			window.setWidth("80%");
 			window.setHeight("80%");
