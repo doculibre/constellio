@@ -1,13 +1,18 @@
 package com.constellio.app.modules.rm.ui.components.menuBar;
 
+import java.util.Map;
+
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -47,7 +52,18 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 	}
 
 	public void displayDocumentButtonClicked() {
-		menuBar.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		Map<String,String> params = ParamUtils.getCurrentParams();
+
+		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+		if(areSearchTypeAndSearchIdPresent) {
+			menuBar.navigate().to(RMViews.class)
+					.displayDocumentFromDecommission(documentVO.getId(), DecommissionNavUtil.getHomeUri(actionsComponent.getConstellioFactories().getAppLayerFactory()),
+							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else {
+			menuBar.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		}
+
 		updateSearchResultClicked();
 	}
 

@@ -301,8 +301,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 
-		String saveSearchDecommissioningId = getUIContext().getAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
-		String searchTypeAsString = getUIContext().getAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+		String saveSearchDecommissioningId = null;
+		String searchTypeAsString = null;
 
 		if(presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
 			saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");

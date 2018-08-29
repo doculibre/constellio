@@ -360,7 +360,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void copyContentButtonClicked() {
-		presenterUtils.copyContentButtonClicked();
+		presenterUtils.copyContentButtonClicked(params);
 	}
 
 	public String getContentTitle() {

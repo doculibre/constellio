@@ -192,9 +192,16 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return null;
 	}
 
-	public void copyContentButtonClicked() {
+	public void copyContentButtonClicked(Map<String, String> params) {
 		if (isCopyDocumentPossible()) {
-			actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
+			boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+			if(areSearchTypeAndSearchIdPresent) {
+				actionsComponent.navigate().to(RMViews.class)
+						.addDocumentWithContentFromDecommission(documentVO.getId(), DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+			} else {
+				actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
+			}
 		}
 	}
 

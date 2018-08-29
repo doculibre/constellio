@@ -152,7 +152,7 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 			if(searchId != null && searchType != null) {
 				breadcrumbTrail.navigate().to(RMViews.class).displayDocumentFromDecommission(documentId,
 						DecommissionNavUtil.getHomeUri(breadcrumbTrail.getConstellioFactories().getAppLayerFactory()), false,
-						searchId, searchType.toString());
+						searchId, searchType.name());
 			} else {
 				breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
 			}

@@ -24,6 +24,7 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.View;
@@ -37,6 +38,7 @@ import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
@@ -158,7 +160,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			editDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.editDocumentButtonClicked(null);
+					presenter.editDocumentButtonClicked(ParamUtils.getCurrentParams());
 				}
 			});
 		}
@@ -198,7 +200,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.createPDFA(null);
+					presenter.createPDFA(ParamUtils.getCurrentParams());
 				}
 			});
 		}
@@ -288,6 +290,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		View parentView = ConstellioUI.getCurrent().getCurrentView();
 		presenter.addItemsFromExtensions(this, (BaseViewImpl) parentView);
 	}
+
 
 	@Override
 	public ConstellioFactories getConstellioFactories() {

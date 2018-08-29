@@ -185,6 +185,14 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
+	public void addDocumentWithContentFromDecommission(String id, String decommissioningSearchId, String decommissioningType)  {
+		Map<String, String> params = new HashMap<>();
+		params.put("idCopy", id);
+		params.put("decommissioningSearchId", decommissioningSearchId);
+		params.put("decommissioningType", decommissioningType);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
+	}
+
 	public void editDocument(String id) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);

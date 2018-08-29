@@ -293,14 +293,14 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		} else if (addView) {
 			String parentId = documentVO.getFolder();
 			if (parentId != null) {
-				navigateToDocumentDisplay(parentId);
+				navigateToFolderDisplay(parentId);
 			} else if (userDocumentId != null) {
 				view.navigate().to(RMViews.class).listUserDocuments();
 			} else {
 				view.navigate().to().home();
 			}
 		} else {
-			navigateToDocumentDisplay(documentVO.getId());
+			view.navigate().to().previousView();
 		}
 	}
 
@@ -315,6 +315,18 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			view.navigate().to(RMViews.class).displayDocument(id);
 		}
 
+	}
+
+	private void navigateToFolderDisplay(String id) {
+		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+		if(areSearchTypeAndSearchIdPresent) {
+			view.navigate().to(RMViews.class)
+					.displayFolderFromDecommission(id, DecommissionNavUtil.getHomeUri(appLayerFactory),
+							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else {
+			view.navigate().to(RMViews.class).displayFolder(id);
+		}
 	}
 
 	private void setAsNewVersionOfContent(Document document) {
