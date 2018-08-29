@@ -1,21 +1,5 @@
 package com.constellio.app.modules.robots.services;
 
-import static com.constellio.app.modules.robots.model.DryRunRobotAction.dryRunRobotAction;
-import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.AND;
-import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.robots.model.ActionExecutor;
 import com.constellio.app.modules.robots.model.actions.RunExtractorsActionExecutor;
@@ -42,6 +26,21 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.robots.model.DryRunRobotAction.dryRunRobotAction;
+import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.AND;
+import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class RobotsManagerAcceptTest extends ConstellioTest {
 
@@ -451,8 +450,9 @@ public class RobotsManagerAcceptTest extends ConstellioTest {
 	private ActionExecutor setMetadataExecutor(final Metadata metadata) {
 		return new ActionExecutor() {
 			@Override
-			public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-					List<Record> records, List<Record> processedRecords, boolean dryRun) {
+			public Transaction execute(String robotId, ActionParameters actionParameters,
+									   AppLayerFactory appLayerFactory,
+									   List<Record> records, List<Record> processedRecords, boolean dryRun) {
 				Transaction transaction = new Transaction();
 				for (Record record : records) {
 					transaction.add(record.set(metadata, actionParameters.get("value")));

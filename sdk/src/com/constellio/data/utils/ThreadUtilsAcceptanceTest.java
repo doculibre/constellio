@@ -1,17 +1,16 @@
 package com.constellio.data.utils;
 
+import com.constellio.data.utils.ThreadUtils.IteratorElementTask;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+
+import java.util.List;
+
 import static com.constellio.data.utils.ThreadUtils.iterateOverRunningTaskInParallel;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-
-import java.util.List;
-
-import org.junit.Test;
-
-import com.constellio.data.utils.ThreadUtils.IteratorElementTask;
-import com.constellio.sdk.tests.ConstellioTest;
 
 public class ThreadUtilsAcceptanceTest extends ConstellioTest {
 

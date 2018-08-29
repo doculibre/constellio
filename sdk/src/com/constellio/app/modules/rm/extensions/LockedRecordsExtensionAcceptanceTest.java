@@ -18,41 +18,41 @@ import static org.junit.Assert.fail;
  */
 public class LockedRecordsExtensionAcceptanceTest extends ConstellioTest {
 
-    RMSchemasRecordsServices rm;
-    RecordServices recordServices;
-    TasksSchemasRecordsServices tasksSchemasRecordsServices;
+	RMSchemasRecordsServices rm;
+	RecordServices recordServices;
+	TasksSchemasRecordsServices tasksSchemasRecordsServices;
 
-    @Before
-    public void setUp() {
-        prepareSystem(withZeCollection().withConstellioRMModule().withAllTestUsers());
-        rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-        recordServices = getModelLayerFactory().newRecordServices();
-        tasksSchemasRecordsServices = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
-    }
+	@Before
+	public void setUp() {
+		prepareSystem(withZeCollection().withConstellioRMModule().withAllTestUsers());
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		recordServices = getModelLayerFactory().newRecordServices();
+		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
+	}
 
-    @Test
-    public void whenCheckingIfLockedRecordCodeModifiedThenFalse() throws Exception {
-        try {
-            TaskType taskType = tasksSchemasRecordsServices.getTaskTypeByCode("borrowRequest");
-            taskType.setCode("test");
-            recordServices.add(taskType);
-            fail("No exception was thrown");
-        } catch (RecordServicesException.ValidationException e) {
-            assertThat(e.getErrors().getValidationErrors()).hasSize(1);
-            assertThat(TestUtils.frenchMessages(e.getErrors()).get(0)).isEqualTo("Le code ou le schéma relié ne peuvent pas être modifiés");
-        }
-    }
+	@Test
+	public void whenCheckingIfLockedRecordCodeModifiedThenFalse() throws Exception {
+		try {
+			TaskType taskType = tasksSchemasRecordsServices.getTaskTypeByCode("borrowRequest");
+			taskType.setCode("test");
+			recordServices.add(taskType);
+			fail("No exception was thrown");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(e.getErrors().getValidationErrors()).hasSize(1);
+			assertThat(TestUtils.frenchMessages(e.getErrors()).get(0)).isEqualTo("Le code ou le schéma relié ne peuvent pas être modifiés");
+		}
+	}
 
-    @Test
-    public void whenCheckingIfLockedRecordLinkedSchemaModifiedThenFalse() throws Exception {
-        try {
-            TaskType taskType = tasksSchemasRecordsServices.getTaskTypeByCode("borrowRequest");
-            taskType.setLinkedSchema("test");
-            recordServices.add(taskType);
-            fail("No exception was thrown");
-        } catch (RecordServicesException.ValidationException e) {
-            assertThat(e.getErrors().getValidationErrors()).hasSize(1);
-            assertThat(TestUtils.frenchMessages(e.getErrors()).get(0)).isEqualTo("Le code ou le schéma relié ne peuvent pas être modifiés");
-        }
-    }
+	@Test
+	public void whenCheckingIfLockedRecordLinkedSchemaModifiedThenFalse() throws Exception {
+		try {
+			TaskType taskType = tasksSchemasRecordsServices.getTaskTypeByCode("borrowRequest");
+			taskType.setLinkedSchema("test");
+			recordServices.add(taskType);
+			fail("No exception was thrown");
+		} catch (RecordServicesException.ValidationException e) {
+			assertThat(e.getErrors().getValidationErrors()).hasSize(1);
+			assertThat(TestUtils.frenchMessages(e.getErrors()).get(0)).isEqualTo("Le code ou le schéma relié ne peuvent pas être modifiés");
+		}
+	}
 }

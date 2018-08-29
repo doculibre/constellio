@@ -1,14 +1,5 @@
 package com.constellio.app.ui.framework.builders;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -16,6 +7,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.UserVO;
@@ -32,6 +24,14 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 @SuppressWarnings("serial")
 public class MetadataToVOBuilder implements Serializable {
@@ -51,6 +51,11 @@ public class MetadataToVOBuilder implements Serializable {
 	}
 
 	public MetadataVO build(Metadata metadata, MetadataSchemaVO schemaVO, SessionContext sessionContext) {
+		return build(metadata, null, schemaVO, sessionContext);
+	}
+
+	public MetadataVO build(Metadata metadata, Locale locale, MetadataSchemaVO schemaVO,
+							SessionContext sessionContext) {
 		String metadataCode = metadata.getCode();
 		String collection = metadata.getCollection();
 		String datastoreCode = metadata.getDataStoreCode();
@@ -61,6 +66,7 @@ public class MetadataToVOBuilder implements Serializable {
 		boolean readOnly = false;
 		boolean unmodifiable = metadata.isUnmodifiable();
 		boolean enabled = metadata.isEnabled();
+		boolean isMultiLingual = metadata.isMultiLingual();
 		StructureFactory structureFactory = metadata.getStructureFactory();
 
 		String schemaTypeCode;
@@ -136,15 +142,36 @@ public class MetadataToVOBuilder implements Serializable {
 		}
 
 		Map<Locale, String> labels = new HashMap<Locale, String>();
-		labels.put(sessionContext.getCurrentLocale(), metadata.getLabel(
-				Language.withCode(sessionContext.getCurrentLocale().getLanguage())));
+
+		//TODO FIXME Vincent est-ce necessaire?
+		for (Language keyset : metadata.getLabels().keySet()) {
+			labels.put(keyset.getLocale(), metadata.getLabels().get(keyset));
+		}
+
+
+		//labels.put(sessionContext.getCurrentLocale(), metadata.getLabel(
+		//		Language.withCode(sessionContext.getCurrentLocale().getLanguage())));
+		Locale currentLocale = sessionContext.getCurrentLocale();
+		String metadataLabel = metadata.getLabel(Language.withCode(currentLocale.getLanguage()));
+
+		if (schemaVO != null) {
+			CollectionInfoVO collectionInfoVO = schemaVO.getCollectionInfoVO();
+
+			if (isMultiLingual && locale != null && collectionInfoVO.getCollectionLanguages() != null && collectionInfoVO.getCollectionLanguages().size() > 1) {
+				metadataLabel += " (" + locale.getLanguage().toUpperCase() + ")";
+			}
+		}
+		labels.put(currentLocale, metadataLabel);
+
 		Class<? extends Enum<?>> enumClass = metadata.getEnumClass(); // EnumWithSmallCode
 		AllowedReferences allowedReferences = metadata.getAllowedReferences();
 
 		return newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 				enabled,
-				structureFactory, metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(), metadata.getCustomAttributes());
+				structureFactory, metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(),
+				metadata.getCustomAttributes(), isMultiLingual, locale, metadata.getCustomParameter(),
+				schemaVO != null ? schemaVO.getCollectionInfoVO() : null);
 	}
 
 	protected MetadataVO newMetadataVO(
@@ -168,11 +195,14 @@ public class MetadataToVOBuilder implements Serializable {
 			StructureFactory structureFactory,
 			String metadataGroup,
 			Object defaultValue,
-			String inputMask, Set<String> customAttributes) {
+			String inputMask, Set<String> customAttributes,
+			boolean isMultiLingual, Locale locale,
+			Map<String, Object> customParameters,
+			CollectionInfoVO collectionInfoVO) {
 		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 				enabled,
-				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes);
+				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO);
 	}
 
 }

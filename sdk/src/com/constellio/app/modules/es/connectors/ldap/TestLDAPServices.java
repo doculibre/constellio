@@ -1,14 +1,9 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import static java.util.Arrays.asList;
-
-import java.sql.Time;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Set;
+import com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.conf.ldap.RegexFilter;
+import org.joda.time.LocalDate;
 
 import javax.naming.Binding;
 import javax.naming.Context;
@@ -26,12 +21,13 @@ import javax.naming.ldap.Control;
 import javax.naming.ldap.ExtendedRequest;
 import javax.naming.ldap.ExtendedResponse;
 import javax.naming.ldap.LdapContext;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Set;
 
-import org.joda.time.LocalDate;
-
-import com.constellio.app.modules.es.model.connectors.ldap.enums.DirectoryType;
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.conf.ldap.RegexFilter;
+import static java.util.Arrays.asList;
 
 public class TestLDAPServices implements ConnectorLDAPServices {
 	Set<String> firstFetchIds = new HashSet<>(asList("id1", "id2", "id3"));
@@ -45,9 +41,10 @@ public class TestLDAPServices implements ConnectorLDAPServices {
 	}
 
 	@Override
-	public ConnectorLDAPSearchResult getAllObjectsUsingFilter(LdapContext ctx, String objectClass, String objectCategory,
-			Set<String> contexts,
-			RegexFilter filter) {
+	public ConnectorLDAPSearchResult getAllObjectsUsingFilter(LdapContext ctx, String objectClass,
+															  String objectCategory,
+															  Set<String> contexts,
+															  RegexFilter filter) {
 		if (throwException) {
 			throw new RuntimeException("test exception");
 		}
@@ -91,7 +88,7 @@ public class TestLDAPServices implements ConnectorLDAPServices {
 
 	@Override
 	public LdapContext connectToLDAP(String url, String user, String password, Boolean followReferences,
-			boolean activeDirectory) {
+									 boolean activeDirectory) {
 		if (throwException) {
 			throw new RuntimeException("test exception");
 		}
@@ -263,13 +260,15 @@ public class TestLDAPServices implements ConnectorLDAPServices {
 		}
 
 		@Override
-		public NamingEnumeration<SearchResult> search(Name name, Attributes matchingAttributes, String[] attributesToReturn)
+		public NamingEnumeration<SearchResult> search(Name name, Attributes matchingAttributes,
+													  String[] attributesToReturn)
 				throws NamingException {
 			return null;
 		}
 
 		@Override
-		public NamingEnumeration<SearchResult> search(String name, Attributes matchingAttributes, String[] attributesToReturn)
+		public NamingEnumeration<SearchResult> search(String name, Attributes matchingAttributes,
+													  String[] attributesToReturn)
 				throws NamingException {
 			return null;
 		}
@@ -299,13 +298,15 @@ public class TestLDAPServices implements ConnectorLDAPServices {
 		}
 
 		@Override
-		public NamingEnumeration<SearchResult> search(Name name, String filterExpr, Object[] filterArgs, SearchControls cons)
+		public NamingEnumeration<SearchResult> search(Name name, String filterExpr, Object[] filterArgs,
+													  SearchControls cons)
 				throws NamingException {
 			return null;
 		}
 
 		@Override
-		public NamingEnumeration<SearchResult> search(String name, String filterExpr, Object[] filterArgs, SearchControls cons)
+		public NamingEnumeration<SearchResult> search(String name, String filterExpr, Object[] filterArgs,
+													  SearchControls cons)
 				throws NamingException {
 			return null;
 		}

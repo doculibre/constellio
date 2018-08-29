@@ -1,46 +1,5 @@
 package com.constellio.app.modules.rm.services;
 
-import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
-import javax.mail.Address;
-import javax.mail.BodyPart;
-import javax.mail.Message.RecipientType;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.internet.MimeUtility;
-
-import com.constellio.model.entities.records.wrappers.*;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.apache.poi.hsmf.datatypes.ByteChunk;
-import org.apache.poi.hsmf.datatypes.Chunk;
-import org.apache.poi.hsmf.datatypes.ChunkGroup;
-import org.apache.poi.hsmf.datatypes.Chunks;
-import org.apache.poi.hsmf.datatypes.MAPIProperty;
-import org.apache.poi.hsmf.datatypes.StringChunk;
-import org.apache.poi.hsmf.parsers.POIFSChunkParser;
-import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.joda.time.LocalDateTime;
-
 import com.auxilii.msgparser.Message;
 import com.auxilii.msgparser.MsgParser;
 import com.auxilii.msgparser.attachment.Attachment;
@@ -87,6 +46,45 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.NoSu
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.poi.hsmf.datatypes.ByteChunk;
+import org.apache.poi.hsmf.datatypes.Chunk;
+import org.apache.poi.hsmf.datatypes.ChunkGroup;
+import org.apache.poi.hsmf.datatypes.Chunks;
+import org.apache.poi.hsmf.datatypes.MAPIProperty;
+import org.apache.poi.hsmf.datatypes.StringChunk;
+import org.apache.poi.hsmf.parsers.POIFSChunkParser;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.joda.time.LocalDateTime;
+
+import javax.mail.Address;
+import javax.mail.BodyPart;
+import javax.mail.Message.RecipientType;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
@@ -96,7 +94,8 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	public static final String EMAIL_ATTACHMENTS = "attachments";
 
 	public RMSchemasRecordsServices(String collection, SessionContextProvider sessionContextProvider) {
-		this(collection, sessionContextProvider.getConstellioFactories().getModelLayerFactory());
+		this(collection, sessionContextProvider.getConstellioFactories().getModelLayerFactory(),
+				sessionContextProvider.getSessionContext().getCurrentLocale());
 	}
 
 	@Deprecated
@@ -106,6 +105,15 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public RMSchemasRecordsServices(String collection, AppLayerFactory appLayerFactory) {
 		super(collection, appLayerFactory.getModelLayerFactory());
+	}
+
+	@Deprecated
+	public RMSchemasRecordsServices(String collection, ModelLayerFactory modelLayerFactory, Locale locale) {
+		super(collection, modelLayerFactory, locale);
+	}
+
+	public RMSchemasRecordsServices(String collection, AppLayerFactory appLayerFactory, Locale locale) {
+		super(collection, appLayerFactory.getModelLayerFactory(), locale);
 	}
 
 	//
@@ -323,7 +331,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 	//
 
 	//Document type
-
 
 
 	public MetadataSchema documentTypeSchema() {
@@ -720,9 +727,6 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 		return valueListItems;
 	}
 
-	public ValueListItem newValueListItem(String schemaCode) {
-		return new ValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
-	}
 
 	// Variable retention period
 
@@ -1165,4 +1169,11 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				from(printable_report.schemaType()).where(SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));
 	}
 
+
+	public List<Folder> getFolderByUnicity(String unicity) {
+		List<Folder> resultListFolder = wrapFolders(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(
+				from(folder.schemaType()).where(folder.uniqueKey()).isEqualTo(unicity))));
+
+		return resultListFolder;
+	}
 }

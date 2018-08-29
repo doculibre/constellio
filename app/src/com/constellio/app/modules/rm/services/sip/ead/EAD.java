@@ -20,22 +20,23 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
 public class EAD {
-	
+
 	private SIPObject sipObject;
-	
+
 	private Namespace eadNamespace = Namespace.getNamespace("ead", "urn:isbn:1-931666-22-9");
 	private Namespace xsiNamespace = Namespace.getNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
-	
+
 	private Document doc;
-	
+
 	private Element eadElement;
-	
+
 	private EADArchdesc archdesc;
-	
+
 	private static SAXBuilder builder;
 
 	private AppLayerFactory factory;
@@ -43,26 +44,29 @@ public class EAD {
 	private String collection;
 
 	private static XMLDocumentValidator validator = new XMLDocumentValidator();
-	
+
+	private Locale locale;
+
 	static {
 		builder = new SAXBuilder();
 	}
-	
-	public EAD(SIPObject sipObject, EADArchdesc archdesc, AppLayerFactory factory, String collection) {
+
+	public EAD(SIPObject sipObject, EADArchdesc archdesc, AppLayerFactory factory, String collection, Locale locale) {
 		this.sipObject = sipObject;
 		this.archdesc = archdesc;
 		this.factory = factory;
 		this.collection = collection;
-		
+		this.locale = locale;
+
 		this.eadElement = new Element("ead", eadNamespace);
 		this.eadElement.addNamespaceDeclaration(xsiNamespace);
 		eadElement.setAttribute("schemaLocation", "urn:isbn:1-931666-22-9 http://www.loc.gov/ead/ead.xsd", xsiNamespace);
-		
+
 		this.doc = new Document(eadElement);
 		addHeader();
 		addArchdesc();
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public <T extends SIPObject> T getSIPObject() {
 		return (T) sipObject;
@@ -70,38 +74,38 @@ public class EAD {
 
 	private void addHeader() {
 		Element eadheaderElement = new Element("eadheader", eadNamespace);
-		
+
 		Element eadidElement = new Element("eadid", eadNamespace);
 		eadidElement.setAttribute("identifier", "Identifiant externe");
 		eadidElement.setText(sipObject.getId());
-		
+
 		Element filedescElement = new Element("filedesc", eadNamespace);
 		Element titlestmtElement = new Element("titlestmt", eadNamespace);
 		Element titleproperElement = new Element("titleproper", eadNamespace);
 		titleproperElement.setText(sipObject.getTitle());
-		
+
 		eadElement.addContent(eadheaderElement);
 		eadheaderElement.addContent(eadidElement);
 		eadheaderElement.addContent(filedescElement);
 		filedescElement.addContent(titlestmtElement);
 		titlestmtElement.addContent(titleproperElement);
 	}
-	
+
 	private void addArchdesc() {
 		Element archdescElement = new Element("archdesc", eadNamespace);
 		archdescElement.setAttribute("level", "class");
-		
+
 		Element didElement = new Element("did", eadNamespace);
-		
+
 		Element unitidElement = new Element("unitid", eadNamespace);
 		didElement.addContent(unitidElement);
 		unitidElement.setAttribute("type", "Identifiant externe");
 		unitidElement.setText(sipObject.getId());
-		
+
 		Element unittitleElement = new Element("unittitle", eadNamespace);
 		didElement.addContent(unittitleElement);
 		unittitleElement.setText(sipObject.getTitle());
-		
+
 		Map<String, String> didUnitDates = archdesc.getDidUnitDates();
 		for (Entry<String, String> entry : didUnitDates.entrySet()) {
 			String datechar = entry.getKey();
@@ -112,21 +116,21 @@ public class EAD {
 			unitdateElement.setAttribute("datechar", datechar);
 			unitdateElement.setText(unitdateValue);
 		}
-		
+
 		List<String> didLangmaterials = archdesc.getDidLangmaterials();
 		for (String didLangmaterial : didLangmaterials) {
 			Element langmaterialElement = new Element("langmaterial", eadNamespace);
 			didElement.addContent(langmaterialElement);
 			langmaterialElement.setText(didLangmaterial);
 		}
-		
+
 		List<String> didAbstracts = archdesc.getDidAbstracts();
 		for (String didAbstract : didAbstracts) {
 			Element didAbstractElement = new Element("abstract", eadNamespace);
 			didElement.addContent(didAbstractElement);
 			didAbstractElement.setText(didAbstract);
 		}
-		
+
 		String didOriginationCorpname = archdesc.getDidOriginationCorpname();
 		if (StringUtils.isNotBlank(didOriginationCorpname)) {
 			Element originationElement = new Element("origination", eadNamespace);
@@ -135,12 +139,12 @@ public class EAD {
 			originationElement.addContent(corpnameElement);
 			corpnameElement.setText(didOriginationCorpname);
 		}
-		
+
 		List<String> didNotePs = archdesc.getDidNotePs();
 		for (String didNoteP : didNotePs) {
 			Element didNoteElement = new Element("note", eadNamespace);
 			didElement.addContent(didNoteElement);
-			
+
 			Element didNotePElement = new Element("p", eadNamespace);
 			didNoteElement.addContent(didNotePElement);
 			didNotePElement.setText(didNoteP);
@@ -156,7 +160,7 @@ public class EAD {
 			accessrestrictElement.addContent(legalstatusElement);
 			legalstatusElement.setText(accessrestrictLegalstatus);
 		}
-		
+
 		List<String> controlaccessSubjects = archdesc.getControlAccessSubjects();
 		if (!controlaccessSubjects.isEmpty()) {
 			Element controlaccessElement = new Element("controlaccess", eadNamespace);
@@ -167,12 +171,12 @@ public class EAD {
 				subjectElement.setText(controlaccessSubject);
 			}
 		}
-		
+
 		List<List<String>> relatedmaterialLists = archdesc.getRelatedmaterialLists();
 		for (List<String> relatedmaterialList : relatedmaterialLists) {
 			Element relatedmaterialElement = new Element("relatedmaterial", eadNamespace);
 			archdescElement.addContent(relatedmaterialElement);
-			
+
 			Element listElement = new Element("list", eadNamespace);
 			relatedmaterialElement.addContent(listElement);
 			for (String relatedmaterial : relatedmaterialList) {
@@ -183,7 +187,7 @@ public class EAD {
 		}
 
 		eadElement.addContent(archdescElement);
-		
+
 		List<String> fileplanPs = archdesc.getFileplanPs();
 		if (!fileplanPs.isEmpty()) {
 			Element fileplanElement = new Element("fileplan", eadNamespace);
@@ -194,7 +198,7 @@ public class EAD {
 				fileplanPElement.setText(fileplanP);
 			}
 		}
-		
+
 		List<String> altformavailPs = archdesc.getAltformavailPs();
 		if (!altformavailPs.isEmpty()) {
 			Element altformavailElement = new Element("altformavail", eadNamespace);
@@ -208,17 +212,17 @@ public class EAD {
 
 		Element metadataElement = new Element("metadata", eadNamespace);
 
-		for(Metadata metadata : sipObject.getMetadataList()) {
-			if(metadata != null) {
-				if(metadata.getType().equals(MetadataValueType.REFERENCE)) {
+		for (Metadata metadata : sipObject.getMetadataList()) {
+			if (metadata != null) {
+				if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
 					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeReference(metadata, sipObject.getRecord(), collection, factory, eadNamespace));
-				} else if(metadata.getType().equals(MetadataValueType.ENUM)) {
-					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeEnum(metadata, sipObject.getRecord(), eadNamespace));
+				} else if (metadata.getType().equals(MetadataValueType.ENUM)) {
+					metadataElement.addContent(AbstractXmlGenerator.createMetadataTagFromMetadataOfTypeEnum(metadata, sipObject.getRecord(), eadNamespace, locale));
 				} else {
 					Object metadataValue = sipObject.getRecord().get(metadata);
 					Element currentMetadataElement = new Element(metadata.getCode(), eadNamespace);
-					if(metadataValue != null) {
-						currentMetadataElement.setText(AbstractXmlGenerator.defaultFormatData(metadata.isMultivalue() ? StringUtils.join(sipObject.getRecord().getList(metadata), ", ") : sipObject.getRecord().get(metadata).toString(), metadata,factory, collection));
+					if (metadataValue != null) {
+						currentMetadataElement.setText(AbstractXmlGenerator.defaultFormatData(metadata.isMultivalue() ? StringUtils.join(sipObject.getRecord().getList(metadata), ", ") : sipObject.getRecord().get(metadata).toString(), metadata, factory, collection));
 					}
 					metadataElement.addContent(currentMetadataElement);
 				}
@@ -227,24 +231,24 @@ public class EAD {
 
 		eadElement.addContent(metadataElement);
 	}
-	
+
 	public void build(File file) throws IOException {
 		validator.validate(doc, "xlink.xsd", "ead.xsd");
 		OutputStream out = new FileOutputStream(file);
-        try {
-            // Output as XML
-            // create XMLOutputter
-            XMLOutputter xml = new XMLOutputter();
-            // we want to format the xml. This is used only for demonstration.
-            // pretty formatting adds extra spaces and is generally not required.
-            xml.setFormat(Format.getPrettyFormat());
-            xml.output(doc, out);
+		try {
+			// Output as XML
+			// create XMLOutputter
+			XMLOutputter xml = new XMLOutputter();
+			// we want to format the xml. This is used only for demonstration.
+			// pretty formatting adds extra spaces and is generally not required.
+			xml.setFormat(Format.getPrettyFormat());
+			xml.output(doc, out);
 
-    		// Validating XML
-    		builder.build(file);
+			// Validating XML
+			builder.build(file);
 		} catch (JDOMException e) {
-//			String fileContent = FileUtils.readFileToString(file);
-//			System.out.println(fileContent);
+			//			String fileContent = FileUtils.readFileToString(file);
+			//			System.out.println(fileContent);
 			throw new RuntimeException("Exception for object of type " + sipObject.getType() + " (" + sipObject.getId() + ")", e);
 		} finally {
 			out.close();

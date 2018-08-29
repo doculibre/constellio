@@ -1,14 +1,13 @@
 package com.constellio.model.services.migrations;
 
-import java.util.Map.Entry;
-
+import com.constellio.model.services.migrations.RecordMigrationsManager.SchemaTypeRecordMigration;
+import com.constellio.model.services.migrations.RecordMigrationsManager.SchemaTypeRecordMigrations;
+import com.constellio.model.services.migrations.RecordMigrationsManager.SchemaTypesRecordMigration;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import com.constellio.model.services.migrations.RecordMigrationsManager.SchemaTypeRecordMigration;
-import com.constellio.model.services.migrations.RecordMigrationsManager.SchemaTypeRecordMigrations;
-import com.constellio.model.services.migrations.RecordMigrationsManager.SchemaTypesRecordMigration;
+import java.util.Map.Entry;
 
 public class RecordMigrationWriter {
 

@@ -30,6 +30,8 @@ public interface DocumentActionsComponent extends ViewComponent {
 
 	void openUploadWindow(boolean checkingIn);
 
+	void setCopyDocumentButtonState(ComponentState state);
+
 	void setStartWorkflowButtonState(ComponentState state);
 
 	void setEditDocumentButtonState(ComponentState state);
@@ -60,11 +62,11 @@ public interface DocumentActionsComponent extends ViewComponent {
 
 	void setPublishButtonState(ComponentState state);
 
-	void setFinalizeButtonVisible(boolean visible);
+	void setFinalizeButtonState(ComponentState state);
 
 	void setBorrowedMessage(String borrowedMessageKey, String... args);
 
 	void openAgentURL(String agentURL);
-	
+
 	void refreshParent();
 }

@@ -1,8 +1,8 @@
 package com.constellio.app.ui.entities;
 
-import java.io.Serializable;
-
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+
+import java.io.Serializable;
 
 public class LabelParametersVO implements Serializable {
 	private LabelTemplate labelConfiguration;

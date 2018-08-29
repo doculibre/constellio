@@ -1,19 +1,5 @@
 package com.constellio.app.modules.tasks.migrations;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.STANDBY;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -30,6 +16,20 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.STANDBY;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
+import static java.util.Arrays.asList;
 
 public class TasksMigrationCombo implements ComboMigrationScript {
 	@Override
@@ -46,6 +46,12 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 		scripts.add(new TasksMigrationTo7_5_0_1());
 		scripts.add(new TasksMigrationTo7_6_1());
 		scripts.add(new TasksMigrationTo7_6_3());
+		scripts.add(new TasksMigrationTo7_6_6());
+		scripts.add(new TasksMigrationTo7_6_6_1());
+		scripts.add(new TasksMigrationTo7_7());
+		scripts.add(new TasksMigrationTo7_7_3());
+		scripts.add(new TasksMigrationTo7_7_4());
+		scripts.add(new TasksMigrationTo7_7_4_1());
 
 		return scripts;
 	}
@@ -58,7 +64,8 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 	GeneratedTasksMigrationCombo generatedComboMigration;
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		generatedComboMigration = new GeneratedTasksMigrationCombo(collection, appLayerFactory,
@@ -88,7 +95,8 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 	}
 
 	private String createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory, MetadataSchemaTypes types, Transaction transaction) {
+										   AppLayerFactory appLayerFactory, MetadataSchemaTypes types,
+										   Transaction transaction) {
 
 		TasksSchemasRecordsServices schemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 
@@ -99,16 +107,16 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 
 		String standbyId =
 				transaction.add(schemas.newTaskStatus().setCode(standByCode)
-						.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.STitle"))
+						.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.STitle"))
 						.setStatusType(STANDBY)).getId();
 		transaction.add(schemas.newTaskStatus().setCode(inProcessCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.ITitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.ITitle"))
 				.setStatusType(IN_PROGRESS));
 		transaction.add(schemas.newTaskStatus().setCode(finishedCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.FTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.FTitle"))
 				.setStatusType(FINISHED));
 		transaction.add(schemas.newTaskStatus().setCode(closedCode)
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("TaskStatusType.CTitle"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("TaskStatusType.CTitle"))
 				.setStatusType(CLOSED));
 
 		return standbyId;
@@ -117,7 +125,8 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 	class SchemaAlteration extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlteration(String collection,
-				MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+								   MigrationResourcesProvider migrationResourcesProvider,
+								   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -150,12 +159,18 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 			//			}
 
 			generatedComboMigration.applyGeneratedSchemaAlteration(typesBuilder);
+
+			for (String metadata : asList("ddvTaskStatus_default_description", "ddvTaskStatus_default_title",
+					"ddvTaskType_default_description", "ddvTaskType_default_title")) {
+				typesBuilder.getMetadata(metadata).setMultiLingual(true);
+			}
 		}
 
 	}
 
-	private void addEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+	private void addEmailTemplates(AppLayerFactory appLayerFactory,
+								   MigrationResourcesProvider migrationResourcesProvider,
+								   String collection) {
 
 		String taskReminderTemplate;
 		String subTasksModificationTemplate;
@@ -200,9 +215,10 @@ public class TasksMigrationCombo implements ComboMigrationScript {
 
 	}
 
-	private void addEmailTemplates(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection,
-			String templateFileName, String templateId) {
+	private void addEmailTemplates(AppLayerFactory appLayerFactory,
+								   MigrationResourcesProvider migrationResourcesProvider,
+								   String collection,
+								   String templateFileName, String templateId) {
 		InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
 				.getEmailTemplatesManager();

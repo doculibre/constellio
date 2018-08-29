@@ -17,239 +17,246 @@ import java.net.URLEncoder;
 
 class IcapClient {
 
-    private static final String ICAP_SCHEME = "icap";
+	private static final String ICAP_SCHEME = "icap";
 
-    private static final int CHUNK_BUFFER_MAX_SIZE = 1024 * 4;
+	private static final int CHUNK_BUFFER_MAX_SIZE = 1024 * 4;
 
-    private static final int DEFAUT_SOCKET_TIMEOUT = 5000;
+	private static final int DEFAUT_SOCKET_TIMEOUT = 5000;
 
-    private static final String CR_LF = "\r\n";
+	private static final String CR_LF = "\r\n";
 
-    private final URI icapServerUrl;
+	private final URI icapServerUrl;
 
-    private final int socketTimeOut;
+	private final int socketTimeOut;
 
-    private Socket socket;
+	private Socket socket;
 
-    private DataOutputStream socketOutputStream;
+	private DataOutputStream socketOutputStream;
 
-    private byte[] chunkBuffer;
+	private byte[] chunkBuffer;
 
-    public IcapClient(final URI icapServerUrl, final Integer socketTimeout) {
-        Validate.notNull(icapServerUrl);
-        Validate.isTrue(ICAP_SCHEME.equals(icapServerUrl.getScheme().toLowerCase()));
+	public IcapClient(final URI icapServerUrl, final Integer socketTimeout) {
+		Validate.notNull(icapServerUrl);
+		Validate.isTrue(ICAP_SCHEME.equals(icapServerUrl.getScheme().toLowerCase()));
 
-        this.icapServerUrl = icapServerUrl;
-        socketTimeOut = (Integer) ObjectUtils.defaultIfNull(socketTimeout, DEFAUT_SOCKET_TIMEOUT);
-    }
+		this.icapServerUrl = icapServerUrl;
+		socketTimeOut = (Integer) ObjectUtils.defaultIfNull(socketTimeout, DEFAUT_SOCKET_TIMEOUT);
+	}
 
-    public IcapResponse getIcapConfigurationsFromServer() throws IOException {
-        try {
-            connect();
+	public IcapResponse getIcapConfigurationsFromServer() throws IOException {
+		try {
+			connect();
 
-            sendOptionsMethodRequest();
+			sendOptionsMethodRequest();
 
-            return parseResponse();
-        } finally {
-            disconnect();
-        }
-    }
+			return parseResponse();
+		} finally {
+			disconnect();
+		}
+	}
 
-    private void connect() throws IOException {
-        if (socket == null) {
-            socket = new Socket();
-            socket.connect(
-                    new InetSocketAddress(
-                            icapServerUrl.getHost(),
-                            icapServerUrl.getPort()),
-                    socketTimeOut);
-            socket.setSoTimeout(socketTimeOut);
+	private void connect() throws IOException {
+		if (socket == null) {
+			socket = new Socket();
+			socket.connect(
+					new InetSocketAddress(
+							icapServerUrl.getHost(),
+							icapServerUrl.getPort()),
+					socketTimeOut);
+			socket.setSoTimeout(socketTimeOut);
 
-            socketOutputStream = new DataOutputStream(socket.getOutputStream());
+			socketOutputStream = new DataOutputStream(socket.getOutputStream());
 
-            chunkBuffer = new byte[CHUNK_BUFFER_MAX_SIZE];
-        }
-    }
+			chunkBuffer = new byte[CHUNK_BUFFER_MAX_SIZE];
+		}
+	}
 
-    private void sendOptionsMethodRequest() throws IOException {
-        socketOutputStream.writeBytes(buildOptionsMethodRequest());
+	private void sendOptionsMethodRequest() throws IOException {
+		socketOutputStream.writeBytes(buildOptionsMethodRequest());
 
-        socketOutputStream.flush();
-    }
+		socketOutputStream.flush();
+	}
 
-    private String buildOptionsMethodRequest() {
-        return new StringBuilder().
-                append("OPTIONS ").append(icapServerUrl).append(" ICAP/1.0").
-                append(CR_LF).
-                append("Host: ").append(icapServerUrl.getHost()).
-                append(CR_LF).
-                append(CR_LF).
-                toString();
-    }
+	private String buildOptionsMethodRequest() {
+		return new StringBuilder().
+				append("OPTIONS ").append(icapServerUrl).append(" ICAP/1.0").
+				append(CR_LF).
+				append("Host: ").append(icapServerUrl.getHost()).
+				append(CR_LF).
+				append(CR_LF).
+				toString();
+	}
 
-    private IcapResponse parseResponse() throws IOException {
-        return IcapResponse.parse(socket.getInputStream());
-    }
+	private IcapResponse parseResponse() throws IOException {
+		return IcapResponse.parse(socket.getInputStream());
+	}
 
-    private void disconnect() {
-        IOUtils.closeQuietly(socketOutputStream);
-        IOUtils.closeQuietly(socket);
+	private void disconnect() {
+		IOUtils.closeQuietly(socketOutputStream);
+		IOUtils.closeQuietly(socket);
 
-        socket = null;
-        chunkBuffer = null;
-    }
+		socket = null;
+		chunkBuffer = null;
+	}
 
-    public IcapResponse scanFile(final String filename, final InputStream fileContent, final String clientHostname, final Integer previewLength) throws IOException {
-        Validate.notNull(filename);
-        Validate.notNull(fileContent);
+	public IcapResponse scanFile(final String filename, final InputStream fileContent, final String clientHostname,
+								 final Integer previewLength) throws IOException {
+		Validate.notNull(filename);
+		Validate.notNull(fileContent);
 
-        IcapResponse response = null;
+		IcapResponse response = null;
 
-        if (fileContent.available() > 0) {
-            try {
-                connect();
+		if (fileContent.available() > 0) {
+			try {
+				connect();
 
-                sendRespmodMethodRequest(filename, clientHostname, previewLength);
+				sendRespmodMethodRequest(filename, clientHostname, previewLength);
 
-                response = sendContentPreview(fileContent, previewLength);
+				response = sendContentPreview(fileContent, previewLength);
 
-                if (response.isMoreThanPreviewScanNeeded()) {
-                    response = sendPreviewRemaingingContent(fileContent);
-                }
-            } finally {
-                disconnect();
-            }
-        } else {
-            InputStream mockedIcapResponse = null;
+				if (response.isMoreThanPreviewScanNeeded()) {
+					response = sendPreviewRemaingingContent(fileContent);
+				}
+			} finally {
+				disconnect();
+			}
+		} else {
+			InputStream mockedIcapResponse = null;
 
-            try {
-                mockedIcapResponse = new ByteArrayInputStream(
-                        new StringBuilder("ICAP/1.0 ").
-                                append(HttpStatus.SC_NO_CONTENT).
-                                append(" OK").
-                                toString().
-                                getBytes());
+			try {
+				mockedIcapResponse = new ByteArrayInputStream(
+						new StringBuilder("ICAP/1.0 ").
+								append(HttpStatus.SC_NO_CONTENT).
+								append(" OK").
+								toString().
+								getBytes());
 
-                response = IcapResponse.parse(mockedIcapResponse);
-            } finally {
-                if (mockedIcapResponse != null) {
-                    IOUtils.closeQuietly(mockedIcapResponse);
-                }
-            }
-        }
+				response = IcapResponse.parse(mockedIcapResponse);
+			} finally {
+				if (mockedIcapResponse != null) {
+					IOUtils.closeQuietly(mockedIcapResponse);
+				}
+			}
+		}
 
-        return response;
-    }
+		return response;
+	}
 
-    private void sendRespmodMethodRequest(final String filename, final String clientHostname, final Integer previewLength) throws IOException {
-        socketOutputStream.writeBytes(buildRespmodMethodRequest(filename, clientHostname, previewLength));
+	private void sendRespmodMethodRequest(final String filename, final String clientHostname,
+										  final Integer previewLength) throws IOException {
+		socketOutputStream.writeBytes(buildRespmodMethodRequest(filename, clientHostname, previewLength));
 
-        socketOutputStream.flush();
-    }
+		socketOutputStream.flush();
+	}
 
-    private String buildRespmodMethodRequest(final String filename, final String clientHostname, final Integer previewLength) throws IOException {
-        final String encapsulatedFileGetRequest = buildEncapsulatedFileGetRequest(filename, clientHostname);
-        final String encapsulatedFileGetResponse = buildEncapsulatedFileGetResponse();
+	private String buildRespmodMethodRequest(final String filename, final String clientHostname,
+											 final Integer previewLength) throws IOException {
+		final String encapsulatedFileGetRequest = buildEncapsulatedFileGetRequest(filename, clientHostname);
+		final String encapsulatedFileGetResponse = buildEncapsulatedFileGetResponse();
 
-        return buildRespmodMethodRequest(encapsulatedFileGetRequest, encapsulatedFileGetResponse, clientHostname, previewLength);
-    }
+		return buildRespmodMethodRequest(encapsulatedFileGetRequest, encapsulatedFileGetResponse, clientHostname, previewLength);
+	}
 
-    private String buildEncapsulatedFileGetRequest(final String filename, final String clientHostname) throws IOException {
-        return new StringBuilder().
-                append("GET http://").append(clientHostname).append("/").append(URLEncoder.encode(filename, "utf-8")).append(" ").append("HTTP/1.1").
-                append(CR_LF).
-                append("Host: ").append(clientHostname).
-                append(CR_LF).
-                append(CR_LF).
-                toString();
-    }
+	private String buildEncapsulatedFileGetRequest(final String filename, final String clientHostname)
+			throws IOException {
+		return new StringBuilder().
+				append("GET http://").append(clientHostname).append("/").append(URLEncoder.encode(filename, "utf-8")).append(" ").append("HTTP/1.1").
+				append(CR_LF).
+				append("Host: ").append(clientHostname).
+				append(CR_LF).
+				append(CR_LF).
+				toString();
+	}
 
-    private String buildEncapsulatedFileGetResponse() {
-        return new StringBuilder().
-                append("HTTP/1.1 200 OK").
-                append(CR_LF).
-                append("Transfer-Encoding: chunked").
-                append(CR_LF).
-                append(CR_LF).
-                toString();
-    }
+	private String buildEncapsulatedFileGetResponse() {
+		return new StringBuilder().
+				append("HTTP/1.1 200 OK").
+				append(CR_LF).
+				append("Transfer-Encoding: chunked").
+				append(CR_LF).
+				append(CR_LF).
+				toString();
+	}
 
-    private String buildRespmodMethodRequest(final String encapsulatedFileGetRequest, final String encapsulatedFileGetResponse, final String clientHostname, final Integer previewLength) {
-        final int encapsulatedFileGetRequestOffset = encapsulatedFileGetRequest.length();
-        final int encapsulatedFileGetResponseOffset = encapsulatedFileGetRequestOffset + encapsulatedFileGetResponse.length();
+	private String buildRespmodMethodRequest(final String encapsulatedFileGetRequest,
+											 final String encapsulatedFileGetResponse, final String clientHostname,
+											 final Integer previewLength) {
+		final int encapsulatedFileGetRequestOffset = encapsulatedFileGetRequest.length();
+		final int encapsulatedFileGetResponseOffset = encapsulatedFileGetRequestOffset + encapsulatedFileGetResponse.length();
 
-        final StringBuilder request = new StringBuilder().
-                append("RESPMOD ").append(icapServerUrl).append(" ICAP/1.0").
-                append(CR_LF).
-                append("Host: ").append(icapServerUrl.getHost()).
-                append(CR_LF).
-                append("Allow: 204").
-                append(CR_LF).
-                append("Encapsulated: req-hdr=0 res-hdr=").append(encapsulatedFileGetRequestOffset).append(" res-body=").append(encapsulatedFileGetResponseOffset).
-                append(CR_LF).
-                append("Preview: ").append(previewLength).
-                append(CR_LF).
-                append("User-Agent: Java").
-                append(CR_LF);
+		final StringBuilder request = new StringBuilder().
+				append("RESPMOD ").append(icapServerUrl).append(" ICAP/1.0").
+				append(CR_LF).
+				append("Host: ").append(icapServerUrl.getHost()).
+				append(CR_LF).
+				append("Allow: 204").
+				append(CR_LF).
+				append("Encapsulated: req-hdr=0 res-hdr=").append(encapsulatedFileGetRequestOffset).append(" res-body=").append(encapsulatedFileGetResponseOffset).
+				append(CR_LF).
+				append("Preview: ").append(previewLength).
+				append(CR_LF).
+				append("User-Agent: Java").
+				append(CR_LF);
 
-        if (StringUtils.isNotBlank(clientHostname)) {
-            request.append("X-Client-IP: ").append(clientHostname)
-                    .append(CR_LF);
-        }
+		if (StringUtils.isNotBlank(clientHostname)) {
+			request.append("X-Client-IP: ").append(clientHostname)
+					.append(CR_LF);
+		}
 
-        request.append(CR_LF);
+		request.append(CR_LF);
 
-        request.append(encapsulatedFileGetRequest);
+		request.append(encapsulatedFileGetRequest);
 
-        request.append(encapsulatedFileGetResponse);
+		request.append(encapsulatedFileGetResponse);
 
-        return request.toString();
-    }
+		return request.toString();
+	}
 
-    private IcapResponse sendContentPreview(final InputStream fileContent, final Integer previewLength) throws IOException {
-        writeChunk(fileContent, previewLength);
+	private IcapResponse sendContentPreview(final InputStream fileContent, final Integer previewLength)
+			throws IOException {
+		writeChunk(fileContent, previewLength);
 
-        sendBodyEnd();
+		sendBodyEnd();
 
-        return parseResponse();
-    }
+		return parseResponse();
+	}
 
-    private int writeChunk(final InputStream fileContent, final int size) throws IOException {
-        final int chunkSize = IOUtils.read(fileContent, chunkBuffer, 0, size);
+	private int writeChunk(final InputStream fileContent, final int size) throws IOException {
+		final int chunkSize = IOUtils.read(fileContent, chunkBuffer, 0, size);
 
-        writeChunk(chunkBuffer, 0, chunkSize);
+		writeChunk(chunkBuffer, 0, chunkSize);
 
-        return chunkSize;
-    }
+		return chunkSize;
+	}
 
-    private void writeChunk(final byte[] chunkBuffer, final int offset, final int chunkSize) throws IOException {
-        if (chunkSize > 0) {
-            socketOutputStream.writeBytes(Long.toHexString(chunkSize) + CR_LF);
-            socketOutputStream.write(chunkBuffer, offset, chunkSize);
-            socketOutputStream.writeBytes(CR_LF);
-        }
-    }
+	private void writeChunk(final byte[] chunkBuffer, final int offset, final int chunkSize) throws IOException {
+		if (chunkSize > 0) {
+			socketOutputStream.writeBytes(Long.toHexString(chunkSize) + CR_LF);
+			socketOutputStream.write(chunkBuffer, offset, chunkSize);
+			socketOutputStream.writeBytes(CR_LF);
+		}
+	}
 
-    private void sendBodyEnd() throws IOException {
-        socketOutputStream.writeBytes("0");
-        socketOutputStream.writeBytes(CR_LF);
-        socketOutputStream.writeBytes(CR_LF);
+	private void sendBodyEnd() throws IOException {
+		socketOutputStream.writeBytes("0");
+		socketOutputStream.writeBytes(CR_LF);
+		socketOutputStream.writeBytes(CR_LF);
 
-        socketOutputStream.flush();
-    }
+		socketOutputStream.flush();
+	}
 
-    private IcapResponse sendPreviewRemaingingContent(final InputStream fileContent) throws IOException {
-        int lastSentChunkSize;
+	private IcapResponse sendPreviewRemaingingContent(final InputStream fileContent) throws IOException {
+		int lastSentChunkSize;
 
-        do {
-            lastSentChunkSize = writeChunk(fileContent, CHUNK_BUFFER_MAX_SIZE);
+		do {
+			lastSentChunkSize = writeChunk(fileContent, CHUNK_BUFFER_MAX_SIZE);
 
-            socketOutputStream.flush();
-        } while (lastSentChunkSize > 0);
+			socketOutputStream.flush();
+		} while (lastSentChunkSize > 0);
 
-        sendBodyEnd();
+		sendBodyEnd();
 
-        return parseResponse();
-    }
+		return parseResponse();
+	}
 
 }

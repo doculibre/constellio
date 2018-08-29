@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
-import static com.constellio.model.entities.schemas.Schemas.SCHEMA_AUTOCOMPLETE_FIELD;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -32,6 +26,12 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA_AUTOCOMPLETE_FIELD;
+
 public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -39,7 +39,8 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor7_1_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		alterRole(collection, appLayerFactory.getModelLayerFactory());
@@ -57,7 +58,7 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
 	private class SchemaAlterationFor7_1_1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_1_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -87,25 +88,25 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
 				defaultUserFolderSchema.get(RMUserFolder.ADMINISTRATIVE_UNIT);
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				defaultUserFolderSchemaBuilder.create(RMUserFolder.ADMINISTRATIVE_UNIT).setType(MetadataValueType.REFERENCE).setEssential(false)
-				.defineReferencesTo(typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE));
+						.defineReferencesTo(typesBuilder.getSchemaType(AdministrativeUnit.SCHEMA_TYPE));
 			}
 			try {
 				defaultUserFolderSchema.get(RMUserFolder.CATEGORY);
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				defaultUserFolderSchemaBuilder.create(RMUserFolder.CATEGORY).setType(MetadataValueType.REFERENCE).setEssential(false)
-				.defineReferencesTo(typesBuilder.getSchemaType(Category.SCHEMA_TYPE));
+						.defineReferencesTo(typesBuilder.getSchemaType(Category.SCHEMA_TYPE));
 			}
 			try {
 				defaultUserFolderSchema.get(RMUserFolder.RETENTION_RULE);
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				defaultUserFolderSchemaBuilder.create(RMUserFolder.RETENTION_RULE).setType(MetadataValueType.REFERENCE).setEssential(false)
-				.defineReferencesTo(typesBuilder.getSchemaType(RetentionRule.SCHEMA_TYPE));
+						.defineReferencesTo(typesBuilder.getSchemaType(RetentionRule.SCHEMA_TYPE));
 			}
 			try {
 				defaultUserFolderSchema.get(RMUserFolder.PARENT_FOLDER);
 			} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 				defaultUserFolderSchemaBuilder.create(RMUserFolder.PARENT_FOLDER).setType(MetadataValueType.REFERENCE).setEssential(false)
-				.defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE));
+						.defineReferencesTo(typesBuilder.getSchemaType(Folder.SCHEMA_TYPE));
 			}
 		}
 	}

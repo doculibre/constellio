@@ -1,13 +1,13 @@
 package com.constellio.model.services.schemas.testimpl;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestMetadataValueCalculator implements MetadataValueCalculator<String> {
 

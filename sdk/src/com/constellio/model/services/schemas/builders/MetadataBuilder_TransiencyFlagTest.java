@@ -1,11 +1,10 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.model.entities.schemas.MetadataTransiency;
 import org.junit.Test;
 
-import com.constellio.model.entities.schemas.MetadataTransiency;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataBuilder_TransiencyFlagTest extends MetadataBuilderTest {
 

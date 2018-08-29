@@ -25,7 +25,8 @@ public class AsyncTaskBatchProcess implements BatchProcess {
 	private final String collection;
 
 	public AsyncTaskBatchProcess(String id, BatchProcessStatus status, LocalDateTime requestDateTime,
-			LocalDateTime startDateTime, int errors, AsyncTask task, String username, String title, String collection) {
+								 LocalDateTime startDateTime, int errors, AsyncTask task, String username, String title,
+								 String collection) {
 		this.id = id;
 		this.status = status;
 		this.requestDateTime = requestDateTime;

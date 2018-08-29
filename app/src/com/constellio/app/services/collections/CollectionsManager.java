@@ -1,19 +1,5 @@
 package com.constellio.app.services.collections;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotCreateCollectionRecord;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotMigrateCollection;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_CannotRemoveCollection;
@@ -23,6 +9,8 @@ import com.constellio.app.services.collections.CollectionsManagerRuntimeExceptio
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidLanguage;
 import com.constellio.app.services.extensions.ConstellioModulesManagerImpl;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.ConstellioEIM;
 import com.constellio.app.services.migrations.MigrationServices;
 import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -33,6 +21,7 @@ import com.constellio.data.dao.managers.config.ConfigManagerException.Optimistic
 import com.constellio.data.dao.services.bigVault.RecordDaoException.OptimisticLocking;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.Delayed;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
@@ -53,6 +42,16 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
 
 public class CollectionsManager implements StatefulService {
 
@@ -64,19 +63,21 @@ public class CollectionsManager implements StatefulService {
 
 	private final ConstellioModulesManagerImpl constellioModulesManager;
 
+	private final AppLayerFactory appLayerFactory;
+
 	private final ModelLayerFactory modelLayerFactory;
 
 	private final DataLayerFactory dataLayerFactory;
 
 	private final SystemGlobalConfigsManager systemGlobalConfigsManager;
 
-	private Map<String, List<String>> collectionLanguagesCache = new HashMap<>();
-
 	private List<String> newDisabledCollections = new ArrayList<>();
 
-	public CollectionsManager(ModelLayerFactory modelLayerFactory, ConstellioModulesManagerImpl constellioModulesManager,
-			Delayed<MigrationServices> migrationServicesDelayed, SystemGlobalConfigsManager systemGlobalConfigsManager) {
-		this.modelLayerFactory = modelLayerFactory;
+	public CollectionsManager(AppLayerFactory appLayerFactory, ConstellioModulesManagerImpl constellioModulesManager,
+							  Delayed<MigrationServices> migrationServicesDelayed,
+							  SystemGlobalConfigsManager systemGlobalConfigsManager) {
+		this.appLayerFactory = appLayerFactory;
+		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.constellioModulesManager = constellioModulesManager;
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
@@ -125,7 +126,7 @@ public class CollectionsManager implements StatefulService {
 				collectionsListManager.remove(collection);
 				newDisabledCollections.add(collection);
 				LOGGER.warn("Collection '" + collection + "' has been disabled since it have no schemas "
-						+ "(probably a problem during the creation of the collection)");
+							+ "(probably a problem during the creation of the collection)");
 			}
 		}
 	}
@@ -191,7 +192,8 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	public void createCollectionConfigs(String code) {
-		modelLayerFactory.getMetadataSchemasManager().createCollectionSchemas(code);
+		CollectionInfo collectionInfo = getCollectionInfo(code);
+		modelLayerFactory.getMetadataSchemasManager().createCollectionSchemas(collectionInfo);
 		modelLayerFactory.getTaxonomiesManager().createCollectionTaxonomies(code);
 		modelLayerFactory.getAuthorizationDetailsManager().createCollectionAuthorizationDetail(code);
 		modelLayerFactory.getRolesManager().createCollectionRole(code);
@@ -277,23 +279,7 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	public List<String> getCollectionLanguages(final String collection) {
-
-		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
-			return asList(modelLayerFactory.getConfiguration().getMainDataLanguage());
-		}
-
-		List<String> collectionLanguages = collectionLanguagesCache.get(collection);
-
-		if (collectionLanguages == null) {
-			try {
-				collectionLanguages = getCollection(collection).getLanguages();
-				collectionLanguagesCache.put(collection, collectionLanguages);
-			} catch (CollectionsManagerRuntimeException_CollectionNotFound e) {
-				LOGGER.debug("Collection '" + collection + "' not found.", e);
-				return Collections.emptyList();
-			}
-		}
-		return collectionLanguages;
+		return getCollectionInfo(collection).getCollectionLanguesCodes();
 	}
 
 	@Override
@@ -315,10 +301,10 @@ public class CollectionsManager implements StatefulService {
 
 	public Record createCollectionInVersion(String code, String name, List<String> languages, String version) {
 		prepareCollectionCreationAndGetInvalidModules(code, name, languages, version);
-		return crateCollectionAfterPrepare(code, name, languages);
+		return createCollectionAfterPrepare(code, name, languages);
 	}
 
-	private Record crateCollectionAfterPrepare(String code, String name, List<String> languages) {
+	private Record createCollectionAfterPrepare(String code, String name, List<String> languages) {
 		Record collectionRecord = createCollectionRecordWithCode(code, name, languages);
 		if (!code.equals(Collection.SYSTEM_COLLECTION)) {
 			addGlobalGroupsInCollection(code);
@@ -328,7 +314,7 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	private Set<String> prepareCollectionCreationAndGetInvalidModules(String code, String name,
-			List<String> languages, String version) {
+																	  List<String> languages, String version) {
 		validateCode(code);
 
 		boolean reindexingRequired = systemGlobalConfigsManager.isReindexingRequired();
@@ -348,7 +334,7 @@ public class CollectionsManager implements StatefulService {
 			}
 		}
 
-		collectionLanguagesCache.put(code, languages);
+		collectionsListManager.registerPendingCollectionInfo(code, mainDataLanguage, languages);
 		createCollectionConfigs(code);
 		collectionsListManager.addCollection(code, languages);
 		Set<String> returnList = new HashSet<>();
@@ -413,5 +399,18 @@ public class CollectionsManager implements StatefulService {
 				cache.configureCache(CacheConfig.permanentCache(types.getSchemaType(schemaType)));
 			}
 		}
+		ConstellioEIM.start(appLayerFactory, collection);
+	}
+
+	public CollectionInfo getCollectionInfo(String collectionCode) {
+		try {
+			return collectionsListManager.getCollectionInfo(collectionCode);
+
+		} catch (CollectionsManagerRuntimeException_CollectionNotFound e) {
+			String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+			LOGGER.debug("Collection '" + collectionCode + "' not found.", e);
+			return new CollectionInfo(collectionCode, mainDataLanguage, new ArrayList<String>());
+		}
+
 	}
 }

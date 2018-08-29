@@ -1,38 +1,13 @@
 package com.constellio.app.api.search;
 
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static junit.framework.Assert.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletResponse;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.records.RecordServices;
@@ -41,6 +16,7 @@ import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.users.UserServices;
@@ -51,6 +27,28 @@ import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static junit.framework.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
@@ -222,6 +220,8 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 	@Test
 	public void testSearchEventPresentOnWebServiceQuery() throws IOException, SolrServerException {
 
+		Toggle.ADVANCED_SEARCH_CONFIGS.enable();
+
 		ModifiableSolrParams solrParams = new ModifiableSolrParams();
 		solrParams.add("q", "*:*");
 		solrParams.add("fq", "collection_s:zeCollection");
@@ -246,7 +246,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 
 		assertThat(recordList.size()).isEqualTo(1);
 		assertThat(rm.wrapSearchEvent(recordList.get(0)).getQuery()).isEqualTo("*:*");
-	 }
+	}
 
 
 	@Test

@@ -1,7 +1,5 @@
 package com.constellio.app.services.factories;
 
-import java.util.List;
-
 import com.constellio.app.api.cmis.binding.global.CmisCacheManager;
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.extensions.AppLayerExtensions;
@@ -28,6 +26,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerFactoryImpl;
 import com.constellio.model.services.factories.ModelLayerFactoryWithRequestCacheImpl;
 import com.constellio.model.services.records.cache.RecordsCachesRequestMemoryImpl;
+
+import java.util.List;
 
 public class AppLayerFactoryWithRequestCacheImpl implements AppLayerFactory {
 

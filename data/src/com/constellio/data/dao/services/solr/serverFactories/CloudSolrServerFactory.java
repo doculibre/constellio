@@ -1,20 +1,19 @@
 package com.constellio.data.dao.services.solr.serverFactories;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
+import com.constellio.data.io.concurrent.filesystem.ChildAtomicFileSystem;
+import com.constellio.data.io.concurrent.filesystem.ZookeeperAtomicFileSystem;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.response.CollectionAdminResponse;
-
-import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
-import com.constellio.data.io.concurrent.filesystem.ChildAtomicFileSystem;
-import com.constellio.data.io.concurrent.filesystem.ZookeeperAtomicFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 
@@ -45,12 +44,13 @@ public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 			atomicFileSystem.close();
 		}
 
-		for (SolrClient solrClient : solrClients)
+		for (SolrClient solrClient : solrClients) {
 			try {
 				solrClient.close();
 			} catch (IOException ioe) {
 				LOGGER.error("Error while closing solr client", ioe);
 			}
+		}
 	}
 
 	@Override
@@ -72,8 +72,9 @@ public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 			CollectionAdminRequest.Reload reload = new CollectionAdminRequest.Reload();
 			reload.setCollectionName(core);
 			CollectionAdminResponse response = reload.process(getAdminServer());
-			if (!response.isSuccess())
+			if (!response.isSuccess()) {
 				throw new RuntimeException("Core is not reloaded " + response.getErrorMessages());
+			}
 		} catch (SolrServerException | IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -92,8 +93,9 @@ public class CloudSolrServerFactory extends AbstractSolrServerFactory {
 	@Override
 	AtomicFileSystem getAtomicFileSystem(String core) {
 		String path = CONFIGS + "/" + core;
-		if (core.isEmpty())
+		if (core.isEmpty()) {
 			path = CONFIGS;
+		}
 
 		return new ChildAtomicFileSystem(new ZookeeperAtomicFileSystem(zkHost, defaultTimeout), path, false);
 	}

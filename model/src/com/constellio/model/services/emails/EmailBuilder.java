@@ -1,15 +1,17 @@
 package com.constellio.model.services.emails;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.structures.EmailAddress;
+import com.constellio.model.entities.structures.EmailAddressFactory;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.sun.mail.smtp.SMTPMessage;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
-import javax.mail.Message;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -19,16 +21,11 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.entities.records.wrappers.EmailToSend;
-import com.constellio.model.entities.structures.EmailAddress;
-import com.constellio.model.entities.structures.EmailAddressFactory;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.sun.mail.smtp.SMTPMessage;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class EmailBuilder {
 
@@ -127,7 +124,7 @@ public class EmailBuilder {
 	}
 
 	private InternetAddress[] getInternetAddresses(EmailToSend messageToSend, EmailAddressFactory factory,
-			RecipientType recipientType)
+												   RecipientType recipientType)
 			throws AddressException {
 		List<EmailAddress> emailAddresses = new ArrayList<>();
 		if (recipientType == RecipientType.TO) {

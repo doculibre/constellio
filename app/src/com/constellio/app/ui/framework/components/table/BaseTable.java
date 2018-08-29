@@ -7,13 +7,13 @@ import com.vaadin.data.Property;
 import com.vaadin.ui.Table;
 
 public class BaseTable extends Table {
-	
+
 	private String tableId;
-	
+
 	private TableColumnsManager columnsManager;
-	
+
 	protected final TablePropertyCache cellProperties = new TablePropertyCache();
-	
+
 	public BaseTable(String tableId) {
 		super();
 		this.tableId = tableId;
@@ -31,7 +31,7 @@ public class BaseTable extends Table {
 		this.tableId = tableId;
 		init();
 	}
-	
+
 	private void init() {
 		addAttachListener(new AttachListener() {
 			@Override
@@ -44,19 +44,19 @@ public class BaseTable extends Table {
 			}
 		});
 	}
-	
+
 	protected void manageColumns(String tableId) {
 		columnsManager.manage(BaseTable.this, tableId);
 	}
-	
+
 	protected TableColumnsManager newColumnsManager() {
 		return new TableColumnsManager();
 	}
-	
+
 	protected String getTableId() {
 		return tableId;
 	}
-	
+
 	protected CellKey getCellKey(Object itemId, Object propertyId) {
 		return null;
 	}

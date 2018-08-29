@@ -1,5 +1,27 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
+import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissionsFactory;
+import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO.SmbFileDTOStatus;
+import com.constellio.app.modules.es.connectors.smb.testutils.SmbServiceTestUtils;
+import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestParams;
+import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
+import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import jcifs.smb.NtlmPasswordAuthentication;
+import jcifs.smb.SmbException;
+import jcifs.smb.SmbFile;
+import jcifs.smb.SmbFileFilter;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyMap;
@@ -10,30 +32,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.util.List;
-
-import jcifs.smb.NtlmPasswordAuthentication;
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
-import jcifs.smb.SmbFileFilter;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-
-import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissionsFactory;
-import com.constellio.app.modules.es.connectors.smb.service.SmbFileDTO.SmbFileDTOStatus;
-import com.constellio.app.modules.es.connectors.smb.testutils.SmbServiceTestUtils;
-import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestParams;
-import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
-import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
-import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.sdk.tests.ConstellioTest;
 
 public class SmbServiceAcceptanceTest extends ConstellioTest {
 	private ConnectorSmbUtils smbUtils;

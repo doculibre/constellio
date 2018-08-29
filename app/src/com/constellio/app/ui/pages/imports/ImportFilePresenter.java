@@ -1,6 +1,11 @@
 package com.constellio.app.ui.pages.imports;
 
-import com.constellio.app.services.schemas.bulkImport.*;
+import com.constellio.app.services.schemas.bulkImport.BulkImportParams;
+import com.constellio.app.services.schemas.bulkImport.BulkImportProgressionListener;
+import com.constellio.app.services.schemas.bulkImport.BulkImportResults;
+import com.constellio.app.services.schemas.bulkImport.ImportError;
+import com.constellio.app.services.schemas.bulkImport.LoggerBulkImportProgressionListener;
+import com.constellio.app.services.schemas.bulkImport.RecordsImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;
@@ -11,11 +16,9 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
-import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
-
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import org.apache.commons.io.FileUtils;
@@ -93,7 +96,7 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 						params = BulkImportParams.STRICT();
 					}
 					params.setAllowingReferencesToNonExistingUsers(view.isAllowingReferencesToNonExistingUsers());
-//					params = params.setThreads(1);
+					//					params = params.setThreads(1);
 
 					BulkImportResults errors = importServices
 							.bulkImport(importDataProvider, progressionListener, currentUser, view.getSelectedCollections(), params);
@@ -141,11 +144,11 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 
 	private void completeImportationAudit(ImportAudit importAudit, List<String> errors) {
 		StringBuilder formattedError = new StringBuilder();
-		for(String error: errors) {
+		for (String error : errors) {
 			formattedError.append(error);
 		}
 
-		if(!errors.isEmpty()) {
+		if (!errors.isEmpty()) {
 			importAudit.setErrors(formattedError.toString().replaceAll("<br/>", ""));
 		}
 
@@ -157,8 +160,9 @@ public class ImportFilePresenter extends BasePresenter<ImportFileView> implement
 		}
 	}
 
-	protected ImportDataProvider getXMLImportDataProviderForSingleXMLFile(ModelLayerFactory modelLayerFactory, File file,
-			String fileName) {
+	protected ImportDataProvider getXMLImportDataProviderForSingleXMLFile(ModelLayerFactory modelLayerFactory,
+																		  File file,
+																		  String fileName) {
 		return XMLImportDataProvider.forSingleXMLFile(modelLayerFactory, file, fileName);
 	}
 

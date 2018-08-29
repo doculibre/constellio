@@ -1,15 +1,15 @@
 package com.constellio.app.entities.modules;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.batchprocess.BatchProcessAction;
 import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class MigrationTools {
 
@@ -18,8 +18,8 @@ public class MigrationTools {
 	AppLayerFactory appLayerFactory;
 
 	public MigrationTools(String collection,
-			MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						  MigrationResourcesProvider migrationResourcesProvider,
+						  AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.migrationResourcesProvider = migrationResourcesProvider;
 		this.appLayerFactory = appLayerFactory;

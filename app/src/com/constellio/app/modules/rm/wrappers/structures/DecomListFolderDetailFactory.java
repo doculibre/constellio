@@ -46,8 +46,8 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 		writeString(stringBuilder, String.valueOf(decomListFolderDetail.isReversedSort()));
 		writeDouble(stringBuilder, decomListFolderDetail.getFolderLinearSize());
 		writeString(stringBuilder, "" + decomListFolderDetail.isPlacedInContainer() == null ?
-				String.valueOf(false) :
-				String.valueOf(decomListFolderDetail.isPlacedInContainer()));
+								   String.valueOf(false) :
+								   String.valueOf(decomListFolderDetail.isPlacedInContainer()));
 		return stringBuilder.toString();
 	}
 

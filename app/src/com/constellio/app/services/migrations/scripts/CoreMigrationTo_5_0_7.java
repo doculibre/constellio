@@ -1,11 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -34,6 +28,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.schemas.calculators.TokensCalculator2;
 import com.constellio.model.services.schemas.calculators.UserTokensCalculator2;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
+
 public class CoreMigrationTo_5_0_7 implements MigrationScript {
 
 	@Override
@@ -42,23 +42,25 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor5_0_7(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		createDefaultCoreFacets(collection, migrationResourcesProvider, appLayerFactory);
 	}
 
 	private void createDefaultCoreFacets(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory)
+										 AppLayerFactory appLayerFactory)
 			throws RecordServicesException {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		RecordServices recordServices = rm.getModelLayerFactory().newRecordServices();
 
-		recordServices.add(rm.newFacetField().setOrder(0).setTitle(migrationResourcesProvider.get("init.facet.type"))
+		recordServices.add(rm.newFacetField().setOrder(0)
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.type"))
 				.setFieldDataStoreCode(Schemas.SCHEMA.getDataStoreCode()));
 
 		recordServices.add(rm.newFacetQuery().setOrder(1)
-				.setTitle(migrationResourcesProvider.get("init.facet.createModification"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.createModification"))
 				.withQuery("modifiedOn_dt:[NOW-1MONTH TO NOW]", "Modifiés les 30 derniers jours")
 				.withQuery("modifiedOn_dt:[NOW-7DAY TO NOW]", "Modifiés les 7 derniers jours")
 				.withQuery("createdOn_dt:[NOW-1MONTH TO NOW]", "Créés les 30 derniers jours")
@@ -67,7 +69,7 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor5_0_7 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor5_0_7(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -99,6 +101,7 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 					.setDefaultValue(FacetOrderType.RELEVANCE)
 					.setDefaultRequirement(true);
 			facetSchema.createUndeletable(Facet.ORDER).setType(MetadataValueType.NUMBER);
+			facetSchema.get(Facet.TITLE).setMultiLingual(true);
 
 			MetadataSchemaBuilder facetFieldSchema = facetTypes.createCustomSchema(Facet.FIELD_LOCAL_CODE);
 			facetFieldSchema.createUndeletable(Facet.FIELD_VALUES_LABEL).setType(MetadataValueType.STRUCTURE)
@@ -136,14 +139,15 @@ public class CoreMigrationTo_5_0_7 implements MigrationScript {
 			defaultSchema.createUndeletable(EmailToSend.PARAMETERS).setType(MetadataValueType.STRING).setMultivalue(true);
 			defaultSchema.createUndeletable(EmailToSend.TEMPLATE).setType(MetadataValueType.STRING);
 			defaultSchema.createUndeletable(EmailToSend.SEND_ON).setType(MetadataValueType.DATE_TIME);
-			defaultSchema.createUndeletable(EmailToSend.TRYING_COUNT).setType(MetadataValueType.NUMBER).setDefaultValue(0d).setDefaultRequirement(true);
+			defaultSchema.createUndeletable(EmailToSend.TRYING_COUNT).setType(MetadataValueType.NUMBER).setDefaultValue(0d)
+					.setDefaultRequirement(true);
 			defaultSchema.createUndeletable(EmailToSend.ERROR).setType(MetadataValueType.STRING);
 		}
 
 		private MetadataSchemaTypeBuilder createReportSchemaType(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(Report.SCHEMA_TYPE).setSecurity(false);
 			MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
-
+			defaultSchema.get(Report.TITLE).setMultiLingual(true);
 			defaultSchema.createUndeletable(Report.USERNAME).setType(STRING);
 			defaultSchema.createUndeletable(Report.SCHEMA_TYPE_CODE).setType(STRING).setDefaultRequirement(true);
 			defaultSchema.createUndeletable(Report.COLUMNS_COUNT).setType(NUMBER);

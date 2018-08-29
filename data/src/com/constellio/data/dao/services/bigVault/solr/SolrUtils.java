@@ -1,6 +1,20 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
-import static com.constellio.data.utils.SimpleDateFormatSingleton.getSimpleDateFormat;
+import com.constellio.data.dao.dto.records.TransactionResponseDTO;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.MultiMapSolrParams;
+import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.util.NamedList;
+import org.apache.solr.servlet.SolrRequestParsers;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,22 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteResponse;
-import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.MultiMapSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.servlet.SolrRequestParsers;
-import org.apache.solr.common.util.NamedList;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.joda.time.LocalTime;
-
-import com.constellio.data.dao.dto.records.TransactionResponseDTO;
+import static com.constellio.data.utils.SimpleDateFormatSingleton.getSimpleDateFormat;
 
 public class SolrUtils {
 
@@ -150,8 +149,8 @@ public class SolrUtils {
 
 	public static boolean isMultivalue(String fieldName) {
 		return isMultiValueStringOrText(fieldName) || fieldName.endsWith("_dts") || fieldName.endsWith("_das")
-				|| fieldName.endsWith("_ds") || fieldName.endsWith("_is") || fieldName.endsWith("_fs") || fieldName
-				.endsWith("_ls");
+			   || fieldName.endsWith("_ds") || fieldName.endsWith("_is") || fieldName.endsWith("_fs") || fieldName
+					   .endsWith("_ls");
 	}
 
 	public static String toIdString(SolrInputDocument document) {
@@ -215,7 +214,7 @@ public class SolrUtils {
 		params = new ModifiableSolrParams(params);
 		params.remove("bq");
 		String queryString = params.toQueryString();
-		if(queryString.startsWith("?")) {
+		if (queryString.startsWith("?")) {
 			queryString = queryString.replaceFirst("\\?", "&");
 		}
 		return queryString;

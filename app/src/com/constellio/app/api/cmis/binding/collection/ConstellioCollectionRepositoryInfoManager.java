@@ -1,16 +1,5 @@
 package com.constellio.app.api.cmis.binding.collection;
 
-import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_ALL;
-import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_DELETE;
-import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
-import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.chemistry.opencmis.commons.data.PermissionMapping;
 import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
 import org.apache.chemistry.opencmis.commons.definitions.PermissionDefinition;
@@ -32,7 +21,16 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.RepositoryCapabili
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.RepositoryInfoImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 
-import com.constellio.app.api.cmis.builders.object.AclBuilder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_ALL;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_DELETE;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
+import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
 
 public class ConstellioCollectionRepositoryInfoManager {
 
@@ -159,7 +157,7 @@ public class ConstellioCollectionRepositoryInfoManager {
 	}
 
 	private PermissionDefinition createPermission(String permission,
-			String description) {
+												  String description) {
 		PermissionDefinitionDataImpl pd = new PermissionDefinitionDataImpl();
 		pd.setId(permission);
 		pd.setDescription(description);

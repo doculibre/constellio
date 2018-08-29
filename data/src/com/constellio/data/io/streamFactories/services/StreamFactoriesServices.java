@@ -1,10 +1,5 @@
 package com.constellio.data.io.streamFactories.services;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.UUID;
-
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.io.streamFactories.services.one.StreamOperation;
@@ -16,6 +11,11 @@ import com.constellio.data.io.streamFactories.services.two.TwoStreamsOperationRe
 import com.constellio.data.io.streamFactories.services.two.TwoStreamsOperationReturningValueOrThrowingException;
 import com.constellio.data.io.streamFactories.services.two.TwoStreamsOperationThrowingException;
 import com.constellio.data.io.streams.factories.StreamsServices;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.UUID;
 
 public class StreamFactoriesServices {
 
@@ -40,7 +40,7 @@ public class StreamFactoriesServices {
 	}
 
 	public <F extends Closeable, R> R execute(StreamOperationReturningValue<F, R> operation,
-			StreamFactory<F> closeableStreamFactory)
+											  StreamFactory<F> closeableStreamFactory)
 			throws IOException {
 		F closeableStream = closeableStreamFactory.create(EXECUTOR_THREAD_NAME());
 		try {
@@ -51,7 +51,8 @@ public class StreamFactoriesServices {
 	}
 
 	public <F extends Closeable, R, E extends Exception> R execute(
-			StreamOperationReturningValueOrThrowingException<F, R, E> operation, StreamFactory<F> closeableStreamFactory)
+			StreamOperationReturningValueOrThrowingException<F, R, E> operation,
+			StreamFactory<F> closeableStreamFactory)
 			throws E, IOException {
 		F closeableStream = closeableStreamFactory.create(EXECUTOR_THREAD_NAME());
 		try {
@@ -62,7 +63,7 @@ public class StreamFactoriesServices {
 	}
 
 	public <F extends Closeable, E extends Exception> void execute(StreamOperationThrowingException<F, E> operation,
-			StreamFactory<F> closeableStreamFactory)
+																   StreamFactory<F> closeableStreamFactory)
 			throws E, IOException {
 		F closeableStream = closeableStreamFactory.create(EXECUTOR_THREAD_NAME());
 		try {
@@ -73,7 +74,8 @@ public class StreamFactoriesServices {
 	}
 
 	public <F extends Closeable, S extends Closeable> void execute(TwoStreamsOperation<F, S> operation,
-			StreamFactory<F> firstCloseableStreamFactory, StreamFactory<S> secondCloseableStreamFactory)
+																   StreamFactory<F> firstCloseableStreamFactory,
+																   StreamFactory<S> secondCloseableStreamFactory)
 			throws IOException {
 		F firstStream = null;
 		S secondStream = null;
@@ -88,7 +90,8 @@ public class StreamFactoriesServices {
 	}
 
 	public <F extends Closeable, S extends Closeable, R> R execute(TwoStreamsOperationReturningValue<F, S, R> operation,
-			StreamFactory<F> firstCloseableStreamFactory, StreamFactory<S> secondCloseableStreamFactory)
+																   StreamFactory<F> firstCloseableStreamFactory,
+																   StreamFactory<S> secondCloseableStreamFactory)
 			throws IOException {
 		F firstStream = null;
 		S secondStream = null;

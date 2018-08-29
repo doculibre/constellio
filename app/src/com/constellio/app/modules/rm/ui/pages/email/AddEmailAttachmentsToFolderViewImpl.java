@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.email;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -9,13 +8,15 @@ import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class AddEmailAttachmentsToFolderViewImpl extends BaseViewImpl implements AddEmailAttachmentsToFolderView {
-	
+
 	private String folderId;
-	
+
 	@PropertyId("folderId")
 	private LookupFolderField folderField;
-	
+
 	private AddEmailAttachmentsToFolderPresenter presenter;
 
 	public AddEmailAttachmentsToFolderViewImpl() {
@@ -41,7 +42,7 @@ public class AddEmailAttachmentsToFolderViewImpl extends BaseViewImpl implements
 		folderField = new LookupFolderField();
 		folderField.setCaption($("AddEmailAttachmentsToFolderView.folder"));
 		folderField.setRequired(true);
-		
+
 		return new BaseForm<Object>(this, this, folderField) {
 			@Override
 			protected void saveButtonClick(Object viewObject)

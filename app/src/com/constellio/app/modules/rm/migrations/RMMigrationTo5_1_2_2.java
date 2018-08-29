@@ -23,7 +23,8 @@ public class RMMigrationTo5_1_2_2 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new RMSchemaAlterationFor5_1_2_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		setupDisplayConfig(collection, appLayerFactory);
@@ -58,7 +59,7 @@ public class RMMigrationTo5_1_2_2 implements MigrationScript {
 
 	private class RMSchemaAlterationFor5_1_2_2 extends MetadataSchemasAlterationHelper {
 		public RMSchemaAlterationFor5_1_2_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

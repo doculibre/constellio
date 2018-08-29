@@ -1,45 +1,5 @@
 package com.constellio.data.dao.services.bigVault;
 
-import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_ITEM_LOCALDATE;
-import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_ITEM_LOCAL_DATE_TIME;
-import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.convertLocalDateTimeToSolrDate;
-import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.convertLocalDateToSolrDate;
-import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.convertNullToSolrValue;
-import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.isMultiValueStringOrText;
-import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.isMultivalue;
-import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.isSingleValueStringOrText;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.response.FacetField;
-import org.apache.solr.client.solrj.response.FacetField.Count;
-import org.apache.solr.client.solrj.response.FieldStatsInfo;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.SpellCheckResponse;
-import org.apache.solr.client.solrj.response.SpellCheckResponse.Collation;
-import org.apache.solr.client.solrj.response.SpellCheckResponse.Correction;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.MoreLikeThisParams;
-import org.apache.solr.common.params.SolrParams;
-import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
@@ -63,6 +23,45 @@ import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManag
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.LangUtils;
 import com.google.common.base.Joiner;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.FacetField.Count;
+import org.apache.solr.client.solrj.response.FieldStatsInfo;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.SpellCheckResponse;
+import org.apache.solr.client.solrj.response.SpellCheckResponse.Collation;
+import org.apache.solr.client.solrj.response.SpellCheckResponse.Correction;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.MoreLikeThisParams;
+import org.apache.solr.common.params.SolrParams;
+import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_ITEM_LOCALDATE;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_ITEM_LOCAL_DATE_TIME;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.convertLocalDateTimeToSolrDate;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.convertLocalDateToSolrDate;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.convertNullToSolrValue;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.isMultiValueStringOrText;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.isMultivalue;
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.isSingleValueStringOrText;
 
 public class BigVaultRecordDao implements RecordDao {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BigVaultRecordDao.class);
@@ -92,7 +91,7 @@ public class BigVaultRecordDao implements RecordDao {
 	public static final Date NULL_DATE = new LocalDateTime(4242, 6, 6, 0, 0, 0, 0).toDate();
 
 	public BigVaultRecordDao(BigVaultServer bigVaultServer, DataStoreTypesFactory dataStoreTypesFactory,
-			SecondTransactionLogManager secondTransactionLogManager, DataLayerLogger dataLayerLogger) {
+							 SecondTransactionLogManager secondTransactionLogManager, DataLayerLogger dataLayerLogger) {
 		this.dataLayerLogger = dataLayerLogger;
 		this.bigVaultServer = bigVaultServer;
 		this.dataStoreTypesFactory = dataStoreTypesFactory;
@@ -152,7 +151,8 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	private void prepareDocumentsForSolrTransaction(TransactionDTO transaction, List<SolrInputDocument> newDocuments,
-			List<SolrInputDocument> updatedDocuments, List<String> deletedRecordsIds) {
+													List<SolrInputDocument> updatedDocuments,
+													List<String> deletedRecordsIds) {
 		Map<String, Double> recordsInTransactionRefCounts = new HashMap<>();
 		Map<String, Double> recordsOutOfTransactionRefCounts = new HashMap<>();
 		KeyListMap<String, String> recordsAncestors = new KeyListMap<>();
@@ -194,9 +194,10 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	private void prepareModifiedRecord(TransactionDTO transaction, List<SolrInputDocument> newDocuments,
-			List<SolrInputDocument> updatedDocuments, List<String> deletedRecordsIds,
-			Map<String, Double> recordsInTransactionRefCounts, Map<String, Double> recordsOutOfTransactionRefCounts,
-			KeyListMap<String, String> recordsAncestors, RecordDeltaDTO modifiedRecord) {
+									   List<SolrInputDocument> updatedDocuments, List<String> deletedRecordsIds,
+									   Map<String, Double> recordsInTransactionRefCounts,
+									   Map<String, Double> recordsOutOfTransactionRefCounts,
+									   KeyListMap<String, String> recordsAncestors, RecordDeltaDTO modifiedRecord) {
 		if (!modifiedRecord.getModifiedFields().isEmpty()) {
 			SolrInputDocument solrInputDocument = buildDeltaSolrDocument(modifiedRecord);
 			if (transaction.isFullRewrite()) {
@@ -210,9 +211,10 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	private void prepareNewRecord(TransactionDTO transaction, List<SolrInputDocument> newDocuments,
-			Map<String, Double> recordsInTransactionRefCounts,
-			Map<String, Double> recordsOutOfTransactionRefCounts, KeyListMap<String, String> recordsAncestors,
-			Map<Object, SolrInputDocument> activeReferencesCheck, RecordDTO newRecord) {
+								  Map<String, Double> recordsInTransactionRefCounts,
+								  Map<String, Double> recordsOutOfTransactionRefCounts,
+								  KeyListMap<String, String> recordsAncestors,
+								  Map<Object, SolrInputDocument> activeReferencesCheck, RecordDTO newRecord) {
 		Object collection = getCollection(newRecord);
 
 		SolrInputDocument solrInputDocument = buildSolrDocument(newRecord);
@@ -242,8 +244,9 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	private void prepareDeletedRecord(TransactionDTO transaction, List<String> deletedRecordsIds,
-			Map<String, Double> recordsInTransactionRefCounts, Map<String, Double> recordsOutOfTransactionRefCounts,
-			RecordDTO recordDTO) {
+									  Map<String, Double> recordsInTransactionRefCounts,
+									  Map<String, Double> recordsOutOfTransactionRefCounts,
+									  RecordDTO recordDTO) {
 		deletedRecordsIds.add(recordDTO.getId());
 		decrementReferenceCounterForAllReferences(recordDTO, transaction, recordsInTransactionRefCounts,
 				recordsOutOfTransactionRefCounts);
@@ -295,7 +298,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	private List<String> getRecordAncestors(RecordDTO newRecord) {
 		List<String> recordsAncestors = new ArrayList<>();
 		List<String> parentPaths = toParentPaths((List) newRecord.getFields().get("path_ss"));
@@ -309,7 +312,7 @@ public class BigVaultRecordDao implements RecordDao {
 		return recordsAncestors;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	private List<String> getModifiedRecordAncestors(RecordDeltaDTO modifiedRecord) {
 
 		List<String> recordsAncestors = new ArrayList<>();
@@ -342,7 +345,8 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	private void incrementReferenceCounterForAllReferences(RecordDTO newRecord, TransactionDTO transaction,
-			Map<String, Double> recordsInTransactionRefCounts, Map<String, Double> recordsOutOfTransactionRefCounts) {
+														   Map<String, Double> recordsInTransactionRefCounts,
+														   Map<String, Double> recordsOutOfTransactionRefCounts) {
 		for (Map.Entry<String, Object> field : newRecord.getFields().entrySet()) {
 			if (fieldIsNonParentReference(field)) {
 				if (!referencedIdIsNewRecordInTransaction(field.getValue(), transaction)) {
@@ -358,7 +362,8 @@ public class BigVaultRecordDao implements RecordDao {
 	}
 
 	private void decrementReferenceCounterForAllReferences(RecordDTO newRecord, TransactionDTO transaction,
-			Map<String, Double> recordsInTransactionRefCounts, Map<String, Double> recordsOutOfTransactionRefCounts) {
+														   Map<String, Double> recordsInTransactionRefCounts,
+														   Map<String, Double> recordsOutOfTransactionRefCounts) {
 		for (Map.Entry<String, Object> field : newRecord.getFields().entrySet()) {
 			if (fieldIsNonParentReference(field)) {
 				if (!referencedIdIsNewRecordInTransaction(field.getValue(), transaction)) {
@@ -373,15 +378,16 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 	}
 
-	private void addReferenceToRecordMapToIncrement(String referenceId, Map<String, Double> recordsOutOfTransactionRefCounts,
-			RecordDTO newRecord) {
+	private void addReferenceToRecordMapToIncrement(String referenceId,
+													Map<String, Double> recordsOutOfTransactionRefCounts,
+													RecordDTO newRecord) {
 		if (referenceIsNotParentOrPrincipalConcept(referenceId, newRecord)) {
 			addReferenceToMapWithValue(referenceId, recordsOutOfTransactionRefCounts, 1.0);
 		}
 	}
 
 	private void addReferenceToMapWithValue(String referenceId, Map<String, Double> recordsRefCounts,
-			double value) {
+											double value) {
 		if (recordsRefCounts.containsKey(referenceId)) {
 			double incrementedRefCount = recordsRefCounts.get(referenceId).doubleValue() + value;
 			recordsRefCounts.put(referenceId, incrementedRefCount);
@@ -399,8 +405,9 @@ public class BigVaultRecordDao implements RecordDao {
 		return referenceId == null || principalPath == null || !principalPath.contains(referenceId);
 	}
 
-	private void addReferenceToRecordMapToDecrement(String referenceId, Map<String, Double> recordsOutOfTransactionRefCounts,
-			RecordDTO newRecord) {
+	private void addReferenceToRecordMapToDecrement(String referenceId,
+													Map<String, Double> recordsOutOfTransactionRefCounts,
+													RecordDTO newRecord) {
 		if (referenceIsNotParentOrPrincipalConcept(referenceId, newRecord)) {
 			addReferenceToMapWithValue(referenceId, recordsOutOfTransactionRefCounts, -1.0);
 		}
@@ -410,9 +417,11 @@ public class BigVaultRecordDao implements RecordDao {
 		return newRecord.getFields().get(COLLECTION_FIELD);
 	}
 
-	private void incrementReferenceCounterForReferencesInMultivalueField(RecordDTO newRecord, TransactionDTO transaction,
-			Entry<String, Object> field, Map<String, Double> recordsInTransactionRefCounts,
-			Map<String, Double> recordsOutOfTransactionRefCounts) {
+	private void incrementReferenceCounterForReferencesInMultivalueField(RecordDTO newRecord,
+																		 TransactionDTO transaction,
+																		 Entry<String, Object> field,
+																		 Map<String, Double> recordsInTransactionRefCounts,
+																		 Map<String, Double> recordsOutOfTransactionRefCounts) {
 		for (Object referenceId : LangUtils.withoutDuplicates((List) field.getValue())) {
 			if (!referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
 				addReferenceToRecordMapToIncrement((String) referenceId, recordsOutOfTransactionRefCounts, newRecord);
@@ -422,9 +431,11 @@ public class BigVaultRecordDao implements RecordDao {
 		}
 	}
 
-	private void decrementReferenceCounterForReferencesInMultivalueField(RecordDTO newRecord, TransactionDTO transaction,
-			Entry<String, Object> field, Map<String, Double> recordsInTransactionRefCounts,
-			Map<String, Double> recordsOutOfTransactionRefCounts) {
+	private void decrementReferenceCounterForReferencesInMultivalueField(RecordDTO newRecord,
+																		 TransactionDTO transaction,
+																		 Entry<String, Object> field,
+																		 Map<String, Double> recordsInTransactionRefCounts,
+																		 Map<String, Double> recordsOutOfTransactionRefCounts) {
 		for (Object referenceId : (List) field.getValue()) {
 			if (!referencedIdIsNewRecordInTransaction(referenceId, transaction)) {
 				addReferenceToRecordMapToDecrement((String) referenceId, recordsOutOfTransactionRefCounts, newRecord);
@@ -551,7 +562,7 @@ public class BigVaultRecordDao implements RecordDao {
 
 		List<MoreLikeThisDTO> resultWithMoreLikeThis = new ArrayList<>();
 		if (params.get(MoreLikeThisParams.MLT) != null
-				&& Boolean.parseBoolean(params.get(MoreLikeThisParams.MLT))) {
+			&& Boolean.parseBoolean(params.get(MoreLikeThisParams.MLT))) {
 			try {
 				resultWithMoreLikeThis = extractMoreLikeThis(response, params.get(MoreLikeThisParams.SIMILARITY_FIELDS));
 			} catch (SolrServerException | IOException e) {
@@ -589,7 +600,7 @@ public class BigVaultRecordDao implements RecordDao {
 		List<MoreLikeThisDTO> moreLikeThisResults = new ArrayList<>();
 
 		if (moreLikeThisFields != null && response.getResponse().get("response") != null
-				&& response.getResponse().get("match") != null) {
+			&& response.getResponse().get("match") != null) {
 			List<SolrDocument> results = ((List<SolrDocument>) response.getResponse().get("response"));
 			SolrDocument aSolrDocument = ((List<SolrDocument>) response.getResponse().get("match")).get(0);
 			JaccardDocumentSorter sorter = new JaccardDocumentSorter(bigVaultServer, aSolrDocument, moreLikeThisFields, "id");
@@ -767,7 +778,7 @@ public class BigVaultRecordDao implements RecordDao {
 		return convertedFieldValue;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	private <T> List<String> convertMultivalueBooleansToSolrValues(Object fieldValue) {
 		List<Boolean> booleans = (List) fieldValue;
 		List<String> strings = new ArrayList<String>();
@@ -821,7 +832,7 @@ public class BigVaultRecordDao implements RecordDao {
 		return secondUnderScoreIndex != -1;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	Object convertSolrValueToBigVaultValue(String fieldName, Object fieldValue) {
 		Object convertedValue = fieldValue;
 		if (fieldName.endsWith("_d")) {
@@ -897,7 +908,7 @@ public class BigVaultRecordDao implements RecordDao {
 		return convertedValue;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	private List convertMultivalueBooleanSolrValuesToBooleans(Object fieldValue) {
 		List<String> strings = (List) fieldValue;
 		List<Boolean> booleans = new ArrayList<Boolean>();

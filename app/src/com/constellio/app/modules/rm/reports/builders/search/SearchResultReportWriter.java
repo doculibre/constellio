@@ -4,12 +4,16 @@ import com.constellio.app.modules.rm.reports.model.search.SearchResultReportMode
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.conf.FoldersLocator;
-
 import jxl.CellView;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
-import jxl.write.*;
+import jxl.write.Label;
 import jxl.write.Number;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
+import jxl.write.WriteException;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -97,8 +101,8 @@ public class SearchResultReportWriter implements ReportWriter {
 				continue;
 			}
 			if (cellObject instanceof Float ||
-					cellObject instanceof Integer ||
-					cellObject instanceof Double) {
+				cellObject instanceof Integer ||
+				cellObject instanceof Double) {
 				addNumber(sheet, font, columnNumber, lineNumber, new Double(cellObject.toString()));
 			} else {
 				addString(sheet, font, columnNumber, lineNumber, cellObject.toString());
@@ -113,7 +117,7 @@ public class SearchResultReportWriter implements ReportWriter {
 	}
 
 	private void addNumber(WritableSheet sheet, WritableCellFormat font, int column, int row,
-			double d)
+						   double d)
 			throws WriteException {
 		Number number = new Number(column, row, d, font);
 		sheet.addCell(number);

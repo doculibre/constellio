@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
@@ -15,6 +9,12 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class GlobalGroupVODataProvider extends AbstractDataProvider {
@@ -29,7 +29,7 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 	private boolean hierarchical;
 
 	public GlobalGroupVODataProvider(GlobalGroupToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
-			boolean hierarchical) {
+									 boolean hierarchical) {
 		this.voBuilder = voBuilder;
 		this.hierarchical = hierarchical;
 		init(modelLayerFactory);
@@ -59,7 +59,7 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 			this.filter = filter.toLowerCase();
 			for (GlobalGroupVO globalGroupVO : globalGroupVOs) {
 				if (globalGroupVO.getCode().toLowerCase().contains(this.filter)
-						|| (globalGroupVO.getName() != null && globalGroupVO.getName().toLowerCase().contains(this.filter))) {
+					|| (globalGroupVO.getName() != null && globalGroupVO.getName().toLowerCase().contains(this.filter))) {
 					filteredGlobalGroupVOs.add(globalGroupVO);
 				}
 			}
@@ -189,7 +189,7 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 		for (GlobalGroupVO globalGroupVO : filteredGlobalGroupVOs) {
 			GlobalGroupStatus status = globalGroupVO.getStatus();
 			if ((status == null || status == GlobalGroupStatus.ACTIVE) &&
-					(globalGroupVO.getCollections().contains(collection))) {
+				(globalGroupVO.getCollections().contains(collection))) {
 				newGlobalGroupVOsInWithUsersInCollection.add(globalGroupVO);
 			}
 		}
@@ -203,7 +203,7 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 		for (GlobalGroupVO globalGroupVO : filteredGlobalGroupVOs) {
 			GlobalGroupStatus status = globalGroupVO.getStatus();
 			if (status == GlobalGroupStatus.INACTIVE &&
-					(globalGroupVO.getCollections().contains(collection))) {
+				(globalGroupVO.getCollections().contains(collection))) {
 				newGlobalGroupVOsInWithUsersInCollection.add(globalGroupVO);
 			}
 		}
@@ -224,7 +224,7 @@ public class GlobalGroupVODataProvider extends AbstractDataProvider {
 		List<GlobalGroupVO> newGlobalGroupVOs = new ArrayList<>();
 		for (GlobalGroupVO globalGroupVO : filteredGlobalGroupVOs) {
 			if (globalGroupVO.getParent() != null && globalGroupVO.getParent().equals(code)
-					&& globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE) {
+				&& globalGroupVO.getStatus() == GlobalGroupStatus.ACTIVE) {
 				newGlobalGroupVOs.add(globalGroupVO);
 			}
 		}

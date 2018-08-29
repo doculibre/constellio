@@ -9,64 +9,64 @@ import org.joda.time.LocalDateTime;
 public class TemporaryRecord extends RecordWrapper {
 
 
-    public static final String SCHEMA_TYPE = "temporaryRecord";
-    public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
-    public static final String DESTRUCTION_DATE = "destructionDate";
-    public static final String DAY_BEFORE_DESTRUCTION = "daysBeforeDestruction";
-    public static final String TITLE = "title";
-    public static final String CONTENT = "content";
+	public static final String SCHEMA_TYPE = "temporaryRecord";
+	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
+	public static final String DESTRUCTION_DATE = "destructionDate";
+	public static final String DAY_BEFORE_DESTRUCTION = "daysBeforeDestruction";
+	public static final String TITLE = "title";
+	public static final String CONTENT = "content";
 
-    public TemporaryRecord(Record record,
-                           MetadataSchemaTypes types) {
-        super(record, types, SCHEMA_TYPE);
-    }
+	public TemporaryRecord(Record record,
+						   MetadataSchemaTypes types) {
+		super(record, types, SCHEMA_TYPE);
+	}
 
-    public TemporaryRecord(Record record, MetadataSchemaTypes types, String schema) {
-        super(record, types, schema);
-    }
+	public TemporaryRecord(Record record, MetadataSchemaTypes types, String schema) {
+		super(record, types, schema);
+	}
 
-    public LocalDateTime getCreatedOn() {
-        return get(Schemas.CREATED_ON);
-    }
+	public LocalDateTime getCreatedOn() {
+		return get(Schemas.CREATED_ON);
+	}
 
-    public TemporaryRecord setCreatedOn(LocalDateTime creationDate) {
-        set(Schemas.CREATED_ON, creationDate);
-        return this;
-    }
+	public TemporaryRecord setCreatedOn(LocalDateTime creationDate) {
+		set(Schemas.CREATED_ON, creationDate);
+		return this;
+	}
 
-    public LocalDateTime getDestructionDate() {
-        return get(DESTRUCTION_DATE);
-    }
+	public LocalDateTime getDestructionDate() {
+		return get(DESTRUCTION_DATE);
+	}
 
-    public TemporaryRecord setDestructionDate(LocalDateTime destructionDate) {
-        set(DESTRUCTION_DATE, destructionDate);
-        return this;
-    }
+	public TemporaryRecord setDestructionDate(LocalDateTime destructionDate) {
+		set(DESTRUCTION_DATE, destructionDate);
+		return this;
+	}
 
-    public TemporaryRecord setContent(Content content) {
-        set(CONTENT, content);
-        return this;
-    }
+	public TemporaryRecord setContent(Content content) {
+		set(CONTENT, content);
+		return this;
+	}
 
-    public Content getContent() {
-        return get(CONTENT);
-    }
+	public Content getContent() {
+		return get(CONTENT);
+	}
 
-    public TemporaryRecord setTitle(String title) {
-        set(TITLE, title);
-        return this;
-    }
+	public TemporaryRecord setTitle(String title) {
+		set(TITLE, title);
+		return this;
+	}
 
-    public double getNumberOfDaysBeforeDestruction(){
-        return Double.parseDouble((String) get(DAY_BEFORE_DESTRUCTION));
-    }
+	public double getNumberOfDaysBeforeDestruction() {
+		return Double.parseDouble((String) get(DAY_BEFORE_DESTRUCTION));
+	}
 
-    public TemporaryRecord setNumberOfDaysBeforeDestruction(int numberOfDaysBeforeDestruction) {
-        set(DAY_BEFORE_DESTRUCTION, new Double(numberOfDaysBeforeDestruction));
-        return this;
-    }
+	public TemporaryRecord setNumberOfDaysBeforeDestruction(int numberOfDaysBeforeDestruction) {
+		set(DAY_BEFORE_DESTRUCTION, new Double(numberOfDaysBeforeDestruction));
+		return this;
+	}
 
-    public String getTitle() {
-        return get(TITLE);
-    }
+	public String getTitle() {
+		return get(TITLE);
+	}
 }

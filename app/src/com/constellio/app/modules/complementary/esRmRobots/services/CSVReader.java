@@ -1,5 +1,10 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.services.contents.ContentManager;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -7,12 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
-
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.services.contents.ContentManager;
-import org.apache.commons.lang3.StringUtils;
 
 public class CSVReader {
 

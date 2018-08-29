@@ -1,6 +1,5 @@
 package com.constellio.app.api.extensions.params;
 
-import com.constellio.app.services.records.SystemCheckResults;
 import com.constellio.app.services.records.SystemCheckResultsBuilder;
 
 public class CollectionSystemCheckParams {

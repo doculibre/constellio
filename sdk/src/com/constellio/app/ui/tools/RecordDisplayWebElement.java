@@ -1,9 +1,8 @@
 package com.constellio.app.ui.tools;
 
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
 
 public class RecordDisplayWebElement {
 

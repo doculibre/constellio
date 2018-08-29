@@ -1,16 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
-import org.mockito.Mock;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -21,11 +12,19 @@ import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+import org.mockito.Mock;
+
+import static java.util.Arrays.asList;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MetadataBuilderTest extends ConstellioTest {
 
-	static final String COLLECTION = "zeUltimateCollection";
+	static final CollectionInfo COLLECTION = new CollectionInfo("zeUltimateCollection", "fr", asList("fr"));
 	static final String CODE_DEFAULT_METADATA = "codeMetadata";
 	static final String DEFAULT_SCHEMA_CODE = "codeSchema_default";
 	static final String CUSTOM_SCHEMA_CODE = "codeSchema_codeSchema";
@@ -53,7 +52,7 @@ public class MetadataBuilderTest extends ConstellioTest {
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
 		when(typesBuilder.getSchemaType(anyString())).thenThrow(NoSuchSchemaType.class);
 		when(typesBuilder.getClassProvider()).thenReturn(new DefaultClassProvider());
-		when(typesBuilder.getLanguages()).thenReturn(Arrays.asList(Language.French));
+		when(typesBuilder.getLanguages()).thenReturn(asList(Language.French));
 		schemaTypeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(COLLECTION, "codeSchema", typesBuilder);
 		schemaBuilder = schemaTypeBuilder.getDefaultSchema();
 

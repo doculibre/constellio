@@ -2,7 +2,9 @@ package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobCategory;
-import com.constellio.app.modules.es.connectors.smb.jobs.*;
+import com.constellio.app.modules.es.connectors.smb.jobs.SmbDeleteJob;
+import com.constellio.app.modules.es.connectors.smb.jobs.SmbDispatchJob;
+import com.constellio.app.modules.es.connectors.smb.jobs.SmbNewRetrievalJob;
 import com.constellio.app.modules.es.connectors.smb.service.SmbModificationIndicator;
 import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
 import com.constellio.app.modules.es.connectors.smb.service.SmbShareService;
@@ -12,7 +14,6 @@ import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
-import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.sdk.TestConnectorEventObserver;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
@@ -26,14 +27,11 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.*;
-
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SmbJobFactoryImplAcceptanceTest extends ConstellioTest {
 	@Mock private ConnectorSmb connector;

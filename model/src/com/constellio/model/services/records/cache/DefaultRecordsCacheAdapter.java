@@ -1,13 +1,13 @@
 package com.constellio.model.services.records.cache;
 
-import java.util.Collection;
-import java.util.List;
-
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.Collection;
+import java.util.List;
 
 public class DefaultRecordsCacheAdapter implements RecordsCache {
 
@@ -34,12 +34,12 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 	}
 
 	public void insertQueryResults(LogicalSearchQuery query,
-			List<Record> records) {
+								   List<Record> records) {
 		nestedRecordsCache.insertQueryResults(query, records);
 	}
 
 	public void insertQueryResultIds(LogicalSearchQuery query,
-			List<String> recordIds) {
+									 List<String> recordIds) {
 		nestedRecordsCache.insertQueryResultIds(query, recordIds);
 	}
 
@@ -97,12 +97,12 @@ public class DefaultRecordsCacheAdapter implements RecordsCache {
 	}
 
 	public Record getByMetadata(Metadata metadata,
-			String value) {
+								String value) {
 		return nestedRecordsCache.getByMetadata(metadata, value);
 	}
 
 	public Record getSummaryByMetadata(Metadata metadata,
-			String value) {
+									   String value) {
 		return nestedRecordsCache.getSummaryByMetadata(metadata, value);
 	}
 

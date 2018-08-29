@@ -16,7 +16,8 @@ import com.vaadin.ui.Component;
 
 public class SmbSearchResultDisplay extends SearchResultDisplay {
 
-	public SmbSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory, String query) {
+	public SmbSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
+								  AppLayerFactory appLayerFactory, String query) {
 		super(searchResultVO, componentFactory, appLayerFactory, query);
 	}
 
@@ -28,7 +29,7 @@ public class SmbSearchResultDisplay extends SearchResultDisplay {
 		Component titleComponent;
 
 		SystemConfigurationsManager systemConfigurationsManager = getAppLayerFactory().getModelLayerFactory().getSystemConfigurationsManager();
-		boolean agentRegistered = getAppLayerFactory ().getPluginManager().isRegistered("agent");
+		boolean agentRegistered = getAppLayerFactory().getPluginManager().isRegistered("agent");
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 		if (agentRegistered && rmConfigs.isAgentEnabled() && SchemaUtils.getSchemaTypeCode(schemaCode).equals(ConnectorSmbDocument.SCHEMA_TYPE)) {
 			MetadataVO smbPathMetadata = recordVO.getMetadata(ConnectorSmbDocument.URL);

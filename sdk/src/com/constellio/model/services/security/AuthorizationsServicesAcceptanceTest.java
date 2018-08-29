@@ -1,5 +1,35 @@
 package com.constellio.model.services.security;
 
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import org.joda.time.LocalDate;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import static com.constellio.model.entities.enums.GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT;
 import static com.constellio.model.entities.records.wrappers.Event.PERMISSION_USERS;
 import static com.constellio.model.entities.records.wrappers.Event.RECORD_ID;
@@ -52,37 +82,6 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.records.reindexing.ReindexationMode;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
-import com.constellio.sdk.tests.annotations.SlowTest;
 
 public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServicesAcceptanceTest {
 

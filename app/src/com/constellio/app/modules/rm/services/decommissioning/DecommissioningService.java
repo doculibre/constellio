@@ -1,26 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -36,6 +15,7 @@ import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -87,6 +67,27 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DecommissioningService {
 	private static Logger LOGGER = LoggerFactory.getLogger(DecommissioningService.class);
@@ -180,15 +181,15 @@ public class DecommissioningService {
 
 	public boolean isProcessable(DecommissioningList decommissioningList, User user) {
 		return decommissioningList.getDecommissioningListType().isFolderList() ?
-				isFolderListProcessable(decommissioningList, user) :
-				isDocumentListProcessable(decommissioningList, user);
+			   isFolderListProcessable(decommissioningList, user) :
+			   isDocumentListProcessable(decommissioningList, user);
 	}
 
 	private boolean isFolderListProcessable(DecommissioningList decommissioningList, User user) {
 		return decommissioningList.isUnprocessed() &&
-				areAllFoldersProcessable(decommissioningList) &&
-				isApprovedOrDoesNotNeedApproval(decommissioningList) &&
-				securityService().canProcess(decommissioningList, user);
+			   areAllFoldersProcessable(decommissioningList) &&
+			   isApprovedOrDoesNotNeedApproval(decommissioningList) &&
+			   securityService().canProcess(decommissioningList, user);
 	}
 
 	private boolean isDocumentListProcessable(DecommissioningList decommissioningList, User user) {
@@ -197,11 +198,11 @@ public class DecommissioningService {
 
 	private boolean isApprovedOrDoesNotNeedApproval(DecommissioningList decommissioningList) {
 		switch (decommissioningList.getStatus()) {
-		case APPROVED:
-			return true;
-		case IN_APPROVAL:
-		case IN_VALIDATION:
-			return false;
+			case APPROVED:
+				return true;
+			case IN_APPROVAL:
+			case IN_VALIDATION:
+				return false;
 		}
 		if (decommissioningList.getDecommissioningListType().isClosing()) {
 			return !configs.isApprovalRequiredForClosing();
@@ -211,41 +212,41 @@ public class DecommissioningService {
 		}
 		if (decommissioningList.getDecommissioningListType().isDeposit()) {
 			return decommissioningList.isFromActive() ?
-					!configs.isApprovalRequiredForDepositOfActive() :
-					!configs.isApprovalRequiredForDepositOfSemiActive();
+				   !configs.isApprovalRequiredForDepositOfActive() :
+				   !configs.isApprovalRequiredForDepositOfSemiActive();
 		}
 		if (decommissioningList.getDecommissioningListType().isDestroyal()) {
 			return decommissioningList.isFromActive() ?
-					!configs.isApprovalRequiredForDestructionOfActive() :
-					!configs.isApprovalRequiredForDestructionOfSemiActive();
+				   !configs.isApprovalRequiredForDestructionOfActive() :
+				   !configs.isApprovalRequiredForDestructionOfSemiActive();
 		}
 		return false;
 	}
 
 	public boolean isApprovalRequestPossible(DecommissioningList decommissioningList, User user) {
 		return decommissioningList.getStatus() != DecomListStatus.IN_VALIDATION &&
-				decommissioningList.getStatus() != DecomListStatus.APPROVED &&
-				decommissioningList.getStatus() != DecomListStatus.PROCESSED &&
-				decommissioningList.getStatus() != DecomListStatus.IN_APPROVAL &&
-				securityService().canAskApproval(decommissioningList, user);
+			   decommissioningList.getStatus() != DecomListStatus.APPROVED &&
+			   decommissioningList.getStatus() != DecomListStatus.PROCESSED &&
+			   decommissioningList.getStatus() != DecomListStatus.IN_APPROVAL &&
+			   securityService().canAskApproval(decommissioningList, user);
 	}
 
 	public boolean isApprovalPossible(DecommissioningList decommissioningList, User user) {
 		return decommissioningList.getStatus() != DecomListStatus.IN_VALIDATION &&
-				decommissioningList.getStatus() == DecomListStatus.IN_APPROVAL &&
-				!decommissioningList.getApprovalRequest().equals(user.getId()) &&
-				securityService().canApprove(decommissioningList, user);
+			   decommissioningList.getStatus() == DecomListStatus.IN_APPROVAL &&
+			   !decommissioningList.getApprovalRequest().equals(user.getId()) &&
+			   securityService().canApprove(decommissioningList, user);
 	}
 
 	public boolean isValidationPossible(DecommissioningList decommissioningList, User user) {
 		return decommissioningList.getStatus() == DecomListStatus.IN_VALIDATION &&
-				securityService().canValidate(decommissioningList, user);
+			   securityService().canValidate(decommissioningList, user);
 	}
 
 	public boolean isValidationRequestPossible(DecommissioningList decommissioningList, User user) {
 		return decommissioningList.getStatus() != DecomListStatus.APPROVED &&
-				decommissioningList.getStatus() != DecomListStatus.PROCESSED &&
-				securityService().canAskValidation(decommissioningList, user);
+			   decommissioningList.getStatus() != DecomListStatus.PROCESSED &&
+			   securityService().canAskValidation(decommissioningList, user);
 	}
 
 	public boolean isSortable(DecommissioningList decommissioningList) {
@@ -258,12 +259,13 @@ public class DecommissioningService {
 
 	public boolean isFolderProcessable(DecommissioningList decommissioningList, FolderDetailWithType folder) {
 		return decommissioningList.isProcessed() || folder.getDecommissioningType().isClosureOrDestroyal() ||
-				(isFolderProcessable(folder) && !isFolderRepackable(decommissioningList, folder));
+			   (isFolderProcessable(folder) && !isFolderRepackable(decommissioningList, folder));
 	}
 
-	public boolean isFolderRemovableFromContainer(DecommissioningList decommissioningList, FolderDetailWithType folder) {
+	public boolean isFolderRemovableFromContainer(DecommissioningList decommissioningList,
+												  FolderDetailWithType folder) {
 		return !decommissioningList.isProcessed() && !folder.getDecommissioningType().isClosureOrDestroyal()
-				&& isRemovableFromContainer(decommissioningList, folder);
+			   && isRemovableFromContainer(decommissioningList, folder);
 	}
 
 	public boolean isApproved(DecommissioningList decommissioningList) {
@@ -274,14 +276,50 @@ public class DecommissioningService {
 		return securityService().canValidate(decommissioningList, user);
 	}
 
-	public void approveList(DecommissioningList decommissioningList, User user) {
-		decommissioner(decommissioningList).approve(decommissioningList, user, TimeProvider.getLocalDate());
+	public void approveList(DecommissioningList decommissioningList, User user) throws DecommissioningServiceException {
+		approveList(decommissioningList, user, 0);
+	}
+
+	public void approveList(DecommissioningList decommissioningList, User user, int attempt)
+			throws DecommissioningServiceException {
+
+		try {
+			decommissioner(decommissioningList).approve(decommissioningList, user, TimeProvider.getLocalDate());
+
+		} catch (RecordServicesException.OptimisticLocking e) {
+			if (attempt < 3) {
+				LOGGER.warn("Operation failed, retrying...", e);
+				approveList(rm.getDecommissioningList(decommissioningList.getId()), user, attempt + 1);
+			} else {
+				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
+			}
+		}
+	}
+
+	public void denyApprovalOnList(DecommissioningList decommissioningList, User denier, String comment)
+			throws DecommissioningServiceException {
+		denyApprovalOnList(decommissioningList, denier, comment, 0);
+	}
+
+	public void denyApprovalOnList(DecommissioningList decommissioningList, User denier, String comment, int attempt)
+			throws DecommissioningServiceException {
+		try {
+
+			decommissioner(decommissioningList).denyApproval(decommissioningList, denier, comment);
+		} catch (RecordServicesException.OptimisticLocking e) {
+			if (attempt < 3) {
+				LOGGER.warn("Operation failed, retrying...", e);
+				denyApprovalOnList(rm.getDecommissioningList(decommissioningList.getId()), denier, comment, attempt + 1);
+			} else {
+				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
+			}
+		}
 	}
 
 	public void approvalRequest(List<User> managerList, DecommissioningList decommissioningList, User approvalUser)
 			throws RecordServicesException {
 		List<String> parameters = new ArrayList<>();
-		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + decommissioningList.getTitle());
+		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(decommissioningList.getTitle()));
 
 		String constellioUrl = eimConfigs.getConstellioUrl();
 		String displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
@@ -306,7 +344,7 @@ public class DecommissioningService {
 		try {
 			List<EmailAddress> toAddresses = getEmailReceivers(userList);
 			String subject = "";
-			if(RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID.equals(templateID)) {
+			if (RMEmailTemplateConstants.APPROVAL_REQUEST_TEMPLATE_ID.equals(templateID)) {
 				subject = $("DecommissionningServices.approvalRequestEmailTitle");
 			} else {
 				subject = $("DecommissionningServices.validationRequest");
@@ -328,11 +366,12 @@ public class DecommissioningService {
 		}
 	}
 
-	public void sendEmailForList(DecommissioningList list, User user, List<String> usersToSendEmail, String templateID, List<String> parameters) {
+	public void sendEmailForList(DecommissioningList list, User user, List<String> usersToSendEmail, String templateID,
+								 List<String> parameters) {
 		EmailToSend emailToSend = rm.newEmailToSend();
 		try {
 			List<EmailAddress> toAddresses = new ArrayList<>();
-			if(usersToSendEmail == null || usersToSendEmail.isEmpty()) {
+			if (usersToSendEmail == null || usersToSendEmail.isEmpty()) {
 				toAddresses = getEmailReceivers(emailService.getManagerEmailForList(list));
 			} else {
 				toAddresses = getEmailReceivers(rm.getUsers(usersToSendEmail));
@@ -363,11 +402,11 @@ public class DecommissioningService {
 	}
 
 	public void sendValidationRequest(DecommissioningList list, User sender, List<String> users, String comments,
-			boolean saveComment) {
+									  boolean saveComment) {
 		List<String> parameters = new ArrayList<>();
 		List<Comment> commentaires = new ArrayList<>();
-		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + list.getTitle());
-		parameters.add("comments" + EmailToSend.PARAMETER_SEPARATOR + comments);
+		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(list.getTitle()));
+		parameters.add("comments" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(comments));
 
 		String constellioUrl = eimConfigs.getConstellioUrl();
 		String displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
@@ -407,8 +446,33 @@ public class DecommissioningService {
 		return returnAddresses;
 	}
 
-	public void decommission(DecommissioningList decommissioningList, User user) {
-		decommissioner(decommissioningList).process(decommissioningList, user, TimeProvider.getLocalDate());
+	public void decommission(DecommissioningList decommissioningList, User user)
+			throws DecommissioningServiceException {
+
+		decommission(decommissioningList, user, 0);
+	}
+
+	public void decommission(DecommissioningList decommissioningList, User user, int attempt)
+			throws DecommissioningServiceException {
+
+		try {
+			decommissioner(decommissioningList).process(decommissioningList, user, TimeProvider.getLocalDate());
+
+		} catch (RecordServicesException.OptimisticLocking e) {
+			modelLayerFactory.getRecordsCaches().getCache(decommissioningList.getCollection())
+					.invalidateRecordsOfType(Folder.SCHEMA_TYPE);
+
+			modelLayerFactory.getRecordsCaches().getCache(decommissioningList.getCollection())
+					.invalidateRecordsOfType(ContainerRecord.SCHEMA_TYPE);
+
+			if (attempt < 3) {
+				LOGGER.warn("Decommission failed, retrying...", e);
+				decommission(rm.getDecommissioningList(decommissioningList.getId()), user, attempt + 1);
+			} else {
+				throw new DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission();
+			}
+		}
+
 	}
 
 	public void recycleContainer(ContainerRecord container, User user) {
@@ -463,8 +527,8 @@ public class DecommissioningService {
 			if (retentionRuleId != null) {
 				Record retentionRuleRecord = rm.getRetentionRule(retentionRuleId).getWrappedRecord();
 				boolean deleted = retentionRuleRecord.get(Schemas.LOGICALLY_DELETED_STATUS) == null ?
-						false :
-						(Boolean) retentionRuleRecord.get(Schemas.LOGICALLY_DELETED_STATUS);
+								  false :
+								  (Boolean) retentionRuleRecord.get(Schemas.LOGICALLY_DELETED_STATUS);
 				if (!deleted) {
 					RetentionRule retentionRule = rm.wrapRetentionRule(retentionRuleRecord);
 					retentionRules.add(retentionRule);
@@ -559,7 +623,8 @@ public class DecommissioningService {
 		return getRetentionRulesForCategory(categoryId, uniformSubdivisionId, StatusFilter.ALL);
 	}
 
-	public List<String> getRetentionRulesForCategory(String categoryId, String uniformSubdivisionId, StatusFilter statusFilter) {
+	public List<String> getRetentionRulesForCategory(String categoryId, String uniformSubdivisionId,
+													 StatusFilter statusFilter) {
 		List<String> rules = new ArrayList<>();
 		if (uniformSubdivisionId != null) {
 			UniformSubdivision uniformSubdivision = new UniformSubdivision(recordServices.getDocumentById(uniformSubdivisionId),
@@ -661,7 +726,7 @@ public class DecommissioningService {
 		CopyRetentionRule retentionRule = folder.getMainCopyRule();
 		LocalDate actualTransferDate = folder.getActualTransferDate();
 
-		boolean allowedByRetentionRule = retentionRule != null && retentionRule.canTransferToSemiActive();
+		boolean allowedByRetentionRule = getRMConfigs().isAllowTransferDateFieldWhenCopyRuleHasNoSemiActiveState() || (retentionRule != null && retentionRule.canTransferToSemiActive());
 		return (actualTransferDate != null || allowedByRetentionRule) && user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder);
 	}
 
@@ -688,7 +753,7 @@ public class DecommissioningService {
 
 		boolean folderIsNotActive = folder.getArchivisticStatus().isSemiActiveOrInactive();
 		return user.has(RMPermissionsTo.MODIFY_FOLDER_DECOMMISSIONING_DATES).on(folder)
-				&& (folderIsNotActive || configs.areActiveInContainersAllowed());
+			   && (folderIsNotActive || configs.areActiveInContainersAllowed());
 	}
 
 	public String getUniformRuleOf(ContainerRecord container) {
@@ -717,11 +782,11 @@ public class DecommissioningService {
 
 		if (getRMConfigs().isPopulateBordereauxWithLesserDispositionDate()) {
 			for (Record record : records) {
-				comparedDate = LangUtils.min(comparedDate,getMinimumLocalDateForRecord(record, false));
+				comparedDate = LangUtils.min(comparedDate, getMinimumLocalDateForRecord(record, false));
 			}
 		} else {
 			for (Record record : records) {
-				comparedDate = LangUtils.max(comparedDate,getMaximalLocalDateForRecord(record, false));
+				comparedDate = LangUtils.max(comparedDate, getMaximalLocalDateForRecord(record, false));
 			}
 		}
 
@@ -822,7 +887,7 @@ public class DecommissioningService {
 	}
 
 	private Folder duplicateStructureAndAddToTransaction(Folder folder, User currentUser, Transaction transaction,
-			boolean forceTitleDuplication) {
+														 boolean forceTitleDuplication) {
 		Folder duplicatedFolder = duplicate(folder, currentUser, forceTitleDuplication);
 		transaction.add(duplicatedFolder);
 
@@ -837,8 +902,9 @@ public class DecommissioningService {
 		return duplicatedFolder;
 	}
 
-	private Folder duplicateStructureAndDocumentsAndAddToTransaction(Folder folder, User currentUser, Transaction transaction,
-			boolean forceTitleDuplication) {
+	private Folder duplicateStructureAndDocumentsAndAddToTransaction(Folder folder, User currentUser,
+																	 Transaction transaction,
+																	 boolean forceTitleDuplication) {
 		Folder duplicatedFolder = duplicate(folder, currentUser, forceTitleDuplication);
 		transaction.add(duplicatedFolder);
 
@@ -949,7 +1015,7 @@ public class DecommissioningService {
 	}
 
 	private void duplicateStructureAndSave(RMUserFolder userFolder, Folder parentFolder, User currentUser,
-			Transaction transaction)
+										   Transaction transaction)
 			throws IOException {
 		Folder folder = rm.newFolder();
 		populateFolderFromUserFolder(folder, userFolder, currentUser);
@@ -1069,61 +1135,61 @@ public class DecommissioningService {
 	}
 
 	private LocalDate getMinimumLocalDateForRecord(Record record, boolean takeActualDates) {
-        Folder folder = rm.wrapFolder(record);
-        if (!takeActualDates){
-            List<LocalDate> dates = getListOfExpectedDates(folder);
-            return getMinimal(dates);
-        }
-        List<LocalDate> dates = getListOfAllDates(folder, false);
+		Folder folder = rm.wrapFolder(record);
+		if (!takeActualDates) {
+			List<LocalDate> dates = getListOfExpectedDates(folder);
+			return getMinimal(dates);
+		}
+		List<LocalDate> dates = getListOfAllDates(folder, false);
 
-        return getMinimal(dates);
+		return getMinimal(dates);
 	}
 
 	private LocalDate getMaximalLocalDateForRecord(Record record, boolean takeActualDates) {
 		Folder folder = rm.wrapFolder(record);
-		if (!takeActualDates){
-            List<LocalDate> dates = getListOfExpectedDates(folder);
-            return getMaximal(dates);
+		if (!takeActualDates) {
+			List<LocalDate> dates = getListOfExpectedDates(folder);
+			return getMaximal(dates);
 		}
-        List<LocalDate> dates = getListOfAllDates(folder, true);
+		List<LocalDate> dates = getListOfAllDates(folder, true);
 		return getMaximal(dates);
 	}
 
-    private List<LocalDate> getListOfExpectedDates(Folder folder){
-        List<LocalDate> dates = new ArrayList<LocalDate>();
-        dates.add(folder.getExpectedDestructionDate());
-        dates.add(folder.getExpectedDepositDate());
-        return dates;
-    }
+	private List<LocalDate> getListOfExpectedDates(Folder folder) {
+		List<LocalDate> dates = new ArrayList<LocalDate>();
+		dates.add(folder.getExpectedDestructionDate());
+		dates.add(folder.getExpectedDepositDate());
+		return dates;
+	}
 
-	private List<LocalDate> getListOfAllDates(Folder folder, boolean includeTransfert){
-        List<LocalDate> dates = getListOfExpectedDates(folder);
-        dates.add(folder.getActualDestructionDate());
-        dates.add(folder.getActualDepositDate());
+	private List<LocalDate> getListOfAllDates(Folder folder, boolean includeTransfert) {
+		List<LocalDate> dates = getListOfExpectedDates(folder);
+		dates.add(folder.getActualDestructionDate());
+		dates.add(folder.getActualDepositDate());
 
-        if(includeTransfert) {
+		if (includeTransfert) {
 			dates.add(folder.getExpectedTransferDate());
 			dates.add(folder.getActualTransferDate());
 		}
 
-        return dates;
-    }
-
-	private LocalDate getMaximal(List<LocalDate> dates){
-	    LocalDate max = null;
-	    for (LocalDate date : dates) {
-            max = LangUtils.max(max, date);
-        }
-        return max;
+		return dates;
 	}
 
-    private LocalDate getMinimal(List<LocalDate> dates){
-        LocalDate min = null;
-        for (LocalDate date : dates) {
-            min = LangUtils.min(min, date);
-        }
-        return min;
-    }
+	private LocalDate getMaximal(List<LocalDate> dates) {
+		LocalDate max = null;
+		for (LocalDate date : dates) {
+			max = LangUtils.max(max, date);
+		}
+		return max;
+	}
+
+	private LocalDate getMinimal(List<LocalDate> dates) {
+		LocalDate min = null;
+		for (LocalDate date : dates) {
+			min = LangUtils.min(min, date);
+		}
+		return min;
+	}
 
 	private void getMaximalSemiActiveInterval(Map<String, String> maximalIntervals, Record record) {
 		Folder folder = rm.wrapFolder(record);
@@ -1155,7 +1221,7 @@ public class DecommissioningService {
 
 	public String getDecommissionningLabel(ContainerRecord record) {
 		DecommissioningType decommissioningType = getDecommissioningType(record);
-		return decommissioningType != null? decommissioningType.getLabel():null;
+		return decommissioningType != null ? decommissioningType.getLabel() : null;
 	}
 
 	public DecommissioningType getDecommissioningType(ContainerRecord container) {
@@ -1180,7 +1246,7 @@ public class DecommissioningService {
 	}
 
 	public void reactivateRecordsFromTask(String taskId, LocalDate reactivationDate, User respondant, User applicant,
-			boolean isAccepted)
+										  boolean isAccepted)
 			throws RecordServicesException {
 
 		Record taskRecord = recordServices.getDocumentById(taskId);
@@ -1239,17 +1305,17 @@ public class DecommissioningService {
 
 	public boolean isFolderReactivable(Folder folder, User currentUser) {
 		return folder != null && folder.getArchivisticStatus().isSemiActiveOrInactive()
-				&& currentUser.has(RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER).on(folder);
+			   && currentUser.has(RMPermissionsTo.REACTIVATION_REQUEST_ON_FOLDER).on(folder);
 	}
 
 	private void alertUsers(String template, String schemaType, Record task, Record record, LocalDate borrowingDate,
-			LocalDate returnDate, LocalDate reactivationDate, User currentUser,
-			User borrowerEntered, BorrowingType borrowingType, boolean isAccepted) {
+							LocalDate returnDate, LocalDate reactivationDate, User currentUser,
+							User borrowerEntered, BorrowingType borrowingType, boolean isAccepted) {
 
 		try {
 			String displayURL = schemaType.equals(Folder.SCHEMA_TYPE) ?
-					RMNavigationConfiguration.DISPLAY_FOLDER :
-					RMNavigationConfiguration.DISPLAY_CONTAINER;
+								RMNavigationConfiguration.DISPLAY_FOLDER :
+								RMNavigationConfiguration.DISPLAY_CONTAINER;
 			String subject = "";
 			List<String> parameters = new ArrayList<>();
 			Transaction transaction = new Transaction();
@@ -1260,8 +1326,8 @@ public class DecommissioningService {
 			if (template.equals(RMEmailTemplateConstants.ALERT_BORROWED)) {
 				toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
 				parameters.add("borrowingType" + EmailToSend.PARAMETER_SEPARATOR + borrowingType);
-				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
-						" (" + borrowerEntered.getUsername() + ")");
+				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
+																												   " (" + borrowerEntered.getUsername() + ")"));
 				parameters.add("borrowingDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(borrowingDate));
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			} else if (template.equals(RMEmailTemplateConstants.ALERT_REACTIVATED)) {
@@ -1272,6 +1338,8 @@ public class DecommissioningService {
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			} else if (template.equals(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED)) {
 				toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
+				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
+							   " (" + borrowerEntered.getUsername() + ")");
 				parameters.add("extensionDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(LocalDate.now()));
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			}
@@ -1281,21 +1349,21 @@ public class DecommissioningService {
 			emailToSend.setSendOn(sendDate);
 			emailToSend.setSubject(subject);
 			String fullTemplate = isAccepted ?
-					template + RMEmailTemplateConstants.ACCEPTED :
-					template + RMEmailTemplateConstants.DENIED;
+								  template + RMEmailTemplateConstants.ACCEPTED :
+								  template + RMEmailTemplateConstants.DENIED;
 			emailToSend.setTemplate(fullTemplate);
-			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 			String recordTitle = record.getTitle();
-			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + recordTitle);
-			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser.getFirstName() + " " + currentUser.getLastName() +
-					" (" + currentUser.getUsername() + ")");
+			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle));
+			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(currentUser.getFirstName() + " " + currentUser.getLastName() +
+																										   " (" + currentUser.getUsername() + ")"));
 			String constellioUrl = eimConfigs.getConstellioUrl();
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record
 					.getId());
 			Map<Language, String> labels = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getLabels();
-			for(Map.Entry<Language, String> label:labels.entrySet()) {
-				parameters.add("recordType" + "_" + label.getKey().getCode() + EmailToSend.PARAMETER_SEPARATOR + label.getValue().toLowerCase());
+			for (Map.Entry<Language, String> label : labels.entrySet()) {
+				parameters.add("recordType" + "_" + label.getKey().getCode() + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(label.getValue().toLowerCase()));
 			}
 			parameters.add("isAccepted" + EmailToSend.PARAMETER_SEPARATOR + $(String.valueOf(isAccepted)));
 			emailToSend.setParameters(parameters);
@@ -1330,10 +1398,10 @@ public class DecommissioningService {
 				rm.folder.expectedDestructionDate());
 
 		for (Record record : records) {
-			minimum = LangUtils.min(minimum, getMinimumLocalDateForRecord( record, false));
+			minimum = LangUtils.min(minimum, getMinimumLocalDateForRecord(record, false));
 		}
 		for (Record record : records) {
-			maximum = LangUtils.max(maximum,getMaximalLocalDateForRecord(record, false));
+			maximum = LangUtils.max(maximum, getMaximalLocalDateForRecord(record, false));
 		}
 
 		return minimum == null ? "" : minimum.getYear() + "-" + maximum.getYear();
@@ -1362,9 +1430,9 @@ public class DecommissioningService {
 		//		}
 	}
 
-	public LocalDate getDispositionDate(Record record){
+	public LocalDate getDispositionDate(Record record) {
 		if (getRMConfigs().isPopulateBordereauxWithLesserDispositionDate()) {
-			return getMinimumLocalDateForRecord( record, true);
+			return getMinimumLocalDateForRecord(record, true);
 		} else {
 			return getMaximalLocalDateForRecord(record, true);
 		}

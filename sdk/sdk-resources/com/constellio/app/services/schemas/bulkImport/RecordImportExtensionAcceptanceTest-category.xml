@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<records>
+    <record id="22200">
+        <code>X2222</code>
+        <title>Element Category</title>
+        <description>earth, water, fire and wind</description>
+        <keywords multivalue="true">
+            <item>grass</item>
+            <item>aqua</item>
+            <item>torch</item>
+            <item>gas</item>
+        </keywords>
+        <retentionRules multivalue="true">
+            <item>code:1</item>
+            <item>code:2</item>
+        </retentionRules>
+        <parent></parent>
+    </record>
+    <record id="22230">
+        <code>X2223</code>
+        <title>Water Category</title>
+        <description>It is so cold here...</description>
+        <keywords multivalue="true">
+            <item>aqua</item>
+            <item>wet</item>
+            <item>rain</item>
+        </keywords>
+        <retentionRules></retentionRules>
+        <parent>22200</parent>
+    </record>
+    <record id="22231">
+        <code>X22231</code>
+        <title>Tsunami Category</title>
+        <description>null</description>
+        <keywords multivalue="true">
+            <item>àqûä</item>
+            <item>%wet%</item>
+            <item>a_p_o_c_a_l_y_p_s_e</item>
+        </keywords>
+        <retentionRules multivalue="true">
+            <item>code:1</item>
+        </retentionRules>
+        <parent>22230</parent>
+    </record>
+</records>

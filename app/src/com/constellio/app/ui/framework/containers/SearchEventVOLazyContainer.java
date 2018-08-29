@@ -1,31 +1,5 @@
 package com.constellio.app.ui.framework.containers;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
-import static org.apache.commons.collections4.ListUtils.union;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -41,6 +15,31 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
+import static org.apache.commons.collections4.ListUtils.union;
 
 public class SearchEventVOLazyContainer extends LazyQueryContainer implements RefreshableContainer {
 
@@ -85,20 +84,20 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
 		List<String> props = new ArrayList<>();
 		for (String p : properties) {
 			switch (p) {
-			case NUM_PAGE:
-			case SOUS_COLLECTION:
-			case LANGUE:
-			case TYPE_RECHERCHE:
-				props.add(p);
-				break;
+				case NUM_PAGE:
+				case SOUS_COLLECTION:
+				case LANGUE:
+				case TYPE_RECHERCHE:
+					props.add(p);
+					break;
 
-			default:
-				for (MetadataVO metadataVO : schema.getDisplayMetadatas()) {
-					if (p.equals(metadataVO.getCode())) {
-						props.add(p);
-						break;
+				default:
+					for (MetadataVO metadataVO : schema.getDisplayMetadatas()) {
+						if (p.equals(metadataVO.getCode())) {
+							props.add(p);
+							break;
+						}
 					}
-				}
 			}
 		}
 		return props;
@@ -152,7 +151,8 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
 		private final Map<String, MetadataVO> definedMetadatas;
 		private final SearchEventVODataProvider dataProvider;
 
-		public SearchEventVOLazyQueryFactory(SearchEventVODataProvider dataProvider, Map<String, MetadataVO> definedMetadatas) {
+		public SearchEventVOLazyQueryFactory(SearchEventVODataProvider dataProvider,
+											 Map<String, MetadataVO> definedMetadatas) {
 			this.dataProvider = dataProvider;
 			this.definedMetadatas = definedMetadatas;
 		}
@@ -375,7 +375,8 @@ public class SearchEventVOLazyContainer extends LazyQueryContainer implements Re
 		}
 	}
 
-	public static SearchEventVOLazyContainer defaultInstance(SearchEventVODataProvider dataProvider, List<String> properties) {
+	public static SearchEventVOLazyContainer defaultInstance(SearchEventVODataProvider dataProvider,
+															 List<String> properties) {
 		SearchEventVOLazyQueryDefinition qDef = new SearchEventVOLazyQueryDefinition(dataProvider, properties);
 		SearchEventVOLazyQueryFactory qFact = new SearchEventVOLazyQueryFactory(dataProvider, qDef.getDefinedMetadatas());
 

@@ -1,17 +1,16 @@
 package com.constellio.data.dao.services.transactionLog.replay;
 
-import java.io.File;
-import java.util.Iterator;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.DataLayerLogger;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransactionCombinator;
 import com.constellio.data.dao.services.transactionLog.TransactionLogReadWriteServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.Iterator;
+import java.util.List;
 
 public class TransactionLogReplayServices {
 
@@ -36,7 +35,8 @@ public class TransactionLogReplayServices {
 
 	}
 
-	private void replayTransactionLog(Iterator<BigVaultServerTransaction> transactionIterator, BigVaultLogAddUpdater addUpdater) {
+	private void replayTransactionLog(Iterator<BigVaultServerTransaction> transactionIterator,
+									  BigVaultLogAddUpdater addUpdater) {
 		while (transactionIterator.hasNext()) {
 			addUpdater.add(transactionIterator.next());
 		}

@@ -1,12 +1,8 @@
 package com.constellio.sdk.tests;
 
-import static org.mockito.Mockito.doReturn;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.es.ConstellioESModule;
+import com.constellio.app.modules.restapi.ConstellioRestApiModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
 import com.constellio.app.modules.tasks.TaskModule;
@@ -24,6 +20,11 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.mockito.Mockito.doReturn;
 
 public class ModulesAndMigrationsTestFeatures {
 
@@ -98,6 +99,10 @@ public class ModulesAndMigrationsTestFeatures {
 	public ModulesAndMigrationsTestFeatures withConstellioRMModule() {
 		withTaskModule();
 		return withModule(ConstellioRMModule.class);
+	}
+
+	public ModulesAndMigrationsTestFeatures withConstellioRestApiModule() {
+		return withModule(ConstellioRestApiModule.class);
 	}
 
 	public ModulesAndMigrationsTestFeatures withTaskModule() {

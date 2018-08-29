@@ -1,20 +1,7 @@
 package com.constellio.model.services.contents;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
@@ -28,6 +15,19 @@ import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.TestUtils;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class ContentModificationsBuilderTest extends ConstellioTest {
 
@@ -56,6 +56,8 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 	String thirdHash = "thirdHash";
 	String fourthHash = "fourthHash";
 	String fifthHash = "fifthHash";
+
+	CollectionInfo collectionInfo = new CollectionInfo(zeCollection, "fr", asList("fr"));
 
 	@Before
 	public void setUp()
@@ -318,7 +320,7 @@ public class ContentModificationsBuilderTest extends ConstellioTest {
 		params.put("collection_s", zeCollection);
 		RecordDTO recordDTO = new RecordDTO("zeId", 3L, null, params);
 
-		return new TestRecord(recordDTO);
+		return new TestRecord(recordDTO, collectionInfo);
 	}
 
 	private ContentImpl createMajor(String id, User user, String filename, ContentVersionDataSummary newVersion) {

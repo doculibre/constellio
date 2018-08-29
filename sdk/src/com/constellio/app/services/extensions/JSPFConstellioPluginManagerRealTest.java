@@ -1,20 +1,5 @@
 package com.constellio.app.services.extensions;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.Arrays;
-
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import org.mockito.Mock;
-
 import com.constellio.app.api.pluginManagerTestResources.pluginImplementation.APluginImplementation;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManager;
 import com.constellio.app.services.extensions.plugins.JSPFConstellioPluginManager;
@@ -23,6 +8,20 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.apache.commons.io.FileUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import org.mockito.Mock;
+
+import java.io.File;
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 @SlowTest
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

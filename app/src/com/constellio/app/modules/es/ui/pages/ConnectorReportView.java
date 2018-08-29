@@ -11,7 +11,7 @@ public interface ConnectorReportView extends BaseView {
 	public static final String REPORT_MODE = "reportMode";
 
 	public void filterTable();
-	
+
 	void setTitle(String title);
-	
+
 }

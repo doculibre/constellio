@@ -1,7 +1,7 @@
-import java.io.File;
-
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.model.conf.FoldersLocator;
+
+import java.io.File;
 
 public class StartApplicationMainWithBenchmarkService {
 

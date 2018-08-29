@@ -1,18 +1,5 @@
 package com.constellio.app.entities.modules;
 
-import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
@@ -28,6 +15,18 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.utils.ScriptsUtils.startLayerFactoriesWithoutBackgroundThreads;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class VaultMigrationScript {
 
@@ -143,7 +142,8 @@ public class VaultMigrationScript {
 		return newName;
 	}
 
-	private static void moveFileToRightPath(File fileToMove, File parentFile, Set<String> listOfHashCodes, boolean changeName)
+	private static void moveFileToRightPath(File fileToMove, File parentFile, Set<String> listOfHashCodes,
+											boolean changeName)
 			throws IOException {
 		File folderToRemove = fileToMove.getParentFile();
 		String newName = "";
@@ -174,7 +174,7 @@ public class VaultMigrationScript {
 		String parentFilePath = parentFile.getAbsolutePath();
 		File folder = new File(
 				parentFilePath + "/" + StringUtils.substring(newName, 0, 1) + "/" + StringUtils.substring(newName, 0, 2) + "/"
-						+ StringUtils.substring(newName, 0, 3));
+				+ StringUtils.substring(newName, 0, 3));
 		folder.mkdirs();
 		fileToMove.renameTo(new File(folder.getAbsolutePath() + "/" + newName));
 		removePathIfEmpty(folderToRemove);
@@ -198,8 +198,8 @@ public class VaultMigrationScript {
 	 * 4. On roule le script, un Main sans paramètre (cd /opt/constellio/webapp-x.y.z/WEB-INF; sudo java -cp “lib/*:classes” com.constellio.app.entities.modules.VaultMigrationScript)
 	 * 5. On repart
 	 * 6. On roule un check d’intégrité de la voute, on compare avec celui du début, ça devrait être identique
-	 *
-	 *Note : la voute ne sera pas dans un état super clean : il reste des dossiers avec l'ancien pattern, mais c’est des dossiers
+	 * <p>
+	 * Note : la voute ne sera pas dans un état super clean : il reste des dossiers avec l'ancien pattern, mais c’est des dossiers
 	 * vides ou des contenus non référencé dans solr. On fera un autre script pour ça, mais ça ne dérange pas pour le moment.
 	 *
 	 * @param argv

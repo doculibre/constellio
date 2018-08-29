@@ -1,29 +1,5 @@
 package com.constellio.model.services.emails;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-
-import javax.mail.Authenticator;
-import javax.mail.Message;
-import javax.mail.Message.RecipientType;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMultipart;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -38,6 +14,28 @@ import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import javax.mail.Authenticator;
+import javax.mail.Message;
+import javax.mail.Message.RecipientType;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMultipart;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 
 public class EmailBuilderAcceptTest extends ConstellioTest {
 
@@ -54,20 +52,20 @@ public class EmailBuilderAcceptTest extends ConstellioTest {
 	EmailTemplatesManager emailTemplatesManager;
 	String html =
 			"<html> <title>${" + TEMPLATE_TITLE + "}</title> <body><table><tr><td background=\"cid:"
-					+ EmailTemplatesManager.BACKGROUND_ID
-					+ "\" align=\"center\" valign=\"top\">\n"
-					+ "\"<img src=\"cid" + EmailTemplatesManager.LOGO_ID + "\"> <p style=\"color:#088A08;\">${" + CONTENT + "}" +
-					" ${" + CONTENT + "}</p> ${" + SIGNATURE + "}</p> </td></tr>"
-					+ "<tr><td><div><a href=\"${completeTask}\" style=\"text-decoration:none; color:inherit;\">Completer</a></div></td></tr>"
-					+ "</table> </body> </html>";
+			+ EmailTemplatesManager.BACKGROUND_ID
+			+ "\" align=\"center\" valign=\"top\">\n"
+			+ "\"<img src=\"cid" + EmailTemplatesManager.LOGO_ID + "\"> <p style=\"color:#088A08;\">${" + CONTENT + "}" +
+			" ${" + CONTENT + "}</p> ${" + SIGNATURE + "}</p> </td></tr>"
+			+ "<tr><td><div><a href=\"${completeTask}\" style=\"text-decoration:none; color:inherit;\">Completer</a></div></td></tr>"
+			+ "</table> </body> </html>";
 	String finalHtml =
 			"<html> <title>" + TEMPLATE_TITLE_VALUE_WIHT_HTML_CODE + "</title> <body><table><tr><td background=\"cid:"
-					+ EmailTemplatesManager.BACKGROUND_ID
-					+ "\" align=\"center\" valign=\"top\">\n"
-					+ "\"<img src=\"cid" + EmailTemplatesManager.LOGO_ID + "\"> <p style=\"color:#088A08;\">" + CONTENT_VALUE +
-					" " + CONTENT_VALUE + "</p> " + SIGNATURE_VALUE + "</p> </td></tr>"
-					+ "<tr><td><div><a href=\"http://localhost:7070/constellio/\" style=\"text-decoration:none; color:inherit;\">Completer</a></div></td></tr>"
-					+ "</table> </body> </html>";
+			+ EmailTemplatesManager.BACKGROUND_ID
+			+ "\" align=\"center\" valign=\"top\">\n"
+			+ "\"<img src=\"cid" + EmailTemplatesManager.LOGO_ID + "\"> <p style=\"color:#088A08;\">" + CONTENT_VALUE +
+			" " + CONTENT_VALUE + "</p> " + SIGNATURE_VALUE + "</p> </td></tr>"
+			+ "<tr><td><div><a href=\"http://localhost:7070/constellio/\" style=\"text-decoration:none; color:inherit;\">Completer</a></div></td></tr>"
+			+ "</table> </body> </html>";
 	EmailToSend emailToSend;
 	RecordServices recordServices;
 	MetadataSchemasManager metadataSchemasManager;

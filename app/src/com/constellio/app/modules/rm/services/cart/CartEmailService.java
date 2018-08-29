@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.services.cart;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId;
@@ -27,7 +15,18 @@ import com.constellio.model.services.emails.EmailServices;
 import com.constellio.model.services.emails.EmailServices.EmailMessage;
 import com.constellio.model.services.emails.EmailServices.MessageAttachment;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
+import org.apache.commons.io.IOUtils;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CartEmailService {
 	private static final String TMP_EML_FILE = "CartEmailService-emlFile";
@@ -43,10 +42,10 @@ public class CartEmailService {
 		this.contentManager = modelLayerFactory.getContentManager();
 	}
 
-	public EmailMessage createEmailForCart(Cart cart) {
+	public EmailMessage createEmailForCart(Cart cart, User requestUser) {
 		try {
 			newTempFolder = ioServices.newTemporaryFile(TMP_EML_FILE);
-			return createEmailForCart(cart, newTempFolder);
+			return createEmailForCart(cart, newTempFolder, requestUser);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -54,20 +53,21 @@ public class CartEmailService {
 		}
 	}
 
-	EmailMessage createEmailForCart(Cart cart, File messageFile) {
+	EmailMessage createEmailForCart(Cart cart, File messageFile, User requestUser) {
 		try (OutputStream outputStream = ioServices.newFileOutputStream(messageFile, CartEmailService.class.getSimpleName() + ".createMessageForCart.out")) {
 			User user = rm.getUser(cart.getOwner());
 			String signature = getSignature(user);
 			String subject = "";
 			String from = user.getEmail();
-			List<MessageAttachment> attachments = getAttachments(cart);
-			
+			List<MessageAttachment> attachments = getAttachments(cart, requestUser);
+
 			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 			EmailMessageParams params = new EmailMessageParams("cart", signature, subject, from, attachments);
 			EmailMessage emailMessage = appLayerFactory.getExtensions().getSystemWideExtensions().newEmailMessage(params);
 			if (emailMessage == null) {
 				EmailServices emailServices = new EmailServices();
-				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments);
+				ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
+				MimeMessage message = emailServices.createMimeMessage(from, subject, signature, attachments, configs);
 				message.writeTo(outputStream);
 				String filename = "cart.eml";
 				InputStream inputStream = ioServices.newFileInputStream(messageFile, CartEmailService.class.getSimpleName() + ".createMessageForCart.in");
@@ -90,22 +90,22 @@ public class CartEmailService {
 		}
 	}
 
-	List<MessageAttachment> getAttachments(Cart cart)
+	List<MessageAttachment> getAttachments(Cart cart, User requestUser)
 			throws IOException {
 		//FIXME current version get only cart documents attachments
 		List<MessageAttachment> returnList = new ArrayList<>();
-		returnList.addAll(getDocumentsAttachments(cart.getDocuments()));
+		returnList.addAll(getDocumentsAttachments(cart.getDocuments(), requestUser));
 		return returnList;
 	}
 
-	List<MessageAttachment> getDocumentsAttachments(List<String> documentsIds)
+	List<MessageAttachment> getDocumentsAttachments(List<String> documentsIds, User requestUser)
 			throws IOException {
 		List<MessageAttachment> returnList = new ArrayList<>();
 		if (documentsIds != null) {
 			for (String currentDocumentId : documentsIds) {
 				try {
 					Document document = rm.getDocument(currentDocumentId);
-					if (document.getContent() != null && !document.isLogicallyDeletedStatus()) {
+					if (document.getContent() != null && !document.isLogicallyDeletedStatus() && requestUser.hasReadAccess().on(document)) {
 						MessageAttachment contentFile = createAttachment(document.getContent());
 						returnList.add(contentFile);
 					}

@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
-import static com.constellio.data.utils.TimeProvider.getLocalDate;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isNotNull;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isNull;
-
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -19,6 +9,16 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
+import static com.constellio.data.utils.TimeProvider.getLocalDate;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isNotNull;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isNull;
 
 public class DecommissioningSearchConditionFactory {
 	RMSchemasRecordsServices schemas;
@@ -49,34 +49,34 @@ public class DecommissioningSearchConditionFactory {
 
 	public LogicalSearchCondition bySearchType(SearchType type, String adminUnitId) {
 		switch (type) {
-		case fixedPeriod:
-			return withoutClosingDateAndWithFixedPeriod(adminUnitId);
-		case code888:
-			return withoutClosingDateAndWith888Period(adminUnitId);
-		case code999:
-			return withoutClosingDateAndWith999Period(adminUnitId);
-		case transfer:
-			return activeToTransferToSemiActive(adminUnitId);
-		case activeToDeposit:
-			return activeToDeposit(adminUnitId);
-		case activeToDestroy:
-			return activeToDestroy(adminUnitId);
-		case semiActiveToDeposit:
-			return semiActiveToDeposit(adminUnitId);
-		case semiActiveToDestroy:
-			return semiActiveToDestroy(adminUnitId);
-		case documentTransfer:
-			return documentTransfer(adminUnitId);
-		case documentActiveToDeposit:
-			return documentActiveToDeposit(adminUnitId);
-		case documentActiveToDestroy:
-			return documentActiveToDestroy(adminUnitId);
-		case documentSemiActiveToDeposit:
-			return documentSemiActiveToDeposit(adminUnitId);
-		case documentSemiActiveToDestroy:
-			return documentSemiActiveToDestroy(adminUnitId);
-		default:
-			throw new RuntimeException("Unknown search type: " + type);
+			case fixedPeriod:
+				return withoutClosingDateAndWithFixedPeriod(adminUnitId);
+			case code888:
+				return withoutClosingDateAndWith888Period(adminUnitId);
+			case code999:
+				return withoutClosingDateAndWith999Period(adminUnitId);
+			case transfer:
+				return activeToTransferToSemiActive(adminUnitId);
+			case activeToDeposit:
+				return activeToDeposit(adminUnitId);
+			case activeToDestroy:
+				return activeToDestroy(adminUnitId);
+			case semiActiveToDeposit:
+				return semiActiveToDeposit(adminUnitId);
+			case semiActiveToDestroy:
+				return semiActiveToDestroy(adminUnitId);
+			case documentTransfer:
+				return documentTransfer(adminUnitId);
+			case documentActiveToDeposit:
+				return documentActiveToDeposit(adminUnitId);
+			case documentActiveToDestroy:
+				return documentActiveToDestroy(adminUnitId);
+			case documentSemiActiveToDeposit:
+				return documentSemiActiveToDeposit(adminUnitId);
+			case documentSemiActiveToDestroy:
+				return documentSemiActiveToDestroy(adminUnitId);
+			default:
+				throw new RuntimeException("Unknown search type: " + type);
 		}
 	}
 

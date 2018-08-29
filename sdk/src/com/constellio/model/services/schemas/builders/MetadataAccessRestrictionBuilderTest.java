@@ -1,12 +1,11 @@
 package com.constellio.model.services.schemas.builders;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.model.entities.schemas.MetadataAccessRestriction;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MetadataAccessRestrictionBuilderTest extends ConstellioTest {
 

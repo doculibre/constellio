@@ -1,14 +1,17 @@
 package com.constellio.data.dao.services.recovery;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
+import com.constellio.data.dao.dto.records.TransactionResponseDTO;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
+import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerAddEditListener;
+import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQueryListener;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.BatchBuilderIterator;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.LazyIterator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -24,21 +27,17 @@ import org.apache.solr.common.params.SolrParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.dao.dto.records.TransactionResponseDTO;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
-import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerAddEditListener;
-import com.constellio.data.dao.services.bigVault.solr.listeners.BigVaultServerQueryListener;
-import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.utils.BatchBuilderIterator;
-import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.LazyIterator;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 public class TransactionLogRecoveryManager implements RecoveryService, BigVaultServerAddEditListener,
-													  BigVaultServerQueryListener {
+		BigVaultServerQueryListener {
 	private final static Logger LOGGER = LoggerFactory.getLogger(TransactionLogRecoveryManager.class);
 	private static final String RECOVERY_WORK_DIR = TransactionLogRecoveryManager.class.getName() + "recoveryWorkDir";
 
@@ -257,7 +256,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 		provokeRecordsLoad(recordsIds);
 		if (!this.fullyLoadedRecordsIds.containsAll(recordsIds)) {
 			throw new RuntimeException("Records not loaded after their load request : " +
-					StringUtils.join(CollectionUtils.subtract(recordsIds, this.fullyLoadedRecordsIds), ", "));
+									   StringUtils.join(CollectionUtils.subtract(recordsIds, this.fullyLoadedRecordsIds), ", "));
 		}
 	}
 
@@ -333,7 +332,7 @@ public class TransactionLogRecoveryManager implements RecoveryService, BigVaultS
 
 	//TODO test me
 	private List<SolrInputDocument> getDocumentsHavingIds(List<SolrInputDocument> solrInputDocuments,
-			final Collection<String> ids) {
+														  final Collection<String> ids) {
 		List<SolrInputDocument> returnList = new ArrayList<>();
 		for (SolrInputDocument document : solrInputDocuments) {
 			String id = (String) document.getFieldValue("id");

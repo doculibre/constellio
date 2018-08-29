@@ -1,10 +1,6 @@
 package com.constellio.app.modules.es.connectors.http.utils;
 
-import java.io.File;
-import java.util.EnumSet;
-
-import javax.servlet.DispatcherType;
-
+import com.constellio.model.conf.FoldersLocator;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -14,7 +10,9 @@ import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import com.constellio.model.conf.FoldersLocator;
+import javax.servlet.DispatcherType;
+import java.io.File;
+import java.util.EnumSet;
 
 public class WebsitesUtils {
 
@@ -69,7 +67,7 @@ public class WebsitesUtils {
 
 		ResourceHandler resourceHandler = new ResourceHandler();
 		resourceHandler.setDirectoriesListed(true);
-		resourceHandler.setWelcomeFiles(new String[] { "index.html" });
+		resourceHandler.setWelcomeFiles(new String[]{"index.html"});
 		System.out.println(file.getAbsolutePath());
 		resourceHandler.setResourceBase(file.getAbsolutePath());
 

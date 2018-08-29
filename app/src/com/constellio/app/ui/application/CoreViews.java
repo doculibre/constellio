@@ -1,12 +1,5 @@
 package com.constellio.app.ui.application;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.vaadin.ui.UI;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.es.navigation.ESNavigationConfiguration;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -18,7 +11,13 @@ import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementPresent
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CoreViews {
 	protected Navigator navigator;
@@ -51,7 +50,7 @@ public class CoreViews {
 	}
 
 	public void navigateTo(String homePageUrl, String ulrFragment, boolean isToOpenInNewTab) {
-		if(isToOpenInNewTab) {
+		if (isToOpenInNewTab) {
 			UI.getCurrent().getPage().open(homePageUrl + "#!" + ulrFragment, "_blank");
 		} else {
 			navigator.navigateTo(ulrFragment);
@@ -98,12 +97,12 @@ public class CoreViews {
 	public void editTaxonomyConcept(String taxonomyCode, String conceptId, String schemaCode) {
 		navigator.navigateTo(
 				NavigatorConfigurationService.TAXONOMY_CONCEPT_ADD_EDIT + "/" + AddEditTaxonomyConceptPresenter.EDIT + "/"
-						+ taxonomyCode + "/" + schemaCode + "/" + conceptId);
+				+ taxonomyCode + "/" + schemaCode + "/" + conceptId);
 	}
 
 	public void addTaxonomyConcept(String taxonomyCode, String conceptId, String schemaCode) {
 		String url = NavigatorConfigurationService.TAXONOMY_CONCEPT_ADD_EDIT + "/" + AddEditTaxonomyConceptPresenter.ADD + "/"
-				+ taxonomyCode + "/" + schemaCode;
+					 + taxonomyCode + "/" + schemaCode;
 		if (conceptId != null) {
 			url += "/" + conceptId;
 		}
@@ -164,7 +163,7 @@ public class CoreViews {
 		navigator.navigateTo(NavigatorConfigurationService.DELETE_EXCLUSION);
 	}
 
-	public void thesaurusConfiguration(){
+	public void thesaurusConfiguration() {
 		navigator.navigateTo(NavigatorConfigurationService.THESAURUS_CONFIGURATION);
 	}
 
@@ -310,6 +309,10 @@ public class CoreViews {
 
 	public void listPrincipalAccessAuthorizations(String entityId) {
 		navigator.navigateTo(NavigatorConfigurationService.LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS + "/" + entityId);
+	}
+
+	public void listObjectAccessAndRoleAuthorizations(String entityId) {
+		navigator.navigateTo(NavigatorConfigurationService.LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS + "/" + entityId);
 	}
 
 	public void listObjectAccessAuthorizations(String entityId) {
@@ -701,7 +704,15 @@ public class CoreViews {
 		navigator.navigateTo(ParamUtils.addParams(NavigatorConfigurationService.SIP_PROGRESSION, params));
 	}
 
-    public void propertiesAnalyser() {
+	public void folderSummaryConfig(String param) {
+		navigator.navigateTo(NavigatorConfigurationService.SUMMARY_CONFIGURATOR + "/" + param);
+	}
+
+	public void folderUnicityConfigurator(String param) {
+		navigator.navigateTo(NavigatorConfigurationService.FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR + "/" + param);
+	}
+
+	public void propertiesAnalyser() {
 		navigator.navigateTo(NavigatorConfigurationService.PROPERTIES_ANALYSER);
-    }
+	}
 }

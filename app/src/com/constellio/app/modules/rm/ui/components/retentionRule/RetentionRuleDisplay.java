@@ -7,11 +7,14 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
+import java.util.Locale;
+
 public class RetentionRuleDisplay extends RecordDisplay {
-	
-	public RetentionRuleDisplay(RetentionRuleDisplayPresenter presenter, RetentionRuleVO retentionRuleVO) {
-		super(retentionRuleVO, new RetentionRuleDisplayFactory(presenter));
-		
+
+	public RetentionRuleDisplay(RetentionRuleDisplayPresenter presenter, RetentionRuleVO retentionRuleVO,
+								Locale locale) {
+		super(retentionRuleVO, new RetentionRuleDisplayFactory(presenter, locale));
+
 		addStyleName("retention-rule-display");
 	}
 
@@ -44,5 +47,5 @@ public class RetentionRuleDisplay extends RecordDisplay {
 	protected boolean isCaptionAndDisplayComponentWidthUndefined() {
 		return true;
 	}
-	
+
 }

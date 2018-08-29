@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.reports.model.administration.plan.ClassificationPlanReportModel.ClassificationPlanReportModel_Category;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -27,6 +19,14 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class ClassificationPlanReportPresenter {
 
@@ -41,22 +41,26 @@ public class ClassificationPlanReportPresenter {
 	private boolean detailed;
 	private String administrativeUnitId;
 	private RMSchemasRecordsServices rm;
+	private Locale locale;
 
-	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
-		this(collection, modelLayerFactory, false);
-	}
 
-	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed) {
-		this(collection, modelLayerFactory, detailed, null);
+	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, Locale locale) {
+		this(collection, modelLayerFactory, false, locale);
 	}
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
-			String administrativeUnitId) {
+											 Locale locale) {
+		this(collection, modelLayerFactory, detailed, null, locale);
+	}
+
+	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
+											 String administrativeUnitId, Locale locale) {
 
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
 		this.detailed = (detailed || StringUtils.isNotBlank(administrativeUnitId) ? true : false);
 		this.administrativeUnitId = administrativeUnitId;
+		this.locale = locale;
 	}
 
 	public ClassificationPlanReportModel build() {
@@ -94,7 +98,7 @@ public class ClassificationPlanReportPresenter {
 				List<Record> categoryRecords = searchServices.search(categoriesQuery);
 
 				for (Record categoryRecord : categoryRecords) {
-					Category recordCategory = new Category(categoryRecord, types);
+					Category recordCategory = new Category(categoryRecord, types, locale);
 					if (recordCategory != null) {
 						ClassificationPlanReportModel_Category modelCategory = new ClassificationPlanReportModel_Category();
 
@@ -133,7 +137,7 @@ public class ClassificationPlanReportPresenter {
 					if (taxonomyRecord != null) {
 						Record record = taxonomyRecord.getRecord();
 						if (record != null) {
-							Category recordCategory = new Category(record, types);
+							Category recordCategory = new Category(record, types, locale);
 
 							if (recordCategory != null) {
 								ClassificationPlanReportModel_Category modelCategory = new ClassificationPlanReportModel_Category();
@@ -165,7 +169,7 @@ public class ClassificationPlanReportPresenter {
 		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all())
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 		taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
-		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rm = new RMSchemasRecordsServices(collection, modelLayerFactory, locale);
 		searchServices = modelLayerFactory.newSearchServices();
 	}
 
@@ -181,7 +185,7 @@ public class ClassificationPlanReportPresenter {
 					try {
 						Record childRecord = child.getRecord();
 						if (childRecord != null) {
-							Category recordCategory = new Category(childRecord, types);
+							Category recordCategory = new Category(childRecord, types, locale);
 
 							if (recordCategory != null) {
 								ClassificationPlanReportModel_Category modelCategory = new ClassificationPlanReportModel_Category();

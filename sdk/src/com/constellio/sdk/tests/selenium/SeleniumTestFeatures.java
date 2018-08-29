@@ -1,27 +1,5 @@
 package com.constellio.sdk.tests.selenium;
 
-import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.Date;
-import java.util.Map;
-
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.impl.XMLResponseParser;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.openqa.selenium.Dimension;
-import org.openqa.selenium.Point;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.firefox.FirefoxBinary;
-import org.openqa.selenium.phantomjs.PhantomJSDriver;
-import org.openqa.selenium.remote.DesiredCapabilities;
-
 import com.constellio.app.client.services.AdminServicesSession;
 import com.constellio.app.start.ApplicationStarter;
 import com.constellio.client.cmis.client.CmisSessionBuilder;
@@ -33,6 +11,32 @@ import com.constellio.sdk.tests.SkipTestsRule;
 import com.constellio.sdk.tests.ZeUltimateFirefoxDriver;
 import com.constellio.sdk.tests.ZeUltimateFirefoxProfile;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
+import org.apache.solr.client.solrj.impl.XMLResponseParser;
+import org.glassfish.jersey.CommonProperties;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.HttpUrlConnectorProvider;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.Point;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.firefox.FirefoxBinary;
+import org.openqa.selenium.phantomjs.PhantomJSDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
+
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import java.io.File;
+import java.util.Date;
+import java.util.Map;
+
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SeleniumTestFeatures {
 
@@ -95,7 +99,7 @@ public class SeleniumTestFeatures {
 	}
 
 	public void beforeTest(Map<String, String> theSdkProperties, FactoriesTestFeatures factoriesTestFeatures,
-			SkipTestsRule skipTestsRule) {
+						   SkipTestsRule skipTestsRule) {
 		this.sdkProperties = theSdkProperties;
 		this.factoriesTestFeatures = factoriesTestFeatures;
 		this.skipTestsRule = skipTestsRule;
@@ -136,6 +140,10 @@ public class SeleniumTestFeatures {
 	}
 
 	public WebTarget newWebTarget(String path) {
+		return newWebTarget(path, null);
+	}
+
+	public WebTarget newWebTarget(String path, ObjectMapper objectMapper) {
 
 		if (!path.isEmpty() && !path.startsWith("/")) {
 			path = "/" + path;
@@ -147,8 +155,20 @@ public class SeleniumTestFeatures {
 			startApplication();
 		}
 		String url = "http://localhost:" + port + "/constellio/rest" + path;
-		javax.ws.rs.client.Client client = ClientBuilder.newClient();
-		return client.register(JacksonFeature.class).target(url);
+
+		ObjectMapper mapper = objectMapper != null ? objectMapper : new ObjectMapper();
+		mapper.registerModule(new JodaModule());
+
+		JacksonJsonProvider jsonProvider = new JacksonJsonProvider();
+		jsonProvider.setMapper(mapper);
+
+		ClientConfig config = new ClientConfig();
+		config.property(CommonProperties.FEATURE_AUTO_DISCOVERY_DISABLE_CLIENT, true);
+		config.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
+		config.register(jsonProvider);
+		config.register(MultiPartFeature.class);
+
+		return ClientBuilder.newClient(config).target(url);
 	}
 
 	public SolrClient newSearchClient() {

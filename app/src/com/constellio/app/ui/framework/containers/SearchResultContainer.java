@@ -18,8 +18,11 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Image;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyContainer> {
-	
+
 	public final static String THUMBNAIL_PROPERTY = "thumbnail";
 	public final static String SEARCH_RESULT_PROPERTY = "searchResult";
 	public final static int THUMBNAIL_WIDTH = 90;
@@ -27,7 +30,8 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 	private RecordDisplayFactory displayFactory;
 	String query;
 
-	public SearchResultContainer(SearchResultVOLazyContainer adapted, RecordDisplayFactory displayFactory, String query) {
+	public SearchResultContainer(SearchResultVOLazyContainer adapted, RecordDisplayFactory displayFactory,
+								 String query) {
 		super(adapted);
 		this.displayFactory = displayFactory;
 		this.query = query;
@@ -71,7 +75,7 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 		}
 		return result;
 	}
-	
+
 	private Property<Image> newThumbnailProperty(final Object itemId) {
 		return new AbstractProperty<Image>() {
 			@Override
@@ -88,7 +92,7 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 						String recordId = recordVO.getId();
 						String metadataCode = recordVO.getMetadata(Document.CONTENT).getLocalCode();
 						String version = contentVersionVO.getVersion();
-						
+
 						if (ConstellioResourceHandler.hasContentThumbnail(recordId, metadataCode, version)) {
 							thumbnail = true;
 							Resource thumnailResource = ConstellioResourceHandler.createThumbnailResource(recordId, metadataCode, version, filename);
@@ -143,15 +147,15 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 			}
 		};
 	}
-	
+
 	protected ClickListener getClickListener(SearchResultVO searchResultVO) {
 		return null;
 	}
-	
+
 	protected ClickListener getElevationClickListener(SearchResultVO searchResultVO) {
 		return null;
 	}
-	
+
 	protected ClickListener getExclusionClickListener(SearchResultVO searchResultVO) {
 		return null;
 	}

@@ -14,14 +14,15 @@ public class CoreMigrationTo_7_4 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor7_4(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
 	private class CoreSchemaAlterationFor7_4 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor7_4(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

@@ -1,18 +1,16 @@
 package com.constellio.sdk.tests;
 
-import static org.apache.commons.io.IOUtils.closeQuietly;
+import com.constellio.data.utils.PropertyFileUtils;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.io.FileUtils;
-
-import com.constellio.data.utils.PropertyFileUtils;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 public class SDKPropertiesLoader {
 
@@ -21,9 +19,9 @@ public class SDKPropertiesLoader {
 	Map<String, String> sdkProperties;
 
 	Map<String, String> getSDKProperties() {
-		if (locked) {
-			return new HashMap<String, String>();
-		}
+		//		if (locked) {
+		//			return new HashMap<String, String>();
+		//		}
 		if (sdkProperties == null) {
 			sdkProperties = loadSDKProperties();
 

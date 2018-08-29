@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMConfigs.DecommissioningPhase;
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -21,6 +12,14 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DecommissioningServiceDocumentDecommissioningAcceptTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -138,7 +137,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	public void givenListToTransferThenAllDocumentsAreTransferred() {
+	public void givenListToTransferThenAllDocumentsAreTransferred() throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
@@ -151,7 +150,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	public void givenListOfActiveToDepositThenAllDocumentsAreDeposited() {
+	public void givenListOfActiveToDepositThenAllDocumentsAreDeposited() throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
@@ -164,7 +163,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	public void givenListOfSemiActiveToDepositThenAllDocumentsAreDeposited() {
+	public void givenListOfSemiActiveToDepositThenAllDocumentsAreDeposited() throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
@@ -177,7 +176,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	public void givenListOfActiveToDestroyThenAllDocumentsAreDestroyed() {
+	public void givenListOfActiveToDestroyThenAllDocumentsAreDestroyed() throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
@@ -190,7 +189,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	public void givenListOfActiveToDestroyWhenDeletionEnabledThenAllDocumentsAreDeleted() {
+	public void givenListOfActiveToDestroyWhenDeletionEnabledThenAllDocumentsAreDeleted() throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
@@ -206,7 +205,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	public void givenListOfSemiActiveToDestroyThenAllDocumentsAreDestroyed() {
+	public void givenListOfSemiActiveToDestroyThenAllDocumentsAreDestroyed() throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
@@ -219,7 +218,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 	}
 
 	@Test
-	public void givenListOfSemiActiveToDestroyWhenDeletionEnabledThenAllDocumentsAreDeleted() {
+	public void givenListOfSemiActiveToDestroyWhenDeletionEnabledThenAllDocumentsAreDeleted() throws Exception {
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);
@@ -236,7 +235,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 
 	@Test
 	@SlowTest
-	public void givenListToTransferWhenCreatePDFaOnTransferThenPDFaCreated() {
+	public void givenListToTransferWhenCreatePDFaOnTransferThenPDFaCreated() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(records.getList31(), records.getChuckNorris());
@@ -249,7 +248,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 
 	@Test
 	@SlowTest
-	public void givenListToDepositWhenCreatePDFaOnTransferThenPDFaCreated() {
+	public void givenListToDepositWhenCreatePDFaOnTransferThenPDFaCreated() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_TRANSFER_OR_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(records.getList34(), records.getChuckNorris());
@@ -262,7 +261,7 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 
 	@Test
 	@SlowTest
-	public void givenListToDepositWhenCreatePDFaOnDepositThenPDFaCreated() {
+	public void givenListToDepositWhenCreatePDFaOnDepositThenPDFaCreated() throws Exception {
 		getConfigurationManager().setValue(RMConfigs.PDFA_CREATED_ON, DecommissioningPhase.ON_DEPOSIT);
 		givenDisabledAfterTestValidations();
 		service.decommission(records.getList33(), records.getChuckNorris());
@@ -273,7 +272,8 @@ public class DecommissioningServiceDocumentDecommissioningAcceptTest extends Con
 		}
 	}
 
-	private void verifyProcessed(LocalDate processingDate, User processingUser, DecommissioningList decommissioningList) {
+	private void verifyProcessed(LocalDate processingDate, User processingUser,
+								 DecommissioningList decommissioningList) {
 		assertThat(decommissioningList.getProcessingDate()).isEqualTo(processingDate);
 		assertThat(decommissioningList.getProcessingUser()).isEqualTo(processingUser.getId());
 	}

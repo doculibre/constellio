@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Map;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -26,6 +20,11 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEditSchemaMetadataView, ClickListener {
 
@@ -84,7 +83,7 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 	private Component buildTables() {
 		TabSheet tabSheet = new TabSheet();
 		tabSheet.setSizeFull();
-		
+
 		Map<String, MetadataVODataProvider> dataProviders = presenter.getDataProviders();
 		for (String tabCaption : dataProviders.keySet()) {
 			final MetadataVODataProvider dataProvider = dataProviders.get(tabCaption);
@@ -115,13 +114,6 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 							MetadataVO entity = dataProvider.getMetadataVO(index);
 							presenter.deleteButtonClicked(entity);
 						}
-
-						@Override
-						public boolean isVisible() {
-							Integer index = (Integer) itemId;
-							MetadataVO entity = dataProvider.getMetadataVO(index);
-							return presenter.isMetadataDeletable(entity);
-						}
 					};
 				}
 			});
@@ -137,7 +129,7 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 			table.setColumnHeader("requiredCaption", $("AddEditSchemaMetadataView.requiredCaption"));
 			table.setColumnHeader("buttons", "");
 			table.setColumnWidth("buttons", 80);
-			
+
 			tabSheet.addTab(table, tabCaption);
 		}
 

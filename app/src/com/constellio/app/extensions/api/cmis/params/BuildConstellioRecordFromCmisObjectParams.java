@@ -1,9 +1,8 @@
 package com.constellio.app.extensions.api.cmis.params;
 
+import com.constellio.model.entities.records.Record;
 import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
-
-import com.constellio.model.entities.records.Record;
 
 public class BuildConstellioRecordFromCmisObjectParams {
 

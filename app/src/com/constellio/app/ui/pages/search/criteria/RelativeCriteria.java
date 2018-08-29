@@ -1,11 +1,10 @@
 package com.constellio.app.ui.pages.search.criteria;
 
-import java.io.Serializable;
-
+import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
+import java.io.Serializable;
 
 public class RelativeCriteria implements Serializable {
 

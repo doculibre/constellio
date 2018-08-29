@@ -1,19 +1,5 @@
 package com.constellio.model.services.contents;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
@@ -27,6 +13,19 @@ import com.constellio.model.services.contents.ContentImplRuntimeException.Conten
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_UserHasNoDeleteVersionPermission;
 import com.constellio.model.services.contents.ContentImplRuntimeException.ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion;
 import com.constellio.model.utils.Lazy;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class ContentImpl implements Content {
 
@@ -48,8 +47,8 @@ public class ContentImpl implements Content {
 	private boolean emptyVersion;
 
 	public ContentImpl(String id, ContentVersion currentVersion, Lazy<List<ContentVersion>> lazyHistory,
-			ContentVersion currentCheckedOutVersion, LocalDateTime checkoutDateTime, String checkoutUserId,
-			boolean emptyVersion) {
+					   ContentVersion currentCheckedOutVersion, LocalDateTime checkoutDateTime, String checkoutUserId,
+					   boolean emptyVersion) {
 		this.currentVersion = currentVersion;
 		this.emptyVersion = emptyVersion;
 		this.checkoutDateTime = checkoutDateTime;
@@ -67,15 +66,17 @@ public class ContentImpl implements Content {
 
 	}
 
-	public static ContentImpl create(String id, User user, String filename, ContentVersionDataSummary newVersion, boolean major,
-			boolean empty) {
+	public static ContentImpl create(String id, User user, String filename, ContentVersionDataSummary newVersion,
+									 boolean major,
+									 boolean empty) {
 		String version = major ? "1.0" : "0.1";
 
 		return createWithVersion(id, user, filename, newVersion, version, empty);
 	}
 
-	public static ContentImpl createWithVersion(String id, User user, String filename, ContentVersionDataSummary newVersion,
-			String version, boolean empty) {
+	public static ContentImpl createWithVersion(String id, User user, String filename,
+												ContentVersionDataSummary newVersion,
+												String version, boolean empty) {
 		version = validateVersion(version, null, false);
 		validateArgument("id", id);
 		validateUserArgument(user);
@@ -185,19 +186,18 @@ public class ContentImpl implements Content {
 
 	/**
 	 * http://stackoverflow.com/questions/6701948/efficient-way-to-compare-version-strings-in-java
-	 *
-	 * Compares two version strings. 
-	 *
-	 * Use this instead of String.compareTo() for a non-lexicographical 
+	 * <p>
+	 * Compares two version strings.
+	 * <p>
+	 * Use this instead of String.compareTo() for a non-lexicographical
 	 * comparison that works for version strings. e.g. "1.10".compareTo("1.6").
 	 *
-	 * @note It does not work if "1.10" is supposed to be equal to "1.10.0".
-	 *
-	 * @param str1 a string of ordinal numbers separated by decimal points. 
+	 * @param str1 a string of ordinal numbers separated by decimal points.
 	 * @param str2 a string of ordinal numbers separated by decimal points.
-	 * @return The result is a negative integer if str1 is _numerically_ less than str2. 
-	 *         The result is a positive integer if str1 is _numerically_ greater than str2. 
-	 *         The result is zero if the strings are _numerically_ equal.
+	 * @return The result is a negative integer if str1 is _numerically_ less than str2.
+	 * The result is a positive integer if str1 is _numerically_ greater than str2.
+	 * The result is zero if the strings are _numerically_ equal.
+	 * @note It does not work if "1.10" is supposed to be equal to "1.10.0".
 	 */
 	public static Integer versionCompare(String str1, String str2) {
 		String[] vals1 = str1.split("\\.");
@@ -275,7 +275,8 @@ public class ContentImpl implements Content {
 		return this;
 	}
 
-	public ContentImpl checkInWithModificationAndName(ContentVersionDataSummary newVersion, boolean finalize, String name) {
+	public ContentImpl checkInWithModificationAndName(ContentVersionDataSummary newVersion, boolean finalize,
+													  String name) {
 		String nextVersion;
 
 		if (emptyVersion) {
@@ -288,7 +289,7 @@ public class ContentImpl implements Content {
 	}
 
 	private ContentImpl checkInWithModificationAndNameAndVersion(ContentVersionDataSummary newVersion, boolean finalize,
-			String name, String nextVersion) {
+																 String name, String nextVersion) {
 		ensureCheckedOut();
 		valdiateNewVersionArgument(newVersion);
 		LocalDateTime now = TimeProvider.getLocalDateTime();
@@ -411,7 +412,8 @@ public class ContentImpl implements Content {
 		return null;
 	}
 
-	public Content updateContentWithName(User user, ContentVersionDataSummary newVersion, boolean finalize, String name) {
+	public Content updateContentWithName(User user, ContentVersionDataSummary newVersion, boolean finalize,
+										 String name) {
 		String version;
 		if (emptyVersion) {
 			version = finalize ? "1.0" : "0.1";
@@ -422,7 +424,8 @@ public class ContentImpl implements Content {
 	}
 
 	@Override
-	public Content updateContentWithVersionAndName(User user, ContentVersionDataSummary newVersion, String version, String name) {
+	public Content updateContentWithVersionAndName(User user, ContentVersionDataSummary newVersion, String version,
+												   String name) {
 		ensureNotCheckedOut();
 		version = validateVersion(version, currentVersion.getVersion(), isEmptyVersion());
 		validateUserArgument(user);
@@ -494,14 +497,14 @@ public class ContentImpl implements Content {
 		return updateVersion(false);
 	}
 
-	public void changeHashCodesOfAllVersions(){
+	public void changeHashCodesOfAllVersions() {
 		List<ContentVersion> listOfContentVersion = new ArrayList<>();
 		if (currentCheckedOutVersion != null) {
 			currentCheckedOutVersion = changeHashOf(currentCheckedOutVersion);
 		}
 		ensureHistoryIsLoaded();
-		if(history != null){
-			for (ContentVersion version : history){
+		if (history != null) {
+			for (ContentVersion version : history) {
 				listOfContentVersion.add(changeHashOf(version));
 			}
 			history = listOfContentVersion;
@@ -509,17 +512,17 @@ public class ContentImpl implements Content {
 		currentVersion = changeHashOf(currentVersion);
 	}
 
-	private ContentVersion changeHashOf(ContentVersion version){
-		if(!isDirty()){
-			if(version.getHash().contains("+") || version.getHash().contains("/")){
+	private ContentVersion changeHashOf(ContentVersion version) {
+		if (!isDirty()) {
+			if (version.getHash().contains("+") || version.getHash().contains("/")) {
 				dirty = true;
 			}
 		}
-		String newHash = version.getHash().replace("+","-").replace("/","_");
+		String newHash = version.getHash().replace("+", "-").replace("/", "_");
 		ContentVersionDataSummary contentVersionDataSummary =
-				new ContentVersionDataSummary(newHash,version.getMimetype(),version.getLength());
-		return new ContentVersion(contentVersionDataSummary,version.getFilename(),
-				version.getVersion(),version.getModifiedBy(),version.getLastModificationDateTime(),version.getComment());
+				new ContentVersionDataSummary(newHash, version.getMimetype(), version.getLength());
+		return new ContentVersion(contentVersionDataSummary, version.getFilename(),
+				version.getVersion(), version.getModifiedBy(), version.getLastModificationDateTime(), version.getComment());
 	}
 
 	private ContentImpl updateVersion(boolean toMajorVersion) {

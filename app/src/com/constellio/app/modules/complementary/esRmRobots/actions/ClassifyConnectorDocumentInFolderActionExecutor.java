@@ -1,17 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.actions;
 
-import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.DELETE_DOCUMENTS_ON_ORIGINAL_SYSTEM;
-import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.EXCLUDE_DOCUMENTS;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorDocumentInFolderActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.services.SmbClassifyServices;
 import com.constellio.app.modules.es.connectors.ConnectorServicesFactory;
@@ -28,6 +16,17 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServicesException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.DELETE_DOCUMENTS_ON_ORIGINAL_SYSTEM;
+import static com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification.EXCLUDE_DOCUMENTS;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 public class ClassifyConnectorDocumentInFolderActionExecutor implements ActionExecutor {
 
@@ -45,7 +44,7 @@ public class ClassifyConnectorDocumentInFolderActionExecutor implements ActionEx
 
 	@Override
 	public Transaction execute(String robotId, ActionParameters actionParameters, AppLayerFactory appLayerFactory,
-			List<Record> records, List<Record> processedRecords, boolean dryRun) {
+							   List<Record> records, List<Record> processedRecords, boolean dryRun) {
 		String collection = actionParameters.getCollection();
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		RobotSchemaRecordServices robots = new RobotSchemaRecordServices(collection, appLayerFactory);
@@ -73,7 +72,7 @@ public class ClassifyConnectorDocumentInFolderActionExecutor implements ActionEx
 							.addExcludedUrlsTo(newUrlsToExclude, es.getConnectorInstance(connectorDocument.getConnector()));
 
 				} else if (params.getActionAfterClassification() == DELETE_DOCUMENTS_ON_ORIGINAL_SYSTEM
-						&& isNotBlank(classifiedDocumentId)) {
+						   && isNotBlank(classifiedDocumentId)) {
 					connectorServices(appLayerFactory, connectorDocument).deleteDocumentOnRemoteComponent(connectorDocument);
 
 				}

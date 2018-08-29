@@ -1,14 +1,13 @@
 package com.constellio.app.ui.pages.smokeTests;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
+
+import java.util.List;
 
 public class NavigatePage extends PageHelper {
 

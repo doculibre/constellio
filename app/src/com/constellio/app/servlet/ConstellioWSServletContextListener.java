@@ -9,40 +9,40 @@ import javax.servlet.ServletContextListener;
 
 public class ConstellioWSServletContextListener implements ServletContextAttributeListener, ServletContextListener {
 
-//	WSServletContextListener nestedListener = new WSServletContextListener();
+	//	WSServletContextListener nestedListener = new WSServletContextListener();
 
 	@Override
 	public void attributeAdded(ServletContextAttributeEvent event) {
 		if (isEnabled()) {
-//			nestedListener.attributeAdded(event);
+			//			nestedListener.attributeAdded(event);
 		}
 	}
 
 	@Override
 	public void attributeRemoved(ServletContextAttributeEvent event) {
 		if (isEnabled()) {
-//			nestedListener.attributeRemoved(event);
+			//			nestedListener.attributeRemoved(event);
 		}
 	}
 
 	@Override
 	public void attributeReplaced(ServletContextAttributeEvent event) {
 		if (isEnabled()) {
-//			nestedListener.attributeReplaced(event);
+			//			nestedListener.attributeReplaced(event);
 		}
 	}
 
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
 		if (isEnabled()) {
-//			nestedListener.contextDestroyed(event);
+			//			nestedListener.contextDestroyed(event);
 		}
 	}
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
 		if (isEnabled()) {
-//			nestedListener.contextInitialized(event);
+			//			nestedListener.contextInitialized(event);
 		}
 	}
 

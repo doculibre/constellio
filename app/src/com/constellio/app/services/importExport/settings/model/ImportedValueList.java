@@ -1,16 +1,15 @@
 package com.constellio.app.services.importExport.settings.model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class ImportedValueList {
 
@@ -20,7 +19,7 @@ public class ImportedValueList {
 
 	List<String> classifiedTypes = new ArrayList<>();
 
-	String title;
+	Map<Language, String> title;
 
 	Boolean hierarchical;
 
@@ -56,11 +55,11 @@ public class ImportedValueList {
 		return this;
 	}
 
-	public String getTitle() {
+	public Map<Language, String> getTitle() {
 		return title;
 	}
 
-	public ImportedValueList setTitle(String title) {
+	public ImportedValueList setTitle(Map<Language, String> title) {
 		this.title = title;
 		return this;
 	}

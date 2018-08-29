@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.SearchBoostVO;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -34,11 +28,16 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchBoostByMetadataViewImpl extends BaseViewImpl implements SearchBoostView {
-	
+
 	private static final String PROPERTY_BUTTONS = "buttons";
-	
+
 	private SearchBoostByMetadataPresenter presenter;
 	private VerticalLayout viewLayout;
 

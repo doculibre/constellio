@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.extractors;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.ui.entities.MetadataExtractorVO;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -13,6 +8,7 @@ import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.extractors.fields.ListAddRemoveRegexConfigField;
+import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -20,8 +16,14 @@ import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditMetadataExtractorViewImpl extends BaseViewImpl implements AddEditMetadataExtractorView {
 
@@ -53,6 +55,9 @@ public class AddEditMetadataExtractorViewImpl extends BaseViewImpl implements Ad
 	@PropertyId("regexes")
 	private ListAddRemoveRegexConfigField regexesField;
 
+	@PropertyId("isAddOnly")
+	private CheckBox isAddOnly;
+
 	private AddEditMetadataExtractorPresenter presenter;
 
 	public AddEditMetadataExtractorViewImpl() {
@@ -75,7 +80,7 @@ public class AddEditMetadataExtractorViewImpl extends BaseViewImpl implements Ad
 			@Override
 			public String getItemCaption(Object itemId) {
 				MetadataSchemaTypeVO schemaTypeVO = (MetadataSchemaTypeVO) itemId;
-				return schemaTypeVO.getLabel(getLocale());
+				return schemaTypeVO.getLabel(Language.withCode(getLocale().getLanguage()));
 			}
 		};
 		schemaTypeField.addItems(schemaTypeOptions);
@@ -137,9 +142,12 @@ public class AddEditMetadataExtractorViewImpl extends BaseViewImpl implements Ad
 		regexesField = new ListAddRemoveRegexConfigField();
 		regexesField.setCaption($("AddEditMetadataExtractorView.regexes"));
 
+		isAddOnly = new CheckBox();
+		isAddOnly.setCaption($("AddEditMetadataExtractorView.isAddOnly"));
+
 		baseForm = new BaseForm<MetadataExtractorVO>(metadataExtractorVO, this, schemaTypeField, schemaField,
 				metadataField,
-				stylesField, propertiesField, regexesField) {
+				stylesField, propertiesField, regexesField, isAddOnly) {
 			@Override
 			protected void saveButtonClick(MetadataExtractorVO viewObject)
 					throws ValidationException {

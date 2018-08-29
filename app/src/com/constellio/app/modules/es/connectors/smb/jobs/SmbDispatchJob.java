@@ -27,17 +27,17 @@ public class SmbDispatchJob extends SmbConnectorJob {
 
 		if (!(smbRetrievalJob instanceof SmbDeleteJob)) {
 			if (jobParams.getSmbUtils().isFolder(url)) {
-                List<String> childrenUrls = jobParams.getSmbShareService().getChildrenUrlsFor(url);
+				List<String> childrenUrls = jobParams.getSmbShareService().getChildrenUrlsFor(url);
 
-                for (String childUrl : childrenUrls) {
-                    if (jobParams.getSmbUtils().isFolder(childUrl)) {
-                        SmbConnectorJob smbChildFolderRetrievalJob = jobParams.getJobFactory().get(SmbJobCategory.DISPATCH, childUrl, url);
-                        connectorSmb.queueJob(smbChildFolderRetrievalJob);
-                    } else {
-                        SmbConnectorJob smbChildDocumentRetrievalJob = jobParams.getJobFactory().get(SmbJobCategory.RETRIEVAL, childUrl, url);
-                        connectorSmb.queueJob(smbChildDocumentRetrievalJob);
-                    }
-                }
+				for (String childUrl : childrenUrls) {
+					if (jobParams.getSmbUtils().isFolder(childUrl)) {
+						SmbConnectorJob smbChildFolderRetrievalJob = jobParams.getJobFactory().get(SmbJobCategory.DISPATCH, childUrl, url);
+						connectorSmb.queueJob(smbChildFolderRetrievalJob);
+					} else {
+						SmbConnectorJob smbChildDocumentRetrievalJob = jobParams.getJobFactory().get(SmbJobCategory.RETRIEVAL, childUrl, url);
+						connectorSmb.queueJob(smbChildDocumentRetrievalJob);
+					}
+				}
 			}
 		}
 

@@ -1,20 +1,19 @@
 package com.constellio.app.modules.tasks.ui.components.converters;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Locale;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
 import com.constellio.app.ui.framework.components.converters.JodaDateToStringConverter;
 import com.vaadin.data.util.converter.Converter;
+import org.joda.time.LocalDate;
+
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaskReminderVOToStringConverter implements Converter<String, TaskReminderVO> {
-	
+
 	private JodaDateToStringConverter jodaDateToStringConverter = new JodaDateToStringConverter();
-	
+
 	@Override
 	public TaskReminderVO convertToModel(String value, Class<? extends TaskReminderVO> targetType, Locale locale)
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
@@ -30,7 +29,7 @@ public class TaskReminderVOToStringConverter implements Converter<String, TaskRe
 			String relativeDateMetadataCode = value.getRelativeDateMetadataCode();
 			int numberOfDaysToRelativeDate = value.getNumberOfDaysToRelativeDate();
 			Boolean beforeRelativeDate = value.getBeforeRelativeDate();
-			
+
 			if (fixedDate != null) {
 				presentation = jodaDateToStringConverter.convertToPresentation(fixedDate, String.class, locale);
 			} else {

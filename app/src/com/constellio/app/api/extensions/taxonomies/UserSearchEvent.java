@@ -6,7 +6,6 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
-
 import org.joda.time.LocalDateTime;
 
 import java.util.List;
@@ -29,7 +28,7 @@ public class UserSearchEvent {
 	private String username;
 
 	public UserSearchEvent(SPEQueryResponse speQueryResponse, LogicalSearchQuery query, SavedSearch savedSearch,
-			LocalDateTime queryDateTime, String language, String username) {
+						   LocalDateTime queryDateTime, String language, String username) {
 		this.speQueryResponse = speQueryResponse;
 		this.query = query;
 		this.savedSearch = savedSearch;
@@ -75,7 +74,7 @@ public class UserSearchEvent {
 	}
 
 	public String getSolrQuery() {
-		return query.getCondition().getSolrQuery(new SolrQueryBuilderParams(true, language));
+		return query.getCondition().getSolrQuery(new SolrQueryBuilderParams(true, language, null));
 	}
 
 	public List<Criterion> getCriterionList() {

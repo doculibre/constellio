@@ -57,6 +57,16 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class SearchResultSimpleTable extends SelectionTableAdapter implements SearchResultTable {
 
 	public static final String TABLE_STYLE = "search-result-table";
@@ -91,7 +101,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 								@Override
 								public void layoutClick(LayoutClickEvent event) {
 									if (!(event.getSource() instanceof MenuBar)) {
-										Collection<?> itemClickListeners = getListeners(ItemClickEvent.class); 
+										Collection<?> itemClickListeners = getListeners(ItemClickEvent.class);
 										MouseEventDetails mouseEventDetails = new MouseEventDetails();
 										mouseEventDetails.setButton(event.getButton());
 										mouseEventDetails.setClientX(event.getClientX());
@@ -106,7 +116,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 									}
 								}
 							});
-							
+
 							List<Button> buttons = ComponentTreeUtils.getChildren(layout, Button.class);
 							for (Button button : buttons) {
 								button.addClickListener(new Button.ClickListener() {
@@ -118,7 +128,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 										mouseEventDetails.setClientY(event.getClientY());
 										mouseEventDetails.setRelativeX(event.getRelativeX());
 										mouseEventDetails.setRelativeY(event.getRelativeY());
-										
+
 										Item item = getItem(itemId);
 										Collection<?> itemClickListeners = getListeners(ItemClickEvent.class);
 										for (Object itemClickListenerObj : itemClickListeners) {
@@ -129,7 +139,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 								});
 							}
 							property = new ObjectProperty<>(layout);
-						} 
+						}
 					} else if (SearchResultContainer.THUMBNAIL_PROPERTY.equals(propertyId)) {
 						Object propertyValue = property.getValue();
 						if (propertyValue instanceof Image) {
@@ -137,7 +147,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 							image.addClickListener(new ClickListener() {
 								@Override
 								public void click(ClickEvent event) {
-									Collection<?> itemClickListeners = getListeners(ItemClickEvent.class); 
+									Collection<?> itemClickListeners = getListeners(ItemClickEvent.class);
 									MouseEventDetails mouseEventDetails = new MouseEventDetails();
 									mouseEventDetails.setButton(event.getButton());
 									mouseEventDetails.setClientX(event.getClientX());
@@ -162,7 +172,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		adaptee.addStyleName("search-result-table");
 		adaptee.setColumnCollapsingAllowed(true);
 		adaptee.setColumnReorderingAllowed(true);
-		
+
 		if (!Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
 			adaptee.addItemClickListener(new ItemClickListener() {
 				@Override
@@ -205,10 +215,10 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 
 		setTable(adaptee);
 		getToggleButton().setVisible(false);
-		
+
 		adaptee.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 	}
-	
+
 	private RecordVO getRecordVO(int itemId) {
 		RecordVO recordVO;
 		if (recordVOContainer instanceof RecordVOLazyContainer) {
@@ -218,7 +228,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		}
 		return recordVO;
 	}
-	
+
 	private String getLastCallQTime() {
 		String lastCallQTime;
 		if (recordVOContainer instanceof RecordVOLazyContainer) {
@@ -235,7 +245,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public List<String> getSelectedRecordIds() {
 		List<String> result = new ArrayList<>();
 		for (Object itemId : selectedItemIds) {
-//			RecordVO record = getRecordVO((int) itemId);
+			//			RecordVO record = getRecordVO((int) itemId);
 			result.add((String) itemId);
 		}
 		return result;
@@ -244,7 +254,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	public List<String> getUnselectedRecordIds() {
 		List<String> result = new ArrayList<>();
 		for (Object itemId : deselectedItemIds) {
-//			RecordVO record = getRecordVO((int) itemId);
+			//			RecordVO record = getRecordVO((int) itemId);
 			result.add((String) itemId);
 		}
 		return result;
@@ -305,7 +315,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 				boolean somethingSelected = event.isSelectAll() || !event.getSelected().isEmpty();
 				for (Component component : extra) {
 					if (component instanceof BatchProcessingButton
-							|| component instanceof BatchProcessingModifyingOneMetadataButton) {
+						|| component instanceof BatchProcessingModifyingOneMetadataButton) {
 						component.setEnabled(recordVOContainer != null && recordVOContainer.size() > 0);
 					} else {
 						component.setEnabled(somethingSelected);
@@ -333,7 +343,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		private final boolean selectAll;
 
 		public SelectionChangeEvent(SearchResultSimpleTable table, Set<Object> selected, Set<Object> deselected,
-				boolean selectAll) {
+									boolean selectAll) {
 			this.table = table;
 			this.selected = selected;
 			this.deselected = deselected;

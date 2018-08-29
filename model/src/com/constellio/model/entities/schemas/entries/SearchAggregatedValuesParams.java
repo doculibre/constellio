@@ -1,12 +1,12 @@
 package com.constellio.model.entities.schemas.entries;
 
-import java.util.List;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.List;
 
 public class SearchAggregatedValuesParams {
 	LogicalSearchQuery query;
@@ -17,7 +17,8 @@ public class SearchAggregatedValuesParams {
 	SearchServices searchServices;
 
 	public SearchAggregatedValuesParams(LogicalSearchQuery query, RecordImpl record, Metadata metadata,
-			AggregatedDataEntry aggregatedDataEntry, MetadataSchemaTypes types, SearchServices searchServices) {
+										AggregatedDataEntry aggregatedDataEntry, MetadataSchemaTypes types,
+										SearchServices searchServices) {
 		this.query = query;
 		this.record = record;
 		this.metadata = metadata;

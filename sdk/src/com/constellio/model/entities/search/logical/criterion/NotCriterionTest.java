@@ -1,16 +1,5 @@
 package com.constellio.model.entities.search.logical.criterion;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.endingWithText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.not;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.Mockito.when;
-
-import org.mockito.Mock;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -19,6 +8,16 @@ import com.constellio.model.services.search.query.logical.condition.CompositeLog
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
+import org.mockito.Mock;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.endingWithText;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.not;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.willReturn;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by maxime on 8/11/14.
@@ -32,7 +31,7 @@ public class NotCriterionTest extends com.constellio.sdk.tests.ConstellioTest {
 	private java.util.List<LogicalSearchCondition> firstConditions;
 	private java.util.List<LogicalSearchCondition> secondConditions;
 
-	private SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null);
+	private SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, null, null);
 
 	@org.junit.Before
 	public void setUp() {

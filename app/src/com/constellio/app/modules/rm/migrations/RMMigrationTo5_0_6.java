@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode.REQUIRED_AND_UNIQUE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -23,7 +16,6 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -35,6 +27,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.metadatas.IntegerStringValidator;
 
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static java.util.Arrays.asList;
+
 public class RMMigrationTo5_0_6 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -43,7 +41,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
@@ -93,11 +91,6 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 				.beforeTheHugeCommentMetadata();
 
 		transactionBuilder
-				.in(User.SCHEMA_TYPE)
-				.addToDisplay(User.ALL_ROLES)
-				.atTheEnd();
-
-		transactionBuilder
 				.in(VariableRetentionPeriod.SCHEMA_TYPE)
 				.addToSearchResult(VariableRetentionPeriod.CODE)
 				.atFirstPosition();
@@ -115,12 +108,12 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 	}
 
 	private void addVariablePeriod888And999(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+											AppLayerFactory appLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		VariableRetentionPeriod period888 = rm.newVariableRetentionPeriod().setCode("888")
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod888"));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod888"));
 		VariableRetentionPeriod period999 = rm.newVariableRetentionPeriod().setCode("999")
-				.setTitle(migrationResourcesProvider.getDefaultLanguageString("init.variablePeriod999"));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.variablePeriod999"));
 		try {
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(new Transaction().addAll(period888, period999));
 		} catch (RecordServicesException e) {
@@ -133,7 +126,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 		MetadataSchemaTypes types;
 
 		protected SchemaAlterationFor5_0_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 			types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 		}
@@ -144,6 +137,8 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			List<String> language = appLayerFactory.getCollectionsManager().getCollectionLanguages(collection);
+
 			//Folder
 			MetadataSchemaBuilder folderSchema = typesBuilder.getSchema(Folder.DEFAULT_SCHEMA);
 			folderSchema.createUndeletable(Folder.LINEAR_SIZE).setType(MetadataValueType.NUMBER).setEssential(true);
@@ -159,7 +154,7 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 					.setType(MetadataValueType.NUMBER);
 
 			ValueListItemSchemaTypeBuilder builder = new ValueListItemSchemaTypeBuilder(typesBuilder);
-			builder.createValueListItemSchema(VariableRetentionPeriod.SCHEMA_TYPE, (String) null,
+			builder.createValueListItemSchema(VariableRetentionPeriod.SCHEMA_TYPE, null,
 					ValueListItemSchemaTypeBuilderOptions.codeMetadataRequiredAndUnique());
 
 			typesBuilder.getSchema(VariableRetentionPeriod.DEFAULT_SCHEMA)
@@ -171,7 +166,8 @@ public class RMMigrationTo5_0_6 implements MigrationScript {
 			userDocumentSchema.create("folder").defineReferencesTo(typesBuilder.getSchema(Folder.DEFAULT_SCHEMA));
 		}
 
-		private void modifyTextContentStructureAndUSRMetadatasToDontWriteNullValues(MetadataSchemaTypesBuilder typesBuilder) {
+		private void modifyTextContentStructureAndUSRMetadatasToDontWriteNullValues(
+				MetadataSchemaTypesBuilder typesBuilder) {
 			List<MetadataValueType> typesWithoutNullValues = asList(STRUCTURE, TEXT);
 			for (MetadataSchemaTypeBuilder typeBuilder : typesBuilder.getTypes()) {
 				for (MetadataBuilder metadata : typeBuilder.getAllMetadatas()) {

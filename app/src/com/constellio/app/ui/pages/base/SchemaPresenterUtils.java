@@ -1,18 +1,7 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.model.entities.records.*;
-import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.ContentVersionVO.InputStreamProvider;
@@ -24,6 +13,11 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -39,10 +33,19 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 public class SchemaPresenterUtils extends BasePresenterUtils {
 
@@ -54,10 +57,11 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 
 	RMConfigs rmConfigs;
 
-	public SchemaPresenterUtils(String schemaCode, ConstellioFactories constellioFactories, SessionContext sessionContext) {
+	public SchemaPresenterUtils(String schemaCode, ConstellioFactories constellioFactories,
+								SessionContext sessionContext) {
 		super(constellioFactories, sessionContext);
 		this.schemaCode = schemaCode;
-		this.rmConfigs = new RMConfigs(modelLayerFactory().getSystemConfigurationsManager()) ;
+		this.rmConfigs = new RMConfigs(modelLayerFactory().getSystemConfigurationsManager());
 	}
 
 	@Deprecated
@@ -108,12 +112,13 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		return addOrUpdate(record, user, recordFlushing, null);
 	}
 
-	public final List<BatchProcess> addOrUpdate(Record record, User user, RecordsFlushing recordFlushing, RecordUpdateOptions updateOptions) {
+	public final List<BatchProcess> addOrUpdate(Record record, User user, RecordsFlushing recordFlushing,
+												RecordUpdateOptions updateOptions) {
 		Transaction createTransaction = new Transaction();
 		createTransaction.setUser(user);
 		createTransaction.setToReindexAll();
 		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.TRY_MERGE);
-		if(updateOptions != null) {
+		if (updateOptions != null) {
 			createTransaction.setOptions(updateOptions);
 		}
 		createTransaction.addUpdate(record);
@@ -244,7 +249,12 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 
 			boolean systemReserved = metadata.isSystemReserved() && !metadata.hasSameCode(Schemas.LEGACY_ID);
 			if (!systemReserved && metadata.isEnabled() && metadata.getDataEntry().getType() == DataEntryType.MANUAL) {
-				Object metadataValue = record.get(metadata);
+				Object metadataValue;
+				if (metadataVO.isMultiLingual() && metadataVO.getLocale() != null) {
+					metadataValue = record.get(metadata, metadataVO.getLocale());
+				} else {
+					metadataValue = record.get(metadata);
+				}
 				Object metadataVOValue = metadataValueVO.getValue();
 				if (metadataVOValue instanceof RecordVO) {
 					metadataVOValue = ((RecordVO) metadataVOValue).getId();
@@ -296,7 +306,11 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 					valueDifferent = !metadataValueVO.equals(metadataValue);
 				}
 				if (valueDifferent) {
-					record.set(metadata, metadataVOValue);
+					if (metadataVO.isMultiLingual() && metadataVO.getLocale() != null) {
+						metadataValue = record.set(metadata, metadataVO.getLocale(), metadataVOValue);
+					} else {
+						metadataValue = record.set(metadata, metadataVOValue);
+					}
 				}
 			}
 		}
@@ -321,7 +335,8 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 		return toContent(recordVO, metadataVO, contentVersionVO, false);
 	}
 
-	public Content toContent(RecordVO recordVO, MetadataVO metadataVO, ContentVersionVO contentVersionVO, boolean newMinorEmpty) {
+	public Content toContent(RecordVO recordVO, MetadataVO metadataVO, ContentVersionVO contentVersionVO,
+							 boolean newMinorEmpty) {
 		Content content;
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();

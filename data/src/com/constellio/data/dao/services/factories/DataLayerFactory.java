@@ -1,21 +1,5 @@
 package com.constellio.data.dao.services.factories;
 
-import static com.constellio.data.conf.ElectionServiceType.IGNITE;
-import static com.constellio.data.conf.ElectionServiceType.ZOOKEEPER;
-import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.ignite.Ignite;
-import com.constellio.data.service.background.DataLayerBackgroundThreadsManager;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-
 import com.constellio.data.conf.CacheType;
 import com.constellio.data.conf.ConfigManagerType;
 import com.constellio.data.conf.ContentDaoType;
@@ -75,10 +59,25 @@ import com.constellio.data.extensions.DataLayerExtensions;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.service.background.DataLayerBackgroundThreadsManager;
 import com.constellio.data.test.FaultInjectorSolrServerFactory;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.threads.ConstellioJobManager;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.ignite.Ignite;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import static com.constellio.data.conf.ElectionServiceType.IGNITE;
+import static com.constellio.data.conf.ElectionServiceType.ZOOKEEPER;
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.ONLY_SENT_REMOTELY;
 
 public class DataLayerFactory extends LayerFactoryImpl {
 
@@ -111,12 +110,15 @@ public class DataLayerFactory extends LayerFactoryImpl {
 	private static DataLayerFactory lastCreatedInstance;
 	private final LeaderElectionManager leaderElectionManager;
 
-	private Ignite igniteClient;
-	private CuratorFramework curatorFramework;
 	private DataLayerBackgroundThreadsManager dataLayerBackgroundThreadsManager;
 
+	private Ignite igniteClient;
+	private CuratorFramework curatorFramework;
+
+
 	public DataLayerFactory(IOServicesFactory ioServicesFactory, DataLayerConfiguration dataLayerConfiguration,
-			StatefullServiceDecorator statefullServiceDecorator, String instanceName, String warVersion) {
+							StatefullServiceDecorator statefullServiceDecorator, String instanceName,
+							String warVersion) {
 
 		super(statefullServiceDecorator, instanceName);
 

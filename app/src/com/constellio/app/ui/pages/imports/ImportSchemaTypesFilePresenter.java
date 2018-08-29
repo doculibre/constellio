@@ -1,12 +1,12 @@
 package com.constellio.app.ui.pages.imports;
 
-import java.io.File;
-
 import com.constellio.app.services.schemas.bulkImport.SchemaTypeImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.ImportServices;
 import com.constellio.app.services.schemas.bulkImport.data.xml.XMLImportSchemaTypesDataProvider;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.io.File;
 
 public class ImportSchemaTypesFilePresenter extends ImportFilePresenter {
 
@@ -20,8 +20,9 @@ public class ImportSchemaTypesFilePresenter extends ImportFilePresenter {
 	}
 
 	@Override
-	protected ImportDataProvider getXMLImportDataProviderForSingleXMLFile(ModelLayerFactory modelLayerFactory, File file,
-			String fileName) {
+	protected ImportDataProvider getXMLImportDataProviderForSingleXMLFile(ModelLayerFactory modelLayerFactory,
+																		  File file,
+																		  String fileName) {
 		return XMLImportSchemaTypesDataProvider.forSingleXMLFile(modelLayerFactory, file, fileName);
 	}
 

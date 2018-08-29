@@ -1,20 +1,19 @@
 package com.constellio.model.entities.security;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_RoleRequired;
+import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_SameCollectionRequired;
+import com.constellio.model.entities.security.global.AuthorizationDetails;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
 
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_RoleRequired;
-import com.constellio.model.entities.security.AuthorizationDetailsRuntimeException.AuthorizationDetailsRuntimeException_SameCollectionRequired;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class XMLAuthorizationDetails implements AuthorizationDetails {
 
@@ -30,8 +29,9 @@ public class XMLAuthorizationDetails implements AuthorizationDetails {
 
 	private final boolean synced;
 
-	public XMLAuthorizationDetails(String collection, String id, List<String> roles, LocalDate startDate, LocalDate endDate,
-			boolean synced) {
+	public XMLAuthorizationDetails(String collection, String id, List<String> roles, LocalDate startDate,
+								   LocalDate endDate,
+								   boolean synced) {
 		this.collection = collection;
 		this.id = id;
 		this.roles = Collections.unmodifiableList(roles);
@@ -49,12 +49,12 @@ public class XMLAuthorizationDetails implements AuthorizationDetails {
 	}
 
 	public static XMLAuthorizationDetails create(String id, List<String> roles, LocalDate startDate, LocalDate endDate,
-			String zeCollection) {
+												 String zeCollection) {
 		return create(id, roles, startDate, endDate, zeCollection, false);
 	}
 
 	public static XMLAuthorizationDetails create(String id, List<String> roles, LocalDate startDate, LocalDate endDate,
-			String zeCollection, boolean synced) {
+												 String zeCollection, boolean synced) {
 
 		if (roles.isEmpty()) {
 			throw new AuthorizationDetailsRuntimeException_RoleRequired();

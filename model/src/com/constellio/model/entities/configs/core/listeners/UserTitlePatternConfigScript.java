@@ -20,6 +20,7 @@ public class UserTitlePatternConfigScript implements SystemConfigurationScript<S
 	}
 
 	@Override
-	public void onValueChanged(String previousValue, String newValue, ModelLayerFactory modelLayerFactory, String collection) {
+	public void onValueChanged(String previousValue, String newValue, ModelLayerFactory modelLayerFactory,
+							   String collection) {
 	}
 }

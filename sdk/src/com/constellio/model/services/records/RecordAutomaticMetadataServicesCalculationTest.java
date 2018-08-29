@@ -1,34 +1,12 @@
 package com.constellio.model.services.records;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
@@ -48,6 +26,30 @@ import com.constellio.sdk.tests.schemas.DaysBetweenMultivalueLocalDateAndAnother
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTest {
 
@@ -202,12 +204,12 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		doReturn(false).when(services)
 				.addValuesFromDependencies(eq(context), any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
 						any(MetadataValueCalculator.class), any(Map.class), any(MetadataSchemaTypes.class),
-						any(Transaction.class));
+						any(Transaction.class), any(Locale.class), any(LocalisedRecordMetadataRetrieval.class));
 
 		services.calculateValueInRecord(context, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
 				zeTransaction);
 
-		verify(record).updateAutomaticValue(zeSchema.calculatedDaysBetween(), -1.0);
+		verify(record).updateAutomaticValue(zeSchema.calculatedDaysBetween(), -1.0, Locale.FRENCH);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -216,34 +218,40 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		doReturn(true).when(services)
 				.addValuesFromDependencies(eq(context), any(RecordImpl.class), any(Metadata.class), any(RecordProvider.class),
 						any(MetadataValueCalculator.class), any(Map.class), any(MetadataSchemaTypes.class),
-						any(Transaction.class));
+						any(Transaction.class), any(Locale.class), any(LocalisedRecordMetadataRetrieval.class));
 		doReturn(calculator).when(services).getCalculatorFrom(any(Metadata.class));
 
 		services.calculateValueInRecord(context, record, zeSchema.calculatedDaysBetween(), recordProvider, schemas.getTypes(),
 				zeTransaction);
 
-		verify(record).updateAutomaticValue(eq(zeSchema.calculatedDaysBetween()), anyObject());
+		verify(record).updateAutomaticValue(eq(zeSchema.calculatedDaysBetween()), anyObject(), any(Locale.class));
 		verify(calculator).calculate(any(CalculatorParameters.class));
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	@Test
 	public void givenTwoLocalAndOneReferenceDependenciesWhenGetValuesFromDependenciesThenAllValueRetrieved() {
-		doReturn(true).when(services).addValueForLocalDependency(any(RecordImpl.class), any(Map.class), any(Dependency.class));
+		doReturn(true).when(services)
+				.addValueForLocalDependency(any(RecordImpl.class), any(Map.class), any(Dependency.class), any(Locale.class),
+						any(LocalisedRecordMetadataRetrieval.class));
 		doReturn(true).when(services).addValueForReferenceDependency(any(RecordImpl.class), any(RecordProvider.class),
-				any(Map.class), any(ReferenceDependency.class), any(RecordUpdateOptions.class));
+				any(Map.class), any(ReferenceDependency.class), any(RecordUpdateOptions.class), any(Locale.class),
+				any(LocalisedRecordMetadataRetrieval.class));
 		Map aMap = mock(Map.class);
 		services.addValuesFromDependencies(context, record, mock(Metadata.class), recordProvider, calculator, aMap,
 				schemas.getTypes(),
-				zeTransaction);
+				zeTransaction, Locale.FRENCH, LocalisedRecordMetadataRetrieval.PREFERRING);
 
-		verify(services).addValueForLocalDependency(eq(record), eq(aMap), eq(aLocalDependency));
-		verify(services).addValueForLocalDependency(eq(record), eq(aMap), eq(anotherLocalDependency));
+		verify(services).addValueForLocalDependency(eq(record), eq(aMap), eq(aLocalDependency), any(Locale.class),
+				any(LocalisedRecordMetadataRetrieval.class));
+		verify(services).addValueForLocalDependency(eq(record), eq(aMap), eq(anotherLocalDependency), any(Locale.class),
+				any(LocalisedRecordMetadataRetrieval.class));
 		verify(services)
-				.addValueForReferenceDependency(eq(record), eq(recordProvider), eq(aMap), eq(aReferenceDependency), eq(options));
+				.addValueForReferenceDependency(eq(record), eq(recordProvider), eq(aMap), eq(aReferenceDependency), eq(options),
+						any(Locale.class), any(LocalisedRecordMetadataRetrieval.class));
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	public void givenLocalDependencyRequiredButNullWhenGettingValueThenReturnTrueAndDontAddValue() {
 		Map aMap = mock(Map.class);
@@ -252,24 +260,27 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		doReturn(aMetadata).when(services).getMetadataFromDependency(any(RecordImpl.class), any(Dependency.class));
 		doReturn(null).when(record).get(any(Metadata.class));
 
-		assertThat(services.addValueForLocalDependency(record, aMap, aLocalDependency)).isFalse();
+		assertThat(services.addValueForLocalDependency(record, aMap, aLocalDependency, Locale.FRENCH,
+				LocalisedRecordMetadataRetrieval.PREFERRING)).isFalse();
 		verify(aMap, never()).put(any(Dependency.class), anyObject());
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	public void givenLocalDependencyRequiredAndNotNullWhenGettingValueThenReturnTrueAndAddValue() {
 		Map aMap = mock(Map.class);
 		Metadata aMetadata = mock(Metadata.class);
 		when(aLocalDependency.isRequired()).thenReturn(true);
 		doReturn(aMetadata).when(services).getMetadataFromDependency(any(RecordImpl.class), any(Dependency.class));
-		doReturn("aValue").when(record).get(any(Metadata.class));
+		doReturn("aValue").when(record)
+				.get(any(Metadata.class), eq(Locale.KOREA), eq(LocalisedRecordMetadataRetrieval.PREFERRING));
 
-		assertThat(services.addValueForLocalDependency(record, aMap, aLocalDependency)).isTrue();
+		assertThat(services.addValueForLocalDependency(record, aMap, aLocalDependency, Locale.KOREA,
+				LocalisedRecordMetadataRetrieval.PREFERRING)).isTrue();
 		verify(aMap).put(aLocalDependency, "aValue");
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	public void givenReferenceDependencyRequiredButNullWhenGettingValueThenReturnTrueAndDontAddValue() {
 		Map aMap = mock(Map.class);
@@ -282,12 +293,13 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		doReturn("otherRecordId").when(record).get(aReferenceMetadata);
 		when(recordProvider.getRecord("otherRecordId")).thenReturn(otherRecord);
 
-		assertThat(services.addValueForReferenceDependency(record, recordProvider, aMap, aReferenceDependency, options))
+		assertThat(services.addValueForReferenceDependency(record, recordProvider, aMap, aReferenceDependency, options,
+				Locale.FRENCH, STRICT))
 				.isFalse();
 		verify(aMap, never()).put(any(Dependency.class), anyObject());
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Test
 	public void givenReferenceDependencyRequiredAndNotNullWhenGettingValueThenReturnTrueAndAddValue() {
 		Map aMap = mock(Map.class);
@@ -297,15 +309,16 @@ public class RecordAutomaticMetadataServicesCalculationTest extends ConstellioTe
 		doReturn(aReferenceMetadata).when(services).getMetadataFromDependency(record, aReferenceDependency);
 		doReturn(theReferencedMetadata).when(services).getDependentMetadataFromDependency(any(ReferenceDependency.class),
 				eq(otherRecord));
-		doReturn("otherRecordId").when(record).get(aReferenceMetadata);
+		doReturn("otherRecordId").when(record).get(aReferenceMetadata, Locale.FRENCH, STRICT);
 		when(recordProvider.getRecord("otherRecordId")).thenReturn(otherRecord);
-		doReturn("aValue").when(otherRecord).get(theReferencedMetadata);
+		doReturn("aValue").when(otherRecord).get(theReferencedMetadata, Locale.FRENCH, STRICT);
 
-		assertThat(services.addValueForReferenceDependency(record, recordProvider, aMap, aReferenceDependency, options)).isTrue();
+		assertThat(services.addValueForReferenceDependency(record, recordProvider, aMap, aReferenceDependency, options,
+				Locale.FRENCH, STRICT)).isTrue();
 		verify(aMap).put(aReferenceDependency, "aValue");
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private void configureCalculatorDependencies() {
 		dependencies = new ArrayList();
 		dependencies.add(aLocalDependency);

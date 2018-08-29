@@ -1,53 +1,5 @@
 package com.constellio.model.services.search;
 
-import static com.constellio.data.dao.services.records.DataStore.EVENTS;
-import static com.constellio.data.dao.services.records.DataStore.RECORDS;
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
-import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.search.entities.SearchBoost.createRegexBoost;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollectionInDataStore;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.ids;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransiency;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsing;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
-
-import org.apache.solr.common.params.SolrParams;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
@@ -83,6 +35,53 @@ import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
+import org.apache.solr.common.params.SolrParams;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Random;
+import java.util.Set;
+
+import static com.constellio.data.dao.services.records.DataStore.EVENTS;
+import static com.constellio.data.dao.services.records.DataStore.RECORDS;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
+import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.search.entities.SearchBoost.createRegexBoost;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.containingText;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollectionInDataStore;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.ids;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransiency;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsing;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 @SlowTest
 public class SearchServiceAcceptanceTest extends ConstellioTest {
@@ -170,8 +169,9 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		StringBuilder sb = new StringBuilder();
 
 		for (int i = 0; i < WORD_DOC_CNT; i++) {
-			if (sb.length() != 0)
+			if (sb.length() != 0) {
 				sb.append(" ");
+			}
 			sb.append(words[random.nextInt(words.length)]);
 		}
 		return sb.toString();
@@ -182,8 +182,8 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		//given
 		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata());
-		String[] politicsWords = new String[] { "party", "democrat", "president", "election", "vote" };
-		String[] sportWords = new String[] { "hockey", "team", "game", "play", "league" };
+		String[] politicsWords = new String[]{"party", "democrat", "president", "election", "vote"};
+		String[] sportWords = new String[]{"hockey", "team", "game", "play", "league"};
 
 		for (int i = 0; i < 10; i++) {
 			transaction.addUpdate(newRecordOfZeSchema().set(zeSchema.stringMetadata()
@@ -878,7 +878,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		Map<String, Map<String, List<String>>> highlights = response.getHighlights();
 
 		String highlightText = "<em>" + text + "</em>";
-		for (Record record : new Record[] { expectedRecord, expectedRecord2 }) {
+		for (Record record : new Record[]{expectedRecord, expectedRecord2}) {
 			assertThat(highlights).containsKey(record.getId());
 			assertThat(highlights.get(record.getId()).size()).isGreaterThan(0);
 			for (List<String> snippets : highlights.get(record.getId()).values()) {
@@ -913,12 +913,13 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		Map<String, Map<String, List<String>>> highlights = response.getHighlights();
 
 		String highlightText = "<em>" + text + "</em>";
-		for (Record record : new Record[] { expectedRecord, expectedRecord2 }) {
+		for (Record record : new Record[]{expectedRecord, expectedRecord2}) {
 			assertThat(highlights).containsKey(record.getId());
 			assertThat(highlights.get(record.getId()).size()).isGreaterThan(0);
 			for (Entry<String, List<String>> snippets : highlights.get(record.getId()).entrySet()) {
-				if (!snippets.getKey().equals("stringMetadata_t_en"))
+				if (!snippets.getKey().equals("stringMetadata_t_en")) {
 					continue;
+				}
 				for (String snippet : snippets.getValue()) {
 					assertThat(snippet).contains(highlightText);
 					assertThat(record.get(zeSchema.stringMetadata()).toString()).contains(snippet.replaceAll("</?em>", ""));
@@ -2927,19 +2928,19 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		query.setCondition(from(zeSchema.instance()).returnAll());
 
 		query.setFreeTextQuery("\"10340\"");
-		assertThat(searchServices.search(query)).extracting("id").containsExactly("record3", "record2");
+		assertThat(searchServices.search(query)).extracting("id").containsExactly("record3");
 
 		query.setFreeTextQuery("\"103400\"");
-		assertThat(searchServices.search(query)).extracting("id").containsOnly("record2", "record3");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record2");
 
 		query.setFreeTextQuery("\"1034002\"");
 		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1");
 
 		query.setFreeTextQuery("10340");
-		assertThat(searchServices.search(query)).extracting("id").containsOnly("record3", "record2");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record3");
 
 		query.setFreeTextQuery("103400");
-		assertThat(searchServices.search(query)).extracting("id").containsOnly("record2", "record3");
+		assertThat(searchServices.search(query)).extracting("id").containsOnly("record2");
 
 		query.setFreeTextQuery("1034002");
 		assertThat(searchServices.search(query)).extracting("id").containsOnly("record1");

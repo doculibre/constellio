@@ -12027,6 +12027,18 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
+.constellio .v-table-cell-content-file-icon-docm {
+	background-image: url('images/icons/ext/mantis/docm.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-docm .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
 .constellio .v-table-cell-content-file-icon-eml {
 	background-image: url('images/icons/ext/mantis/eml.gif');
 	background-repeat: no-repeat;
@@ -12327,6 +12339,30 @@ div.v-layout.v-horizontal.v-widget {
 	left: 20px;
 }
 
+.constellio .v-table-cell-content-file-icon-tif {
+	background-image: url('images/icons/ext/mantis/tif.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-tif .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
+.constellio .v-table-cell-content-file-icon-tiff {
+	background-image: url('images/icons/ext/mantis/tiff.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-tiff .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
 .constellio .v-table-cell-content-file-icon-unknown {
 	background-image: url('images/icons/ext/mantis/unknown.gif');
 	background-repeat: no-repeat;
@@ -12430,6 +12466,18 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-file-icon-xlsx .v-table-cell-wrapper {
+	position: relative;
+	text-align: left;
+	left: 20px;
+}
+
+.constellio .v-table-cell-content-file-icon-xlsm {
+	background-image: url('images/icons/ext/mantis/xlsm.gif');
+	background-repeat: no-repeat;
+	background-position: 10px 10px;
+}
+
+.constellio .v-table-cell-content-file-icon-xlsm .v-table-cell-wrapper {
 	position: relative;
 	text-align: left;
 	left: 20px;
@@ -12676,16 +12724,8 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-table-cell-content-error {
-	color: #FFFFFF;
-	background-color: #F5A9A9;
-	background: #F5A9A9;
-	background: -moz-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #F5A9A9), color-stop(100%, #d65353));
-	background: -webkit-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
-	background: -o-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
-	background: -ms-linear-gradient(top, #F5A9A9 0%, #d65353 100%);
-	background: linear, to bottom, #F5A9A9 0%, #d65353 100%;
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#F5A9A9', endColorstr='#d65353',GradientType=0 );
+	color: red;
+	font-weight: bold;
 }
 
 .constellio .v-table-cell-content-disabled {
@@ -12719,6 +12759,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-contextmenu .popupContent {
 	overflow-y: auto;
 	overflow-x: hidden;
+}
+
+.constellio .v-contextmenu .popupContent .gwt-MenuBar {
+	overflow-y: auto;
 }
 
 .constellio body, .constellio div, .constellio p, .constellio h2, .constellio h3, .constellio pre {
@@ -12828,6 +12872,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-filterselect-suggestmenu .gwt-MenuItem span {
 	padding-left: 10px;
+}
+
+.constellio .filters-panel .v-filterselect {
+	height: 23px;
 }
 
 .constellio .autocomplete-error .v-filterselect-input, .constellio .lookup-error .v-filterselect-input {
@@ -13318,6 +13366,26 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .v-context-menu .v-context-menu-item-basic .v-context-menu-item-basic-icon-container, .constellio .v-context-menu .v-context-menu-item-basic-submenu .v-context-menu-item-basic-icon-container {
 	float: left;
 	padding-right: 3px;
+	float: left;
+	width: 26px;
+	height: 26px;
+	margin-right: 5px;
+	border-right: 1px solid #d0d0d0;
+	text-align: center;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic .v-context-menu-item-basic-icon-container .v-icon, .constellio .v-context-menu .v-context-menu-item-basic-submenu .v-context-menu-item-basic-icon-container .v-icon {
+	float: left;
+	width: 16px;
+	height: 16px;
+	padding: 5px;
+}
+
+.constellio .v-context-menu .v-context-menu-item-basic .v-context-menu-item-basic-text, .constellio .v-context-menu .v-context-menu-item-basic-submenu .v-context-menu-item-basic-text {
+	float: left;
+	height: 26px;
+	line-height: 26px;
+	padding: 0 20px 0 10px;
 }
 
 .constellio .v-context-menu .v-context-menu-item-basic:hover {
@@ -13635,6 +13703,7 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .reference-display {
 	white-space: normal;
 	height: inherit;
+	color: inherit;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .agent-action-link {
@@ -14600,6 +14669,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .right-to-left .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component {
 	padding-left: inherit;
 	padding-right: 5px;
+}
+
+.constellio .right-to-left .popupContent .gwt-MenuBar {
+	overflow-y: auto;
 }
 
 .constellio .right-to-left .popupContent .action-menu {

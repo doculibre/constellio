@@ -52,7 +52,7 @@ public class RecordDisplay extends BaseDisplay {
 	}
 
 	private static List<CaptionAndComponent> toCaptionsAndComponents(RecordVO recordVO,
-			MetadataDisplayFactory metadataDisplayFactory) {
+																	 MetadataDisplayFactory metadataDisplayFactory) {
 		List<CaptionAndComponent> captionsAndComponents = new ArrayList<CaptionAndComponent>();
 
 		Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();

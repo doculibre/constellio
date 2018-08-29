@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.migrations.records;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -12,6 +9,9 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RMContainerRecordMigrationTo7_3 extends RecordMigrationScript {
 

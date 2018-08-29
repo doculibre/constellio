@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -55,6 +48,13 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.security.roles.RolesManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 
 public class RMMigrationTo5_1_9 implements MigrationScript {
 	@Override
@@ -129,7 +129,8 @@ public class RMMigrationTo5_1_9 implements MigrationScript {
 
 	public static class SchemaAlterationsFor5_1_9 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor5_1_9(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor5_1_9(String collection, MigrationResourcesProvider provider,
+											AppLayerFactory factory) {
 			super(collection, provider, factory);
 
 			configureTableMetadatas(collection, factory);

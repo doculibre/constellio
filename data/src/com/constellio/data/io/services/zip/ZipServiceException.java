@@ -49,7 +49,7 @@ public class ZipServiceException extends Exception {
 
 		public ZippedFilesInDifferentParentFolder(File zippedFile, File zippedFileInDifferentParentFolder) {
 			super("Zipped file '" + zippedFile.getAbsolutePath() + "' and '"
-					+ zippedFileInDifferentParentFolder.getAbsolutePath() + "' are not in the same parent folder");
+				  + zippedFileInDifferentParentFolder.getAbsolutePath() + "' are not in the same parent folder");
 		}
 
 	}

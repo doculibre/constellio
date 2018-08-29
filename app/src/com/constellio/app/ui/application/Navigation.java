@@ -1,10 +1,10 @@
 package com.constellio.app.ui.application;
 
-import java.lang.reflect.InvocationTargetException;
-
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.ui.UI;
+
+import java.lang.reflect.InvocationTargetException;
 
 public class Navigation {
 	public CoreViews to() {

@@ -1,11 +1,11 @@
 package com.constellio.app.modules.es.model.connectors.ldap;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConnectorLDAPUserDocument extends ConnectorDocument<ConnectorLDAPUserDocument> {
 	//inhereted to be automatically generated :
@@ -42,7 +42,7 @@ public class ConnectorLDAPUserDocument extends ConnectorDocument<ConnectorLDAPUs
 	public static String ENABLED = "enabled";
 
 	public ConnectorLDAPUserDocument(Record record,
-			MetadataSchemaTypes types) {
+									 MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 

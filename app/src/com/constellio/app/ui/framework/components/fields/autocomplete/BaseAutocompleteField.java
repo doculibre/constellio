@@ -1,6 +1,13 @@
 package com.constellio.app.ui.framework.components.fields.autocomplete;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.vaadin.data.Validator.InvalidValueException;
+import com.vaadin.data.util.converter.Converter;
+import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteQuery;
+import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteSuggestion;
+import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteSuggestionProvider;
+import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteTextField;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -10,24 +17,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.constellio.app.ui.application.ConstellioUI;
-import com.vaadin.data.Validator.InvalidValueException;
-import com.vaadin.data.util.converter.Converter;
-
-import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteQuery;
-import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteSuggestion;
-import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteSuggestionProvider;
-import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteTextField;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 /**
  * Adapted from https://vaadin.com/forum#!/thread/897171/9060502
  *
+ * @param <T> Type of the selected object
  * @author Vincent
- *
- * @param <T>
- *            Type of the selected object
  */
 public class BaseAutocompleteField<T> extends AutocompleteTextField {
 
@@ -40,23 +36,23 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 	private Converter<String, T> itemConverter;
 
 	private int prefixSize = 0; // Default value
-	
+
 	private Map<String, T> lastSuggestions = new HashMap<>();
-	
+
 	private Class<T> modelType;
 
 	public BaseAutocompleteField(final AutocompleteSuggestionsProvider<T> suggestionsProvider) {
 		super();
 		this.modelType = suggestionsProvider.getModelType();
 		this.suggestionsProvider = suggestionsProvider;
-		
+
 		setMinChars(1);
 		setCache(false);
 		setSuggestionProvider(new AutocompleteSuggestionProvider() {
 			@Override
 			public Collection<AutocompleteSuggestion> querySuggestions(AutocompleteQuery query) {
 				List<AutocompleteSuggestion> suggestions = new ArrayList<>();
-				
+
 				String term = query.getTerm();
 				List<T> objectSuggestions = suggestionsProvider.suggest(term);
 				for (T objectSuggestion : objectSuggestions) {
@@ -73,7 +69,7 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 		addStyleName(STYLE_NAME);
 		setInputPrompt($("BaseAutocompleteField.inputPrompt"));
 		setNullRepresentation("");
-//		setPageLength(suggestionsProvider.getBufferSize());
+		//		setPageLength(suggestionsProvider.getBufferSize());
 		setConverter(new Converter<String, T>() {
 			@SuppressWarnings("unchecked")
 			@Override
@@ -171,9 +167,9 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 		}
 		return caption;
 	}
-	
+
 	protected void suggestionRequested(String text) {
-		
+
 	}
 
 	public interface AutocompleteSuggestionsProvider<T> extends Serializable {

@@ -9,7 +9,11 @@ import jxl.Workbook;
 import jxl.format.Border;
 import jxl.format.BorderLineStyle;
 import jxl.format.VerticalAlignment;
-import jxl.write.*;
+import jxl.write.Label;
+import jxl.write.WritableCellFormat;
+import jxl.write.WritableFont;
+import jxl.write.WritableSheet;
+import jxl.write.WritableWorkbook;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -20,11 +24,11 @@ import java.util.List;
 import java.util.Map;
 
 public class SIPSlip {
-	
+
 	private Map<String, SIPDocument> sipDocuments = new LinkedHashMap<>();
-	
+
 	private Map<String, SIPFolder> sipFolders = new LinkedHashMap<>();
-	
+
 	public void add(SIPDocument sipDocument) {
 		String id = sipDocument.getId();
 		if (!sipDocuments.containsKey(id)) {
@@ -41,69 +45,69 @@ public class SIPSlip {
 			}
 		}
 	}
-	
+
 	private void sheetAutoFitColumns(WritableSheet sheet) {
 		List<Integer> removedColumns = new ArrayList<Integer>();
 
-	    for (int columnIndex = 0; columnIndex < sheet.getColumns(); columnIndex++) {
-	        Cell[] cells = sheet.getColumn(columnIndex);
-	        boolean emptyColumn = true;
+		for (int columnIndex = 0; columnIndex < sheet.getColumns(); columnIndex++) {
+			Cell[] cells = sheet.getColumn(columnIndex);
+			boolean emptyColumn = true;
 
-	        if (cells.length == 0) {
-	            continue;
-	        }    
+			if (cells.length == 0) {
+				continue;
+			}
 
-	        for (int rowIndex = 0; rowIndex < cells.length; rowIndex++) {
-	        	String rowContents = cells[rowIndex].getContents();
-                if (emptyColumn && StringUtils.isNotBlank(rowContents) && rowIndex > 0) {
-                	emptyColumn = false;
-                	break;
-                }
-	        }
-	        if (emptyColumn) {
-	        	removedColumns.add(0, columnIndex);
-        	} 
-	    }    
-	    for (Integer removedColumn : removedColumns) {
+			for (int rowIndex = 0; rowIndex < cells.length; rowIndex++) {
+				String rowContents = cells[rowIndex].getContents();
+				if (emptyColumn && StringUtils.isNotBlank(rowContents) && rowIndex > 0) {
+					emptyColumn = false;
+					break;
+				}
+			}
+			if (emptyColumn) {
+				removedColumns.add(0, columnIndex);
+			}
+		}
+		for (Integer removedColumn : removedColumns) {
 			sheet.removeColumn(removedColumn);
 		}
-	    
-	    for (int columnIndex = 0; columnIndex < sheet.getColumns(); columnIndex++) {
-	        Cell[] cells = sheet.getColumn(columnIndex);
-	        int longestStrLen = -1;
 
-	        if (cells.length == 0) {
-	            continue;
-	        }    
+		for (int columnIndex = 0; columnIndex < sheet.getColumns(); columnIndex++) {
+			Cell[] cells = sheet.getColumn(columnIndex);
+			int longestStrLen = -1;
 
-	        /* Find the widest cell in the column. */
-	        for (int rowIndex = 0; rowIndex < cells.length; rowIndex++) {
-	        	String rowContents = cells[rowIndex].getContents();
-	            if (rowContents.length() > longestStrLen) {
-	                String str = rowContents;
-	                if (str == null || str.isEmpty()) {
-	                    continue;
-	                }    
-	                longestStrLen = str.trim().length();
-	            }
-	        }
+			if (cells.length == 0) {
+				continue;
+			}
 
-	        /* If not found, skip the column. */
-	        if (longestStrLen == -1) {
-	            continue;
-	        } 
+			/* Find the widest cell in the column. */
+			for (int rowIndex = 0; rowIndex < cells.length; rowIndex++) {
+				String rowContents = cells[rowIndex].getContents();
+				if (rowContents.length() > longestStrLen) {
+					String str = rowContents;
+					if (str == null || str.isEmpty()) {
+						continue;
+					}
+					longestStrLen = str.trim().length();
+				}
+			}
 
-	        /* If wider than the max width, crop width */
-	        if (longestStrLen > 255) {
-	            longestStrLen = 255;
-	        }    
+			/* If not found, skip the column. */
+			if (longestStrLen == -1) {
+				continue;
+			}
 
-	        CellView cv = sheet.getColumnView(columnIndex);
-	        cv.setSize(longestStrLen * 256 + 100); /* Every character is 256 units wide, so scale it. */
-	        sheet.setColumnView(columnIndex, cv);
-	    }
+			/* If wider than the max width, crop width */
+			if (longestStrLen > 255) {
+				longestStrLen = 255;
+			}
+
+			CellView cv = sheet.getColumnView(columnIndex);
+			cv.setSize(longestStrLen * 256 + 100); /* Every character is 256 units wide, so scale it. */
+			sheet.setColumnView(columnIndex, cv);
+		}
 	}
-	
+
 	public void write(OutputStream out, List<String> bagInfoLines) throws IOException {
 		WritableWorkbook workbook = Workbook.createWorkbook(out);
 		WritableSheet descriptionSheet = workbook.createSheet("Description", 0);
@@ -112,11 +116,11 @@ public class SIPSlip {
 
 		try {
 			WritableCellFormat baseCellFormat = new WritableCellFormat();
-			
+
 			CellView baseColumnView = new CellView();
 			baseColumnView.setAutosize(true);
 			baseColumnView.setFormat(baseCellFormat);
-			
+
 			WritableCellFormat headerFormat = new WritableCellFormat(baseCellFormat);
 			headerFormat.setBorder(Border.BOTTOM, BorderLineStyle.THIN);
 			headerFormat.setVerticalAlignment(VerticalAlignment.TOP);
@@ -124,7 +128,7 @@ public class SIPSlip {
 			headerFormat.setFont(headerFont);
 
 			WritableCellFormat cellFormat = new WritableCellFormat(baseCellFormat);
-			
+
 			{
 				int row = 0;
 				for (String bagInfoLine : bagInfoLines) {
@@ -132,7 +136,7 @@ public class SIPSlip {
 					row++;
 				}
 			}
-			
+
 			{
 				int row = 0;
 				for (SIPDocument sipDocument : sipDocuments.values()) {
@@ -141,7 +145,7 @@ public class SIPSlip {
 					}
 					// FIXME
 					documentsSheet.addCell(new Label(0, row + 1, sipDocument.getZipPath(), cellFormat));
-					
+
 					List<String> metadataIds = sipDocument.getMetadataIds();
 					for (int column = 0; column < metadataIds.size(); column++) {
 						String metadataId = metadataIds.get(column);
@@ -155,7 +159,7 @@ public class SIPSlip {
 					row++;
 				}
 			}
-			
+
 			{
 				int row = 0;
 				for (SIPFolder sipFolder : sipFolders.values()) {
@@ -163,7 +167,7 @@ public class SIPSlip {
 						foldersSheet.addCell(new Label(0, row, "Chemin", headerFormat));
 					}
 					foldersSheet.addCell(new Label(0, row + 1, sipFolder.getZipPath(), cellFormat));
-					
+
 					List<String> metadataIds = sipFolder.getMetadataIds();
 					for (int column = 0; column < metadataIds.size(); column++) {
 						String metadataId = metadataIds.get(column);
@@ -177,7 +181,7 @@ public class SIPSlip {
 					row++;
 				}
 			}
-			
+
 			for (WritableSheet sheet : workbook.getSheets()) {
 				sheetAutoFitColumns(sheet);
 			}

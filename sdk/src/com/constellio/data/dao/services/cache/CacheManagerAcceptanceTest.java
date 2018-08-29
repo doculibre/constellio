@@ -1,11 +1,10 @@
 package com.constellio.data.dao.services.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CacheManagerAcceptanceTest extends ConstellioTest {
 

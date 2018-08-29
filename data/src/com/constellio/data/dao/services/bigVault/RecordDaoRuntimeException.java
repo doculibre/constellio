@@ -23,7 +23,7 @@ public class RecordDaoRuntimeException extends RuntimeException {
 
 	}
 
-//	public static class ReferenceToNonExistentIndex extends RecordDaoRuntimeException {
+	//	public static class ReferenceToNonExistentIndex extends RecordDaoRuntimeException {
 	//
 	//		private final String id;
 	//

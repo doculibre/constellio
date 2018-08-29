@@ -1,14 +1,5 @@
 package com.constellio.app.ui.framework.components.table;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.peter.contextmenu.ContextMenu;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
-
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -44,6 +35,14 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecordVOTable extends BaseTable {
 
@@ -58,7 +57,7 @@ public class RecordVOTable extends BaseTable {
 		super(null);
 		init();
 	}
-	
+
 	public RecordVOTable(Container dataSource) {
 		this(null, dataSource);
 	}
@@ -146,8 +145,8 @@ public class RecordVOTable extends BaseTable {
 				return false;
 			}
 		});
-	}	
-	
+	}
+
 	protected String getTitleColumnStyle(RecordVO recordVO) {
 		String style;
 		if (recordVO != null) {
@@ -216,7 +215,7 @@ public class RecordVOTable extends BaseTable {
 		} else {
 			recordVO = null;
 		}
-		
+
 		CellKey cellKey;
 		if (recordVO != null) {
 			String recordId = recordVO.getId();
@@ -264,9 +263,9 @@ public class RecordVOTable extends BaseTable {
 		}
 		return containerProperty;
 	}
-	
+
 	protected String getTitleForRecordVO(RecordVO titleRecordVO, String prefix, String title) {
-		return StringUtils.isNotBlank(prefix) ? prefix + " " + title : title; 
+		return StringUtils.isNotBlank(prefix) ? prefix + " " + title : title;
 	}
 
 	protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
@@ -277,6 +276,13 @@ public class RecordVOTable extends BaseTable {
 	public Class<?> getType(Object propertyId) {
 		Class<?> type;
 		if (propertyId instanceof MetadataVO) {
+			//			MetadataVO metadataVO = (MetadataVO) propertyId;
+			//			Class<?> javaType = metadataVO.getJavaType();
+			//			if (LocalDateTime.class.isAssignableFrom(javaType) || LocalDate.class.isAssignableFrom(javaType) || Number.class.isAssignableFrom(javaType) || Boolean.class.isAssignableFrom(javaType)) {
+			//				type = javaType;
+			//			} else {
+			//				type = Component.class;
+			//			}
 			type = Component.class;
 		} else {
 			type = super.getType(propertyId);
@@ -346,9 +352,9 @@ public class RecordVOTable extends BaseTable {
 			}
 		}
 	}
-	
+
 	protected void addMenuBarColumn() {
-		boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null; 
+		boolean menuBarColumnGenerated = getColumnGenerator(MENUBAR_PROPERTY_ID) != null;
 		if (!menuBarColumnGenerated) {
 			boolean menuBarRequired = false;
 			for (MetadataSchemaVO schemaVO : schemaVOs) {
@@ -389,7 +395,7 @@ public class RecordVOTable extends BaseTable {
 									cellContent = menuBar;
 								}
 							} else {
-								cellContent = new Label(""); 
+								cellContent = new Label("");
 							}
 							cellProperties.put(cellKey, new ObjectProperty<Object>(cellContent));
 						}
@@ -422,7 +428,7 @@ public class RecordVOTable extends BaseTable {
 		}
 		Object[] visibleColumnIds = getVisibleColumns();
 		for (Object visibleColumnId : visibleColumnIds) {
-			if (visibleColumnId instanceof  MetadataVO) {
+			if (visibleColumnId instanceof MetadataVO) {
 				MetadataVO metadataVO = (MetadataVO) visibleColumnId;
 				if (metadataVO.getCode().contains(metadataCode)) {
 					setColumnCollapsed(visibleColumnId, collapsed);
@@ -434,5 +440,5 @@ public class RecordVOTable extends BaseTable {
 	public ContextMenu getContextMenu() {
 		return contextMenu;
 	}
-	
+
 }

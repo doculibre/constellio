@@ -1,19 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
@@ -23,7 +9,6 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField;
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentContentField.ContentUploadedListener;
@@ -69,6 +54,19 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditDocumentView> {
 
@@ -152,7 +150,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		setSchemaCode(currentSchemaCode);
 		view.setRecord(documentVO);
 	}
-	
+
 	private void populateFromExistingDocument(String existingDocumentId) {
 		Document document = rmSchemasRecordsServices.getDocument(existingDocumentId);
 		DecommissioningService decommissioningService = new DecommissioningService(collection, appLayerFactory);
@@ -282,6 +280,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		return addView;
 	}
 
+	public boolean isNewFileAtStart() {
+		return newFileAtStart;
+	}
+
 	public void cancelButtonClicked() {
 		if (userDocumentId != null) {
 			view.navigate().to(RMViews.class).listUserDocuments();
@@ -361,7 +363,8 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			String currentTitle = document.getTitle();
 			String currentContentFilename = documentVO.getContent().getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(currentContentFilename));
-			if (currentTitle.endsWith("." + extension)) {
+			if (currentTitle.endsWith("." + extension) &&
+				(isAddView() || !document.getSchema().getMetadata(Schemas.TITLE_CODE).getPopulateConfigs().isAddOnly())) {
 				document.getContent().renameCurrentVersion(currentTitle);
 			}
 		}
@@ -379,10 +382,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent());
 			if (agentURL != null) {
 				view.openAgentURL(agentURL);
-			}	
+			}
 		}
 	}
-	
+
 	private void setRecordContent(Record record, DocumentVO documentVO) {
 		Metadata contentMetadata = schema().getMetadata(Document.CONTENT);
 		Object content = record.get(contentMetadata);
@@ -392,7 +395,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		}
 		ContentManager contentManager = modelLayerFactory.getContentManager();
 		ContentVersionVO contentVO = documentVO.getContent();
-		if(contentVO != null) {
+		if (contentVO != null) {
 			Boolean majorVersion = contentVO.isMajorVersion();
 			String fileName = contentVO.getFileName();
 			String hash = contentVO.getHash();
@@ -486,6 +489,10 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				newFile = false;
 			}
 			contentField.setMajorVersionFieldVisible(!newFile);
+
+			if (newFileAtStart) {
+				contentField.setReadOnly(true);
+			}
 		}
 	}
 
@@ -498,7 +505,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				recordServices().recalculate(record);
 				documentVO.set(Document.APPLICABLE_COPY_RULES, record.getApplicableCopyRules());
 			}
-			List<String> ignoredMetadataCodes = Arrays.asList(Document.FOLDER);
+			List<String> ignoredMetadataCodes = asList(Document.FOLDER);
 			reloadFormAndPopulateCurrentMetadatasExcept(ignoredMetadataCodes);
 			view.getForm().getCustomField(Document.FOLDER).focus();
 		}
@@ -658,7 +665,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 				newFile = true;
 				view.getForm().reload();
 
-				if(documentTypeId != null) {
+				if (documentTypeId != null) {
 					reloadFormAfterDocumentTypeChange();
 				}
 				// Will have been lost after reloading the form
@@ -728,7 +735,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 								ioServices.closeQuietly(inputStream);
 							}
 						}
-						modelLayerFactory.newRecordPopulateServices().populate(documentRecord);
+						modelLayerFactory.newRecordPopulateServices().populate(documentRecord, documentVO.getRecord());
 						documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
 						documentVO.getContent().setMajorVersion(null);
 						documentVO.getContent().setHash(null);
@@ -738,6 +745,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 						documentVO.setTitle(filename);
 						view.setRecord(documentVO);
 						view.getForm().reload();
+						addContentFieldListeners();
 					} catch (final IcapException e) {
 						view.showErrorMessage(e.getMessage());
 
@@ -776,12 +784,12 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		Folder folder = rmSchemas().getFolder(document.getFolder());
 		switch (folder.getPermissionStatus()) {
-		case ACTIVE:
-			return user.has(RMPermissionsTo.CREATE_DOCUMENTS).on(folder);
-		case SEMI_ACTIVE:
-			return user.has(RMPermissionsTo.CREATE_SEMIACTIVE_DOCUMENT).on(folder);
-		default:
-			return user.has(RMPermissionsTo.CREATE_INACTIVE_DOCUMENT).on(folder);
+			case ACTIVE:
+				return user.has(RMPermissionsTo.CREATE_DOCUMENTS).on(folder);
+			case SEMI_ACTIVE:
+				return user.has(RMPermissionsTo.CREATE_SEMIACTIVE_DOCUMENT).on(folder);
+			default:
+				return user.has(RMPermissionsTo.CREATE_INACTIVE_DOCUMENT).on(folder);
 		}
 	}
 

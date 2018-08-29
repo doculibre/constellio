@@ -1,14 +1,13 @@
 package com.constellio.app.ui.util;
 
+import com.vaadin.ui.UI;
+import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
-
-import com.vaadin.ui.UI;
 
 public class ThemeUtils implements Serializable {
 
@@ -17,7 +16,7 @@ public class ThemeUtils implements Serializable {
 	public static boolean resourceExists(String resourcePath) {
 		Boolean resourceExists = cache.get(resourcePath);
 		if (resourceExists == null) {
-			try (InputStream resourceStream = getResource(resourcePath)){
+			try (InputStream resourceStream = getResource(resourcePath)) {
 				if (resourceStream != null) {
 					resourceExists = true;
 					IOUtils.closeQuietly(resourceStream);
@@ -31,7 +30,7 @@ public class ThemeUtils implements Serializable {
 		}
 		return resourceExists;
 	}
-	
+
 	public static InputStream getResource(String resourcePath) throws IOException {
 		UI ui = UI.getCurrent();
 		return ui.getSession().getService().getThemeResourceAsStream(ui, ui.getTheme(), resourcePath);

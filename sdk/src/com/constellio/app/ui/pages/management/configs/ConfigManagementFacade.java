@@ -1,12 +1,11 @@
 package com.constellio.app.ui.pages.management.configs;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ConfigManagementFacade {
 	private ConstellioWebDriver driver;
@@ -26,7 +25,7 @@ public class ConfigManagementFacade {
 
 	private ConfigGroupFacade getConfigGroupFacade(String groupCode) {
 		ConfigGroupFacade configGroupFacade = configGroupElementsMap.get(groupCode);
-		if(configGroupFacade == null){
+		if (configGroupFacade == null) {
 			configGroupFacade = new ConfigGroupFacade(driver, groupCode);
 			configGroupElementsMap.put(groupCode, configGroupFacade);
 		}

@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.pdf;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -16,119 +9,129 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class PdfFileNamePanel extends VerticalLayout {
-    @PropertyId("pdfFileName")
-    private TextField pdfFileNameField;
-    @PropertyId("includeMetadatas")
-    private CheckBox includeMetadatasField;
+	@PropertyId("pdfFileName")
+	private TextField pdfFileNameField;
+	@PropertyId("includeMetadatas")
+	private CheckBox includeMetadatasField;
 
-    private final PdfInfos pdfInfos;
-    private final Window window;
+	private final PdfInfos pdfInfos;
+	private final Window window;
 
-    private boolean cancelled;
+	private boolean cancelled;
 
-    private List<PdfFileNameListener> listeners;
+	private List<PdfFileNameListener> listeners;
 
-    public PdfFileNamePanel(Window window) {
-        this.pdfInfos = new PdfInfos();
-        this.window = window;
-        this.cancelled = false;
-        this.listeners = new ArrayList<>();
+	public PdfFileNamePanel(Window window) {
+		this.pdfInfos = new PdfInfos();
+		this.window = window;
+		this.cancelled = false;
+		this.listeners = new ArrayList<>();
 
-        setSpacing(true);
-        addStyleName("no-scroll");
+		setSpacing(true);
+		addStyleName("no-scroll");
 
-        init();
-    }
+		init();
+	}
 
-    public void init() {
-        pdfFileNameField = new BaseTextField($("PdfFileNamePanel.pdfFileName"));
-        pdfFileNameField.setRequired(true);
-        pdfFileNameField.setRequiredError($("PdfFileNamePanel.pdfFileName.required"));
+	public void init() {
+		window.setHeight("220px");
 
-        includeMetadatasField = new CheckBox($("PdfFileNamePanel.includeMetadatas"));
+		pdfFileNameField = new BaseTextField($("PdfFileNamePanel.pdfFileName"));
+		pdfFileNameField.setRequired(true);
+		pdfFileNameField.setRequiredError($("PdfFileNamePanel.pdfFileName.required"));
 
-        BaseForm<PdfInfos> baseForm = new BaseForm<PdfInfos>(pdfInfos, this, pdfFileNameField, includeMetadatasField) {
-            @Override
-            protected String getSaveButtonCaption() {
-                return $("PdfFileNamePanel.saveButton");
-            }
+		includeMetadatasField = new CheckBox($("PdfFileNamePanel.includeMetadatas"));
 
-            @Override
-            protected void saveButtonClick(PdfInfos viewObject) throws ValidationException {
-                cancelled = false;
+		BaseForm<PdfInfos> baseForm = new BaseForm<PdfInfos>(pdfInfos, this, pdfFileNameField, includeMetadatasField) {
+			@Override
+			protected String getSaveButtonCaption() {
+				return $("PdfFileNamePanel.saveButton");
+			}
 
-                if (window != null) {
-                    window.close();
-                }
+			@Override
+			protected void saveButtonClick(PdfInfos viewObject) throws ValidationException {
+				cancelled = false;
 
-                for (PdfFileNameListener listener: listeners) {
-                    listener.pdfFileNameFinished(viewObject);
-                }
-            }
+				if (window != null) {
+					window.close();
+				}
 
-            @Override
-            protected void cancelButtonClick(PdfInfos viewObject) {
-                cancelled = true;
+				for (PdfFileNameListener listener : listeners) {
+					listener.pdfFileNameFinished(viewObject);
+				}
+			}
 
-                if (window != null) {
-                    window.close();
-                }
+			@Override
+			protected void cancelButtonClick(PdfInfos viewObject) {
+				cancelled = true;
 
-                for (PdfFileNameListener listener: listeners) {
-                    listener.pdfFileNameCancelled();
-                }
-            }
-        };
+				if (window != null) {
+					window.close();
+				}
 
-        pdfFileNameField.setValue(new SimpleDateFormat("yyyy-MM-dd_HH_mm'.pdf'").format(new Date()));
+				for (PdfFileNameListener listener : listeners) {
+					listener.pdfFileNameCancelled();
+				}
+			}
+		};
 
-        addComponent(baseForm);
-    }
+		pdfFileNameField.setValue(new SimpleDateFormat("yyyy-MM-dd_HH_mm'.pdf'").format(new Date()));
 
-    public PdfInfos getPdfInfos() {
-        return pdfInfos;
-    }
+		addComponent(baseForm);
+	}
 
-    public boolean isCancelled() {
-        return cancelled;
-    }
+	public PdfInfos getPdfInfos() {
+		return pdfInfos;
+	}
 
-    public void addPdfFileNameListener(PdfFileNameListener listener) {
-        if (listener != null) {
-            listeners.add(listener);
-        }
-    }
+	public boolean isCancelled() {
+		return cancelled;
+	}
 
-    public void removePdfFileNameListener(PdfFileNameListener listener) {
-        if (listener != null) {
-            listeners.remove(listener);
-        }
-    }
+	public void addPdfFileNameListener(PdfFileNameListener listener) {
+		if (listener != null) {
+			listeners.add(listener);
+		}
+	}
 
-    public class PdfInfos {
-        private String pdfFileName;
-        private boolean includeMetadatas;
+	public void removePdfFileNameListener(PdfFileNameListener listener) {
+		if (listener != null) {
+			listeners.remove(listener);
+		}
+	}
 
-        public String getPdfFileName() {
-            return pdfFileName;
-        }
+	public class PdfInfos {
+		private String pdfFileName;
+		private boolean includeMetadatas;
 
-        public void setPdfFileName(String pdfFileName) {
-            this.pdfFileName = pdfFileName;
-        }
+		public String getPdfFileName() {
+			return pdfFileName;
+		}
 
-        public boolean isIncludeMetadatas() {
-            return includeMetadatas;
-        }
+		public void setPdfFileName(String pdfFileName) {
+			this.pdfFileName = pdfFileName;
+		}
 
-        public void setIncludeMetadatas(boolean includeMetadatas) {
-            this.includeMetadatas = includeMetadatas;
-        }
-    }
+		public boolean isIncludeMetadatas() {
+			return includeMetadatas;
+		}
 
-    public interface PdfFileNameListener {
-        public void pdfFileNameFinished(PdfInfos pdfInfos);
-        public void pdfFileNameCancelled();
-    }
+		public void setIncludeMetadatas(boolean includeMetadatas) {
+			this.includeMetadatas = includeMetadatas;
+		}
+	}
+
+	public interface PdfFileNameListener {
+		public void pdfFileNameFinished(PdfInfos pdfInfos);
+
+		public void pdfFileNameCancelled();
+	}
 }

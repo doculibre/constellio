@@ -1,11 +1,10 @@
 package com.constellio.model.entities.records.wrappers;
 
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDateTime;
+
+import java.util.List;
 
 public class WorkflowTask extends RecordWrapper {
 

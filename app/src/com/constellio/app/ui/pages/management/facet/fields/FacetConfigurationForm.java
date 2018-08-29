@@ -1,13 +1,13 @@
 package com.constellio.app.ui.pages.management.facet.fields;
 
-import java.io.Serializable;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
 
+import java.io.Serializable;
+
 /**
  * Implemented:
- *
+ * <p>
  * Task.PROGRESS_PERCENTAGE
  *
  * @author Vincent

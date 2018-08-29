@@ -1,29 +1,5 @@
 package com.constellio.model.services.users;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.usernamesOf;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-
-import java.security.Key;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.Duration;
-import org.joda.time.LocalDateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -68,6 +44,29 @@ import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
 import com.constellio.sdk.tests.annotations.LoadTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.Duration;
+import org.joda.time.LocalDateTime;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.security.Key;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.usernamesOf;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 
 public class UserServicesAcceptanceTest extends ConstellioTest {
 
@@ -304,6 +303,19 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(userInCollection.get(collection1).getStatus()).isEqualTo(UserCredentialStatus.PENDING);
 		assertThat(userInCollection.get(collection2).getStatus()).isEqualTo(UserCredentialStatus.PENDING);
 		assertThat(userServices.getUser(user.getUsername()).getStatus()).isEqualTo(UserCredentialStatus.PENDING);
+	}
+
+	@Test
+	public void whenGetGroupInCollectionThenReturnRecordOfCorrectCollection()
+			throws Exception {
+
+		givenCollection1And2();
+		givenLegendsGroupWithAllUsersInCollections(collection1, collection2);
+		givenHeroesGroupWithAllUsersInCollections(collection1, collection2);
+
+		assertThat(userServices.getGroupInCollection("legends", "collection1").getCollection()).isEqualTo("collection1");
+		assertThat(userServices.getGroupInCollection("legends", "collection2").getCollection()).isEqualTo("collection2");
+
 	}
 
 	@Test
@@ -876,6 +888,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.addUpdateGlobalGroup(group1_1_1);
 
 		UserCredential admin = userServices.getUserCredential("admin");
+		userServices.addUserToCollection(admin, collection1);
 		userServices.removeGroupFromCollections(admin, "group1", Arrays.asList("collection1"));
 
 		assertThat(userServices.getGroupInCollection("group1", "collection1").getWrappedRecord()
@@ -901,6 +914,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.addUpdateGlobalGroup(group1_1_1);
 
 		UserCredential admin = userServices.getUserCredential("admin");
+		userServices.addUserToCollection(admin, collection1);
 		userServices.logicallyRemoveGroupHierarchy(admin, group1);
 
 		LogicalSearchCondition condition = LogicalSearchQueryOperators.fromAllSchemasIn(collection1)
@@ -939,6 +953,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		userServices.addUpdateGlobalGroup(group1_1);
 		userServices.addUpdateGlobalGroup(group1_1_1);
 		UserCredential admin = userServices.getUserCredential("admin");
+		userServices.addUserToCollection(admin, collection1);
 		userServices.logicallyRemoveGroupHierarchy(admin, group1);
 
 		userServices.activateGlobalGroupHierarchy(admin, group1);

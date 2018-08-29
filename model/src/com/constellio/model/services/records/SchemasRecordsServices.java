@@ -1,15 +1,23 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.*;
+import com.constellio.model.entities.records.wrappers.BatchProcessReport;
+import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
+import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
+import com.constellio.model.entities.records.wrappers.VaultScanReport;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -26,11 +34,23 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.roles.Roles;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
 public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public SchemasRecordsServices(String collection,
-			final ModelLayerFactory modelLayerFactory) {
+								  final ModelLayerFactory modelLayerFactory) {
 		super(collection, toModelLayerFactoryFactory(modelLayerFactory));
+	}
+
+	public SchemasRecordsServices(String collection,
+								  final ModelLayerFactory modelLayerFactory, Locale locale) {
+		super(collection, toModelLayerFactoryFactory(modelLayerFactory), locale);
 	}
 
 	private static Factory<ModelLayerFactory> toModelLayerFactoryFactory(final ModelLayerFactory modelLayerFactory) {
@@ -47,12 +67,12 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 	}
 
 	private SchemasRecordsServices(String collection,
-			final Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+								   final Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 		super(collection, modelLayerFactoryFactory);
 	}
 
 	public static SchemasRecordsServices usingMainModelLayerFactory(String collection,
-			final ModelLayerFactory modelLayerFactory) {
+																	final ModelLayerFactory modelLayerFactory) {
 
 		return new SchemasRecordsServices(collection, new Factory<ModelLayerFactory>() {
 
@@ -256,6 +276,10 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 
 	public BatchProcessReport newBatchProcessReport() {
 		return new BatchProcessReport(create(getTypes().getSchema(BatchProcessReport.FULL_SCHEMA)), getTypes());
+	}
+
+	public VaultScanReport newVaultScanReport() {
+		return new VaultScanReport(create(getTypes().getSchema(VaultScanReport.FULL_SCHEMA)), getTypes());
 	}
 
 	//Groups
@@ -497,8 +521,13 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return modelLayerFactory.newUserServices().isGroupActive(aGroup);
 	}
 
-	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance, boolean onlyActiveUsersAndGroups) {
+	public List<User> getAllUsersInGroup(Group group, boolean includeGroupInheritance,
+										 boolean onlyActiveUsersAndGroups) {
 		return modelLayerFactory.newUserServices().getAllUsersInGroup(group, includeGroupInheritance, onlyActiveUsersAndGroups);
+	}
+
+	public ValueListItem newValueListItem(String schemaCode) {
+		return new ValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
 	}
 
 	//Value list item
@@ -519,8 +548,4 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return valueListItems;
 	}
 
-	public ValueListItem newValueListItem(String schemaCode) {
-		return new ValueListItem(create(schema(schemaCode)), getTypes(), schemaCode);
-	}
-	
 }

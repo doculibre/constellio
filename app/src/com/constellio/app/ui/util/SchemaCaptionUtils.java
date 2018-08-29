@@ -1,17 +1,10 @@
 package com.constellio.app.ui.util;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.io.Serializable;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -20,6 +13,16 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
 
 public class SchemaCaptionUtils implements Serializable {
 
@@ -29,6 +32,10 @@ public class SchemaCaptionUtils implements Serializable {
 	private static final String EXPRESSION_END = "}";
 
 	public static String getCaptionForRecordId(String recordId) {
+		return getCaptionForRecordId(recordId, ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+	}
+
+	public static String getCaptionForRecordId(String recordId, Locale locale) {
 		String caption;
 		if (StringUtils.isNotBlank(recordId)) {
 			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
@@ -47,7 +54,8 @@ public class SchemaCaptionUtils implements Serializable {
 					captionFormat = $(captionFormatKey);
 				}
 
-				caption = applyPattern(captionFormat, record);
+				caption = applyPattern(captionFormat, record, locale);
+
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
 					if (isRightToLeft()) {
 						caption = caption + " " + captionForSchemaTypeCode;
@@ -65,7 +73,7 @@ public class SchemaCaptionUtils implements Serializable {
 		return caption;
 	}
 
-	public static String getCaptionForRecord(Record record) {
+	public static String getCaptionForRecord(Record record, Locale locale) {
 		String caption;
 		if (record != null) {
 			try {
@@ -80,13 +88,13 @@ public class SchemaCaptionUtils implements Serializable {
 					captionFormat = $(captionFormatKey);
 				}
 
-				caption = applyPattern(captionFormat, record);
+				caption = applyPattern(captionFormat, record, locale);
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
-//					if (isRightToLeft()) {
-//						caption = caption + " " + captionForSchemaTypeCode;
-//					} else {
-//						caption = captionForSchemaTypeCode + " " + caption;
-//					}
+					//					if (isRightToLeft()) {
+					//						caption = caption + " " + captionForSchemaTypeCode;
+					//					} else {
+					//						caption = captionForSchemaTypeCode + " " + caption;
+					//					}
 					caption = captionForSchemaTypeCode + " " + caption;
 				}
 			} catch (NoSuchRecordWithId e) {
@@ -99,7 +107,7 @@ public class SchemaCaptionUtils implements Serializable {
 		return caption;
 	}
 
-	public static String getShortCaptionForRecord(Record record) {
+	public static String getShortCaptionForRecord(Record record, Locale locale) {
 		String caption;
 		if (record != null) {
 			try {
@@ -118,7 +126,7 @@ public class SchemaCaptionUtils implements Serializable {
 					}
 				}
 
-				caption = applyPattern(captionFormat, record);
+				caption = applyPattern(captionFormat, record, locale);
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
 					if (isRightToLeft()) {
 						caption = caption + " " + captionForSchemaTypeCode;
@@ -136,7 +144,7 @@ public class SchemaCaptionUtils implements Serializable {
 		return caption;
 	}
 
-	public static String getCaptionForRecordVO(RecordVO recordVO) {
+	public static String getCaptionForRecordVO(RecordVO recordVO, Locale locale) {
 		String caption;
 		if (recordVO != null) {
 			try {
@@ -151,7 +159,7 @@ public class SchemaCaptionUtils implements Serializable {
 					captionFormat = $(captionFormatKey);
 				}
 
-				caption = applyPattern(captionFormat, recordVO);
+				caption = applyPattern(captionFormat, recordVO, locale, PREFERRING);
 				if (StringUtils.isNotBlank(captionForSchemaTypeCode)) {
 					if (isRightToLeft()) {
 						caption = caption + " " + captionForSchemaTypeCode;
@@ -184,7 +192,7 @@ public class SchemaCaptionUtils implements Serializable {
 		return caption;
 	}
 
-	private static String applyPattern(String pattern, Record record) {
+	private static String applyPattern(String pattern, Record record, Locale locale) {
 		String collection = record.getCollection();
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
@@ -209,9 +217,10 @@ public class SchemaCaptionUtils implements Serializable {
 					}
 				} else {
 					Metadata metadata = metadataSchemaTypes.getMetadata(schemaCode + "_" + metadataCode);
-					value = record.get(metadata);
+					value = record.get(metadata, locale);
 				}
 			} catch (Exception e) {
+				LOGGER.warn("Could not compute caption", e);
 				value = null;
 			}
 			if (value == null) {
@@ -222,7 +231,8 @@ public class SchemaCaptionUtils implements Serializable {
 		return sb.toString();
 	}
 
-	private static String applyPattern(String pattern, RecordVO recordVO) {
+	private static String applyPattern(String pattern, RecordVO recordVO, Locale locale,
+									   LocalisedRecordMetadataRetrieval mode) {
 		StringBuffer sb = new StringBuffer(pattern);
 		int start = pattern.length();
 		while ((start = pattern.lastIndexOf(EXPRESSION_START, start - 1)) != -1) {
@@ -239,7 +249,7 @@ public class SchemaCaptionUtils implements Serializable {
 					}
 				} else {
 					MetadataVO metadata = recordVO.getMetadata(metadataCode);
-					value = recordVO.get(metadata);
+					value = recordVO.get(metadata, locale, mode);
 				}
 			} catch (Exception e) {
 				value = null;

@@ -2,28 +2,26 @@ package com.constellio.model.services.search;
 
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
-import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.data.io.concurrent.data.DataWithVersion;
-import com.constellio.data.io.concurrent.data.TextView;
-import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.model.services.search.Elevations.QueryElevation;
-import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
 import com.constellio.model.utils.AbstractOneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.XMLConfigReader;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Document;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
 
 public class SynonymsConfigurationsManager extends AbstractOneXMLConfigPerCollectionManager<List<String>> {
 	public static final String SYNONYME_FILE_PATH = "/synonyms.xml";
 
-	public SynonymsConfigurationsManager(ConfigManager configManager, CollectionsListManager collectionsListManager, ConstellioCacheManager cacheManager) {
+	public SynonymsConfigurationsManager(ConfigManager configManager, CollectionsListManager collectionsListManager,
+										 ConstellioCacheManager cacheManager) {
 		super(configManager, collectionsListManager, cacheManager);
 	}
 
@@ -78,9 +76,9 @@ public class SynonymsConfigurationsManager extends AbstractOneXMLConfigPerCollec
 		updateCollection(collection, documentAlteration);
 	}
 
-	public List<String> getSynonyms(String collection){
+	public List<String> getSynonyms(String collection) {
 		List<String> synonyms = getCollection(collection);
-		if(synonyms != null) {
+		if (synonyms != null) {
 			return Collections.unmodifiableList(synonyms);
 		}
 
@@ -90,18 +88,18 @@ public class SynonymsConfigurationsManager extends AbstractOneXMLConfigPerCollec
 	public String computeSynonyms(String collection, String query) {
 		query = StringUtils.defaultString(query);
 
-		if(StringUtils.contains(query, "\"")) {
+		if (StringUtils.contains(query, "\"")) {
 			return query;
 		}
 
 		ArrayList<String> sQueries = new ArrayList<>(new HashSet<>(Arrays.asList(StringUtils.split(query))));
 		List<String> synonyms = getSynonyms(collection);
 
-		for(int i = 0; i < synonyms.size() && !synonyms.isEmpty(); i++) {
+		for (int i = 0; i < synonyms.size() && !synonyms.isEmpty(); i++) {
 			String synonym = synonyms.get(i);
 			ListIterator<String> listIterator = sQueries.listIterator();
 
-			while(listIterator.hasNext()) {
+			while (listIterator.hasNext()) {
 				String sQuery = listIterator.next();
 
 				if (StringUtils.containsIgnoreCase(synonym, sQuery)) {

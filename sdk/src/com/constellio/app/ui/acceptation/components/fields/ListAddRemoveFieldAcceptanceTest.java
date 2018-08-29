@@ -1,20 +1,5 @@
 package com.constellio.app.ui.acceptation.components.fields;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -44,6 +29,20 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @UiTest
 public class ListAddRemoveFieldAcceptanceTest extends ConstellioTest {
@@ -69,7 +68,7 @@ public class ListAddRemoveFieldAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
 		);
 
-		dummyView = new DummyView();
+		dummyView = new DummyView(zeCollection, getAppLayerFactory());
 
 		AppLayerFactory factory = getAppLayerFactory();
 		NavigatorConfigurationService navigatorConfigurationService = new NavigatorConfigurationService() {
@@ -289,7 +288,11 @@ public class ListAddRemoveFieldAcceptanceTest extends ConstellioTest {
 
 	public class DummyView extends BaseViewImpl implements View {
 
-		private List<ListAddRemoveField<?, ?>> listAddRemoveFields = new ArrayList<ListAddRemoveField<?, ?>>();
+		private List<ListAddRemoveField<?, ?>> listAddRemoveFields = new ArrayList<>();
+
+		public DummyView(String collection, AppLayerFactory appLayerFactory) {
+			super(collection, appLayerFactory);
+		}
 
 		public void addListAddRemoveField(ListAddRemoveField<?, ?> listAddRemoveField) {
 			this.listAddRemoveFields.add(listAddRemoveField);

@@ -1,14 +1,13 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
 
 @UiTest
 @InDevelopmentTest

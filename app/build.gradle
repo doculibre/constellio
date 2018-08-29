@@ -40,6 +40,7 @@ dependencies {
     compile "org.glassfish:javax.json:1.0.4"
     compile "org.glassfish.jersey.media:jersey-media-json-jackson:2.26"
     compile "org.glassfish.jersey.containers:jersey-container-servlet:2.26"
+    compile "org.glassfish.jersey.containers:jersey-container-servlet-core:2.26"
     compile "javax.ws.rs:javax.ws.rs-api:2.0.1"
     compile "org.apache.chemistry.opencmis:chemistry-opencmis-server-bindings:1.1.0"
     compile "org.apache.chemistry.opencmis:chemistry-opencmis-server-support:1.1.0"
@@ -82,13 +83,14 @@ dependencies {
     compile 'net.sourceforge.barbecue:barbecue:1.5-beta1'
     compile 'au.com.bytecode:opencsv:2.4'
     compile "eu.maxschuster:vaadin-autocompletetextfield:1.0-alpha-4"
-    compile "org.ow2.asm:asm:5.0.3"
+compile "org.ow2.asm:asm:5.0.3"
     compile "org.vaadin.addons:activelink:7.3.1"
-
     compile "org.vaadin.addons:ckeditor-wrapper-for-vaadin:7.11.0"
     compile files("../libs/vaadin-breadcrumb-1.7.3.jar")
+    compile files("../libs/vaadin-filteringtable-1.0.0.v7.jar")
     compile "org.ow2.asm:asm:5.0.3"
     compile "org.vaadin.addons:activelink:7.3.1"
+    compile "org.vaadin.addons:popupbutton:2.6.0"
     compile "org.imgscalr:imgscalr-lib:4.2"
 }
 

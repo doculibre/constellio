@@ -1,7 +1,5 @@
 package com.constellio.sdk.tests;
 
-import java.util.List;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
@@ -12,6 +10,8 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
+
+import java.util.List;
 
 public class CollectionTestHelper {
 
@@ -24,7 +24,7 @@ public class CollectionTestHelper {
 	protected FileSystemTestFeatures fileSystemTestFeatures;
 
 	public CollectionTestHelper(List<String> collections, AppLayerFactory appLayerFactory,
-			FileSystemTestFeatures fileSystemTestFeatures) {
+								FileSystemTestFeatures fileSystemTestFeatures) {
 		this.collections = collections;
 		this.fileSystemTestFeatures = fileSystemTestFeatures;
 		this.appLayerFactory = appLayerFactory;

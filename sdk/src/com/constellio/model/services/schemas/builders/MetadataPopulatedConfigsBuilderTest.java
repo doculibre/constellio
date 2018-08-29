@@ -1,19 +1,18 @@
 package com.constellio.model.services.schemas.builders;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
+import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
+import com.constellio.model.entities.schemas.RegexConfig;
+import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.model.entities.schemas.MetadataPopulateConfigs;
-import com.constellio.model.entities.schemas.RegexConfig;
-import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class MetadataPopulatedConfigsBuilderTest extends ConstellioTest {
 

@@ -1,14 +1,7 @@
 package com.constellio.app.ui.framework.data;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.framework.data.trees.RecordTreeNodesDataProvider;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
@@ -18,6 +11,13 @@ import com.constellio.model.services.taxonomies.FastContinueInfos;
 import com.constellio.model.services.taxonomies.LinkableTaxonomySearchResponse;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.vaadin.server.Resource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class BaseRecordTreeDataProvider extends AbstractDataProvider implements LazyTreeDataProvider<String> {
 
@@ -155,7 +155,7 @@ public class BaseRecordTreeDataProvider extends AbstractDataProvider implements 
 	}
 
 	protected String getCaptionOf(Record record) {
-		return SchemaCaptionUtils.getCaptionForRecord(record);
+		return SchemaCaptionUtils.getCaptionForRecord(record, i18n.getLocale());
 	}
 
 	protected Resource getExpandedIconOf(Record record) {

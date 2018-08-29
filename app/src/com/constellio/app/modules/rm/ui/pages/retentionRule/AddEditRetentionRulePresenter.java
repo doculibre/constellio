@@ -14,10 +14,15 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleTablePresenter;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.VariableRetentionPeriodVO;
@@ -117,7 +122,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		List<Record> records = searchServices().search(new LogicalSearchQuery(condition));
 		for (Record record : records) {
 			VariableRetentionPeriodVO variableRetentionPeriodVO = new VariableRetentionPeriodVO().setRecordId(record.getId())
-					.setTitle((String) record.get(Schemas.TITLE)).setCode((String) record.get(Schemas.CODE));
+					.setTitle((String) record.get(Schemas.TITLE, ConstellioUI.getCurrentSessionContext().getCurrentLocale())).setCode((String) record.get(Schemas.CODE));
 			returnList.add(variableRetentionPeriodVO);
 		}
 		return returnList;
@@ -308,7 +313,7 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 
 		for (Metadata metadata : folder.getAllMetadatas()) {
 			if (FolderDecomDatesDynamicLocalDependency.isMetadataUsableByCopyRetentionRules(metadata)
-					&& !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
+				&& !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
 				MetadataVO metadataVO = metadataToVOBuilder.build(metadata, sessionContext);
 				dateMetadataVOs.add(metadataVO);
 			}

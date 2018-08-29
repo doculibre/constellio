@@ -1,20 +1,19 @@
 package com.constellio.app.client.services;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-
 import com.constellio.app.client.AdminServicesConstants;
 import com.constellio.app.client.entities.AuthorizationResource;
 import com.constellio.app.client.entities.GroupCollectionPermissionsResource;
 import com.constellio.app.client.entities.RoleResource;
 import com.constellio.app.client.entities.UserCollectionPermissionsResource;
+
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SecurityManagementDriver {
 
@@ -146,7 +145,8 @@ public class SecurityManagementDriver {
 		return requestString("hasContentPermission", queryParams).post(Entity.json(resource), Boolean.class);
 	}
 
-	public boolean hasDeletePermissionOnPrincipalConceptHierarchyAndIncludedRecords(String username, String principalConceptId) {
+	public boolean hasDeletePermissionOnPrincipalConceptHierarchyAndIncludedRecords(String username,
+																					String principalConceptId) {
 		AuthorizationResource resource = new AuthorizationResource();
 		resource.setRecordIds(Arrays.asList(principalConceptId));
 		Map<String, String> queryParams = new HashMap<String, String>();

@@ -1,8 +1,5 @@
 package com.constellio.app.ui.tools.vaadin;
 
-import java.util.Date;
-import java.util.List;
-
 import com.constellio.app.ui.pages.base.EnterViewListener;
 import com.constellio.app.ui.tools.pageloadtime.PageLoadTimeWriter;
 import com.constellio.app.ui.util.ComponentTreeUtils;
@@ -13,13 +10,16 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 
+import java.util.Date;
+import java.util.List;
+
 @SuppressWarnings("serial")
 public class TestEnterViewListener implements EnterViewListener {
 
 	@Override
 	public void enterView(View view) {
 		addClickListeners(view);
-		
+
 		// Put a javascript variable in the view to know that the view is done loading.
 		// This variable will be updated whenever an event happens (e.g.: a button is clicked)
 		writePageLoadTime(view);
@@ -39,12 +39,12 @@ public class TestEnterViewListener implements EnterViewListener {
 			}
 		}
 	}
-	
+
 	private void writePageLoadTime(View view) {
 		new PageLoadTimeWriter().write(new Date());
-//		validateSerializable(view);
+		//		validateSerializable(view);
 	}
-	
+
 	private void validateSerializable(View view) {
 		TestSerializationUtils.validateSerializable(view);
 	}

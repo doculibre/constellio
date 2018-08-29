@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.collection;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RoleVO;
@@ -14,6 +11,9 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServices;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CollectionGroupPresenter extends SingleSchemaBasePresenter<CollectionGroupView> {
 	String recordId;

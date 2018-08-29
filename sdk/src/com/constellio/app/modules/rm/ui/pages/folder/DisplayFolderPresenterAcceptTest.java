@@ -1,24 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -59,6 +40,25 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.SDKViewNavigation;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 
@@ -632,7 +632,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		assertThat(emailToSend.getError()).isNull();
 		assertThat(emailToSend.getTryingCount()).isEqualTo(0);
 		assertThat(emailToSend.getParameters()).hasSize(6);
-		assertThat(emailToSend.getParameters().get(0)).isEqualTo("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+		assertThat(emailToSend.getParameters().get(0)).isEqualTo("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 		assertThat(emailToSend.getParameters().get(1))
 				.isEqualTo("returnDate" + EmailToSend.PARAMETER_SEPARATOR + shishOClock.toString("yyyy-MM-dd  HH:mm:ss"));
 		assertThat(emailToSend.getParameters().get(2))

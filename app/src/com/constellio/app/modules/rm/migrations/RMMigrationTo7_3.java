@@ -27,7 +27,8 @@ public class RMMigrationTo7_3 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor7_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
@@ -51,7 +52,7 @@ public class RMMigrationTo7_3 implements MigrationScript {
 		transaction.in(ContainerRecord.SCHEMA_TYPE).removeFromDisplay(ADMINISTRATIVE_UNIT);
 
 		transaction.addReplacing(manager.getMetadata(collection, ContainerRecord.DEFAULT_SCHEMA + "_" +
-				ContainerRecord.ADMINISTRATIVE_UNITS).withVisibleInAdvancedSearchStatus(true));
+																 ContainerRecord.ADMINISTRATIVE_UNITS).withVisibleInAdvancedSearchStatus(true));
 		manager.execute(transaction.build());
 
 	}
@@ -59,7 +60,7 @@ public class RMMigrationTo7_3 implements MigrationScript {
 	class SchemaAlterationFor7_3 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -81,7 +82,7 @@ public class RMMigrationTo7_3 implements MigrationScript {
 			typesBuilder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE).get(ContainerRecord.ADMINISTRATIVE_UNITS)
 					.setTaxonomyRelationship(true).setDefaultRequirement(required).setEnabled(true).setEssential(true);
 
-//			MetadataBuilder metadataBorrowUser = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE)
+			//			MetadataBuilder metadataBorrowUser = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE)
 			//					.getMetadata(Folder.BORROW_USER);
 			//			MetadataBuilder metadataBorrowUserEntered = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE)
 			//					.getMetadata(Folder.BORROW_USER_ENTERED);

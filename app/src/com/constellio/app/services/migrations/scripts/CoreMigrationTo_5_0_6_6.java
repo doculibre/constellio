@@ -19,7 +19,7 @@ public class CoreMigrationTo_5_0_6_6 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 

@@ -8,31 +8,31 @@ import static java.util.Arrays.asList;
 
 public class ThesaurusServiceAcceptanceTestUtils {
 
-    public static Set<String> getStringPermissiveCases(String searchTerm) {
-        return new HashSet<>(asList(searchTerm, mixCase(searchTerm), removeAccents(searchTerm), addSpaces(searchTerm)));
-    }
+	public static Set<String> getStringPermissiveCases(String searchTerm) {
+		return new HashSet<>(asList(searchTerm, mixCase(searchTerm), removeAccents(searchTerm), addSpaces(searchTerm)));
+	}
 
-    public static String addSpaces(String searchTerm) {
-        return "  "+searchTerm+"  ";
-    }
+	public static String addSpaces(String searchTerm) {
+		return "  " + searchTerm + "  ";
+	}
 
-    public static String mixCase(String input) {
+	public static String mixCase(String input) {
 
-        String output = "";
+		String output = "";
 
-        if(input!=null && !input.isEmpty()){
-            char[] charArray = input.toCharArray();
-            for(int i = 0; i< charArray.length; i++){
-                char currentChar = charArray[i];
+		if (input != null && !input.isEmpty()) {
+			char[] charArray = input.toCharArray();
+			for (int i = 0; i < charArray.length; i++) {
+				char currentChar = charArray[i];
 
-                if(i%2==0){
-                    currentChar = Character.toUpperCase(currentChar);
-                }
+				if (i % 2 == 0) {
+					currentChar = Character.toUpperCase(currentChar);
+				}
 
-                output += currentChar;
-            }
-        }
+				output += currentChar;
+			}
+		}
 
-        return output;
-    }
+		return output;
+	}
 }

@@ -12,7 +12,8 @@ public class CoreMigrationTo_5_1_1_3 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 
 		appLayerFactory.getModelLayerFactory().getEmailQueueManager().clearQueue();

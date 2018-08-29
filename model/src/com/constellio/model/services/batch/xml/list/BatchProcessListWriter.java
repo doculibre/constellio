@@ -1,8 +1,10 @@
 package com.constellio.model.services.batch.xml.list;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
+import com.constellio.model.utils.ParametrizedInstanceUtils;
 import org.apache.commons.collections.IteratorUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -11,11 +13,8 @@ import org.jdom2.filter.Filters;
 import org.jdom2.util.IteratorIterable;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
-import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.batchprocess.BatchProcessAction;
-import com.constellio.model.entities.batchprocess.RecordBatchProcess;
-import com.constellio.model.utils.ParametrizedInstanceUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BatchProcessListWriter {
 
@@ -50,8 +49,9 @@ public class BatchProcessListWriter {
 		document.getRootElement().addContent(new Element(PENDING_BATCH_PROCESSES));
 	}
 
-	public void addRecordBatchProcess(String id, String query, String collection, LocalDateTime requestDateTime, int recordsCount,
-			BatchProcessAction batchProcessAction) {
+	public void addRecordBatchProcess(String id, String query, String collection, LocalDateTime requestDateTime,
+									  int recordsCount,
+									  BatchProcessAction batchProcessAction) {
 		Element actionElement = newParametrizedInstanceUtils().toElement(batchProcessAction, ACTION);
 
 		Element requestDateTimeElement = new Element(REQUEST_DATE_TIME).setText(requestDateTime.toString());
@@ -71,8 +71,9 @@ public class BatchProcessListWriter {
 		document.getRootElement().addContent(pendingBatchProcessesElement);
 	}
 
-	public void addRecordBatchProcess(String id, String query, String collection, LocalDateTime requestDateTime, int recordsCount,
-			BatchProcessAction batchProcessAction, String username, String title) {
+	public void addRecordBatchProcess(String id, String query, String collection, LocalDateTime requestDateTime,
+									  int recordsCount,
+									  BatchProcessAction batchProcessAction, String username, String title) {
 		Element actionElement = newParametrizedInstanceUtils().toElement(batchProcessAction, ACTION);
 
 		Element requestDateTimeElement = new Element(REQUEST_DATE_TIME).setText(requestDateTime.toString());
@@ -97,8 +98,8 @@ public class BatchProcessListWriter {
 	}
 
 	public void addRecordBatchProcess(String id, List<String> records, String collection, LocalDateTime requestDateTime,
-			int recordsCount,
-			BatchProcessAction batchProcessAction, String username, String title) {
+									  int recordsCount,
+									  BatchProcessAction batchProcessAction, String username, String title) {
 		Element actionElement = newParametrizedInstanceUtils().toElement(batchProcessAction, ACTION);
 
 		Element requestDateTimeElement = new Element(REQUEST_DATE_TIME).setText(requestDateTime.toString());
@@ -210,7 +211,7 @@ public class BatchProcessListWriter {
 
 	private boolean markBatchProcessAsFinished(BatchProcess batchProcess, int errors, Element nextBatchProcess) {
 		if (nextBatchProcess.getAttributeValue(ID).equals(batchProcess.getId())
-				&& nextBatchProcess.getParentElement().getName().equals(PREVIOUS_BATCH_PROCESSES)) {
+			&& nextBatchProcess.getParentElement().getName().equals(PREVIOUS_BATCH_PROCESSES)) {
 			throw new BatchProcessListWriterRuntimeException.BatchProcessAlreadyFinished();
 		} else if (nextBatchProcess.getAttributeValue(ID).equals(batchProcess.getId())) {
 			Element errorsElement = setErrorsElementValue(errors, nextBatchProcess);

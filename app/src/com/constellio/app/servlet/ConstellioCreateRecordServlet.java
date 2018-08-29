@@ -1,33 +1,5 @@
 package com.constellio.app.servlet;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import com.constellio.app.api.HttpServletRequestAuthenticator;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.Record;
@@ -47,6 +19,32 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.google.common.base.Joiner;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConstellioCreateRecordServlet extends HttpServlet {
 
@@ -103,7 +101,7 @@ public class ConstellioCreateRecordServlet extends HttpServlet {
 	}
 
 	private void createRecordFromGetRequest(MetadataSchema metadataSchema, MetadataSchemaTypes metadataSchemaTypes,
-			HttpServletRequest request, PrintWriter responseWriter) {
+											HttpServletRequest request, PrintWriter responseWriter) {
 		RecordServices recordServices = modelLayerFactory().newRecordServices();
 
 		Record record = recordServices.newRecordWithSchema(metadataSchema);
@@ -135,7 +133,8 @@ public class ConstellioCreateRecordServlet extends HttpServlet {
 	}
 
 	private void createRecordsFromPostRequest(MetadataSchema metadataSchema, MetadataSchemaTypes metadataSchemaTypes,
-			HttpServletRequest request, HttpServletResponse response, PrintWriter responseWriter)
+											  HttpServletRequest request, HttpServletResponse response,
+											  PrintWriter responseWriter)
 			throws IOException {
 		if (MediaType.APPLICATION_XML.equalsIgnoreCase(request.getContentType())) {
 			Transaction transaction = new Transaction();
@@ -179,7 +178,7 @@ public class ConstellioCreateRecordServlet extends HttpServlet {
 	}
 
 	private MetadataSchema getMetadataSchema(String schemaCode, MetadataSchemaTypes types,
-			String collection, PrintWriter responseWriter) {
+											 String collection, PrintWriter responseWriter) {
 		MetadataSchema schema = null;
 		if (StringUtils.isNotBlank(collection) && types != null) {
 			try {
@@ -198,56 +197,56 @@ public class ConstellioCreateRecordServlet extends HttpServlet {
 	}
 
 	private void setRecordMetadata(Record record, Metadata metadata, String metadataValue,
-			MetadataSchemaTypes metadataSchemaTypes) {
+								   MetadataSchemaTypes metadataSchemaTypes) {
 		if (StringUtils.isNotBlank(metadataValue)) {
 			if (metadata.isMultivalue()) {
 				List<String> values = new ArrayList<>(Arrays.asList(metadataValue.split(MULTIVALUE_SEPARATOR)));
 				record.set(metadata, values);
 			} else {
 				switch (metadata.getType()) {
-				case DATE:
-					record.set(metadata, LocalDate.parse(metadataValue));
-					break;
-				case DATE_TIME:
-					record.set(metadata, LocalDateTime.parse(metadataValue));
-					break;
-				case STRING:
-				case TEXT:
-					record.set(metadata, metadataValue);
-				case INTEGER:
-					break;
-				case NUMBER:
-					break;
-				case BOOLEAN:
-					break;
-				case REFERENCE:
-					String schemaTypeCode = metadata.getAllowedReferences().getAllowedSchemaType();
-
-					MetadataSchemaType metadataSchemaType = metadataSchemaTypes.getSchemaType(schemaTypeCode);
-					Metadata whereMetadata;
-					if (schemaTypeCode.equals(User.SCHEMA_TYPE)) {
-						whereMetadata = metadataSchemaType.getDefaultSchema().getMetadata(User.USERNAME);
-					} else {
-						whereMetadata = Schemas.CODE;
-					}
-					LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(metadataSchemaType)
-							.where(whereMetadata).isEqualTo(metadataValue);
-					LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition)
-							.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER));
-					List<String> foundRecordIds = modelLayerFactory().newSearchServices().searchRecordIds(logicalSearchQuery);
-
-					if (foundRecordIds.isEmpty()) {
+					case DATE:
+						record.set(metadata, LocalDate.parse(metadataValue));
+						break;
+					case DATE_TIME:
+						record.set(metadata, LocalDateTime.parse(metadataValue));
+						break;
+					case STRING:
+					case TEXT:
 						record.set(metadata, metadataValue);
-					} else {
-						record.set(metadata, foundRecordIds.get(0));
-					}
-					break;
-				case CONTENT:
-					break;
-				case STRUCTURE:
-					break;
-				case ENUM:
-					break;
+					case INTEGER:
+						break;
+					case NUMBER:
+						break;
+					case BOOLEAN:
+						break;
+					case REFERENCE:
+						String schemaTypeCode = metadata.getAllowedReferences().getAllowedSchemaType();
+
+						MetadataSchemaType metadataSchemaType = metadataSchemaTypes.getSchemaType(schemaTypeCode);
+						Metadata whereMetadata;
+						if (schemaTypeCode.equals(User.SCHEMA_TYPE)) {
+							whereMetadata = metadataSchemaType.getDefaultSchema().getMetadata(User.USERNAME);
+						} else {
+							whereMetadata = Schemas.CODE;
+						}
+						LogicalSearchCondition logicalSearchCondition = LogicalSearchQueryOperators.from(metadataSchemaType)
+								.where(whereMetadata).isEqualTo(metadataValue);
+						LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition)
+								.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.IDENTIFIER));
+						List<String> foundRecordIds = modelLayerFactory().newSearchServices().searchRecordIds(logicalSearchQuery);
+
+						if (foundRecordIds.isEmpty()) {
+							record.set(metadata, metadataValue);
+						} else {
+							record.set(metadata, foundRecordIds.get(0));
+						}
+						break;
+					case CONTENT:
+						break;
+					case STRUCTURE:
+						break;
+					case ENUM:
+						break;
 				}
 			}
 		}

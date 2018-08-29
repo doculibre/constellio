@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
@@ -14,6 +7,12 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class ContainerRecord extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "containerRecord";
@@ -53,7 +52,7 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String DOCUMENT_RESPONSIBLE = "documentResponsible";
 
 	public ContainerRecord(Record record,
-			MetadataSchemaTypes types) {
+						   MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 

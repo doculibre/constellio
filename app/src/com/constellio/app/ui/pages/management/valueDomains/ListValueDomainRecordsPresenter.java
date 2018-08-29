@@ -1,16 +1,7 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
-import static com.constellio.model.services.search.StatusFilter.ACTIVES;
-import static com.constellio.model.services.search.StatusFilter.DELETED;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-
-import java.util.Iterator;
-
-import org.apache.commons.lang3.StringUtils;
-
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.services.metadata.AppSchemasServices;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -33,6 +24,16 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Iterator;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
+import static com.constellio.model.services.search.StatusFilter.ACTIVES;
+import static com.constellio.model.services.search.StatusFilter.DELETED;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<ListValueDomainRecordsView> {
 
@@ -73,7 +74,7 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 		};
 		return dataProvider;
 	}
-	
+
 	private boolean isHierarchical() {
 		MetadataSchema schema = schema(schemaCode);
 		return schema.hasMetadataWithCode(HierarchicalValueListItem.PARENT);
@@ -148,7 +149,6 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 		if (hasOtherActiveRecordWithSameCode(record)) {
 			view.showErrorMessage($("ListValueDomainRecordsPresenter.otherActiveRecordHasSameCode"));
 		} else {
-
 			RecordServices recordServices = modelLayerFactory.newRecordServices();
 
 			try {
@@ -157,6 +157,7 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 				view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotRestore"));
 			}
 
+			enableLinkedSchema(record);
 			view.refreshTables();
 		}
 
@@ -191,5 +192,15 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 		}
 
 		view.refreshTables();
+	}
+
+	private RMSchemasRecordsServices rmSchemas() {
+		return new RMSchemasRecordsServices(collection, appLayerFactory);
+	}
+
+	private void enableLinkedSchema(Record record) {
+		String linkedSchema = rmSchemas().getLinkedSchemaOf(record);
+		AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
+		appSchemasServices.enableSchema(collection, linkedSchema);
 	}
 }

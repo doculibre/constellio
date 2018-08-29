@@ -1,23 +1,22 @@
 package com.constellio.app.start;
 
-import static com.constellio.app.services.appManagement.AppManagementService.RESTART_COMMAND;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.appManagement.InstallationService;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.services.appManagement.AppManagementService.RESTART_COMMAND;
 
 public final class MainConstellio {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MainConstellio.class);
@@ -28,8 +27,8 @@ public final class MainConstellio {
 
 	public static void main(String[] args)
 			throws IOException, InterruptedException, ZipServiceException {
-        changeTemporaryDirectory();
-        File constellioInstallationDir = new FoldersLocator().getWrapperInstallationFolder();
+		changeTemporaryDirectory();
+		File constellioInstallationDir = new FoldersLocator().getWrapperInstallationFolder();
 
 		FileService fileService = new FileService(null);
 
@@ -37,7 +36,7 @@ public final class MainConstellio {
 			fileService.ensureWritePermissions(constellioInstallationDir);
 		} catch (IOException e) {
 			throw new MainConstellioRuntimeException("No write permissions in installation dir '" + constellioInstallationDir
-					+ "'", e);
+													 + "'", e);
 		}
 
 		if (isInInstallationMode()) {
@@ -62,17 +61,17 @@ public final class MainConstellio {
 		}
 	}
 
-    private static void changeTemporaryDirectory(){
-        FoldersLocator foldersLocator = new FoldersLocator();
-        File tempFile = foldersLocator.getDefaultTempFolder();
-        try {
-            FileUtils.deleteDirectory(tempFile);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        tempFile.mkdirs();
-        System.setProperty("java.io.tmpdir", tempFile.getAbsolutePath());
-    }
+	private static void changeTemporaryDirectory() {
+		FoldersLocator foldersLocator = new FoldersLocator();
+		File tempFile = foldersLocator.getDefaultTempFolder();
+		try {
+			FileUtils.deleteDirectory(tempFile);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		tempFile.mkdirs();
+		System.setProperty("java.io.tmpdir", tempFile.getAbsolutePath());
+	}
 
 	private static void ensureApplicationWillRestartInCorrectState(PluginManagementUtils utils)
 			throws IOException {
@@ -80,7 +79,7 @@ public final class MainConstellio {
 		if (!pluginsToMove.isEmpty()) {
 			throw new RuntimeException(
 					"Avoiding application restart in an invalid state, please check that plugins are in lib and that "
-							+ "plugins management file is empty: " + new FoldersLocator().getPluginsToMoveOnStartupFile());
+					+ "plugins management file is empty: " + new FoldersLocator().getPluginsToMoveOnStartupFile());
 		}
 	}
 

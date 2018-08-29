@@ -1,20 +1,11 @@
 package com.constellio.app.ui.pages.management.updates;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.awt.*;
-import java.io.OutputStream;
-import java.util.List;
-
 import com.constellio.app.api.admin.services.SystemAnalysisUtils;
-import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.api.extensions.UpdateModeExtension.UpdateModeHandler;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementService.LicenseInfo;
 import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
@@ -44,10 +35,17 @@ import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.io.OutputStream;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManagerView, DropHandler {
-	
+
 	private final UpdateManagerPresenter presenter;
 	private UploadWaitWindow uploadWaitWindow;
 	private VerticalLayout layout;
@@ -168,24 +166,24 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout mainLayout = new VerticalLayout();
-				if(totalSystemMemory != null) {
+				if (totalSystemMemory != null) {
 					mainLayout.addComponents(buildInfoItem($("UpdateManagerViewImpl.totalSystemMemory"), totalSystemMemory));
 				}
 
-				if(allocatedMemoryForConstellio != null) {
+				if (allocatedMemoryForConstellio != null) {
 					mainLayout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), allocatedMemoryForConstellio));
 				}
 
-				if(allocatedMemoryForSolr != null) {
+				if (allocatedMemoryForSolr != null) {
 					mainLayout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForSolr"), allocatedMemoryForSolr));
 				}
 				return mainLayout;
 			}
 		};
-				
+
 		StringBuilder buttonCaption = new StringBuilder($("UpdateManagerViewImpl.allocatedMemoryButtonCaption"));
 		if (percentageOfAllocatedMemory != null) {
-			buttonCaption.append(" : " + percentageOfAllocatedMemory*100 + " %");
+			buttonCaption.append(" : " + percentageOfAllocatedMemory * 100 + " %");
 			if (percentageOfAllocatedMemory >= 0.8) {
 				allocatedMemoryButton.addStyleName("button-caption-error");
 			} else {
@@ -216,8 +214,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		final String exceptionDuringLastUpdate = presenter.getExceptionDuringLastUpdate();
 		if (StringUtils.isNotBlank(exceptionDuringLastUpdate)) {
 			verticalLayout.addComponent(new Label(
-					"<p style=\"color:red\">" + $("UpdateManagerViewImpl.exceptionCausedByLastVersion")+ "</p>", ContentMode.HTML));
-			WindowButton windowButton  = new WindowButton($("details"), $("details"), WindowConfiguration.modalDialog("90%", "90%")) {
+					"<p style=\"color:red\">" + $("UpdateManagerViewImpl.exceptionCausedByLastVersion") + "</p>", ContentMode.HTML));
+			WindowButton windowButton = new WindowButton($("details"), $("details"), WindowConfiguration.modalDialog("90%", "90%")) {
 				@Override
 				protected Component buildWindowContent() {
 					TextArea textArea = new TextArea();
@@ -414,5 +412,5 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	public AcceptCriterion getAcceptCriterion() {
 		return AcceptAll.get();
 	}
-	
+
 }

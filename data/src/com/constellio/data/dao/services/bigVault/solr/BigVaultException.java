@@ -43,7 +43,7 @@ public class BigVaultException extends Exception {
 
 		public NonUniqueResult(SolrParams params, SolrDocumentList list) {
 			super("Non unique result for query '" + SolrUtils.toString(params) + "'. Found results : "
-					+ SolrUtils.toIdString(list));
+				  + SolrUtils.toIdString(list));
 		}
 
 	}
@@ -89,8 +89,9 @@ public class BigVaultException extends Exception {
 
 		public static String retreiveId(String solrMessage) {
 			String errMsg = checkIfDocNotFound(solrMessage);
-			if (errMsg != null)
+			if (errMsg != null) {
 				return errMsg;
+			}
 
 			String phraseBefore = "version conflict for ";
 			String phraseAfter = " expected=";

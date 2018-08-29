@@ -10,11 +10,11 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 
 public class CommentField extends CustomField<Comment> {
-	
+
 	private CommentToStringConverter converter = new CommentToStringConverter();
-	
+
 	private BaseTextArea textArea;
-	
+
 	public CommentField() {
 		textArea = new BaseTextArea();
 		textArea.setConverter(converter);
@@ -41,7 +41,7 @@ public class CommentField extends CustomField<Comment> {
 	public void setPropertyDataSource(Property newDataSource) {
 		textArea.setPropertyDataSource(newDataSource);
 	}
-	
+
 	public void setValue(Comment newValue)
 			throws com.vaadin.data.Property.ReadOnlyException {
 		super.setValue(newValue);
@@ -103,5 +103,5 @@ public class CommentField extends CustomField<Comment> {
 			throws InvalidValueException {
 		textArea.validate();
 	}
-	
+
 }

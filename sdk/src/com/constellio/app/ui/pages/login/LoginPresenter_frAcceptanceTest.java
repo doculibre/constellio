@@ -17,62 +17,62 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 public class LoginPresenter_frAcceptanceTest extends ConstellioTest {
-    Users users = new Users();
-    LoginPresenter loginPresenter;
-    RecordServices recordServices;
+	Users users = new Users();
+	LoginPresenter loginPresenter;
+	RecordServices recordServices;
 
-    @Before
-    public void setUp()
-            throws Exception {
-        givenSystemLanguageIs("fr");
-        //TODO Francis
-        givenCollection(zeCollection , Arrays.asList("en", "fr")).withConstellioRMModule().withAllTestUsers();
-        givenCollection(businessCollection , Arrays.asList("fr")).withConstellioRMModule().withAllTestUsers();
+	@Before
+	public void setUp()
+			throws Exception {
+		givenSystemLanguageIs("fr");
+		//TODO Francis
+		givenCollection(zeCollection, Arrays.asList("en", "fr")).withConstellioRMModule().withAllTestUsers();
+		givenCollection(businessCollection, Arrays.asList("fr")).withConstellioRMModule().withAllTestUsers();
 
-        LoginView view = mock(LoginView.class);
-        doReturn(zeCollection).when(view).getCollection();
-        doReturn(FakeSessionContext.adminInCollection(zeCollection)).when(view).getSessionContext();
-        loginPresenter = new LoginPresenter(view);
-        users.setUp(getModelLayerFactory().newUserServices());
-        recordServices = getModelLayerFactory().newRecordServices();
-       
-    }
-        //GetSessionLanguage
+		LoginView view = mock(LoginView.class);
+		doReturn(zeCollection).when(view).getCollection();
+		doReturn(FakeSessionContext.adminInCollection(zeCollection)).when(view).getSessionContext();
+		loginPresenter = new LoginPresenter(view);
+		users.setUp(getModelLayerFactory().newUserServices());
+		recordServices = getModelLayerFactory().newRecordServices();
 
-    @Test
-    public void whenGetSessionLanguageThenOk()
-            throws Exception {
-        givenUserPreferredLanguageIsEnWhenGetSessionLanguageThenOk();
-        givenUserWithoutPreferredLanguageWhenGetSessionLanguageThenOk();
-        givenUserPreferredLanguageIsFrWhenGetSessionLanguageThenOk();
-    }
+	}
+	//GetSessionLanguage
 
-    private void givenUserPreferredLanguageIsFrWhenGetSessionLanguageThenOk() throws RecordServicesException {
-        User adminInZeCollection = users.adminIn(zeCollection);
-        recordServices.add(adminInZeCollection.setLoginLanguageCode("fr"));
-        User adminInBusiness = users.adminIn(businessCollection);
-        recordServices.add(adminInBusiness.setLoginLanguageCode("fr"));
-        assertThat(loginPresenter.getSessionLanguage(adminInZeCollection)).isEqualTo(new Locale("fr"));
-        assertThat(loginPresenter.getSessionLanguage(adminInBusiness)).isEqualTo(new Locale("fr"));
-    }
+	@Test
+	public void whenGetSessionLanguageThenOk()
+			throws Exception {
+		givenUserPreferredLanguageIsEnWhenGetSessionLanguageThenOk();
+		givenUserWithoutPreferredLanguageWhenGetSessionLanguageThenOk();
+		givenUserPreferredLanguageIsFrWhenGetSessionLanguageThenOk();
+	}
 
-    private void givenUserWithoutPreferredLanguageWhenGetSessionLanguageThenOk() throws RecordServicesException {
-        User adminInZeCollection = users.adminIn(zeCollection);
-        recordServices.add(adminInZeCollection.setLoginLanguageCode(null));
-        User adminInBusiness = users.adminIn(businessCollection);
-        recordServices.add(adminInBusiness.setLoginLanguageCode(null));
-        assertThat(loginPresenter.getSessionLanguage(adminInZeCollection)).isEqualTo(new Locale("fr"));
-        assertThat(loginPresenter.getSessionLanguage(adminInBusiness)).isEqualTo(new Locale("fr"));
+	private void givenUserPreferredLanguageIsFrWhenGetSessionLanguageThenOk() throws RecordServicesException {
+		User adminInZeCollection = users.adminIn(zeCollection);
+		recordServices.add(adminInZeCollection.setLoginLanguageCode("fr"));
+		User adminInBusiness = users.adminIn(businessCollection);
+		recordServices.add(adminInBusiness.setLoginLanguageCode("fr"));
+		assertThat(loginPresenter.getSessionLanguage(adminInZeCollection)).isEqualTo(new Locale("fr"));
+		assertThat(loginPresenter.getSessionLanguage(adminInBusiness)).isEqualTo(new Locale("fr"));
+	}
 
-    }
+	private void givenUserWithoutPreferredLanguageWhenGetSessionLanguageThenOk() throws RecordServicesException {
+		User adminInZeCollection = users.adminIn(zeCollection);
+		recordServices.add(adminInZeCollection.setLoginLanguageCode(null));
+		User adminInBusiness = users.adminIn(businessCollection);
+		recordServices.add(adminInBusiness.setLoginLanguageCode(null));
+		assertThat(loginPresenter.getSessionLanguage(adminInZeCollection)).isEqualTo(new Locale("fr"));
+		assertThat(loginPresenter.getSessionLanguage(adminInBusiness)).isEqualTo(new Locale("fr"));
 
-    private void givenUserPreferredLanguageIsEnWhenGetSessionLanguageThenOk() throws RecordServicesException {
-        User adminInZeCollection = users.adminIn(zeCollection);
-        recordServices.add(adminInZeCollection.setLoginLanguageCode("en"));
-        User adminInBusiness = users.adminIn(businessCollection);
-        recordServices.add(adminInBusiness.setLoginLanguageCode("en"));
-        assertThat(loginPresenter.getSessionLanguage(adminInZeCollection)).isEqualTo(new Locale("en"));
-        assertThat(loginPresenter.getSessionLanguage(adminInBusiness)).isEqualTo(new Locale("fr"));
-    }
+	}
+
+	private void givenUserPreferredLanguageIsEnWhenGetSessionLanguageThenOk() throws RecordServicesException {
+		User adminInZeCollection = users.adminIn(zeCollection);
+		recordServices.add(adminInZeCollection.setLoginLanguageCode("en"));
+		User adminInBusiness = users.adminIn(businessCollection);
+		recordServices.add(adminInBusiness.setLoginLanguageCode("en"));
+		assertThat(loginPresenter.getSessionLanguage(adminInZeCollection)).isEqualTo(new Locale("en"));
+		assertThat(loginPresenter.getSessionLanguage(adminInBusiness)).isEqualTo(new Locale("fr"));
+	}
 
 }

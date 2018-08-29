@@ -1,5 +1,18 @@
 package com.constellio.app.ui.pages.smokeTests;
 
+import com.constellio.app.modules.rm.DemoTestRecords;
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+import com.constellio.app.services.migrations.CoreNavigationConfiguration;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.UiTest;
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.By;
+
 import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.BORROWED_DOCUMENTS_LINK_BUTTON;
 import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.BY_FOLDER_EVENTS_LINK_BUTTON;
 import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.BY_USER_EVENTS_LINK_BUTTON;
@@ -12,20 +25,6 @@ import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.RECORDS
 import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.SYSTEM_USAGE_LINK_BUTTON;
 import static com.constellio.app.ui.pages.events.EventCategoriesViewImpl.USERS_AND_GROUPS_LINK_BUTTON;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.openqa.selenium.By;
-
-import com.constellio.app.modules.rm.DemoTestRecords;
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.services.migrations.CoreNavigationConfiguration;
-import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.UiTest;
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 
 @UiTest
 public class NavigatePageAcceptanceTest extends ConstellioTest {
@@ -181,7 +180,7 @@ public class NavigatePageAcceptanceTest extends ConstellioTest {
 		clickOnFolderMenuAndWaitForReload(5);
 		assertThat(driver.getCurrentPage())
 				.isEqualTo(NavigatorConfigurationService.LIST_OBJECT_ACCESS_AUTHORIZATIONS + "/"
-						+ folderId);//LIST_OBJECT_ACCESS_AUTHORIZATIONS
+						   + folderId);//LIST_OBJECT_ACCESS_AUTHORIZATIONS
 
 		page.getBackButton().clickAndWaitForPageReload();
 		assertThat(driver.getCurrentPage())

@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.management;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -18,6 +14,10 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AdminViewImpl extends BaseViewImpl implements AdminView {
 	private final AdminPresenter presenter;

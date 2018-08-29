@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.reports.model.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.*;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -28,8 +23,16 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.utils.EnumWithSmallCodeUtils;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class SearchResultReportPresenter {
 	static int LIMIT = 10000;
@@ -65,8 +68,8 @@ public class SearchResultReportPresenter {
 			resultReportModel.addTitle(metadata.getLabel(Language.withCode(locale.getLanguage())));
 		}
 		Iterator<Record> recordsIterator;
-		if(searchQuery != null) {
-			recordsIterator = modelLayerFactory.newSearchServices().recordsIterator(searchQuery);
+		if (searchQuery != null) {
+			recordsIterator = modelLayerFactory.newSearchServices().recordsIteratorKeepingOrder(searchQuery, 200);
 		}
 		//TODO DO Not use searchQuery
 		else if (selectedRecords == null || selectedRecords.isEmpty()) {
@@ -84,28 +87,28 @@ public class SearchResultReportPresenter {
 		} else {
 			recordsIterator = getAllSelectedRecordsFromIndex(modelLayerFactory, orderedEnabledReportedMetadataList).iterator();
 		}
-		while(recordsIterator.hasNext()){
+		while (recordsIterator.hasNext()) {
 			resultReportModel.addLine(getRecordLine(recordsIterator.next(), orderedEnabledReportedMetadataList));
 		}
 		return resultReportModel;
 	}
 
 	private List<Record> getAllSelectedRecordsFromIndex(ModelLayerFactory modelLayerFactory,
-			List<Metadata> orderedEnabledReportedMetadataList) {
+														List<Metadata> orderedEnabledReportedMetadataList) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		User userInCollection = modelLayerFactory.newUserServices().getUserInCollection(username, collection);
 		LogicalSearchQuery newSearchQuery = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(asList(schemaTypeCode), collection).where(Schemas.IDENTIFIER)
-				.isIn(selectedRecords)).filteredWithUser(userInCollection)
+						.isIn(selectedRecords)).filteredWithUser(userInCollection)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList));
-//		LogicalSearchCondition newCondition = searchQuery.getCondition().andWhere(Schemas.IDENTIFIER).isIn(selectedRecords);
-//		LogicalSearchQuery newSearchQuery = searchQuery.setCondition(newCondition)
-//				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList));
+		//		LogicalSearchCondition newCondition = searchQuery.getCondition().andWhere(Schemas.IDENTIFIER).isIn(selectedRecords);
+		//		LogicalSearchQuery newSearchQuery = searchQuery.setCondition(newCondition)
+		//				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList));
 		return searchServices.query(newSearchQuery).getRecords();
 	}
 
 	private List<Record> getAllSchemaTypeRecords(int index, ModelLayerFactory modelLayerFactory,
-			List<Metadata> orderedEnabledReportedMetadataList) {
+												 List<Metadata> orderedEnabledReportedMetadataList) {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		ReturnedMetadatasFilter returnMetadata = ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList);
 		User userInCollection = modelLayerFactory.newUserServices().getUserInCollection(username, collection);
@@ -114,17 +117,17 @@ public class SearchResultReportPresenter {
 				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList))
 				.setStartRow(index)
 				.setNumberOfRows(BATCH_SIZE);
-//		LogicalSearchQuery newSearchQuery = searchQuery
-//				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList))
-//				.setStartRow(index)
-//				.setNumberOfRows(BATCH_SIZE);
+		//		LogicalSearchQuery newSearchQuery = searchQuery
+		//				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(orderedEnabledReportedMetadataList))
+		//				.setStartRow(index)
+		//				.setNumberOfRows(BATCH_SIZE);
 		return searchServices.query(new LogicalSearchQuery(newSearchQuery).setReturnedMetadatas(returnMetadata)).getRecords();
 	}
 
 	private List<Object> getRecordLine(Record record, List<Metadata> orderedEnabledReportedMetadataList) {
 		List<Object> returnList = new ArrayList<>();
 		for (Metadata metadata : orderedEnabledReportedMetadataList) {
-			Object metadataValue = record.get(metadata);
+			Object metadataValue = record.get(metadata, locale);
 			if (metadataValue == null) {
 				returnList.add(null);
 			} else {
@@ -141,7 +144,7 @@ public class SearchResultReportPresenter {
 			for (Object item : items) {
 				convertedValue.add(getConvertedScalarValue(metadata, item));
 			}
-			if(convertedValue.isEmpty()) {
+			if (convertedValue.isEmpty()) {
 				return "";
 			}
 			return convertedValue;
@@ -165,21 +168,18 @@ public class SearchResultReportPresenter {
 					return code + "-" + title;
 				}
 			}
-		}
-		else if(metadata.getType() == MetadataValueType.BOOLEAN) {
-			return metadataValue.equals(true)? $("yes"):$("no");
-		}
-		else if(metadata.getType() == MetadataValueType.TEXT) {
+		} else if (metadata.getType() == MetadataValueType.BOOLEAN) {
+			return metadataValue.equals(true) ? $("yes") : $("no");
+		} else if (metadata.getType() == MetadataValueType.TEXT) {
 			SchemasDisplayManager schemasManager = appLayerFactory.getMetadataSchemasDisplayManager();
 			MetadataDisplayConfig config = schemasManager.getMetadata(collection, metadata.getCode());
-			if(config.getInputType().equals(MetadataInputType.RICHTEXT)) {
+			if (config.getInputType().equals(MetadataInputType.RICHTEXT)) {
 				String result = metadataValue.toString().replaceAll("<br>", "\n");
 				result = result.toString().replaceAll("<li>", "\n");
-				result = result.toString().replaceAll("\\<[^>]*>","");
+				result = result.toString().replaceAll("\\<[^>]*>", "");
 				return result;
 			}
-		}
-		else if(metadata.getType() == MetadataValueType.ENUM) {
+		} else if (metadata.getType() == MetadataValueType.ENUM) {
 			EnumWithSmallCodeToCaptionConverter captionConverter =
 					new EnumWithSmallCodeToCaptionConverter((Class<? extends EnumWithSmallCode>) metadataValue.getClass());
 			return captionConverter.convertToPresentation(((EnumWithSmallCode) metadataValue).getCode(), String.class, locale);
@@ -219,9 +219,9 @@ public class SearchResultReportPresenter {
 			boolean found = false;
 			for (Metadata metadata : allMetadata) {
 				if (metadata.getLocalCode().equals(reportedMetadata.getMetadataLocaleCode())) {
-//					if (metadata.isEnabled()) {
-						returnList.add(metadata);
-//					}
+					//					if (metadata.isEnabled()) {
+					returnList.add(metadata);
+					//					}
 					found = true;
 					break;
 				}

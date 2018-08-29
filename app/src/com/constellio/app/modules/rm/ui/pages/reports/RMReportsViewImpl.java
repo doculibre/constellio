@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.reports;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -18,6 +16,8 @@ import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 
@@ -48,7 +48,7 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 				panel.addComponent(windowButton);
 			} else {
 				ReportButton button = new ReportButton(report, presenter);
-//				setReportButtonStyle(report, button);
+				//				setReportButtonStyle(report, button);
 				panel.addComponent(button);
 			}
 		}

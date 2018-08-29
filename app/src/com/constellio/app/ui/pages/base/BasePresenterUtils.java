@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -28,6 +20,14 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.roles.Roles;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BasePresenterUtils implements Serializable {
 
@@ -170,7 +170,8 @@ public class BasePresenterUtils implements Serializable {
 		return appLayerFactory().getCollectionsManager();
 	}
 
-	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream, UploadOptions options) {
+	public ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream,
+																		  UploadOptions options) {
 		try {
 			return modelLayerFactory().getContentManager().upload(inputStream, options);
 		} catch (final IcapException e) {

@@ -11,7 +11,11 @@ import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryI
 import com.constellio.app.modules.es.connectors.smb.queue.SmbJobQueue;
 import com.constellio.app.modules.es.connectors.smb.queue.SmbJobQueueSortedImpl;
 import com.constellio.app.modules.es.connectors.smb.security.Credentials;
-import com.constellio.app.modules.es.connectors.smb.service.*;
+import com.constellio.app.modules.es.connectors.smb.service.SmbFileFactory;
+import com.constellio.app.modules.es.connectors.smb.service.SmbFileFactoryImpl;
+import com.constellio.app.modules.es.connectors.smb.service.SmbRecordService;
+import com.constellio.app.modules.es.connectors.smb.service.SmbShareService;
+import com.constellio.app.modules.es.connectors.smb.service.SmbShareServiceSimpleImpl;
 import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.Connector;
@@ -40,7 +44,16 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -50,12 +63,12 @@ import static java.util.Arrays.asList;
 public class ConnectorSmb extends Connector {
 
 	static {
-		System.setProperty("jcifs.smb.client.soTimeout","150000");
-		System.setProperty("jcifs.smb.client.responseTimeout","120000");
-		System.setProperty("jcifs.resolveOrder","LMHOSTS,DNS,WINS");
-		System.setProperty("jcifs.smb.client.listSize","1200");
-		System.setProperty("jcifs.smb.client.listCount","15");
-		System.setProperty("jcifs.smb.client.dfs.strictView","true");
+		System.setProperty("jcifs.smb.client.soTimeout", "150000");
+		System.setProperty("jcifs.smb.client.responseTimeout", "120000");
+		System.setProperty("jcifs.resolveOrder", "LMHOSTS,DNS,WINS");
+		System.setProperty("jcifs.smb.client.listSize", "1200");
+		System.setProperty("jcifs.smb.client.listCount", "15");
+		System.setProperty("jcifs.smb.client.dfs.strictView", "true");
 	}
 
 	static final String START_OF_TRAVERSAL = "Start of traversal";
@@ -149,8 +162,8 @@ public class ConnectorSmb extends Connector {
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 		ReturnedMetadatasFilter returnedMetadatasFilter = ReturnedMetadatasFilter.onlyMetadatas(es.connectorSmbDocument.url(),
-				es.connectorSmbDocument.connectorUrl(),	es.connectorSmbDocument.parentUrl(), es.connectorSmbDocument.parentConnectorUrl(),
-				es.connectorSmbDocument.lastModified(),	es.connectorSmbDocument.permissionsHash(), es.connectorSmbDocument.size());
+				es.connectorSmbDocument.connectorUrl(), es.connectorSmbDocument.parentUrl(), es.connectorSmbDocument.parentConnectorUrl(),
+				es.connectorSmbDocument.lastModified(), es.connectorSmbDocument.permissionsHash(), es.connectorSmbDocument.size());
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery().setCondition(from(es.connectorSmbDocument.schemaType())
 				.where(es.connectorSmbDocument.connector()).isEqualTo(connectorId))
 				.setReturnedMetadatas(returnedMetadatasFilter);
@@ -186,7 +199,7 @@ public class ConnectorSmb extends Connector {
 				updater);
 		for (String seed : sortedSeeds) {
 			SmbConnectorJob smbDispatchJob = smbJobFactory.get(SmbJobCategory.DISPATCH, seed, "");
-				queueJob(smbDispatchJob);
+			queueJob(smbDispatchJob);
 		}
 	}
 
@@ -268,7 +281,7 @@ public class ConnectorSmb extends Connector {
 	}
 
 	private void checkDuplicates() {
-        try {
+		try {
 			this.duplicateUrls.clear();
 			this.duplicateUrls.addAll(this.smbRecordService.duplicateDocuments());
 		} catch (Exception e) {
@@ -298,7 +311,7 @@ public class ConnectorSmb extends Connector {
 		}
 
 		getLogger().info(END_OF_TRAVERSAL, "Connector instance " + this.connectorInstance.getId() +
-						" Old TraversalCode : \"" + oldTraversalCode + "\" New TraversalCode : \"" + newTraversalCode + "\"",
+										   " Old TraversalCode : \"" + oldTraversalCode + "\" New TraversalCode : \"" + newTraversalCode + "\"",
 				new LinkedHashMap<String, String>());
 	}
 

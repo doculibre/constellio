@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.calculateExpectedTransferDate;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.calculators.folder.FolderDecomDatesDynamicLocalDependency;
@@ -18,6 +11,12 @@ import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import org.joda.time.LocalDate;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.calculateExpectedTransferDate;
 
 public class FolderCopyRulesExpectedTransferDatesCalculator
 		extends AbstractFolderCopyRulesExpectedDatesCalculator
@@ -52,7 +51,8 @@ public class FolderCopyRulesExpectedTransferDatesCalculator
 		}
 	}
 
-	private LocalDate getAdjustedDateUsedToCalculation(CalculatorInput input, CopyRetentionRule copyRule, String yearEnd) {
+	private LocalDate getAdjustedDateUsedToCalculation(CalculatorInput input, CopyRetentionRule copyRule,
+													   String yearEnd) {
 		LocalDate activeDelayDate = input.getAdjustedBaseDateFromActiveDelay(copyRule, yearEnd);
 
 		if (activeDelayDate != null) {

@@ -1,10 +1,10 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.Serializable;
-import java.util.Locale;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.CoreViews;
+
+import java.io.Serializable;
+import java.util.Locale;
 
 public interface ConstellioMenu extends Serializable {
 
@@ -17,5 +17,7 @@ public interface ConstellioMenu extends Serializable {
 	ConstellioFactories getConstellioFactories();
 
 	void setLocale(Locale locale);
+
+	void refreshBadges();
 
 }

@@ -1,19 +1,5 @@
 package com.constellio.app.ui.application;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.lang.reflect.InvocationTargetException;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.dialogs.DefaultConfirmDialogFactory;
-
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.modules.rm.ui.contextmenu.RMRecordContextMenuHandler;
 import com.constellio.app.modules.rm.ui.menuBar.RMRecordMenuBarHandler;
@@ -32,6 +18,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.EnterViewListener;
 import com.constellio.app.ui.pages.base.InitUIListener;
+import com.constellio.app.ui.pages.base.MainLayout;
 import com.constellio.app.ui.pages.base.MainLayoutImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SessionContextProvider;
@@ -64,22 +51,35 @@ import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.joda.time.LocalDateTime;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.dialogs.DefaultConfirmDialogFactory;
+
+import java.lang.reflect.InvocationTargetException;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 @SuppressWarnings("serial")
 @Theme("constellio")
 public class ConstellioUI extends UI implements SessionContextProvider, UIContext {
 
 	private static final ConstellioResourceHandler CONSTELLIO_RESSOURCE_HANDLER = new ConstellioResourceHandler();
-	
+
 	private static final int POLL_INTERVAL = 1000;
 
 	private SessionContext sessionContext;
 	private MainLayoutImpl mainLayout;
 
 	private List<RecordContextMenuHandler> recordContextMenuHandlers = new ArrayList<>();
-	
+
 	private List<RecordMenuBarHandler> recordMenuBarHandlers = new ArrayList<>();
-	
+
 	private Map<String, Object> uiContext = new HashMap<>();
 
 	private SSOServices ssoServices;
@@ -252,9 +252,9 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 			if (currentUserVO != null) {
 				// Authenticated user
 				mainLayout = new MainLayoutImpl(appLayerFactory);
-//				if (isRightToLeft()) {
-//					mainLayout.addStyleName("right-to-left");
-//				}
+				//				if (isRightToLeft()) {
+				//					mainLayout.addStyleName("right-to-left");
+				//				}
 
 				setContent(mainLayout);
 
@@ -296,7 +296,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 							}
 						}
 						ConstellioUI.this.currentView = newView;
-						
+
 						ConstellioFactories constellioFactories = getConstellioFactories();
 						AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 						List<EnterViewListener> enterViewListeners = appLayerFactory.getEnterViewListeners();
@@ -308,7 +308,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 				removeStyleName("setupview");
 				removeStyleName("loginview");
-//				removeStyleName("right-to-left");
+				//				removeStyleName("right-to-left");
 				navigator.navigateTo(navigator.getState());
 			} else {
 				removeStyleName("setupview");
@@ -385,15 +385,15 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	public List<RecordContextMenuHandler> getRecordContextMenuHandlers() {
 		return recordContextMenuHandlers;
 	}
-	
+
 	public void addRecordMenuBarHandler(RecordMenuBarHandler recordMenuBarHandler) {
-		this.recordMenuBarHandlers.add(recordMenuBarHandler); 
+		this.recordMenuBarHandlers.add(recordMenuBarHandler);
 	}
-	
+
 	public void removeRecordMenuBarHandler(RecordMenuBarHandler recordMenuBarHandler) {
 		this.recordContextMenuHandlers.remove(recordMenuBarHandler);
 	}
-	
+
 	public List<RecordMenuBarHandler> getRecordMenuBarHandlers() {
 		return recordMenuBarHandlers;
 	}
@@ -401,7 +401,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 	public static ConstellioUI getCurrent() {
 		return (ConstellioUI) UI.getCurrent();
 	}
-	
+
 	@Override
 	public <T> T clearAttribute(String key) {
 		return (T) uiContext.remove(key);
@@ -421,6 +421,10 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 	public View getCurrentView() {
 		return currentView;
+	}
+
+	public MainLayout getMainLayout() {
+		return mainLayout;
 	}
 
 }

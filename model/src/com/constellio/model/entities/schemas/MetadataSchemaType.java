@@ -1,16 +1,6 @@
 package com.constellio.model.entities.schemas;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
@@ -19,6 +9,16 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MetadataSchemaType implements Serializable {
 
@@ -27,8 +27,6 @@ public class MetadataSchemaType implements Serializable {
 	private final String code;
 
 	private final String smallCode;
-
-	private final String collection;
 
 	private final Map<Language, String> labels;
 
@@ -50,14 +48,17 @@ public class MetadataSchemaType implements Serializable {
 
 	private final String dataStore;
 
-	public MetadataSchemaType(String code, String smallCode, String collection, Map<Language, String> labels,
-			List<MetadataSchema> customSchemas,
-			MetadataSchema defaultSchema, Boolean undeletable, boolean security, boolean inTransactionLog,
-			boolean readOnlyLocked, String dataStore) {
+	private final CollectionInfo collectionInfo;
+
+	public MetadataSchemaType(String code, String smallCode, CollectionInfo collectionInfo,
+							  Map<Language, String> labels,
+							  List<MetadataSchema> customSchemas,
+							  MetadataSchema defaultSchema, Boolean undeletable, boolean security,
+							  boolean inTransactionLog,
+							  boolean readOnlyLocked, String dataStore) {
 		super();
 		this.code = code;
 		this.smallCode = smallCode;
-		this.collection = collection;
 		this.labels = Collections.unmodifiableMap(labels);
 		this.customSchemas = Collections.unmodifiableList(customSchemas);
 		this.defaultSchema = defaultSchema;
@@ -70,6 +71,7 @@ public class MetadataSchemaType implements Serializable {
 		this.dataStore = dataStore;
 		this.customSchemasByCode = buildCustomSchemasByCodeMap(customSchemas);
 		this.customSchemasByLocalCode = buildCustomSchemasByLocalCodeMap(customSchemas);
+		this.collectionInfo = collectionInfo;
 
 	}
 
@@ -94,7 +96,11 @@ public class MetadataSchemaType implements Serializable {
 	}
 
 	public String getCollection() {
-		return collection;
+		return collectionInfo.getCode();
+	}
+
+	public CollectionInfo getCollectionInfo() {
+		return collectionInfo;
 	}
 
 	public String getCode() {
@@ -113,16 +119,16 @@ public class MetadataSchemaType implements Serializable {
 		return labels.get(Language.French);
 	}
 
+	public Map<Language, String> getLabel() {
+		return labels;
+	}
+
 	public String getLabel(Language language) {
 		return labels.get(language);
 	}
 
 	public boolean isInTransactionLog() {
 		return inTransactionLog;
-	}
-
-	public List<MetadataSchema> getSchemas() {
-		return customSchemas;
 	}
 
 	public MetadataSchema getDefaultSchema() {
@@ -336,7 +342,7 @@ public class MetadataSchemaType implements Serializable {
 	@Override
 	public String toString() {
 		return "MetadataSchemaType [code=" + code + ", label=" + labels + ", defaultSchema=" + defaultSchema
-				+ ", customSchemas=" + customSchemas + ", undeletable=" + undeletable + "]";
+			   + ", customSchemas=" + customSchemas + ", undeletable=" + undeletable + "]";
 	}
 
 	public List<MetadataSchema> getCustomSchemas() {
@@ -424,4 +430,14 @@ public class MetadataSchemaType implements Serializable {
 		return false;
 	}
 
+	public boolean isMultilingualMetadata(String metadataLocalCode) {
+		boolean multilingual = false;
+		for (MetadataSchema metadataSchema : getAllSchemas()) {
+			if (metadataSchema.hasMetadataWithCode(metadataLocalCode)) {
+				multilingual |= metadataSchema.getMetadata(metadataLocalCode).isMultiLingual();
+			}
+		}
+
+		return multilingual;
+	}
 }

@@ -10,6 +10,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
+import com.constellio.app.ui.framework.components.BaseUpdatableContentVersionPresenter;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
@@ -20,7 +21,8 @@ import com.vaadin.ui.MenuBar;
 
 public class DocumentSearchResultDisplay extends SearchResultDisplay {
 
-	public DocumentSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory, AppLayerFactory appLayerFactory, String query) {
+	public DocumentSearchResultDisplay(SearchResultVO searchResultVO, MetadataDisplayFactory componentFactory,
+									   AppLayerFactory appLayerFactory, String query) {
 		super(searchResultVO, componentFactory, appLayerFactory, query);
 	}
 
@@ -29,7 +31,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 		RecordVO recordVO = searchResultVO.getRecordVO();
 
 		Component titleComponent = super.newTitleComponent(searchResultVO);
-		
+
 		ConstellioFactories constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
 		MenuBar menuBar = new RMRecordMenuBarHandler(constellioFactories).get(recordVO);
 
@@ -55,7 +57,7 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 			ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
 			String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 			if (agentURL != null) {
-				titleLink = new ConstellioAgentLink(agentURL, recordVO, contentVersionVO, recordVO.getTitle(), false);
+				titleLink = new ConstellioAgentLink(agentURL, recordVO, contentVersionVO, recordVO.getTitle(), false, new BaseUpdatableContentVersionPresenter(getAppLayerFactory()));
 			} else {
 				titleLink = super.newTitleLink(searchResultVO);
 			}

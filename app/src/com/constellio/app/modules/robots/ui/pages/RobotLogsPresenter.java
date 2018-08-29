@@ -1,9 +1,5 @@
 package com.constellio.app.modules.robots.ui.pages;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.List;
-
 import com.constellio.app.modules.robots.constants.RobotsPermissionsTo;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.ui.navigation.RobotViews;
@@ -17,6 +13,10 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RobotLogsPresenter extends BaseRobotPresenter<RobotLogsView> {
 	private String robotId;

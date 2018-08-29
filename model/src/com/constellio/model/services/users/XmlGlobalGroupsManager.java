@@ -1,14 +1,5 @@
 package com.constellio.model.services.users;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.jdom2.Document;
-
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
@@ -17,6 +8,14 @@ import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_InvalidParent;
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_ParentNotFound;
+import org.jdom2.Document;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class XmlGlobalGroupsManager implements GlobalGroupsManager, ConfigUpdatedEventListener {
 	public static final String CONFIG_FILE = "/globalGroups.xml";
@@ -35,7 +34,8 @@ public class XmlGlobalGroupsManager implements GlobalGroupsManager, ConfigUpdate
 	}
 
 	@Override
-	public GlobalGroup create(String code, String name, List<String> collections, String parent, GlobalGroupStatus status, boolean locallyCreated) {
+	public GlobalGroup create(String code, String name, List<String> collections, String parent,
+							  GlobalGroupStatus status, boolean locallyCreated) {
 		return new XmlGlobalGroup(code, name, collections, parent, status, locallyCreated);
 	}
 

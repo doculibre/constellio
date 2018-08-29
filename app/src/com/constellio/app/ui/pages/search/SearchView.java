@@ -1,10 +1,9 @@
 package com.constellio.app.ui.pages.search;
 
-import java.util.List;
-
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
-import com.constellio.model.frameworks.validation.ValidationException;
+
+import java.util.List;
 
 public interface SearchView extends BaseView {
 

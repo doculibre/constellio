@@ -1,5 +1,16 @@
 package com.constellio.model.entities.schemas;
 
+import com.constellio.model.entities.CollectionInfo;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
+import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.model.services.schemas.MetadataList;
+import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,16 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.schemas.preparationSteps.RecordPreparationStep;
-import com.constellio.model.entities.schemas.validation.RecordValidator;
-import com.constellio.model.services.schemas.MetadataList;
-import com.constellio.model.services.schemas.SchemaUtils;
-
 public class MetadataSchema implements Serializable {
 
 	private static final String UNDERSCORE = "_";
@@ -25,8 +26,6 @@ public class MetadataSchema implements Serializable {
 	private final String localCode;
 
 	private final String code;
-
-	private final String collection;
 
 	private Map<Language, String> labels;
 
@@ -44,16 +43,19 @@ public class MetadataSchema implements Serializable {
 
 	private MetadataSchemaCalculatedInfos calculatedInfos;
 
+	private final boolean active;
+
 	private final String dataStore;
 
-	public MetadataSchema(String localCode, String code, String collection, Map<Language, String> labels,
-			List<Metadata> metadatas,
-			Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
-			MetadataSchemaCalculatedInfos calculatedInfos, String dataStore) {
+	private final CollectionInfo collectionInfo;
+
+	public MetadataSchema(String localCode, String code, CollectionInfo collectionInfo, Map<Language, String> labels,
+						  List<Metadata> metadatas,
+						  Boolean undeletable, boolean inTransactionLog, Set<RecordValidator> schemaValidators,
+						  MetadataSchemaCalculatedInfos calculatedInfos, String dataStore, boolean active) {
 		super();
 		this.localCode = localCode;
 		this.code = code;
-		this.collection = collection;
 		this.labels = new HashMap<>(labels);
 		this.inTransactionLog = inTransactionLog;
 		this.metadatas = new MetadataList(metadatas).unModifiable();
@@ -63,6 +65,9 @@ public class MetadataSchema implements Serializable {
 		this.indexByLocalCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByLocalCode(metadatas));
 		this.indexByCode = Collections.unmodifiableMap(new SchemaUtils().buildIndexByCode(metadatas));
 		this.dataStore = dataStore;
+		this.active = active;
+		this.collectionInfo = collectionInfo;
+
 	}
 
 	public String getLocalCode() {
@@ -74,7 +79,11 @@ public class MetadataSchema implements Serializable {
 	}
 
 	public String getCollection() {
-		return collection;
+		return collectionInfo.getCode();
+	}
+
+	public CollectionInfo getCollectionInfo() {
+		return collectionInfo;
 	}
 
 	public Map<Language, String> getLabels() {
@@ -125,6 +134,8 @@ public class MetadataSchema implements Serializable {
 			metadataCode = metadataCode.substring(0, metadataCode.length() - 2);
 		}
 
+		metadataCode = StringUtils.substringBefore(metadataCode, ".");
+
 		Metadata metadata = indexByLocalCode.get(metadataCode);
 
 		if (metadata == null) {
@@ -136,6 +147,10 @@ public class MetadataSchema implements Serializable {
 		} else {
 			return metadata;
 		}
+	}
+
+	public boolean metadataExists(String code) {
+		return indexByCode.get(code) != null;
 	}
 
 	public List<Metadata> getAutomaticMetadatas() {
@@ -220,4 +235,17 @@ public class MetadataSchema implements Serializable {
 	public String getDataStore() {
 		return dataStore;
 	}
+
+	public boolean hasMultilingualMetadatas() {
+		boolean multilingualMetadatas = false;
+		for (Metadata metadata : metadatas) {
+			multilingualMetadatas |= metadata.isMultiLingual();
+		}
+		return multilingualMetadatas;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
 }

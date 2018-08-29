@@ -1,28 +1,15 @@
 package com.constellio.app.modules.tasks.extensions;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.extensions.events.records.*;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.EmailToSend;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -30,6 +17,11 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.behaviors.RecordExtension;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
+import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
+import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -37,8 +29,46 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.joda.time.LocalDate;
 
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_ASSIGNEE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.ACTUAL_STATUS;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.COMPLETE_TASK;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.CONSTELLIO_URL;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.DISPLAY_TASK;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.PARENT_TASK_TITLE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.PREVIOUS_ASSIGNEE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.PREVIOUS_STATUS;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_BY;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_ON;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_TO_YOU;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNEE_MODIFIED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_COMPLETED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DELETED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPTION;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE_TITLE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_END_DATE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_REASON;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_EN;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_FR;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_MODIFIED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
 
 public class TaskRecordExtension extends RecordExtension {
 	private static final Logger LOGGER = LogManager.getLogger(TaskRecordExtension.class);
@@ -109,7 +139,7 @@ public class TaskRecordExtension extends RecordExtension {
 	}
 
 	private void saveEmailToSend(EmailToSend emailToSend, Task task) {
-		if(!task.isModel()) {
+		if (!task.isModel()) {
 			prepareTaskParameters(emailToSend, task);
 
 			Transaction transaction = new Transaction();
@@ -145,35 +175,39 @@ public class TaskRecordExtension extends RecordExtension {
 			parentTaskTitle = parentTask.getTitle();
 		}
 		String status = tasksSchema.getTaskStatus(task.getStatus()).getTitle();
+		String status_fr = tasksSchema.getTaskStatus(task.getStatus()).getTitle(Locale.FRENCH);
+		String status_en = tasksSchema.getTaskStatus(task.getStatus()).getTitle(Locale.ENGLISH);
 
-		newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(task.getTitle()));
-		newParameters.add(PARENT_TASK_TITLE + ":" + formatToParameter(parentTaskTitle));
-		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(assignerFullName));
+		newParameters.add(TASK_TITLE_PARAMETER + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getTitle())));
+		newParameters.add(PARENT_TASK_TITLE + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(parentTaskTitle)));
+		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assignerFullName)));
 		newParameters.add(TASK_ASSIGNED_ON + ":" + formatToParameter(task.getAssignedOn()));
-		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(assigneeFullName));
-		if(task.getDueDate() != null) {
+		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assigneeFullName)));
+		if (task.getDueDate() != null) {
 			newParameters.add(TASK_DUE_DATE_TITLE + ":" + "(" + formatToParameter(task.getDueDate()) + ")");
 		} else {
 			newParameters.add(TASK_DUE_DATE_TITLE + ":" + "");
 		}
 		newParameters.add(TASK_DUE_DATE + ":" + formatToParameter(task.getDueDate()));
-		newParameters.add(TASK_STATUS + ":" + formatToParameter(status));
+		newParameters.add(TASK_STATUS + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status)));
+		newParameters.add(TASK_STATUS_FR + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status_fr)));
+		newParameters.add(TASK_STATUS_EN + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(status_en)));
 		newParameters.add(TASK_DESCRIPTION + ":" + formatToParameter(task.getDescription()));
-		newParameters.add(TASK_REASON + ":" + formatToParameter(task.getReason()));
+		newParameters.add(TASK_REASON + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(task.getReason())));
 		newParameters.add(TASK_END_DATE + ":" + formatToParameter(task.getEndDate()));
 		String constellioURL = eimConfigs.getConstellioUrl();
 		newParameters
 				.add(DISPLAY_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.DISPLAY_TASK + "/" + task.getId());
 		newParameters.add(COMPLETE_TASK + ":" + constellioURL + "#!" + TasksNavigationConfiguration.EDIT_TASK
-				+ "/completeTask%253Dtrue%253Bid%253D" + task.getId());
+						  + "/completeTask%253Dtrue%253Bid%253D" + task.getId());
 
-        newParameters.add(CONSTELLIO_URL + ":" + constellioURL);
+		newParameters.add(CONSTELLIO_URL + ":" + constellioURL);
 
 		emailToSend.setParameters(newParameters);
 	}
 
 	private Object formatToParameter(Object parameter) {
-		if(parameter == null) {
+		if (parameter == null) {
 			return "";
 		}
 		return parameter;
@@ -185,7 +219,7 @@ public class TaskRecordExtension extends RecordExtension {
 		for (String userId : usersIds) {
 			User user = tasksSchema.wrapUser(recordServices.getDocumentById(userId));
 
-            emailAddressesTo.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));
+			emailAddressesTo.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));
 		}
 
 		return emailAddressesTo;
@@ -241,19 +275,19 @@ public class TaskRecordExtension extends RecordExtension {
 			task.setStartDate(null);
 		} else {
 			switch (currentStatus.getStatusType()) {
-			case STANDBY:
-				task.setEndDate(null);
-				task.setStartDate(null);
-				break;
-			case IN_PROGRESS:
-				updateStartDateIfNotNull(task);
-				task.setEndDate(null);
-				break;
-			case FINISHED:
-			case CLOSED:
-				updateStartDateIfNotNull(task);
-				updateEndDateIfNotNull(task);
-				break;
+				case STANDBY:
+					task.setEndDate(null);
+					task.setStartDate(null);
+					break;
+				case IN_PROGRESS:
+					updateStartDateIfNotNull(task);
+					task.setEndDate(null);
+					break;
+				case FINISHED:
+				case CLOSED:
+					updateStartDateIfNotNull(task);
+					updateEndDateIfNotNull(task);
+					break;
 			}
 		}
 	}
@@ -271,7 +305,7 @@ public class TaskRecordExtension extends RecordExtension {
 	}
 
 	List<TaskReminder> updateRemindersStatus(Task task, boolean startDateModified,
-			boolean dueDate) {
+											 boolean dueDate) {
 		List<TaskReminder> reminders = task.getReminders();
 		if (reminders == null || reminders.isEmpty()) {
 			return reminders;
@@ -326,12 +360,12 @@ public class TaskRecordExtension extends RecordExtension {
 		Set<EmailAddress> assigneeEmails = new HashSet<>();
 
 		if (task.getAssignee() != null) {
-            assigneeEmails.addAll(emailAddress(task.getAssignee()));
+			assigneeEmails.addAll(emailAddress(task.getAssignee()));
 		}
 
 		if (task.getAssigneeUsersCandidates() != null) {
 			for (String userId : task.getAssigneeUsersCandidates()) {
-                assigneeEmails.addAll(emailAddress(userId));
+				assigneeEmails.addAll(emailAddress(userId));
 			}
 		}
 
@@ -342,7 +376,7 @@ public class TaskRecordExtension extends RecordExtension {
 					Group group = tasksSchema.getGroup(groupId);
 					List<UserCredential> groupUsers = userServices.getGlobalGroupActifUsers(group.getCode());
 					for (UserCredential user : groupUsers) {
-                        assigneeEmails.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));
+						assigneeEmails.addAll(buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails()));
 					}
 				} catch (UserServicesRuntimeException_NoSuchGroup e) {
 					LOGGER.warn("Group assigned in task " + task.getTitle() + " does not exist " + groupId);
@@ -359,7 +393,7 @@ public class TaskRecordExtension extends RecordExtension {
 		try {
 			final User user = tasksSchema.getUser(userId);
 
-            emailAddressList = buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails());
+			emailAddressList = buildEmailAddressList(user.getTitle(), user.getEmail(), user.getPersonalEmails());
 		} catch (UserServicesRuntimeException_NoSuchUser e) {
 			LOGGER.warn("User assignee does not exists " + userId);
 		}
@@ -367,21 +401,22 @@ public class TaskRecordExtension extends RecordExtension {
 		return emailAddressList;
 	}
 
-    private List<EmailAddress> buildEmailAddressList(final String title, final String principalEmail, final List<String> personalEmails) {
-        final List<EmailAddress> emailAddressList = new ArrayList<>();
+	private List<EmailAddress> buildEmailAddressList(final String title, final String principalEmail,
+													 final List<String> personalEmails) {
+		final List<EmailAddress> emailAddressList = new ArrayList<>();
 
-        if (StringUtils.isNotBlank(principalEmail)) {
-            emailAddressList.add(new EmailAddress(title, principalEmail));
-        }
+		if (StringUtils.isNotBlank(principalEmail)) {
+			emailAddressList.add(new EmailAddress(title, principalEmail));
+		}
 
-        if (!CollectionUtils.isEmpty(personalEmails)) {
-            for (final String personalEmail : personalEmails) {
-                emailAddressList.add(new EmailAddress(title, personalEmail));
-            }
-        }
+		if (!CollectionUtils.isEmpty(personalEmails)) {
+			for (final String personalEmail : personalEmails) {
+				emailAddressList.add(new EmailAddress(title, personalEmail));
+			}
+		}
 
-        return emailAddressList;
-    }
+		return emailAddressList;
+	}
 
 	private String getUserNameById(String userId) {
 		if (StringUtils.isBlank(userId)) {
@@ -395,7 +430,7 @@ public class TaskRecordExtension extends RecordExtension {
 			return "";
 		}
 		return tasksSchema.wrapUser(recordServices.getDocumentById(userId)).getFirstName() + " " +
-				tasksSchema.wrapUser(recordServices.getDocumentById(userId)).getLastName();
+			   tasksSchema.wrapUser(recordServices.getDocumentById(userId)).getLastName();
 	}
 
 	private void sendSubTasksModification(Task parentTask, Task task) {
@@ -503,27 +538,27 @@ public class TaskRecordExtension extends RecordExtension {
 
 	@Override
 	public void recordInCreationBeforeSave(final RecordInCreationBeforeSaveEvent event) {
-        final Record record = event.getRecord();
+		final Record record = event.getRecord();
 
-        if (record.getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
-            final Task task = tasksSchema.wrapTask(record);
+		if (record.getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
+			final Task task = tasksSchema.wrapTask(record);
 
-            //
-            addAssignerAsCompletionEventFollower(task);
-        }
-    }
+			//
+			addAssignerAsCompletionEventFollower(task);
+		}
+	}
 
-    private void addAssignerAsCompletionEventFollower(final Task task) {
-        final List<TaskFollower> currentFollowersList = task.getTaskFollowers();
+	private void addAssignerAsCompletionEventFollower(final Task task) {
+		final List<TaskFollower> currentFollowersList = task.getTaskFollowers();
 
-        if (!(task.isModel() || task.getAssigner() == null)) {
-            final TaskFollower assignerAsCompletionEventFollower = new TaskFollower().setFollowerId(task.getAssigner()).setFollowTaskCompleted(true).setDirty(true);
+		if (!(task.isModel() || task.getAssigner() == null)) {
+			final TaskFollower assignerAsCompletionEventFollower = new TaskFollower().setFollowerId(task.getAssigner()).setFollowTaskCompleted(true).setDirty(true);
 
-            if (!currentFollowersList.contains(assignerAsCompletionEventFollower)) {
-                final List<TaskFollower> newFollowersList = new ArrayList<>(task.getTaskFollowers());
-                newFollowersList.add(assignerAsCompletionEventFollower);
-                task.setTaskFollowers(Collections.unmodifiableList(newFollowersList));
-            }
-        }
-    }
+			if (!currentFollowersList.contains(assignerAsCompletionEventFollower)) {
+				final List<TaskFollower> newFollowersList = new ArrayList<>(task.getTaskFollowers());
+				newFollowersList.add(assignerAsCompletionEventFollower);
+				task.setTaskFollowers(Collections.unmodifiableList(newFollowersList));
+			}
+		}
+	}
 }

@@ -1,10 +1,9 @@
 package com.constellio.data.conf;
 
-import java.io.File;
-
+import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
 import org.joda.time.Duration;
 
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogReplayFilter;
+import java.io.File;
 
 public interface DataLayerConfiguration {
 

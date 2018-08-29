@@ -1,18 +1,6 @@
 package com.constellio.model.extensions;
 
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.verifyZeroInteractions;
-
-import org.joda.time.LocalDateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -33,6 +21,21 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.joda.time.LocalDateTime;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 
@@ -58,7 +61,11 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 				.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(false, false, false)
 				.withAParentReferenceFromZeSchemaToZeSchema());
 		givenTimeIs(shishOClock);
-		Taxonomy taxonomy = new Taxonomy("ze taxo", "ze taxo", zeCollection, zeSchema.typeCode());
+
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "ze taxo");
+
+		Taxonomy taxonomy = new Taxonomy("ze taxo", labelTitle1, zeCollection, zeSchema.typeCode());
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, getModelLayerFactory().getMetadataSchemasManager());
 
 		recordServices = getModelLayerFactory().newRecordServices();

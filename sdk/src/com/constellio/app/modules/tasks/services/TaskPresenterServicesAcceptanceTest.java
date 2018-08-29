@@ -1,5 +1,28 @@
 package com.constellio.app.modules.tasks.services;
 
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
+import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
+import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
+import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
+import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.STANDBY_CODE;
@@ -7,32 +30,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
-import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
-import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
-import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
-import com.constellio.app.modules.tasks.ui.entities.TaskVO;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.model.services.users.UserServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.setups.Users;
 
 public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 	TaskPresenterServices taskPresenterServices;

@@ -18,101 +18,101 @@ import java.util.Map;
  */
 public class TaskImportExtension extends RecordImportExtension {
 
-    public static final String FIXED_DATE = "fixedDate";
-    public static final String NUMBER_OF_DAYS_TO_RELATIVE_DATE = "numberOfDaysToRelativeDate";
-    public static final String BEFORE_RELATIVE_DATE = "beforeRelativeDate";
-    public static final String RELATIVE_DATE_METADATA_CODE = "relativeDateMetadataCode";
-    public static final String PROCESSED = "processed";
+	public static final String FIXED_DATE = "fixedDate";
+	public static final String NUMBER_OF_DAYS_TO_RELATIVE_DATE = "numberOfDaysToRelativeDate";
+	public static final String BEFORE_RELATIVE_DATE = "beforeRelativeDate";
+	public static final String RELATIVE_DATE_METADATA_CODE = "relativeDateMetadataCode";
+	public static final String PROCESSED = "processed";
 
-    public static final String FOLLOWER_ID = "followerId";
-    public static final String FOLLOW_TASK_STATUS_MODIFIED = "followTaskStatusModified";
-    public static final String FOLLOW_TASK_ASSIGNEE_MODIFIED = "followTaskAssigneeModified";
-    public static final String FOLLOW_SUB_TASKS_MODIFIED = "followSubTasksModified";
-    public static final String FOLLOW_TASK_COMPLETED = "followTaskCompleted";
-    public static final String FOLLOW_TASK_DELETE = "followTaskDeleted";
+	public static final String FOLLOWER_ID = "followerId";
+	public static final String FOLLOW_TASK_STATUS_MODIFIED = "followTaskStatusModified";
+	public static final String FOLLOW_TASK_ASSIGNEE_MODIFIED = "followTaskAssigneeModified";
+	public static final String FOLLOW_SUB_TASKS_MODIFIED = "followSubTasksModified";
+	public static final String FOLLOW_TASK_COMPLETED = "followTaskCompleted";
+	public static final String FOLLOW_TASK_DELETE = "followTaskDeleted";
 
 
-    ModelLayerFactory modelLayerFactory;
-    String collection;
+	ModelLayerFactory modelLayerFactory;
+	String collection;
 
-    public TaskImportExtension(String collection, ModelLayerFactory modelLayerFactory) {
-        this.modelLayerFactory = modelLayerFactory;
-        this.collection = collection;
-    }
+	public TaskImportExtension(String collection, ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
+		this.collection = collection;
+	}
 
-    @Override
-    public void build(BuildParams event) {
-        Task task = new Task(event.getRecord(), getTypes());
+	@Override
+	public void build(BuildParams event) {
+		Task task = new Task(event.getRecord(), getTypes());
 
-        List<Map<String, String>> mapTaskReminderList = event.getImportRecord().getList(Task.REMINDERS);
-        List<TaskReminder> taskReminderList = new ArrayList<>();
+		List<Map<String, String>> mapTaskReminderList = event.getImportRecord().getList(Task.REMINDERS);
+		List<TaskReminder> taskReminderList = new ArrayList<>();
 
-        for (Map<String,String> mapTaskReminder : mapTaskReminderList) {
-            taskReminderList.add(readTaskReminder(mapTaskReminder));
-        }
+		for (Map<String, String> mapTaskReminder : mapTaskReminderList) {
+			taskReminderList.add(readTaskReminder(mapTaskReminder));
+		}
 
-        task.setReminders(taskReminderList);
+		task.setReminders(taskReminderList);
 
-        List<Map<String, String>> mapTaskFollowersList = event.getImportRecord().getList(Task.TASK_FOLLOWERS);
-        List<TaskFollower> taskFollowerList = new ArrayList<>();
+		List<Map<String, String>> mapTaskFollowersList = event.getImportRecord().getList(Task.TASK_FOLLOWERS);
+		List<TaskFollower> taskFollowerList = new ArrayList<>();
 
-        for (Map<String,String> mapTaskFollower : mapTaskFollowersList)
-        {
-            TaskFollower taskFollower = readTaskFollower(mapTaskFollower, event.isAllowingReferencesToNonExistingUsers());
-            taskFollowerList.add(taskFollower);
-        }
+		for (Map<String, String> mapTaskFollower : mapTaskFollowersList) {
+			TaskFollower taskFollower = readTaskFollower(mapTaskFollower, event.isAllowingReferencesToNonExistingUsers());
+			taskFollowerList.add(taskFollower);
+		}
 
-        task.setTaskFollowers(taskFollowerList);
-    }
+		task.setTaskFollowers(taskFollowerList);
+	}
 
-    private TaskReminder readTaskReminder(Map<String, String> mapTaskReminder) {
-        TaskReminder taskReminder = new TaskReminder();
+	private TaskReminder readTaskReminder(Map<String, String> mapTaskReminder) {
+		TaskReminder taskReminder = new TaskReminder();
 
-        if(mapTaskReminder.get(TaskImportExtension.FIXED_DATE) != null) {
-            taskReminder.setFixedDate(LocalDate.parse(mapTaskReminder.get(TaskImportExtension.FIXED_DATE)));
-        }
+		if (mapTaskReminder.get(TaskImportExtension.FIXED_DATE) != null) {
+			taskReminder.setFixedDate(LocalDate.parse(mapTaskReminder.get(TaskImportExtension.FIXED_DATE)));
+		}
 
-        taskReminder.setNumberOfDaysToRelativeDate(Integer.parseInt(mapTaskReminder.get(TaskImportExtension.NUMBER_OF_DAYS_TO_RELATIVE_DATE)));
-        taskReminder.setBeforeRelativeDate(convertStringToBoolean(mapTaskReminder.get(TaskImportExtension.BEFORE_RELATIVE_DATE)));
+		taskReminder.setNumberOfDaysToRelativeDate(Integer.parseInt(mapTaskReminder.get(TaskImportExtension.NUMBER_OF_DAYS_TO_RELATIVE_DATE)));
+		taskReminder.setBeforeRelativeDate(convertStringToBoolean(mapTaskReminder.get(TaskImportExtension.BEFORE_RELATIVE_DATE)));
 
-        if(mapTaskReminder.get(TaskImportExtension.RELATIVE_DATE_METADATA_CODE) != null) {
-            taskReminder.setRelativeDateMetadataCode(mapTaskReminder.get(TaskImportExtension.RELATIVE_DATE_METADATA_CODE));
-        }
+		if (mapTaskReminder.get(TaskImportExtension.RELATIVE_DATE_METADATA_CODE) != null) {
+			taskReminder.setRelativeDateMetadataCode(mapTaskReminder.get(TaskImportExtension.RELATIVE_DATE_METADATA_CODE));
+		}
 
-        taskReminder.setProcessed(Boolean.parseBoolean(mapTaskReminder.get(TaskImportExtension.PROCESSED)));
+		taskReminder.setProcessed(Boolean.parseBoolean(mapTaskReminder.get(TaskImportExtension.PROCESSED)));
 
-        return taskReminder;
-    }
+		return taskReminder;
+	}
 
-    private TaskFollower readTaskFollower(Map<String, String> mapTaskFollower, boolean allowingReferencesToNonExistingUsers) {
-        TaskFollower taskFollower = new TaskFollower();
+	private TaskFollower readTaskFollower(Map<String, String> mapTaskFollower,
+										  boolean allowingReferencesToNonExistingUsers) {
+		TaskFollower taskFollower = new TaskFollower();
 
-        if(mapTaskFollower.get(TaskImportExtension.FOLLOWER_ID) != null) {
-            taskFollower.setFollowerId(mapTaskFollower.get(TaskImportExtension.FOLLOWER_ID));
-        }
+		if (mapTaskFollower.get(TaskImportExtension.FOLLOWER_ID) != null) {
+			taskFollower.setFollowerId(mapTaskFollower.get(TaskImportExtension.FOLLOWER_ID));
+		}
 
-        taskFollower.setFollowTaskStatusModified(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_STATUS_MODIFIED)));
-        taskFollower.setFollowTaskAssigneeModified(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_ASSIGNEE_MODIFIED)));
-        taskFollower.setFollowSubTasksModified(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_SUB_TASKS_MODIFIED)));
-        taskFollower.setFollowTaskCompleted(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_COMPLETED)));
-        taskFollower.setFollowTaskDeleted(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_DELETE)));
+		taskFollower.setFollowTaskStatusModified(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_STATUS_MODIFIED)));
+		taskFollower.setFollowTaskAssigneeModified(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_ASSIGNEE_MODIFIED)));
+		taskFollower.setFollowSubTasksModified(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_SUB_TASKS_MODIFIED)));
+		taskFollower.setFollowTaskCompleted(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_COMPLETED)));
+		taskFollower.setFollowTaskDeleted(convertStringToBoolean(mapTaskFollower.get(TaskImportExtension.FOLLOW_TASK_DELETE)));
 
-        return taskFollower;
-    }
+		return taskFollower;
+	}
 
-    public MetadataSchemaTypes getTypes() {
-        return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-    }
+	public MetadataSchemaTypes getTypes() {
+		return modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+	}
 
-    @Override
-    public String getDecoratedSchemaType() {
-        return Task.SCHEMA_TYPE;
-    }
+	@Override
+	public String getDecoratedSchemaType() {
+		return Task.SCHEMA_TYPE;
+	}
 
-    private Boolean convertStringToBoolean(String s) {
-        if(s == null) {
-            return null;
-        }
-        return Boolean.parseBoolean(s);
-    }
+	private Boolean convertStringToBoolean(String s) {
+		if (s == null) {
+			return null;
+		}
+		return Boolean.parseBoolean(s);
+	}
 }

@@ -1,7 +1,5 @@
 package com.constellio.app.modules.tasks.ui.builders;
 
-import java.util.List;
-
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
@@ -13,6 +11,8 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+
+import java.util.List;
 
 public class TaskToVOBuilder extends RecordToVOBuilder {
 

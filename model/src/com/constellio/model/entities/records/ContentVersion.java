@@ -1,14 +1,13 @@
 package com.constellio.model.entities.records;
 
-import java.io.Serializable;
-
+import com.constellio.data.utils.LangUtils;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.data.utils.LangUtils;
-import com.constellio.model.services.contents.ContentVersionDataSummary;
+import java.io.Serializable;
 
 public class ContentVersion implements Serializable {
 
@@ -25,7 +24,7 @@ public class ContentVersion implements Serializable {
 	private final LocalDateTime lastModificationDateTime;
 
 	public ContentVersion(ContentVersionDataSummary contentVersionDataSummary, String filename, String version,
-			String lastModifiedBy, LocalDateTime lastModificationDateTime, String comment) {
+						  String lastModifiedBy, LocalDateTime lastModificationDateTime, String comment) {
 		this.contentVersionDataSummary = contentVersionDataSummary;
 		this.filename = filename;
 		this.version = version;

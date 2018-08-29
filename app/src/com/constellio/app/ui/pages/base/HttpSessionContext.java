@@ -1,12 +1,9 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE;
-import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_USER_ATTRIBUTE;
-import static com.constellio.app.ui.pages.base.VaadinSessionContext.FORCED_SIGN_OUT_ATTRIBUTE;
-import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_RECORD_IDS_ATTRIBUTE;
-import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE;
-import static com.constellio.app.ui.pages.base.VaadinSessionContext.USER_PRINCIPAL_ATTRIBUTE;
+import com.constellio.app.ui.entities.UserVO;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,19 +11,21 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
-import com.constellio.app.ui.entities.UserVO;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_USER_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.FORCED_SIGN_OUT_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_RECORD_IDS_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.USER_PRINCIPAL_ATTRIBUTE;
 
 public class HttpSessionContext extends BaseSessionContext {
-	
+
 	private Locale currentLocale;
-	
+
 	private HttpServletRequest request;
-	
+
 	private HttpSession session;
-	
+
 	public HttpSessionContext(HttpServletRequest request) {
 		this.request = request;
 		this.session = request.getSession();

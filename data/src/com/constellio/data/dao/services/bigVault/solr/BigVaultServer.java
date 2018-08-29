@@ -1,35 +1,5 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
-import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_STRING;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Semaphore;
-
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteException;
-import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
-import org.apache.solr.client.solrj.request.UpdateRequest;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.apache.solr.client.solrj.util.ClientUtils;
-import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
-import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.apache.solr.common.params.UpdateParams;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionResponseDTO;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultException.CouldNotExecuteQuery;
@@ -48,6 +18,35 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.data.utils.TimeProvider;
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteException;
+import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
+import org.apache.solr.client.solrj.request.UpdateRequest;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
+import org.apache.solr.common.params.UpdateParams;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Semaphore;
+
+import static com.constellio.data.dao.services.bigVault.solr.SolrUtils.NULL_STRING;
 
 public class BigVaultServer implements Cloneable {
 
@@ -78,7 +77,7 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	public BigVaultServer(String name, BigVaultLogger bigVaultLogger, SolrServerFactory solrServerFactory,
-			DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners) {
+						  DataLayerSystemExtensions extensions, List<BigVaultServerListener> listeners) {
 		this.solrServerFactory = solrServerFactory;
 		this.server = solrServerFactory.newSolrServer(name);
 		this.fileSystem = solrServerFactory.getConfigFileSystem(name);
@@ -258,7 +257,7 @@ public class BigVaultServer implements Cloneable {
 	TransactionResponseDTO tryAddAll(BigVaultServerTransaction transaction, int currentAttempt)
 			throws BigVaultException.OptimisticLocking, BigVaultException.CouldNotExecuteQuery {
 		if (!transaction.getUpdatedDocuments().isEmpty() || !transaction.getNewDocuments().isEmpty()
-				|| !transaction.getDeletedQueries().isEmpty() || !transaction.getDeletedRecords().isEmpty()) {
+			|| !transaction.getDeletedQueries().isEmpty() || !transaction.getDeletedRecords().isEmpty()) {
 			try {
 				return addAndCommit(transaction);
 
@@ -308,7 +307,8 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	private TransactionResponseDTO handleRemoteSolrExceptionWhileAddingRecords(BigVaultServerTransaction transaction,
-			int currentAttempt, Exception exception, int code)
+																			   int currentAttempt, Exception exception,
+																			   int code)
 			throws BigVaultException.OptimisticLocking, BigVaultException.CouldNotExecuteQuery {
 		if (code == HTTP_ERROR_409_CONFLICT) {
 			return handleOptimisticLockingException(exception);
@@ -431,7 +431,8 @@ public class BigVaultServer implements Cloneable {
 		return response;
 	}
 
-	void verifyTransactionOptimisticLocking(int commitWithin, String transactionId, List<SolrInputDocument> updatedDocuments)
+	void verifyTransactionOptimisticLocking(int commitWithin, String transactionId,
+											List<SolrInputDocument> updatedDocuments)
 			throws IOException, SolrServerException {
 		try {
 			if (!updatedDocuments.isEmpty()) {
@@ -450,7 +451,7 @@ public class BigVaultServer implements Cloneable {
 	}
 
 	private List<SolrInputDocument> copyAtomicUpdatesKeepingOnlyIdAndVersion(String transactionId,
-			List<SolrInputDocument> updatedDocuments) {
+																			 List<SolrInputDocument> updatedDocuments) {
 		List<SolrInputDocument> optimisticLockingValidationDocuments = new ArrayList<>();
 		for (SolrInputDocument updatedDocument : updatedDocuments) {
 			SolrInputDocument solrInputDocument = new ConstellioSolrInputDocument();
@@ -463,7 +464,7 @@ public class BigVaultServer implements Cloneable {
 
 				boolean onlyMarkingForReindexing =
 						updatedDocument.getFieldValue("markedForReindexing_s") != null &&
-								updatedDocument.getFieldNames().size() == 3;
+						updatedDocument.getFieldNames().size() == 3;
 
 				if (updatedDocument.getFieldValue("type_s") == null && !onlyMarkingForReindexing) {
 					String lockId = "lock__" + updatedDocument.getFieldValue("id");

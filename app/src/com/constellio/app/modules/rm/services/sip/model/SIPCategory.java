@@ -11,15 +11,15 @@ import java.util.List;
 import static com.constellio.app.modules.rm.services.sip.model.SIPMetadataObject.CATEGORY_TYPE;
 
 public class SIPCategory implements SIPObject {
-	
+
 	private String id;
-	
+
 	private String code;
-	
+
 	private String title;
-	
+
 	private String description;
-	
+
 	private SIPCategory parentCategory;
 
 	private EntityRetriever entityRetriever;

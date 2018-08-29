@@ -1,8 +1,8 @@
 package com.constellio.app.services.migrations;
 
-import java.util.Comparator;
-
 import com.constellio.app.entities.modules.MigrationScript;
+
+import java.util.Comparator;
 
 public class ModuleMigrationScriptsComparator implements Comparator<MigrationScript> {
 

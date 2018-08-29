@@ -6,7 +6,6 @@ import java.util.Map;
  * Threadsafe
  *
  * @author Nicolas
- *
  */
 public interface ConnectorLogger {
 

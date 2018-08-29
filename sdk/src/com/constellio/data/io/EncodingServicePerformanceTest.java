@@ -1,19 +1,15 @@
 package com.constellio.data.io;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.runners.MethodSorters;
-
-import com.carrotsearch.junitbenchmarks.BenchmarkRule;
 import com.constellio.sdk.tests.ConstellioTestWithGlobalContext;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.PerformanceTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @PerformanceTest

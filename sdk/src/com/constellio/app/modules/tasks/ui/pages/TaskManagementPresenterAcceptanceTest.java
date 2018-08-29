@@ -26,7 +26,9 @@ import java.util.Locale;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
@@ -100,7 +102,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUserCreatedClosedTaskThenVisibleInRecentlyClosedTask ()
+	public void givenUserCreatedClosedTaskThenVisibleInRecentlyClosedTask()
 			throws Exception {
 		ArgumentCaptor<RecordVODataProvider> argumentCaptor = ArgumentCaptor.forClass(RecordVODataProvider.class);
 		doNothing().when(view).displayTasks(argumentCaptor.capture());
@@ -118,7 +120,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUserAssignedToClosedTaskThenVisibleInRecentlyClosedTask ()
+	public void givenUserAssignedToClosedTaskThenVisibleInRecentlyClosedTask()
 			throws Exception {
 		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
@@ -139,7 +141,7 @@ public class TaskManagementPresenterAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenUserNotAssignedToClosedTaskAndIsNotTheCreatorThenInvisibleInRecentlyClosedTask ()
+	public void givenUserNotAssignedToClosedTaskAndIsNotTheCreatorThenInvisibleInRecentlyClosedTask()
 			throws Exception {
 		sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);

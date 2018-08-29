@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.container;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.ui.components.container.fields.ContainerStorageSpaceLookupField;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -21,6 +16,11 @@ import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 /**
  * Created by Constellio on 2017-01-11.
@@ -52,8 +52,8 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
 						@Override
 						public void buttonClick(ClickEvent event) {
 							int numberOfContainer = integerField.getValue() != null && integerField.getValue().matches("^\\d+$") ?
-									Integer.parseInt(integerField.getValue()) :
-									0;
+													Integer.parseInt(integerField.getValue()) :
+													0;
 							presenter.setNumberOfContainer(numberOfContainer);
 							callTrySave();
 							getWindow().close();

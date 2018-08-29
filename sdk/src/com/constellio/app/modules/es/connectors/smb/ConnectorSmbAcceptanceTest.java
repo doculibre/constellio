@@ -1,25 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb;
 
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.ADD_EVENT;
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.DELETE_EVENT;
-import static com.constellio.app.modules.es.sdk.TestConnectorEvent.MODIFY_EVENT;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import com.constellio.model.entities.records.Record;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommand;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory.SmbTestCommandType;
@@ -34,13 +14,31 @@ import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.es.services.crawler.ConnectorCrawler;
 import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObserver;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-
 import jcifs.smb.NtlmPasswordAuthentication;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.ADD_EVENT;
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.DELETE_EVENT;
+import static com.constellio.app.modules.es.sdk.TestConnectorEvent.MODIFY_EVENT;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 @InDevelopmentTest
 //TODO Activate test
@@ -687,7 +685,7 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		for (ConnectorSmbDocument document : result.getDocuments()) {
 			if (StringUtils.equals(document.getUrl(), url)) {
 				Record parentRecord = recordServices.getRecordByMetadata(es.connectorSmbFolder.connectorUrl(), document.getParentConnectorUrl());
-				return parentRecord != null? parentRecord.getId() : null;
+				return parentRecord != null ? parentRecord.getId() : null;
 			}
 		}
 		return "Parent not found for document";
@@ -697,7 +695,7 @@ public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 		for (ConnectorSmbFolder folder : result.getFolders()) {
 			if (StringUtils.equals(folder.getUrl(), url)) {
 				Record parentRecord = recordServices.getRecordByMetadata(es.connectorSmbFolder.connectorUrl(), folder.getParentConnectorUrl());
-				return parentRecord != null? parentRecord.getId() : null;
+				return parentRecord != null ? parentRecord.getId() : null;
 			}
 		}
 		return "Parent not found for folder";

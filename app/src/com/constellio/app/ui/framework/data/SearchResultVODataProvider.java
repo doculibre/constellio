@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -24,6 +19,11 @@ import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 public abstract class SearchResultVODataProvider implements DataProvider {
 
 	protected transient LogicalSearchQuery query;
@@ -41,14 +41,14 @@ public abstract class SearchResultVODataProvider implements DataProvider {
 	private List<DataRefreshListener> dataRefreshListeners = new ArrayList<>();
 
 	public SearchResultVODataProvider(RecordToVOBuilder voBuilder, AppLayerFactory appLayerFactory,
-			SessionContext sessionContext) {
+									  SessionContext sessionContext, int resultsPerPage) {
 		this.voBuilder = voBuilder;
 		//		String username = sessionContext.getCurrentUser().getUsername();
 		//
 		//		SolrUserCredential userCredential = (SolrUserCredential) appLayerFactory.getModelLayerFactory().getUserCredentialsManager()
 		//				.getUserCredential(username);
 
-		this.resultsPerPage = sessionContext.getCurrentUser().getDefaultPageLength();
+		this.resultsPerPage = resultsPerPage;
 
 		init(appLayerFactory, sessionContext);
 	}

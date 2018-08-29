@@ -1,30 +1,23 @@
 package com.constellio.app.api.cmis.requests.versioning;
 
-import static com.constellio.app.api.cmis.binding.utils.CmisContentUtils.getAllVersions;
-import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ALL_VERSIONS;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.app.api.cmis.ConstellioCmisException;
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
-import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.ConstellioCmisException;
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
-import com.constellio.app.api.cmis.binding.utils.CmisContentUtils;
-import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.records.RecordServices;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.api.cmis.binding.utils.CmisContentUtils.getAllVersions;
+import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ALL_VERSIONS;
 
 public class GetAllVersionsRequest extends CmisCollectionRequest<List<ObjectData>> {
 
@@ -40,9 +33,10 @@ public class GetAllVersionsRequest extends CmisCollectionRequest<List<ObjectData
 	ObjectInfoHandler objectInfos;
 
 	public GetAllVersionsRequest(ConstellioCollectionRepository repository,
-			AppLayerFactory appLayerFactory, CallContext callContext, String repositoryId,
-			String objectId, String versionSeriesId, String filter, Boolean includeAllowableActions,
-			ExtensionsData extension, ObjectInfoHandler objectInfos) {
+								 AppLayerFactory appLayerFactory, CallContext callContext, String repositoryId,
+								 String objectId, String versionSeriesId, String filter,
+								 Boolean includeAllowableActions,
+								 ExtensionsData extension, ObjectInfoHandler objectInfos) {
 		super(callContext, repository, appLayerFactory);
 		this.repositoryId = repositoryId;
 		this.objectId = objectId;

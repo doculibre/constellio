@@ -50,6 +50,9 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.CheckBox;
@@ -61,10 +64,23 @@ import com.vaadin.ui.Link;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.ComponentContainer;
+import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Link;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
-	
+
 	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String FACET_TITLE_STYLE = "facet-title";
 	public static final String SORT_BOX_STYLE = "sort-box";
@@ -79,7 +95,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout resultsArea;
 	private FacetsPanel facetsArea;
 	private VerticalLayout capsuleArea;
-	
+
 	private ViewableRecordTablePanel viewableSearchResultsPanel;
 	private SearchResultTable resultsTable;
 	private SelectDeselectAllButton selectDeselectAllButton;
@@ -122,7 +138,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private void buildThesaurusDisambiguation(List<String> disambiguationSuggestions) {
 		if (disambiguationSuggestions != null && disambiguationSuggestions.size() > 0) {
 			thesaurusDisambiguation.setVisible(true);
-			
+
 			VerticalLayout suggestionsLayout = new VerticalLayout();
 			suggestionsLayout.addStyleName("disambiguation-suggestions");
 
@@ -152,20 +168,20 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	public Component buildThesaurusSemanticNetwork() {
 		List<String> semanticNetworkSuggestions = presenter.getThesaurusSemanticNetworkSuggestions();
-		
+
 		VerticalLayout semanticNetworkLayout = new VerticalLayout();
 		semanticNetworkLayout.addStyleName("thesaurus-semantic-network");
-		
+
 		if (semanticNetworkSuggestions != null && semanticNetworkSuggestions.size() > 0) {
 			Label title = new Label($("SearchView.suggestion.title", presenter.getUserSearchExpression()));
 			title.setStyleName("thesaurus-semantic-network-title");
 			semanticNetworkLayout.addComponent(title);
-			
+
 			int columnCount = 3;
 			int columnIndex = 0;
 			int suggestionIndex = 0;
-			
-			double suggestionsPerColumnDouble = (double) semanticNetworkSuggestions.size() / columnCount; 
+
+			double suggestionsPerColumnDouble = (double) semanticNetworkSuggestions.size() / columnCount;
 			int suggestionsPerColumnInt = (int) suggestionsPerColumnDouble;
 			double suggestionsPerColumnDecimal = suggestionsPerColumnDouble - suggestionsPerColumnInt;
 			if (suggestionsPerColumnDecimal > 0) {
@@ -175,7 +191,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			CssLayout cssLayout = new CssLayout();
 			cssLayout.addStyleName("thesaurus-semantic-network-columns");
 			semanticNetworkLayout.addComponent(cssLayout);
-			
+
 			VerticalLayout currentColumnLayout = null;
 			for (final String semanticNetworkSuggestion : semanticNetworkSuggestions) {
 				if (currentColumnLayout == null || suggestionIndex % suggestionsPerColumnInt == 0) {
@@ -233,6 +249,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
 		spellCheckerSuggestions.removeAllComponents();
 		resultsTable = buildResultTable(dataProvider);
+		
 
 		List<String> disambiguationSuggestions = presenter.getDisambiguationSuggestions();
 		buildThesaurusDisambiguation(disambiguationSuggestions);
@@ -240,7 +257,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		summary.removeAllComponents();
 		summary.addComponent(buildSummary(resultsTable));
-		
+
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
 			Table table;
 			if (resultsTable instanceof Table) {
@@ -251,7 +268,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			}
 			viewableSearchResultsPanel.setTable(table);
 		}
-		
+
 
 		if (isDetailedView()) {
 			resultsArea.removeAllComponents();
@@ -308,10 +325,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		spellCheckerSuggestions = new VerticalLayout();
 		spellCheckerSuggestions.addStyleName("spell-checker");
 		spellCheckerSuggestions.setWidth("100%");
-		
+		spellCheckerSuggestions.setVisible(false);
+
 		thesaurusDisambiguation = new VerticalLayout();
 		thesaurusDisambiguation.setWidth("100%");
 		thesaurusDisambiguation.addStyleName("thesaurus-disambiguation");
+		thesaurusDisambiguation.setVisible(false);
 
 		summary = new VerticalLayout();
 		summary.addStyleName("search-result-summary");
@@ -351,21 +370,21 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			protected void facetClosed(String id) {
 				presenter.facetClosed(id);
 			}
-			
+
 		};
 		facetsArea.addStyleName("search-result-facets");
 		facetsArea.setWidth("300px");
 		facetsArea.setSpacing(true);
-		
+
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
 			viewableSearchResultsPanel = new ViewableRecordTablePanel(resultsArea);
-			
+
 			CollapsibleHorizontalSplitPanel body = new CollapsibleHorizontalSplitPanel("search-result-and-facets-container");
 			body.addStyleName("search-result-and-facets-container");
 			body.setSecondComponentWidth(300, Unit.PIXELS);
 			body.setFirstComponent(viewableSearchResultsPanel);
 			body.setSecondComponent(facetsArea);
-			
+
 			resultsAndFacetsPanel = body;
 		} else {
 			I18NHorizontalLayout body = new I18NHorizontalLayout(resultsArea, facetsArea);
@@ -373,7 +392,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			body.setWidth("100%");
 			body.setExpandRatio(resultsArea, 1);
 			body.setSpacing(true);
-			
+
 			resultsAndFacetsPanel = body;
 		}
 
@@ -464,9 +483,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		int currentPage = presenter.getPageNumber();
 
 		int selectedPageLength = presenter.getSelectedPageLength();
-		if (selectedPageLength == 0) {
-			selectedPageLength = Math.min(totalResults, presenter.getDefaultPageLength());
-		}
 		presenter.setSelectedPageLength(selectedPageLength);
 
 		srTable.setPageLength(selectedPageLength);
@@ -554,7 +570,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return container;
 	}
 
-	private void buildSpellCheckerSuggestions(SearchResultVODataProvider dataProvider, List<String> disambiguationSuggestions) {
+	private void buildSpellCheckerSuggestions(SearchResultVODataProvider dataProvider,
+											  List<String> disambiguationSuggestions) {
 		if (!presenter.mustDisplaySpellCheckerSuggestions(dataProvider, disambiguationSuggestions)) {
 			spellCheckerSuggestions.setVisible(false);
 			return;
@@ -568,14 +585,14 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		suggestionsLayout.setWidth("100%");
 		suggestionsLayout.addStyleName("spell-checker-suggestions");
 		spellCheckerSuggestions.addComponent(suggestionsLayout);
-		
+
 		suggestionsLayout.addComponent(spellCheckerMessage);
-		
+
 		List<String> foundSuggestions = presenter.getAllNonExcluded(getCollection(), presenter.getSuggestions());
 		for (final String suggestion : foundSuggestions) {
 			HorizontalLayout suggestionLayout = new HorizontalLayout();
 			suggestionLayout.addStyleName("spell-checker-suggestion-and-exclude");
-			
+
 			Button suggestionLink = new Button(suggestion);
 			suggestionLink.addStyleName(ValoTheme.BUTTON_LINK);
 			suggestionLink.addStyleName("spell-checker-suggestion");
@@ -734,11 +751,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	@Override
 	public void fireSomeRecordsSelected() {
-		
+
 	}
 
 	@Override
 	public void fireNoRecordSelected() {
 	}
-	
+
 }

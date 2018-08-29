@@ -1,31 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWED_DENIED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_ACCEPTED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_DENIED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED;
-import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_RETURNED_DENIED;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -51,6 +25,32 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWED_DENIED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_ACCEPTED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED_DENIED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_REACTIVATED_ACCEPTED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_REACTIVATED_DENIED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_RETURNED_ACCEPTED;
+import static com.constellio.app.modules.rm.RMEmailTemplateConstants.ALERT_RETURNED_DENIED;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 
 /**
  * Created by Constellio on 2017-04-03.
@@ -403,7 +403,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"title:" + folder.getTitle(), "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder", "extensionDate:" + localDate,
-				"isAccepted:Oui"
+				"isAccepted:Oui",
+				"isAccepted:Oui", "borrowerEntered:Chuck Norris (chuck)"
 		);
 	}
 
@@ -440,7 +441,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"title:" + folder.getTitle(), "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder", "extensionDate:" + localDate,
-				"isAccepted:Non"
+				"isAccepted:Non",
+				"isAccepted:Non", "borrowerEntered:Chuck Norris (chuck)"
 		);
 	}
 
@@ -477,7 +479,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"title:" + containerRecord.getTitle(), "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + containerRecord.getId(),
 				"recordType_en:container", "recordType_fr:contenant", "extensionDate:" + localDate,
-				"isAccepted:Oui"
+				"isAccepted:Oui",
+				"isAccepted:Oui", "borrowerEntered:Chuck Norris (chuck)"
 		);
 	}
 
@@ -514,7 +517,8 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 				"title:" + containerRecord.getTitle(), "constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + containerRecord.getId(),
 				"recordType_en:container", "recordType_fr:contenant", "extensionDate:" + localDate,
-				"isAccepted:Non"
+				"isAccepted:Non",
+				"isAccepted:Non", "borrowerEntered:Chuck Norris (chuck)"
 		);
 	}
 
@@ -549,9 +553,9 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
 		assertThat(emailToSend.getParameters()).containsOnly(
-				"subject:" + task.getTitle(),
+				"subject:" + StringEscapeUtils.escapeHtml4(task.getTitle()),
 				"reactivationDate:" + localDate,
-				"currentUser:System Admin (admin)", "title:" + folder.getTitle(),
+				"currentUser:System Admin (admin)", "title:" + StringEscapeUtils.escapeHtml4(folder.getTitle()),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder",
@@ -590,9 +594,9 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
 		assertThat(emailToSend.getParameters()).containsOnly(
-				"subject:" + task.getTitle(),
+				"subject:" + StringEscapeUtils.escapeHtml4(task.getTitle()),
 				"reactivationDate:" + localDate,
-				"currentUser:System Admin (admin)", "title:" + folder.getTitle(),
+				"currentUser:System Admin (admin)", "title:" + StringEscapeUtils.escapeHtml4(folder.getTitle()),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayFolder/" + folder.getId(),
 				"recordType_fr:dossier", "recordType_en:folder",
@@ -641,9 +645,9 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
 		assertThat(emailToSend.getParameters()).containsOnly(
-				"subject:" + task.getTitle(),
+				"subject:" + StringEscapeUtils.escapeHtml4(task.getTitle()),
 				"reactivationDate:" + localDate,
-				"currentUser:System Admin (admin)", "title:" + records.getContainerBac13().getTitle(),
+				"currentUser:System Admin (admin)", "title:" + StringEscapeUtils.escapeHtml4(records.getContainerBac13().getTitle()),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + records.containerId_bac13,
 				"recordType_en:container", "recordType_fr:contenant",
@@ -692,9 +696,9 @@ public class RMRequestTaskApprovedExtensionAcceptanceTest extends ConstellioTest
 		assertThat(emailToSend.getSendOn()).isEqualTo(localDateTime);
 		assertThat(emailToSend.getSubject()).isEqualTo(task.getTitle());
 		assertThat(emailToSend.getParameters()).containsOnly(
-				"subject:" + task.getTitle(),
+				"subject:" + StringEscapeUtils.escapeHtml4(task.getTitle()),
 				"reactivationDate:" + localDate,
-				"currentUser:System Admin (admin)", "title:" + records.getContainerBac13().getTitle(),
+				"currentUser:System Admin (admin)", "title:" + StringEscapeUtils.escapeHtml4(records.getContainerBac13().getTitle()),
 				"constellioURL:http://localhost:8080/constellio/",
 				"recordURL:http://localhost:8080/constellio/#!displayContainer/" + records.containerId_bac13,
 				"recordType_en:container", "recordType_fr:contenant",

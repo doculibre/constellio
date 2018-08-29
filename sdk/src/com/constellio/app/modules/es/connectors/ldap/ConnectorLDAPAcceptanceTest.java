@@ -1,6 +1,30 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import static com.constellio.app.modules.es.model.connectors.ConnectorDocument.URL;
+import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAP.InvalidDocumentsBatchRuntimeException;
+import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAP.InvalidJobsBatchRuntimeException;
+import com.constellio.app.modules.es.connectors.spi.Connector;
+import com.constellio.app.modules.es.connectors.spi.ConnectorInstanciator;
+import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
+import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
+import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
+import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
+import com.constellio.app.modules.es.sdk.TestConnectorEventObserver;
+import com.constellio.app.modules.es.services.ConnectorManager;
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.app.modules.es.services.crawler.ConnectorCrawler;
+import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObserver;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.eclipse.jetty.server.Server;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+import java.util.UUID;
+
 import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.DISTINGUISHED_NAME;
 import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.EMAIL;
 import static com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument.WORK_TITLE;
@@ -13,41 +37,6 @@ import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import com.constellio.sdk.tests.annotations.SlowTest;
-import org.assertj.core.api.Assertions;
-import org.eclipse.jetty.server.Server;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAP.InvalidDocumentsBatchRuntimeException;
-import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAP.InvalidJobsBatchRuntimeException;
-import com.constellio.app.modules.es.connectors.spi.Connector;
-import com.constellio.app.modules.es.connectors.spi.ConnectorInstanciator;
-import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
-import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
-import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
-import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
-import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
-import com.constellio.app.modules.es.sdk.TestConnectorEvent;
-import com.constellio.app.modules.es.sdk.TestConnectorEventObserver;
-import com.constellio.app.modules.es.services.ConnectorManager;
-import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.app.modules.es.services.crawler.ConnectorCrawler;
-import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObserver;
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
-import com.constellio.sdk.tests.ConstellioTest;
 
 public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 	Server server;
@@ -117,7 +106,7 @@ public class ConnectorLDAPAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-		 public void whenServerNotAvailableAfterACompleteTraversalThenDoNotDeleteExistingDocuments()
+	public void whenServerNotAvailableAfterACompleteTraversalThenDoNotDeleteExistingDocuments()
 			throws Exception {
 		connectorDocuments = fullyFetchConnectorDocuments();
 		assertThat(connectorDocuments.size()).isEqualTo(3);

@@ -18,7 +18,8 @@ public class TasksMigrationTo7_5 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new TaskSchemaAlterationFor7_5(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
@@ -32,7 +33,7 @@ public class TasksMigrationTo7_5 implements MigrationScript {
 	private class TaskSchemaAlterationFor7_5 extends MetadataSchemasAlterationHelper {
 
 		public TaskSchemaAlterationFor7_5(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

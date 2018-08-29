@@ -1,8 +1,43 @@
 package com.constellio.app.services.appManagement;
 
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
+import com.constellio.app.entities.modules.ProgressInfo;
+import com.constellio.app.services.appManagement.AppManagementServiceException.CannotSaveOldPlugins;
+import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.AppManagementServiceRuntimeException_SameVersionsInDifferentFolders;
+import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
+import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileVersionMustBeHigher;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
+import com.constellio.app.services.extensions.plugins.InvalidPluginJarException;
+import com.constellio.app.services.extensions.plugins.JSPFPluginServices;
+import com.constellio.app.services.extensions.plugins.PluginServices;
+import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
+import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.VersionValidator;
+import com.constellio.app.services.migrations.VersionsComparator;
+import com.constellio.app.services.recovery.ConstellioVersionInfo;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
+import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
+import com.constellio.data.io.services.facades.FileService;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.input.CountingInputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.io.IOUtils;
+import org.jdom2.Document;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -28,44 +63,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.constellio.data.utils.PropertyFileUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.input.CountingInputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.io.IOUtils;
-import org.jdom2.Document;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.app.entities.modules.ProgressInfo;
-import com.constellio.app.services.appManagement.AppManagementServiceException.CannotSaveOldPlugins;
-import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.AppManagementServiceRuntimeException_SameVersionsInDifferentFolders;
-import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileNotFound;
-import com.constellio.app.services.appManagement.AppManagementServiceRuntimeException.WarFileVersionMustBeHigher;
-import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
-import com.constellio.app.services.extensions.plugins.InvalidPluginJarException;
-import com.constellio.app.services.extensions.plugins.JSPFPluginServices;
-import com.constellio.app.services.extensions.plugins.PluginServices;
-import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
-import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.migrations.VersionValidator;
-import com.constellio.app.services.migrations.VersionsComparator;
-import com.constellio.app.services.recovery.ConstellioVersionInfo;
-import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
-import com.constellio.app.services.systemSetup.SystemGlobalConfigsManager;
-import com.constellio.data.io.services.facades.FileService;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.services.zip.ZipService;
-import com.constellio.data.io.services.zip.ZipServiceException;
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.conf.FoldersLocatorMode;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
 
 public class AppManagementService {
 
@@ -144,10 +144,11 @@ public class AppManagementService {
 			String currentWarVersion = GetWarVersionUtils.getWarVersionUsingGradleAsFallback(null);
 
 			currentStep = "Based on jar file, the version of the new war is '" + warVersion + "', current version is '"
-					+ currentWarVersion + "'";
+						  + currentWarVersion + "'";
 			progressInfo.setProgressMessage(currentStep);
 			LOGGER.info(currentStep);
-			if (VersionsComparator.isFirstVersionBeforeSecond(warVersion, currentWarVersion)) {
+			if (VersionsComparator.isFirstVersionBeforeSecond(warVersion, currentWarVersion)
+				&& !Toggle.DANGER_DANGER_DANGER___ALLOW_UPDATE_TO_OLDER_VERSION___DANGER_DANGER_DANGER.isEnabled()) {
 				LOGGER.warn("Trying to install lower version " + warVersion + "\n\tCurrent version is " + currentWarVersion);
 				throw new WarFileVersionMustBeHigher();
 			}
@@ -277,7 +278,8 @@ public class AppManagementService {
 		}
 	}
 
-	private void keepOnlyLastFiveVersionsAndAtLeastOneVersionModifiedBeforeLastWeek(File webAppsFolder, File deployFolder) {
+	private void keepOnlyLastFiveVersionsAndAtLeastOneVersionModifiedBeforeLastWeek(File webAppsFolder,
+																					File deployFolder) {
 		Map<String, File> existingWebAppsMappedByVersion = getExistingVersionsFoldersMappedByVersion(webAppsFolder, deployFolder);
 
 		if (existingWebAppsMappedByVersion.size() > MAX_VERSION_TO_KEEP) {

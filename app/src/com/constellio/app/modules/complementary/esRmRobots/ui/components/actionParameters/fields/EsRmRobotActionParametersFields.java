@@ -6,9 +6,9 @@ import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordFiel
 import com.constellio.app.ui.pages.base.SessionContextProvider;
 
 public interface EsRmRobotActionParametersFields extends SessionContextProvider {
-	
+
 	ActionParametersCategoryField getCategoryField();
-	
+
 	ActionParametersRetentionRuleField getRetentionRuleField();
 
 	LookupRecordField getUniformSubdivision();

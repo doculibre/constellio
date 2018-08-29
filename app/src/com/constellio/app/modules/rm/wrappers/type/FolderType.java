@@ -1,8 +1,11 @@
 package com.constellio.app.modules.rm.wrappers.type;
 
-import com.constellio.model.entities.records.wrappers.ValueListItem;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.Map;
 
 public class FolderType extends ValueListItem implements SchemaLinkingType {
 
@@ -13,13 +16,18 @@ public class FolderType extends ValueListItem implements SchemaLinkingType {
 	public static final String LINKED_SCHEMA = "linkedSchema";
 
 	public FolderType(Record record,
-			MetadataSchemaTypes types) {
+					  MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 
 	public FolderType setTitle(String title) {
 		super.setTitle(title);
 		return this;
+	}
+
+	@Override
+	public FolderType setTitles(Map<Language, String> titles) {
+		return (FolderType) super.setTitles(titles);
 	}
 
 	public FolderType setCode(String code) {

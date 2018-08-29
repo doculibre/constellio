@@ -8,7 +8,13 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
-import com.constellio.app.ui.framework.buttons.*;
+import com.constellio.app.ui.framework.buttons.AddButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.ListSequencesButton;
+import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
@@ -31,9 +37,18 @@ import com.vaadin.data.Container;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomComponent;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
@@ -266,8 +281,8 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	}
 
 	private void setDefaultOrderBy(String localCode, RecordVODataProvider dataProvider, Table table) {
-		Object[] properties = { dataProvider.getSchema().getMetadata(localCode) };
-		boolean[] ordering = { true };
+		Object[] properties = {dataProvider.getSchema().getMetadata(localCode)};
+		boolean[] ordering = {true};
 		table.sort(properties, ordering);
 	}
 
@@ -370,8 +385,8 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 	}
 
 	public TaxonomyVO getTaxonomy() {
-	    return presenter.getTaxonomy();
-    }
+		return presenter.getTaxonomy();
+	}
 
 	public static class SplitCommentsMetadataDisplayFactory extends MetadataDisplayFactory {
 		private final boolean comments;
@@ -383,7 +398,7 @@ public class TaxonomyManagementViewImpl extends BaseViewImpl implements Taxonomy
 		@Override
 		public Component build(RecordVO recordVO, MetadataValueVO metadataValue) {
 			return comments == isComments(metadataValue.getMetadata()) ?
-					super.build(recordVO, metadataValue) : null;
+				   super.build(recordVO, metadataValue) : null;
 		}
 
 		private boolean isComments(MetadataVO metadata) {

@@ -22,9 +22,11 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.Choice;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.FieldOverridePresenter;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.OverrideMode;
+import com.constellio.app.ui.framework.components.SearchResultDetailedTable;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
+import com.constellio.app.ui.pages.search.SearchCriteriaPresenterUtils;
 import com.constellio.app.ui.pages.search.SearchPresenterService;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.params.ParamUtils;
@@ -32,14 +34,18 @@ import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.MetadataList;
-import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -47,7 +53,11 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.vaadin.ui.Component;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -66,6 +76,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	private static final String SCHEMA_FILTER = Robot.DEFAULT_SCHEMA + "_" + Robot.SCHEMA_FILTER;
 
 	private RecordToVOBuilder recordToVOBuilder = new RecordToVOBuilder();
+	private SearchCriteriaPresenterUtils searchCriteriaPresenterUtils;
 	private RecordVO robot;
 	private RecordVO actionParameters;
 	private String schemaFilter;
@@ -90,6 +101,7 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	private void init() {
 		searchPresenterService = new SearchPresenterService(collection, modelLayerFactory);
 		schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
+		searchCriteriaPresenterUtils = new SearchCriteriaPresenterUtils(view.getSessionContext());
 	}
 
 	public AddEditRobotPresenter forParams(String parameters) {
@@ -157,23 +169,23 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	@Override
 	public OverrideMode getOverride(String metadataCode) {
 		switch (metadataCode) {
-		case ACTION:
-		case SCHEMA_FILTER:
-			return OverrideMode.DROPDOWN;
-		default:
-			return OverrideMode.NONE;
+			case ACTION:
+			case SCHEMA_FILTER:
+				return OverrideMode.DROPDOWN;
+			default:
+				return OverrideMode.NONE;
 		}
 	}
 
 	@Override
 	public List<Choice> getChoices(String metadataCode) {
 		switch (metadataCode) {
-		case ACTION:
-			return getActionChoices();
-		case SCHEMA_FILTER:
-			return getSchemaFilterChoices();
-		default:
-			throw new ImpossibleRuntimeException("BUG. No choices for metadata: " + metadataCode);
+			case ACTION:
+				return getActionChoices();
+			case SCHEMA_FILTER:
+				return getSchemaFilterChoices();
+			default:
+				throw new ImpossibleRuntimeException("BUG. No choices for metadata: " + metadataCode);
 		}
 	}
 
@@ -199,10 +211,9 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 				if (facetValue.getQuantity() > 0) {
 					String schema = facetValue.getValue();
 					for (Metadata metadata : types().getSchema(schema).getMetadatas()) {
-						if(metadata.getInheritance() != null && metadata.isEnabled()) {
+						if (metadata.getInheritance() != null && metadata.isEnabled()) {
 							metadataCodes.add(metadata.getInheritance().getCode());
-						}
-						else if (metadata.getInheritance() == null && metadata.isEnabled()) {
+						} else if (metadata.getInheritance() == null && metadata.isEnabled()) {
 							metadataCodes.add(metadata.getCode());
 						}
 					}
@@ -213,18 +224,18 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
-//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
+		//		result.add(builder.build(schemaType.getMetadataWithAtomicCode(CommonMetadataBuilder.PATH), view.getSessionContext()));
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
-				boolean isTextOrString = metadata.getType() == MetadataValueType.STRING ||  metadata.getType() == MetadataValueType.TEXT;
+				boolean isTextOrString = metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
 				if (config.isVisibleInAdvancedSearch() && isMetadataVisibleForUser(metadata, getCurrentUser()) &&
-						(!isTextOrString || isTextOrString && metadata.isSearchable() ||
-								Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
-								ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
-								ConnectorSmbFolder.CONNECTOR_URL.equals(metadata.getLocalCode()) ||
-								ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
+					(!isTextOrString || isTextOrString && metadata.isSearchable() ||
+					 Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
+					 ConnectorSmbFolder.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+					 ConnectorSmbFolder.CONNECTOR_URL.equals(metadata.getLocalCode()) ||
+					 ConnectorSmbDocument.PARENT_CONNECTOR_URL.equals(metadata.getLocalCode()))) {
 					result.add(builder.build(metadata, view.getSessionContext()));
 				}
 			}
@@ -232,17 +243,22 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 		return result;
 	}
 
+	@Override
+	public Map<String, String> getMetadataSchemasList(String schemaTypeCode) {
+		return searchCriteriaPresenterUtils.getMetadataSchemasList(schemaTypeCode);
+	}
+
 	private boolean isMetadataVisibleForUser(Metadata metadata, User currentUser) {
-		if(MetadataValueType.REFERENCE.equals(metadata.getType())) {
+		if (MetadataValueType.REFERENCE.equals(metadata.getType())) {
 			String referencedSchemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
 			Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager().getTaxonomyFor(collection, referencedSchemaType);
-			if(taxonomy != null) {
+			if (taxonomy != null) {
 				List<String> taxonomyGroupIds = taxonomy.getGroupIds();
 				List<String> taxonomyUserIds = taxonomy.getUserIds();
 				List<String> userGroups = currentUser.getUserGroups();
-				for(String group: taxonomyGroupIds) {
-					for(String userGroup: userGroups) {
-						if(userGroup.equals(group)) {
+				for (String group : taxonomyGroupIds) {
+					for (String userGroup : userGroups) {
+						if (userGroup.equals(group)) {
 							return true;
 						}
 					}
@@ -392,7 +408,9 @@ public class AddEditRobotPresenter extends BaseRobotPresenter<AddEditRobotView>
 	}
 
 	public SearchResultVODataProvider getSearchResults(final List<Criterion> searchCriteria) {
-		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext()) {
+		SearchPageLength defaultPageLength = getCurrentUser().getDefaultPageLength();
+		int providerPageLength = defaultPageLength != null ? defaultPageLength.getValue() : SearchResultDetailedTable.DEFAULT_PAGE_LENGTH;
+		return new SearchResultVODataProvider(new RecordToVOBuilder(), appLayerFactory, view.getSessionContext(), providerPageLength) {
 			@Override
 			public LogicalSearchQuery getQuery() {
 				return getSearchQuery(searchCriteria);

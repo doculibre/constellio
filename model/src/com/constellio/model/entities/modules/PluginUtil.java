@@ -1,11 +1,11 @@
 package com.constellio.model.entities.modules;
 
+import com.constellio.model.entities.configs.SystemConfiguration;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.constellio.model.entities.configs.SystemConfiguration;
 
 public class PluginUtil {
 	public static List<String> getDependencies(Module module) {

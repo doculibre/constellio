@@ -1,5 +1,14 @@
 package com.constellio.model.services.appManagement;
 
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Matchers;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
@@ -7,16 +16,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Matchers;
-
-import com.constellio.sdk.tests.ConstellioTest;
 
 public class PlatformServiceTest extends ConstellioTest {
 
@@ -44,7 +43,7 @@ public class PlatformServiceTest extends ConstellioTest {
 	@Test
 	public void givenShellCommandWithScripFiletAndArgumentsThenCommandToExecuteTheScriptIsGenerated() {
 		String command = aString();
-		String[] commandToExecute = { "/bin/sh", "-c", command };
+		String[] commandToExecute = {"/bin/sh", "-c", command};
 
 		assertTrue(Arrays.equals(commandToExecute, platformService.getShellCommandToLaunchScript(command)));
 	}
@@ -57,7 +56,7 @@ public class PlatformServiceTest extends ConstellioTest {
 		doReturn(scriptFolder).when(theSHScript).getParentFile();
 		doReturn("/home/bob/").when(scriptFolder).getAbsolutePath();
 
-		String[] parameters = { "param1", "param2" };
+		String[] parameters = {"param1", "param2"};
 
 		String command = "cd /home/bob/; ./file.sh param1 param2";
 		assertEquals(command, platformService.getSHScriptCommand(theSHScript, parameters));

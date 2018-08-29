@@ -1,14 +1,13 @@
 package com.constellio.model.services.records.reindexing;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ReindexingRecordsProvider {
 

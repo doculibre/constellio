@@ -1,11 +1,11 @@
 package com.constellio.model.entities.schemas.sort;
 
-import static java.lang.Character.isDigit;
+import com.constellio.data.utils.AccentApostropheCleaner;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.constellio.data.utils.AccentApostropheCleaner;
+import static java.lang.Character.isDigit;
 
 public class DefaultStringSortFieldNormalizer implements StringSortFieldNormalizer {
 

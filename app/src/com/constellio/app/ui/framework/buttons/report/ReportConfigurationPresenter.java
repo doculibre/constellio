@@ -6,13 +6,13 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
 public interface ReportConfigurationPresenter {
-    MetadataSchemasManager getMetadataSchemasManager();
+	MetadataSchemasManager getMetadataSchemasManager();
 
-    SchemasDisplayManager getSchemasDisplayManager();
+	SchemasDisplayManager getSchemasDisplayManager();
 
-    String getSchemaTypeCode();
+	String getSchemaTypeCode();
 
-    User getReportAssociatedUser();
+	User getReportAssociatedUser();
 
-    Metadata[] getAllSchemaTypeMetadata();
+	Metadata[] getAllSchemaTypeMetadata();
 }

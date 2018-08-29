@@ -1,15 +1,5 @@
 package com.constellio.sdk.tests;
 
-import static org.mockito.Mockito.spy;
-
-import java.util.Arrays;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.internal.AssumptionViolatedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
@@ -20,6 +10,15 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.internal.AssumptionViolatedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+
+import static org.mockito.Mockito.spy;
 
 @SlowTest
 public class SolrSafeConstellioAcceptanceTest extends ConstellioTest {

@@ -1,13 +1,13 @@
 package com.constellio.model.entities.calculators;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.utils.Parametrized;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
@@ -19,14 +19,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.LocalDependency;
-import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.utils.Parametrized;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalculator<Object>, Parametrized {
 
@@ -165,31 +165,32 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 
 	@Override
 	public Object[] getInstanceParameters() {
-		return new Object[] { expression };
+		return new Object[]{expression};
 	}
 
 	@Override
 	public void initialize(MetadataSchemaTypes types, MetadataSchema schema, Metadata calculatedMetadata) {
 		metadataCode = calculatedMetadata.getCode();
+		List<Dependency> builtDependencies = new ArrayList<>(dependencies);
 		try {
 			for (List<String> variable : jexlScript.getVariables()) {
 				if (variable.size() >= 2) {
-					dependencies.add(toReferenceDependency(types, schema, variable));
+					builtDependencies.add(toReferenceDependency(types, schema, variable));
 				}
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			dependencies.clear();
+			builtDependencies.clear();
 		}
-
+		dependencies = Collections.unmodifiableList(builtDependencies);
 	}
 
 	@Override
 	public void initialize(List<Metadata> schemaMetadatas, Metadata calculatedMetadata) {
 		metadataCode = calculatedMetadata.getCode();
 		type = calculatedMetadata.getType();
-		dependencies.clear();
+		List<Dependency> builtDependencies = new ArrayList<>();
 		try {
 			variables = jexlScript.getVariables();
 		} catch (Exception e) {
@@ -199,20 +200,15 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 		if (variables != null) {
 			for (List<String> variable : jexlScript.getVariables()) {
 				if (!variable.isEmpty() && !"utils".equals(variable.get(0))) {
-					dependencies.add(toLocalDependency(schemaMetadatas, variable));
+					builtDependencies.add(toLocalDependency(schemaMetadatas, variable));
 
 				}
 			}
 		}
 
+		dependencies = Collections.unmodifiableList(builtDependencies);
 	}
 
-	private LocalDependency<?> toLocalDependency(MetadataSchema schema, List<String> variable) {
-		boolean isRequired = false;
-		Metadata metadata = schema.getMetadata(variable.get(0));
-		return new LocalDependency<>(variable.get(0), isRequired, metadata.isMultivalue(),
-				metadata.getType(), false);
-	}
 
 	private LocalDependency<?> toLocalDependency(List<Metadata> metadatas, List<String> variable) {
 		boolean isRequired = false;
@@ -233,7 +229,8 @@ public class JEXLMetadataValueCalculator implements InitializedMetadataValueCalc
 				metadata.getType(), false);
 	}
 
-	private ReferenceDependency toReferenceDependency(MetadataSchemaTypes types, MetadataSchema schema, List<String> variable) {
+	private ReferenceDependency toReferenceDependency(MetadataSchemaTypes types, MetadataSchema schema,
+													  List<String> variable) {
 		Metadata referenceMetadata = schema.getMetadata(variable.get(0));
 		String referencedSchemaTypeCode = referenceMetadata.getAllowedReferences().getTypeWithAllowedSchemas();
 		MetadataSchema referencedSchema = types.getDefaultSchema(referencedSchemaTypeCode);

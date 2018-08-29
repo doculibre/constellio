@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.globalGroup;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -33,6 +27,11 @@ import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobalGroupsView {
 
@@ -56,17 +55,17 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 		return $("ListGlobalGroupsView.viewTitle");
 	}
 
-    @Override
-    protected List<Button> buildActionMenuButtons(ViewChangeEvent event){
-        List<Button> buttons = super.buildActionMenuButtons(event);
-        buttons.add(new AddButton($("add")) {
-            @Override
-            protected void buttonClick(ClickEvent event) {
-                presenter.addButtonClicked();
-            }
-        });
-        return buttons;
-    }
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> buttons = super.buildActionMenuButtons(event);
+		buttons.add(new AddButton($("add")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.addButtonClicked();
+			}
+		});
+		return buttons;
+	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
@@ -103,44 +102,44 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 			}
 		});
 
-        sheet = new TabSheet();
-        sheet.setSizeFull();
-        sheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
-            @Override
-            public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
-                String selectedSheet = sheet.getSelectedTab().getId();
-                status = getTAbId(selectedSheet);
-                refreshTable();
-            }
-        });
+		sheet = new TabSheet();
+		sheet.setSizeFull();
+		sheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
+			@Override
+			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
+				String selectedSheet = sheet.getSelectedTab().getId();
+				status = getTAbId(selectedSheet);
+				refreshTable();
+			}
+		});
 
-        for (String tabId : presenter.getTabs()) {
-            sheet.addTab(buildEmptyTab(tabId));
-        }
+		for (String tabId : presenter.getTabs()) {
+			sheet.addTab(buildEmptyTab(tabId));
+		}
 
 		viewLayout.addComponents(sheet, tableFilter, table);
 		viewLayout.setExpandRatio(table, 1);
-        viewLayout.setComponentAlignment(tableFilter, Alignment.TOP_RIGHT);
+		viewLayout.setComponentAlignment(tableFilter, Alignment.TOP_RIGHT);
 
 		return viewLayout;
 	}
 
-    private GlobalGroupStatus getTAbId(String selectedSheet) {
-        switch (selectedSheet){
-            case "inactive":
-                return GlobalGroupStatus.INACTIVE;
-            default:
-                return GlobalGroupStatus.ACTIVE;
-        }
-    }
+	private GlobalGroupStatus getTAbId(String selectedSheet) {
+		switch (selectedSheet) {
+			case "inactive":
+				return GlobalGroupStatus.INACTIVE;
+			default:
+				return GlobalGroupStatus.ACTIVE;
+		}
+	}
 
-    private VerticalLayout buildEmptyTab(String tabId) {
-        VerticalLayout tab = new VerticalLayout();
-        tab.setCaption(presenter.getTabCaption(tabId));
-        tab.setId(tabId);
-        tab.setSpacing(true);
-        return tab;
-    }
+	private VerticalLayout buildEmptyTab(String tabId) {
+		VerticalLayout tab = new VerticalLayout();
+		tab.setCaption(presenter.getTabCaption(tabId));
+		tab.setId(tabId);
+		tab.setSpacing(true);
+		return tab;
+	}
 
 	@Override
 	protected ClickListener getBackButtonClickListener() {
@@ -166,12 +165,12 @@ public class ListGlobalGroupsViewImpl extends BaseViewImpl implements ListGlobal
 				return ListGlobalGroupsViewImpl.class.getName();
 			}
 		};
-        table.setWidth("100%");
-        table.setColumnHeader("code", $("ListGlobalGroupsView.codeColumn"));
-        table.setColumnHeader("name", $("ListGlobalGroupsView.nameColumn"));
-        table.setColumnHeader(PROPERTY_BUTTONS, "");
-        table.setColumnWidth(PROPERTY_BUTTONS, 120);
-        table.setPageLength(Math.min(15, dataProvider.size()));
+		table.setWidth("100%");
+		table.setColumnHeader("code", $("ListGlobalGroupsView.codeColumn"));
+		table.setColumnHeader("name", $("ListGlobalGroupsView.nameColumn"));
+		table.setColumnHeader(PROPERTY_BUTTONS, "");
+		table.setColumnWidth(PROPERTY_BUTTONS, 120);
+		table.setPageLength(Math.min(15, dataProvider.size()));
 		return table;
 	}
 

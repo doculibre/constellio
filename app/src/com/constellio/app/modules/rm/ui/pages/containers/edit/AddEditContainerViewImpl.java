@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.containers.edit;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.modules.rm.ui.components.container.ContainerFormImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.RecordVO;
@@ -16,6 +14,8 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.VerticalLayout;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditContainerView {
 	protected AddEditContainerPresenter presenter;
@@ -83,7 +83,7 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 	}
 
 	private void prepareTypeField(final Field<String> field) {
-		if((Field) field instanceof RecordComboBox) {
+		if ((Field) field instanceof RecordComboBox) {
 			((RecordComboBox) (Field) field).setNullSelectionAllowed(false);
 		}
 		field.addValueChangeListener(new ValueChangeListener() {
@@ -116,7 +116,7 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
-					presenter.saveButtonClicked(viewObject);
+				presenter.saveButtonClicked(viewObject);
 			}
 
 			@Override

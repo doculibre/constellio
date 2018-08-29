@@ -7,17 +7,19 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.vaadin.ui.Field;
 
+import java.util.Locale;
+
 public class RMMetadataFieldFactory extends MetadataFieldFactory {
 
 	@Override
-	public Field<?> build(MetadataVO metadata) {
+	public Field<?> build(MetadataVO metadata, Locale locale) {
 		Field<?> field;
 		String schemaTypeCode = metadata.getSchemaTypeCode();
 		MetadataInputType inputType = metadata.getMetadataInputType();
 		if (inputType == MetadataInputType.LOOKUP && schemaTypeCode.equals(Folder.SCHEMA_TYPE) && !metadata.isMultivalue()) {
 			field = new LookupFolderField();
 		} else {
-			field = super.build(metadata);
+			field = super.build(metadata, locale);
 		}
 		if (field instanceof LookupFolderField) {
 			postBuild(field, metadata);

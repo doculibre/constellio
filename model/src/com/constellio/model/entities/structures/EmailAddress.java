@@ -1,13 +1,12 @@
 package com.constellio.model.entities.structures;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.ModifiableStructure;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EmailAddress implements ModifiableStructure {
 
@@ -49,10 +48,10 @@ public class EmailAddress implements ModifiableStructure {
 	@Override
 	public String toString() {
 		return "EmailAddress{" +
-				"name='" + name + '\'' +
-				", email='" + email + '\'' +
-				", dirty=" + dirty +
-				'}';
+			   "name='" + name + '\'' +
+			   ", email='" + email + '\'' +
+			   ", dirty=" + dirty +
+			   '}';
 	}
 
 	@Override

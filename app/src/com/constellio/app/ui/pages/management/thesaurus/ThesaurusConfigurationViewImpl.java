@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.management.thesaurus;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.InputStream;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.BaseDisplay;
@@ -41,303 +31,311 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.io.InputStream;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements ThesaurusConfigurationView {
-    
 
-    private FormBean formBean = new FormBean();
 
-    @PropertyId("file")
-    private BaseUploadField uploadSkosField;
+	private FormBean formBean = new FormBean();
 
-    @PropertyId("rejectedTerms")
-    private TextArea rejectedTermsField;
-    
-    private BaseDisplay baseDisplay;
-    private DownloadContentVersionLink downloadContentVersionLink;
+	@PropertyId("file")
+	private BaseUploadField uploadSkosField;
+
+	@PropertyId("rejectedTerms")
+	private TextArea rejectedTermsField;
+
+	private BaseDisplay baseDisplay;
+	private DownloadContentVersionLink downloadContentVersionLink;
 
 	private TabSheet tabSheet;
 
-    private Button deleteSkosFileButton;
+	private Button deleteSkosFileButton;
 
-    private VerticalLayout skosFormLayout;
-    private BaseForm<FormBean> skosForm;
-    private BaseForm<FormBean> rejectedTermsForm;
-    
-    private ThesaurusConfigurationPresenter presenter;
+	private VerticalLayout skosFormLayout;
+	private BaseForm<FormBean> skosForm;
+	private BaseForm<FormBean> rejectedTermsForm;
 
-    public ThesaurusConfigurationViewImpl() {
-        presenter = new ThesaurusConfigurationPresenter(this);
-    }
+	private ThesaurusConfigurationPresenter presenter;
 
-    @Override
-    protected String getTitle() {
-        return $("ThesaurusConfigurationView.viewTitle");
-    }
+	public ThesaurusConfigurationViewImpl() {
+		presenter = new ThesaurusConfigurationPresenter(this);
+	}
 
-    @Override
-    protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-        return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
-    }
+	@Override
+	protected String getTitle() {
+		return $("ThesaurusConfigurationView.viewTitle");
+	}
 
-    @Override
-    protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-        VerticalLayout mainLayout = new VerticalLayout();
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return SearchConfigurationViewImpl.getSearchConfigurationBreadCrumbTrail(this, getTitle());
+	}
 
-        tabSheet = new TabSheet();
-        
-        skosFormLayout = new VerticalLayout();
-        skosFormLayout.setSizeFull();
-        skosFormLayout.setSpacing(true);
-        
-        skosForm = buildSkosForm();
-        
-        if (presenter.isThesaurusConfiguration()) {
-            thesaurusConfigurationPage(skosFormLayout);
-            
-            HorizontalLayout downloadableFileLayout = new I18NHorizontalLayout();
-            downloadableFileLayout.setWidthUndefined();
-            downloadableFileLayout.setSpacing(true);
-            
-            downloadContentVersionLink = new DownloadContentVersionLink(presenter.getContentVersionForDownloadLink());
-            downloadContentVersionLink.setWidthUndefined();
-            downloadContentVersionLink.setCaption($("ThesaurusConfigurationView.button.download"));
-            downloadableFileLayout.addComponent(downloadContentVersionLink);
-            
-            deleteSkosFileButton = new DeleteButton($("ThesaurusConfigurationView.removeSkosFile")) {
+	@Override
+	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+		VerticalLayout mainLayout = new VerticalLayout();
+
+		tabSheet = new TabSheet();
+
+		skosFormLayout = new VerticalLayout();
+		skosFormLayout.setSizeFull();
+		skosFormLayout.setSpacing(true);
+
+		skosForm = buildSkosForm();
+
+		if (presenter.isThesaurusConfiguration()) {
+			thesaurusConfigurationPage(skosFormLayout);
+
+			HorizontalLayout downloadableFileLayout = new I18NHorizontalLayout();
+			downloadableFileLayout.setWidthUndefined();
+			downloadableFileLayout.setSpacing(true);
+
+			downloadContentVersionLink = new DownloadContentVersionLink(presenter.getContentVersionForDownloadLink());
+			downloadContentVersionLink.setWidthUndefined();
+			downloadContentVersionLink.setCaption($("ThesaurusConfigurationView.button.download"));
+			downloadableFileLayout.addComponent(downloadContentVersionLink);
+
+			deleteSkosFileButton = new DeleteButton($("ThesaurusConfigurationView.removeSkosFile")) {
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-                    presenter.deleteSkosFileButtonClicked();
+					presenter.deleteSkosFileButtonClicked();
 				}
-            };
-            deleteSkosFileButton.removeStyleName(ValoTheme.BUTTON_BORDERLESS);
-            
-            downloadableFileLayout.addComponent(deleteSkosFileButton);
-            skosFormLayout.addComponent(downloadableFileLayout);
-            
-        } else {
-            noThesaurusAvailableState(skosFormLayout);
-        }
+			};
+			deleteSkosFileButton.removeStyleName(ValoTheme.BUTTON_BORDERLESS);
 
-        skosFormLayout.addComponent(skosForm);
+			downloadableFileLayout.addComponent(deleteSkosFileButton);
+			skosFormLayout.addComponent(downloadableFileLayout);
 
-        tabSheet.addTab(skosFormLayout, $("ThesaurusConfigurationView.thesaurusFileAndInfo"));
+		} else {
+			noThesaurusAvailableState(skosFormLayout);
+		}
 
-        VerticalLayout rejectedTermsLayout = new VerticalLayout();
-        rejectedTermsLayout.setSizeFull();
-        rejectedTermsLayout.setSpacing(true);
-        
-        rejectedTermsForm = buildRejectedTermsForm();
+		skosFormLayout.addComponent(skosForm);
 
-        rejectedTermsLayout.addComponent(rejectedTermsForm);
+		tabSheet.addTab(skosFormLayout, $("ThesaurusConfigurationView.thesaurusFileAndInfo"));
 
-        tabSheet.addTab(rejectedTermsLayout, $("ThesaurusConfigurationView.rejectedTerms"));
-        mainLayout.addComponent(tabSheet);
-        
-        Component statsSheetContent = buildStatsSheetContent();
-        tabSheet.addTab(statsSheetContent, $("ThesaurusConfigurationView.stats"));
+		VerticalLayout rejectedTermsLayout = new VerticalLayout();
+		rejectedTermsLayout.setSizeFull();
+		rejectedTermsLayout.setSpacing(true);
 
-        setSKOSSaveButtonEnabled(false);
+		rejectedTermsForm = buildRejectedTermsForm();
 
-        return mainLayout;
-    }
-    
-    private Component buildStatsSheetContent() {
-    	int nbDocumentsWithAtLeastOneConcept = presenter.getDocumentsWithAConcept();
-    	int nbConceptsUsedAtLeastOnce = presenter.getUsedConcepts();
-    	int nbDocumentsWithoutAConcept = presenter.getDocumentsWithoutAConcept();
-    	final List<SkosConcept> unusedConcepts = presenter.getUnusedConcepts();
-    	
-    	Label nbDocumentsWithAtLeastOneConceptLabel = new Label($("ThesaurusConfigurationView.stats.nbDocumentsWithAtLeastOneConcept"));
-    	Label nbDocumentsWithAtLeastOneConceptComponent = new Label(MessageFormat.format("{0}", nbDocumentsWithAtLeastOneConcept));
+		rejectedTermsLayout.addComponent(rejectedTermsForm);
 
-    	Label nbConceptsUsedAtLeastOnceLabel = new Label($("ThesaurusConfigurationView.stats.nbConceptsUsedAtLeastOnce"));
-    	Label nbConceptsUsedAtLeastOnceComponent = new Label(MessageFormat.format("{0}", nbConceptsUsedAtLeastOnce));
-    	
-    	Label nbDocumentsWithoutAConceptLabel = new Label($("ThesaurusConfigurationView.stats.nbDocumentsWithoutAConcept"));
-    	Label nbDocumentsWithoutAConceptComponent = new Label(MessageFormat.format("{0}", nbDocumentsWithoutAConcept));
-    	
-    	Label mostFrequentlyUsedConceptsLabel = new Label($("ThesaurusConfigurationView.stats.mostFrequentlyUsedConcepts"));
-    	DownloadLink mostFrequentlyUsedConceptsComponent = new DownloadLink(new StreamResource(new StreamSource() {
+		tabSheet.addTab(rejectedTermsLayout, $("ThesaurusConfigurationView.rejectedTerms"));
+		mainLayout.addComponent(tabSheet);
+
+		Component statsSheetContent = buildStatsSheetContent();
+		tabSheet.addTab(statsSheetContent, $("ThesaurusConfigurationView.stats"));
+
+		setSKOSSaveButtonEnabled(false);
+
+		return mainLayout;
+	}
+
+	private Component buildStatsSheetContent() {
+		int nbDocumentsWithAtLeastOneConcept = presenter.getDocumentsWithAConcept();
+		int nbConceptsUsedAtLeastOnce = presenter.getUsedConcepts();
+		int nbDocumentsWithoutAConcept = presenter.getDocumentsWithoutAConcept();
+		final List<SkosConcept> unusedConcepts = presenter.getUnusedConcepts();
+
+		Label nbDocumentsWithAtLeastOneConceptLabel = new Label($("ThesaurusConfigurationView.stats.nbDocumentsWithAtLeastOneConcept"));
+		Label nbDocumentsWithAtLeastOneConceptComponent = new Label(MessageFormat.format("{0}", nbDocumentsWithAtLeastOneConcept));
+
+		Label nbConceptsUsedAtLeastOnceLabel = new Label($("ThesaurusConfigurationView.stats.nbConceptsUsedAtLeastOnce"));
+		Label nbConceptsUsedAtLeastOnceComponent = new Label(MessageFormat.format("{0}", nbConceptsUsedAtLeastOnce));
+
+		Label nbDocumentsWithoutAConceptLabel = new Label($("ThesaurusConfigurationView.stats.nbDocumentsWithoutAConcept"));
+		Label nbDocumentsWithoutAConceptComponent = new Label(MessageFormat.format("{0}", nbDocumentsWithoutAConcept));
+
+		Label mostFrequentlyUsedConceptsLabel = new Label($("ThesaurusConfigurationView.stats.mostFrequentlyUsedConcepts"));
+		DownloadLink mostFrequentlyUsedConceptsComponent = new DownloadLink(new StreamResource(new StreamSource() {
 			@Override
 			public InputStream getStream() {
 				return presenter.getMostUsedConceptsInputStream(presenter.getMostUsedConcepts());
 			}
-    		
-    	}, "mostFrequentlyUsedConcepts.csv"), $("download"));
-    	
-    	Label conceptsNotUsedLabel = new Label($("ThesaurusConfigurationView.stats.conceptsNotUsed", MessageFormat.format("{0}", unusedConcepts.size())));
-    	DownloadLink conceptsNotUsedComponent = new DownloadLink(new StreamResource(new StreamSource() {
+
+		}, "mostFrequentlyUsedConcepts.csv"), $("download"));
+
+		Label conceptsNotUsedLabel = new Label($("ThesaurusConfigurationView.stats.conceptsNotUsed", MessageFormat.format("{0}", unusedConcepts.size())));
+		DownloadLink conceptsNotUsedComponent = new DownloadLink(new StreamResource(new StreamSource() {
 			@Override
 			public InputStream getStream() {
 				return presenter.getUnusedConceptsInputStream(unusedConcepts);
 			}
-    		
-    	}, "unusedConcepts.csv"), $("download"));
 
-    	List<CaptionAndComponent> captionsAndDisplayComponents = new ArrayList<>();
-    	captionsAndDisplayComponents.add(new CaptionAndComponent(nbDocumentsWithAtLeastOneConceptLabel, nbDocumentsWithAtLeastOneConceptComponent));
-    	captionsAndDisplayComponents.add(new CaptionAndComponent(nbConceptsUsedAtLeastOnceLabel, nbConceptsUsedAtLeastOnceComponent));
-    	captionsAndDisplayComponents.add(new CaptionAndComponent(nbDocumentsWithoutAConceptLabel, nbDocumentsWithoutAConceptComponent));
-    	captionsAndDisplayComponents.add(new CaptionAndComponent(mostFrequentlyUsedConceptsLabel, mostFrequentlyUsedConceptsComponent));
-    	captionsAndDisplayComponents.add(new CaptionAndComponent(conceptsNotUsedLabel, conceptsNotUsedComponent));
-    	
-    	BaseDisplay statsSheetContent = new BaseDisplay(captionsAndDisplayComponents);
-    	statsSheetContent.setSizeFull();
-    	return statsSheetContent;
-    }
+		}, "unusedConcepts.csv"), $("download"));
 
-    private void noThesaurusAvailableState(VerticalLayout verticalLayoutSkosFile) {
-        Label noThesaurusAvalible = new Label($("ThesaurusConfigurationView.noThesaurusAvailable") + "<br /> ");
-        noThesaurusAvalible.setContentMode(ContentMode.HTML);
-        verticalLayoutSkosFile.addComponent(noThesaurusAvalible);
-    }
+		List<CaptionAndComponent> captionsAndDisplayComponents = new ArrayList<>();
+		captionsAndDisplayComponents.add(new CaptionAndComponent(nbDocumentsWithAtLeastOneConceptLabel, nbDocumentsWithAtLeastOneConceptComponent));
+		captionsAndDisplayComponents.add(new CaptionAndComponent(nbConceptsUsedAtLeastOnceLabel, nbConceptsUsedAtLeastOnceComponent));
+		captionsAndDisplayComponents.add(new CaptionAndComponent(nbDocumentsWithoutAConceptLabel, nbDocumentsWithoutAConceptComponent));
+		captionsAndDisplayComponents.add(new CaptionAndComponent(mostFrequentlyUsedConceptsLabel, mostFrequentlyUsedConceptsComponent));
+		captionsAndDisplayComponents.add(new CaptionAndComponent(conceptsNotUsedLabel, conceptsNotUsedComponent));
 
-    public void setSKOSSaveButtonEnabled(boolean enabled) {
-        skosForm.getSaveButton().setEnabled(enabled);
-    }
+		BaseDisplay statsSheetContent = new BaseDisplay(captionsAndDisplayComponents);
+		statsSheetContent.setSizeFull();
+		return statsSheetContent;
+	}
 
-    public void toNoThesaurusAvailable() {
-        VerticalLayout noThesaurusAvalibleVerticalLayout = new VerticalLayout();
-        noThesaurusAvailableState(noThesaurusAvalibleVerticalLayout);
+	private void noThesaurusAvailableState(VerticalLayout verticalLayoutSkosFile) {
+		Label noThesaurusAvalible = new Label($("ThesaurusConfigurationView.noThesaurusAvailable") + "<br /> ");
+		noThesaurusAvalible.setContentMode(ContentMode.HTML);
+		verticalLayoutSkosFile.addComponent(noThesaurusAvalible);
+	}
 
-        noThesaurusAvalibleVerticalLayout.addComponent(skosForm);
+	public void setSKOSSaveButtonEnabled(boolean enabled) {
+		skosForm.getSaveButton().setEnabled(enabled);
+	}
 
-        tabSheet.replaceComponent(skosFormLayout, noThesaurusAvalibleVerticalLayout);
-        this.skosFormLayout = noThesaurusAvalibleVerticalLayout;
-    }
+	public void toNoThesaurusAvailable() {
+		VerticalLayout noThesaurusAvalibleVerticalLayout = new VerticalLayout();
+		noThesaurusAvailableState(noThesaurusAvalibleVerticalLayout);
 
-    private void thesaurusConfigurationPage(VerticalLayout verticalLayoutSkosFile) {
-        List<BaseDisplay.CaptionAndComponent> listCaptionAndComponent = new ArrayList<>();
+		noThesaurusAvalibleVerticalLayout.addComponent(skosForm);
 
-        BaseDisplay.CaptionAndComponent captionAndComponent = new BaseDisplay
-                .CaptionAndComponent(new Label($("ThesaurusConfigurationView.about")), new Label(presenter.getAbout()));
-        listCaptionAndComponent.add(captionAndComponent);
+		tabSheet.replaceComponent(skosFormLayout, noThesaurusAvalibleVerticalLayout);
+		this.skosFormLayout = noThesaurusAvalibleVerticalLayout;
+	}
 
-        captionAndComponent = new BaseDisplay
-                .CaptionAndComponent(new Label($("ThesaurusConfigurationView.title")), new Label(presenter.getTitle()));
-        listCaptionAndComponent.add(captionAndComponent);
+	private void thesaurusConfigurationPage(VerticalLayout verticalLayoutSkosFile) {
+		List<BaseDisplay.CaptionAndComponent> listCaptionAndComponent = new ArrayList<>();
 
-        captionAndComponent = new BaseDisplay
-                .CaptionAndComponent(new Label($("ThesaurusConfigurationView.description")), new Label(presenter.getDescription()));
-        listCaptionAndComponent.add(captionAndComponent);
+		BaseDisplay.CaptionAndComponent captionAndComponent = new BaseDisplay
+				.CaptionAndComponent(new Label($("ThesaurusConfigurationView.about")), new Label(presenter.getAbout()));
+		listCaptionAndComponent.add(captionAndComponent);
 
-        captionAndComponent = new BaseDisplay
-                .CaptionAndComponent(new Label($("ThesaurusConfigurationView.date")), new Label(presenter.getDate()));
-        listCaptionAndComponent.add(captionAndComponent);
+		captionAndComponent = new BaseDisplay
+				.CaptionAndComponent(new Label($("ThesaurusConfigurationView.title")), new Label(presenter.getTitle()));
+		listCaptionAndComponent.add(captionAndComponent);
 
-        captionAndComponent = new BaseDisplay
-                .CaptionAndComponent(new Label($("ThesaurusConfigurationView.creator")), new Label(presenter.getCreator()));
-        listCaptionAndComponent.add(captionAndComponent);
+		captionAndComponent = new BaseDisplay
+				.CaptionAndComponent(new Label($("ThesaurusConfigurationView.description")), new Label(presenter.getDescription()));
+		listCaptionAndComponent.add(captionAndComponent);
 
-        baseDisplay = new BaseDisplay(listCaptionAndComponent);
-        verticalLayoutSkosFile.addComponent(baseDisplay);
+		captionAndComponent = new BaseDisplay
+				.CaptionAndComponent(new Label($("ThesaurusConfigurationView.date")), new Label(presenter.getDate()));
+		listCaptionAndComponent.add(captionAndComponent);
 
-        verticalLayoutSkosFile.setSpacing(true);
-    }
+		captionAndComponent = new BaseDisplay
+				.CaptionAndComponent(new Label($("ThesaurusConfigurationView.creator")), new Label(presenter.getCreator()));
+		listCaptionAndComponent.add(captionAndComponent);
 
-    public void unloadDescriptionsField() {
-        VerticalLayout newVerticalLayoutSkosFile = new VerticalLayout();
-        noThesaurusAvailableState(newVerticalLayoutSkosFile);
-    }
+		baseDisplay = new BaseDisplay(listCaptionAndComponent);
+		verticalLayoutSkosFile.addComponent(baseDisplay);
 
-    public void loadDescriptionFieldsWithFileValue(){
-        VerticalLayout newVerticalLayoutSkosFile = new VerticalLayout();
-        thesaurusConfigurationPage(newVerticalLayoutSkosFile);
-        newVerticalLayoutSkosFile.addComponent(skosForm);
-        tabSheet.replaceComponent(skosFormLayout, newVerticalLayoutSkosFile);
+		verticalLayoutSkosFile.setSpacing(true);
+	}
 
-        skosFormLayout = newVerticalLayoutSkosFile;
+	public void unloadDescriptionsField() {
+		VerticalLayout newVerticalLayoutSkosFile = new VerticalLayout();
+		noThesaurusAvailableState(newVerticalLayoutSkosFile);
+	}
 
-    }
+	public void loadDescriptionFieldsWithFileValue() {
+		VerticalLayout newVerticalLayoutSkosFile = new VerticalLayout();
+		thesaurusConfigurationPage(newVerticalLayoutSkosFile);
+		newVerticalLayoutSkosFile.addComponent(skosForm);
+		tabSheet.replaceComponent(skosFormLayout, newVerticalLayoutSkosFile);
 
-    private BaseForm<FormBean> buildSkosForm() {
-        uploadSkosField = new BaseUploadField();
-        uploadSkosField.setUploadButtonCaption($("ThesaurusConfigurationView.upload"));
-        uploadSkosField.setMultiValue(false);
-        uploadSkosField.setCaption($("ThesaurusConfigurationView.file"));
-        uploadSkosField.setImmediate(true);
+		skosFormLayout = newVerticalLayoutSkosFile;
 
-        uploadSkosField.addValueChangeListener(new Property.ValueChangeListener() {
-            @Override
-            public void valueChange(Property.ValueChangeEvent event) {
-                TempFileUpload value = (TempFileUpload) uploadSkosField.getValue();
-                presenter.valueChangeInFileSelector(value);
-            }
-        });
+	}
 
-        uploadSkosField.addValidator(new Validator() {
-            @Override
-            public void validate(Object value) throws InvalidValueException {
-                // there to not get a NullPointerException
-            }
-        });
-        BaseForm<FormBean> baseForm = new BaseForm<FormBean>(formBean, this, uploadSkosField) {
-            @Override
-            protected void saveButtonClick(FormBean viewObject) throws ValidationException {
-               presenter.thesaurusFileUploaded((TempFileUpload) uploadSkosField.getValue());
-            }
+	private BaseForm<FormBean> buildSkosForm() {
+		uploadSkosField = new BaseUploadField();
+		uploadSkosField.setUploadButtonCaption($("ThesaurusConfigurationView.upload"));
+		uploadSkosField.setMultiValue(false);
+		uploadSkosField.setCaption($("ThesaurusConfigurationView.file"));
+		uploadSkosField.setImmediate(true);
 
-            @Override
-            protected void cancelButtonClick(FormBean viewObject) {
-                navigateTo().searchConfiguration();
-            }
-        };
-        baseForm.setSizeFull();
+		uploadSkosField.addValueChangeListener(new Property.ValueChangeListener() {
+			@Override
+			public void valueChange(Property.ValueChangeEvent event) {
+				TempFileUpload value = (TempFileUpload) uploadSkosField.getValue();
+				presenter.valueChangeInFileSelector(value);
+			}
+		});
 
-        return baseForm;
-    }
-    
-    private BaseForm<FormBean> buildRejectedTermsForm() {
-        rejectedTermsField = new BaseTextArea();
-        rejectedTermsField.setCaption($("ThesaurusConfigurationView.rejectedTerms"));
-        rejectedTermsField.setWidth("100%");
-        rejectedTermsField.setHeight("300px");
-        
-    	BaseForm<FormBean> rejectedTermsForm = new BaseForm<FormBean>(formBean, this, rejectedTermsField) {
+		uploadSkosField.addValidator(new Validator() {
+			@Override
+			public void validate(Object value) throws InvalidValueException {
+				// there to not get a NullPointerException
+			}
+		});
+		BaseForm<FormBean> baseForm = new BaseForm<FormBean>(formBean, this, uploadSkosField) {
 			@Override
 			protected void saveButtonClick(FormBean viewObject) throws ValidationException {
-                try {
-                    presenter.saveRejectedTermsButtonClicked(rejectedTermsField.getValue());
-                } catch (RecordServicesException e) {
-                    showError(e);
-                    e.printStackTrace();
-                }
+				presenter.thesaurusFileUploaded((TempFileUpload) uploadSkosField.getValue());
 			}
 
 			@Override
 			protected void cancelButtonClick(FormBean viewObject) {
-                rejectedTermsField.setValue(presenter.getRejectedTerms());
+				navigateTo().searchConfiguration();
 			}
-    	};
+		};
+		baseForm.setSizeFull();
 
-        rejectedTermsField.setValue(presenter.getRejectedTerms());
-    	rejectedTermsForm.setSizeFull();
-    	return rejectedTermsForm;
-    } 
+		return baseForm;
+	}
 
-    public void showError(Exception exeption) {
-        this.showErrorMessage($("ThesaurusConfigurationView.saveUnexpectedError"));
-    }
+	private BaseForm<FormBean> buildRejectedTermsForm() {
+		rejectedTermsField = new BaseTextArea();
+		rejectedTermsField.setCaption($("ThesaurusConfigurationView.rejectedTerms"));
+		rejectedTermsField.setWidth("100%");
+		rejectedTermsField.setHeight("300px");
+
+		BaseForm<FormBean> rejectedTermsForm = new BaseForm<FormBean>(formBean, this, rejectedTermsField) {
+			@Override
+			protected void saveButtonClick(FormBean viewObject) throws ValidationException {
+				try {
+					presenter.saveRejectedTermsButtonClicked(rejectedTermsField.getValue());
+				} catch (RecordServicesException e) {
+					showError(e);
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			protected void cancelButtonClick(FormBean viewObject) {
+				rejectedTermsField.setValue(presenter.getRejectedTerms());
+			}
+		};
+
+		rejectedTermsField.setValue(presenter.getRejectedTerms());
+		rejectedTermsForm.setSizeFull();
+		return rejectedTermsForm;
+	}
+
+	public void showError(Exception exeption) {
+		this.showErrorMessage($("ThesaurusConfigurationView.saveUnexpectedError"));
+	}
 
     @Override
     public void removeAllTheSelectedFile() {
         uploadSkosField.setValue(null);
     }
 
-    public class FormBean {
-    	
-        private TempFileUpload file;
-        
-        private String rejectedTerms;
+	public class FormBean {
 
-        public TempFileUpload getFile() {
-            return file;
-        }
+		private TempFileUpload file;
 
-        public void setFile(TempFileUpload file) {
-            this.file = file;
-        }
+		private String rejectedTerms;
+
+		public TempFileUpload getFile() {
+			return file;
+		}
+
+		public void setFile(TempFileUpload file) {
+			this.file = file;
+		}
 
 		public String getRejectedTerms() {
 			return rejectedTerms;
@@ -347,6 +345,6 @@ public class ThesaurusConfigurationViewImpl extends BaseViewImpl implements Thes
 			this.rejectedTerms = rejectedTerms;
 		}
 
-    }
+	}
 
 }

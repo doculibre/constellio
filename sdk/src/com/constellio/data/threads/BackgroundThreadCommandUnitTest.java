@@ -1,5 +1,20 @@
 package com.constellio.data.threads;
 
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.Duration;
+import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doNothing;
@@ -9,22 +24,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.joda.time.Duration;
-import org.joda.time.LocalDateTime;
-import org.joda.time.LocalTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-
-import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.data.dao.services.leaderElection.StandaloneLeaderElectionManager;
-import com.constellio.sdk.tests.ConstellioTest;
 
 public class BackgroundThreadCommandUnitTest extends ConstellioTest {
 

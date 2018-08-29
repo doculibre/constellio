@@ -1,15 +1,14 @@
 package com.constellio.app.ui.entities;
 
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+import org.joda.time.LocalDateTime;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.joda.time.LocalDateTime;
-
-import com.constellio.model.entities.security.global.UserCredentialStatus;
 
 @SuppressWarnings("serial")
 public class UserCredentialVO implements Serializable {
@@ -54,9 +53,11 @@ public class UserCredentialVO implements Serializable {
 		this.status = UserCredentialStatus.ACTIVE;
 	}
 
-	public UserCredentialVO(String username, String firstName, String lastName, String email, String jobTitle, String phone, String fax, String address, String personalEmails,
+	public UserCredentialVO(String username, String firstName, String lastName, String email, String jobTitle,
+							String phone, String fax, String address, String personalEmails,
 							String serviceKey, boolean systemAdmin, List<String> globalGroups, Set<String> collections,
-							Map<String, LocalDateTime> tokens, String password, String confirmPassword, UserCredentialStatus status) {
+							Map<String, LocalDateTime> tokens, String password, String confirmPassword,
+							UserCredentialStatus status) {
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;

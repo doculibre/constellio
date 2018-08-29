@@ -1,23 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
-import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -28,6 +10,7 @@ import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -41,10 +24,28 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
+import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Constelio on 2016-11-04.
@@ -162,8 +163,12 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 			}
 		});
 
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "justeadmin");
+
+
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
-		Taxonomy hiddenInHomePage = Taxonomy.createHiddenInHomePage("justeadmin", "justeadmin", zeCollection,
+		Taxonomy hiddenInHomePage = Taxonomy.createHiddenInHomePage("justeadmin", labelTitle, zeCollection,
 				"justeadmin").withUserIds(asList(rmRecords.getAdmin().getId()));
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(hiddenInHomePage, metadataSchemasManager);
 
@@ -235,6 +240,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 		presenter.batchEditRequested("folder_default_description", "new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException", Folder.SCHEMA_TYPE);
 		waitForBatchProcess();
 		assertThat(rmRecords.getFolder_A01().getDescription()).isEqualTo("new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException");
+		assertThat(rmRecords.getFolder_A02().getDescription()).isNull();
 		assertThat(searchServices.getResultsCount(
 				LogicalSearchQueryOperators.fromAllSchemasIn(zeCollection).where(Schemas.DESCRIPTION_TEXT).isEqualTo("new description for givenBatchProcessRequestedWithAccentThenProcessWithoutException"))
 		).isEqualTo(1);

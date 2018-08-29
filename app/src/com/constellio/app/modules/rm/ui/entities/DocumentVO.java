@@ -1,23 +1,23 @@
 package com.constellio.app.modules.rm.ui.entities;
 
+import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO;
+
+import java.util.List;
+
 import static com.constellio.app.modules.rm.wrappers.Document.CONTENT;
 import static com.constellio.app.modules.rm.wrappers.Document.DESCRIPTION;
 import static com.constellio.app.modules.rm.wrappers.Document.FOLDER;
 import static com.constellio.app.modules.rm.wrappers.Document.KEYWORDS;
 import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 
-import java.util.List;
-
-import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
-
 public class DocumentVO extends RecordVO {
 
 	public DocumentVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
 		super(id, metadataValues, viewMode);
 	}
-	
+
 	public DocumentVO(RecordVO recordVO) {
 		super(recordVO.getId(), recordVO.getMetadataValues(), recordVO.getViewMode());
 	}

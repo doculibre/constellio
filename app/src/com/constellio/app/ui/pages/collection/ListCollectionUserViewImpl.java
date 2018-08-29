@@ -1,19 +1,5 @@
 package com.constellio.app.ui.pages.collection;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-import java.util.Locale;
-
-import com.constellio.app.ui.framework.components.TabWithTable;
-import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.vaadin.data.Item;
-import com.vaadin.data.Property;
-import com.vaadin.data.util.ObjectProperty;
-import com.vaadin.ui.*;
-import org.apache.commons.lang.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RoleVO;
@@ -23,6 +9,7 @@ import com.constellio.app.ui.framework.buttons.AuthorizationsButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.RolesButton;
+import com.constellio.app.ui.framework.components.TabWithTable;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -39,9 +26,24 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.converter.Converter;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 // After rename CollectionSecurityManagementViewImpl
 public class ListCollectionUserViewImpl extends BaseViewImpl implements ListCollectionUserView {
@@ -224,7 +226,7 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 	private Table buildGroupsTable(boolean showInactiveGroups) {
 		GlobalGroupVODataProvider globalGroupVODataProvider = presenter.getGlobalGroupVODataProvider();
 		List<GlobalGroupVO> globalGroupsVO;
-		if(!showInactiveGroups) {
+		if (!showInactiveGroups) {
 			globalGroupsVO = globalGroupVODataProvider.listActiveGlobalGroupVOsWithUsersInCollection(getCollection());
 		} else {
 			globalGroupsVO = globalGroupVODataProvider.listInactiveGlobalGroupVOsWithUsersInCollection(getCollection());
@@ -371,13 +373,13 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 	@Override
 	public void refreshTable() {
 		Table newUsersTable = buildUserTable();
-//		Table newGlobalGroupsTable = buildGroupsTable();
+		//		Table newGlobalGroupsTable = buildGroupsTable();
 		layout.replaceComponent(usersTable, newUsersTable);
-//		layout.replaceComponent(groupsTable, newGlobalGroupsTable);
+		//		layout.replaceComponent(groupsTable, newGlobalGroupsTable);
 		activeGroupsTab.refreshTable();
 		inactiveGroupsTab.refreshTable();
 		usersTable = newUsersTable;
-//		groupsTable = newGlobalGroupsTable;
+		//		groupsTable = newGlobalGroupsTable;
 
 		cleanUserAndRoles();
 		cleanGroupsAndRoles();
@@ -398,13 +400,15 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 			super(suggestInputDataProvider);
 			setItemConverter(new Converter<String, UserCredentialVO>() {
 				@Override
-				public UserCredentialVO convertToModel(String value, Class<? extends UserCredentialVO> targetType, Locale locale)
+				public UserCredentialVO convertToModel(String value, Class<? extends UserCredentialVO> targetType,
+													   Locale locale)
 						throws ConversionException {
 					return null;
 				}
 
 				@Override
-				public String convertToPresentation(UserCredentialVO value, Class<? extends String> targetType, Locale locale)
+				public String convertToPresentation(UserCredentialVO value, Class<? extends String> targetType,
+													Locale locale)
 						throws ConversionException {
 					String title = value.getFirstName() + " " + value.getLastName();
 					if (StringUtils.isBlank(title)) {
@@ -436,13 +440,15 @@ public class ListCollectionUserViewImpl extends BaseViewImpl implements ListColl
 			super(suggestInputDataProvider);
 			setItemConverter(new Converter<String, GlobalGroupVO>() {
 				@Override
-				public GlobalGroupVO convertToModel(String value, Class<? extends GlobalGroupVO> targetType, Locale locale)
+				public GlobalGroupVO convertToModel(String value, Class<? extends GlobalGroupVO> targetType,
+													Locale locale)
 						throws ConversionException {
 					return null;
 				}
 
 				@Override
-				public String convertToPresentation(GlobalGroupVO value, Class<? extends String> targetType, Locale locale)
+				public String convertToPresentation(GlobalGroupVO value, Class<? extends String> targetType,
+													Locale locale)
 						throws ConversionException {
 					return value.getName();
 				}

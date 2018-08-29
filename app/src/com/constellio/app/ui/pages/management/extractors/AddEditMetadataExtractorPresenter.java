@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.management.extractors;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.entities.MetadataExtractorVO;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -34,6 +24,15 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
 public class AddEditMetadataExtractorPresenter extends BasePresenter<AddEditMetadataExtractorView> {
 
@@ -118,6 +117,7 @@ public class AddEditMetadataExtractorPresenter extends BasePresenter<AddEditMeta
 				metadataBuilder.getPopulateConfigsBuilder().setStyles(metadataExtractorVO.getStyles());
 				metadataBuilder.getPopulateConfigsBuilder().setProperties(metadataExtractorVO.getProperties());
 				metadataBuilder.getPopulateConfigsBuilder().setRegexes(regexConfigs);
+				metadataBuilder.getPopulateConfigsBuilder().setAddOnly(metadataExtractorVO.isAddOnly());
 			}
 		});
 		view.navigate().to().listMetadataExtractors();

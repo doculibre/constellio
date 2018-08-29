@@ -1,40 +1,67 @@
 package com.constellio.app.ui.pages.management.valueDomains;
 
+import com.constellio.app.modules.rm.services.ValueListServices;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
+import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
+import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedFactories;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.anyMap;
+import static org.mockito.Mockito.anyObject;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.app.modules.rm.services.ValueListServices;
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
-import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.MockedFactories;
-
 public class ListValueDomainPresenterTest extends ConstellioTest {
 
 	@Mock ListValueDomainViewImpl view;
 	@Mock CoreViews navigator;
 	@Mock ValueListServices valueListServices;
-	@Mock MetadataSchemaType valueDomainType1;
+	@Mock MetadataSchemaType metadataSchemaType;
 	@Mock MetadataSchemaTypeToVOBuilder metadataSchemaTypeToVOBuilder;
 	@Mock MetadataSchemaTypeVO metadataSchemaTypeVO;
+	@Mock MetadataSchemasManager metadataSchemasManager;
+	@Mock MetadataSchemaTypes metadataSchemaTypes;
+	@Mock UniqueIdGenerator uniqueIdGenerator;
+
+	@Mock CollectionsListManager collectionsListManager;
+	@Mock MetadataSchemaTypesBuilder metadataSchemaTypesBuilder;
+	@Mock MetadataSchemaTypeBuilder metadataSchemaTypeBuilder;
+	@Mock MetadataSchemaBuilder metadataSchemaBuilder;
+	@Mock MetadataBuilder metadataBuilder;
+
 	ListValueDomainPresenter presenter;
-	String newValueDomainTitle;
+	String newValueFrenchDomainTitle;
+	String newValueEnglishDomainTitle;
 	MockedFactories mockedFactories = new MockedFactories();
+	Map<Language, String> mapLangueTitle;
 
 	@Before
 	public void setUp()
@@ -42,10 +69,28 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 
 		when(view.getConstellioFactories()).thenReturn(mockedFactories.getConstellioFactories());
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.dakotaInCollection(zeCollection));
+
 		when(view.navigateTo()).thenReturn(navigator);
 
-		newValueDomainTitle = "new value domain";
-		when(valueDomainType1.getLabel(Language.French)).thenReturn(newValueDomainTitle);
+		when(uniqueIdGenerator.next()).thenReturn("1").thenReturn("2");
+
+		List<String> languages = new ArrayList<>();
+		languages.add("en");
+		languages.add("fr");
+
+		when(mockedFactories.getModelLayerFactory().getCollectionsListManager()).thenReturn(collectionsListManager);
+		when(collectionsListManager.getCollectionLanguages(anyString())).thenReturn(languages);
+
+
+		newValueFrenchDomainTitle = "domaine de valeur";
+		newValueEnglishDomainTitle = "new value domain";
+
+		mapLangueTitle = new HashMap<>();
+
+		mapLangueTitle.put(Language.French, newValueFrenchDomainTitle);
+		mapLangueTitle.put(Language.English, newValueEnglishDomainTitle);
+
+		when(metadataSchemaType.getLabel()).thenReturn(mapLangueTitle);
 
 		presenter = spy(new ListValueDomainPresenter(view));
 
@@ -57,9 +102,10 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 
 		doReturn(valueListServices).when(presenter).valueListServices();
 
-		presenter.valueDomainCreationRequested(newValueDomainTitle);
 
-		verify(valueListServices).createValueDomain(newValueDomainTitle);
+		presenter.valueDomainCreationRequested(mapLangueTitle, true);
+
+		verify(valueListServices).createValueDomain(mapLangueTitle, true);
 		verify(view).refreshTable();
 	}
 
@@ -68,15 +114,15 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 			throws Exception {
 
 		List<MetadataSchemaType> existentMetadataSchemaTypes = new ArrayList<>();
-		existentMetadataSchemaTypes.add(valueDomainType1);
+		existentMetadataSchemaTypes.add(metadataSchemaType);
 		doReturn(valueListServices).when(presenter).valueListServices();
 		doReturn(existentMetadataSchemaTypes).when(valueListServices).getValueDomainTypes();
 		when(presenter.newMetadataSchemaTypeToVOBuilder()).thenReturn(metadataSchemaTypeToVOBuilder);
-		when(metadataSchemaTypeToVOBuilder.build(valueDomainType1)).thenReturn(metadataSchemaTypeVO);
+		when(metadataSchemaTypeToVOBuilder.build(metadataSchemaType)).thenReturn(metadataSchemaTypeVO);
 
-		presenter.valueDomainCreationRequested(newValueDomainTitle);
+		presenter.valueDomainCreationRequested(mapLangueTitle, true);
 
-		verify(valueListServices, never()).createTaxonomy(newValueDomainTitle);
+		verify(valueListServices, never()).createTaxonomy(mapLangueTitle, true);
 		verify(view, never()).refreshTable();
 	}
 
@@ -84,10 +130,39 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 	public void givenEmptyTitleWhenTaxonomyCreationRequestedThenDoNotCreateIt()
 			throws Exception {
 
-		presenter.valueDomainCreationRequested(" ");
+		when(mockedFactories.getModelLayerFactory().getMetadataSchemasManager()).thenReturn(metadataSchemasManager);
+		when(metadataSchemasManager.getSchemaTypes(anyString())).thenReturn(metadataSchemaTypes);
+		when(metadataSchemasManager.saveUpdateSchemaTypes((MetadataSchemaTypesBuilder) anyObject())).thenReturn(metadataSchemaTypes);
+		when(mockedFactories.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(anyString()).getSchemaTypes()).thenReturn(new ArrayList<MetadataSchemaType>());
+		when(mockedFactories.getModelLayerFactory().getDataLayerFactory().getUniqueIdGenerator()).thenReturn(uniqueIdGenerator);
 
-		verify(valueListServices, never()).createTaxonomy(newValueDomainTitle);
-		verify(view, never()).refreshTable();
+		when(metadataSchemaTypesBuilder.createNewSchemaType(anyString())).thenReturn(metadataSchemaTypeBuilder);
+		when(metadataSchemaTypeBuilder.getDefaultSchema()).thenReturn(metadataSchemaBuilder);
+
+		when(metadataSchemaBuilder.getMetadata(anyString())).thenReturn(metadataBuilder);
+		when(metadataSchemaTypeBuilder.getDefaultSchema().setLabels(anyMap())).thenReturn(metadataSchemaBuilder);
+		when(metadataSchemaBuilder.getMetadata(anyString())).thenReturn(metadataBuilder);
+		when(metadataBuilder.setUniqueValue(anyBoolean())).thenReturn(metadataBuilder);
+		when(metadataBuilder.setDefaultRequirement(anyBoolean())).thenReturn(metadataBuilder);
+		when(metadataBuilder.setMultiLingual(anyBoolean())).thenReturn(metadataBuilder);
+		when(metadataSchemaBuilder.create(anyString())).thenReturn(metadataBuilder);
+		when(metadataBuilder.setType((MetadataValueType) anyObject())).thenReturn(metadataBuilder);
+		when(metadataBuilder.setSearchable(anyBoolean())).thenReturn(metadataBuilder);
+		when(metadataBuilder.setUndeletable(anyBoolean())).thenReturn(metadataBuilder);
+		when(metadataBuilder.setSchemaAutocomplete(anyBoolean())).thenReturn(metadataBuilder);
+		when(metadataBuilder.setMultivalue(anyBoolean())).thenReturn(metadataBuilder);
+
+		List languageList = new ArrayList();
+		languageList.add(Language.French);
+		languageList.add(Language.English);
+
+		when(metadataSchemasManager.modify(anyString())).thenReturn(metadataSchemaTypesBuilder);
+		when(metadataSchemaTypesBuilder.getLanguages()).thenReturn(languageList);
+
+		presenter.valueDomainCreationRequested(new HashMap<Language, String>(), false);
+
+		verify(valueListServices, never()).createTaxonomy(mapLangueTitle, true);
+		verify(view, Mockito.times(1)).refreshTable();
 	}
 
 	@Test
@@ -95,15 +170,18 @@ public class ListValueDomainPresenterTest extends ConstellioTest {
 			throws Exception {
 
 		List<MetadataSchemaType> existentMetadataSchemaTypes = new ArrayList<>();
-		existentMetadataSchemaTypes.add(valueDomainType1);
+		existentMetadataSchemaTypes.add(metadataSchemaType);
 		doReturn(valueListServices).when(presenter).valueListServices();
 		doReturn(existentMetadataSchemaTypes).when(valueListServices).getValueDomainTypes();
 		when(presenter.newMetadataSchemaTypeToVOBuilder()).thenReturn(metadataSchemaTypeToVOBuilder);
-		when(metadataSchemaTypeToVOBuilder.build(valueDomainType1)).thenReturn(metadataSchemaTypeVO);
+		when(metadataSchemaTypeToVOBuilder.build(metadataSchemaType)).thenReturn(metadataSchemaTypeVO);
 
-		presenter.valueDomainCreationRequested(" " + newValueDomainTitle + " ");
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "taxo");
 
-		verify(valueListServices, never()).createTaxonomy(newValueDomainTitle);
+		presenter.valueDomainCreationRequested(mapLangueTitle, true);
+
+		verify(valueListServices, never()).createTaxonomy(mapLangueTitle, true);
 		verify(view, never()).refreshTable();
 	}
 

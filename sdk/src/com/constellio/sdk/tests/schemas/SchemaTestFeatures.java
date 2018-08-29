@@ -1,15 +1,5 @@
 package com.constellio.sdk.tests.schemas;
 
-import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.model.entities.records.Record;
@@ -22,6 +12,15 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.FactoriesTestFeatures;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class SchemaTestFeatures {
 

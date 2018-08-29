@@ -27,8 +27,8 @@ public class DecommissioningListReportModel {
 	}
 
 	public String getTitle() {
-//		String title = "DecommissioningListReport.Title";
-//		return $(title);
+		//		String title = "DecommissioningListReport.Title";
+		//		return $(title);
 		return getDecommissioningListType();
 	}
 
@@ -60,7 +60,8 @@ public class DecommissioningListReportModel {
 		return decommissioningListAdministrativeUnitCodeAndTitle;
 	}
 
-	public void setDecommissioningListAdministrativeUnitCodeAndTitle(String decommissioningListAdministrativeUnitCodeAndTitle) {
+	public void setDecommissioningListAdministrativeUnitCodeAndTitle(
+			String decommissioningListAdministrativeUnitCodeAndTitle) {
 		this.decommissioningListAdministrativeUnitCodeAndTitle = decommissioningListAdministrativeUnitCodeAndTitle;
 	}
 
@@ -98,7 +99,8 @@ public class DecommissioningListReportModel {
 
 		String mainCopyRule;
 
-		public DecommissioningListReportModel_Folder(String legacyId, String id, String title, String retentionRule, String category, String containerRecord) {
+		public DecommissioningListReportModel_Folder(String legacyId, String id, String title, String retentionRule,
+													 String category, String containerRecord) {
 			this.legacyId = legacyId;
 			this.id = id;
 			this.title = title;
@@ -139,9 +141,13 @@ public class DecommissioningListReportModel {
 			this.category = category;
 		}
 
-		public String getContainerRecord(){ return containerRecord; }
+		public String getContainerRecord() {
+			return containerRecord;
+		}
 
-        public void setContainerRecord(String containerRecord){ this.containerRecord = containerRecord; }
+		public void setContainerRecord(String containerRecord) {
+			this.containerRecord = containerRecord;
+		}
 
 		public String getLegacyId() {
 			return legacyId;

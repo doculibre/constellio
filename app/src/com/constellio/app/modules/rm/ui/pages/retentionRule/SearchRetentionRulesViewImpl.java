@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
@@ -27,6 +23,9 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchRetentionRulesViewImpl extends BaseViewImpl implements SearchRetentionRulesView {
 	public static final String STYLE_NAME = "search-retention-rules";
@@ -88,8 +87,8 @@ public class SearchRetentionRulesViewImpl extends BaseViewImpl implements Search
 	}
 
 	private void setDefaultOrderBy(String localCode, RecordVODataProvider dataProvider, Table table) {
-		Object[] properties = { dataProvider.getSchema().getMetadata(localCode) };
-		boolean[] ordering = { true };
+		Object[] properties = {dataProvider.getSchema().getMetadata(localCode)};
+		boolean[] ordering = {true};
 		table.sort(properties, ordering);
 	}
 

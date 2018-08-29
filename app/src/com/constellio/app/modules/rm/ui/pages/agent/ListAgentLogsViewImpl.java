@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.agent;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.InputStream;
-import java.util.List;
-
 import com.constellio.app.modules.rm.ui.entities.AgentLogVO;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
@@ -27,24 +22,29 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.io.InputStream;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class ListAgentLogsViewImpl extends BaseViewImpl implements ListAgentLogsView {
-	
+
 	private static final String FILENAME_PROPERTY = "filename";
-	
+
 	private String selectedUserId;
-	
+
 	private VerticalLayout mainLayout;
-	
+
 	private HorizontalLayout userFieldAndButtonLayout;
-	
+
 	private Label userLabel;
-	
+
 	private LookupRecordField userField;
-	
+
 	private Button showLogsButton;
-	
+
 	private Table agentLogsTable;
-	
+
 	private ListAgentLogsPresenter presenter;
 
 	public ListAgentLogsViewImpl() {
@@ -61,15 +61,15 @@ public class ListAgentLogsViewImpl extends BaseViewImpl implements ListAgentLogs
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
-		
+
 		userFieldAndButtonLayout = new HorizontalLayout();
 		userFieldAndButtonLayout.setSpacing(true);
-		
+
 		userLabel = new Label($("ListAgentLogsView.user"));
-		
+
 		userField = new LookupRecordField(User.SCHEMA_TYPE);
 		userField.setPropertyDataSource(new MethodProperty<String>(this, "selectedUserId"));
-		
+
 		showLogsButton = new Button($("ListAgentLogsView.showLogs"));
 		showLogsButton.addClickListener(new ClickListener() {
 			@Override
@@ -78,18 +78,18 @@ public class ListAgentLogsViewImpl extends BaseViewImpl implements ListAgentLogs
 			}
 		});
 		showLogsButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-		
+
 		agentLogsTable = new BaseTable(getClass().getName(), $("ListAgentLogsView.tableTitle"));
 		agentLogsTable.setWidth("100%");
 		agentLogsTable.addContainerProperty(FILENAME_PROPERTY, DownloadLink.class, null);
 		agentLogsTable.setColumnHeader(FILENAME_PROPERTY, $("ListAgentLogsView.filename"));
-		
+
 		mainLayout.addComponents(userFieldAndButtonLayout, agentLogsTable);
 		userFieldAndButtonLayout.addComponents(userLabel, userField, showLogsButton);
-		
+
 		mainLayout.setExpandRatio(agentLogsTable, 1);
 		userFieldAndButtonLayout.setExpandRatio(userField, 1);
-		
+
 		return mainLayout;
 	}
 
@@ -97,7 +97,7 @@ public class ListAgentLogsViewImpl extends BaseViewImpl implements ListAgentLogs
 	public String getSelectedUserId() {
 		return selectedUserId;
 	}
-	
+
 	public void setSelectedUserId(String selectedUserId) {
 		this.selectedUserId = selectedUserId;
 	}

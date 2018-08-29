@@ -1,8 +1,7 @@
 package com.constellio.sdk.saveStates;
 
-import org.junit.Before;
-
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
 
 public class PrepareOneCollectionSystemWithRMModuleAcceptTest extends ConstellioTest {
 

@@ -1,7 +1,14 @@
 package com.constellio.data.dao.services.cache.ignite;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
+import com.constellio.data.dao.services.cache.InsertionReason;
+import org.apache.commons.lang3.time.DateUtils;
+import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCache;
+import org.apache.ignite.IgniteDataStreamer;
 
+import javax.cache.Cache.Entry;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -13,16 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.cache.Cache.Entry;
-
-import org.apache.commons.lang3.time.DateUtils;
-import org.apache.ignite.Ignite;
-import org.apache.ignite.IgniteCache;
-import org.apache.ignite.IgniteDataStreamer;
-
-import com.constellio.data.dao.services.cache.ConstellioCache;
-import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
-import com.constellio.data.dao.services.cache.InsertionReason;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 
 public class ConstellioIgniteCache implements ConstellioCache {
 
@@ -43,11 +41,13 @@ public class ConstellioIgniteCache implements ConstellioCache {
 	private volatile Date lastSynchronizationDate = new Date();
 
 	private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
-    private final Lock r = rwl.readLock();
-    private final Lock w = rwl.writeLock();
+	private final Lock r = rwl.readLock();
+	private final Lock w = rwl.writeLock();
 
-private ConstellioCacheOptions options;	public ConstellioIgniteCache(String name, IgniteCache<String, Object> igniteCache, Ignite igniteClient,
-			ConstellioCacheOptions options) {
+	private ConstellioCacheOptions options;
+
+	public ConstellioIgniteCache(String name, IgniteCache<String, Object> igniteCache, Ignite igniteClient,
+								 ConstellioCacheOptions options) {
 		this.name = name;
 		this.options = options;
 		this.igniteCache = igniteCache;
@@ -90,8 +90,8 @@ private ConstellioCacheOptions options;	public ConstellioIgniteCache(String name
 		Date expiryDate = DateUtils.addMinutes(lastSynchronizationDate, 5);
 		Date now = new Date();
 		if (now.after(expiryDate)) {
-	        writeLock();
-	        try {
+			writeLock();
+			try {
 				localCache.clear();
 				Iterator<Entry<String, Object>> remoteIterator = igniteCache.iterator();
 				while (remoteIterator.hasNext()) {
@@ -99,9 +99,9 @@ private ConstellioCacheOptions options;	public ConstellioIgniteCache(String name
 					put(remoteEntry.getKey(), (T) remoteEntry.getValue(), true);
 				}
 				lastSynchronizationDate = new Date();
-	        } finally {
-	            writeUnlock();
-	        }
+			} finally {
+				writeUnlock();
+			}
 		}
 	}
 

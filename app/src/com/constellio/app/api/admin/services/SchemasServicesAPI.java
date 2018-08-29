@@ -1,21 +1,5 @@
 package com.constellio.app.api.admin.services;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.client.entities.MetadataResource;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.model.entities.Language;
@@ -38,6 +22,20 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRunti
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Path("schemas")
 @Consumes("application/xml")
@@ -59,10 +57,11 @@ public class SchemasServicesAPI {
 	}
 
 	@GET
-	@Path("getSchemas")
+	@Path("getCustomSchemas")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<String> getSchemas(@QueryParam("collection") String collection, @QueryParam("schemaType") String schemaType) {
-		logServiceCall("getSchemas", collection, schemaType);
+	public List<String> getSchemas(@QueryParam("collection") String collection,
+								   @QueryParam("schemaType") String schemaType) {
+		logServiceCall("getCustomSchemas", collection, schemaType);
 		List<String> schemas = new ArrayList<>();
 		for (MetadataSchema schema : types(collection).getSchemaType(schemaType).getAllSchemas()) {
 			schemas.add(schema.getCode());
@@ -74,7 +73,7 @@ public class SchemasServicesAPI {
 	@Path("getSchemaMetadataCodes")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> getSchemaMetadataCodes(@QueryParam("collection") String collection,
-			@QueryParam("schemaCode") String schemaCode) {
+											   @QueryParam("schemaCode") String schemaCode) {
 		logServiceCall("getSchemaMetadataCodes", collection, schemaCode);
 		List<String> metadataCodes = new ArrayList<>();
 		for (Metadata metadata : types(collection).getSchema(schemaCode).getMetadatas()) {
@@ -87,7 +86,7 @@ public class SchemasServicesAPI {
 	@Path("getSchemaValidators")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> getSchemaValidators(@QueryParam("collection") String collection,
-			@QueryParam("schemaCode") String schemaCode) {
+											@QueryParam("schemaCode") String schemaCode) {
 		logServiceCall("getSchemaValidators", collection, schemaCode);
 		List<String> validators = new ArrayList<>();
 		for (RecordValidator validator : types(collection).getSchema(schemaCode).getValidators()) {
@@ -130,7 +129,7 @@ public class SchemasServicesAPI {
 	@Path("getTaxonomySchemaTypes")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<String> getTaxonomySchemaTypes(@QueryParam("collection") String collection,
-			@QueryParam("taxonomyCode") String taxonomyCode) {
+											   @QueryParam("taxonomyCode") String taxonomyCode) {
 		logServiceCall("getTaxonomySchemaTypes", collection, taxonomyCode);
 		Taxonomy taxonomy = taxonomyManager().getEnabledTaxonomyWithCode(collection, taxonomyCode);
 		return taxonomy.getSchemaTypes();
@@ -141,7 +140,7 @@ public class SchemasServicesAPI {
 	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String createSchemaType(@QueryParam("collection") String collection,
-			@QueryParam("schemaTypeCode") String schemaTypeCode) {
+								   @QueryParam("schemaTypeCode") String schemaTypeCode) {
 		logServiceCall("createSchemaType", collection, schemaTypeCode);
 		MetadataSchemaTypesBuilder typesBuilder = typesBuilder(collection);
 		typesBuilder.createNewSchemaType(schemaTypeCode);
@@ -153,7 +152,8 @@ public class SchemasServicesAPI {
 	@Path("createCustomSchema")
 	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces(MediaType.TEXT_PLAIN)
-	public String createCustomSchema(@QueryParam("collection") String collection, @QueryParam("schemaCode") String schemaCode) {
+	public String createCustomSchema(@QueryParam("collection") String collection,
+									 @QueryParam("schemaCode") String schemaCode) {
 		logServiceCall("createCustomSchema", collection, schemaCode);
 		String schemaTypeCode = schemaUtils().getSchemaTypeCode(schemaCode);
 		String schemaLocalCode = schemaUtils().getSchemaLocalCode(schemaCode);
@@ -168,8 +168,9 @@ public class SchemasServicesAPI {
 	@Path("addSchemaValidator")
 	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces(MediaType.TEXT_PLAIN)
-	public String addSchemaValidator(@QueryParam("collection") String collection, @QueryParam("schemaCode") String schemaCode,
-			@QueryParam("schemaValidator") String schemaValidator) {
+	public String addSchemaValidator(@QueryParam("collection") String collection,
+									 @QueryParam("schemaCode") String schemaCode,
+									 @QueryParam("schemaValidator") String schemaValidator) {
 		logServiceCall("getSchemaTypes", collection, schemaCode);
 		MetadataSchemaTypesBuilder typesBuilder = typesBuilder(collection);
 		typesBuilder.getSchema(schemaCode).defineValidators().add(schemaValidator);
@@ -181,8 +182,9 @@ public class SchemasServicesAPI {
 	@Path("removeSchemaValidator")
 	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces(MediaType.TEXT_PLAIN)
-	public String removeSchemaValidator(@QueryParam("collection") String collection, @QueryParam("schemaCode") String schemaCode,
-			@QueryParam("schemaValidator") String schemaValidator) {
+	public String removeSchemaValidator(@QueryParam("collection") String collection,
+										@QueryParam("schemaCode") String schemaCode,
+										@QueryParam("schemaValidator") String schemaValidator) {
 		logServiceCall("removeSchemaValidator", collection, schemaCode);
 		MetadataSchemaTypesBuilder typesBuilder = typesBuilder(collection);
 		typesBuilder.getSchema(schemaCode).defineValidators().remove(schemaValidator);
@@ -215,7 +217,7 @@ public class SchemasServicesAPI {
 	}
 
 	private void configureNewMetadata(MetadataBuilder metadata, MetadataResource metadataResource,
-			MetadataSchemaTypesBuilder typesBuilder) {
+									  MetadataSchemaTypesBuilder typesBuilder) {
 		configureExitentMetadata(metadata, metadataResource);
 
 		metadata.setType(notNull("type", MetadataValueType.valueOf(metadataResource.getType())));
@@ -267,7 +269,8 @@ public class SchemasServicesAPI {
 	@Path("disableMetadata")
 	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces(MediaType.TEXT_PLAIN)
-	public String disableMetadata(@QueryParam("collection") String collection, @QueryParam("metadataCode") String metadataCode) {
+	public String disableMetadata(@QueryParam("collection") String collection,
+								  @QueryParam("metadataCode") String metadataCode) {
 		logServiceCall("disableMetadata", collection, metadataCode);
 		MetadataSchemaTypesBuilder typesBuilder = typesBuilder(collection);
 		typesBuilder.getMetadata(metadataCode).setEnabled(false);
@@ -280,9 +283,12 @@ public class SchemasServicesAPI {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.TEXT_PLAIN)
 	public String createTaxonomy(@QueryParam("collection") String collection, @QueryParam("code") String code,
-			List<String> schemaTypes) {
+								 List<String> schemaTypes) {
 		logServiceCall("createTaxonomy", collection, code, schemaTypes);
-		Taxonomy taxonomy = Taxonomy.createPublic(code, code, collection, schemaTypes);
+
+		Map<Language, String> mapLang = new HashMap<>();
+		mapLang.put(Language.French, code);
+		Taxonomy taxonomy = Taxonomy.createPublic(code, mapLang, collection, schemaTypes);
 		taxonomyManager().addTaxonomy(taxonomy, metadataSchemasManager());
 
 		Map<String, String> queryParams = new HashMap<>();

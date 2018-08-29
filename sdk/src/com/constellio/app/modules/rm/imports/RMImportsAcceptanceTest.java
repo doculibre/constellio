@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.imports;
 
-import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -23,6 +18,10 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Test;
+
+import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMImportsAcceptanceTest extends ConstellioTest {
 
@@ -160,8 +159,8 @@ public class RMImportsAcceptanceTest extends ConstellioTest {
 	}
 
 	private void bulkImport(ImportDataProvider importDataProvider,
-			final BulkImportProgressionListener bulkImportProgressionListener,
-			final User user, BulkImportParams params)
+							final BulkImportProgressionListener bulkImportProgressionListener,
+							final User user, BulkImportParams params)
 			throws ValidationException {
 
 		params.setImportErrorsBehavior(CONTINUE_FOR_RECORD_OF_SAME_TYPE);

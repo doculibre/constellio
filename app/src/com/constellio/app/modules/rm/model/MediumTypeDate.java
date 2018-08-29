@@ -1,9 +1,8 @@
 package com.constellio.app.modules.rm.model;
 
-import org.joda.time.LocalDate;
-
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.schemas.ModifiableStructure;
+import org.joda.time.LocalDate;
 
 public class MediumTypeDate implements ModifiableStructure {
 

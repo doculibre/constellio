@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -22,8 +10,10 @@ import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSec
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent.SearchCriteriaPresenter;
+import com.constellio.app.ui.pages.search.SearchCriteriaPresenterUtils;
 import com.constellio.app.ui.pages.search.SearchPresenter;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.ConditionException;
@@ -37,7 +27,19 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 import com.vaadin.ui.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class AddExistingContainerPresenter extends SearchPresenter<AddExistingContainerView>
 		implements SearchCriteriaPresenter {
@@ -179,6 +181,12 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	}
 
 	@Override
+	public Map<String, String> getMetadataSchemasList(String schemaTypeCode) {
+		SearchCriteriaPresenterUtils searchCriteriaPresenterUtils = new SearchCriteriaPresenterUtils(ConstellioUI.getCurrentSessionContext());
+		return searchCriteriaPresenterUtils.getMetadataSchemasList(schemaTypeCode);
+	}
+
+	@Override
 	public MetadataVO getMetadataVO(String metadataCode) {
 		return super.getMetadataVO(metadataCode);
 	}
@@ -237,7 +245,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	private LogicalSearchCondition selectByDecommissioningListProperties() {
 		LogicalSearchCondition condition = null;
 		OngoingLogicalSearchCondition fromContainers = from(rmRecordServices().containerRecord.schemaType());
-		if(rmConfigs().isDecommissioningTypeRequiredInContainers()) {
+		if (rmConfigs().isDecommissioningTypeRequiredInContainers()) {
 			condition = fromContainers.where(rmRecordServices().containerRecord.decommissioningType()).isEqualTo(decommissioningType);
 		}
 
@@ -247,7 +255,7 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 			condition = fromContainers.where(rmRecordServices().containerRecord.administrativeUnits()).isContaining(asList(adminUnitId));
 		}
 
-		if(condition == null) {
+		if (condition == null) {
 			condition = fromContainers.returnAll();
 		}
 		return condition;

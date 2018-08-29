@@ -1,10 +1,5 @@
 package com.constellio.data.dao.services.transactionLog;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.util.Iterator;
-import java.util.List;
-
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
 import com.constellio.data.dao.services.transactionLog.reader1.ReaderLinesIteratorV1;
@@ -13,6 +8,11 @@ import com.constellio.data.dao.services.transactionLog.reader1.ReaderTransaction
 import com.constellio.data.dao.services.transactionLog.writer1.TransactionWriterV1;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.util.Iterator;
+import java.util.List;
 
 public class TransactionLogReadWriteServices {
 
@@ -23,7 +23,7 @@ public class TransactionLogReadWriteServices {
 	private DataLayerConfiguration configuration;
 
 	public TransactionLogReadWriteServices(IOServices ioServices, DataLayerConfiguration configuration,
-			DataLayerSystemExtensions extensions) {
+										   DataLayerSystemExtensions extensions) {
 		this.ioServices = ioServices;
 		this.configuration = configuration;
 		this.extensions = extensions;

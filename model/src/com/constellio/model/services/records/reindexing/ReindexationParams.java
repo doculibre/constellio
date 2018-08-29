@@ -1,9 +1,9 @@
 package com.constellio.model.services.records.reindexing;
 
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+
 import java.util.Collections;
 import java.util.List;
-
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 
 public class ReindexationParams {
 
@@ -47,7 +47,8 @@ public class ReindexationParams {
 		return this;
 	}
 
-	public static ReindexationParams recalculateAndRewriteSchemaTypesInBackground(List<MetadataSchemaType> schemaTypes) {
+	public static ReindexationParams recalculateAndRewriteSchemaTypesInBackground(
+			List<MetadataSchemaType> schemaTypes) {
 		ReindexationParams params = new ReindexationParams(ReindexationMode.RECALCULATE_AND_REWRITE);
 		params.setBackground(true);
 		params.setReindexedSchemaTypes(schemaTypes);

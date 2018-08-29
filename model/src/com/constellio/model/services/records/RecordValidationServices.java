@@ -1,10 +1,5 @@
 package com.constellio.model.services.records;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.ConfigProvider;
@@ -31,6 +26,11 @@ import com.constellio.model.services.schemas.validators.ValueRequirementValidato
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.AuthorizationsServices;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 public class RecordValidationServices {
 
 	private final MetadataSchemasManager schemasManager;
@@ -40,15 +40,15 @@ public class RecordValidationServices {
 	private SearchServices searchService;
 
 	public RecordValidationServices(ConfigProvider configProvider, RecordProvider recordProvider,
-			MetadataSchemasManager schemasManager,
-			SearchServices searchService) {
+									MetadataSchemasManager schemasManager,
+									SearchServices searchService) {
 		this(configProvider, recordProvider, schemasManager, searchService, null);
 	}
 
 	public RecordValidationServices(ConfigProvider configProvider, RecordProvider recordProvider,
-			MetadataSchemasManager schemasManager,
-			SearchServices searchService,
-			AuthorizationsServices authorizationsServices) {
+									MetadataSchemasManager schemasManager,
+									SearchServices searchService,
+									AuthorizationsServices authorizationsServices) {
 		this.configProvider = configProvider;
 		this.recordProvider = recordProvider;
 		this.schemasManager = schemasManager;
@@ -64,7 +64,8 @@ public class RecordValidationServices {
 		}
 	}
 
-	public void validateMetadatas(Record record, RecordProvider recordProvider, Transaction transaction, List<Metadata> metadatas)
+	public void validateMetadatas(Record record, RecordProvider recordProvider, Transaction transaction,
+								  List<Metadata> metadatas)
 			throws RecordServicesException.ValidationException {
 		ValidationErrors validationErrors = validateMetadatasReturningErrors(record, recordProvider, transaction, metadatas);
 		if (!validationErrors.getValidationErrors().isEmpty()) {
@@ -82,7 +83,7 @@ public class RecordValidationServices {
 	}
 
 	public void validateCyclicReferences(Record record, RecordProvider recordProvider, MetadataSchemaTypes schemaTypes,
-			List<Metadata> metadatas)
+										 List<Metadata> metadatas)
 			throws RecordServicesException.ValidationException {
 		ValidationErrors validationErrors = new ValidationErrors();
 		new CyclicHierarchyValidator(schemaTypes, metadatas, recordProvider).validate(record, validationErrors);
@@ -100,7 +101,8 @@ public class RecordValidationServices {
 		}
 	}
 
-	public void validateSchemaUsingCustomSchemaValidator(Record record, RecordProvider recordProvider, Transaction transaction)
+	public void validateSchemaUsingCustomSchemaValidator(Record record, RecordProvider recordProvider,
+														 Transaction transaction)
 			throws RecordServicesException.ValidationException {
 		this.validateUsingCustomSchemaValidators(record, recordProvider);
 	}
@@ -131,14 +133,14 @@ public class RecordValidationServices {
 	}
 
 	ValidationErrors validateMetadatasReturningErrors(Record record, RecordProvider recordProvider,
-			Transaction transaction, List<Metadata> metadatas) {
+													  Transaction transaction, List<Metadata> metadatas) {
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = schemaTypes.getSchema(record.getSchemaCode());
 		return validateMetadatasReturningErrors(record, recordProvider, schemaTypes, metadatas, transaction);
 	}
 
 	ValidationErrors validateManualMetadatasReturningErrors(Record record, RecordProvider recordProvider,
-			Transaction transaction) {
+															Transaction transaction) {
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = schemaTypes.getSchema(record.getSchemaCode());
 		List<Metadata> metadatas = getManualMetadatas(schema);
@@ -146,7 +148,7 @@ public class RecordValidationServices {
 	}
 
 	ValidationErrors validateAutomaticMetadatasReturningErrors(Record record, RecordProvider recordProvider,
-			Transaction transaction) {
+															   Transaction transaction) {
 		MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = schemaTypes.getSchema(record.getSchemaCode());
 		List<Metadata> metadatas = schema.getAutomaticMetadatas();
@@ -154,7 +156,8 @@ public class RecordValidationServices {
 	}
 
 	ValidationErrors validateMetadatasReturningErrors(Record record, RecordProvider recordProvider,
-			MetadataSchemaTypes schemaTypes, List<Metadata> metadatas, Transaction transaction) {
+													  MetadataSchemaTypes schemaTypes, List<Metadata> metadatas,
+													  Transaction transaction) {
 		ValidationErrors validationErrors = new ValidationErrors();
 		if (!transaction.isSkipReferenceValidation()) {
 			new AllowedReferencesValidator(schemaTypes, metadatas, recordProvider,
@@ -182,7 +185,7 @@ public class RecordValidationServices {
 		return new MaskedMetadataValidator(metadatas);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	ValidationErrors validateUsingCustomSchemaValidatorsReturningErrors(Record record) {
 		final ValidationErrors validationErrors = new ValidationErrors();
 		String schemaCode = record.getSchemaCode();
@@ -201,7 +204,7 @@ public class RecordValidationServices {
 		return validationErrors;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	ValidationErrors validateUsingSecurityValidatorsReturningErrors(Record record, Transaction transaction) {
 		final ValidationErrors validationErrors = new ValidationErrors();
 
@@ -211,7 +214,8 @@ public class RecordValidationServices {
 	}
 
 	private void callMetadataValidator(Record record, final Metadata metadata,
-			RecordMetadataValidator<Object> validator, final ValidationErrors validationErrors) {
+									   RecordMetadataValidator<Object> validator,
+									   final ValidationErrors validationErrors) {
 
 		final Object value = record.get(metadata);
 		callMetadataValidatorForValue(metadata, validator, validationErrors, value, record.getId());
@@ -219,7 +223,8 @@ public class RecordValidationServices {
 	}
 
 	private void callMetadataValidatorForValue(final Metadata metadata, RecordMetadataValidator<Object> validator,
-			final ValidationErrors validationErrors, final Object value, final String recordId) {
+											   final ValidationErrors validationErrors, final Object value,
+											   final String recordId) {
 		ValidationErrors validationErrorsWithFailedMetadataParameters = new ValidationErrors() {
 			@Override
 			public void add(Class<?> validatorClass, String code, Map<String, Object> parameters) {
@@ -233,7 +238,7 @@ public class RecordValidationServices {
 	}
 
 	private void callSchemaValidator(Record record, MetadataSchemaTypes types, final MetadataSchema schema,
-			RecordValidator validator, final ValidationErrors validationErrors) {
+									 RecordValidator validator, final ValidationErrors validationErrors) {
 
 		ValidationErrors validationErrorsWithExtraParams = new ValidationErrors() {
 			@Override

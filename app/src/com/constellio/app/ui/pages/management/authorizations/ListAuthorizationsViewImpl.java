@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import com.constellio.app.ui.framework.components.converters.TaxonomyRecordIdToContextCaptionConverter;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -21,6 +10,7 @@ import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.converters.GroupIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateToStringConverter;
+import com.constellio.app.ui.framework.components.converters.TaxonomyRecordIdToContextCaptionConverter;
 import com.constellio.app.ui.framework.components.converters.UserIdToCaptionConverter;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
@@ -47,6 +37,15 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements ListAuthorizationsView {
 	public static final String INHERITED_AUTHORIZATIONS = "authorizations-inherited";
@@ -62,7 +61,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 
 	protected ListAuthorizationsPresenter presenter;
 	protected RecordVO record;
-	private VerticalLayout layout;
+	protected VerticalLayout layout;
 	private Table authorizations;
 	private Table authorizationsReceivedFromMetadatas;
 	private Button detach;
@@ -249,8 +248,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	private Container buildAuthorizationContainer(List<AuthorizationVO> authorizationVOs, AuthorizationSource source) {
 		BeanItemContainer<AuthorizationVO> authorizations = new BeanItemContainer<>(AuthorizationVO.class, authorizationVOs);
 		return source == AuthorizationSource.OWN ?
-				addButtons(authorizations, source == AuthorizationSource.INHERITED) :
-				authorizations;
+			   addButtons(authorizations, source == AuthorizationSource.INHERITED) :
+			   authorizations;
 	}
 
 	private Container addButtons(BeanItemContainer<AuthorizationVO> authorizations, final boolean inherited) {
@@ -415,7 +414,8 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		private Locale currentLocale;
 		private final JodaDateToStringConverter converter;
 
-		public Authorizations(AuthorizationSource source, DisplayMode mode, boolean seeRolesField, boolean seeAccessField, Locale currentLocale) {
+		public Authorizations(AuthorizationSource source, DisplayMode mode, boolean seeRolesField,
+							  boolean seeAccessField, Locale currentLocale) {
 			this.source = source;
 			this.mode = mode;
 			this.seeRolesField = seeRolesField;
@@ -503,25 +503,25 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			AuthorizationVO authorization = (AuthorizationVO) itemId;
 			TaxonomyRecordIdToContextCaptionConverter taxonomyCaptionConverter = new TaxonomyRecordIdToContextCaptionConverter();
 			switch ((String) columnId) {
-			case CONTENT:
-				ReferenceDisplay referenceDisplay = new ReferenceDisplay(authorization.getRecord());
-				referenceDisplay.setCaption(taxonomyCaptionConverter.convertToPresentation(authorization.getRecord(), String.class,
-						currentLocale));
-				return referenceDisplay;
-			case PRINCIPALS:
-				return buildPrincipalColumn(authorization.getGroups(), authorization.getUsers());
-			case ACCESS:
-				return buildAccessColumn(authorization.getAccessRoles());
-			case USER_ROLES:
-				return buildUserRolesColumn(authorization.getUserRoles(), authorization.getUserRolesTitles());
-			case RECEIVED_FROM_METADATA_LABEL:
-				return authorization.getReceivedFromMetadataLabel();
-			case RECEIVED_FROM_RECORD_CAPTION:
-				return authorization.getReceivedFromRecordCaption();
-			default:
-				LocalDate date = (LocalDate) source.getItem(itemId).getItemProperty(columnId).getValue();
-				return converter.convertToPresentation(
-						date, String.class, ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+				case CONTENT:
+					ReferenceDisplay referenceDisplay = new ReferenceDisplay(authorization.getRecord());
+					referenceDisplay.setCaption(taxonomyCaptionConverter.convertToPresentation(authorization.getRecord(), String.class,
+							currentLocale));
+					return referenceDisplay;
+				case PRINCIPALS:
+					return buildPrincipalColumn(authorization.getGroups(), authorization.getUsers());
+				case ACCESS:
+					return buildAccessColumn(authorization.getAccessRoles());
+				case USER_ROLES:
+					return buildUserRolesColumn(authorization.getUserRoles(), authorization.getUserRolesTitles());
+				case RECEIVED_FROM_METADATA_LABEL:
+					return authorization.getReceivedFromMetadataLabel();
+				case RECEIVED_FROM_RECORD_CAPTION:
+					return authorization.getReceivedFromRecordCaption();
+				default:
+					LocalDate date = (LocalDate) source.getItem(itemId).getItemProperty(columnId).getValue();
+					return converter.convertToPresentation(
+							date, String.class, ConstellioUI.getCurrentSessionContext().getCurrentLocale());
 			}
 		}
 

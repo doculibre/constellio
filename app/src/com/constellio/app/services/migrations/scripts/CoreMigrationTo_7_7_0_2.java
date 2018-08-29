@@ -4,19 +4,12 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.dao.services.records.DataStore;
-import com.constellio.model.entities.records.wrappers.BatchProcessReport;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
-import com.constellio.model.entities.records.wrappers.structure.ScriptReport;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails.OVERRIDE_INHERITED;
-import static com.constellio.model.entities.schemas.MetadataValueType.*;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 
 public class CoreMigrationTo_7_7_0_2 implements MigrationScript {
 	@Override
@@ -25,7 +18,8 @@ public class CoreMigrationTo_7_7_0_2 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
 			new CoreSchemaAlterationFor_7_7_0_2(collection, migrationResourcesProvider, appLayerFactory).migrate();

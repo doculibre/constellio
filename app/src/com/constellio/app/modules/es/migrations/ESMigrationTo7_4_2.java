@@ -4,7 +4,6 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
 import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
 import com.constellio.app.modules.es.model.connectors.DocumentSmbParentConnectorUrlCalculator;
 import com.constellio.app.modules.es.model.connectors.FolderSmbConnectorUrlCalculator;
@@ -19,8 +18,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-
 public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScript {
 
 	@Override
@@ -29,7 +26,8 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor7_4_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		SchemasDisplayManager metadataSchemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
@@ -71,7 +69,7 @@ public class ESMigrationTo7_4_2 extends MigrationHelper implements MigrationScri
 	static class SchemaAlterationFor7_4_2 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_4_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory)
+										   AppLayerFactory appLayerFactory)
 				throws RecordServicesException {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}

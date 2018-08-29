@@ -1,7 +1,5 @@
 package com.constellio.app.ui.framework.buttons;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportParameters;
 import com.constellio.app.modules.rm.ui.pages.reports.RMNewReportsPresenter;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
@@ -14,6 +12,8 @@ import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.themes.ValoTheme;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ReportButton extends WindowButton {
 	private final String report;
@@ -66,7 +66,7 @@ public class ReportButton extends WindowButton {
 
 				Object parameters = newPresenter.getReportParameters(report);
 
-				if(parameters instanceof ConservationRulesReportParameters && newPresenter instanceof RMNewReportsPresenter) {
+				if (parameters instanceof ConservationRulesReportParameters && newPresenter instanceof RMNewReportsPresenter) {
 					((ConservationRulesReportParameters) parameters).setAdministrativeUnit(((RMNewReportsPresenter) newPresenter).getSchemaTypeValue());
 				}
 

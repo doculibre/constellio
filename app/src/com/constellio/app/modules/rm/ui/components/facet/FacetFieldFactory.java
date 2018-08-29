@@ -9,6 +9,8 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.OptionGroup;
 
+import java.util.Locale;
+
 public class FacetFieldFactory extends MetadataFieldFactory {
 
 	private ComboBox dataStoreCode;
@@ -16,7 +18,8 @@ public class FacetFieldFactory extends MetadataFieldFactory {
 	private boolean dataStoreCodeSupportingLabelValues;
 	private AddEditFacetConfigurationPresenter presenter;
 
-	public FacetFieldFactory(ComboBox dataStoreCode, OptionGroup facetType, AddEditFacetConfigurationPresenter presenter) {
+	public FacetFieldFactory(ComboBox dataStoreCode, OptionGroup facetType,
+							 AddEditFacetConfigurationPresenter presenter) {
 		this.dataStoreCode = dataStoreCode;
 		this.facetType = facetType;
 		this.dataStoreCodeSupportingLabelValues = presenter.isDataStoreCodeSupportingLabelValues(presenter.getDataFieldCode());
@@ -24,7 +27,7 @@ public class FacetFieldFactory extends MetadataFieldFactory {
 	}
 
 	@Override
-	public Field<?> build(MetadataVO metadata) {
+	public Field<?> build(MetadataVO metadata, Locale locale) {
 		Field<?> field;
 		String metadataCode = metadata.getCode();
 		if (metadataCode.endsWith(Facet.FIELD_DATA_STORE_CODE)) {
@@ -39,7 +42,7 @@ public class FacetFieldFactory extends MetadataFieldFactory {
 				.endsWith(Facet.LIST_QUERIES)) {
 			field = new ValuesLabelFieldImpl(presenter);
 		} else {
-			field = super.build(metadata);
+			field = super.build(metadata, locale);
 		}
 		return field;
 	}

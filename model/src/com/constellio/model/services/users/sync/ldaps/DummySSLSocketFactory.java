@@ -1,15 +1,14 @@
 package com.constellio.model.services.users.sync.ldaps;
 
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.SecureRandom;
-
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
 
 /**
  * http://stackoverflow.com/questions/4615163/how-to-accept-self-signed-certificates-for-jndi-ldap-connections/4829055#4829055
@@ -20,11 +19,11 @@ public class DummySSLSocketFactory extends SSLSocketFactory {
 	public DummySSLSocketFactory() {
 		try {
 			SSLContext ctx = SSLContext.getInstance("TLS");
-			ctx.init(null, new TrustManager[] { new DummyTrustManager() }, new SecureRandom());
+			ctx.init(null, new TrustManager[]{new DummyTrustManager()}, new SecureRandom());
 			socketFactory = ctx.getSocketFactory();
 		} catch (Exception ex) {
 			ex.printStackTrace(System.err);
-            /* handle exception */
+			/* handle exception */
 		}
 	}
 

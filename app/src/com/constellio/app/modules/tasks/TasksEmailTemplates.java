@@ -19,6 +19,8 @@ public class TasksEmailTemplates {
 	public static final String TASK_DUE_DATE = "taskDueDate";
 	public static final String TASK_DUE_DATE_TITLE = "taskDueDateTitle";
 	public static final String TASK_STATUS = "taskStatus";
+	public static final String TASK_STATUS_FR = "taskStatus_fr";
+	public static final String TASK_STATUS_EN = "taskStatus_en";
 	public static final String TASK_DESCRIPTION = "taskDescription";
 	public static final String TASK_REASON = "taskReason";
 	public static final String TASK_END_DATE = "taskEndDate";

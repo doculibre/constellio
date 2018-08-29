@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -14,6 +12,8 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ContainersInFilingSpaceViewImpl extends BaseViewImpl implements ContainersInFilingSpaceView {
 

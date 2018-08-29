@@ -1,16 +1,16 @@
 package com.constellio.app.ui.framework.buttons;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.vaadin.ui.themes.ValoTheme;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class AddToOrRemoveFromSelectionButton extends BaseButton {
-	
+
 	private String recordId;
-	
+
 	private String schemaTypeCode;
 
 	public AddToOrRemoveFromSelectionButton(RecordVO recordVO, boolean isAlreadySelected) {

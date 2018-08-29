@@ -1,12 +1,5 @@
 package com.constellio.app.api.cmis.binding.global;
 
-import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
-
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_ObjectNotFound;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepositoryInfoManager;
@@ -15,6 +8,12 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerListener;
+import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class centralize cmis service and repository caches

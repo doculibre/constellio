@@ -1,11 +1,5 @@
 package com.constellio.app.modules.es.ui.pages.mapping;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.services.mapping.TargetParams;
 import com.constellio.app.modules.es.ui.entities.MappingVO;
@@ -44,6 +38,11 @@ import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditMappingViewImpl extends BaseViewImpl implements AddEditMappingView {
 	private final AddEditMappingPresenter presenter;
@@ -73,8 +72,8 @@ public class AddEditMappingViewImpl extends BaseViewImpl implements AddEditMappi
 	@Override
 	protected String getTitle() {
 		return presenter.isEditMode() ?
-				$("AddEditMappingView.editViewTitle", instance.getTitle(), mapping.getMetadataLabel()) :
-				$("AddEditMappingView.addViewTitle", instance.getTitle());
+			   $("AddEditMappingView.editViewTitle", instance.getTitle(), mapping.getMetadataLabel()) :
+			   $("AddEditMappingView.addViewTitle", instance.getTitle());
 	}
 
 	@Override

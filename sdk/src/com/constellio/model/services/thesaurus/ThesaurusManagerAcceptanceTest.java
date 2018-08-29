@@ -1,12 +1,11 @@
 package com.constellio.model.services.thesaurus;
 
-import static com.constellio.sdk.tests.TestUtils.linkEventBus;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import com.constellio.app.api.search.SearchWebServiceAcceptTest;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ThesaurusManagerAcceptanceTest extends ConstellioTest {
 

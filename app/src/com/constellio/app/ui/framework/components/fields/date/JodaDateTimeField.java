@@ -1,9 +1,9 @@
 package com.constellio.app.ui.framework.components.fields.date;
 
-import java.util.Date;
-
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToUtilConverter;
 import com.vaadin.data.Property;
+
+import java.util.Date;
 
 public class JodaDateTimeField extends BaseDateTimeField {
 
@@ -11,7 +11,7 @@ public class JodaDateTimeField extends BaseDateTimeField {
 		super();
 		init();
 	}
-	
+
 	public JodaDateTimeField(Property<?> dataSource)
 			throws IllegalArgumentException {
 		super(dataSource);

@@ -1,12 +1,11 @@
 package com.constellio.model.services.records.cache;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordsCachesTest extends ConstellioTest {
 

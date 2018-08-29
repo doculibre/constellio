@@ -1,5 +1,14 @@
 package com.constellio.model.services.contents.icap;
 
+import com.constellio.data.threads.ConstellioJob;
+import com.constellio.data.threads.ConstellioJobManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -7,16 +16,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
 import java.util.TreeSet;
-
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.data.threads.ConstellioJob;
-import com.constellio.data.threads.ConstellioJobManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
 
 /**
  *
@@ -43,7 +42,7 @@ public class IcapService {
 
 		@Override
 		protected Set<Integer> intervals() {
-			return new TreeSet<>(Arrays.asList(new Integer[] { DateTimeConstants.SECONDS_PER_HOUR }));
+			return new TreeSet<>(Arrays.asList(new Integer[]{DateTimeConstants.SECONDS_PER_HOUR}));
 		}
 
 		@Override

@@ -1,5 +1,18 @@
 package com.constellio.model.services.search;
 
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.all;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.any;
@@ -21,23 +34,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.whereAll;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.whereAny;
 import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.chuckNorris;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.constellio.sdk.tests.ConstellioTest;
 
 public class LogicalSearchEntitiesTest extends ConstellioTest {
 

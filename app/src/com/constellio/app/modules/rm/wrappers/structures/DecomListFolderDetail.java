@@ -98,13 +98,13 @@ public class DecomListFolderDetail implements ModifiableStructure {
 	@Override
 	public String toString() {
 		return "DecommissioningListFolderDetail{" +
-				"folderId='" + folderId + '\'' +
-				", folderIncluded=" + !folderExcluded +
-				", containerRecordId='" + containerRecordId + '\'' +
-				", reversedSort=" + reversedSort +
-				", dirty=" + dirty +
-				", isPlacedInContainer=" + isPlacedInContainer +
-				'}';
+			   "folderId='" + folderId + '\'' +
+			   ", folderIncluded=" + !folderExcluded +
+			   ", containerRecordId='" + containerRecordId + '\'' +
+			   ", reversedSort=" + reversedSort +
+			   ", dirty=" + dirty +
+			   ", isPlacedInContainer=" + isPlacedInContainer +
+			   '}';
 	}
 
 	@Override

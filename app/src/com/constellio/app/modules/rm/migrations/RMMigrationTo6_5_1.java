@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -30,6 +26,10 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+
 public class RMMigrationTo6_5_1 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -54,22 +54,26 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 		//2. TODO change archivistic calculators
 	}
 
-	private void deleteIfPossibleOrDisableDocuemntCalendarYearEntredMetadata(String collection, AppLayerFactory appLayerFactory) {
+	private void deleteIfPossibleOrDisableDocuemntCalendarYearEntredMetadata(String collection,
+																			 AppLayerFactory appLayerFactory) {
 		Migration6_5_1_Helper
 				.deleteIfPossibleOrDisableMetadata("calendarYearEntered", Document.SCHEMA_TYPE, collection, appLayerFactory);
 	}
 
-	private void deleteIfPossibleOrDisableDocumentCalendarYearMetadata(String collection, AppLayerFactory appLayerFactory) {
+	private void deleteIfPossibleOrDisableDocumentCalendarYearMetadata(String collection,
+																	   AppLayerFactory appLayerFactory) {
 		Migration6_5_1_Helper
 				.deleteIfPossibleOrDisableMetadata("calendarYear", Document.SCHEMA_TYPE, collection, appLayerFactory);
 	}
 
-	private void deleteIfPossibleOrDisableFolderCalendarYearEntredMetadata(String collection, AppLayerFactory appLayerFactory) {
+	private void deleteIfPossibleOrDisableFolderCalendarYearEntredMetadata(String collection,
+																		   AppLayerFactory appLayerFactory) {
 		Migration6_5_1_Helper
 				.deleteIfPossibleOrDisableMetadata("calendarYearEntered", Folder.SCHEMA_TYPE, collection, appLayerFactory);
 	}
 
-	private void deleteIfPossibleOrDisableFolderCalendarYearMetadata(String collection, AppLayerFactory appLayerFactory) {
+	private void deleteIfPossibleOrDisableFolderCalendarYearMetadata(String collection,
+																	 AppLayerFactory appLayerFactory) {
 		Migration6_5_1_Helper
 				.deleteIfPossibleOrDisableMetadata("calendarYear", Folder.SCHEMA_TYPE, collection, appLayerFactory);
 	}
@@ -95,7 +99,8 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 
 	public static class SchemaAlterationsFor6_5_1 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor6_5_1(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor6_5_1(String collection, MigrationResourcesProvider provider,
+											AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 
@@ -123,8 +128,9 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 	}
 
 	public static class Migration6_5_1_Helper {
-		public static void deleteIfPossibleOrDisableMetadata(String metadataLocalCode, String schemaTypeCode, String collection,
-				AppLayerFactory appLayerFactory) {
+		public static void deleteIfPossibleOrDisableMetadata(String metadataLocalCode, String schemaTypeCode,
+															 String collection,
+															 AppLayerFactory appLayerFactory) {
 
 			if (isUsed(metadataLocalCode, schemaTypeCode, collection, appLayerFactory)) {
 				disableMetadta(metadataLocalCode, schemaTypeCode, collection, appLayerFactory);
@@ -134,8 +140,9 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 
 		}
 
-		private static void deleteMetadata(final String metadataLocalCode, final String schemaTypeCode, String collection,
-				AppLayerFactory appLayerFactory) {
+		private static void deleteMetadata(final String metadataLocalCode, final String schemaTypeCode,
+										   String collection,
+										   AppLayerFactory appLayerFactory) {
 			MetadataSchemasManager schemaManager = appLayerFactory.getModelLayerFactory()
 					.getMetadataSchemasManager();
 			try {
@@ -155,8 +162,9 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 			}
 		}
 
-		private static void disableMetadta(final String metadataLocalCode, final String schemaTypeCode, String collection,
-				AppLayerFactory appLayerFactory) {
+		private static void disableMetadta(final String metadataLocalCode, final String schemaTypeCode,
+										   String collection,
+										   AppLayerFactory appLayerFactory) {
 			MetadataSchemasManager schemaManager = appLayerFactory.getModelLayerFactory()
 					.getMetadataSchemasManager();
 			schemaManager.modify(collection, new MetadataSchemaTypesAlteration() {
@@ -172,7 +180,7 @@ public class RMMigrationTo6_5_1 implements MigrationScript {
 		}
 
 		public static boolean isUsed(String metadataLocalCode, String schemaTypeCode, String collection,
-				AppLayerFactory appLayerFactory) {
+									 AppLayerFactory appLayerFactory) {
 			MetadataSchemasManager schemaManager = appLayerFactory.getModelLayerFactory()
 					.getMetadataSchemasManager();
 			MetadataSchemaTypes types = schemaManager.getSchemaTypes(collection);

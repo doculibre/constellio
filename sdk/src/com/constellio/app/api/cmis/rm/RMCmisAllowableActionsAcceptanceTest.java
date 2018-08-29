@@ -1,5 +1,40 @@
 package com.constellio.app.api.cmis.rm;
 
+import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
+import com.constellio.app.modules.rm.RMConfigs;
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.constants.RMRoles;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.DriverTest;
+import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.assertj.core.api.IterableAssert;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_READ;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS;
 import static com.constellio.app.modules.rm.constants.RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS;
@@ -15,43 +50,6 @@ import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_ACL;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_CHILDREN;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_GET_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.modules.rm.RMConfigs;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.commons.data.Ace;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.assertj.core.api.IterableAssert;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.security.roles.RolesManager;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
-import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.DriverTest;
-import com.constellio.sdk.tests.setups.Users;
 
 @DriverTest
 public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
@@ -301,7 +299,7 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void testForLoggingWhenConfigIsEnable() throws Exception{
+	public void testForLoggingWhenConfigIsEnable() throws Exception {
 		givenConfig(RMConfigs.LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS, true);
 		session = newCMISSessionAsUserInCollection(records.getAdmin().getUsername(), zeCollection);
 		session.getDefaultContext().setIncludeAcls(true);
@@ -314,7 +312,7 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void testForLoggingIsDisableWhenConfigIsDisable() throws Exception{
+	public void testForLoggingIsDisableWhenConfigIsDisable() throws Exception {
 		givenConfig(RMConfigs.LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS, false);
 		session = newCMISSessionAsUserInCollection(records.getAdmin().getUsername(), zeCollection);
 		session.getDefaultContext().setIncludeAcls(true);
@@ -325,8 +323,6 @@ public class RMCmisAllowableActionsAcceptanceTest extends ConstellioTest {
 		long getNumberOfEventAfterAcces = getModelLayerFactory().newSearchServices().getResultsCount(LogicalSearchQueryOperators.from(eventMetadataSchema).returnAll());
 		assertThat(getNumberOfEventAfterAcces).isEqualTo(getNumberOfEventBeforeAccess);
 	}
-
-
 
 
 	private void printTaxonomies(User user) {

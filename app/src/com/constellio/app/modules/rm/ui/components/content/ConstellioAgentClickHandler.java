@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
-import java.io.Serializable;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -13,6 +11,8 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.server.Page;
+
+import java.io.Serializable;
 
 public class ConstellioAgentClickHandler implements Serializable {
 
@@ -44,9 +44,9 @@ public class ConstellioAgentClickHandler implements Serializable {
 		} else {
 			openAgentURL(agentURL);
 		}
-		
+
 	}
-	
+
 	private void openAgentURL(String agentURL) {
 		Page.getCurrent().open(agentURL, null);
 	}

@@ -16,11 +16,14 @@ import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Table;
 import org.apache.commons.io.FileUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -60,7 +63,8 @@ public class ContentVersionVOTable extends BaseTable {
 		this(tableId, new ArrayList<ContentVersionVO>(), appLayerFactory, isShowingSystemFileName);
 	}
 
-	public ContentVersionVOTable(String tableId, List<ContentVersionVO> contentVersions, AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
+	public ContentVersionVOTable(String tableId, List<ContentVersionVO> contentVersions,
+								 AppLayerFactory appLayerFactory, boolean isShowingSystemFileName) {
 		super(tableId);
 		this.appLayerFactory = appLayerFactory;
 		this.isShowingSystemFileName = isShowingSystemFileName;
@@ -75,7 +79,7 @@ public class ContentVersionVOTable extends BaseTable {
 		addContainerProperty(LAST_MODIFICATION_DATE_TIME, String.class, null);
 		addContainerProperty(LAST_MODIFIED_BY, String.class, null);
 		addContainerProperty(COMMENT, String.class, null);
-		if(this.isShowingSystemFileName) {
+		if (this.isShowingSystemFileName) {
 			addContainerProperty(SYSTEM_FILE_NAME, String.class, null);
 		}
 
@@ -87,7 +91,7 @@ public class ContentVersionVOTable extends BaseTable {
 		setColumnHeader(LAST_MODIFICATION_DATE_TIME, $("ContentVersion.lastModificationDateTime"));
 		setColumnHeader(LAST_MODIFIED_BY, $("ContentVersion.lastModifiedBy"));
 		setColumnHeader(COMMENT, $("ContentVersion.comment"));
-		if(this.isShowingSystemFileName) {
+		if (this.isShowingSystemFileName) {
 			setColumnHeader(SYSTEM_FILE_NAME, $("ContentVersion.systemFileName"));
 		}
 
@@ -177,7 +181,7 @@ public class ContentVersionVOTable extends BaseTable {
 			checkBox.addValueChangeListener(new ValueChangeListener() {
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
-					if(Boolean.TRUE.equals(event.getProperty().getValue())) {
+					if (Boolean.TRUE.equals(event.getProperty().getValue())) {
 						selectedContentVersions.add(contentVersion);
 					} else {
 						selectedContentVersions.remove(contentVersion);
@@ -187,7 +191,7 @@ public class ContentVersionVOTable extends BaseTable {
 			});
 			checkBox.setValue(selectedContentVersions.contains(contentVersion));
 
-			if(isSelectionColumn()) {
+			if (isSelectionColumn()) {
 				item.getItemProperty(CHECK_BOX).setValue(checkBox);
 			}
 
@@ -197,7 +201,7 @@ public class ContentVersionVOTable extends BaseTable {
 			item.getItemProperty(LAST_MODIFICATION_DATE_TIME).setValue(lastModificationDateTimeCaption);
 			item.getItemProperty(LAST_MODIFIED_BY).setValue(lastModifiedByCaption);
 			item.getItemProperty(COMMENT).setValue(comment);
-			if(isShowingSystemFileName) {
+			if (isShowingSystemFileName) {
 				item.getItemProperty(SYSTEM_FILE_NAME).setValue(systemFileName);
 			}
 		}

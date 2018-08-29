@@ -1,13 +1,7 @@
 package com.constellio.app.modules.robots.model.services;
 
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
+import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.services.RobotSchemaRecordServices;
 import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
@@ -18,8 +12,13 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.List;
+
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RobotsServiceAcceptanceTest extends ConstellioTest {
 

@@ -1,12 +1,11 @@
 package com.constellio.app.services.recovery;
 
-import java.util.Map;
-
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.dao.managers.config.PropertiesAlteration;
+import java.util.Map;
 
 //Not a StatefulService since statefulServices are stopped during recovery mode
 public class UpgradeAppRecoveryConfigManager {
@@ -31,7 +30,7 @@ public class UpgradeAppRecoveryConfigManager {
 	}
 
 	public void onVersionUploadedCorrectly(final ConstellioVersionInfo currentInstalledVersion,
-			final ConstellioVersionInfo uploadedVersion) {
+										   final ConstellioVersionInfo uploadedVersion) {
 		configManager.updateProperties(UPDATE_RECOVERY_CONFIG_PATH, new PropertiesAlteration() {
 			@Override
 			public void alter(Map<String, String> properties) {

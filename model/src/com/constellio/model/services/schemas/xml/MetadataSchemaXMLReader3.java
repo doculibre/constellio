@@ -1,24 +1,8 @@
 package com.constellio.model.services.schemas.xml;
 
-import static com.constellio.model.utils.EnumWithSmallCodeUtils.toEnum;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Attribute;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -51,6 +35,22 @@ import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.constellio.model.utils.InstanciationUtils;
 import com.constellio.model.utils.Parametrized;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Attribute;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import static com.constellio.model.utils.EnumWithSmallCodeUtils.toEnum;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class MetadataSchemaXMLReader3 {
 
@@ -66,14 +66,15 @@ public class MetadataSchemaXMLReader3 {
 		this.classProvider = classProvider;
 	}
 
-	public MetadataSchemaTypesBuilder read(String collection, Document document, DataStoreTypesFactory typesFactory,
-			ModelLayerFactory modelLayerFactory) {
+	public MetadataSchemaTypesBuilder read(CollectionInfo collectionInfo, Document document,
+										   DataStoreTypesFactory typesFactory,
+										   ModelLayerFactory modelLayerFactory) {
 
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
 		List<Language> languages = getLanguages(rootElement);
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
-				.createWithVersion(collection, version, classProvider, languages);
+				.createWithVersion(collectionInfo, version, classProvider, languages);
 		for (Element schemaTypeElement : rootElement.getChildren("type")) {
 			parseSchemaType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
 		}
@@ -90,14 +91,15 @@ public class MetadataSchemaXMLReader3 {
 	}
 
 	private MetadataSchemaType parseSchemaType(MetadataSchemaTypesBuilder typesBuilder, Element element,
-			DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
+											   DataStoreTypesFactory typesFactory,
+											   ModelLayerFactory modelLayerFactory) {
 		String code = getCodeValue(element);
 		Map<Language, String> labels = readLabels(element);
 		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false)
 				.setLabels(labels);
 
 		MetadataSchemaBuilder collectionSchema = "collection".equals(code) ?
-				null : typesBuilder.getSchema(Collection.DEFAULT_SCHEMA);
+												 null : typesBuilder.getSchema(Collection.DEFAULT_SCHEMA);
 
 		schemaTypeBuilder.setReadOnlyLocked(getBooleanFlagValueWithFalseAsDefaultValue(element, "readOnlyLocked"));
 		schemaTypeBuilder.setSecurity(getBooleanFlagValueWithFalseAsDefaultValue(element, "security"));
@@ -111,7 +113,7 @@ public class MetadataSchemaXMLReader3 {
 	}
 
 	private void parseCustomSchemas(Element root, MetadataSchemaTypeBuilder schemaTypeBuilder,
-			MetadataSchemaBuilder collectionSchema) {
+									MetadataSchemaBuilder collectionSchema) {
 		Element customSchemasElement = root.getChild("customSchemas");
 		for (Element schemaElement : customSchemasElement.getChildren("schema")) {
 			parseSchema(schemaTypeBuilder, schemaElement, collectionSchema);
@@ -119,10 +121,11 @@ public class MetadataSchemaXMLReader3 {
 	}
 
 	private void parseSchema(MetadataSchemaTypeBuilder schemaTypeBuilder, Element schemaElement,
-			MetadataSchemaBuilder collectionSchema) {
+							 MetadataSchemaBuilder collectionSchema) {
 		MetadataSchemaBuilder schemaBuilder = schemaTypeBuilder.createCustomSchema(getCodeValue(schemaElement));
 		schemaBuilder.setLabels(readLabels(schemaElement));
 		schemaBuilder.setUndeletable(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "undeletable"));
+		schemaBuilder.setActive(getBooleanFlagValueWithTrueAsDefaultValue(schemaElement, "active"));
 		for (Element metadataElement : schemaElement.getChildren("m")) {
 			parseMetadata(schemaBuilder, metadataElement, collectionSchema);
 		}
@@ -133,7 +136,7 @@ public class MetadataSchemaXMLReader3 {
 	}
 
 	private void parseMetadata(MetadataSchemaBuilder schemaBuilder, Element metadataElement,
-			MetadataSchemaBuilder collectionSchema) {
+							   MetadataSchemaBuilder collectionSchema) {
 		String codeValue = getCodeValue(metadataElement);
 
 		MetadataBuilder metadataBuilder;
@@ -149,9 +152,7 @@ public class MetadataSchemaXMLReader3 {
 			parseMetadataWithInheritance(metadataElement, metadataBuilder);
 		} else {
 			parseMetadataWithoutInheritance(metadataElement, metadataBuilder, collectionSchema);
-
 		}
-
 	}
 
 	private void parseMetadataWithInheritance(Element metadataElement, MetadataBuilder metadataBuilder) {
@@ -188,10 +189,15 @@ public class MetadataSchemaXMLReader3 {
 		}
 
 		setPopulateConfigs(metadataBuilder, metadataElement);
+
+		Map<String, Object> customParameter = TypeConvertionUtil.getCustomParameterMap(metadataElement);
+		if (customParameter != null) {
+			metadataBuilder.setCustomParameter(customParameter);
+		}
 	}
 
 	private void parseMetadataWithoutInheritance(Element metadataElement, MetadataBuilder metadataBuilder,
-			MetadataSchemaBuilder collectionSchema) {
+												 MetadataSchemaBuilder collectionSchema) {
 		if (!metadataBuilder.isSystemReserved()) {
 			String enabledStringValue = metadataElement.getAttributeValue("enabled");
 			String defaultRequirementStringValue = metadataElement.getAttributeValue("defaultRequirement");
@@ -220,7 +226,7 @@ public class MetadataSchemaXMLReader3 {
 
 		boolean inheriteGlobalMetadata = false;
 		if (Schemas.isGlobalMetadata(metadataBuilder.getLocalCode()) && collectionSchema != null
-				&& collectionSchema.hasMetadata(metadataBuilder.getLocalCode())) {
+			&& collectionSchema.hasMetadata(metadataBuilder.getLocalCode())) {
 			globalMetadataInCollectionSchema = collectionSchema.getMetadata(metadataBuilder.getLocalCode());
 			inheriteGlobalMetadata = true;
 		}
@@ -260,7 +266,7 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setSystemReserved(globalMetadataInCollectionSchema.isSystemReserved());
 		} else {
 			metadataBuilder.setSystemReserved(!userDefinedMetadata &&
-					readBooleanWithDefaultValue(systemReservedStringValue, true));
+											  readBooleanWithDefaultValue(systemReservedStringValue, true));
 		}
 
 		String defaultRequirementStringValue = metadataElement.getAttributeValue("defaultRequirement");
@@ -389,6 +395,13 @@ public class MetadataSchemaXMLReader3 {
 			metadataBuilder.setMultivalue(readBooleanWithDefaultValue(multivalueStringValue, false));
 		}
 
+		String multilingualStringValue = metadataElement.getAttributeValue("multilingual");
+		if (inheriteGlobalMetadata && multilingualStringValue == null) {
+			metadataBuilder.setMultiLingual(globalMetadataInCollectionSchema.isMultiLingual());
+		} else {
+			metadataBuilder.setMultiLingual(readBooleanWithDefaultValue(multilingualStringValue, false));
+		}
+
 		//}
 
 		Class<StructureFactory> structureFactoryClass = getClassValue(metadataElement, "structureFactory");
@@ -412,6 +425,13 @@ public class MetadataSchemaXMLReader3 {
 
 		setPopulateConfigs(metadataBuilder, metadataElement);
 
+		Map<String, Object> customParameters = TypeConvertionUtil.getCustomParameterMap(metadataElement);
+		if (inheriteGlobalMetadata && taxonomyRelationshipStringValue == null) {
+			metadataBuilder.setCustomParameter(globalMetadataInCollectionSchema.getCustomParameter());
+		} else {
+			metadataBuilder.setCustomParameter(customParameters);
+		}
+
 		addReferencesToBuilder(metadataBuilder, metadataElement, globalMetadataInCollectionSchema);
 	}
 
@@ -421,6 +441,7 @@ public class MetadataSchemaXMLReader3 {
 
 	private void setPopulateConfigs(MetadataBuilder metadataBuilder, Element metadataElement) {
 
+		Boolean isAddOnly = null;
 		List<String> styles = new ArrayList<>();
 		List<String> properties = new ArrayList<>();
 		List<RegexConfig> regexes = new ArrayList<>();
@@ -428,6 +449,9 @@ public class MetadataSchemaXMLReader3 {
 
 		Element populateConfigsElement = metadataElement.getChild("populateConfigs");
 		if (populateConfigsElement != null) {
+			if (populateConfigsElement.getAttributeValue("isAddOnly") != null) {
+				isAddOnly = true;
+			}
 			if (populateConfigsElement.getAttributeValue("styles") != null) {
 				styles.addAll(asList(populateConfigsElement.getAttributeValue("styles").split(",")));
 			}
@@ -448,11 +472,12 @@ public class MetadataSchemaXMLReader3 {
 		metadataPopulateConfigsBuilder.setProperties(properties);
 		metadataPopulateConfigsBuilder.setRegexes(regexes);
 		metadataPopulateConfigsBuilder.setMetadataPopulators(metadataPopulators);
+		metadataPopulateConfigsBuilder.setAddOnly(isAddOnly);
 		metadataBuilder.definePopulateConfigsBuilder(metadataPopulateConfigsBuilder);
 	}
 
 	private void addMetadataPopulateElementsToList(Element metadataPopulatorsElement,
-			List<MetadataPopulator> metadataPopulators) {
+												   List<MetadataPopulator> metadataPopulators) {
 		for (Element metadataPopulatorElement : metadataPopulatorsElement.getChildren()) {
 			try {
 				metadataPopulators.add(metadataPopulatorXMLSerializer.fromXML(metadataPopulatorElement));
@@ -482,7 +507,7 @@ public class MetadataSchemaXMLReader3 {
 	}
 
 	private void setAccessRestrictions(MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder,
-			Element metadataElement) {
+									   Element metadataElement) {
 		if (metadataElement.getChild("accessRestrictions") != null) {
 			Element accessRestrictionsElement = metadataElement.getChild("accessRestrictions");
 			if (accessRestrictionsElement.getAttributeValue("readAccessRestrictions") != null) {
@@ -563,7 +588,7 @@ public class MetadataSchemaXMLReader3 {
 	}
 
 	private void addReferencesToBuilder(MetadataBuilder metadataBuilder, Element metadataElement,
-			MetadataBuilder collectionSchemaBuilder) {
+										MetadataBuilder collectionSchemaBuilder) {
 		if (metadataElement.getChild("references") != null) {
 			Element references = metadataElement.getChild("references");
 
@@ -585,7 +610,7 @@ public class MetadataSchemaXMLReader3 {
 	}
 
 	private void parseDataEntryElement(MetadataBuilder metadataBuilder, Element metadataElement,
-			MetadataBuilder collectionSchemaBuilder) {
+									   MetadataBuilder collectionSchemaBuilder) {
 		Element dataEntry = metadataElement.getChild("dataEntry");
 		if (dataEntry != null) {
 			if (dataEntry.getAttributeValue("copied") != null) {
@@ -617,7 +642,7 @@ public class MetadataSchemaXMLReader3 {
 				String referenceMetadata = dataEntry.getAttributeValue("referenceMetadata");
 				String inputMetadataStr = dataEntry.getAttributeValue("inputMetadata");
 				List<String> inputMetadatas = isBlank(inputMetadataStr) ? new ArrayList<String>() :
-						asList(inputMetadataStr.split(","));
+											  asList(inputMetadataStr.split(","));
 				String calculatorClassName = dataEntry.getAttributeValue("aggregatedCalculator");
 				if (calculatorClassName != null) {
 					Class<? extends AggregatedCalculator<?>> calculatorClass;
@@ -644,7 +669,7 @@ public class MetadataSchemaXMLReader3 {
 	}
 
 	private void parseDefaultSchema(Element root, MetadataSchemaTypeBuilder schemaTypeBuilder,
-			MetadataSchemaTypesBuilder typesBuilder, MetadataSchemaBuilder collectionSchema) {
+									MetadataSchemaTypesBuilder typesBuilder, MetadataSchemaBuilder collectionSchema) {
 		Element defaultSchemaElement = root.getChild("defaultSchema");
 		MetadataSchemaBuilder defaultSchemaBuilder = schemaTypeBuilder.getDefaultSchema();
 
@@ -730,4 +755,6 @@ public class MetadataSchemaXMLReader3 {
 		}
 		return labels;
 	}
+
+
 }

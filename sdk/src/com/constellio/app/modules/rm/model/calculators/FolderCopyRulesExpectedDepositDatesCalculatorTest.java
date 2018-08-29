@@ -1,20 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Spy;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
@@ -23,6 +8,20 @@ import com.constellio.model.entities.calculators.CalculatorParametersValidatingD
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.joda.time.LocalDate;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Spy;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends ConstellioTest {
 

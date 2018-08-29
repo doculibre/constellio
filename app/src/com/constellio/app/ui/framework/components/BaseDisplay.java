@@ -17,19 +17,22 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 
+import java.io.Serializable;
+import java.util.List;
+
 @SuppressWarnings("serial")
 public class BaseDisplay extends CustomComponent {
-	
+
 	public static final String STYLE_NAME = "base-display";
 	public static final String STYLE_CAPTION = "display-caption";
 	public static final String STYLE_VALUE = "display-value";
-	
+
 	private boolean useTabSheet;
 
 	private VerticalLayout mainLayout;
-	
+
 	private TabSheet tabSheet;
-	
+
 	private Map<String, VerticalLayout> tabs = new HashMap<>();
 
 	public BaseDisplay(List<CaptionAndComponent> captionsAndDisplayComponents) {
@@ -39,17 +42,18 @@ public class BaseDisplay extends CustomComponent {
 	public BaseDisplay(List<CaptionAndComponent> captionsAndDisplayComponents, boolean useTabSheet) {
 		this.useTabSheet = useTabSheet;
 		addStyleName(STYLE_NAME);
-		
+
 		setSizeFull();
-		
+
 		tabSheet = new TabSheet();
 
 		mainLayout = newMainLayout();
-		
+
 		if (isUseTabsheet()) {
-			int tabCaptionCount = 0;
-			for (CaptionAndComponent captionAndComponent : captionsAndDisplayComponents) {
-				String tabCaption = captionAndComponent.tabCaption;
+		int tabCaptionCount = 0;
+
+		for (CaptionAndComponent captionAndComponent :captionsAndDisplayComponents){
+String tabCaption = captionAndComponent.tabCaption;
 				if (StringUtils.isNotBlank(tabCaption)) {
 					tabCaptionCount++;
 					break;
@@ -59,16 +63,15 @@ public class BaseDisplay extends CustomComponent {
 		} else {
 			useTabSheet = false;
 		}
-		
+
 		if (useTabSheet) {
 			setCompositionRoot(tabSheet);
 		} else {
-			setCompositionRoot(mainLayout);
-		}
-		
+		setCompositionRoot(mainLayout);}
+
 		setCaptionsAndComponents(captionsAndDisplayComponents);
 	}
-	
+
 	protected void setCaptionsAndComponents(List<CaptionAndComponent> captionsAndDisplayComponents) {
 		if (mainLayout.iterator().hasNext()) {
 			mainLayout.removeAllComponents();
@@ -86,7 +89,6 @@ public class BaseDisplay extends CustomComponent {
 			addToDefaultLayoutOrTabSheet(captionLabel, displayComponent, tabCaption);
 		}
 	}
-	
 	private VerticalLayout newMainLayout() {
 		VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setSizeUndefined();
@@ -115,7 +117,7 @@ public class BaseDisplay extends CustomComponent {
 		}
 		addCaptionAndDisplayComponent(captionLabel, displayComponent, layout);
 	}
-	
+
 	protected void addTab(TabSheet tabSheet, Component tabComponent, String caption, Resource icon) {
 		tabSheet.addTab(tabComponent, caption, icon);
 	}
@@ -123,7 +125,6 @@ public class BaseDisplay extends CustomComponent {
 	protected Resource getTabIcon(String tabCaption) {
 		return null;
 	}
-	
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent, VerticalLayout layout) {
 		if (displayComponent.isVisible()) {
 			I18NHorizontalLayout captionAndComponentLayout = new I18NHorizontalLayout();
@@ -132,27 +133,25 @@ public class BaseDisplay extends CustomComponent {
 			} else {
 				captionAndComponentLayout.setSizeFull();
 			}
-			
+
 			layout.addComponent(captionAndComponentLayout);
 			captionAndComponentLayout.addComponent(captionLabel);
 			captionAndComponentLayout.addComponent(displayComponent);
 		}
 	}
-	
+
 	protected boolean isCaptionAndDisplayComponentWidthUndefined() {
 		return false;
 	}
-	
 	protected boolean isUseTabsheet() {
 		return useTabSheet;
 	}
-	
 	public static class CaptionAndComponent implements Serializable {
-		
+
 		public Label captionLabel;
-		
+
 		public Component displayComponent;
-		
+
 		public String tabCaption;
 
 		public CaptionAndComponent(Label captionLabel, Component displayComponent) {
@@ -165,7 +164,7 @@ public class BaseDisplay extends CustomComponent {
 			this.displayComponent = displayComponent;
 			this.tabCaption = tabCaption;
 		}
-		
+
 	}
 
 }

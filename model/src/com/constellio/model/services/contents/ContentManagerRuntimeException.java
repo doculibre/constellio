@@ -33,7 +33,8 @@ public class ContentManagerRuntimeException extends RuntimeException {
 
 	public static class ContentManagerRuntimeException_CannotReadParsedContent extends ContentManagerRuntimeException {
 
-		public ContentManagerRuntimeException_CannotReadParsedContent(Throwable cause, String hash, String parsedContent) {
+		public ContentManagerRuntimeException_CannotReadParsedContent(Throwable cause, String hash,
+																	  String parsedContent) {
 			super("Cannot read parsed content with hash '" + hash + "' and parsed content : \n" + parsedContent, cause);
 		}
 

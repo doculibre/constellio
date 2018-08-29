@@ -1,8 +1,10 @@
 package com.constellio.model.services.schemas.calculators;
 
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.LOGICALLY_DELETED;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.VISIBLE_IN_TREES;
+import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.StringListMetadataValueCalculator;
+import com.constellio.model.entities.calculators.dependencies.Dependency;
+import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,11 +13,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.constellio.data.utils.LangUtils;
-import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.StringListMetadataValueCalculator;
-import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.LOGICALLY_DELETED;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.VISIBLE_IN_TREES;
 
 public class DefaultTokensOfHierarchyCalculator extends StringListMetadataValueCalculator {
 

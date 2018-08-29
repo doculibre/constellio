@@ -41,7 +41,8 @@ public class CollectionsManagerRuntimeException extends RuntimeException {
 	public static class CollectionsManagerRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage
 			extends CollectionsManagerRuntimeException {
 
-		public CollectionsManagerRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage(String mainDataLanguage) {
+		public CollectionsManagerRuntimeException_CollectionLanguageMustIncludeSystemMainDataLanguage(
+				String mainDataLanguage) {
 			super("Collection's languages must include system main data language '" + mainDataLanguage + "'");
 		}
 	}
@@ -67,7 +68,8 @@ public class CollectionsManagerRuntimeException extends RuntimeException {
 	}
 
 	public static class CollectionsManagerRuntimeException_CannotMigrateCollection extends CollectionsManagerRuntimeException {
-		public CollectionsManagerRuntimeException_CannotMigrateCollection(String collection, String version, Throwable cause) {
+		public CollectionsManagerRuntimeException_CannotMigrateCollection(String collection, String version,
+																		  Throwable cause) {
 			super("Cannot migrate collection '" + collection + "' to version " + version, cause);
 		}
 	}

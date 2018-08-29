@@ -1,5 +1,19 @@
 package com.constellio.app.modules.rm.ui.entities;
 
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
+import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.data.utils.ImpossibleRuntimeException;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.APPROVAL_DATE;
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.APPROVED;
@@ -18,21 +32,6 @@ import static com.constellio.app.modules.rm.wrappers.RetentionRule.PRINCIPAL_DEF
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.RESPONSIBLE_ADMINISTRATIVE_UNITS;
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.SCOPE;
 import static com.constellio.app.modules.rm.wrappers.RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
-import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
-import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentType;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public class RetentionRuleVO extends RecordVO {
 	public static final String CATEGORIES = "categories";

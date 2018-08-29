@@ -1,21 +1,5 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-
 import com.constellio.app.services.importExport.settings.SettingsExportServices;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
@@ -31,6 +15,28 @@ import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
+import com.constellio.model.entities.Language;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.jgoodies.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Attribute;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
@@ -43,13 +49,11 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 	private String currentCollection = null;
 	private Document document;
+	private ModelLayerFactory modelLayerFactory;
 
-	public SettingsXMLFileReader(Document document) {
+	public SettingsXMLFileReader(Document document, String currentCollection, ModelLayerFactory modelLayerFactory) {
 		this.document = document;
-	}
-
-	public SettingsXMLFileReader(Document document, String currentCollection) {
-		this.document = document;
+		this.modelLayerFactory = modelLayerFactory;
 		this.currentCollection = currentCollection;
 	}
 
@@ -101,68 +105,79 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		String collectionCode = collectionElement.getAttributeValue(CODE);
 		if (SettingsExportServices.CURRENT_COLLECTION_IMPORTATION_MODE.equals(collectionCode)) {
 			collectionCode = currentCollection;
-			if (currentCollection.equals(null)) {
+			if (currentCollection == null) {
 				throw new RuntimeException(
 						"ERROR: tried to import settings as currentCollection but currentCollection was not set");
 			}
 		}
+
+		List<String> language = modelLayerFactory.getCollectionsListManager().getCollectionLanguages(collectionCode);
+		if (language == null || language.size() == 0) {
+			language = new ArrayList<>();
+			language.add(modelLayerFactory.getCollectionsListManager().getMainDataLanguage());
+		}
+
 		return new ImportedCollectionSettings().setCode(collectionCode)
-				.setValueLists(getCollectionValueLists(collectionElement.getChild(VALUE_LISTS)))
-				.setTaxonomies(getCollectionTaxonomies(collectionElement.getChild(TAXONOMIES)))
-				.setTypes(getCollectionTypes(collectionElement.getChild(TYPES)));
+				.setValueLists(getCollectionValueLists(collectionElement.getChild(VALUE_LISTS), language))
+				.setTaxonomies(getCollectionTaxonomies(collectionElement.getChild(TAXONOMIES), language))
+				.setTypes(getCollectionTypes(collectionElement.getChild(TYPES), language));
 	}
 
-	private List<ImportedType> getCollectionTypes(Element typesElement) {
+	private List<ImportedType> getCollectionTypes(Element typesElement, List<String> language) {
 		List<ImportedType> types = new ArrayList<>();
 		for (Element typeElement : typesElement.getChildren()) {
-			types.add(readType(typeElement));
+			types.add(readType(typeElement, language));
 		}
 		return types;
 	}
 
-	private ImportedType readType(Element typeElement) {
+	private ImportedType readType(Element typeElement, List<String> language) {
 		ImportedType type = new ImportedType()
 				.setCode(typeElement.getAttributeValue(CODE))
 				.setTabs(getTabs(typeElement.getChild(TABS)))
-				.setDefaultSchema(readDefaultSchema(typeElement.getChild(DEFAULT_SCHEMA)))
-				.setCustomSchemata(readCustomSchemata(typeElement.getChild("schemas")));
-
-		if (typeElement.getAttribute(LABEL) != null) {
-			type.setLabel(typeElement.getAttributeValue(LABEL));
+				.setDefaultSchema(readDefaultSchema(typeElement.getChild(DEFAULT_SCHEMA), language))
+				.setCustomSchemata(readCustomSchemata(typeElement.getChild("schemas"), language));
+		String label = typeElement.getAttributeValue(LABEL);
+		Map<Language, String> languageTitleMap = getLanguageStringMap(typeElement, language, label, LABEL);
+		if (languageTitleMap.size() > 0) {
+			type.setLabels(languageTitleMap);
 		}
 		return type;
 	}
 
-	private List<ImportedMetadataSchema> readCustomSchemata(Element schemataElement) {
+	private List<ImportedMetadataSchema> readCustomSchemata(Element schemataElement, List<String> language) {
 		List<ImportedMetadataSchema> schemata = new ArrayList<>();
 		for (Element schemaElement : schemataElement.getChildren()) {
 			ImportedMetadataSchema importedMetadataSchema = new ImportedMetadataSchema();
 			if (schemaElement.getAttribute("code") != null) {
 				importedMetadataSchema.setCode(schemaElement.getAttributeValue("code"));
 			}
-			readSchema(schemaElement, importedMetadataSchema);
+			readSchema(schemaElement, importedMetadataSchema, language);
 			schemata.add(importedMetadataSchema);
 		}
 		return schemata;
 	}
 
-	private ImportedMetadataSchema readDefaultSchema(Element schemaElement) {
+	private ImportedMetadataSchema readDefaultSchema(Element schemaElement, List<String> language) {
 		ImportedMetadataSchema importedMetadataSchema = new ImportedMetadataSchema().setCode("default");
 
-		readSchema(schemaElement, importedMetadataSchema);
+		readSchema(schemaElement, importedMetadataSchema, language);
 		return importedMetadataSchema;
 	}
 
-	private void readSchema(Element schemaElement, ImportedMetadataSchema importedMetadataSchema) {
-		if (schemaElement.getAttribute("label") != null) {
-			importedMetadataSchema.setLabel(schemaElement.getAttributeValue("label"));
+	private void readSchema(Element schemaElement, ImportedMetadataSchema importedMetadataSchema,
+							List<String> language) {
+		String label = schemaElement.getAttributeValue(LABEL);
+		Map<Language, String> languageTitleMap = getLanguageStringMap(schemaElement, language, label, LABEL);
+		if (languageTitleMap.size() > 0) {
+			importedMetadataSchema.setLabels(languageTitleMap);
 		}
 		importedMetadataSchema.setFormMetadatas(toList(schemaElement.getAttributeValue("formMetadatas")));
 		importedMetadataSchema.setDisplayMetadatas(toList(schemaElement.getAttributeValue("displayMetadatas")));
 		importedMetadataSchema.setSearchMetadatas(toList(schemaElement.getAttributeValue("searchMetadatas")));
 		importedMetadataSchema.setTableMetadatas(toList(schemaElement.getAttributeValue("tableMetadatas")));
 
-		importedMetadataSchema.setAllMetadatas(readMetadata(schemaElement.getChildren(METADATA)));
+		importedMetadataSchema.setAllMetadatas(readMetadata(schemaElement.getChildren(METADATA), language));
 	}
 
 	private List<String> toList(String listOfItems) {
@@ -173,22 +188,28 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 	}
 
-	private List<ImportedMetadata> readMetadata(List<Element> elements) {
+	private List<ImportedMetadata> readMetadata(List<Element> elements, List<String> languageList) {
 		List<ImportedMetadata> metadata = new ArrayList<>();
 		for (Element element : elements) {
-			metadata.add(readMetadata(element));
+			metadata.add(readMetadata(element, languageList));
 		}
 		return metadata;
 	}
 
-	private ImportedMetadata readMetadata(Element element) {
+	private ImportedMetadata readMetadata(Element element, List<String> languageList) {
 
 		ImportedMetadata importedMetadata = new ImportedMetadata();
 		importedMetadata.setCode(element.getAttributeValue(CODE));
-		importedMetadata.setLabel(element.getAttributeValue(TITLE));
-
 		importedMetadata.setType(element.getAttributeValue(TYPE));
 		importedMetadata.setDataEntry(readDataEntry(element));
+		String label = element.getAttributeValue(LABEL);
+
+		Map<Language, String> languageTitleMap = getLanguageStringMap(element, languageList, label, LABEL);
+
+		if (languageTitleMap.size() > 0) {
+			importedMetadata.setLabels(languageTitleMap);
+		}
+
 		if (element.getAttribute(SEARCHABLE) != null) {
 			importedMetadata.setSearchable(Boolean.parseBoolean(element.getAttributeValue(SEARCHABLE)));
 		}
@@ -247,12 +268,12 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(ENABLED_IN) != null &&
-				isNotBlank(element.getAttributeValue(ENABLED_IN))) {
+			isNotBlank(element.getAttributeValue(ENABLED_IN))) {
 			importedMetadata.setEnabledIn(toListOfString(element.getAttributeValue(ENABLED_IN)));
 		}
 
 		if (element.getAttribute(INPUT_MASK) != null &&
-				isNotBlank(element.getAttributeValue(INPUT_MASK))) {
+			isNotBlank(element.getAttributeValue(INPUT_MASK))) {
 			importedMetadata.setInputMask(element.getAttributeValue(INPUT_MASK));
 		}
 
@@ -265,7 +286,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(REQUIRED_IN) != null &&
-				isNotBlank(element.getAttributeValue(REQUIRED_IN))) {
+			isNotBlank(element.getAttributeValue(REQUIRED_IN))) {
 			importedMetadata.setRequiredIn(toListOfString(element.getAttributeValue(REQUIRED_IN)));
 		}
 
@@ -290,7 +311,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(VISIBLE_IN_RESULT_IN) != null &&
-				isNotBlank(element.getAttributeValue(VISIBLE_IN_RESULT_IN))) {
+			isNotBlank(element.getAttributeValue(VISIBLE_IN_RESULT_IN))) {
 			importedMetadata.setVisibleInResultIn(toListOfString(element.getAttributeValue(VISIBLE_IN_RESULT_IN)));
 		}
 
@@ -303,7 +324,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		}
 
 		if (element.getAttribute(VISIBLE_IN_TABLES_IN) != null &&
-				isNotBlank(element.getAttributeValue(VISIBLE_IN_TABLES_IN))) {
+			isNotBlank(element.getAttributeValue(VISIBLE_IN_TABLES_IN))) {
 			importedMetadata.setVisibleInTablesIn(toListOfString(element.getAttributeValue(VISIBLE_IN_TABLES_IN)));
 		}
 
@@ -335,19 +356,23 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 				.setValue(element.getAttributeValue("value"));
 	}
 
-	private List<ImportedTaxonomy> getCollectionTaxonomies(Element element) {
+	private List<ImportedTaxonomy> getCollectionTaxonomies(Element element, List<String> languageList) {
 		List<ImportedTaxonomy> taxonomies = new ArrayList<>();
 		for (Element child : element.getChildren()) {
-			taxonomies.add(readTaxonomy(child));
+			taxonomies.add(readTaxonomy(child, languageList));
 		}
 		return taxonomies;
 	}
 
-	private ImportedTaxonomy readTaxonomy(Element child) {
+	private ImportedTaxonomy readTaxonomy(Element child, List<String> languageList) {
 		ImportedTaxonomy taxonomy = new ImportedTaxonomy();
 		taxonomy.setCode(child.getAttributeValue(CODE));
-		if (child.getAttribute(TITLE) != null) {
-			taxonomy.setTitle(child.getAttributeValue(TITLE));
+		String title = child.getAttributeValue(TITLE);
+
+		Map<Language, String> languageTitleMap = getLanguageStringMap(child, languageList, title, TITLE);
+
+		if (languageTitleMap.size() > 0) {
+			taxonomy.setTitle(languageTitleMap);
 		}
 
 		if (child.getAttribute(CLASSIFIED_TYPES) != null) {
@@ -369,6 +394,39 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		return taxonomy;
 	}
 
+	@NotNull
+	private Map<Language, String> getLanguageStringMap(Element child, List<String> languageList, String label,
+													   String labelFinal) {
+		Map<Language, String> languageTitleMap = new HashMap<>();
+		int numberOfLang = 0;
+
+		List<Attribute> attributeList = child.getAttributes();
+
+		for (Attribute currentAttribute : attributeList) {
+			if (currentAttribute.getName().startsWith(labelFinal) && currentAttribute.getName().length() > labelFinal.length()) {
+				String languageCode = currentAttribute.getName().replace(labelFinal, "");
+				Language language = Language.withCode(languageCode);
+				languageTitleMap.put(language, currentAttribute.getValue());
+				numberOfLang++;
+			}
+		}
+
+		String title = child.getAttributeValue("title");
+
+		if (numberOfLang == 0 && Strings.isNotBlank(label)) {
+			for (String languageCollection : languageList) {
+				Language language = Language.withCode(languageCollection);
+				languageTitleMap.put(language, label);
+			}
+		} else if (numberOfLang == 0 && Strings.isNotBlank(title)) {
+			for (String languageCollection : languageList) {
+				Language language = Language.withCode(languageCollection);
+				languageTitleMap.put(language, title);
+			}
+		}
+		return languageTitleMap;
+	}
+
 	private List<String> toListOfString(String stringValue) {
 		if (isNotBlank(stringValue)) {
 			return asList(StringUtils.split(stringValue, ","));
@@ -376,10 +434,10 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 		return new ArrayList<>();
 	}
 
-	private List<ImportedValueList> getCollectionValueLists(Element valueListsElement) {
+	private List<ImportedValueList> getCollectionValueLists(Element valueListsElement, List<String> languages) {
 		List<ImportedValueList> importedValueLists = new ArrayList<>();
 		for (Element element : valueListsElement.getChildren()) {
-			importedValueLists.add(readValueList(element));
+			importedValueLists.add(readValueList(element, languages));
 		}
 		return importedValueLists;
 	}
@@ -391,43 +449,48 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 
 		if (dataEntryElem != null && dataEntryElem.getAttributeValue("type") != null) {
 			switch (dataEntryElem.getAttributeValue("type")) {
-			case "calculated":
-				dataEntry = ImportedDataEntry.asCalculated(dataEntryElem.getAttributeValue("calculator"));
-				break;
+				case "calculated":
+					dataEntry = ImportedDataEntry.asCalculated(dataEntryElem.getAttributeValue("calculator"));
+					break;
 
-			case "copied":
-				dataEntry = ImportedDataEntry.asCopied(
-						dataEntryElem.getAttributeValue("referenceMetadata"),
-						dataEntryElem.getAttributeValue("copiedMetadata"));
-				break;
+				case "copied":
+					dataEntry = ImportedDataEntry.asCopied(
+							dataEntryElem.getAttributeValue("referenceMetadata"),
+							dataEntryElem.getAttributeValue("copiedMetadata"));
+					break;
 
-			case "jexl":
-				dataEntry = ImportedDataEntry.asJEXLScript(dataEntryElem.getText());
-				break;
+				case "jexl":
+					dataEntry = ImportedDataEntry.asJEXLScript(dataEntryElem.getText());
+					break;
 
-			case "sequence":
-				String fixedSequenceCode = dataEntryElem.getAttributeValue("fixedSequenceCode");
-				String metadataProvidingSequenceCode = dataEntryElem.getAttributeValue("metadataProvidingSequenceCode");
-				if (fixedSequenceCode != null) {
-					dataEntry = ImportedDataEntry.asFixedSequence(fixedSequenceCode);
-				} else {
-					dataEntry = ImportedDataEntry.asMetadataProvidingSequence(metadataProvidingSequenceCode);
-				}
+				case "sequence":
+					String fixedSequenceCode = dataEntryElem.getAttributeValue("fixedSequenceCode");
+					String metadataProvidingSequenceCode = dataEntryElem.getAttributeValue("metadataProvidingSequenceCode");
+					if (fixedSequenceCode != null) {
+						dataEntry = ImportedDataEntry.asFixedSequence(fixedSequenceCode);
+					} else {
+						dataEntry = ImportedDataEntry.asMetadataProvidingSequence(metadataProvidingSequenceCode);
+					}
 
-				break;
+					break;
 
-			default:
-				break;
+				default:
+					break;
 			}
 		}
 		return dataEntry;
 	}
 
-	private ImportedValueList readValueList(Element element) {
+	private ImportedValueList readValueList(Element element, List<String> languageList) {
 		ImportedValueList valueList = new ImportedValueList()
 				.setCode(element.getAttributeValue(CODE));
-		if (element.getAttribute(TITLE) != null) {
-			valueList.setTitle(element.getAttributeValue(TITLE));
+
+		String title = element.getAttributeValue(TITLE);
+
+		Map<Language, String> languageTitleMap = getLanguageStringMap(element, languageList, title, TITLE);
+
+		if (languageTitleMap.size() > 0) {
+			valueList.setTitle(languageTitleMap);
 		}
 
 		if (element.getAttribute(CLASSIFIED_TYPES) != null) {
@@ -467,7 +530,8 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 				.setValue(childElement.getAttributeValue("value"));
 	}
 
-	public static ImportedSettings readFromFile(File file) {
+	public static ImportedSettings readFromFile(File file, String currentCollection,
+												ModelLayerFactory modelLayerFactory) {
 
 		SAXBuilder builder = new SAXBuilder();
 		Document document;
@@ -479,7 +543,7 @@ public class SettingsXMLFileReader implements SettingsXMLFileConstants {
 			throw new ConfigManagerRuntimeException.CannotCompleteOperation("build Document JDOM2 from file", e);
 		}
 
-		SettingsXMLFileReader reader = new SettingsXMLFileReader(document);
+		SettingsXMLFileReader reader = new SettingsXMLFileReader(document, currentCollection, modelLayerFactory);
 
 		return reader.read();
 

@@ -1,20 +1,5 @@
 package com.constellio.app.utils.scripts;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
@@ -29,9 +14,23 @@ import org.apache.solr.common.params.CursorMarkParams;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.handler.loader.XMLLoader;
 
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+
 public class SolrCloudBackup {
 
-	private static final String[] COLLECTIONS = new String[] { "records", "events", "notifications" };
+	private static final String[] COLLECTIONS = new String[]{"records", "events", "notifications"};
 	private static final int BATCH_SIZE = 1000;
 	private static final int THREADS = Runtime.getRuntime().availableProcessors() * 8;
 	private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(THREADS, THREADS, 10, TimeUnit.SECONDS,

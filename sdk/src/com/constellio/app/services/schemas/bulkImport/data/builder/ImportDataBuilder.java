@@ -1,9 +1,10 @@
 package com.constellio.app.services.schemas.bulkImport.data.builder;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class ImportDataBuilder {
 
@@ -25,6 +26,15 @@ public class ImportDataBuilder {
 
 	public ImportDataBuilder addField(String key, Object value) {
 		this.fields.put(key, value);
+		return this;
+	}
+
+	public ImportDataBuilder addField(String key, Object value, Locale locale) {
+		if (locale == null) {
+			this.fields.put(key, value);
+		} else {
+			this.fields.put(key + "_" + locale.getLanguage(), value);
+		}
 		return this;
 	}
 

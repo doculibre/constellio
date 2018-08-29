@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -20,6 +17,9 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSchemaRecordsView> {
 
@@ -52,7 +52,7 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 		};
 		return dataProvider;
 	}
-	
+
 	private boolean isHierarchical() {
 		MetadataSchema schema = schema(schemaCode);
 		return schema.hasMetadataWithCode(HierarchicalValueListItem.PARENT);

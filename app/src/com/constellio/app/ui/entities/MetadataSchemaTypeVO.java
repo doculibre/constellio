@@ -1,17 +1,17 @@
 package com.constellio.app.ui.entities;
 
-import java.io.Serializable;
-import java.util.Locale;
-import java.util.Map;
-
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.model.entities.Language;
+
+import java.io.Serializable;
+import java.util.Map;
 
 public class MetadataSchemaTypeVO implements Serializable {
 
 	private final String code;
-	private final Map<Locale, String> labels;
+	private final Map<Language, String> labels;
 
-	public MetadataSchemaTypeVO(String code, Map<Locale, String> labels) {
+	public MetadataSchemaTypeVO(String code, Map<Language, String> labels) {
 		this.code = code;
 		this.labels = labels;
 	}
@@ -20,11 +20,15 @@ public class MetadataSchemaTypeVO implements Serializable {
 		return code;
 	}
 
-	public String getLabel(Locale locale) {
+	public String getLabel(Language locale) {
 		return labels.get(locale);
 	}
 
+	public Map<Language, String> getLabels() {
+		return labels;
+	}
+
 	public String getLabel() {
-		return getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+		return getLabel(Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage()));
 	}
 }

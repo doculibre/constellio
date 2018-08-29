@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.management.plugin;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.extensions.plugins.PluginActivationFailureCause;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
@@ -36,6 +29,12 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class PluginManagementViewImpl extends BaseViewImpl implements PluginManagementView {
 	PluginManagementPresenter presenter;
@@ -153,7 +152,7 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 			public void itemClick(ItemClickEvent event) {
 				ConstellioPluginInfo constellioPluginInfo = (ConstellioPluginInfo) event.getItemId();
 				if ("pluginActivationFailureCause".equals(event.getPropertyId())
-						&& constellioPluginInfo.getPluginActivationFailureCause() != null) {
+					&& constellioPluginInfo.getPluginActivationFailureCause() != null) {
 					Window window = new BaseWindow(
 							$("PluginActivationFailureCause." + constellioPluginInfo.getPluginActivationFailureCause()
 									.getCode()));
@@ -186,14 +185,16 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 	private Converter<String, ConstellioPluginStatus> newConstellioPluginStatusConverter() {
 		return new Converter<String, ConstellioPluginStatus>() {
 			@Override
-			public ConstellioPluginStatus convertToModel(String value, Class<? extends ConstellioPluginStatus> targetType,
-					Locale locale)
+			public ConstellioPluginStatus convertToModel(String value,
+														 Class<? extends ConstellioPluginStatus> targetType,
+														 Locale locale)
 					throws ConversionException {
 				return null;
 			}
 
 			@Override
-			public String convertToPresentation(ConstellioPluginStatus value, Class<? extends String> targetType, Locale locale)
+			public String convertToPresentation(ConstellioPluginStatus value, Class<? extends String> targetType,
+												Locale locale)
 					throws ConversionException {
 				return $("ConstellioPluginStatus." + value.getCode());
 			}
@@ -214,15 +215,15 @@ public class PluginManagementViewImpl extends BaseViewImpl implements PluginMana
 		return new Converter<String, PluginActivationFailureCause>() {
 			@Override
 			public PluginActivationFailureCause convertToModel(String value,
-					Class<? extends PluginActivationFailureCause> targetType,
-					Locale locale)
+															   Class<? extends PluginActivationFailureCause> targetType,
+															   Locale locale)
 					throws ConversionException {
 				return null;
 			}
 
 			@Override
 			public String convertToPresentation(PluginActivationFailureCause value, Class<? extends String> targetType,
-					Locale locale)
+												Locale locale)
 					throws ConversionException {
 				if (value == null) {
 					return "";

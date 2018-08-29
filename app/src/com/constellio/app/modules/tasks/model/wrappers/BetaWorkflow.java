@@ -12,7 +12,7 @@ public class BetaWorkflow extends RecordWrapper {
 	public static final String CODE = "code";
 
 	public BetaWorkflow(Record record,
-			MetadataSchemaTypes types) {
+						MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 

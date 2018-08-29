@@ -1,13 +1,5 @@
 package com.constellio.app.modules.robots.extensions;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.api.extensions.SystemCheckExtension;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
@@ -19,6 +11,14 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
+
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RobotSystemCheckExtension extends SystemCheckExtension {
 

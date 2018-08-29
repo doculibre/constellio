@@ -36,6 +36,12 @@
     </listener>
 
     <!--
+    <listener>
+        <listener-class>com.constellio.app.servlet.ConstellioWSServletContextListener</listener-class>
+    </listener>
+    -->
+
+    <!--
          A servlet filter that logs all requests in files. Useful for monitoring and debugging.
          Use it with care! It can generate a huge amount of files and will slow down performance
          significantly.
@@ -89,7 +95,9 @@
         <filter-class>org.eclipse.jetty.servlets.GzipFilter</filter-class>
         <init-param>
             <param-name>mimeTypes</param-name>
-            <param-value>text/html,text/plain,text/xml,application/xhtml+xml,text/css,application/javascript,image/svg+xml,application/x-javascript</param-value>
+            <param-value>
+                text/html,text/plain,text/xml,application/xhtml+xml,text/css,application/javascript,image/svg+xml,application/x-javascript
+            </param-value>
         </init-param>
     </filter>
 

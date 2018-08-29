@@ -1,15 +1,5 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -18,6 +8,15 @@ import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvi
 import com.vaadin.data.Item;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.ObjectProperty;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 // AFTER: Rename to MultitypeRecordVOContainer
 @SuppressWarnings("serial")
@@ -27,7 +26,7 @@ public class RecordVOWithDistinctSchemaTypesLazyContainer extends LazyQueryConta
 	private List<String> reportMetadataList;
 
 	public RecordVOWithDistinctSchemaTypesLazyContainer(RecordVOWithDistinctSchemasDataProvider dataProvider,
-			List<String> reportMetadata) {
+														List<String> reportMetadata) {
 		super(new RecordVOLazyQueryDefinition(dataProvider, reportMetadata),
 				new RecordVOLazyQueryFactory(dataProvider, reportMetadata));
 		this.dataProvider = dataProvider;
@@ -58,14 +57,14 @@ public class RecordVOWithDistinctSchemaTypesLazyContainer extends LazyQueryConta
 
 		/**
 		 * final boolean compositeItems, final int batchSize, final Object idPropertyId
-		 *
+		 * <p>
 		 * //@param dataProvider
 		 * //@param compositeItems
 		 * //@param batchSize
 		 * //@param idPropertyId
 		 */
 		public RecordVOLazyQueryDefinition(RecordVOWithDistinctSchemasDataProvider dataProvider,
-				List<String> reportMetadataList) {
+										   List<String> reportMetadataList) {
 			super(true, 100, null);
 			this.dataProvider = dataProvider;
 
@@ -87,7 +86,8 @@ public class RecordVOWithDistinctSchemaTypesLazyContainer extends LazyQueryConta
 		RecordVOWithDistinctSchemasDataProvider dataProvider;
 		List<String> reportMetadataList;
 
-		public RecordVOLazyQueryFactory(RecordVOWithDistinctSchemasDataProvider dataProvider, List<String> reportMetadataList) {
+		public RecordVOLazyQueryFactory(RecordVOWithDistinctSchemasDataProvider dataProvider,
+										List<String> reportMetadataList) {
 			this.dataProvider = dataProvider;
 			this.reportMetadataList = reportMetadataList;
 		}

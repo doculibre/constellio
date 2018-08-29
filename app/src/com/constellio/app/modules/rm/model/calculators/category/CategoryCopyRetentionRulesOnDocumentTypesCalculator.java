@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.category;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
@@ -22,6 +13,15 @@ import com.constellio.model.entities.calculators.dependencies.ReferenceDependenc
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+
+import static java.util.Arrays.asList;
 
 public class CategoryCopyRetentionRulesOnDocumentTypesCalculator
 		implements MetadataValueCalculator<List<CopyRetentionRuleInRule>> {

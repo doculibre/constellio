@@ -1,6 +1,9 @@
 package com.constellio.app.ui.entities;
 
-import static com.constellio.model.entities.configs.SystemConfigurationType.BINARY;
+import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.model.entities.configs.SystemConfigurationType;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,11 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 
-import org.apache.commons.io.FileUtils;
-
-import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.model.entities.configs.SystemConfigurationType;
+import static com.constellio.model.entities.configs.SystemConfigurationType.BINARY;
 
 public class SystemConfigurationVO implements Serializable {
 	String code;
@@ -26,7 +25,8 @@ public class SystemConfigurationVO implements Serializable {
 	boolean hiddenValue;
 
 	public SystemConfigurationVO(String code, Object value,
-			SystemConfigurationType type, Class<? extends Enum<?>> values, boolean rebootRequired, boolean hiddenValue) {
+								 SystemConfigurationType type, Class<? extends Enum<?>> values, boolean rebootRequired,
+								 boolean hiddenValue) {
 		this.code = code;
 		this.value = value;
 		this.type = type;
@@ -72,38 +72,38 @@ public class SystemConfigurationVO implements Serializable {
 		Object value = null;
 		if (stringValue != null) {
 			switch (type) {
-			case BOOLEAN:
-				value = Boolean.valueOf(stringValue.toString());
-				break;
-			case INTEGER:
-				value = Integer.valueOf(stringValue.toString().replace(" ", "").replace(",", ""));
-				break;
-			case STRING:
-				value = stringValue;
-				break;
-			case ENUM:
-				for (Enum currentValue : values.getEnumConstants()) {
-					if (currentValue.name().equals(stringValue)) {
-						value = currentValue;
-						break;
+				case BOOLEAN:
+					value = Boolean.valueOf(stringValue.toString());
+					break;
+				case INTEGER:
+					value = Integer.valueOf(stringValue.toString().replace(" ", "").replace(",", ""));
+					break;
+				case STRING:
+					value = stringValue;
+					break;
+				case ENUM:
+					for (Enum currentValue : values.getEnumConstants()) {
+						if (currentValue.name().equals(stringValue)) {
+							value = currentValue;
+							break;
+						}
 					}
-				}
-				break;
-			case BINARY:
-				final TempFileUpload tmpFile = (TempFileUpload) stringValue;
-				StreamFactory<InputStream> streamFactory = new StreamFactory<InputStream>() {
-					@Override
-					public InputStream create(String name)
-							throws IOException {
-						return new FileInputStream(tmpFile.getTempFile().getPath());
-					}
-				};
-				tmpFilePath = tmpFile.getTempFile().getPath();
-				value = streamFactory;
+					break;
+				case BINARY:
+					final TempFileUpload tmpFile = (TempFileUpload) stringValue;
+					StreamFactory<InputStream> streamFactory = new StreamFactory<InputStream>() {
+						@Override
+						public InputStream create(String name)
+								throws IOException {
+							return new FileInputStream(tmpFile.getTempFile().getPath());
+						}
+					};
+					tmpFilePath = tmpFile.getTempFile().getPath();
+					value = streamFactory;
 
-				break;
-			default:
-				throw new RuntimeException("Unsupported type " + type);
+					break;
+				default:
+					throw new RuntimeException("Unsupported type " + type);
 			}
 		}
 		setValue(value);

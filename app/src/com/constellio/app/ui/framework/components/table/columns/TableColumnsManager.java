@@ -1,15 +1,5 @@
 package com.constellio.app.ui.framework.components.table.columns;
 
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.commons.lang3.ArrayUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
@@ -25,19 +15,28 @@ import com.vaadin.ui.Table.ColumnCollapseEvent;
 import com.vaadin.ui.Table.ColumnCollapseListener;
 import com.vaadin.ui.Table.ColumnReorderEvent;
 import com.vaadin.ui.Table.ColumnReorderListener;
+import org.apache.commons.lang3.ArrayUtils;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class TableColumnsManager implements Serializable {
-	
+
 	protected ConstellioFactories constellioFactories;
-	
+
 	protected ModelLayerFactory modelLayerFactory;
-	
+
 	protected transient RecordServices recordServices;
-	
+
 	protected transient UserServices userServices;
-	
+
 	protected transient User currentUser;
-	
+
 	public TableColumnsManager() {
 		initTransientObjects();
 	}
@@ -52,31 +51,31 @@ public class TableColumnsManager implements Serializable {
 		stream.defaultReadObject();
 		initTransientObjects();
 	}
-	
+
 	private void initTransientObjects() {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		constellioFactories = ConstellioUI.getCurrent().getConstellioFactories();
-		
+
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
 		recordServices = modelLayerFactory.newRecordServices();
 		userServices = modelLayerFactory.newUserServices();
-		
+
 		String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
 		String username = currentUserVO.getUsername();
-		
+
 		currentUser = userServices.getUserInCollection(username, collection);
 	}
-	
+
 	public void manage(final Table table, final String tableId) {
 		table.setColumnCollapsingAllowed(true);
 		table.setColumnReorderingAllowed(true);
-		
+
 		Object[] visibleColumns = table.getVisibleColumns();
 		if (isRightToLeft()) {
 			ArrayUtils.reverse(visibleColumns);
 			table.setVisibleColumns(visibleColumns);
-			
+
 			for (Object propertyId : table.getContainerPropertyIds()) {
 				Align alignment = adjustAlignment(table.getColumnAlignment(propertyId));
 				table.setColumnAlignment(propertyId, alignment);
@@ -92,7 +91,7 @@ public class TableColumnsManager implements Serializable {
 				table.setColumnCollapsed(propertyId, collapsed);
 			}
 		}
-		
+
 		table.addColumnCollapseListener(new ColumnCollapseListener() {
 			@Override
 			public void columnCollapseStateChange(ColumnCollapseEvent event) {
@@ -113,7 +112,7 @@ public class TableColumnsManager implements Serializable {
 				}
 			}
 		});
-		
+
 		table.addColumnReorderListener(new ColumnReorderListener() {
 			@Override
 			public void columnReorder(ColumnReorderEvent event) {
@@ -134,11 +133,11 @@ public class TableColumnsManager implements Serializable {
 			}
 		});
 	}
-	
+
 	protected void notifyException(Exception e) {
-		
+
 	}
-	
+
 	private List<String> getVisibleColumnIdsForCurrentUser(Table table, String tableId) {
 		List<String> visibleColumnIds = currentUser.getVisibleTableColumnsFor(tableId);
 		if (visibleColumnIds == null) {
@@ -149,7 +148,7 @@ public class TableColumnsManager implements Serializable {
 		}
 		return visibleColumnIds;
 	}
-	
+
 	protected List<String> getDefaultVisibleColumnIds(Table table) {
 		List<String> visibleColumnIds = new ArrayList<String>();
 		Object[] visibleColumns = table.getVisibleColumns();
@@ -157,12 +156,12 @@ public class TableColumnsManager implements Serializable {
 			visibleColumnIds.add(toColumnId(visibleColumn));
 		}
 		return visibleColumnIds;
-	} 
-	
+	}
+
 	protected String toColumnId(Object propertyId) {
 		return propertyId.toString();
 	}
-	
+
 	private Align adjustAlignment(Align alignment) {
 		Align result;
 		if (isRightToLeft()) {

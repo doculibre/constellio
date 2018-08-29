@@ -1,15 +1,11 @@
 package com.constellio.data.dao.services.bigVault;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-
+import com.constellio.data.dao.dto.records.QueryResponseDTO;
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.data.utils.LazyIteratorRuntimeException.LazyIteratorRuntimeException_IncorrectUsage;
+import com.constellio.data.utils.LazyIteratorRuntimeException.LazyIteratorRuntimeException_RemoveNotAvailable;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.junit.Before;
@@ -17,12 +13,15 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import com.constellio.data.dao.dto.records.QueryResponseDTO;
-import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.dao.services.records.RecordDao;
-import com.constellio.data.utils.LazyIteratorRuntimeException.LazyIteratorRuntimeException_IncorrectUsage;
-import com.constellio.data.utils.LazyIteratorRuntimeException.LazyIteratorRuntimeException_RemoveNotAvailable;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class LazyResultsIteratorTest extends ConstellioTest {
 
@@ -201,17 +200,17 @@ public class LazyResultsIteratorTest extends ConstellioTest {
 
 		assertThat(solrParams.getAllValues()).hasSize(3);
 		assertThat(solrParams.getAllValues().get(0).get("q")).isEqualTo("zeQ");
-		assertThat(solrParams.getAllValues().get(0).getParams("fq")).isEqualTo(new String[] { "zeFQ" });
+		assertThat(solrParams.getAllValues().get(0).getParams("fq")).isEqualTo(new String[]{"zeFQ"});
 		assertThat(solrParams.getAllValues().get(0).get("rows")).isEqualTo("3");
 		assertThat(solrParams.getAllValues().get(0).get("sort")).isEqualTo("id asc");
 
 		assertThat(solrParams.getAllValues().get(1).get("q")).isEqualTo("zeQ");
-		assertThat(solrParams.getAllValues().get(1).getParams("fq")).isEqualTo(new String[] { "zeFQ", "id:{3 TO *}" });
+		assertThat(solrParams.getAllValues().get(1).getParams("fq")).isEqualTo(new String[]{"zeFQ", "id:{3 TO *}"});
 		assertThat(solrParams.getAllValues().get(1).get("rows")).isEqualTo("3");
 		assertThat(solrParams.getAllValues().get(1).get("sort")).isEqualTo("id asc");
 
 		assertThat(solrParams.getAllValues().get(2).get("q")).isEqualTo("zeQ");
-		assertThat(solrParams.getAllValues().get(2).getParams("fq")).isEqualTo(new String[] { "zeFQ", "id:{4 TO *}" });
+		assertThat(solrParams.getAllValues().get(2).getParams("fq")).isEqualTo(new String[]{"zeFQ", "id:{4 TO *}"});
 		assertThat(solrParams.getAllValues().get(2).get("rows")).isEqualTo("3");
 		assertThat(solrParams.getAllValues().get(2).get("sort")).isEqualTo("id asc");
 

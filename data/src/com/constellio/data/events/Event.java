@@ -49,21 +49,27 @@ public class Event {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (!(o instanceof Event))
+		}
+		if (!(o instanceof Event)) {
 			return false;
+		}
 
 		Event event = (Event) o;
 
-		if (timeStamp != event.timeStamp)
+		if (timeStamp != event.timeStamp) {
 			return false;
-		if (busName != null ? !busName.equals(event.busName) : event.busName != null)
+		}
+		if (busName != null ? !busName.equals(event.busName) : event.busName != null) {
 			return false;
-		if (type != null ? !type.equals(event.type) : event.type != null)
+		}
+		if (type != null ? !type.equals(event.type) : event.type != null) {
 			return false;
-		if (id != null ? !id.equals(event.id) : event.id != null)
+		}
+		if (id != null ? !id.equals(event.id) : event.id != null) {
 			return false;
+		}
 		return data != null ? data.equals(event.data) : event.data == null;
 	}
 

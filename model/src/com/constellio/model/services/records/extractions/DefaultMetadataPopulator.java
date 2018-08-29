@@ -1,12 +1,5 @@
 package com.constellio.model.services.records.extractions;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -14,6 +7,12 @@ import com.constellio.model.services.contents.ContentManager;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class DefaultMetadataPopulator implements MetadataPopulator {
 
@@ -28,8 +27,8 @@ public class DefaultMetadataPopulator implements MetadataPopulator {
 	public DefaultMetadataPopulator() {
 	}
 
-    @Deprecated //Refactoring needed
-    public <T> DefaultMetadataPopulator(Extractor<T> extractor, ExtractorSupplier<T> feedsExtractor) {
+	@Deprecated //Refactoring needed
+	public <T> DefaultMetadataPopulator(Extractor<T> extractor, ExtractorSupplier<T> feedsExtractor) {
 		this.feedsExtractor = feedsExtractor;
 		this.extractor = extractor;
 	}
@@ -69,8 +68,9 @@ public class DefaultMetadataPopulator implements MetadataPopulator {
 
 		for (Object feed : feedsExtractor.getFeeds(record)) {
 			Collection<? extends Object> value = extractor.extractFrom(feed);
-			if (value != null)
+			if (value != null) {
 				results.addAll(value);
+			}
 		}
 
 		return convert(results);

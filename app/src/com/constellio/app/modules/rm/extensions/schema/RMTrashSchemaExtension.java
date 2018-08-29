@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.extensions.schema;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -24,11 +19,18 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class RMTrashSchemaExtension extends SchemaExtension {
 
@@ -45,12 +47,12 @@ public class RMTrashSchemaExtension extends SchemaExtension {
 	public ExtensionBooleanResult isPutInTrashBeforePhysicalDelete(SchemaEvent event) {
 		String schemaType = new SchemaUtils().getSchemaTypeCode(event.getSchemaCode());
 		switch (schemaType) {
-		case Folder.SCHEMA_TYPE:
-		case RetentionRule.SCHEMA_TYPE:
-		case Category.SCHEMA_TYPE:
-		case ContainerRecord.SCHEMA_TYPE:
-		case Document.SCHEMA_TYPE:
-			return ExtensionBooleanResult.TRUE;
+			case Folder.SCHEMA_TYPE:
+			case RetentionRule.SCHEMA_TYPE:
+			case Category.SCHEMA_TYPE:
+			case ContainerRecord.SCHEMA_TYPE:
+			case Document.SCHEMA_TYPE:
+				return ExtensionBooleanResult.TRUE;
 		}
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
@@ -58,57 +60,57 @@ public class RMTrashSchemaExtension extends SchemaExtension {
 	public LogicalSearchCondition getPhysicallyDeletableRecordsForSchemaType(SchemaEvent event) {
 		String schemaType = new SchemaUtils().getSchemaTypeCode(event.getSchemaCode());
 		switch (schemaType) {
-		case ContainerRecord.SCHEMA_TYPE:
-			SearchServices searchServices = modelLayerFactory.newSearchServices();
+			case ContainerRecord.SCHEMA_TYPE:
+				SearchServices searchServices = modelLayerFactory.newSearchServices();
 
-			List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForUser(event.getUser(),
-					RMPermissionsTo.DELETE_CONTAINERS);
-			long totalNumberOfAdministrativeUnits = searchServices.getResultsCount(from(rm.administrativeUnit.schemaType()).returnAll());
-			if (adminUnitIdsWithPermissions.isEmpty()) {
-				return null;
-			} else if(totalNumberOfAdministrativeUnits == adminUnitIdsWithPermissions.size()) {
-				return fromAllSchemasIn(collection).whereAllConditions(
-						where(Schemas.SCHEMA).isStartingWithText(ContainerRecord.SCHEMA_TYPE + "_"),
-						where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
-				);
-			} else {
-				SPEQueryResponse query = searchServices.query(new LogicalSearchQuery()
-						.setCondition(from(rm.containerRecord.schemaType()).returnAll())
-						.addFieldFacet(ContainerRecord.ADMINISTRATIVE_UNITS+"Id_ss")
-						.setNumberOfRows(0));
-				List<FacetValue> fieldFacetValues = query.getFieldFacetValues(ContainerRecord.ADMINISTRATIVE_UNITS + "Id_ss");
-				Set<String> administrativeUnitsWithContainers = new HashSet<>();
-				for(FacetValue facetValue: fieldFacetValues) {
-					administrativeUnitsWithContainers.add(facetValue.getValue());
+				List<String> adminUnitIdsWithPermissions = getConceptsWithPermissionsForUser(event.getUser(),
+						RMPermissionsTo.DELETE_CONTAINERS);
+				long totalNumberOfAdministrativeUnits = searchServices.getResultsCount(from(rm.administrativeUnit.schemaType()).returnAll());
+				if (adminUnitIdsWithPermissions.isEmpty()) {
+					return null;
+				} else if (totalNumberOfAdministrativeUnits == adminUnitIdsWithPermissions.size()) {
+					return fromAllSchemasIn(collection).whereAllConditions(
+							where(Schemas.SCHEMA).isStartingWithText(ContainerRecord.SCHEMA_TYPE + "_"),
+							where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
+					);
+				} else {
+					SPEQueryResponse query = searchServices.query(new LogicalSearchQuery()
+							.setCondition(from(rm.containerRecord.schemaType()).returnAll())
+							.addFieldFacet(ContainerRecord.ADMINISTRATIVE_UNITS + "Id_ss")
+							.setNumberOfRows(0));
+					List<FacetValue> fieldFacetValues = query.getFieldFacetValues(ContainerRecord.ADMINISTRATIVE_UNITS + "Id_ss");
+					Set<String> administrativeUnitsWithContainers = new HashSet<>();
+					for (FacetValue facetValue : fieldFacetValues) {
+						administrativeUnitsWithContainers.add(facetValue.getValue());
+					}
+
+					return fromAllSchemasIn(collection).whereAllConditions(
+							anyConditions(
+									where(rm.containerRecord.administrativeUnits()).isNull(),
+									where(rm.containerRecord.administrativeUnits()).isIn(adminUnitIdsWithPermissions)
+							),
+							where(Schemas.SCHEMA).isStartingWithText(ContainerRecord.SCHEMA_TYPE + "_"),
+							where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
+					);
 				}
 
-				return fromAllSchemasIn(collection).whereAllConditions(
-						anyConditions(
-								where(rm.containerRecord.administrativeUnits()).isNull(),
-								where(rm.containerRecord.administrativeUnits()).isIn(adminUnitIdsWithPermissions)
-						),
-						where(Schemas.SCHEMA).isStartingWithText(ContainerRecord.SCHEMA_TYPE + "_"),
-						where(Schemas.LOGICALLY_DELETED_STATUS).isTrue()
-				);
-			}
+			case Category.SCHEMA_TYPE:
+				if (event.getUser().has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally()) {
+					return fromAllSchemasIn(collection).whereAllConditions(
+							where(Schemas.SCHEMA).isStartingWithText(Category.SCHEMA_TYPE + "_"),
+							where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
+				} else {
+					return null;
+				}
 
-		case Category.SCHEMA_TYPE:
-			if (event.getUser().has(RMPermissionsTo.MANAGE_CLASSIFICATION_PLAN).globally()) {
-				return fromAllSchemasIn(collection).whereAllConditions(
-						where(Schemas.SCHEMA).isStartingWithText(Category.SCHEMA_TYPE + "_"),
-						where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
-			} else {
-				return null;
-			}
-
-		case RetentionRule.SCHEMA_TYPE:
-			if (event.getUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally()) {
-				return fromAllSchemasIn(collection).whereAllConditions(
-						where(Schemas.SCHEMA).isStartingWithText(RetentionRule.SCHEMA_TYPE + "_"),
-						where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
-			} else {
-				return null;
-			}
+			case RetentionRule.SCHEMA_TYPE:
+				if (event.getUser().has(RMPermissionsTo.MANAGE_RETENTIONRULE).globally()) {
+					return fromAllSchemasIn(collection).whereAllConditions(
+							where(Schemas.SCHEMA).isStartingWithText(RetentionRule.SCHEMA_TYPE + "_"),
+							where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
+				} else {
+					return null;
+				}
 
 		}
 

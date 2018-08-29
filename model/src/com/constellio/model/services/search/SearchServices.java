@@ -1,32 +1,5 @@
 package com.constellio.model.services.search;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-import static com.constellio.model.services.records.RecordUtils.splitByCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.common.params.CommonParams;
-import org.apache.solr.common.params.DisMaxParams;
-import org.apache.solr.common.params.FacetParams;
-import org.apache.solr.common.params.HighlightParams;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.MoreLikeThisParams;
-import org.apache.solr.common.params.ShardParams;
-import org.apache.solr.common.params.StatsParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.MoreLikeThisDTO;
 import com.constellio.data.dao.dto.records.QueryResponseDTO;
@@ -41,6 +14,7 @@ import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -54,30 +28,61 @@ import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.cache.RecordsCachesRequestMemoryImpl;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.QueryElevation.DocElevation;
 import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
+import com.constellio.model.services.search.query.logical.FieldLogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery.UserFilter;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.common.params.FacetParams;
+import org.apache.solr.common.params.HighlightParams;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.MoreLikeThisParams;
+import org.apache.solr.common.params.ShardParams;
+import org.apache.solr.common.params.StatsParams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.model.services.records.RecordUtils.splitByCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SearchServices {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchServices.class);
 
-	private static String[] STOP_WORDS_FR = { "au", "aux", "avec", "ce", "ces", "dans", "de", "des", "du", "elle", "en", "et",
-			"eux", "il", "je", "la", "le", "leur", "lui", "ma", "mais", "me", "même", "mes", "moi", "mon", "ne", "nos", "notre",
-			"nous", "on", "ou", "par", "pas", "pour", "qu", "que", "qui", "sa", "se", "ses", "son", "sur", "ta", "te", "tes",
-			"toi", "ton", "tu", "un", "une", "vos", "votre", "vous", "c", "d", "j", "l", "à", "m", "n", "s", "t", "y", "été",
-			"étée", "étées", "étés", "étant", "suis", "es", "est", "sommes", "êtes", "sont", "serai", "seras", "sera", "serons",
-			"serez", "seront", "serais", "serait", "serions", "seriez", "seraient", "étais", "était", "étions", "étiez",
-			"étaient", "fus", "fut", "fûmes", "fûtes", "furent", "sois", "soit", "soyons", "soyez", "soient", "fusse", "fusses",
-			"fût", "fussions", "fussiez", "fussent", "ayant", "eu", "eue", "eues", "eus", "ai", "as", "avons", "avez", "ont",
-			"aurai", "auras", "aura", "aurons", "aurez", "auront", "aurais", "aurait", "aurions", "auriez", "auraient", "avais",
-			"avait", "avions", "aviez", "avaient", "eut", "eûmes", "eûtes", "eurent", "aie", "aies", "ait", "ayons", "ayez",
-			"aient", "eusse", "eusses", "eût", "eussions", "eussiez", "eussent", "ceci", "cela", "celà", "cet", "cette", "ici",
-			"ils", "les", "leurs", "quel", "quels", "quelle", "quelles", "sans", "soi" };
+	private static String[] STOP_WORDS_FR = {"au", "aux", "avec", "ce", "ces", "dans", "de", "des", "du", "elle", "en", "et",
+											 "eux", "il", "je", "la", "le", "leur", "lui", "ma", "mais", "me", "même", "mes", "moi", "mon", "ne", "nos", "notre",
+											 "nous", "on", "ou", "par", "pas", "pour", "qu", "que", "qui", "sa", "se", "ses", "son", "sur", "ta", "te", "tes",
+											 "toi", "ton", "tu", "un", "une", "vos", "votre", "vous", "c", "d", "j", "l", "à", "m", "n", "s", "t", "y", "été",
+											 "étée", "étées", "étés", "étant", "suis", "es", "est", "sommes", "êtes", "sont", "serai", "seras", "sera", "serons",
+											 "serez", "seront", "serais", "serait", "serions", "seriez", "seraient", "étais", "était", "étions", "étiez",
+											 "étaient", "fus", "fut", "fûmes", "fûtes", "furent", "sois", "soit", "soyons", "soyez", "soient", "fusse", "fusses",
+											 "fût", "fussions", "fussiez", "fussent", "ayant", "eu", "eue", "eues", "eus", "ai", "as", "avons", "avez", "ont",
+											 "aurai", "auras", "aura", "aurons", "aurez", "auront", "aurais", "aurait", "aurions", "auriez", "auraient", "avais",
+											 "avait", "avions", "aviez", "avaient", "eut", "eûmes", "eûtes", "eurent", "aie", "aies", "ait", "ayons", "ayez",
+											 "aient", "eusse", "eusses", "eût", "eussions", "eussiez", "eussent", "ceci", "cela", "celà", "cet", "cette", "ici",
+											 "ils", "les", "leurs", "quel", "quels", "quelle", "quelles", "sans", "soi"};
 
 	//RecordDao recordDao;
 	RecordServices recordServices;
@@ -153,7 +158,8 @@ public class SearchServices {
 	public Record searchSingleResult(LogicalSearchCondition condition) {
 		SPEQueryResponse response = query(new LogicalSearchQuery(condition).setNumberOfRows(1));
 		if (response.getNumFound() > 1) {
-			SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, "?");
+			SolrQueryBuilderParams params = new SolrQueryBuilderParams(false, "?", null) {
+			};
 			throw new SearchServicesRuntimeException.TooManyRecordsInSingleSearchResult(condition.getSolrQuery(params));
 		}
 		return response.getNumFound() == 1 ? response.getRecords().get(0) : null;
@@ -237,7 +243,8 @@ public class SearchServices {
 		};
 	}
 
-	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize, int skipping) {
+	public SearchResponseIterator<Record> recordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize,
+																	  int skipping) {
 		ModifiableSolrParams params = addSolrModifiableParams(query);
 		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
 		return new LazyResultsKeepingOrderIterator<Record>(dataStoreDao(query.getDataStore()), params, batchSize, skipping) {
@@ -249,7 +256,8 @@ public class SearchServices {
 		};
 	}
 
-	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query, final int batchSize) {
+	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query,
+																			final int batchSize) {
 		LogicalSearchQuery querCompatibleWithCache = new LogicalSearchQuery(query);
 		querCompatibleWithCache.setStartRow(0);
 		querCompatibleWithCache.setNumberOfRows(100000);
@@ -299,7 +307,7 @@ public class SearchServices {
 	}
 
 	public SearchResponseIterator<Record> cachedRecordsIteratorKeepingOrder(LogicalSearchQuery query, int batchSize,
-			int skipping) {
+																			int skipping) {
 
 		SearchResponseIterator<Record> iterator = cachedRecordsIteratorKeepingOrder(query, batchSize);
 
@@ -378,7 +386,10 @@ public class SearchServices {
 	}
 
 	public String getLanguage(LogicalSearchQuery query) {
-		if (query.getCondition().isCollectionSearch()) {
+		if (query.getLanguage() != null) {
+			return query.getLanguage();
+
+		} else if (query.getCondition().isCollectionSearch()) {
 			return getLanguageCode(query.getCondition().getCollection());
 
 		} else {
@@ -386,10 +397,47 @@ public class SearchServices {
 		}
 	}
 
+	public String getCollection(LogicalSearchQuery query) {
+		if (query.getCondition().isCollectionSearch()) {
+			return query.getCondition().getCollection();
+
+		} else {
+			return null;
+		}
+	}
+
+	public List<MetadataSchemaType> getSearchedTypes(LogicalSearchQuery query, MetadataSchemaTypes types) {
+		if (types == null) {
+			return Collections.emptyList();
+		}
+
+		List<MetadataSchemaType> metadataSchemaTypes = new ArrayList<>();
+		if (query.getCondition() != null) {
+			List<String> schemaTypesCodes = query.getCondition().getFilterSchemaTypesCodes();
+			if (schemaTypesCodes != null) {
+				for (String schemaTypeCode : schemaTypesCodes) {
+					metadataSchemaTypes.add(types.getSchemaType(schemaTypeCode));
+				}
+			}
+		}
+
+		String collection = getCollection(query);
+		if (metadataSchemaTypes.isEmpty() && collection != null) {
+			metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes();
+		}
+
+		return metadataSchemaTypes;
+	}
+
 	public String getLanguageCode(String collection) {
 		String language;
 		try {
-			language = collectionsListManager.getCollectionLanguages(collection).get(0);
+			List<String> languageCodes = collectionsListManager.getCollectionLanguages(collection);
+			if (languageCodes == null || languageCodes.size() == 0) {
+				language = mainDataLanguage;
+			} else {
+				language = languageCodes.get(0);
+			}
 		} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
 			language = mainDataLanguage;
 		}
@@ -407,8 +455,16 @@ public class SearchServices {
 			params.add(CommonParams.FQ, filterQuery);
 		}
 
+		String collection = getCollection(query);
+		MetadataSchemaTypes types = null;
+		if (collection != null && metadataSchemasManager != null && !collection.equals("inexistentCollection42")) {
+			types = metadataSchemasManager.getSchemaTypes(collection);
+		}
+
+		List<MetadataSchemaType> searchedSchemaTypes = getSearchedTypes(query, types);
+
 		String language = getLanguage(query);
-		params.add(CommonParams.FQ, "" + query.getQuery(language));
+		params.add(CommonParams.FQ, "" + query.getQuery(language, types));
 
 		if (DataStore.RECORDS.equals(query.getDataStore()) || query.getDataStore() == null) {
 			if (query.isMoreLikeThis()) {
@@ -420,14 +476,21 @@ public class SearchServices {
 			}
 		}
 		if (query.getFreeTextQuery() != null) {
-			String qf = getQfFor(query.getCondition().getCollection(), query.getFieldBoosts());
+			String qf = getQfFor(language, query.getFieldBoosts(), searchedSchemaTypes);
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
 				int mm = calcMM(query.getFreeTextQuery());
 				params.add(DisMaxParams.MM, "" + mm);
+				if (systemConfigs.isRunningWithSolr6()) {
+					params.add(DisMaxParams.MM, "1");
+					params.add("q.op", "AND");
+				}
 			} else {
 				params.add(DisMaxParams.MM, "1");
+				if (systemConfigs.isRunningWithSolr6()) {
+					params.add("q.op", "OR");
+				}
 			}
 			params.add("defType", "edismax");
 			params.add(DisMaxParams.BQ, "\"" + query.getFreeTextQuery() + "\"");
@@ -491,7 +554,7 @@ public class SearchServices {
 			}
 		}
 
-		String sort = query.getSort();
+		String sort = getSortQuery(query);
 		if (!sort.isEmpty()) {
 			params.add(CommonParams.SORT, sort);
 		}
@@ -502,14 +565,26 @@ public class SearchServices {
 			fields.add("schema_s");
 			fields.add("_version_");
 			fields.add("collection_s");
-			fields.addAll(query.getReturnedMetadatas().getAcceptedFields());
+
+			List<String> secondaryCollectionLanguages = new ArrayList<>();
+			if (collection != null) {
+				secondaryCollectionLanguages.addAll(
+						collectionsListManager.getCollectionInfo(collection).getSecondaryCollectionLanguesCodes());
+			}
+
+			for (String field : query.getReturnedMetadatas().getAcceptedFields()) {
+				fields.add(field);
+				for (String secondaryCollectionLanguage : secondaryCollectionLanguages) {
+					fields.add(Schemas.getSecondaryLanguageDataStoreCode(field, secondaryCollectionLanguage));
+				}
+			}
+
 			params.set(CommonParams.FL, StringUtils.join(fields.toArray(), ","));
 
 		}
 
-		if (query.isHighlighting()) {
+		if (query.isHighlighting() && types != null) {
 			HashSet<String> highligthedMetadatas = new HashSet<>();
-			MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(query.getCondition().getCollection());
 			for (Metadata metadata : types.getSearchableMetadatas()) {
 				highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
 			}
@@ -553,8 +628,9 @@ public class SearchServices {
 
 			StringBuilder similarityFields = new StringBuilder();
 			for (String aSimilarityField : moreLikeThisFields) {
-				if (similarityFields.length() != 0)
+				if (similarityFields.length() != 0) {
 					similarityFields.append(",");
+				}
 				if (!aSimilarityField.contains("_txt_") && !aSimilarityField.contains("_t_")) {
 					System.err.printf("The %s does not support term vector. It may cause performance issue.\n", aSimilarityField);
 				}
@@ -564,32 +640,32 @@ public class SearchServices {
 			params.add(MoreLikeThisParams.SIMILARITY_FIELDS, similarityFields.toString());
 		}
 
-		String collection = query.getCondition().getCollection();
 		if (collection != null) {
 			SearchConfigurationsManager manager = modelLayerFactory.getSearchConfigurationsManager();
 			List<String> excludeIds = manager.getDocExlusions(collection);
 
 			List<String> elevateIds = new ArrayList<>();
 			List<DocElevation> docElevation = manager.getDocElevations(collection, query.getFreeTextQuery());
-			for (DocElevation doc:docElevation) {
+			for (DocElevation doc : docElevation) {
 				if (doc.getId() != null && !excludeIds.contains(doc.getId())) {
 					elevateIds.add(doc.getId());
 				}
 			}
 
-			if(!excludeIds.isEmpty()) {
+			if (!excludeIds.isEmpty()) {
 				params.add("excludeIds", StringUtils.join(excludeIds, ","));
 			}
 
-			if(!elevateIds.isEmpty()) {
+			if (!elevateIds.isEmpty()) {
 				params.add("elevateIds", StringUtils.join(elevateIds, ","));
 			}
 		}
 
 		if (query.isMoreLikeThis()) {
 			params.add(CommonParams.Q, "id:" + query.getMoreLikeThisRecordId());
-		} else if(addSynonyms && collection != null && query.getFreeTextQuery() != null) {
-			params.add(CommonParams.Q, modelLayerFactory.getSynonymsConfigurationsManager().computeSynonyms(collection, query.getFreeTextQuery()));
+		} else if (addSynonyms && collection != null && query.getFreeTextQuery() != null) {
+			params.add(CommonParams.Q,
+					modelLayerFactory.getSynonymsConfigurationsManager().computeSynonyms(collection, query.getFreeTextQuery()));
 		} else {
 			params.add(CommonParams.Q, StringUtils.defaultString(query.getFreeTextQuery(), "*:*"));
 		}
@@ -597,8 +673,86 @@ public class SearchServices {
 		return params;
 	}
 
+	public String getSortQuery(LogicalSearchQuery query) {
+		StringBuilder stringBuilder = new StringBuilder();
+
+		for (LogicalSearchQuerySort sort : query.getSortFields()) {
+			if (stringBuilder.length() > 0) {
+				stringBuilder.append(", ");
+			}
+
+			if (sort instanceof FieldLogicalSearchQuerySort) {
+				if (query.getLanguage() != null && !query.getLanguage()
+						.equals(modelLayerFactory.getCollectionsListManager().getMainDataLanguage())) {
+					DataStoreField dataStoreField = ((FieldLogicalSearchQuerySort) sort).getField();
+					//Metadata may not be multilingual, fields of main data language.
+
+					if (dataStoreField.getSortField() != null) {
+						stringBuilder.append(sortFieldName(
+								dataStoreField.getSortField().getSecondaryLanguageDataStoreCode(query.getLanguage())));
+						stringBuilder.append(" ");
+						stringBuilder.append(sort.isAscending() ? "asc" : "desc");
+						stringBuilder.append(", ");
+					}
+					stringBuilder.append(sortFieldName(dataStoreField.getSecondaryLanguageDataStoreCode(query.getLanguage())));
+					stringBuilder.append(" ");
+					stringBuilder.append(sort.isAscending() ? "asc" : "desc");
+					stringBuilder.append(", ");
+
+					if (dataStoreField.getSortField() != null) {
+						stringBuilder.append(sortFieldName(dataStoreField.getSortField().getDataStoreCode()));
+						stringBuilder.append(" ");
+						stringBuilder.append(sort.isAscending() ? "asc" : "desc");
+						stringBuilder.append(", ");
+					}
+					stringBuilder.append(sortFieldName(dataStoreField.getDataStoreCode()));
+					stringBuilder.append(" ");
+					stringBuilder.append(sort.isAscending() ? "asc" : "desc");
+
+				} else {
+					DataStoreField dataStoreField = ((FieldLogicalSearchQuerySort) sort).getField();
+					if (dataStoreField.getSortField() != null) {
+						stringBuilder.append(sortFieldName(dataStoreField.getSortField().getDataStoreCode()));
+						stringBuilder.append(" ");
+						stringBuilder.append(sort.isAscending() ? "asc" : "desc");
+						stringBuilder.append(", ");
+					}
+					stringBuilder.append(sortFieldName(dataStoreField.getDataStoreCode()));
+					stringBuilder.append(" ");
+					stringBuilder.append(sort.isAscending() ? "asc" : "desc");
+				}
+
+			} else if (sort instanceof FunctionLogicalSearchQuerySort) {
+				String function = ((FunctionLogicalSearchQuerySort) sort).getFunction();
+				stringBuilder.append(function);
+				stringBuilder.append(" ");
+				stringBuilder.append(sort.isAscending() ? "asc" : "desc");
+
+			} else if (sort instanceof ScoreLogicalSearchQuerySort) {
+				String field = ((ScoreLogicalSearchQuerySort) sort).getField();
+				stringBuilder.append(field);
+				stringBuilder.append(" ");
+				stringBuilder.append(sort.isAscending() ? "asc" : "desc");
+
+			} else {
+				throw new IllegalArgumentException("Unsupported sort : " + sort.getClass());
+			}
+
+		}
+
+		return stringBuilder.toString();
+	}
+
+	private String sortFieldName(String fieldName) {
+		if (fieldName != null && fieldName.endsWith("_s")) {
+			return fieldName.substring(0, fieldName.length() - 2) + "_fs-s";
+		}
+		return fieldName;
+	}
+
 	/**
 	 * FIXME With solr 6+, use mm autorelax instead
+	 *
 	 * @param userQuery
 	 * @return
 	 */
@@ -608,36 +762,41 @@ public class SearchServices {
 		return queryTerms.size();
 	}
 
-	private String getQfFor(String collection, List<SearchBoost> boosts) {
+	private String getQfFor(String language, List<SearchBoost> boosts,
+							List<MetadataSchemaType> searchedSchemaTypes) {
 		StringBuilder sb = new StringBuilder();
 
-		Set<String> fieldsWithBoosts = new HashSet<>();
+		Set<String> fields = new HashSet<>();
 
 		for (SearchBoost boost : boosts) {
 			sb.append(boost.getKey());
 			sb.append("^");
 			sb.append(boost.getValue());
 			sb.append(" ");
-			fieldsWithBoosts.add(boost.getKey());
+			fields.add(boost.getKey());
 		}
-		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSearchableMetadatas()) {
-			if (metadata.hasSameCode(Schemas.LEGACY_ID)) {
-				sb.append(Schemas.LEGACY_ID.getDataStoreCode());
-				sb.append("^20 ");
-			}
-			String analyzedField = metadata.getAnalyzedField(mainDataLanguage).getDataStoreCode();
-			if (!fieldsWithBoosts.contains(analyzedField)) {
-				sb.append(analyzedField + " ");
+
+		for (MetadataSchemaType schemaType : searchedSchemaTypes) {
+			for (Metadata metadata : schemaType.getAllMetadatas()) {
+				if (metadata.isSearchable()) {
+					if (metadata.hasSameCode(Schemas.LEGACY_ID)) {
+						sb.append(Schemas.LEGACY_ID.getDataStoreCode());
+						sb.append("^20 ");
+					} else {
+						String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? language : mainDataLanguage)
+								.getDataStoreCode();
+						if (!fields.contains(analyzedField)) {
+							sb.append(analyzedField + " ");
+						}
+					}
+				}
 			}
 		}
 
 		String idAnalyzedField = Schemas.IDENTIFIER.getAnalyzedField(mainDataLanguage).getDataStoreCode();
-		if (!fieldsWithBoosts.contains(idAnalyzedField)) {
+		if (!fields.contains(idAnalyzedField)) {
 			sb.append(idAnalyzedField + " ");
 		}
-
-		//		sb.append("search_txt_");
-		//		sb.append(mainDataLanguage);
 		return sb.toString();
 	}
 

@@ -1,23 +1,10 @@
 package com.constellio.data.io;
 
-import static java.io.File.createTempFile;
-import static java.util.Arrays.asList;
-import static java.util.concurrent.Executors.newFixedThreadPool;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-
-import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.extensions.configManager.ExtensionConverter;
+import com.constellio.data.io.services.facades.IOServices;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.util.StringUtils;
@@ -41,9 +28,26 @@ import org.jodconverter.office.OnlineOfficeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
-import com.constellio.data.io.services.facades.IOServices;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import static java.io.File.createTempFile;
+import static java.util.Arrays.asList;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 
 /**
  * Using https://github.com/sbraconnier/jodconverter
@@ -63,7 +67,7 @@ public class ConversionManager implements StatefulService {
 	 *   AportisDoc (Palm) (.pdb)	Hangul WP 97 (.hwp)
 	 *   Pocket Word (.psw)	.rtf, .txt, and .csv
 	 *   When opening .htm or .html files (used for web pages), OpenOffice.org customizes Writer for working with these files.
-	 * 
+	 *
 	 * In addition to OpenDocument formats (.odt and .ott), Writer 2.x can save in these formats:
 	 *   OpenOffice.org 1.x Text Document(.sxw)
 	 *   OpenOffice.org 1.x Text Document Template (.stw)
@@ -94,7 +98,7 @@ public class ConversionManager implements StatefulService {
 	 *   dBase (.dbf)	SYLK (.slk)
 	 *   .htm and .html files including Web page queries	Pocket Excel (pxl)
 	 *   Quattro Pro 6.0 (.wb2)
-	 * 
+	 *
 	 * In addition to OpenDocument formats (.ods and .ots), Calc 2.x can save in these formats:
 	 *   OpenOffice.org 1.x Spreadsheet (.sxc)
 	 *   OpenOffice.org 1.x Spreadsheet Template (.stc)
@@ -120,7 +124,7 @@ public class ConversionManager implements StatefulService {
 	 *   Microsoft PowerPoint 97/2000/XP (.ppt, .pps, and .pot)
 	 *   StarDraw and StarImpress (.sda, .sdd, .sdp, and .vor)
 	 *   CGM - Computer Graphics Metafile (.cgm).
-	 * 
+	 *
 	 * In addition to OpenDocument formats (.odp, .otp, and .odg), Impress 2.x can save in these formats:
 	 *   OpenOffice.org 1.x Presentation (.sxi)
 	 *   OpenOffice.org 1.x Presentation Template (.sti)
@@ -139,9 +143,9 @@ public class ConversionManager implements StatefulService {
 	 *   BMP	JPEG, JPG	PCX	PSD	SGV	WMF
 	 *   DXF	MET	PGM	RAS	SVM	XBM
 	 *   EMF	PBM	PLT	SDA	TGA	XPM
-	 *   EPS	PCD	PNG	SDD	TIF, TIFF	
-	 *   GIF	PCT	PPM	SGF	VOR	
-	 * 
+	 *   EPS	PCD	PNG	SDD	TIF, TIFF
+	 *   GIF	PCT	PPM	SGF	VOR
+	 *
 	 * Draw can only save in the OpenDocument Drawing formats (.odg and .otg), the OpenOffice.org 1.x formats (.sxd and .std) and StarDraw format (.sda, .sdd, and .vor).
 	 * However, Draw can also export to BMP, EMF, EPS, GIF, JPEG, MET, PBM, PCT, PGM, PNG, PPM, RAS, SVG, SVM, TIFF, WMF, and XPM.
 	 */
@@ -161,7 +165,7 @@ public class ConversionManager implements StatefulService {
 
 	static {
 		try {
-//			OfficeManager officeManager = LocalOfficeManager.builder().maxTasksPerProcess(10).install().build();
+			//			OfficeManager officeManager = LocalOfficeManager.builder().maxTasksPerProcess(10).install().build();
 			OfficeManager officeManager = LocalOfficeManager.install();
 			OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
 
@@ -216,7 +220,9 @@ public class ConversionManager implements StatefulService {
 	private AbstractConverter delegate;
 	private ExecutorService executor;
 	private static DataLayerSystemExtensions extensions;
-	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl, DataLayerSystemExtensions extensions) {
+
+	public ConversionManager(IOServices ioServices, int numberOfProcesses, String onlineConversionUrl,
+							 DataLayerSystemExtensions extensions) {
 		this.ioServices = ioServices;
 		this.numberOfProcesses = numberOfProcesses;
 		this.onlineConversionUrl = onlineConversionUrl;
@@ -278,7 +284,8 @@ public class ConversionManager implements StatefulService {
 		return ports;
 	}
 
-	public Future<File> convertToPDFAsync(final InputStream inputStream, final String originalName, final File workingFolder) {
+	public Future<File> convertToPDFAsync(final InputStream inputStream, final String originalName,
+										  final File workingFolder) {
 		if (openOfficeOrLibreOfficeInstalled) {
 			ensureInitialized();
 			return executor.submit(new Callable<File>() {
@@ -365,25 +372,24 @@ public class ConversionManager implements StatefulService {
 						/*copying the contents from input stream to
 						 * output stream using read and write methods
 						 */
-						while ((length = inputStream.read(buffer)) > 0){
+						while ((length = inputStream.read(buffer)) > 0) {
 							outputStream.write(buffer, 0, length);
 						}
-					} catch (FileNotFoundException e ) {
+					} catch (FileNotFoundException e) {
 						throw new OfficeException(String.format("Could not found file %s", input.getName()));
-					} catch(IOException e) {
+					} catch (IOException e) {
 						throw new RuntimeException(e);
 					} finally {
 						if (inputStream != null) {
 							ioServices.closeQuietly(inputStream);
 						}
 
-						if(outputStream != null) {
+						if (outputStream != null) {
 							ioServices.closeQuietly(outputStream);
 						}
 					}
 				}
 			} else {
-
 				OfficeDocumentConverter converter = new OfficeDocumentConverter(officeManager);
 				DocumentFormat inputFormat = getInputDocumentFormat(input, converter);
 				DocumentFormat outputFormat = toPDFa(input);
@@ -481,6 +487,7 @@ public class ConversionManager implements StatefulService {
 
 		return pdfaFormat;
 	}
+
 	public static boolean isSupportedExtension(String ext) {
 		for (String aSupportedExtension : getSupportedExtensions()) {
 			if (aSupportedExtension.equalsIgnoreCase(ext)) {

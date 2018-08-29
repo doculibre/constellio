@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.navigation.RMViews;
@@ -17,6 +15,8 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.List;
 
 public class ContainersInFilingSpacePresenter extends BasePresenter<ContainersInFilingSpaceView> {
 
@@ -82,5 +82,5 @@ public class ContainersInFilingSpacePresenter extends BasePresenter<ContainersIn
 	public void displayContainerButtonClicked(RecordVO container) {
 		view.navigate().to(RMViews.class).displayContainer(container.getId());
 	}
-	
+
 }

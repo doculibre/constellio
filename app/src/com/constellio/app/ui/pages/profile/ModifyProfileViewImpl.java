@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.profile;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.InputStream;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -41,6 +35,11 @@ import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.InputStream;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfileView {
 	public static final String UPDATE_PICTURE_STREAM_SOURCE = "ModifyProfileViewImpl-UpdatePictureStreamSource";
@@ -60,10 +59,10 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	private TextField firstNameField;
 	@PropertyId("lastName")
 	private TextField lastNameField;
-    @PropertyId("email")
-    private TextField emailField;
-    @PropertyId("personalEmails")
-    private TextArea personalEmailsField;
+	@PropertyId("email")
+	private TextField emailField;
+	@PropertyId("personalEmails")
+	private TextArea personalEmailsField;
 	@PropertyId("phone")
 	private TextField phoneField;
 	@PropertyId("fax")
@@ -88,10 +87,13 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	private EnumWithSmallCodeComboBox defaultPageLength;
 	@PropertyId("defaultTaxonomy")
 	private ListOptionGroup taxonomyField;
-	@PropertyId("defaultAdministrativeUnit")
-	private Field defaultAdministrativeUnitField;
 	@PropertyId("agentManuallyDisabled")
 	private CheckBox agentManuallyDisabledField;
+	//TODO RM Module Extension
+	@PropertyId("defaultAdministrativeUnit")
+	private Field defaultAdministrativeUnitField;
+	@PropertyId("hideNotActive")
+	private Field hideNotActiveField;
 
 	private boolean agentManuallyDisabledVisible;
 
@@ -199,14 +201,15 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		emailField.addValidator(new EmailValidator($("ModifyProfileView.invalidEmail")));
 		emailField.setEnabled(presenter.canModify());
 
-        personalEmailsField = new TextArea();
-        personalEmailsField.setCaption($("ModifyProfileView.personalEmails"));
-        personalEmailsField.setRequired(false);
-        personalEmailsField.setNullRepresentation("");
-        personalEmailsField.setId("personalEmails");
-        personalEmailsField.addStyleName("email");
+		personalEmailsField = new TextArea();
+		personalEmailsField.setCaption($("ModifyProfileView.personalEmails"));
+		personalEmailsField.setRequired(false);
+		personalEmailsField.setNullRepresentation("");
+		personalEmailsField.setId("personalEmails");
+		personalEmailsField.addStyleName("email");
 		personalEmailsField.addValidator(new Validator() {
 			private Validator emailValidator = new EmailValidator($("ModifyProfileView.invalidEmail"));
+
 			@Override
 			public void validate(Object value) throws InvalidValueException {
 				if (value != null) {
@@ -301,7 +304,7 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		loginLanguageCodeField.setId("loginLanguageCode");
 		loginLanguageCodeField.setRequired(true);
 		loginLanguageCodeField.setNullSelectionAllowed(false);
-		for(String code : presenter.getCurrentCollectionLanguagesCodes()){
+		for (String code : presenter.getCurrentCollectionLanguagesCodes()) {
 			loginLanguageCodeField.addItem(code);
 			loginLanguageCodeField.setItemCaption(code, $("Language." + code));
 		}
@@ -326,10 +329,10 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		defaultPageLength.setCaption($("ModifyProfileView.searchPageLength"));
 		defaultPageLength.setId("defaultPageLength");
 		defaultPageLength.setNullSelectionAllowed(false);
-//		defaultPageLength.setItemCaption(DefaultTabInFolderDisplay.CONTENT,
-//				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.CONTENT));
-//		defaultPageLength.setItemCaption(DefaultTabInFolderDisplay.METADATA,
-//				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.METADATA));
+		//		defaultPageLength.setItemCaption(DefaultTabInFolderDisplay.CONTENT,
+		//				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.CONTENT));
+		//		defaultPageLength.setItemCaption(DefaultTabInFolderDisplay.METADATA,
+		//				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.METADATA));
 
 		taxonomyField = new ListOptionGroup($("ModifyProfileView.defaultTaxonomy"));
 		taxonomyField.addStyleName("defaultTaxonomy");
@@ -342,13 +345,19 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		}
 
 
-		if(presenter.isRMModuleActivated()) {
+		if (presenter.isRMModuleActivated()) {
 			defaultAdministrativeUnitField = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE, true, false);
 			defaultAdministrativeUnitField.setCaption($("ModifyProfileView.defaultAdministrativeUnit"));
+
+			hideNotActiveField = new CheckBox($("ModifyProfileView.hideNotActive"));
 		} else {
 			defaultAdministrativeUnitField = new TextField();
 			defaultAdministrativeUnitField.setVisible(false);
 			defaultAdministrativeUnitField.setEnabled(false);
+
+			hideNotActiveField = new TextField();
+			hideNotActiveField.setVisible(false);
+			hideNotActiveField.setEnabled(false);
 		}
 
 		agentManuallyDisabledField = new CheckBox($("ModifyProfileView.agentManuallyDisabled"));
@@ -356,9 +365,9 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		agentManuallyDisabledField.addStyleName("agentManuallyDisabled");
 		agentManuallyDisabledField.setVisible(agentManuallyDisabledVisible);
 
-        form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
-                phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
-                taxonomyField, defaultAdministrativeUnitField, defaultPageLength, agentManuallyDisabledField) {
+		form = new BaseForm<ProfileVO>(profileVO, this, imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
+				phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
+				taxonomyField, defaultAdministrativeUnitField, defaultPageLength, agentManuallyDisabledField, hideNotActiveField) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)
 					throws ValidationException {

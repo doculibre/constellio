@@ -1,27 +1,30 @@
 package com.constellio.app.services.migrations.scripts;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
+import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.migrations.CoreRoles;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.JasperFilePrintableValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CoreMigrationTo_7_1 implements MigrationScript {
 
@@ -33,12 +36,31 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		givenNewPermissionsToRGDandADMRoles(collection, appLayerFactory.getModelLayerFactory());
 		new CoreSchemaAlterationFor7_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
 		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+
+		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
+		SchemaDisplayConfig schemaDisplayUserConfig = MigrationHelper.order(collection, appLayerFactory, "display",
+				manager.getSchema(collection, User.DEFAULT_SCHEMA),
+				User.USERNAME,
+				User.FIRSTNAME,
+				User.LASTNAME,
+				Schemas.TITLE.getLocalCode(),
+				User.EMAIL,
+				User.ROLES,
+				User.GROUPS,
+				User.JOB_TITLE,
+				User.PHONE,
+				User.STATUS,
+				Schemas.CREATED_ON.getLocalCode(),
+				Schemas.MODIFIED_ON.getLocalCode(),
+				User.ALL_ROLES);
+		manager.saveSchema(schemaDisplayUserConfig);
 
 	}
 
@@ -51,7 +73,7 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor7_1 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor7_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -63,6 +85,7 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 					.addValidator(JasperFilePrintableValidator.class);
 			builder.create(Printable.ISDELETABLE).setType(MetadataValueType.BOOLEAN).setUndeletable(true).setDefaultValue(true)
 					.defineDataEntry().asManual();
+			builder.get(Printable.TITLE).setMultiLingual(true);
 
 			MetadataSchemaBuilder UserBuilder = typesBuilder.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema();
 			UserBuilder.create(User.FAX).setEssential(false).setType(MetadataValueType.STRING).defineDataEntry().asManual();

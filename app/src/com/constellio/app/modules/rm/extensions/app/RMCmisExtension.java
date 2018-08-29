@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.extensions.app;
 
-import static com.constellio.app.api.cmis.utils.CmisRecordUtils.toGregorianCalendar;
-import static org.apache.chemistry.opencmis.commons.PropertyIds.CREATION_DATE;
-import static org.apache.chemistry.opencmis.commons.PropertyIds.LAST_MODIFICATION_DATE;
-
-import com.constellio.app.modules.rm.RMConfigs;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.api.cmis.builders.object.AllowableActionsBuilder;
 import com.constellio.app.api.cmis.builders.object.PropertiesBuilder;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
@@ -18,6 +11,7 @@ import com.constellio.app.extensions.api.cmis.params.CheckOutParams;
 import com.constellio.app.extensions.api.cmis.params.DeleteTreeParams;
 import com.constellio.app.extensions.api.cmis.params.GetObjectParams;
 import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -31,6 +25,11 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.joda.time.LocalDateTime;
+
+import static com.constellio.app.api.cmis.utils.CmisRecordUtils.toGregorianCalendar;
+import static org.apache.chemistry.opencmis.commons.PropertyIds.CREATION_DATE;
+import static org.apache.chemistry.opencmis.commons.PropertyIds.LAST_MODIFICATION_DATE;
 
 public class RMCmisExtension extends CmisExtension {
 
@@ -87,14 +86,14 @@ public class RMCmisExtension extends CmisExtension {
 		Record record = params.getRecord();
 
 		if (user.hasWriteAccess().on(record) && user.hasDeleteAccess().on(record)
-				&& user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record)
-				&& record.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
+			&& user.has(RMPermissionsTo.MANAGE_FOLDER_AUTHORIZATIONS).on(record)
+			&& record.getTypeCode().equals(Folder.SCHEMA_TYPE)) {
 			params.getActions().addAll(AllowableActionsBuilder.MANAGE_SECURITY_ACTIONS);
 		}
 
 		if (user.hasWriteAccess().on(record) && user.hasDeleteAccess().on(record)
-				&& user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record)
-				&& record.getTypeCode().equals(Document.SCHEMA_TYPE)) {
+			&& user.has(RMPermissionsTo.MANAGE_DOCUMENT_AUTHORIZATIONS).on(record)
+			&& record.getTypeCode().equals(Document.SCHEMA_TYPE)) {
 			params.getActions().addAll(AllowableActionsBuilder.MANAGE_SECURITY_ACTIONS);
 		}
 
@@ -158,8 +157,8 @@ public class RMCmisExtension extends CmisExtension {
 		String schemaType = params.getSchemaType().getCode();
 
 		if (Folder.SCHEMA_TYPE.equals(schemaType)
-				|| Document.SCHEMA_TYPE.equals(schemaType)
-				|| ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
+			|| Document.SCHEMA_TYPE.equals(schemaType)
+			|| ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
 			return ExtensionBooleanResult.FORCE_TRUE;
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;

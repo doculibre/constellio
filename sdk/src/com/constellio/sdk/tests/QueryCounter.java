@@ -1,10 +1,10 @@
 package com.constellio.sdk.tests;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class QueryCounter extends BigVaultServerExtension {
 

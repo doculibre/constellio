@@ -1,27 +1,40 @@
 package com.constellio.app.ui.framework.data.event.category;
 
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.ui.pages.events.EventCategory;
 import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.joda.time.LocalDateTime;
 
 public class EventsListDataProviderFactory {
 
-	public static EventsCategoryDataProvider getEventsListDataProviderFactory(EventCategory eventCategory, ModelLayerFactory modelLayerFactory, String collection , String currentUserName, LocalDateTime startDate, LocalDateTime endDate){
+	public static EventsCategoryDataProvider getEventsListDataProviderFactory(EventCategory eventCategory,
+																			  ModelLayerFactory modelLayerFactory,
+																			  String collection, String currentUserName,
+																			  LocalDateTime startDate,
+																			  LocalDateTime endDate) {
 		return getEventsListDataProviderFactory(eventCategory, modelLayerFactory, collection, currentUserName, startDate, endDate, null);
 	}
 
-	public static EventsCategoryDataProvider getEventsListDataProviderFactory(EventCategory eventCategory, ModelLayerFactory modelLayerFactory, String collection , String currentUserName, String id) {
+	public static EventsCategoryDataProvider getEventsListDataProviderFactory(EventCategory eventCategory,
+																			  ModelLayerFactory modelLayerFactory,
+																			  String collection, String currentUserName,
+																			  String id) {
 		return getEventsListDataProviderFactory(eventCategory, modelLayerFactory, collection, currentUserName, null, null, id);
 	}
 
-	public static EventsCategoryDataProvider getEventsListDataProviderFactory(EventCategory eventCategory, ModelLayerFactory modelLayerFactory, String collection , String currentUserName) {
+	public static EventsCategoryDataProvider getEventsListDataProviderFactory(EventCategory eventCategory,
+																			  ModelLayerFactory modelLayerFactory,
+																			  String collection,
+																			  String currentUserName) {
 		return getEventsListDataProviderFactory(eventCategory, modelLayerFactory, collection, currentUserName, null, null, null);
 	}
 
-	public static EventsCategoryDataProvider getEventsListDataProviderFactory(EventCategory eventCategory, ModelLayerFactory modelLayerFactory, String collection , String currentUserName, LocalDateTime startDate, LocalDateTime endDate, String id) {
-		switch (eventCategory){
+	public static EventsCategoryDataProvider getEventsListDataProviderFactory(EventCategory eventCategory,
+																			  ModelLayerFactory modelLayerFactory,
+																			  String collection, String currentUserName,
+																			  LocalDateTime startDate,
+																			  LocalDateTime endDate, String id) {
+		switch (eventCategory) {
 			case SYSTEM_USAGE:
 				return new SystemUsageEventsDataProvider(modelLayerFactory, collection, currentUserName, startDate, endDate);
 			case FOLDERS_AND_DOCUMENTS_CREATION:

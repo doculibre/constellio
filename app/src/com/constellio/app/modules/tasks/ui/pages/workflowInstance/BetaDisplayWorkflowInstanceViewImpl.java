@@ -1,13 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages.workflowInstance;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
 import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowInstanceVO;
@@ -29,6 +21,13 @@ import com.vaadin.ui.Table.CellStyleGenerator;
 import com.vaadin.ui.Table.TableDragMode;
 import com.vaadin.ui.TreeTable;
 import com.vaadin.ui.VerticalLayout;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BetaDisplayWorkflowInstanceViewImpl extends BaseViewImpl implements BetaDisplayWorkflowInstanceView, NoDragAndDrop {
 

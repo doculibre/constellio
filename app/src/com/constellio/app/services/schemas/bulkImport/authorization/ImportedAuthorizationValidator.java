@@ -1,11 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationPrincipal;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationTarget;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_AuthorizationIDMissing;
@@ -22,6 +16,11 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class ImportedAuthorizationValidator {
 

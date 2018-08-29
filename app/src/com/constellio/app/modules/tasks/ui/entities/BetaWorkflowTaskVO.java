@@ -7,7 +7,7 @@ public class BetaWorkflowTaskVO implements Serializable {
 	TaskVO taskVO;
 
 	String id;
-	
+
 	String type;
 
 	String decision;
@@ -90,35 +90,47 @@ public class BetaWorkflowTaskVO implements Serializable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		BetaWorkflowTaskVO other = (BetaWorkflowTaskVO) obj;
 		if (decision == null) {
-			if (other.decision != null)
+			if (other.decision != null) {
 				return false;
-		} else if (!decision.equals(other.decision))
+			}
+		} else if (!decision.equals(other.decision)) {
 			return false;
-		if (hasChildren != other.hasChildren)
+		}
+		if (hasChildren != other.hasChildren) {
 			return false;
+		}
 		if (id == null) {
-			if (other.id != null)
+			if (other.id != null) {
 				return false;
-		} else if (!id.equals(other.id))
+			}
+		} else if (!id.equals(other.id)) {
 			return false;
+		}
 		if (taskVO == null) {
-			if (other.taskVO != null)
+			if (other.taskVO != null) {
 				return false;
-		} else if (!taskVO.equals(other.taskVO))
+			}
+		} else if (!taskVO.equals(other.taskVO)) {
 			return false;
+		}
 		if (title == null) {
-			if (other.title != null)
+			if (other.title != null) {
 				return false;
-		} else if (!title.equals(other.title))
+			}
+		} else if (!title.equals(other.title)) {
 			return false;
+		}
 		return true;
 	}
 

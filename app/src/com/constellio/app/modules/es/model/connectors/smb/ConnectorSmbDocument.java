@@ -1,14 +1,13 @@
 package com.constellio.app.modules.es.model.connectors.smb;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.es.connectors.smb.LastFetchedStatus;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDateTime;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class ConnectorSmbDocument extends ConnectorDocument<ConnectorSmbDocument> {
 

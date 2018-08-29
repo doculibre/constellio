@@ -1,175 +1,175 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ROWSET>
-    <ROW>
-        <ID_ORGANISME>60523</ID_ORGANISME>
-        <NUMREGLE>1</NUMREGLE>
-        <TYPE_TRANS>A</TYPE_TRANS>
-        <RECUEIL>Corpus Rule 1</RECUEIL>
-        <TITRESER>Rule #1</TITRESER>
-        <REFLEGALE>Juridic reference Rule 1</REFLEGALE>
-        <NO_RECUEIL/>
-        <PROCACTIVI>Xe category; Agent Secreet; Ze X100; Ze X110; Ze 42</PROCACTIVI>
-        <CODECLASS>X; X13; X100; X110; ZE42</CODECLASS>
-        <NOMUNITE>Ze 10; Ze 20</NOMUNITE>
-        <DESCSERIE>Description Rule 1</DESCSERIE>
-        <TYPESDOC>Livre de recettes; Typologie; Petit guide</TYPESDOC>
-        <DOCUMESSEN>O</DOCUMESSEN>
-        <DOCUMCONFI>O</DOCUMCONFI>
-        <REMARQDELA>R1:comment1; R2:comment2; R3:comment3; R4:comment4</REMARQDELA>
-        <REMARQGEN>General Comment Rule 1</REMARQGEN>
-        <GRILLECHAN>N</GRILLECHAN>
-        <DELAI>
-            <DELAI_ROW>
-                <NUMDELAI/>
-                <NUMREGLE>42</NUMREGLE>
-                <TYPEDOSS>P</TYPEDOSS>
-                <SUPPDOSS>dm, pa</SUPPDOSS>
-                <REM_SUPPDOSS>R1</REM_SUPPDOSS>
-                <PERIOACTIF>42</PERIOACTIF>
-                <REM_PERIOACTIF>R2</REM_PERIOACTIF>
-                <PERIOSMACT>5</PERIOSMACT>
-                <ID_REF_DISPOSITION>C</ID_REF_DISPOSITION>
-            </DELAI_ROW>
-            <DELAI_ROW>
-                <NUMDELAI/>
-                <NUMREGLE>666</NUMREGLE>
-                <TYPEDOSS>S</TYPEDOSS>
-                <SUPPDOSS>dm, pa</SUPPDOSS>
-                <PERIOACTIF>888</PERIOACTIF>
-                <PERIOSMACT>0</PERIOSMACT>
-                <REM_PERIOSMACT>R3</REM_PERIOSMACT>
-                <ID_REF_DISPOSITION>D</ID_REF_DISPOSITION>
-                <REM_DISPOINACT>R4</REM_DISPOINACT>
-            </DELAI_ROW>
-        </DELAI>
-    </ROW>
-    <ROW>
-        <ID_ORGANISME>60523</ID_ORGANISME>
-        <NUMREGLE>2</NUMREGLE>
-        <TYPE_TRANS>A</TYPE_TRANS>
-        <RECUEIL/>
-        <TITRESER>Rule #2</TITRESER>
-        <REFLEGALE/>
-        <NO_RECUEIL/>
-        <PROCACTIVI>Agent Secreet; Ze X110; Z110; Ze 42</PROCACTIVI>
-        <CODECLASS>X13; X110; Z110; ZE42</CODECLASS>
-        <NOMUNITE>unités administratives responsables</NOMUNITE>
-        <DESCSERIE/>
-        <TYPESDOC>Livre de recettes; Typologie; Petit guide; Histoire</TYPESDOC>
-        <DOCUMESSEN>N</DOCUMESSEN>
-        <DOCUMCONFI>N</DOCUMCONFI>
-        <REMARQDELA/>
-        <REMARQGEN/>
-        <GRILLECHAN>N</GRILLECHAN>
-        <DELAI>
-            <DELAI_ROW>
-                <NUMDELAI/>
-                <NUMREGLE/>
-                <TYPEDOSS>P</TYPEDOSS>
-                <SUPPDOSS>dm, pa</SUPPDOSS>
-                <PERIOACTIF>5</PERIOACTIF>
-                <PERIOSMACT>2</PERIOSMACT>
-                <ID_REF_DISPOSITION>T</ID_REF_DISPOSITION>
-            </DELAI_ROW>
-            <DELAI_ROW>
-                <NUMDELAI/>
-                <NUMREGLE/>
-                <TYPEDOSS>S</TYPEDOSS>
-                <SUPPDOSS>dm, pa</SUPPDOSS>
-                <PERIOACTIF>2</PERIOACTIF>
-                <PERIOSMACT>0</PERIOSMACT>
-                <ID_REF_DISPOSITION>D</ID_REF_DISPOSITION>
-            </DELAI_ROW>
-        </DELAI>
-    </ROW>
-    <ROW>
-        <ID_ORGANISME>60523</ID_ORGANISME>
-        <NUMREGLE>3</NUMREGLE>
-        <TYPE_TRANS>A</TYPE_TRANS>
-        <RECUEIL/>
-        <TITRESER>Rule #3</TITRESER>
-        <REFLEGALE/>
-        <NO_RECUEIL/>
-        <PROCACTIVI>Agent Secreet; X120; Z112; Z120; Ze 42</PROCACTIVI>
-        <CODECLASS>X13; X120; Z112; Z120; ZE42</CODECLASS>
-        <NOMUNITE>unités administratives responsables</NOMUNITE>
-        <DESCSERIE/>
-        <TYPESDOC>Livre de recettes; Typologie</TYPESDOC>
-        <DOCUMESSEN>N</DOCUMESSEN>
-        <DOCUMCONFI>N</DOCUMCONFI>
-        <REMARQDELA/>
-        <REMARQGEN/>
-        <GRILLECHAN>N</GRILLECHAN>
-        <DELAI>
-            <DELAI_ROW>
-                <NUMDELAI/>
-                <NUMREGLE/>
-                <TYPEDOSS>P</TYPEDOSS>
-                <SUPPDOSS>dm, pa</SUPPDOSS>
-                <REM_SUPPDOSS>R1</REM_SUPPDOSS>
-                <PERIOACTIF>999</PERIOACTIF>
-                <PERIOSMACT>4</PERIOSMACT>
-                <ID_REF_DISPOSITION>T</ID_REF_DISPOSITION>
-            </DELAI_ROW>
-            <DELAI_ROW>
-                <NUMDELAI/>
-                <NUMREGLE/>
-                <TYPEDOSS>S</TYPEDOSS>
-                <SUPPDOSS>dm, pa</SUPPDOSS>
-                <PERIOACTIF>1</PERIOACTIF>
-                <PERIOSMACT>0</PERIOSMACT>
-                <ID_REF_DISPOSITION>D</ID_REF_DISPOSITION>
-            </DELAI_ROW>
-        </DELAI>
-    </ROW>
-    <ROW>
-        <ID_ORGANISME>60523</ID_ORGANISME>
-        <NUMREGLE>4</NUMREGLE>
-        <TYPE_TRANS>A</TYPE_TRANS>
-        <RECUEIL/>
-        <TITRESER>Rule #4</TITRESER>
-        <REFLEGALE/>
-        <NO_RECUEIL/>
-        <PROCACTIVI>Agent Secreet; X120; Ze 42</PROCACTIVI>
-        <CODECLASS>X13; X120; ZE42</CODECLASS>
-        <NOMUNITE>unités administratives responsables</NOMUNITE>
-        <DESCSERIE/>
-        <TYPESDOC>Livre de recettes; Petit guide; Histoire</TYPESDOC>
-        <DOCUMESSEN>N</DOCUMESSEN>
-        <DOCUMCONFI>N</DOCUMCONFI>
-        <REMARQDELA>R3:comment3</REMARQDELA>
-        <REMARQGEN/>
-        <GRILLECHAN>N</GRILLECHAN>
-        <DELAI>
-            <DELAI_ROW>
-                <NUMDELAI/>
-                <NUMREGLE/>
-                <TYPEDOSS>P</TYPEDOSS>
-                <SUPPDOSS>pa</SUPPDOSS>
-                <PERIOACTIF>3</PERIOACTIF>
-                <PERIOSMACT>888</PERIOSMACT>
-                <ID_REF_DISPOSITION>D</ID_REF_DISPOSITION>
-            </DELAI_ROW>
-            <DELAI_ROW>
-                <NUMDELAI/>
-                <NUMREGLE/>
-                <TYPEDOSS>P</TYPEDOSS>
-                <SUPPDOSS>dm</SUPPDOSS>
-                <PERIOACTIF>3</PERIOACTIF>
-                <PERIOSMACT>888</PERIOSMACT>
-                <ID_REF_DISPOSITION>C</ID_REF_DISPOSITION>
-            </DELAI_ROW>
-            <DELAI_ROW>
-                <NUMDELAI/>
-                <NUMREGLE/>
-                <TYPEDOSS>S</TYPEDOSS>
-                <SUPPDOSS>dm, pa</SUPPDOSS>
-                <PERIOACTIF>666</PERIOACTIF>
-                <PERIOSMACT>0</PERIOSMACT>
-                <REM_PERIOSMACT>R3</REM_PERIOSMACT>
-                <ID_REF_DISPOSITION>D</ID_REF_DISPOSITION>
-                <REM_DISPOINACT>R4</REM_DISPOINACT>
-            </DELAI_ROW>
-        </DELAI>
-    </ROW>
+  <ROW>
+    <ID_ORGANISME>60523</ID_ORGANISME>
+    <NUMREGLE>1</NUMREGLE>
+    <TYPE_TRANS>A</TYPE_TRANS>
+    <RECUEIL>Corpus Rule 1</RECUEIL>
+    <TITRESER>Règle de conservation #1</TITRESER>
+    <REFLEGALE>Juridic reference Rule 1</REFLEGALE>
+    <NO_RECUEIL />
+    <PROCACTIVI>Xe category; Agent Secreet; Ze X100; Ze X110; Ze 42</PROCACTIVI>
+    <CODECLASS>X; X13; X100; X110; ZE42</CODECLASS>
+    <NOMUNITE>Ze 10; Ze 20</NOMUNITE>
+    <DESCSERIE>Description Rule 1</DESCSERIE>
+    <TYPESDOC>Livre de recettes; Typologie; Petit guide</TYPESDOC>
+    <DOCUMESSEN>O</DOCUMESSEN>
+    <DOCUMCONFI>O</DOCUMCONFI>
+    <REMARQDELA>R1:comment1; R2:comment2; R3:comment3; R4:comment4</REMARQDELA>
+    <REMARQGEN>General Comment Rule 1</REMARQGEN>
+    <GRILLECHAN>N</GRILLECHAN>
+    <DELAI>
+      <DELAI_ROW>
+        <NUMDELAI />
+        <NUMREGLE>42</NUMREGLE>
+        <TYPEDOSS>P</TYPEDOSS>
+        <SUPPDOSS>dm, pa</SUPPDOSS>
+        <REM_SUPPDOSS>R1</REM_SUPPDOSS>
+        <PERIOACTIF>42</PERIOACTIF>
+        <REM_PERIOACTIF>R2</REM_PERIOACTIF>
+        <PERIOSMACT>5</PERIOSMACT>
+        <ID_REF_DISPOSITION>C</ID_REF_DISPOSITION>
+      </DELAI_ROW>
+      <DELAI_ROW>
+        <NUMDELAI />
+        <NUMREGLE>666</NUMREGLE>
+        <TYPEDOSS>S</TYPEDOSS>
+        <SUPPDOSS>dm, pa</SUPPDOSS>
+        <PERIOACTIF>888</PERIOACTIF>
+        <PERIOSMACT>0</PERIOSMACT>
+        <REM_PERIOSMACT>R3</REM_PERIOSMACT>
+        <ID_REF_DISPOSITION>D</ID_REF_DISPOSITION>
+        <REM_DISPOINACT>R4</REM_DISPOINACT>
+      </DELAI_ROW>
+    </DELAI>
+  </ROW>
+  <ROW>
+    <ID_ORGANISME>60523</ID_ORGANISME>
+    <NUMREGLE>2</NUMREGLE>
+    <TYPE_TRANS>A</TYPE_TRANS>
+    <RECUEIL />
+    <TITRESER>Règle de conservation #2</TITRESER>
+    <REFLEGALE />
+    <NO_RECUEIL />
+    <PROCACTIVI>Agent Secreet; Ze X110; Z110; Ze 42</PROCACTIVI>
+    <CODECLASS>X13; X110; Z110; ZE42</CODECLASS>
+    <NOMUNITE>unités administratives responsables</NOMUNITE>
+    <DESCSERIE />
+    <TYPESDOC>Livre de recettes; Typologie; Petit guide; Histoire</TYPESDOC>
+    <DOCUMESSEN>N</DOCUMESSEN>
+    <DOCUMCONFI>N</DOCUMCONFI>
+    <REMARQDELA />
+    <REMARQGEN />
+    <GRILLECHAN>N</GRILLECHAN>
+    <DELAI>
+      <DELAI_ROW>
+        <NUMDELAI />
+        <NUMREGLE />
+        <TYPEDOSS>P</TYPEDOSS>
+        <SUPPDOSS>dm, pa</SUPPDOSS>
+        <PERIOACTIF>5</PERIOACTIF>
+        <PERIOSMACT>2</PERIOSMACT>
+        <ID_REF_DISPOSITION>T</ID_REF_DISPOSITION>
+      </DELAI_ROW>
+      <DELAI_ROW>
+        <NUMDELAI />
+        <NUMREGLE />
+        <TYPEDOSS>S</TYPEDOSS>
+        <SUPPDOSS>dm, pa</SUPPDOSS>
+        <PERIOACTIF>2</PERIOACTIF>
+        <PERIOSMACT>0</PERIOSMACT>
+        <ID_REF_DISPOSITION>D</ID_REF_DISPOSITION>
+      </DELAI_ROW>
+    </DELAI>
+  </ROW>
+  <ROW>
+    <ID_ORGANISME>60523</ID_ORGANISME>
+    <NUMREGLE>3</NUMREGLE>
+    <TYPE_TRANS>A</TYPE_TRANS>
+    <RECUEIL />
+    <TITRESER>Règle de conservation #3</TITRESER>
+    <REFLEGALE />
+    <NO_RECUEIL />
+    <PROCACTIVI>Agent Secreet; X120; Z112; Z120; Ze 42</PROCACTIVI>
+    <CODECLASS>X13; X120; Z112; Z120; ZE42</CODECLASS>
+    <NOMUNITE>unités administratives responsables</NOMUNITE>
+    <DESCSERIE />
+    <TYPESDOC>Livre de recettes; Typologie</TYPESDOC>
+    <DOCUMESSEN>N</DOCUMESSEN>
+    <DOCUMCONFI>N</DOCUMCONFI>
+    <REMARQDELA />
+    <REMARQGEN />
+    <GRILLECHAN>N</GRILLECHAN>
+    <DELAI>
+      <DELAI_ROW>
+        <NUMDELAI />
+        <NUMREGLE />
+        <TYPEDOSS>P</TYPEDOSS>
+        <SUPPDOSS>dm, pa</SUPPDOSS>
+        <REM_SUPPDOSS>R1</REM_SUPPDOSS>
+        <PERIOACTIF>999</PERIOACTIF>
+        <PERIOSMACT>4</PERIOSMACT>
+        <ID_REF_DISPOSITION>T</ID_REF_DISPOSITION>
+      </DELAI_ROW>
+      <DELAI_ROW>
+        <NUMDELAI />
+        <NUMREGLE />
+        <TYPEDOSS>S</TYPEDOSS>
+        <SUPPDOSS>dm, pa</SUPPDOSS>
+        <PERIOACTIF>1</PERIOACTIF>
+        <PERIOSMACT>0</PERIOSMACT>
+        <ID_REF_DISPOSITION>D</ID_REF_DISPOSITION>
+      </DELAI_ROW>
+    </DELAI>
+  </ROW>
+  <ROW>
+    <ID_ORGANISME>60523</ID_ORGANISME>
+    <NUMREGLE>4</NUMREGLE>
+    <TYPE_TRANS>A</TYPE_TRANS>
+    <RECUEIL />
+    <TITRESER>Règle de conservation #4</TITRESER>
+    <REFLEGALE />
+    <NO_RECUEIL />
+    <PROCACTIVI>Agent Secreet; X120; Ze 42</PROCACTIVI>
+    <CODECLASS>X13; X120; ZE42</CODECLASS>
+    <NOMUNITE>unités administratives responsables</NOMUNITE>
+    <DESCSERIE />
+    <TYPESDOC>Livre de recettes; Petit guide; Histoire</TYPESDOC>
+    <DOCUMESSEN>N</DOCUMESSEN>
+    <DOCUMCONFI>N</DOCUMCONFI>
+    <REMARQDELA>R3:comment3</REMARQDELA>
+    <REMARQGEN />
+    <GRILLECHAN>N</GRILLECHAN>
+    <DELAI>
+      <DELAI_ROW>
+        <NUMDELAI />
+        <NUMREGLE />
+        <TYPEDOSS>P</TYPEDOSS>
+        <SUPPDOSS>pa</SUPPDOSS>
+        <PERIOACTIF>3</PERIOACTIF>
+        <PERIOSMACT>888</PERIOSMACT>
+        <ID_REF_DISPOSITION>D</ID_REF_DISPOSITION>
+      </DELAI_ROW>
+      <DELAI_ROW>
+        <NUMDELAI />
+        <NUMREGLE />
+        <TYPEDOSS>P</TYPEDOSS>
+        <SUPPDOSS>dm</SUPPDOSS>
+        <PERIOACTIF>3</PERIOACTIF>
+        <PERIOSMACT>888</PERIOSMACT>
+        <ID_REF_DISPOSITION>C</ID_REF_DISPOSITION>
+      </DELAI_ROW>
+      <DELAI_ROW>
+        <NUMDELAI />
+        <NUMREGLE />
+        <TYPEDOSS>S</TYPEDOSS>
+        <SUPPDOSS>dm, pa</SUPPDOSS>
+        <PERIOACTIF>666</PERIOACTIF>
+        <PERIOSMACT>0</PERIOSMACT>
+        <REM_PERIOSMACT>R3</REM_PERIOSMACT>
+        <ID_REF_DISPOSITION>D</ID_REF_DISPOSITION>
+        <REM_DISPOINACT>R4</REM_DISPOINACT>
+      </DELAI_ROW>
+    </DELAI>
+  </ROW>
 </ROWSET>

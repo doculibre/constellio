@@ -1,7 +1,6 @@
 package com.constellio.app.modules.es.connectors.smb.jobmanagement;
 
 import com.constellio.app.modules.es.connectors.smb.jobmanagement.SmbJobFactoryImpl.SmbJobCategory;
-import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 
 public interface SmbJobFactory {
 

@@ -14,7 +14,7 @@ public class AuthorizationDeleteRequest {
 	final boolean reattachIfLastAuthDeleted;
 
 	public AuthorizationDeleteRequest(String authId, String collection, User executedBy,
-			boolean reattachIfLastAuthDeleted) {
+									  boolean reattachIfLastAuthDeleted) {
 		this.collection = collection;
 		this.authId = authId;
 		this.executedBy = executedBy;

@@ -1,9 +1,5 @@
 package com.constellio.app.modules.robots.ui.navigation;
 
-import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
-
-import java.io.Serializable;
-
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.robots.constants.RobotsPermissionsTo;
@@ -18,7 +14,10 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.pages.management.AdminView;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.io.Serializable;
+
+import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
 
 public class RobotsNavigationConfiguration implements Serializable {
 

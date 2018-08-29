@@ -1,13 +1,5 @@
 package com.constellio.app.ui.framework.data.event.category;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.AbstractDataProvider;
@@ -18,6 +10,13 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.joda.time.LocalDateTime;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentAndFoldersModificationEventsDataProvider extends AbstractDataProvider implements EventsCategoryDataProvider {
 
@@ -32,7 +31,8 @@ public class DocumentAndFoldersModificationEventsDataProvider extends AbstractDa
 	private String currentUserName;
 
 	public DocumentAndFoldersModificationEventsDataProvider(ModelLayerFactory modelLayerFactory, String collection,
-			String currentUserName, LocalDateTime startDate, LocalDateTime endDate) {
+															String currentUserName, LocalDateTime startDate,
+															LocalDateTime endDate) {
 		this.collection = collection;
 		this.currentUserName = currentUserName;
 		this.startDate = startDate;

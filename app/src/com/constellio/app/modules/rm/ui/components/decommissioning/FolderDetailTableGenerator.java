@@ -15,7 +15,11 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.converter.Converter.ConversionException;
-import com.vaadin.ui.*;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnGenerator;
 
@@ -49,7 +53,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 	private boolean displayOrderNumber;
 
 	public FolderDetailTableGenerator(DecommissioningListPresenter presenter, DecommissioningListViewImpl view,
-			boolean packageable) {
+									  boolean packageable) {
 		this.presenter = presenter;
 		this.view = view;
 		this.packageable = packageable;
@@ -93,7 +97,8 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		List<String> visibleColumns = new ArrayList<>();
 		boolean inValidationStatus = presenter.isInValidation();
 
-		if (!(presenter.isInApprobation() || presenter.isApproved() || presenter.isProcessed())) {
+		boolean askedForApprobation = presenter.isInApprobation() && !presenter.canApprove();
+		if (!(askedForApprobation || presenter.isApproved() || presenter.isProcessed())) {
 			table.addGeneratedColumn(CHECKBOX, this);
 			table.setColumnHeader(CHECKBOX, "");
 			table.setColumnAlignment(CHECKBOX, Align.CENTER);
@@ -163,10 +168,10 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 
 		table.setVisibleColumns(visibleColumns.toArray());
 
-		if(extension != null) {
-			table.sort(new String[] {CATEGORY_CODE, PREVIOUS_ID, FOLDER_ID}, new boolean[] {true, true, true});
+		if (extension != null) {
+			table.sort(new String[]{CATEGORY_CODE, PREVIOUS_ID, FOLDER_ID}, new boolean[]{true, true, true});
 		} else {
-			table.sort(new String[] { CATEGORY_CODE }, new boolean[] { true });
+			table.sort(new String[]{CATEGORY_CODE}, new boolean[]{true});
 		}
 
 		return table;
@@ -177,30 +182,30 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		FolderDetailVO detail = (FolderDetailVO) itemId;
 
 		switch ((String) columnId) {
-		case CHECKBOX:
-			return buildCheckBox(detail);
-		case VALIDATION_CHECKBOX:
-			return buildValidationColumn(detail);
-		case FOLDER_ID:
-			return new Label(detail.getFolderId());
-		case PREVIOUS_ID:
-			return new Label(extension.getPreviousId(detail));
-		case FOLDER:
-			return new ReferenceDisplay(detail.getFolderId());
-		case SORT:
-			return buildSort(detail);
-		case RETENTION_RULE:
-			return new RetentionRuleReferenceDisplay(detail.getRetentionRuleId());
-		case CATEGORY_CODE:
-			return new Label(detail.getCategoryCode());
-		case MEDIUM:
-			return new EnumWithSmallCodeDisplay<>(detail.getMediumType());
-		case CONTAINER:
-			return buildContainer(detail);
-		case LINEAR_SIZE:
-			return buildLinearSize(detail);
-		case ORDER:
-			return buildOrderNumber(detail);
+			case CHECKBOX:
+				return buildCheckBox(detail);
+			case VALIDATION_CHECKBOX:
+				return buildValidationColumn(detail);
+			case FOLDER_ID:
+				return new Label(detail.getFolderId());
+			case PREVIOUS_ID:
+				return new Label(extension.getPreviousId(detail));
+			case FOLDER:
+				return new ReferenceDisplay(detail.getFolderId());
+			case SORT:
+				return buildSort(detail);
+			case RETENTION_RULE:
+				return new RetentionRuleReferenceDisplay(detail.getRetentionRuleId());
+			case CATEGORY_CODE:
+				return new Label(detail.getCategoryCode());
+			case MEDIUM:
+				return new EnumWithSmallCodeDisplay<>(detail.getMediumType());
+			case CONTAINER:
+				return buildContainer(detail);
+			case LINEAR_SIZE:
+				return buildLinearSize(detail);
+			case ORDER:
+				return buildOrderNumber(detail);
 		}
 
 		return null;
@@ -278,7 +283,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		included.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
-				if(!(boolean) included.getValue()) {
+				if (!(boolean) included.getValue()) {
 					presenter.removeFromContainer(detail);
 				}
 				presenter.setValidationStatus(detail, (boolean) included.getValue());

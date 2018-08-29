@@ -11,21 +11,21 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import static java.util.Arrays.asList;
 
 public class CoreMigrationTo_7_1_3_1 implements MigrationScript {
-    @Override
-    public String getVersion() {
-        return "7.1.3.1";
-    }
+	@Override
+	public String getVersion() {
+		return "7.1.3.1";
+	}
 
-    @Override
-    public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-                        AppLayerFactory appLayerFactory) {
-        updateNewPermissions(appLayerFactory, collection);
-    }
+	@Override
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory) {
+		updateNewPermissions(appLayerFactory, collection);
+	}
 
-    private void updateNewPermissions(AppLayerFactory appLayerFactory, String collection) {
-        ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
+	private void updateNewPermissions(AppLayerFactory appLayerFactory, String collection) {
+		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
-        Role admRole = modelLayerFactory.getRolesManager().getRole(collection, CoreRoles.ADMINISTRATOR);
-        modelLayerFactory.getRolesManager().updateRole(admRole.withNewPermissions(asList(CorePermissions.MANAGE_SEARCH_BOOST)));
-    }
+		Role admRole = modelLayerFactory.getRolesManager().getRole(collection, CoreRoles.ADMINISTRATOR);
+		modelLayerFactory.getRolesManager().updateRole(admRole.withNewPermissions(asList(CorePermissions.MANAGE_SEARCH_BOOST)));
+	}
 }

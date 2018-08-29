@@ -1,13 +1,12 @@
 package com.constellio.model.entities.schemas;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.Set;
-
+import com.constellio.model.services.schemas.SchemaUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.services.schemas.SchemaUtils;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.Set;
 
 public class AllowedReferences implements Serializable {
 
@@ -39,7 +38,7 @@ public class AllowedReferences implements Serializable {
 			if (isAllowed(type.getDefaultSchema())) {
 				return true;
 			}
-			for (MetadataSchema customSchema : type.getSchemas()) {
+			for (MetadataSchema customSchema : type.getCustomSchemas()) {
 				if (allowedSchemas.contains(customSchema.getCode())) {
 					return true;
 				}
@@ -53,7 +52,7 @@ public class AllowedReferences implements Serializable {
 			return allowedSchemaType.equals(type.getCode());
 		} else {
 			boolean allAllowed = isAllowed(type.getDefaultSchema());
-			for (MetadataSchema customSchema : type.getSchemas()) {
+			for (MetadataSchema customSchema : type.getCustomSchemas()) {
 				allAllowed &= allowedSchemas.contains(customSchema.getCode());
 			}
 			return allAllowed;

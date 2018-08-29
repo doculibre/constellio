@@ -1,24 +1,5 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
-import static com.constellio.app.modules.es.connectors.ConnectorServicesFactory.forConnectorInstance;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.schemas.SchemaUtils.getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderActionParameters;
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.modules.complementary.esRmRobots.services.ClassifyConnectorHelper.ClassifiedRecordPathInfo;
@@ -66,6 +47,24 @@ import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.es.connectors.ConnectorServicesFactory.forConnectorInstance;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.schemas.SchemaUtils.getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship;
 
 public class ClassifyConnectorRecordInTaxonomyExecutor {
 
@@ -93,7 +92,8 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	boolean dryRun;
 
 	public ClassifyConnectorRecordInTaxonomyExecutor(Record record, ClassifyConnectorFolderActionParameters params,
-			AppLayerFactory appLayerFactory, User currentUser, String robotId, List<Record> processedRecords, boolean dryRun) {
+													 AppLayerFactory appLayerFactory, User currentUser, String robotId,
+													 List<Record> processedRecords, boolean dryRun) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appLayerFactory = appLayerFactory;
 		this.record = record;
@@ -135,7 +135,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				for (Record documentInTransaction : transaction.getRecords()) {
 					// FIXME sharepoint
 					if (documentInTransaction.getSchemaCode().startsWith(ConnectorSmbDocument.SCHEMA_TYPE
-							+ "_") /*|| documentInTransaction.getSchemaCode().startsWith(ConnectorSharepointDocument.SCHEMA_TYPE + "_")*/) {
+																		 + "_") /*|| documentInTransaction.getSchemaCode().startsWith(ConnectorSharepointDocument.SCHEMA_TYPE + "_")*/) {
 						ConnectorDocument<?> connectorDocument = es.wrapConnectorDocument(documentInTransaction);
 						connectorServices(connectorDocument).deleteDocumentOnRemoteComponent(connectorDocument);
 						logguerMessage(String.format("Document '%s' supprimé suite à sa classification dans Constellio",
@@ -205,7 +205,8 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 	}
 
-	private void classifyForPath(String fullConnectorDocPath, Taxonomy targetTaxonomy, Metadata codeMetadata, String legacyId) {
+	private void classifyForPath(String fullConnectorDocPath, Taxonomy targetTaxonomy, Metadata codeMetadata,
+								 String legacyId) {
 
 		ClassifiedRecordPathInfo recordPathInfo = new ClassifyConnectorHelper(recordServices)
 				.extractInfoFromPath(fullConnectorDocPath, params.getPathPrefix(), params.getDelimiter(), codeMetadata);
@@ -216,9 +217,9 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private void processFolder(String fullConnectorDocPath, Taxonomy targetTaxonomy, Metadata codeMetadata,
-			ClassifiedRecordPathInfo recordUrlInfo) {
+							   ClassifiedRecordPathInfo recordUrlInfo) {
 		LOGGER.info("Process Folder : [" + fullConnectorDocPath + ", " + targetTaxonomy + ", " + codeMetadata.getLocalCode()
-				+ ", " + recordUrlInfo + "]");
+					+ ", " + recordUrlInfo + "]");
 		String folderName = recordUrlInfo.getLastPathSegment();
 		MetadataSchema folderSchema = rm.folder.schema();
 		Metadata legacyIdMetadata = folderSchema.getMetadata(Schemas.LEGACY_ID.getLocalCode());
@@ -371,7 +372,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private Folder classifyFolderInConcept(String fullConnectorDocPath, Taxonomy targetTaxonomy, String pathPart,
-			MetadataSchema folderSchema, Record parentConcept, String folderTypeId) {
+										   MetadataSchema folderSchema, Record parentConcept, String folderTypeId) {
 		Folder newRmFolder;
 		if (folderTypeId != null) {
 			newRmFolder = rm.newFolderWithType(folderTypeId);
@@ -582,15 +583,15 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 
 	private void useDefaultValuesInMissingFields(Map<String, String> folderEntry, Folder rmFolder) {
 		if (folderEntry.get(Folder.PARENT_FOLDER) == null && rmFolder.getParentFolder() == null
-				&& params.getDefaultParentFolder() != null) {
+			&& params.getDefaultParentFolder() != null) {
 			rmFolder.setParentFolder(params.getDefaultParentFolder());
 		}
 		if (rmFolder.getAdministrativeUnitEntered() == null && folderEntry.get(Folder.ADMINISTRATIVE_UNIT_ENTERED) == null
-				&& params.getDefaultAdminUnit() != null) {
+			&& params.getDefaultAdminUnit() != null) {
 			rmFolder.setAdministrativeUnitEntered(params.getDefaultAdminUnit());
 		}
 		if (rmFolder.getCategoryEntered() == null && folderEntry.get(Folder.CATEGORY_ENTERED) == null
-				&& params.getDefaultCategory() != null) {
+			&& params.getDefaultCategory() != null) {
 			rmFolder.setCategoryEntered(params.getDefaultCategory());
 		}
 		if (folderEntry.get(Folder.RETENTION_RULE_ENTERED) == null && params.getDefaultRetentionRule() != null) {
@@ -604,34 +605,35 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 	}
 
-	private void setMetadataInRmRecord(RecordWrapper rmRecord, MetadataSchema schema, String metadataCode, String value) {
+	private void setMetadataInRmRecord(RecordWrapper rmRecord, MetadataSchema schema, String metadataCode,
+									   String value) {
 		Metadata metadata = schema.getMetadata(metadataCode);
 		switch (metadata.getType()) {
-		case STRING:
-			if (metadata.isMultivalue()) {
-				rmRecord.set(metadataCode, Arrays.asList(value.split(";")));
-			} else {
-				rmRecord.set(metadataCode, value);
-			}
-			break;
-		case REFERENCE:
-			String collection = rmRecord.getCollection();
-			MetadataSchemasManager schemasManager = rm.getModelLayerFactory().getMetadataSchemasManager();
-			MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collection);
-			MetadataSchemaType schemaType = schemaTypes.getSchemaType(metadata.getAllowedReferences().getAllowedSchemaType());
-			Metadata codeMetadata = schemaType.getDefaultSchema().get(Schemas.CODE.getLocalCode());
-			Record referencedRecord = recordServices.getRecordByMetadata(codeMetadata, value);
-			rmRecord.set(metadataCode, referencedRecord.getId());
-			break;
-		case ENUM:
-			rmRecord.set(metadataCode, EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), value));
-			break;
-		case DATE:
-			rmRecord.set(metadataCode, parseDate(value));
-			break;
-		case DATE_TIME:
-			rmRecord.set(metadataCode, parseDateTime(value));
-			break;
+			case STRING:
+				if (metadata.isMultivalue()) {
+					rmRecord.set(metadataCode, Arrays.asList(value.split(";")));
+				} else {
+					rmRecord.set(metadataCode, value);
+				}
+				break;
+			case REFERENCE:
+				String collection = rmRecord.getCollection();
+				MetadataSchemasManager schemasManager = rm.getModelLayerFactory().getMetadataSchemasManager();
+				MetadataSchemaTypes schemaTypes = schemasManager.getSchemaTypes(collection);
+				MetadataSchemaType schemaType = schemaTypes.getSchemaType(metadata.getAllowedReferences().getAllowedSchemaType());
+				Metadata codeMetadata = schemaType.getDefaultSchema().get(Schemas.CODE.getLocalCode());
+				Record referencedRecord = recordServices.getRecordByMetadata(codeMetadata, value);
+				rmRecord.set(metadataCode, referencedRecord.getId());
+				break;
+			case ENUM:
+				rmRecord.set(metadataCode, EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), value));
+				break;
+			case DATE:
+				rmRecord.set(metadataCode, parseDate(value));
+				break;
+			case DATE_TIME:
+				rmRecord.set(metadataCode, parseDateTime(value));
+				break;
 		}
 	}
 
@@ -645,8 +647,9 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		return dateTimeFormatter.parseLocalDateTime(dateTimeString);
 	}
 
-	public Map<String, ClassifiedDocument> classifyDocuments(String inRmFolder, List<ConnectorDocument<?>> documentsRecords,
-			Boolean majorVersions) {
+	public Map<String, ClassifiedDocument> classifyDocuments(String inRmFolder,
+															 List<ConnectorDocument<?>> documentsRecords,
+															 Boolean majorVersions) {
 		Map<String, ClassifiedDocument> createdRecordsByUrls = new HashMap<>();
 		for (ConnectorDocument document : documentsRecords) {
 			try {
@@ -660,7 +663,8 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		return createdRecordsByUrls;
 	}
 
-	private ClassifiedDocument classifyDocument(ConnectorDocument connectorDocument, String inRmFolder, Boolean majorVersions) {
+	private ClassifiedDocument classifyDocument(ConnectorDocument connectorDocument, String inRmFolder,
+												Boolean majorVersions) {
 
 		ContentVersionDataSummary newVersionDataSummary = null;
 		try {
@@ -745,7 +749,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private void addVersionToDocument(ConnectorDocument connectorDocument, String versionNumber,
-			ContentVersionDataSummary newVersionDataSummary, Document document) {
+									  ContentVersionDataSummary newVersionDataSummary, Document document) {
 		if (document.getContent() != null) {
 			if (!newVersionDataSummary.getHash().equals(document.getContent().getCurrentVersion().getHash())) {
 				document.getContent().updateContentWithVersionAndName(currentUser, newVersionDataSummary, versionNumber,

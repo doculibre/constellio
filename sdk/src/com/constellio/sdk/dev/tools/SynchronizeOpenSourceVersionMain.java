@@ -1,10 +1,10 @@
 package com.constellio.sdk.dev.tools;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
+
+import java.io.File;
+import java.io.IOException;
 
 public class SynchronizeOpenSourceVersionMain {
 
@@ -33,7 +33,7 @@ public class SynchronizeOpenSourceVersionMain {
 
 		FileUtils.copyDirectory(PRIVATE_PROJECT_DIR, PUBLIC_PROJECT_DIR);
 
-		for (File file : FileUtils.listFiles(PUBLIC_PROJECT_DIR, new String[] { "java" }, true)) {
+		for (File file : FileUtils.listFiles(PUBLIC_PROJECT_DIR, new String[]{"java"}, true)) {
 			System.out.println(file.getAbsolutePath());
 			String content = FileUtils.readFileToString(file);
 			if (!content.startsWith("/*")) {

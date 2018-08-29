@@ -64,19 +64,24 @@ public class RecordsFlushing {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
+		}
 
 		RecordsFlushing that = (RecordsFlushing) o;
 
-		if (now != that.now)
+		if (now != that.now) {
 			return false;
-		if (addLater != that.addLater)
+		}
+		if (addLater != that.addLater) {
 			return false;
-		if (flushLater != that.flushLater)
+		}
+		if (flushLater != that.flushLater) {
 			return false;
+		}
 		return withinMilliseconds == that.withinMilliseconds;
 
 	}

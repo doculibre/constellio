@@ -1,14 +1,14 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class ContainerRecordTreeVisibilityCalculator implements MetadataValueCalculator<Boolean> {
 	ConfigDependency<Boolean> displayContainers = RMConfigs.DISPLAY_CONTAINERS_IN_TREES.dependency();

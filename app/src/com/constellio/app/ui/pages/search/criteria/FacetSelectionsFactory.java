@@ -1,11 +1,11 @@
 package com.constellio.app.ui.pages.search.criteria;
 
+import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.StructureFactory;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
-
-import com.constellio.model.entities.schemas.ModifiableStructure;
-import com.constellio.model.entities.schemas.StructureFactory;
 
 public class FacetSelectionsFactory implements StructureFactory {
 	private static final String NULL = "~null~";
@@ -27,13 +27,13 @@ public class FacetSelectionsFactory implements StructureFactory {
 		FacetSelections facetSelections = (FacetSelections) structure;
 		StringBuilder stringBuilder = new StringBuilder();
 		writeString(stringBuilder, facetSelections.getFacetField() == null ?
-				NULL :
-				facetSelections.getFacetField());
+								   NULL :
+								   facetSelections.getFacetField());
 		if (facetSelections.getSelectedValues() != null) {
 			for (String selectedValue : facetSelections.getSelectedValues()) {
 				writeString(stringBuilder, selectedValue == null ?
-						NULL :
-						selectedValue);
+										   NULL :
+										   selectedValue);
 			}
 		} else {
 			writeString(stringBuilder, null);

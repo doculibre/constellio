@@ -1,21 +1,5 @@
 package com.constellio.model.services.contents;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.joda.time.LocalDateTime;
-import org.junit.Test;
-
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
@@ -24,6 +8,21 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.ModelLayerConfigurationAlteration;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.joda.time.LocalDateTime;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.junit.Assert.fail;
 
 public class ContentManagerImportThreadServicesAcceptanceTest extends ConstellioTest {
 
@@ -394,7 +393,8 @@ public class ContentManagerImportThreadServicesAcceptanceTest extends Constellio
 		assertThat(filesExceedingParsingFileSizeLimit).exists().hasContent("");
 	}
 
-	private Map<String, ContentVersionDataSummary> factorize(Map<String, Factory<ContentVersionDataSummary>> importedFilesMap) {
+	private Map<String, ContentVersionDataSummary> factorize(
+			Map<String, Factory<ContentVersionDataSummary>> importedFilesMap) {
 		Map<String, ContentVersionDataSummary> map = new HashMap<>();
 
 		for (Map.Entry<String, Factory<ContentVersionDataSummary>> mapEntry : importedFilesMap.entrySet()) {

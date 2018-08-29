@@ -1,20 +1,22 @@
 package com.constellio.app.ui.entities;
 
+import com.constellio.app.ui.pages.base.SessionContext;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.services.schemas.SchemaUtils;
-
 @SuppressWarnings("serial")
 public class FormMetadataSchemaVO implements Serializable {
 
-	String code = "";;
+	String code = "";
+	;
 
-	String localCode = "";;
+	String localCode = "";
+	;
 
-	String collection = "";;
+	String collection = "";
+	;
 
 	Map<String, String> labels = new HashMap<>();
 
@@ -37,12 +39,14 @@ public class FormMetadataSchemaVO implements Serializable {
 		this.labels = new HashMap<>(labels);
 	}
 
-	public FormMetadataSchemaVO(String code, String localCode,String collection, Map<String, String> labels, Boolean advancedSearch) {
+	public FormMetadataSchemaVO(String code, String localCode, String collection, Map<String, String> labels,
+								Boolean advancedSearch) {
 		this(code, localCode, collection, labels);
 		this.advancedSearch = advancedSearch;
 	}
 
-	public FormMetadataSchemaVO(String code, String localCode,String collection, Map<String, String> labels, Boolean advancedSearch, Boolean simpleSearch) {
+	public FormMetadataSchemaVO(String code, String localCode, String collection, Map<String, String> labels,
+								Boolean advancedSearch, Boolean simpleSearch) {
 		this(code, localCode, collection, labels, advancedSearch);
 		this.simpleSearch = simpleSearch;
 	}
@@ -83,13 +87,21 @@ public class FormMetadataSchemaVO implements Serializable {
 		this.collection = collection;
 	}
 
-	public Boolean getAdvancedSearch() { return advancedSearch; }
+	public Boolean getAdvancedSearch() {
+		return advancedSearch;
+	}
 
-	public void setAdvancedSearch(Boolean advancedSearch) {	this.advancedSearch = advancedSearch; }
+	public void setAdvancedSearch(Boolean advancedSearch) {
+		this.advancedSearch = advancedSearch;
+	}
 
-	public Boolean getSimpleSearch() { return simpleSearch; }
+	public Boolean getSimpleSearch() {
+		return simpleSearch;
+	}
 
-	public void setSimpleSearch(Boolean simpleSearch) {	this.simpleSearch = simpleSearch; }
+	public void setSimpleSearch(Boolean simpleSearch) {
+		this.simpleSearch = simpleSearch;
+	}
 
 	@Override
 	public int hashCode() {
@@ -102,23 +114,30 @@ public class FormMetadataSchemaVO implements Serializable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		FormMetadataSchemaVO other = (FormMetadataSchemaVO) obj;
 		if (code == null) {
-			if (other.code != null)
+			if (other.code != null) {
 				return false;
-		} else if (!code.equals(other.code))
+			}
+		} else if (!code.equals(other.code)) {
 			return false;
+		}
 		if (collection == null) {
-			if (other.collection != null)
+			if (other.collection != null) {
 				return false;
-		} else if (!collection.equals(other.collection))
+			}
+		} else if (!collection.equals(other.collection)) {
 			return false;
+		}
 		return true;
 	}
 

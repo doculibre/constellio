@@ -1,9 +1,5 @@
 package com.constellio.app.modules.es.services.crawler;
 
-import static java.util.Arrays.asList;
-
-import org.junit.Before;
-
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
@@ -14,6 +10,9 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+
+import static java.util.Arrays.asList;
 
 public class DefaultConnectorEventObserverAcceptTest extends ConstellioTest {
 

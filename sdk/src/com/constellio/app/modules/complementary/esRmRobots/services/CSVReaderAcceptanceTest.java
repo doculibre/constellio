@@ -1,17 +1,16 @@
 package com.constellio.app.modules.complementary.esRmRobots.services;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CSVReaderAcceptanceTest extends ConstellioTest {
 

@@ -1,24 +1,9 @@
 package com.constellio.app.ui.pages.rm.document;
 
-import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.DELETE;
-import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.MANAGE_AUTHORIZATIONS;
-import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.MODIFY;
-import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.SHARE;
-import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.UPLOAD;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import org.junit.Before;
-import org.junit.Test;
-import org.openqa.selenium.By;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.tools.ButtonWebElement;
@@ -29,6 +14,20 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.By;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.DELETE;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.MANAGE_AUTHORIZATIONS;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.MODIFY;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.SHARE;
+import static com.constellio.app.ui.pages.rm.document.DisplayDocumentMenuAcceptanceTest.AddEditDocumentAction.UPLOAD;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class DisplayDocumentMenuAcceptanceTest extends ConstellioTest {

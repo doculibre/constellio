@@ -1,19 +1,18 @@
 package com.constellio.app.client.services;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.constellio.app.client.AdminServicesConstants;
+import com.constellio.app.client.entities.GlobalGroupResource;
+import com.constellio.app.client.entities.GroupResource;
+import com.constellio.app.client.entities.UserResource;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-
-import com.constellio.app.client.AdminServicesConstants;
-import com.constellio.app.client.entities.GlobalGroupResource;
-import com.constellio.app.client.entities.GroupResource;
-import com.constellio.app.client.entities.UserResource;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class UserServicesClient {
 

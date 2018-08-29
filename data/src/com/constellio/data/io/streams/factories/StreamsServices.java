@@ -1,5 +1,12 @@
 package com.constellio.data.io.streams.factories;
 
+import com.constellio.data.io.services.facades.FileService;
+import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.io.streams.factories.StreamsServicesRuntimeException.StreamsServicesRuntimeException_FileNotFound;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.ReaderInputStream;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -17,14 +24,6 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Scanner;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.ReaderInputStream;
-
-import com.constellio.data.io.services.facades.FileService;
-import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.data.io.streams.factories.StreamsServicesRuntimeException.StreamsServicesRuntimeException_FileNotFound;
 
 public class StreamsServices {
 

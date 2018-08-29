@@ -8,8 +8,10 @@ import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 
+import java.util.List;
+
 public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup {
-	
+
 	RecordVO getRecord();
 
 	void setRecord(RecordVO recordVO);
@@ -25,7 +27,7 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 	void selectFolderContentTab();
 
 	void selectTasksTab();
-	
+
 	void selectEventsTab();
 
 	void hideAllActionMenuButtons();
@@ -66,16 +68,14 @@ public interface DisplayFolderView extends BaseView, RecordsManagementViewGroup 
 
 	void closeDocumentContentVersionWindow();
 
-//	void openAgentURL(String agentURL);
+	//	void openAgentURL(String agentURL);
 
 	void downloadContentVersion(RecordVO recordVO, ContentVersionVO contentVersionVO);
-	
+
 	void setTaxonomyCode(String taxonomyCode);
 
 	void clearUploadField();
-
 	void refreshFolderContentAndFacets();
 
 	void refreshFolderContent();
-	
 }

@@ -1,17 +1,5 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.sdk.tests.FakeSessionContext.forRealUserIncollection;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.ui.entities.AuthorizationVO;
@@ -22,6 +10,17 @@ import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.sdk.tests.FakeSessionContext.forRealUserIncollection;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class ListPrincipalAccessAuthorizationsPresenterAcceptTest extends ConstellioTest {
 

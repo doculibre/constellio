@@ -1,10 +1,10 @@
 package com.constellio.app.services.schemas.bulkImport;
 
+import com.constellio.app.services.schemas.bulkImport.data.ImportData;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 
 public class ImportDataErrors {
 

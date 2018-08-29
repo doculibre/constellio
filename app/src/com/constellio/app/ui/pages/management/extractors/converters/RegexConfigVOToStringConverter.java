@@ -1,9 +1,9 @@
 package com.constellio.app.ui.pages.management.extractors.converters;
 
-import java.util.Locale;
-
 import com.constellio.app.ui.pages.management.extractors.entities.RegexConfigVO;
 import com.vaadin.data.util.converter.Converter;
+
+import java.util.Locale;
 
 public class RegexConfigVOToStringConverter implements Converter<String, RegexConfigVO> {
 
@@ -22,7 +22,6 @@ public class RegexConfigVOToStringConverter implements Converter<String, RegexCo
 		}
 		return presentation;
 	}
-
 
 
 	@Override

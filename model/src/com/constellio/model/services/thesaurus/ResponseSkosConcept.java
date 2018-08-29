@@ -6,19 +6,19 @@ import java.util.Locale;
 import java.util.Map;
 
 public class ResponseSkosConcept {
-    Map<Locale, List> suggestions;
-    Map<Locale, List> disambiguations;
+	Map<Locale, List> suggestions;
+	Map<Locale, List> disambiguations;
 
-    public ResponseSkosConcept() {
-        suggestions = new HashMap<>();
-        disambiguations = new HashMap<>();
-    }
+	public ResponseSkosConcept() {
+		suggestions = new HashMap<>();
+		disambiguations = new HashMap<>();
+	}
 
-    public Map<Locale, List> getSuggestions() {
-        return suggestions;
-    }
+	public Map<Locale, List> getSuggestions() {
+		return suggestions;
+	}
 
-    public Map<Locale, List> getDisambiguations() {
-        return disambiguations;
-    }
+	public Map<Locale, List> getDisambiguations() {
+		return disambiguations;
+	}
 }

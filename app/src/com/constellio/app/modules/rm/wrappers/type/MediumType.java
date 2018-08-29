@@ -1,8 +1,11 @@
 package com.constellio.app.modules.rm.wrappers.type;
 
-import com.constellio.model.entities.records.wrappers.ValueListItem;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.Map;
 
 public class MediumType extends ValueListItem {
 
@@ -13,13 +16,18 @@ public class MediumType extends ValueListItem {
 	public static final String ANALOGICAL = "analogical";
 
 	public MediumType(Record record,
-			MetadataSchemaTypes types) {
+					  MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 
 	public MediumType setTitle(String title) {
 		super.setTitle(title);
 		return this;
+	}
+
+	@Override
+	public MediumType setTitles(Map<Language, String> titles) {
+		return (MediumType) super.setTitles(titles);
 	}
 
 	public MediumType setCode(String code) {

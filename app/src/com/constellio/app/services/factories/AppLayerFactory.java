@@ -1,7 +1,5 @@
 package com.constellio.app.services.factories;
 
-import java.util.List;
-
 import com.constellio.app.api.cmis.binding.global.CmisCacheManager;
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.extensions.AppLayerExtensions;
@@ -26,6 +24,8 @@ import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.factories.LayerFactory;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.util.List;
 
 public interface AppLayerFactory extends LayerFactory {
 

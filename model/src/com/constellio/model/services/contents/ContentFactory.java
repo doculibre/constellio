@@ -140,8 +140,10 @@ public class ContentFactory implements StructureFactory {
 	}
 
 	private Lazy<List<ContentVersion>> newLazyLoadedHistory(final Iterator<String> iterator, final int version,
-															final String lastKnownFilename, final String lastKnownModifiedBy,
-															final String lastKnownMimetype, final boolean isAllowingUserToNotExist) {
+															final String lastKnownFilename,
+															final String lastKnownModifiedBy,
+															final String lastKnownMimetype,
+															final boolean isAllowingUserToNotExist) {
 
 		return new Lazy<List<ContentVersion>>() {
 			@Override
@@ -214,7 +216,7 @@ public class ContentFactory implements StructureFactory {
 	}
 
 	private String toString(ContentVersion contentVersion, String lastKnownFilename, String lastKnownModifiedBy,
-			String lastKnownMimetype) {
+							String lastKnownMimetype) {
 		if (contentVersion == null) {
 			return ":" + NULL_STRING + ":";
 		}
@@ -257,8 +259,9 @@ public class ContentFactory implements StructureFactory {
 		return toContentVersion(string, version, null, null, null, isAllowingUserToNotExist);
 	}
 
-	private ContentVersion toContentVersion(String string, int version, String lastKnownFilename, String lastKnownModifiedBy,
-			String lastKnownMimetype, boolean isAllowingUserToNotExist) {
+	private ContentVersion toContentVersion(String string, int version, String lastKnownFilename,
+											String lastKnownModifiedBy,
+											String lastKnownMimetype, boolean isAllowingUserToNotExist) {
 		if (version == 2) {
 			return toContentVersion2(string, lastKnownFilename, lastKnownModifiedBy, lastKnownMimetype, isAllowingUserToNotExist);
 		} else {
@@ -286,7 +289,7 @@ public class ContentFactory implements StructureFactory {
 	}
 
 	private ContentVersion toContentVersion2(String string, String lastKnownFilename, String lastKnownModifiedBy,
-			String lastKnownMimetype, boolean isAllowingUserToNotExist) {
+											 String lastKnownMimetype, boolean isAllowingUserToNotExist) {
 		if (string.equals(NULL_STRING)) {
 			return null;
 		}

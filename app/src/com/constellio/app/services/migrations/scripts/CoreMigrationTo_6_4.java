@@ -1,8 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static java.util.Arrays.asList;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -14,6 +11,9 @@ import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static java.util.Arrays.asList;
 
 public class CoreMigrationTo_6_4 implements MigrationScript {
 	@Override
@@ -33,7 +33,7 @@ public class CoreMigrationTo_6_4 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor6_4 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor6_4(String collection, MigrationResourcesProvider provider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, provider, appLayerFactory);
 		}
 

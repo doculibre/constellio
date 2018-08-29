@@ -10,36 +10,36 @@ import java.util.Collection;
 import java.util.List;
 
 public class PdfStatusDataContainer extends DataContainer<PdfStatusDataProvider<?>> {
-	
-    public PdfStatusDataContainer(PdfStatusDataProvider<?> dataProvider) {
-        super(dataProvider);
-    }
 
-    @Override
-    protected void populateFromData(PdfStatusDataProvider<?> dataProvider) {
-        List<?> pdfStatus = dataProvider.listPdfStatus();
-        for (Object t : pdfStatus) {
-            addItem(t);
-        }
-    }
+	public PdfStatusDataContainer(PdfStatusDataProvider<?> dataProvider) {
+		super(dataProvider);
+	}
 
-    @Override
-    protected Collection<?> getOwnContainerPropertyIds() {
-        return getDataProvider().getOwnContainerPropertyIds();
-    }
-
-    @Override
-    protected Class<?> getOwnType(Object propertyId) {
-        return Label.class;
-    }
-
-    @SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-    protected Property<?> getOwnContainerProperty(Object itemId, Object propertyId) {
-        String value = (String) getDataProvider().getOwnValue(itemId, propertyId);
-        Label valueAsLabel = new Label(value, ContentMode.HTML);
-        return new ObjectProperty(valueAsLabel, Label.class);
-    }
+	protected void populateFromData(PdfStatusDataProvider<?> dataProvider) {
+		List<?> pdfStatus = dataProvider.listPdfStatus();
+		for (Object t : pdfStatus) {
+			addItem(t);
+		}
+	}
+
+	@Override
+	protected Collection<?> getOwnContainerPropertyIds() {
+		return getDataProvider().getOwnContainerPropertyIds();
+	}
+
+	@Override
+	protected Class<?> getOwnType(Object propertyId) {
+		return Label.class;
+	}
+
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	@Override
+	protected Property<?> getOwnContainerProperty(Object itemId, Object propertyId) {
+		String value = (String) getDataProvider().getOwnValue(itemId, propertyId);
+		Label valueAsLabel = new Label(value, ContentMode.HTML);
+		return new ObjectProperty(valueAsLabel, Label.class);
+	}
 
 
 }

@@ -1,25 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -38,6 +18,7 @@ import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property;
@@ -62,9 +43,26 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class LookupField<T extends Serializable> extends CustomField<T> {
-	
+
 	public static final String STYLE_NAME = "lookup";
 	public static final String ERROR_STYLE_NAME = STYLE_NAME + "-error";
 	public static final String AUTOCOMPLETE_FIELD_STYLE_NAME = STYLE_NAME + "-autocomplete-field";
@@ -73,8 +71,8 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	public static final String LOOKUP_WINDOW_STYLE_NAME = STYLE_NAME + "-window";
 	public static final String LOOKUP_WINDOW_CONTENT_STYLE_NAME = LOOKUP_WINDOW_STYLE_NAME + "-content";
 	private static final String CAPTION_PROPERTY_ID = "caption";
-	
-	private TextInputDataProvider<T> suggestInputDataProvider;
+
+	protected TextInputDataProvider<T> suggestInputDataProvider;
 	private List<LookupTreeDataProvider<T>> lookupTreeDataProviders = new ArrayList<>();
 	private BaseAutocompleteField<T> autoCompleteField;
 	private WindowButton lookupWindowButton;
@@ -102,6 +100,17 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		}
 	}
 
+	public void setProviders(TextInputDataProvider<T> suggestInputDataProvider,
+							 LookupTreeDataProvider<T>... lookupTreeDataProviders) {
+		this.suggestInputDataProvider = suggestInputDataProvider;
+		if (lookupTreeDataProviders != null) {
+			this.lookupTreeDataProviders.removeAll(this.lookupTreeDataProviders);
+			for (LookupTreeDataProvider<T> lookupTreeDataProvider : lookupTreeDataProviders) {
+				this.lookupTreeDataProviders.add(lookupTreeDataProvider);
+			}
+		}
+	}
+
 	public final Integer getWindowZIndex() {
 		return windowZIndex;
 	}
@@ -111,10 +120,14 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	}
 
 	public int getTreeBufferSize() {
-		if(configs == null) {
+		if (configs == null) {
 			configs = ConstellioFactories.getInstance().getModelLayerFactory().getSystemConfigs();
 		}
 		return configs.getLazyTreeBufferSize();
+	}
+
+	public List<LookupTreeDataProvider<T>> getLookupTreeDataProviders() {
+		return lookupTreeDataProviders;
 	}
 
 	@Override
@@ -126,16 +139,16 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			@Override
 			public List<T> suggest(String text) {
 				List<T> values = new ArrayList<>(suggestInputDataProvider.getData(text, 0, getBufferSize()));
-				if (itemConverter != null) {
-					Collections.sort(values, new Comparator<T>() {
-						@Override
-						public int compare(T o1, T o2) {
-							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
-							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
-							return s1.compareTo(s2);
-						}
-					});
-				}
+				//				if (itemConverter != null) {
+				//					Collections.sort(values, new Comparator<T>() {
+				//						@Override
+				//						public int compare(T o1, T o2) {
+				//							String s1 = itemConverter.convertToPresentation(o1, String.class, getLocale());
+				//							String s2 = itemConverter.convertToPresentation(o2, String.class, getLocale());
+				//							return s1.compareTo(s2);
+				//						}
+				//					});
+				//				}
 				return values;
 			}
 
@@ -162,12 +175,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			autoCompleteField.focus();
 		}
 
-		lookupWindowButton = new WindowButton(null, $("search")) {
-			@Override
-			protected Component buildWindowContent() {
-				return new LookupWindowContent(getWindow());
-			}
-		};
+		createLookupWindowBouton();
 		lookupWindowButton.setIcon(new ThemeResource("images/icons/actions/view.png"));
 		lookupWindowButton.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
 		lookupWindowButton.addStyleName(OPEN_WINDOW_BUTTON_STYLE_NAME);
@@ -201,6 +209,17 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		return mainLayout;
 	}
 
+	@NotNull
+	public WindowButton createLookupWindowBouton() {
+		lookupWindowButton = new WindowButton(null, $("search")) {
+			@Override
+			protected Component buildWindowContent() {
+				return new LookupWindowContent(getWindow());
+			}
+		};
+		return lookupWindowButton;
+	}
+
 	protected BaseAutocompleteField<T> newAutocompleteField(AutocompleteSuggestionsProvider<T> suggestionsProvider) {
 		return new BaseAutocompleteField<>(suggestionsProvider);
 	}
@@ -225,8 +244,10 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	}
 
 	public void setItemConverter(Converter<String, T> itemConverter) {
-		this.itemConverter = new ConverterWithCache<>(itemConverter);
-		suggestInputDataProvider.setConverterWithCache(this.itemConverter);
+		if (itemConverter != null) {
+			this.itemConverter = new ConverterWithCache<>(itemConverter);
+			suggestInputDataProvider.setConverterWithCache(this.itemConverter);
+		}
 	}
 
 	protected String getCaption(T object) {
@@ -499,7 +520,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 			tabSheet.setSelectedTab(lazyTreePanel);
 		}
 	}
-	
+
 	public interface LookupTreeDataProvider<T extends Serializable> extends LazyTreeDataProvider<T> {
 
 		TextInputDataProvider<T> search();
@@ -619,7 +640,9 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 								lookupWindow.close();
 							}
 						} else {
-							LookupField.this.setValue(item);
+							if (!LookupField.this.isReadOnly()) {
+								LookupField.this.setValue(item);
+							}
 						}
 					}
 				});

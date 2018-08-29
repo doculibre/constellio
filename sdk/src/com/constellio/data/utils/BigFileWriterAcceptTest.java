@@ -1,6 +1,10 @@
 package com.constellio.data.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.apache.commons.io.FileUtils;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -9,12 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BigFileWriterAcceptTest extends ConstellioTest {
 

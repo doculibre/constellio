@@ -1,14 +1,5 @@
 package com.constellio.model.services.records;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.util.Set;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.ValueListServices;
@@ -19,6 +10,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -37,6 +29,16 @@ import com.constellio.model.services.trash.TrashServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
@@ -122,7 +124,10 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 		ValueListServices valueListServices = new ValueListServices(getAppLayerFactory(), zeCollection);
 
-		Taxonomy taxonomy = valueListServices.createTaxonomy("Ze taxonomy");
+		Map<Language, String> mapLangueTitle = new HashMap<>();
+		mapLangueTitle.put(Language.French, "Ze taxonomy");
+
+		Taxonomy taxonomy = valueListServices.createTaxonomy(mapLangueTitle, true);
 		Metadata metadata = valueListServices.createAMultivalueClassificationMetadataInGroup(
 				taxonomy, Document.SCHEMA_TYPE, "Ze taxonomy", "Ze taxonomy tab label");
 

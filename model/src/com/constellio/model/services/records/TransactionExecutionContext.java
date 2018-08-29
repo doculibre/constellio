@@ -1,13 +1,13 @@
 package com.constellio.model.services.records;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.calculators.dependencies.AllPrincipalsAuthsDependencyValue;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class TransactionExecutionContext {
 

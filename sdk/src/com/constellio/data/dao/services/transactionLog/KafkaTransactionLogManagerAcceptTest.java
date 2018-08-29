@@ -1,34 +1,6 @@
 package com.constellio.data.dao.services.transactionLog;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.commons.io.IOUtils;
-import org.joda.time.Duration;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransaction;
-import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
@@ -36,13 +8,22 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.DataLayerConfigurationAlteration;
-import com.constellio.sdk.tests.SolrSDKToolsServices;
 import com.constellio.sdk.tests.TestRecord;
-import com.constellio.sdk.tests.SolrSDKToolsServices.VaultSnapshot;
-import com.constellio.sdk.tests.annotations.LoadTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.Duration;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
 
 public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 
@@ -102,8 +83,8 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 	public void whenMultipleThreadsAreAdding5000RecordsThenAllRecordsAreLogged()
 			throws Exception {
 		runAdding(2000000);
-//		assertThat(log.isLastFlushFailed()).isFalse();
-		
+		//		assertThat(log.isLastFlushFailed()).isFalse();
+
 		//log.destroyAndRebuildSolrCollection();
 	}
 
@@ -119,7 +100,7 @@ public class KafkaTransactionLogManagerAcceptTest extends ConstellioTest {
 
 					while ((arrayIndex = index.incrementAndGet()) < nbRecordsToAdd) {
 						if ((arrayIndex + 1) % 500 == 0) {
-							System.out.println((arrayIndex + 1) + " / " + nbRecordsToAdd + " (Thread numero : "+getName()+")");
+							System.out.println((arrayIndex + 1) + " / " + nbRecordsToAdd + " (Thread numero : " + getName() + ")");
 						}
 						Record record = new TestRecord(zeSchema);
 

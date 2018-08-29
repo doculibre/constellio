@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.user;
 
-import java.util.List;
-
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BackButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -14,6 +10,9 @@ import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
+
+import java.util.List;
 
 public class DisplayUserCredentialPage extends PageHelper {
 
@@ -59,7 +58,7 @@ public class DisplayUserCredentialPage extends PageHelper {
 		return getButtonByClassName(EditButton.BUTTON_STYLE, index);
 	}
 
-//	public List<ConstellioWebElement> findEditButtonElements() {
+	//	public List<ConstellioWebElement> findEditButtonElements() {
 	//		return driver.findAdaptElements(By.className(EditButton.BUTTON_STYLE));
 	//	}
 	//

@@ -1,19 +1,5 @@
 package com.constellio.app.modules.es.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.navigation.ESViews;
@@ -31,6 +17,19 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView> {
 
@@ -155,7 +154,7 @@ public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView>
 	public Long getTotalDocumentsCount() {
 
 		final List<MetadataSchemaType> types = getMetadataSchemaTypes();
-		
+
 
 		LogicalSearchCondition condition = from(types).returnAll();
 		condition = condition.andWhere(es.connectorDocument.connector()).isEqualTo(connectorId);
@@ -197,7 +196,7 @@ public class ConnectorReportPresenter extends BasePresenter<ConnectorReportView>
 	public void filterButtonClicked() {
 		view.filterTable();
 	}
-	
+
 	public void backButtonClicked() {
 		view.navigate().to(ESViews.class).displayConnectorInstance(connectorId);
 	}

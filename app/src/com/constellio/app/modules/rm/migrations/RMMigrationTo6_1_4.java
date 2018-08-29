@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -18,6 +13,11 @@ import com.constellio.model.services.records.RecordModificationImpactHandler;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 public class RMMigrationTo6_1_4 implements MigrationScript {
 	@Override
 	public String getVersion() {
@@ -25,7 +25,8 @@ public class RMMigrationTo6_1_4 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		setSubFoldersEnteredFieldsToNull(collection, appLayerFactory);
 	}

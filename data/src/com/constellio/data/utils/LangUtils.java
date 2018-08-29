@@ -1,6 +1,9 @@
 package com.constellio.data.utils;
 
-import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,10 +19,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
+import static com.constellio.data.utils.AccentApostropheCleaner.removeAccents;
 
 public class LangUtils {
 
@@ -363,7 +363,7 @@ public class LangUtils {
 		private List<ModifiedEntry<K, V>> modifiedEntries;
 
 		public MapComparisonResults(List<K> newEntries, List<K> removedEntries,
-				List<ModifiedEntry<K, V>> modifiedEntries) {
+									List<ModifiedEntry<K, V>> modifiedEntries) {
 			this.newEntries = Collections.unmodifiableList(newEntries);
 			this.removedEntries = Collections.unmodifiableList(removedEntries);
 			this.modifiedEntries = Collections.unmodifiableList(modifiedEntries);
@@ -446,7 +446,8 @@ public class LangUtils {
 		return parameters;
 	}
 
-	public static Map<String, String> asMap(String key1, String value1, String key2, String value2, String key3, String value3) {
+	public static Map<String, String> asMap(String key1, String value1, String key2, String value2, String key3,
+											String value3) {
 		Map<String, String> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		parameters.put(key2, value2);
@@ -471,5 +472,9 @@ public class LangUtils {
 				nestedIterator.remove();
 			}
 		};
+	}
+
+	public static boolean isNullOrEmptyCollection(Object value) {
+		return value == null || ((value instanceof Collection) && ((Collection) value).isEmpty());
 	}
 }

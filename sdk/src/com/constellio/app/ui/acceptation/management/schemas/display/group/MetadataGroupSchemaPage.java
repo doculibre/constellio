@@ -1,10 +1,5 @@
 package com.constellio.app.ui.acceptation.management.schemas.display.group;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.pages.management.schemas.display.group.ListMetadataGroupSchemaTypeViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
@@ -15,6 +10,10 @@ import com.constellio.app.ui.tools.RecordContainerWebElement.RecordContainerWebE
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MetadataGroupSchemaPage extends PageHelper {
 	public static final int TITLE_COLUMN = 0;

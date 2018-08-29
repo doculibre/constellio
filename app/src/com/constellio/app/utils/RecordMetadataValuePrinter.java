@@ -1,9 +1,5 @@
 package com.constellio.app.utils;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -11,6 +7,10 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RecordMetadataValuePrinter {
 

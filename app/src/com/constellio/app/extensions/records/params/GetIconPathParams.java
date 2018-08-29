@@ -4,7 +4,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Record;
 
 public class GetIconPathParams {
-	
+
 	private final Record record;
 	private final RecordVO recordVO;
 	private final boolean expanded;

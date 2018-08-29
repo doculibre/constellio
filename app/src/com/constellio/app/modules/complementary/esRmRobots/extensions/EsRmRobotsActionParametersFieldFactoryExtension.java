@@ -14,11 +14,10 @@ public class EsRmRobotsActionParametersFieldFactoryExtension extends RecordField
 		if (DynamicParametersField.RECORD_FIELD_FACTORY_KEY.equals(key)) {
 			recordFieldFactory = new EsRmRobotActionParametersFieldFactory();
 		} else {
-			recordFieldFactory = super.newRecordFieldFactory(params); 
+			recordFieldFactory = super.newRecordFieldFactory(params);
 		}
 		return recordFieldFactory;
 	}
 
-	
 
 }

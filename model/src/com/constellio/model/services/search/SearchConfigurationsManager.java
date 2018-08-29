@@ -6,18 +6,20 @@ import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.model.services.search.Elevations.QueryElevation;
-import com.constellio.model.services.search.Elevations.QueryElevation.DocElevation;
+import com.constellio.model.services.search.QueryElevation.DocElevation;
 import com.constellio.model.utils.AbstractOneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.XMLConfigReader;
 import org.jdom2.Document;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollectionManager<Elevations> {
 	public static final String ELEVATE_FILE_NAME = "/elevate.xml";
 
-	public SearchConfigurationsManager(ConfigManager configManager, CollectionsListManager collectionsListManager, ConstellioCacheManager cacheManager) {
+	public SearchConfigurationsManager(ConfigManager configManager, CollectionsListManager collectionsListManager,
+									   ConstellioCacheManager cacheManager) {
 		super(configManager, collectionsListManager, cacheManager);
 	}
 
@@ -73,12 +75,12 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 		updateCollection(collection, documentAlteration);
 	}
 
-	public List<DocElevation> getDocElevations(String collection, String query){
+	public List<DocElevation> getDocElevations(String collection, String query) {
 		Elevations elevations = getCollection(collection);
-		if(elevations != null) {
+		if (elevations != null) {
 			List<QueryElevation> queryElevations = elevations.getQueryElevations();
-			for (QueryElevation queryElevation:queryElevations) {
-				if(Objects.equals(queryElevation.getQuery(), query)) {
+			for (QueryElevation queryElevation : queryElevations) {
+				if (Objects.equals(queryElevation.getQuery(), query)) {
 					return queryElevation.getDocElevations();
 				}
 			}
@@ -89,7 +91,7 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 
 	public List<String> getDocExlusions(String collection) {
 		Elevations elevations = getCollection(collection);
-		if(elevations != null) {
+		if (elevations != null) {
 			return elevations.getDocExclusions();
 		}
 
@@ -99,9 +101,9 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 	public List<String> getAllQuery(String collection) {
 		List<String> allQuery = new ArrayList<>();
 		Elevations elevations = getCollection(collection);
-		if(elevations != null) {
+		if (elevations != null) {
 			List<QueryElevation> queryElevations = elevations.getQueryElevations();
-			for (QueryElevation queryElevation:queryElevations) {
+			for (QueryElevation queryElevation : queryElevations) {
 				allQuery.add(queryElevation.getQuery());
 			}
 		}
@@ -117,7 +119,7 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 
 		List<DocElevation> docElevations = getDocElevations(collection, freeTextQuery);
 
-		if(docElevations != null) {
+		if (docElevations != null) {
 			for (DocElevation docElevation : docElevations) {
 				if (recordId.equals(docElevation.getId())) {
 					found = true;
@@ -136,7 +138,7 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 
 	public void removeAllElevation(String collection) {
 		Elevations elevations = getCollection(collection);
-		if(elevations != null) {
+		if (elevations != null) {
 			elevations.removeAllElevation();
 			updateCollectionElevations(collection, elevations);
 		}
@@ -144,7 +146,7 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 
 	public void removeExclusion(String collection, String id) {
 		Elevations elevations = getCollection(collection);
-		if(elevations != null) {
+		if (elevations != null) {
 			elevations.removeDocExclusion(id);
 			updateCollectionElevations(collection, elevations);
 		}
@@ -152,7 +154,7 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 
 	public void removeAllExclusion(String collection) {
 		Elevations elevations = getCollection(collection);
-		if(elevations != null) {
+		if (elevations != null) {
 			elevations.removeAllDocExclusion();
 			updateCollectionElevations(collection, elevations);
 		}
@@ -160,14 +162,14 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 
 	public void removeQueryElevation(String collection, String query) {
 		Elevations elevations = getCollection(collection);
-		if(elevations != null && elevations.removeQueryElevation(query)) {
+		if (elevations != null && elevations.removeQueryElevation(query)) {
 			updateCollectionElevations(collection, elevations);
 		}
 	}
 
 	public void removeElevated(String collection, String freeTextQuery, String recordId) {
 		Elevations elevations = getCollection(collection);
-		if(elevations != null && elevations.removeDocElevation(freeTextQuery, recordId)) {
+		if (elevations != null && elevations.removeDocElevation(freeTextQuery, recordId)) {
 			updateCollectionElevations(collection, elevations);
 		}
 	}
@@ -178,7 +180,7 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 
 	public void setElevated(String collection, String freeTextQuery, String recordId) {
 		Elevations elevations = getCollection(collection);
-		if(elevations != null) {
+		if (elevations != null) {
 			elevations.addOrUpdate(
 					new QueryElevation(freeTextQuery)
 							.addDocElevation(new DocElevation(recordId, freeTextQuery)));
@@ -193,7 +195,7 @@ public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollecti
 
 	public void setExcluded(String collection, String recordId) {
 		Elevations elevations = getCollection(collection);
-		if(elevations != null && elevations.addDocExclusion(recordId)) {
+		if (elevations != null && elevations.addDocExclusion(recordId)) {
 			updateCollectionElevations(collection, elevations);
 		}
 	}

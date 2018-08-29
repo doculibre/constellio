@@ -11,8 +11,8 @@ public class BaseEmailServerConfiguration implements EmailServerConfiguration {
 	private String defaultSenderEmail;
 
 	public BaseEmailServerConfiguration(String username, String password, String defaultSenderEmail,
-			Map<String, String> properties,
-			boolean enabled) {
+										Map<String, String> properties,
+										boolean enabled) {
 		this.enabled = enabled;
 		this.username = username;
 		this.defaultSenderEmail = defaultSenderEmail;

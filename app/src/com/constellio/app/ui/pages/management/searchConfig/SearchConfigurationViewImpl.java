@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.searchConfig;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -28,6 +23,11 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.Collections;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchConfigurationView {
 
 	private SearchConfigurationPresenter presenter;
@@ -44,7 +44,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 	@Override
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
 		VerticalLayout mainLayout = new VerticalLayout();
-		
+
 		CssLayout collectionSectionLayout = new CustomCssLayout();
 		collectionSectionLayout.addComponents(createStatisticsButton(), createSearchBoostByMetadatasButton(), createSeachBoostByQueryButton(),
 				createSolrFeatureRequestButton(), createFacetsManagementButton());
@@ -61,7 +61,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 			collectionSectionLayout.addComponents(createSynonymsManagementButton());
 			collectionSectionLayout.addComponents(createElevationManagementButton());
 		}
-		
+
 		List<NavigationItem> collectionItems = presenter.getCollectionItems();
 		for (NavigationItem navigationItem : collectionItems) {
 			buildButton(collectionSectionLayout, navigationItem);
@@ -79,7 +79,7 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 				CssLayout systemSection = new CustomCssLayout();
 				mainLayout.setSpacing(true);
 				mainLayout.addComponent(systemSection);
-				
+
 				for (NavigationItem navigationItem : systemItems) {
 					buildButton(systemSection, navigationItem);
 				}
@@ -91,60 +91,60 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 
 	private Button createSearchBoostByMetadatasButton() {
 		return presenter.isBoostMetadataButtonVisible() ?
-				createLink($("AdminView.searchBoostByMetadata"), new Button.ClickListener() {
-					@Override
-					public void buttonClick(Button.ClickEvent event) {
-						presenter.searchBoostByMetadatasButtonClicked();
-					}
-				}, "config/boost-metadata-search") :
-				null;
+			   createLink($("AdminView.searchBoostByMetadata"), new Button.ClickListener() {
+				   @Override
+				   public void buttonClick(Button.ClickEvent event) {
+					   presenter.searchBoostByMetadatasButtonClicked();
+				   }
+			   }, "config/boost-metadata-search") :
+			   null;
 	}
 
 	private Button createSynonymsManagementButton() {
 		return presenter.isSynonymsManagementButtonVisible() ?
-				createLink($("AdminView.synonymsManagement"), new Button.ClickListener() {
-					@Override
-					public void buttonClick(Button.ClickEvent event) {
-						presenter.synonymsManagementButtonClicked();
-					}
-				}, "config/synonyms") :
-				null;
+			   createLink($("AdminView.synonymsManagement"), new Button.ClickListener() {
+				   @Override
+				   public void buttonClick(Button.ClickEvent event) {
+					   presenter.synonymsManagementButtonClicked();
+				   }
+			   }, "config/synonyms") :
+			   null;
 	}
 
 	private Button createElevationManagementButton() {
 		return presenter.isElevationManagementButtonVisible() ?
-				createLink($("AdminView.elevationManagement"), new Button.ClickListener() {
-					@Override
-					public void buttonClick(Button.ClickEvent event) {
-						presenter.elevationManagementButtonClicked();
-					}
-				}, "config/search-exclusions") :
-				null;
+			   createLink($("AdminView.elevationManagement"), new Button.ClickListener() {
+				   @Override
+				   public void buttonClick(Button.ClickEvent event) {
+					   presenter.elevationManagementButtonClicked();
+				   }
+			   }, "config/search-exclusions") :
+			   null;
 	}
 
 	private Button createThesaurusConfigurationButton() {
 		return presenter.isThesaurusConfigurationButtonVisible() ?
-				createLink($("AdminView.thesaurus"), new Button.ClickListener() {
-					@Override
-					public void buttonClick(Button.ClickEvent event) {
-						presenter.thesaurusConfigurationButtonClicked();
-					}
-				}, "config/thesaurus") :
-				null;
+			   createLink($("AdminView.thesaurus"), new Button.ClickListener() {
+				   @Override
+				   public void buttonClick(Button.ClickEvent event) {
+					   presenter.thesaurusConfigurationButtonClicked();
+				   }
+			   }, "config/thesaurus") :
+			   null;
 	}
 
 	private Button createSolrFeatureRequestButton() {
 		User user = getConstellioFactories().getAppLayerFactory().getModelLayerFactory().newUserServices()
 				.getUserInCollection(getSessionContext().getCurrentUser().getUsername(), getCollection());
 		return user.has(CorePermissions.MANAGE_SEARCH_BOOST).globally() ?
-				createLink($("AdminView.solrFeature"), new Button.ClickListener() {
+			   createLink($("AdminView.solrFeature"), new Button.ClickListener() {
 
-					@Override
-					public void buttonClick(Button.ClickEvent event) {
-						navigate().to().solrFeatures();
-					}
-				}, "config/boost-text-search") :
-				null;
+				   @Override
+				   public void buttonClick(Button.ClickEvent event) {
+					   navigate().to().solrFeatures();
+				   }
+			   }, "config/boost-text-search") :
+			   null;
 	}
 
 	//	private Button createBoostRequestButton() {
@@ -159,57 +159,57 @@ public class SearchConfigurationViewImpl extends BaseViewImpl implements SearchC
 	//				null;
 	private Button createSpellCheckerExclusionsManagementButton() {
 		return presenter.isSpellCheckerExclusionsManagementButtonVisible() ?
-				createLink($("AdminView.excluded"), new Button.ClickListener() {
-					@Override
-					public void buttonClick(Button.ClickEvent event) {
-						presenter.spellCheckerExclusionsManagementButtonClicked();
-					}
-				}, "config/search-suggestions-exlusions") :
-				null;
+			   createLink($("AdminView.excluded"), new Button.ClickListener() {
+				   @Override
+				   public void buttonClick(Button.ClickEvent event) {
+					   presenter.spellCheckerExclusionsManagementButtonClicked();
+				   }
+			   }, "config/search-suggestions-exlusions") :
+			   null;
 	}
 
 	private Button createSeachBoostByQueryButton() {
 		return presenter.isSearchBoostByQueryButtonVisible() ?
-				createLink($("AdminView.searchBoostByQuery"), new Button.ClickListener() {
-					@Override
-					public void buttonClick(Button.ClickEvent event) {
-						presenter.searchBoostByQueryButtonClicked();
-					}
-				}, "config/boost-text-search") :
-				null;
+			   createLink($("AdminView.searchBoostByQuery"), new Button.ClickListener() {
+				   @Override
+				   public void buttonClick(Button.ClickEvent event) {
+					   presenter.searchBoostByQueryButtonClicked();
+				   }
+			   }, "config/boost-text-search") :
+			   null;
 	}
 
 	private Button createFacetsManagementButton() {
 		return presenter.isFacetsManagementButtonVisible() ?
-				createLink($("perm.core.manageFacets"), new Button.ClickListener() {
-					@Override
-					public void buttonClick(Button.ClickEvent event) {
-						presenter.facetsManagementButtonClicked();
-					}
-				}, "config/funnel") :
-				null;
+			   createLink($("perm.core.manageFacets"), new Button.ClickListener() {
+				   @Override
+				   public void buttonClick(Button.ClickEvent event) {
+					   presenter.facetsManagementButtonClicked();
+				   }
+			   }, "config/funnel") :
+			   null;
 	}
 
 	private Button createCapsulesManagementButton() {
 		return presenter.isCapsulesManagementButtonVisible() ?
-				createLink($("ListCapsuleView.title"), new Button.ClickListener() {
-					@Override
-					public void buttonClick(Button.ClickEvent event) {
-						presenter.capsulesManagementButtonClicked();
-					}
-				}, "config/capsules") :
-				null;
+			   createLink($("ListCapsuleView.title"), new Button.ClickListener() {
+				   @Override
+				   public void buttonClick(Button.ClickEvent event) {
+					   presenter.capsulesManagementButtonClicked();
+				   }
+			   }, "config/capsules") :
+			   null;
 	}
 
 	private Button createStatisticsButton() {
 		return presenter.isStatisticsButtonVisible() ?
-				createLink($("StatisticsView.viewTitle"), new Button.ClickListener() {
-					@Override
-					public void buttonClick(ClickEvent event) {
-						presenter.statisticsButtonClicked();
-					}
-				}, "config/chart_column") :
-				null;
+			   createLink($("StatisticsView.viewTitle"), new Button.ClickListener() {
+				   @Override
+				   public void buttonClick(ClickEvent event) {
+					   presenter.statisticsButtonClicked();
+				   }
+			   }, "config/chart_column") :
+			   null;
 	}
 
 	@Override

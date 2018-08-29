@@ -1,13 +1,5 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.assertj.core.api.Condition;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.services.records.RecordServices;
@@ -19,6 +11,13 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.assertj.core.api.Condition;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DriverTest
 public class GetObjectByPathRequestAcceptTest extends ConstellioTest {

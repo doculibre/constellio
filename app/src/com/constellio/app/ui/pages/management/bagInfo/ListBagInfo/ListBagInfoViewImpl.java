@@ -21,84 +21,84 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListBagInfoViewImpl extends BaseViewImpl implements ListBagInfoView {
-    private ListBagInfoPresenter presenter;
+	private ListBagInfoPresenter presenter;
 
-    @Override
-    protected String getTitle() {
-        return super.getTitle();
-    }
+	@Override
+	protected String getTitle() {
+		return super.getTitle();
+	}
 
-    @Override
-    protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
-        presenter = new ListBagInfoPresenter(this);
-    }
+	@Override
+	protected void initBeforeCreateComponents(ViewChangeListener.ViewChangeEvent event) {
+		presenter = new ListBagInfoPresenter(this);
+	}
 
-    @Override
-    protected Button.ClickListener getBackButtonClickListener() {
-        return new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                navigateTo().previousView();
-            }
-        };
-    }
+	@Override
+	protected Button.ClickListener getBackButtonClickListener() {
+		return new Button.ClickListener() {
+			@Override
+			public void buttonClick(Button.ClickEvent event) {
+				navigateTo().previousView();
+			}
+		};
+	}
 
-    @Override
-    protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
-        List<Button> buttons = new ArrayList<>();
-        buttons.add(new BaseButton($("ListBagInfoViewImpl.addBagInfo")) {
-            @Override
-            protected void buttonClick(ClickEvent event) {
-                navigateTo().addBagInfo();
-            }
-        });
-        return buttons;
-    }
+	@Override
+	protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
+		List<Button> buttons = new ArrayList<>();
+		buttons.add(new BaseButton($("ListBagInfoViewImpl.addBagInfo")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				navigateTo().addBagInfo();
+			}
+		});
+		return buttons;
+	}
 
-    @Override
-    protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
-        Container tableContainer = new RecordVOLazyContainer(presenter.getBagInfoDataProvider());
-        ButtonsContainer buttonTableContainer = new ButtonsContainer(tableContainer, "buttons");
-        buttonTableContainer.addButton(new ButtonsContainer.ContainerButton() {
+	@Override
+	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
+		Container tableContainer = new RecordVOLazyContainer(presenter.getBagInfoDataProvider());
+		ButtonsContainer buttonTableContainer = new ButtonsContainer(tableContainer, "buttons");
+		buttonTableContainer.addButton(new ButtonsContainer.ContainerButton() {
 
-            @Override
-            protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new DisplayButton() {
-                    @Override
-                    protected void buttonClick(ClickEvent event) {
-                        presenter.displayButtonClicked(presenter.getRecordsWithIndex(itemId));
-                    }
-                };
-            }
-        });
-        buttonTableContainer.addButton(new ButtonsContainer.ContainerButton() {
-            @Override
-            protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new EditButton() {
-                    @Override
-                    protected void buttonClick(ClickEvent event) {
-                        presenter.editButtonClicked(presenter.getRecordsWithIndex(itemId));
-                    }
-                };
-            }
-        });
-        buttonTableContainer.addButton(new ButtonsContainer.ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				return new DisplayButton() {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.displayButtonClicked(presenter.getRecordsWithIndex(itemId));
+					}
+				};
+			}
+		});
+		buttonTableContainer.addButton(new ButtonsContainer.ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				return new EditButton() {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						presenter.editButtonClicked(presenter.getRecordsWithIndex(itemId));
+					}
+				};
+			}
+		});
+		buttonTableContainer.addButton(new ButtonsContainer.ContainerButton() {
 
-            @Override
-            protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-                return new DeleteButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				return new DeleteButton() {
 
-                    @Override
-                    protected void confirmButtonClick(ConfirmDialog dialog) {
-                        presenter.deleteButtonClicked(presenter.getRecordsWithIndex(itemId));
-                    }
-                };
-            }
-        });
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.deleteButtonClicked(presenter.getRecordsWithIndex(itemId));
+					}
+				};
+			}
+		});
 
-        tableContainer = buttonTableContainer;
-        Table table = new RecordVOTable("", tableContainer);
-        setTableProperty(table, tableContainer.size());
-        return table;
-    }
+		tableContainer = buttonTableContainer;
+		Table table = new RecordVOTable("", tableContainer);
+		setTableProperty(table, tableContainer.size());
+		return table;
+	}
 }

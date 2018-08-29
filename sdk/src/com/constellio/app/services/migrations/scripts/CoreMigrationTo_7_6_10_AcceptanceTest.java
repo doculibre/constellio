@@ -1,18 +1,17 @@
 package com.constellio.app.services.migrations.scripts;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.data.dao.services.contents.ContentDao;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_PREVIEW_CONVERSION;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-
-import org.junit.Test;
-
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.data.dao.services.contents.ContentDao;
-import com.constellio.model.services.contents.ContentManager;
-import com.constellio.sdk.tests.ConstellioTest;
 
 public class CoreMigrationTo_7_6_10_AcceptanceTest extends ConstellioTest {
 

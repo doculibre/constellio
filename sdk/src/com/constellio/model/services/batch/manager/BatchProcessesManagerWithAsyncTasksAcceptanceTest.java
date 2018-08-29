@@ -1,23 +1,22 @@
 package com.constellio.model.services.batch.manager;
 
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static com.constellio.sdk.tests.TestUtils.extractingWarningsSimpleCodeAndParameters;
-import static com.constellio.sdk.tests.TestUtils.linkEventBus;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
 import com.constellio.model.entities.batchprocess.AsyncTaskExecutionParams;
 import com.constellio.model.services.batch.controller.BatchProcessState;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.extractingWarningsSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class BatchProcessesManagerWithAsyncTasksAcceptanceTest extends ConstellioTest {
 
@@ -111,7 +110,7 @@ public class BatchProcessesManagerWithAsyncTasksAcceptanceTest extends Constelli
 
 		@Override
 		public Object[] getInstanceParameters() {
-			return new Object[] { wordsToAdd };
+			return new Object[]{wordsToAdd};
 		}
 	}
 

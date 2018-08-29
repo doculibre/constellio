@@ -1,7 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -22,6 +20,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.List;
 
 public class CoreMigrationTo_5_1_4 implements MigrationScript {
 	@Override
@@ -66,7 +66,7 @@ public class CoreMigrationTo_5_1_4 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor5_1_4 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor5_1_4(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

@@ -1,11 +1,10 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DecomListFolderDetailTest extends ConstellioTest {
 	DecomListFolderDetailFactory factory;

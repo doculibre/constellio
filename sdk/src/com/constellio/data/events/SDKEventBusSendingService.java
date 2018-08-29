@@ -1,5 +1,6 @@
 package com.constellio.data.events;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -9,8 +10,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.xml.bind.DatatypeConverter;
 
 public class SDKEventBusSendingService extends EventBusSendingService {
 
@@ -95,10 +94,12 @@ public class SDKEventBusSendingService extends EventBusSendingService {
 		return newSent;
 	}
 
-	/** Read the object from Base64 string. */
+	/**
+	 * Read the object from Base64 string.
+	 */
 	private static Object deserializeBase64(String s)
 			throws IOException,
-			ClassNotFoundException {
+				   ClassNotFoundException {
 		byte[] data = DatatypeConverter.parseBase64Binary(s);
 		ObjectInputStream ois = new ObjectInputStream(
 				new ByteArrayInputStream(data));
@@ -107,7 +108,9 @@ public class SDKEventBusSendingService extends EventBusSendingService {
 		return o;
 	}
 
-	/** Write the object to a Base64 string. */
+	/**
+	 * Write the object to a Base64 string.
+	 */
 	private static String serializeToBase64(Serializable o)
 			throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

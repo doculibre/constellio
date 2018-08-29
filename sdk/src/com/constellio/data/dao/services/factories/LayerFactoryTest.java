@@ -1,7 +1,8 @@
 package com.constellio.data.dao.services.factories;
 
-import static org.mockito.Mockito.doAnswer;
-
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.managers.StatefullServiceDecorator;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
@@ -10,9 +11,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.managers.StatefullServiceDecorator;
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.mockito.Mockito.doAnswer;
 
 public class LayerFactoryTest extends ConstellioTest {
 

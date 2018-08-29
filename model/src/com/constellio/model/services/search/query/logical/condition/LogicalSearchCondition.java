@@ -1,15 +1,15 @@
 package com.constellio.model.services.search.query.logical.condition;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.services.search.query.logical.LogicalOperator;
 import com.constellio.model.services.search.query.logical.LogicalSearchValueCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class LogicalSearchCondition {
 
@@ -130,8 +130,20 @@ public abstract class LogicalSearchCondition {
 		return filters != null && filters.getCollection() != null;
 	}
 
+	public List<String> getFilterSchemaTypesCodes() {
+		if (filters instanceof SchemaTypesFilters) {
+			return ((SchemaTypesFilters) filters).getSchemaTypesCodes();
+
+		} else if (filters instanceof SchemaFilters) {
+			return Collections.singletonList(((SchemaFilters) filters).getSchemaType());
+
+		} else {
+			return Collections.emptyList();
+		}
+	}
+
 	public String getCollection() {
-		return filters!=null?filters.getCollection():null;
+		return filters != null ? filters.getCollection() : null;
 	}
 
 }

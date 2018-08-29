@@ -1,5 +1,28 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.entities.FormMetadataSchemaVO;
+import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
@@ -10,31 +33,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.schemas.SchemaUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.entities.FormMetadataSchemaVO;
-import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.MockedNavigation;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 
 public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 
@@ -103,8 +101,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 
 		try {
 			presenter.saveButtonClicked();
-		}
-		catch(ValidationException validationExeption) {
+		} catch (ValidationException validationExeption) {
 			assertThat(extractingSimpleCodeAndParameters(validationExeption)).containsOnly(
 					tuple("AddEditSchemaPresenter_startWithUSR"));
 		}
@@ -115,7 +112,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 			throws Exception {
 
 		presenter.setParameters(parameters);
-		
+
 		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(FakeSessionContext.adminInCollection(zeCollection));
 		formMetadataSchemaVO.setLocalCode("USRnewSchema");
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
@@ -132,7 +129,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		verify(view.navigate().to()).listSchema(params);
 	}
 
-	@Test(expected=MetadataSchemasRuntimeException.NoSuchSchema.class)
+	@Test(expected = MetadataSchemasRuntimeException.NoSuchSchema.class)
 	public void givenCodeWithSpaceWhenSaveButtonClickedThenErrorAndSchemaNotCreated()
 			throws Exception {
 
@@ -152,7 +149,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		metadataSchemasManager.getSchemaTypes(zeCollection).getSchema("zeSchemaType_USRnewSchema");
 	}
 
-	@Test(expected=MetadataSchemasRuntimeException.NoSuchSchema.class)
+	@Test(expected = MetadataSchemasRuntimeException.NoSuchSchema.class)
 	public void givenCodeStartingWithNumberWhenSaveButtonClickedThenErrorAndSchemaNotCreated()
 			throws Exception {
 
@@ -177,7 +174,7 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		presenter.setParameters(parameters);
 		parameters.put("code", "USRFDSksdf");
 
-		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(zeSchema.code(),"USR" + SchemaUtils.underscoreSplitWithCache(zeSchema.code())[1],zeCollection, new HashMap<String, String>());
+		FormMetadataSchemaVO formMetadataSchemaVO = new FormMetadataSchemaVO(zeSchema.code(), "USR" + SchemaUtils.underscoreSplitWithCache(zeSchema.code())[1], zeCollection, new HashMap<String, String>());
 		formMetadataSchemaVO.addLabel(language, "new schema Label");
 		presenter.setSchemaVO(formMetadataSchemaVO);
 
@@ -256,5 +253,5 @@ public class AddEditSchemaPresenterAcceptTest extends ConstellioTest {
 		presenter.setParameters(parameters);
 		assertThat(presenter.isCodeEditable()).isFalse();
 	}
-	
+
 }

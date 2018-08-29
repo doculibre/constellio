@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.firstSetup;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.CollectionVODataProvider.CollectionVO;
 import com.constellio.model.conf.FoldersLocator;
@@ -13,6 +8,11 @@ import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 public class FirstSetupPresenter {
 

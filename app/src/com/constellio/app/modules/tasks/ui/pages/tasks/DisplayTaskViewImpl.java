@@ -1,12 +1,5 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.constellio.app.modules.tasks.ui.components.breadcrumb.TaskBreadcrumbTrail;
 import com.constellio.app.modules.tasks.ui.components.display.TaskDisplayFactory;
@@ -33,6 +26,12 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView {
 	public static final String STYLE_NAME = "display-folder";
@@ -61,7 +60,10 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		recordDisplayLayout.setSpacing(true);
 		recordDisplay = new RecordDisplay(currentTask, new TaskDisplayFactory());
 		recordDisplayLayout.addComponent(recordDisplay);
+		recordDisplayLayout.setId(RECORD_DISPLAY_LAYOUT_ID);
+
 		subTasks = new CustomComponent();
+		subTasks.setId(SUB_TASKS_ID);
 
 		tabSheet = new TabSheet();
 		tabSheet.addStyleName(STYLE_NAME);
@@ -88,6 +90,11 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 		verticalLayout.addComponent(tabSheet);
 		presenter.selectInitialTabForUser();
 		return verticalLayout;
+	}
+
+	@Override
+	public Component getSelectedTab() {
+		return tabSheet.getSelectedTab();
 	}
 
 	@Override

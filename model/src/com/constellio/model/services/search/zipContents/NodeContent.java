@@ -1,9 +1,8 @@
 package com.constellio.model.services.search.zipContents;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
+import org.apache.commons.lang.StringUtils;
 
 public class NodeContent {
 	RecordToZipNode parent;

@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.CoreViews;
@@ -23,6 +21,8 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentContentVersionWindowImpl extends VerticalLayout implements DocumentContentVersionWindow {
 
@@ -119,7 +119,7 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 	public void setAgentURL(String agentURL) {
 		this.agentURL = agentURL;
 	}
-	
+
 	public Window openWindow() {
 		Window warningWindow = new BaseWindow($("DocumentContentVersionWindow.windowTitle"), this);
 		warningWindow.center();
@@ -139,7 +139,7 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 		StringBuilder js = new StringBuilder();
 		js.append("setTimeout(function(){ window.location.href=\"" + url + "\"; }, 100)");
 		JavaScript.getCurrent().execute(js.toString());
-//		Page.getCurrent().open(url, null);
+		//		Page.getCurrent().open(url, null);
 	}
 
 	@Override

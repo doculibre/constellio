@@ -28,8 +28,8 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RMRecordNavigationExtension implements RecordNavigationExtension {
 
-	private AppLayerFactory appLayerFactory;
-	private String collection;
+	protected AppLayerFactory appLayerFactory;
+	protected String collection;
 
 	public RMRecordNavigationExtension(AppLayerFactory appLayerFactory, String collection) {
 		this.appLayerFactory = appLayerFactory;
@@ -91,7 +91,8 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 	}
 
 	@Override
-	public void prepareLinkToView(final NavigationParams navigationParams, final boolean isRecordInTrash, Locale currentLocale) {
+	public void prepareLinkToView(final NavigationParams navigationParams, final boolean isRecordInTrash,
+								  Locale currentLocale) {
 		String schemaTypeCode = navigationParams.getSchemaTypeCode();
 		if (isViewForSchemaTypeCode(schemaTypeCode)) {
 			String schemaTypeLabel = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection)
@@ -117,7 +118,7 @@ public class RMRecordNavigationExtension implements RecordNavigationExtension {
 				referenceDisplay.addClickListener(clickListener);
 			} else if (component instanceof Table) {
 				// FIXME Assumes that it is called by an item click listener
-				if(isRecordInTrash) {
+				if (isRecordInTrash) {
 					RecordNavigationExtensionUtils.showMessage(errorMessage);
 				} else {
 					navigateToView(navigationParams);

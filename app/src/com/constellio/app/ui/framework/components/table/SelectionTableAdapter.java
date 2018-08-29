@@ -21,6 +21,15 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public abstract class SelectionTableAdapter extends VerticalLayout {
 
 	public static final String SELECT_PROPERTY_ID = "select";
@@ -47,7 +56,7 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 		return table;
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void setTable(Table table) {
 		this.table = table;
 		if (table != null) {

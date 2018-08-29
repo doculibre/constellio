@@ -9,7 +9,7 @@ public class BatchProcessRecordFieldModification {
 	private final Metadata metadata;
 
 	public BatchProcessRecordFieldModification(String valueBefore, String valueAfter,
-			Metadata metadata) {
+											   Metadata metadata) {
 		this.valueBefore = valueBefore;
 		this.valueAfter = valueAfter;
 		this.metadata = metadata;

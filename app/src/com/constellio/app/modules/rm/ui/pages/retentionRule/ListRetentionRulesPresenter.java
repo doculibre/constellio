@@ -1,10 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -20,6 +17,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListRetentionRulesView> {
 	private RecordToVOBuilder voBuilder = new RecordToVOBuilder();

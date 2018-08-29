@@ -1,9 +1,9 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.Serializable;
-
-import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
+
+import java.io.Serializable;
 
 public interface MainLayout extends Serializable {
 	String MAIN_LAYOUT_NAVIGATION = "mainLayoutNavigation";
@@ -13,5 +13,8 @@ public interface MainLayout extends Serializable {
 
 	Navigation navigate();
 
-	ConstellioHeaderImpl getHeader();
+	ConstellioHeader getHeader();
+
+	ConstellioMenu getMenu();
+
 }

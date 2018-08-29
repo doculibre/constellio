@@ -1,21 +1,27 @@
 package com.constellio.app.ui.pages.management.ldap;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.components.StringListComponent;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.config.AzureADServerConfig;
 import com.constellio.model.conf.ldap.config.AzureADUserSynchConfig;
 import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
+import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.PasswordField;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.VerticalLayout;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements LDAPConfigManagementView {
 	private AzurAuthenticationTab azurAuthenticationTab;
@@ -81,13 +87,13 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 	protected Component createConfigTabSheet() {
 		LDAPDirectoryType directoryType = getDirectoryType();
 		switch (directoryType) {
-		case AZURE_AD:
-			return createAzureConfigTabSheet();
-		case ACTIVE_DIRECTORY:
-		case E_DIRECTORY:
-			return createDefaultLDAPTabSheet();
-		default:
-			throw new RuntimeException("unknown type " + directoryType);
+			case AZURE_AD:
+				return createAzureConfigTabSheet();
+			case ACTIVE_DIRECTORY:
+			case E_DIRECTORY:
+				return createDefaultLDAPTabSheet();
+			default:
+				throw new RuntimeException("unknown type " + directoryType);
 		}
 	}
 
@@ -194,7 +200,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			buildCollectionsPanel();
 			addComponent(collectionsComponent);
 
-            clientId = createStringField(ldapUserSyncConfiguration.getClientId(), true);
+			clientId = createStringField(ldapUserSyncConfiguration.getClientId(), true);
 			clientId.setCaption($("LDAPConfigManagementView.clientId"));
 			addComponent(clientId);
 
@@ -264,6 +270,7 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			domainsField.setRequired(true);
 			layout.addComponent(domainsField);
 		}
+
 		public LDAPServerConfiguration getLDAPServerConfiguration() {
 			return new LDAPServerConfiguration(urlsField.getValues(),
 					domainsField.getValues(), getDirectoryType(), presenter.isLDAPActive(),
@@ -274,8 +281,8 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 	private class DefaultSynchTab extends VerticalLayout {
 		private StringListComponent groupsField;
 		private StringListComponent usersField;
-        private CheckBox membershipAutomaticDerivationActivatedCheckbox;
-        private StringListComponent userFilterGroupsField;
+		private CheckBox membershipAutomaticDerivationActivatedCheckbox;
+		private StringListComponent userFilterGroupsField;
 		private Field userField;
 		private Field passwordField;
 
@@ -335,10 +342,10 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 			buildUsersRejectRegex(ldapUserSyncConfiguration);
 			layout.addComponent(usersRejectionRegexField);
 
-            final boolean membershipAutomaticDerivationActivated = ldapUserSyncConfiguration.isMembershipAutomaticDerivationActivated();
-            membershipAutomaticDerivationActivatedCheckbox = new CheckBox($("ldap.syncConfiguration.membershipAutomaticDerivationActivated"));
-            membershipAutomaticDerivationActivatedCheckbox.setValue(membershipAutomaticDerivationActivated);
-            layout.addComponent(membershipAutomaticDerivationActivatedCheckbox);
+			final boolean membershipAutomaticDerivationActivated = ldapUserSyncConfiguration.isMembershipAutomaticDerivationActivated();
+			membershipAutomaticDerivationActivatedCheckbox = new CheckBox($("ldap.syncConfiguration.membershipAutomaticDerivationActivated"));
+			membershipAutomaticDerivationActivatedCheckbox.setValue(membershipAutomaticDerivationActivated);
+			layout.addComponent(membershipAutomaticDerivationActivatedCheckbox);
 		}
 
 		public String getTestUser() {
@@ -354,11 +361,11 @@ public class LDAPConfigManagementViewImpl extends LDAPConfigBaseView implements 
 					notNull(userField), notNull(passwordField),
 					getUserFilter(), getGroupsFilter(),
 					scheduleComponentField.getPeriod(), scheduleComponentField.getTimeList(), groupsField.getValues(), usersField.getValues(),
-					userFilterGroupsField.getValues(),	membershipAutomaticDerivationActivatedCheckbox.getValue(), selectedCollections());
+					userFilterGroupsField.getValues(), membershipAutomaticDerivationActivatedCheckbox.getValue(), selectedCollections());
 		}
 	}
 
 	private String notNull(Field field) {
-		return (field.getValue() != null)? field.getValue().toString() : "";
+		return (field.getValue() != null) ? field.getValue().toString() : "";
 	}
 }

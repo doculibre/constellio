@@ -1,12 +1,5 @@
 package com.constellio.app.entities.modules;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.MigrationResourcesProviderRuntimeException.MigrationResourcesProviderRuntimeException_NoBundle;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
@@ -18,6 +11,12 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class MetadataSchemasAlterationHelper {
 	private static Logger LOGGER = LoggerFactory.getLogger(MetadataSchemasAlterationHelper.class);
@@ -29,7 +28,7 @@ public abstract class MetadataSchemasAlterationHelper {
 	protected MigrationResourcesProvider migrationResourcesProvider;
 
 	protected MetadataSchemasAlterationHelper(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+											  AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		this.appLayerFactory = appLayerFactory;
@@ -108,9 +107,9 @@ public abstract class MetadataSchemasAlterationHelper {
 	private void addLabel(MetadataBuilder metadataBuilder, String label, boolean overwrite, Language language) {
 		String currentLabel = metadataBuilder.getLabel(language);
 		boolean oldLabelIsHumanFriendly = currentLabel != null
-				&& !currentLabel.equals(metadataBuilder.getLocalCode())
-				&& !currentLabel.equals(metadataBuilder.getCode())
-				&& !currentLabel.startsWith("init.");
+										  && !currentLabel.equals(metadataBuilder.getLocalCode())
+										  && !currentLabel.equals(metadataBuilder.getCode())
+										  && !currentLabel.startsWith("init.");
 
 		boolean labelDefined = metadataBuilder.getInheritance() != null || oldLabelIsHumanFriendly;
 		boolean newLabelIsHumanFriendly = label != null && !label.startsWith("init.");

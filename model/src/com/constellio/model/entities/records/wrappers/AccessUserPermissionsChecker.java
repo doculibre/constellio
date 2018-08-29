@@ -1,5 +1,11 @@
 package com.constellio.model.entities.records.wrappers;
 
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.global.UserCredentialStatus;
+
 import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.containsAnyUserGroupTokens;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.hasMatchingAuthorizationIncludingSpecifics;
@@ -7,12 +13,6 @@ import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
-
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
 
 public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 
@@ -67,7 +67,7 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 			boolean globalReadAccess =
 					user.hasCollectionReadAccess() || user.hasCollectionWriteAccess() || user.hasCollectionDeleteAccess();
 			access = globalReadAccess || publicRecord || hasReadAccessOn(record) || hasWriteAccessOn(record) ||
-					hasDeleteAccessOn(record);
+					 hasDeleteAccessOn(record);
 		}
 
 		if (writeAccess) {
@@ -91,7 +91,7 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 
 		if (readAccess) {
 			access = hasReadAccessSpecificallyOn(record)
-					|| hasWriteAccessSpecificallyOn(record) || hasDeleteAccessSpecificallyOn(record);
+					 || hasWriteAccessSpecificallyOn(record) || hasDeleteAccessSpecificallyOn(record);
 		}
 
 		if (writeAccess) {
@@ -107,22 +107,22 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 
 	private boolean hasDeleteAccessOn(Record record) {
 		return containsAnyUserGroupTokens(user, record, DELETE)
-				|| hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.DELETE_ACCESS)
-				|| user.hasGlobalTypeAccess(record.getTypeCode(), Role.DELETE);
+			   || hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.DELETE_ACCESS)
+			   || user.hasGlobalTypeAccess(record.getTypeCode(), Role.DELETE);
 	}
 
 	private boolean hasWriteAccessOn(Record record) {
 		return containsAnyUserGroupTokens(user, record, WRITE)
-				|| hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.WRITE_ACCESS)
-				|| user.hasGlobalTypeAccess(record.getTypeCode(), Role.WRITE);
+			   || hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.WRITE_ACCESS)
+			   || user.hasGlobalTypeAccess(record.getTypeCode(), Role.WRITE);
 	}
 
 	private boolean hasReadAccessOn(Record record) {
 		return containsAnyUserGroupTokens(user, record, READ)
-				|| record.getList(Schemas.TOKENS).contains(PUBLIC_TOKEN)
-				|| UserAuthorizationsUtils.containsAUserToken(user, record)
-				|| hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.READ_ACCESS)
-				|| user.hasGlobalTypeAccess(record.getTypeCode(), Role.READ);
+			   || record.getList(Schemas.TOKENS).contains(PUBLIC_TOKEN)
+			   || UserAuthorizationsUtils.containsAUserToken(user, record)
+			   || hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.READ_ACCESS)
+			   || user.hasGlobalTypeAccess(record.getTypeCode(), Role.READ);
 	}
 
 	private boolean hasDeleteAccessSpecificallyOn(Record record) {

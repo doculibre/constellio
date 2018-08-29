@@ -1,10 +1,5 @@
 package com.constellio.app.modules.es.migrations;
 
-import static com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance.SKIP_SHARE_ACCESS_CONTROL;
-import static java.util.Arrays.asList;
-
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -20,6 +15,11 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.Map;
+
+import static com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance.SKIP_SHARE_ACCESS_CONTROL;
+import static java.util.Arrays.asList;
+
 public class ESMigrationTo6_1 extends MigrationHelper implements MigrationScript {
 
 	MigrationResourcesProvider migrationResourcesProvider;
@@ -30,7 +30,8 @@ public class ESMigrationTo6_1 extends MigrationHelper implements MigrationScript
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.migrationResourcesProvider = migrationResourcesProvider;
 
@@ -59,7 +60,7 @@ public class ESMigrationTo6_1 extends MigrationHelper implements MigrationScript
 		MetadataSchemaTypes types;
 
 		protected SchemaAlterationFor6_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 			types = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 		}

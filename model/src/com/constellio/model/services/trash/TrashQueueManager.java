@@ -1,13 +1,5 @@
 package com.constellio.model.services.trash;
 
-import java.util.List;
-
-import org.joda.time.Duration;
-import org.joda.time.LocalDateTime;
-import org.joda.time.LocalTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.threads.BackgroundThreadConfiguration;
@@ -18,6 +10,13 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.joda.time.Duration;
+import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 public class TrashQueueManager implements StatefulService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TrashQueueManager.class);

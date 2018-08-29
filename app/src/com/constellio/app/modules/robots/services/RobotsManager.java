@@ -1,23 +1,5 @@
 package com.constellio.app.modules.robots.services;
 
-import static com.constellio.app.modules.robots.model.DryRunRobotAction.dryRunRobotAction;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.impossibleCondition;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.not;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
-
-import org.joda.time.Duration;
-
 import com.constellio.app.modules.robots.model.ActionExecutor;
 import com.constellio.app.modules.robots.model.DryRunRobotAction;
 import com.constellio.app.modules.robots.model.RegisteredAction;
@@ -41,6 +23,23 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.Duration;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
+
+import static com.constellio.app.modules.robots.model.DryRunRobotAction.dryRunRobotAction;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.impossibleCondition;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.not;
 
 public class RobotsManager implements StatefulService {
 	public static final String ID = "robotsManager";
@@ -74,7 +73,7 @@ public class RobotsManager implements StatefulService {
 	}
 
 	public RegisteredAction registerAction(String code, String parametersSchemaLocalCode, Collection<String> types,
-			ActionExecutor executor) {
+										   ActionExecutor executor) {
 		RegisteredAction registeredAction = new RegisteredAction(code, parametersSchemaLocalCode, executor, types);
 		actions.put(code, registeredAction);
 		return registeredAction;
@@ -124,7 +123,7 @@ public class RobotsManager implements StatefulService {
 	}
 
 	private RobotCondition startRobotExecution(Robot robot, Stack<LogicalSearchCondition> conditions,
-			List<DryRunRobotAction> dryRunRobotActions) {
+											   List<DryRunRobotAction> dryRunRobotActions) {
 		LogicalSearchCondition localCondition = getResolveCondition(robot);
 		conditions.push(localCondition);
 
@@ -147,7 +146,7 @@ public class RobotsManager implements StatefulService {
 				RobotBatchProcessAction batchProcessAction = new RobotBatchProcessAction(robot.getId(), robot.getAction(),
 						robot.getActionParameters());
 				batchProcessAction.setDryRun(true);
-				batchProcessAction.execute(searchServices.search(query), schemaTypes, new RecordProvider(recordServices));
+				batchProcessAction.execute(searchServices.search(query), null, schemaTypes, new RecordProvider(recordServices), modelLayerFactory);
 
 				Iterator<Record> recordsIterator = batchProcessAction.getProcessedRecords().iterator();
 				while (recordsIterator.hasNext()) {
@@ -161,7 +160,8 @@ public class RobotsManager implements StatefulService {
 		return condition;
 	}
 
-	private void createBatchProcess(String robotId, LogicalSearchQuery query, String action, String actionParametersId) {
+	private void createBatchProcess(String robotId, LogicalSearchQuery query, String action,
+									String actionParametersId) {
 		if (searchServices.hasResults(query)) {
 			RobotBatchProcessAction batchProcessAction = new RobotBatchProcessAction(robotId, action, actionParametersId);
 			BatchProcess batchProcess = batchProcessesManager
@@ -255,8 +255,9 @@ public class RobotsManager implements StatefulService {
 
 		List<RobotCondition> childRobotConditions = new ArrayList<>();
 
-		public RobotCondition(LogicalSearchCondition localCondition, LogicalSearchCondition conditionIncludingParentCondition,
-				Robot robot) {
+		public RobotCondition(LogicalSearchCondition localCondition,
+							  LogicalSearchCondition conditionIncludingParentCondition,
+							  Robot robot) {
 			this.localCondition = localCondition;
 			this.conditionIncludingParentCondition = conditionIncludingParentCondition;
 			this.robot = robot;

@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.user;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.GlobalGroupToVOBuilder;
@@ -18,6 +12,12 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.users.UserServices;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCredentialView> {

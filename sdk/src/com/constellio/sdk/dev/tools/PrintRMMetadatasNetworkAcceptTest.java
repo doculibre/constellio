@@ -1,12 +1,5 @@
 package com.constellio.sdk.dev.tools;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-import java.util.Set;
-
-import org.junit.Test;
-
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -19,6 +12,12 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
+import org.junit.Test;
+
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
 
 @MainTest
 public class PrintRMMetadatasNetworkAcceptTest extends ConstellioTest {

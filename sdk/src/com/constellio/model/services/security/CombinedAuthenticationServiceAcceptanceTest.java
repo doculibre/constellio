@@ -1,17 +1,5 @@
 package com.constellio.model.services.security;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.conf.ldap.LDAPConfigurationManager;
 import com.constellio.model.extensions.ModelLayerSystemExtensions;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
@@ -19,6 +7,17 @@ import com.constellio.model.services.security.authentification.CombinedAuthentic
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationService;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class CombinedAuthenticationServiceAcceptanceTest extends ConstellioTest {
 

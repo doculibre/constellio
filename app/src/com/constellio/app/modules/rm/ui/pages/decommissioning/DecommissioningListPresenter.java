@@ -3,13 +3,21 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
+import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension;
+import com.constellio.app.modules.rm.extensions.api.DecommissioningListPresenterExtension.ValidateDecommissioningListProcessableParams;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.services.decommissioning.*;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
@@ -19,6 +27,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
@@ -28,7 +37,6 @@ import com.constellio.app.ui.framework.components.NewReportPresenter;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.data.dao.services.bigVault.RecordDaoException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -40,14 +48,26 @@ import com.constellio.model.services.records.RecordServicesWrapperRuntimeExcepti
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 public class DecommissioningListPresenter extends SingleSchemaBasePresenter<DecommissioningListView>
@@ -62,6 +82,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	String recordId;
 
 	private Set<String> missingFolders = new HashSet<>();
+
+	private RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
 
 	public DecommissioningListPresenter(DecommissioningListView view) {
 		super(view, DecommissioningList.DEFAULT_SCHEMA);
@@ -96,62 +118,39 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public List<User> getAvailableManagers() throws DecommissioningEmailServiceException {
-
-
-//		AuthorizationsServices authorizationServices = modelLayerFactory.newAuthorizationsServices();
-//
 		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 
 		Record administrativeUnit = schemasRecordsServices.get(decommissioningList.getAdministrativeUnit());
 
-//		List<Authorization> recordAuthorizations = authorizationServices.getRecordAuthorizations(record);
-//		Set<String> allUsers = new HashSet<>();
-//		for(Authorization authorization: recordAuthorizations) {
-//			AuthorizationDetails detail = authorization.getDetail();
-//			List<String> roles = detail.getRoles();
-//			List<String> userIds = authorization.getGrantedToPrincipals();
-//			if(roles.contains("M")) {
-//				allUsers.addAll(userIds);
-//			}
-//		}
-//
-//		List<User> userList = new ArrayList<>();
-//
-//		for(String strUser : allUsers) {
-//			User user = schemasRecordsServices.getUser(strUser);
-//			userList.add(user);
-//		}
-//
-//		return userList;
 		List<User> managerEmailForAdministrativeUnit = decommissioningEmailService.filterUserWithoutEmail(modelLayerFactory.newAuthorizationsServices()
 				.getUsersWithPermissionOnRecord(
 						RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST, administrativeUnit));
 		List<User> managerEmailForAdministrativeUnitWithoutGlobalPermission = new ArrayList<>();
-		for(User user: managerEmailForAdministrativeUnit) {
-			if(!user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally()) {
+		for (User user : managerEmailForAdministrativeUnit) {
+			if (!user.has(RMPermissionsTo.APPROVE_DECOMMISSIONING_LIST).globally()) {
 				managerEmailForAdministrativeUnitWithoutGlobalPermission.add(user);
 			}
 		}
 
 		List<User> managerEmailForList = decommissioningEmailService.getManagerEmailForList(decommissioningList);
 		HashSet<User> uniqueUsers = new HashSet<>();
-		if(managerEmailForList != null) {
+		if (managerEmailForList != null) {
 			uniqueUsers.addAll(managerEmailForList);
 		}
-		if(managerEmailForAdministrativeUnit != null) {
-			if(!managerEmailForAdministrativeUnitWithoutGlobalPermission.isEmpty()) {
+		if (managerEmailForAdministrativeUnit != null) {
+			if (!managerEmailForAdministrativeUnitWithoutGlobalPermission.isEmpty()) {
 				uniqueUsers.addAll(managerEmailForAdministrativeUnitWithoutGlobalPermission);
 			} else {
 				uniqueUsers.addAll(managerEmailForAdministrativeUnit);
 			}
 		}
 
-		if(uniqueUsers.contains(getCurrentUser())) {
+		if (uniqueUsers.contains(getCurrentUser())) {
 			uniqueUsers.remove(getCurrentUser());
 		}
 		return new ArrayList<>(uniqueUsers);
 	}
-	
+
 	public List<String> getAvailableManagerIds() throws DecommissioningEmailServiceException {
 		List<String> availableManagerIds = new ArrayList<>();
 		for (User availableManager : getAvailableManagers()) {
@@ -181,24 +180,23 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return decommissioningService().isProcessable(decommissioningList(), getCurrentUser());
 	}
 
-	public List<String> haveCheckoutedDocument(){
+	public List<String> haveCheckoutedDocument() {
 		List<String> folders = decommissioningList.getFolders();
 
 		List<Record> totalDocument = new ArrayList<>();
 		List<String> checkoutedDocument = new ArrayList<>();
 
-		for(String folder : folders)
-		{
+		for (String folder : folders) {
 			LogicalSearchCondition condition = from(rmRecordsServices().documentSchemaType()).where(
 					rmRecordsServices().documentSchemaType().getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FOLDER)).isEqualTo(folder);
 			List<Record> listDocument = searchServices.search(new LogicalSearchQuery(condition));
 			totalDocument.addAll(listDocument);
 		}
 
-		for(Record documentRecord : totalDocument) {
+		for (Record documentRecord : totalDocument) {
 			Document document = rmRecordsServices.wrapDocument(documentRecord);
 
-			if(document.getContent() != null && document.getContent().getCheckoutUserId() != null) {
+			if (document.getContent() != null && document.getContent().getCheckoutUserId() != null) {
 				checkoutedDocument.add(document.getTitle());
 			}
 		}
@@ -244,9 +242,9 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 		List<String> checkoutedDocument = haveCheckoutedDocument();
 
-		if(checkoutedDocument.size() > 0) {
+		if (checkoutedDocument.size() > 0) {
 			String message = $("DecommissioningListView.someDocumentsAreBorrowed");
-			for(String documentTitle : checkoutedDocument){
+			for (String documentTitle : checkoutedDocument) {
 				message += " " + documentTitle + ",";
 			}
 
@@ -260,13 +258,27 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			view.showErrorMessage($("DecommissioningListView.someFoldersAreBorrowed"));
 			return;
 		}
-//TODO show error message if exception is thrown
-		try {		decommissioningService().decommission(decommissioningList(), getCurrentUser());
-		view.showMessage($(mayContainAnalogicalMedia() ?
-				"DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
-		view.navigate().to(RMViews.class).displayDecommissioningList(recordId);} catch (RecordServicesWrapperRuntimeException e) {
+
+		if (rmModuleExtensions != null) {
+			for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
+				ValidateDecommissioningListProcessableParams params = new ValidateDecommissioningListProcessableParams(decommissioningList);
+				extension.validateProcessable(params);
+				if (!params.getValidationErrors().isEmpty()) {
+					view.showErrorMessage($(params.getValidationErrors().getValidationErrors().get(0)));
+					return;
+				}
+			}
+		}
+
+		//TODO show error message if exception is thrown
+		try {
+			decommissioningService().decommission(decommissioningList(), getCurrentUser());
+			view.showMessage($(mayContainAnalogicalMedia() ?
+							   "DecommissioningListView.processedWithReminder" : "DecommissioningListView.processed"));
+			view.navigate().to(RMViews.class).displayDecommissioningList(recordId);
+		} catch (RecordServicesWrapperRuntimeException e) {
 			RecordServicesException wrappedException = e.getWrappedException();
-			if(wrappedException instanceof RecordServicesException.ValidationException) {
+			if (wrappedException instanceof RecordServicesException.ValidationException) {
 				view.showErrorMessage($(((RecordServicesException.ValidationException) wrappedException).getErrors()));
 			} else {
 				view.showErrorMessage(wrappedException.getMessage());
@@ -299,7 +311,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			refreshView();
 		} catch (RecordServicesWrapperRuntimeException e) {
 			RecordServicesException wrappedException = e.getWrappedException();
-			if(wrappedException instanceof RecordServicesException.ValidationException) {
+			if (wrappedException instanceof RecordServicesException.ValidationException) {
 				view.showErrorMessage($(((RecordServicesException.ValidationException) wrappedException).getErrors()));
 			} else {
 				view.showErrorMessage(wrappedException.getMessage());
@@ -311,7 +323,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public void approvalRequestButtonClicked(List<User> managerList) {
 		try {
-			if(managerList.size() <= 0) {
+			if (managerList.size() <= 0) {
 				view.showErrorMessage($("DecommissioningListView.noManagerEmail"));
 			} else {
 				decommissioningService().approvalRequest(managerList, decommissioningList(), getCurrentUser());
@@ -432,7 +444,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		List<FolderDetailVO> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
 			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder)
-					&& !isFolderPlacedInContainer(folder)) {
+				&& !isFolderPlacedInContainer(folder)) {
 				try {
 					FolderDetailVO folderVO = builder.build(folder);
 					addOtherMetadatasToFolderDetailVO(folderVO);
@@ -448,7 +460,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	private void addOtherMetadatasToFolderDetailVO(FolderDetailVO folderVO) {
 		DecommissioningListFolderTableExtension folderDetailTableExtension = getFolderDetailTableExtension();
-		if(folderDetailTableExtension != null) {
+		if (folderDetailTableExtension != null) {
 			folderDetailTableExtension.addPreviousIdToFolderVO(folderVO);
 		}
 	}
@@ -458,7 +470,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		List<FolderDetailVO> result = new ArrayList<>();
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
 			if (folder.isIncluded() && (decommissioningService().isFolderProcessable(decommissioningList(), folder)
-					|| isFolderPlacedInContainer(folder))) {
+										|| isFolderPlacedInContainer(folder))) {
 				try {
 					result.add(builder.build(folder));
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
@@ -581,10 +593,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 	public String getSortAction() {
 		switch (decommissioningList().getDecommissioningListType()) {
-		case FOLDERS_TO_DEPOSIT:
-			return "destroy";
-		case FOLDERS_TO_DESTROY:
-			return "deposit";
+			case FOLDERS_TO_DEPOSIT:
+				return "destroy";
+			case FOLDERS_TO_DESTROY:
+				return "deposit";
 		}
 		return null;
 	}
@@ -796,31 +808,31 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public SearchType calculateSearchType() {
-		if (decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
+		if (OriginStatus.ACTIVE.equals(decommissioningList().getOriginArchivisticStatus())) {
 			switch (decommissioningList().getDecommissioningListType()) {
-			case FOLDERS_TO_DEPOSIT:
-				return SearchType.activeToDeposit;
-			case FOLDERS_TO_DESTROY:
-				return SearchType.activeToDestroy;
-			case FOLDERS_TO_TRANSFER:
-				return SearchType.transfer;
-			case DOCUMENTS_TO_DEPOSIT:
-				return SearchType.documentActiveToDeposit;
-			case DOCUMENTS_TO_DESTROY:
-				return SearchType.documentActiveToDestroy;
-			case DOCUMENTS_TO_TRANSFER:
-				return SearchType.documentTransfer;
+				case FOLDERS_TO_DEPOSIT:
+					return SearchType.activeToDeposit;
+				case FOLDERS_TO_DESTROY:
+					return SearchType.activeToDestroy;
+				case FOLDERS_TO_TRANSFER:
+					return SearchType.transfer;
+				case DOCUMENTS_TO_DEPOSIT:
+					return SearchType.documentActiveToDeposit;
+				case DOCUMENTS_TO_DESTROY:
+					return SearchType.documentActiveToDestroy;
+				case DOCUMENTS_TO_TRANSFER:
+					return SearchType.documentTransfer;
 			}
-		} else if (decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
+		} else if (OriginStatus.SEMI_ACTIVE.equals(decommissioningList().getOriginArchivisticStatus())) {
 			switch (decommissioningList().getDecommissioningListType()) {
-			case FOLDERS_TO_DEPOSIT:
-				return SearchType.semiActiveToDeposit;
-			case FOLDERS_TO_DESTROY:
-				return SearchType.semiActiveToDestroy;
-			case DOCUMENTS_TO_DEPOSIT:
-				return SearchType.documentSemiActiveToDeposit;
-			case DOCUMENTS_TO_DESTROY:
-				return SearchType.documentSemiActiveToDestroy;
+				case FOLDERS_TO_DEPOSIT:
+					return SearchType.semiActiveToDeposit;
+				case FOLDERS_TO_DESTROY:
+					return SearchType.semiActiveToDestroy;
+				case DOCUMENTS_TO_DEPOSIT:
+					return SearchType.documentSemiActiveToDeposit;
+				case DOCUMENTS_TO_DESTROY:
+					return SearchType.documentSemiActiveToDestroy;
 			}
 		}
 		return null;
@@ -930,7 +942,6 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public DecommissioningListFolderTableExtension getFolderDetailTableExtension() {
-		RMModuleExtensions rmModuleExtensions = appCollectionExtentions.forModule(ConstellioRMModule.ID);
 		return rmModuleExtensions.getDecommissioningListFolderTableExtension();
 	}
 
@@ -942,17 +953,38 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		List<Folder> foldersIds = rmRecordsServices().getFolders(decommissioningList().getFolders());
 		List<FolderVO> folderVOList = new ArrayList<>();
 		FolderToVOBuilder builder = new FolderToVOBuilder();
-		for(Folder folder : foldersIds){
+		for (Folder folder : foldersIds) {
 			folderVOList.add(builder.build(folder.getWrappedRecord(), VIEW_MODE.TABLE, view.getSessionContext()));
 		}
 		return folderVOList;
 	}
 
-    public Set<String> getMissingFolders() {
-        return missingFolders;
-    }
+	public Set<String> getMissingFolders() {
+		return missingFolders;
+	}
 
 	public boolean hasAccessToSIPGeneration() {
 		return getCurrentUser().has(RMPermissionsTo.GENERATE_SIP_ARCHIVES).globally();
+	}
+
+	public void denyApproval(String commentString) {
+		if (commentString != null) {
+			Comment comment = new Comment();
+			comment.setMessage(commentString);
+			comment.setUser(getCurrentUser());
+			comment.setDateTime(LocalDateTime.now());
+
+			List<Comment> comments = new ArrayList<>(decommissioningList.getComments());
+			comments.add(comment);
+			decommissioningList.setComments(comments);
+		}
+
+		try {
+			decommissioningService().denyApprovalOnList(decommissioningList, getCurrentUser(), commentString);
+		} catch (DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission e) {
+			view.showMessage($("DecommissioningListView.tooMuchOptimisticLocking"));
+		} catch (DecommissioningServiceException e) {
+			view.showMessage($(e));
+		}
 	}
 }

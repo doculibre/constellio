@@ -16,7 +16,7 @@ public abstract class RecordInCreationBeforeSaveEvent implements RecordEvent {
 	ValidationErrors validationErrors;
 
 	public RecordInCreationBeforeSaveEvent(Record record, User transactionUser, boolean singleRecordTransaction,
-			ValidationErrors validationErrors) {
+										   ValidationErrors validationErrors) {
 		this.record = record;
 		this.transactionUser = transactionUser;
 		this.singleRecordTransaction = singleRecordTransaction;

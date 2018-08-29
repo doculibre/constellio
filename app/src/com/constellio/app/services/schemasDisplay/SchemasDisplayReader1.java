@@ -1,27 +1,26 @@
 package com.constellio.app.services.schemasDisplay;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class SchemasDisplayReader1 {
 	private static final String ROOT = "display";
@@ -78,7 +77,7 @@ public class SchemasDisplayReader1 {
 	}
 
 	private void setSchemaTypesDisplayConfig(String collection, Element rootElement,
-			SchemasDisplayManagerCache schemasDisplayManagerCache) {
+											 SchemasDisplayManagerCache schemasDisplayManagerCache) {
 		SchemaTypesDisplayConfig schemaTypesDisplayConfig = convertElementToSchemaTypesDisplayConfig(collection,
 				rootElement);
 		schemasDisplayManagerCache.set(schemaTypesDisplayConfig);
@@ -100,14 +99,14 @@ public class SchemasDisplayReader1 {
 	}
 
 	private void setSchemaTypeDisplayConfigs(String collection, Element rootElement,
-			SchemasDisplayManagerCache schemasDisplayManagerCache) {
+											 SchemasDisplayManagerCache schemasDisplayManagerCache) {
 		Map<String, SchemaTypeDisplayConfig> schemaTypeDisplayConfig = convertElementToSchemaTypeDisplayConfigs(
 				collection, rootElement);
 		schemasDisplayManagerCache.setSchemaTypeDisplayConfigs(schemaTypeDisplayConfig);
 	}
 
 	private Map<String, SchemaTypeDisplayConfig> convertElementToSchemaTypeDisplayConfigs(String collection,
-			Element rootElement) {
+																						  Element rootElement) {
 		Element schemaTypeDisplayConfigsElement = rootElement.getChild(SCHEMA_TYPE_DISPLAY_CONFIGS);
 
 		if (schemaTypeDisplayConfigsElement != null) {
@@ -159,13 +158,14 @@ public class SchemasDisplayReader1 {
 	}
 
 	private void setSchemaDisplayConfigs(String collection, Element rootElement,
-			SchemasDisplayManagerCache schemasDisplayManagerCache) {
+										 SchemasDisplayManagerCache schemasDisplayManagerCache) {
 		Map<String, SchemaDisplayConfig> schemaDisplayConfigs = convertElementToSchemaDisplayConfigs(collection,
 				rootElement);
 		schemasDisplayManagerCache.setSchemaDisplayConfigs(schemaDisplayConfigs);
 	}
 
-	private Map<String, SchemaDisplayConfig> convertElementToSchemaDisplayConfigs(String collection, Element rootElement) {
+	private Map<String, SchemaDisplayConfig> convertElementToSchemaDisplayConfigs(String collection,
+																				  Element rootElement) {
 
 		Map<String, SchemaDisplayConfig> map = new HashMap<>();
 
@@ -222,7 +222,7 @@ public class SchemasDisplayReader1 {
 	}
 
 	private void addElementValuesToList(MetadataSchema schema, Element element,
-			List<String> list) {
+										List<String> list) {
 		if (element != null) {
 			for (Element e : element.getChildren()) {
 				if (schema.hasMetadataWithCode(e.getName())) {
@@ -233,14 +233,15 @@ public class SchemasDisplayReader1 {
 	}
 
 	private void setMetadataDisplayConfigs(String collection, Element rootElement,
-			SchemasDisplayManagerCache schemasDisplayManagerCache) {
+										   SchemasDisplayManagerCache schemasDisplayManagerCache) {
 		Map<String, MetadataDisplayConfig> metadataDisplayConfigs = convertElementToMetadataDisplayConfigs(collection,
 				rootElement, schemasDisplayManagerCache);
 		schemasDisplayManagerCache.setMetadataDisplayConfigs(metadataDisplayConfigs);
 	}
 
 	private Map<String, MetadataDisplayConfig> convertElementToMetadataDisplayConfigs(String collection,
-			Element rootElement, SchemasDisplayManagerCache schemasDisplayManagerCache) {
+																					  Element rootElement,
+																					  SchemasDisplayManagerCache schemasDisplayManagerCache) {
 		Map<String, MetadataDisplayConfig> metadataDisplayConfigs = new HashMap<>();
 
 		List<Element> metadataDisplayConfigsElements = rootElement.getChildren(METADATA_DISPLAY_CONFIGS);
@@ -261,7 +262,8 @@ public class SchemasDisplayReader1 {
 	}
 
 	private MetadataDisplayConfig convertElementToMetadataDisplayConfig(String collection,
-			Element metadataDisplayConfigElement, SchemasDisplayManagerCache schemasDisplayManagerCache) {
+																		Element metadataDisplayConfigElement,
+																		SchemasDisplayManagerCache schemasDisplayManagerCache) {
 		String metadataCode = metadataDisplayConfigElement.getName();
 		String visibleInAdvancedSearchString = metadataDisplayConfigElement
 				.getAttributeValue(VISIBLE_IN_ADVANCED_SEARCH);
@@ -277,7 +279,7 @@ public class SchemasDisplayReader1 {
 
 		String inputTypeString = metadataDisplayConfigElement.getAttributeValue(INPUT_TYPE);
 		String displayTypeString = metadataDisplayConfigElement.getAttributeValue(DISPLAY_TYPE);
-		if(displayTypeString == null) {
+		if (displayTypeString == null) {
 			displayTypeString = "VERTICAL";
 		}
 		MetadataInputType metadataInputType = MetadataInputType.valueOf(inputTypeString);

@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.management.facet.fields;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.pages.management.facet.AddEditFacetConfigurationPresenter;
@@ -22,6 +13,14 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("unchecked")
 public class ValuesLabelFieldImpl<ModifiableStructure> extends ValuesLabelField<ModifiableStructure> {

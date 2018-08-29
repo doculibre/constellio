@@ -1,20 +1,5 @@
 package com.constellio.model.services.configs;
 
-import static com.constellio.sdk.tests.TestUtils.linkEventBus;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -47,6 +32,20 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 @SlowTest
 public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
@@ -385,7 +384,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 				@Override
 				public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-						AppLayerFactory appLayerFactory) {
+									AppLayerFactory appLayerFactory) {
 					ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 					MetadataSchemaTypesBuilder typesBuilder = modelLayerFactory.getMetadataSchemasManager().modify(collection);
 
@@ -466,7 +465,7 @@ public class SystemConfigurationsManagerAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public void onValueChanged(String previousValue, String newValue, ModelLayerFactory modelLayerFactory,
-				String collection) {
+								   String collection) {
 			MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
 			MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(collection);
 

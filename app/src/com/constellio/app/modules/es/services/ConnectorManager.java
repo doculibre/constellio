@@ -1,15 +1,5 @@
 package com.constellio.app.modules.es.services;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isFalse;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.Duration;
-
 import com.constellio.app.modules.es.connectors.ConnectorUtilsServices;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorEventObserver;
@@ -41,6 +31,15 @@ import com.constellio.model.services.schemas.MetadataSchemasManagerException.Opt
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.Duration;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.isFalse;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class ConnectorManager implements StatefulService {
 
@@ -237,8 +236,8 @@ public class ConnectorManager implements StatefulService {
 
 	private boolean isConnectorToken(String connectorId, String token) {
 		return token.startsWith("r" + connectorId) ||
-				token.startsWith("w" + connectorId) ||
-				token.startsWith("d" + connectorId);
+			   token.startsWith("w" + connectorId) ||
+			   token.startsWith("d" + connectorId);
 	}
 
 	public void delete(ConnectorInstance<?> instance) {
@@ -251,7 +250,7 @@ public class ConnectorManager implements StatefulService {
 	}
 
 	public void totallyDeleteConnectorRecordsSkippingValidation(RecordDao recordDao,
-			ConnectorInstance connectorInstance) {
+																ConnectorInstance connectorInstance) {
 		stopConnectorAndWaitUntilStopped(connectorInstance);
 		ModifiableSolrParams params = new ModifiableSolrParams();
 		params.set("q", "connectorId_s:" + connectorInstance.getId());
@@ -292,7 +291,7 @@ public class ConnectorManager implements StatefulService {
 	}
 
 	public ConnectorManager register(String connectorTypeCode, String connectorInstanceSchemaCode,
-			ConnectorUtilsServices services) {
+									 ConnectorUtilsServices services) {
 		registeredConnectors.add(new RegisteredConnector(connectorTypeCode, connectorInstanceSchemaCode, services));
 		return this;
 	}

@@ -1,14 +1,5 @@
 package com.constellio.model.services.records.cache;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
@@ -16,6 +7,14 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RecordsCacheRequestImpl implements RecordsCache {
 
@@ -57,8 +56,8 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 		if (Toggle.TEST_REQUEST_CACHE.isEnabled()) {
 			if (record != null && recordFromRequestCache != null && record.getVersion() != recordFromRequestCache.getVersion()) {
 				throw new RuntimeException("Version mismatch with record " + record.getIdTitle() + " in request cache " + cacheId
-						+ ". Request version '" + recordFromRequestCache.getVersion() + "' doesn't match global cache version"
-						+ "'" + record.getVersion() + "'");
+										   + ". Request version '" + recordFromRequestCache.getVersion() + "' doesn't match global cache version"
+										   + "'" + record.getVersion() + "'");
 			}
 			if (recordFromRequestCache != null) {
 				return recordFromRequestCache;
@@ -124,7 +123,7 @@ public class RecordsCacheRequestImpl implements RecordsCache {
 			if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
 				if (!record.getSchemaCode().startsWith("event")) {
 					LOGGER.info("inserting in request cache " + record.getIdTitle() + " with version " + record.getVersion()
-							+ " in cache " + cacheId);
+								+ " in cache " + cacheId);
 					((RecordsCacheImpl) nested).doNotLog.add(record.getId() + "_" + record.getVersion());
 				}
 			}

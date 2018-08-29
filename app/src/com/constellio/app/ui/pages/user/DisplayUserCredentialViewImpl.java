@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.user;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -18,9 +10,9 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
+import com.constellio.app.ui.framework.components.TableStringFilter;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.components.TableStringFilter;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.GlobalGroupVOLazyContainer;
@@ -46,6 +38,13 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class DisplayUserCredentialViewImpl extends BaseViewImpl implements DisplayUserCredentialView {
@@ -178,10 +177,9 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 		personalEmailsCaptionLabel = new Label($("UserCredentialView.personalEmails"));
 		personalEmailsCaptionLabel.setId("personalEmails");
 		personalEmailsCaptionLabel.addStyleName("email");
-		if(userCredentialVO.getPersonalEmails() != null) {
+		if (userCredentialVO.getPersonalEmails() != null) {
 			personalEmailsDisplayComponent = new Label(userCredentialVO.getPersonalEmails().replace("\n", "<br>"), ContentMode.HTML);
-		}
-		else {
+		} else {
 			personalEmailsDisplayComponent = new Label(userCredentialVO.getPersonalEmails(), ContentMode.HTML);
 		}
 
@@ -269,7 +267,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 	}
 
 	private void addUsersGlobalGroupButtons(final GlobalGroupVODataProvider globalGroupVODataProvider,
-			ButtonsContainer buttonsContainer) {
+											ButtonsContainer buttonsContainer) {
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
@@ -333,22 +331,22 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 	}
 
 	@Override
-		protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
-			List<Button> actionMenuButtons = new ArrayList<>();
-			Button editButton = new EditButton(false) {
-				@Override
-				protected void buttonClick(ClickEvent event) {
-					presenter.editButtonClicked(userCredentialVO);
-				}
-			};
-			actionMenuButtons.add(editButton);
+	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
+		List<Button> actionMenuButtons = new ArrayList<>();
+		Button editButton = new EditButton(false) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.editButtonClicked(userCredentialVO);
+			}
+		};
+		actionMenuButtons.add(editButton);
 
-			editButton.setEnabled(presenter.canAddOrModify());
+		editButton.setEnabled(presenter.canAddOrModify());
 
-			Button serviceKeyTokenButton = buildServiceKeyAndTokenButton();
-			actionMenuButtons.add(serviceKeyTokenButton);
+		Button serviceKeyTokenButton = buildServiceKeyAndTokenButton();
+		actionMenuButtons.add(serviceKeyTokenButton);
 
-			return actionMenuButtons;
+		return actionMenuButtons;
 	}
 
 	@Override
@@ -444,7 +442,7 @@ public class DisplayUserCredentialViewImpl extends BaseViewImpl implements Displ
 								tokenValue.setValue(token);
 								String constellioUrl = presenter.getConstellioUrl();
 								String linkValue = constellioUrl + "select?token=" + token + "&serviceKey=" + serviceKey
-												+ "&fq=-type_s:index" + "&q=*:*";
+												   + "&fq=-type_s:index" + "&q=*:*";
 								linkTest.setResource(new ExternalResource(linkValue));
 
 								verticalLayoutGenerateValues.setVisible(true);

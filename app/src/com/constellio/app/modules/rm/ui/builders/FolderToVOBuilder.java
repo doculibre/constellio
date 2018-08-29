@@ -1,13 +1,13 @@
 package com.constellio.app.modules.rm.ui.builders;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
+
+import java.util.List;
 
 public class FolderToVOBuilder extends RecordToVOBuilder {
 

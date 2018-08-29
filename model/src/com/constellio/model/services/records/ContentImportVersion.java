@@ -20,7 +20,8 @@ public class ContentImportVersion {
 
 	long length;
 
-	public ContentImportVersion(String url, String fileName, boolean major, String comment, LocalDateTime lastModification) {
+	public ContentImportVersion(String url, String fileName, boolean major, String comment,
+								LocalDateTime lastModification) {
 		this.url = url;
 		this.fileName = fileName;
 		this.major = major;

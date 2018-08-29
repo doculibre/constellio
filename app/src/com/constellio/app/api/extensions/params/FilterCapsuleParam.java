@@ -5,7 +5,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
 public class FilterCapsuleParam {
-	
+
 	private Capsule capsule;
 	private ModifiableSolrParams solrParams;
 	private LogicalSearchQuery query;
@@ -23,7 +23,7 @@ public class FilterCapsuleParam {
 	public Capsule getCapsule() {
 		return capsule;
 	}
-	
+
 	public LogicalSearchQuery getQuery() {
 		return query;
 	}

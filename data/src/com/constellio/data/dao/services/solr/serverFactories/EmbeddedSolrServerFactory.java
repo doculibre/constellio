@@ -1,15 +1,14 @@
 package com.constellio.data.dao.services.solr.serverFactories;
 
-import java.io.File;
-import java.io.IOException;
-
+import com.constellio.data.dao.services.solr.FileSystemSolrManagerException;
+import com.constellio.data.dao.services.solr.SolrServerFactory;
+import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
 import org.apache.solr.core.CoreContainer;
 
-import com.constellio.data.dao.services.solr.FileSystemSolrManagerException;
-import com.constellio.data.dao.services.solr.SolrServerFactory;
-import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
+import java.io.File;
+import java.io.IOException;
 
 public class EmbeddedSolrServerFactory implements SolrServerFactory {
 

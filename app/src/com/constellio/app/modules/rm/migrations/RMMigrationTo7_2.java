@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.chemistry.opencmis.commons.impl.IOUtils;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -57,6 +45,17 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.chemistry.opencmis.commons.impl.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 /**
  * Created by Charles Blanchette on 2017-03-22.
@@ -69,7 +68,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		List<Category> categories = rm.wrapCategorys(appLayerFactory.getModelLayerFactory().newSearchServices().search(
@@ -124,7 +123,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		try {
 			Transaction transaction = new Transaction();
-			createNewTaskTypes(appLayerFactory, collection, transaction);
+			createNewTaskTypes(appLayerFactory, collection, transaction, migrationResourcesProvider);
 			appLayerFactory.getModelLayerFactory().newRecordServices().execute(transaction);
 		} catch (RecordServicesException e) {
 			throw new RuntimeException("Failed to create new task types in RMMigration7_2");
@@ -144,7 +143,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 	}
 
 	private void migrateSearchableSchemaTypes(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+											  AppLayerFactory appLayerFactory) {
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 		manager.saveType(manager.getType(collection, ContainerRecord.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
 		manager.saveType(manager.getType(collection, StorageSpace.SCHEMA_TYPE).withSimpleAndAdvancedSearchStatus(true));
@@ -164,24 +163,29 @@ public class RMMigrationTo7_2 implements MigrationScript {
 						.withVisibleInAdvancedSearchStatus(true));
 	}
 
-	public static void createNewTaskTypes(AppLayerFactory appLayerFactory, String collection, Transaction transaction)
+	public static void createNewTaskTypes(AppLayerFactory appLayerFactory, String collection, Transaction transaction,
+										  MigrationResourcesProvider migrationResourcesProvider)
 			throws RecordServicesException {
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_REQUEST).setTitle("Demande d'emprunt")
+		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_REQUEST)
+				.setTitles(migrationResourcesProvider.getLanguagesString("taskType.borrowRequest"))
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + BorrowRequest.SCHEMA_NAME));
-		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.RETURN_REQUEST).setTitle("Demande de retour")
+		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.RETURN_REQUEST)
+				.setTitles(migrationResourcesProvider.getLanguagesString("taskType.returnRequest"))
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + ReturnRequest.SCHEMA_NAME));
-		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.REACTIVATION_REQUEST).setTitle("Demande de réactivation")
+		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.REACTIVATION_REQUEST)
+				.setTitles(migrationResourcesProvider.getLanguagesString("taskType.reactivationRequest"))
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + ReactivationRequest.SCHEMA_NAME));
 		transaction.add(taskSchemas.newTaskType().setCode(RMTaskType.BORROW_EXTENSION_REQUEST)
-				.setTitle("Demande de prolongation d'emprunt")
+				.setTitles(migrationResourcesProvider.getLanguagesString("taskType.borrowExtensionRequest"))
 				.setLinkedSchema(Task.SCHEMA_TYPE + "_" + ExtensionRequest.SCHEMA_NAME));
 
 	}
 
-	private void adjustSchemaDisplay(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+	private void adjustSchemaDisplay(AppLayerFactory appLayerFactory,
+									 MigrationResourcesProvider migrationResourcesProvider,
+									 String collection) {
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		displayManager.saveSchema(displayManager.getSchema(collection, Folder.DEFAULT_SCHEMA)
@@ -201,9 +205,9 @@ public class RMMigrationTo7_2 implements MigrationScript {
 		displayManager.saveMetadata(displayManager.getMetadata(collection, Task.DEFAULT_SCHEMA + "_" + Task.REASON)
 				.withInputType(MetadataInputType.TEXTAREA));
 
-		String detailsTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
+		//String detailsTab = migrationResourcesProvider.getDefaultLanguageString("init.userTask.details");
 		displayManager.saveMetadata(displayManager.getMetadata(collection, RMTask.DEFAULT_SCHEMA, RMTask.LINKED_CONTAINERS)
-				.withMetadataGroup(detailsTab));
+				.withMetadataGroup("init.userTask.details"));
 
 		displayManager.saveSchema(displayManager.getSchema(collection, Event.DEFAULT_SCHEMA)
 				.withNewTableMetadatas(Event.DEFAULT_SCHEMA + "_" + Event.RECEIVER_NAME,
@@ -257,8 +261,8 @@ public class RMMigrationTo7_2 implements MigrationScript {
 	}
 
 	public static void reloadEmailTemplates(AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+											MigrationResourcesProvider migrationResourcesProvider,
+											String collection) {
 		if (appLayerFactory.getModelLayerFactory().getCollectionsListManager().getCollectionLanguages(collection).get(0)
 				.equals("en")) {
 			reloadEmailTemplate("alertBorrowedTemplate_en.html", RMEmailTemplateConstants.ALERT_BORROWED_ACCEPTED,
@@ -301,8 +305,8 @@ public class RMMigrationTo7_2 implements MigrationScript {
 	}
 
 	private static void reloadEmailTemplate(final String templateFileName, final String templateId,
-			AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider, String collection) {
+											AppLayerFactory appLayerFactory,
+											MigrationResourcesProvider migrationResourcesProvider, String collection) {
 		final InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 
 		try {
@@ -318,7 +322,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 	class SchemaAlterationFor7_2_step1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_2_step1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -349,7 +353,7 @@ public class RMMigrationTo7_2 implements MigrationScript {
 	class SchemaAlterationFor7_2_step2 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_2_step2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -362,7 +366,8 @@ public class RMMigrationTo7_2 implements MigrationScript {
 			migrateLabel(typesBuilder);
 			migrateMetadatasForRequestEvents(typesBuilder);
 			typesBuilder.getSchema(Folder.DEFAULT_SCHEMA).get(Folder.TITLE).setSortable(true);
-			typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).create(Category.DESCRIPTION).setType(MetadataValueType.TEXT);
+			typesBuilder.getDefaultSchema(Category.SCHEMA_TYPE).create(Category.DESCRIPTION).setType(MetadataValueType.TEXT)
+					.setMultiLingual(true);
 			typesBuilder.getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.LINEAR_SIZE).setEssential(false);
 		}
 

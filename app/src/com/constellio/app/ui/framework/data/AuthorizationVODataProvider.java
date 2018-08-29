@@ -1,9 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
@@ -12,6 +8,10 @@ import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AuthorizationVODataProvider extends AbstractDataProvider {
 
@@ -27,13 +27,14 @@ public class AuthorizationVODataProvider extends AbstractDataProvider {
 
 	transient Integer size;
 
-	public AuthorizationVODataProvider(AuthorizationToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory, String recordId) {
+	public AuthorizationVODataProvider(AuthorizationToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
+									   String recordId) {
 		this.voBuilder = voBuilder;
 		init(modelLayerFactory, recordId);
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
-			throws IOException, ClassNotFoundException {		
+			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		init(constellioFactories.getModelLayerFactory(), recordId);

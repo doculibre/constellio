@@ -1,18 +1,10 @@
 package com.constellio.app.servlet;
 
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_ASUSER;
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_DURATION;
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_USERNAME_PASSWORD;
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_DURATION_REQUIRED;
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_PASSWORD_REQUIRED;
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_USERNAME_REQUIRED;
-import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.REQUIRE_ADMIN_RIGHTS;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
+import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.WebRequest;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Condition;
 import org.jdom2.Document;
@@ -23,11 +15,18 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.setups.Users;
-import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.WebRequest;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_ASUSER;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_DURATION;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.BAD_USERNAME_PASSWORD;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_DURATION_REQUIRED;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_PASSWORD_REQUIRED;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.PARAM_USERNAME_REQUIRED;
+import static com.constellio.app.servlet.ConstellioGenerateTokenWebServlet.REQUIRE_ADMIN_RIGHTS;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioTest {
 
@@ -58,7 +57,7 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 		getModelLayerFactory().newAuthenticationService().changePassword(bobGratton, "1qaz2wsx");
 		getModelLayerFactory().newAuthenticationService().changePassword(dakota, "wololo");
 
-		for (boolean usingHeader : new boolean[] { false, true }) {
+		for (boolean usingHeader : new boolean[]{false, true}) {
 
 			assertThat(callWebservice("admin", "1qaz2wsx", "2d", null, usingHeader))
 					.is(returningValidCredentialUntil(dateTime(2014, 1, 4, 3, 0, 3)))
@@ -168,7 +167,7 @@ public class ConstellioGenerateTokenWebServletAcceptanceTest extends ConstellioT
 		} else {
 			String url =
 					"http://localhost:7070/constellio/generateToken?username=" + username + "&password=" + password + "&duration="
-							+ duration + "&asUser=" + asUser;
+					+ duration + "&asUser=" + asUser;
 
 			webRequest = new WebRequest(new URL(url));
 		}

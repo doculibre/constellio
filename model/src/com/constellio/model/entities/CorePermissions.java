@@ -1,9 +1,9 @@
 package com.constellio.model.entities;
 
-import java.util.List;
-
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
+
+import java.util.List;
 
 public class CorePermissions {
 	public static Permissions PERMISSIONS = new Permissions("core");
@@ -59,6 +59,8 @@ public class CorePermissions {
 
 	public static final String MANAGE_SYSTEM_CONFIGURATION = permission(SYSTEM_MANAGEMENT, "manageSystemConfiguration");
 	public static final String MANAGE_SYSTEM_GROUPS = permission(SYSTEM_MANAGEMENT, "manageSystemGroups");
+	public static final String MANAGE_SYSTEM_GROUPS_ACTIVATION = permission(SYSTEM_MANAGEMENT, "manageSystemGroupsActivation");
+	//	public static final String MANAGE_SYSTEM_USERS_ACTIVATION = permission(SYSTEM_MANAGEMENT, "manageSystemUsersActivation");
 	public static final String MANAGE_SYSTEM_USERS = permission(SYSTEM_MANAGEMENT, "manageSystemUsers");
 	public static final String MANAGE_SYSTEM_COLLECTIONS = permission(SYSTEM_MANAGEMENT, "manageSystemCollections");
 	//public static final String MANAGE_SYSTEM_MODULES = permission(SYSTEM_MANAGEMENT, "manageSystemModules");
@@ -77,5 +79,5 @@ public class CorePermissions {
 
 	public static final String ACCESS_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "managerTemporaryRecords");
 	public static final String SEE_ALL_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "seeAllTemporaryRecords");
-	public static final String ACCESS_DELETE_ALL_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT,"accessDeleteAllTemporaryRecords");
+	public static final String ACCESS_DELETE_ALL_TEMPORARY_RECORD = permission(SYSTEM_MANAGEMENT, "accessDeleteAllTemporaryRecords");
 }

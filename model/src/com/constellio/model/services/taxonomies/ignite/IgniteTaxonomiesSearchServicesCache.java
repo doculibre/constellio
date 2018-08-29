@@ -1,14 +1,9 @@
 package com.constellio.model.services.taxonomies.ignite;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.cache.Cache;
-
+import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCache;
+import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.CacheMode;
 import org.apache.ignite.cache.eviction.lru.LruEvictionPolicy;
@@ -16,10 +11,13 @@ import org.apache.ignite.cache.query.SqlQuery;
 import org.apache.ignite.cache.query.annotations.QuerySqlField;
 import org.apache.ignite.configuration.CacheConfiguration;
 
-import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCache;
-import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
+import javax.cache.Cache;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 
 public class IgniteTaxonomiesSearchServicesCache implements TaxonomiesSearchServicesCache {
 

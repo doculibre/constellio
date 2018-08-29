@@ -1,10 +1,10 @@
 package com.constellio.model.entities.schemas;
 
+import com.constellio.model.services.records.extractions.MetadataPopulator;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.constellio.model.services.records.extractions.MetadataPopulator;
 
 public class MetadataPopulateConfigs implements Serializable {
 	private final List<MetadataPopulator> metadataPopulators = new ArrayList<>();
@@ -12,16 +12,19 @@ public class MetadataPopulateConfigs implements Serializable {
 	private final List<String> styles = new ArrayList<>();
 	private final List<String> properties = new ArrayList<>();
 	private final List<RegexConfig> regexes = new ArrayList<>();
+	private final Boolean isAddOnly;
 
 	public MetadataPopulateConfigs() {
+		this.isAddOnly = false;
 	}
 
 	public MetadataPopulateConfigs(List<String> styles, List<String> properties, List<RegexConfig> regexes,
-			List<MetadataPopulator> metadataPopulators) {
+								   List<MetadataPopulator> metadataPopulators, Boolean isAddOnly) {
 		this.styles.addAll(styles);
 		this.properties.addAll(properties);
 		this.regexes.addAll(regexes);
 		this.metadataPopulators.addAll(metadataPopulators);
+		this.isAddOnly = isAddOnly;
 	}
 
 	public List<String> getStyles() {
@@ -50,19 +53,24 @@ public class MetadataPopulateConfigs implements Serializable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
+		}
 
 		MetadataPopulateConfigs that = (MetadataPopulateConfigs) o;
 
-		if (styles != null ? !styles.equals(that.styles) : that.styles != null)
+		if (styles != null ? !styles.equals(that.styles) : that.styles != null) {
 			return false;
-		if (properties != null ? !properties.equals(that.properties) : that.properties != null)
+		}
+		if (properties != null ? !properties.equals(that.properties) : that.properties != null) {
 			return false;
-		if (metadataPopulators != null ? !metadataPopulators.equals(this.metadataPopulators) : that.metadataPopulators != null)
+		}
+		if (metadataPopulators != null ? !metadataPopulators.equals(this.metadataPopulators) : that.metadataPopulators != null) {
 			return false;
+		}
 		return !(regexes != null ? !regexes.equals(that.regexes) : that.regexes != null);
 
 	}
@@ -83,6 +91,10 @@ public class MetadataPopulateConfigs implements Serializable {
 
 	public boolean isConfigured() {
 		return !styles.isEmpty() || !properties.isEmpty() || !regexes.isEmpty() || !metadataPopulators.isEmpty();
+	}
+
+	public boolean isAddOnly() {
+		return Boolean.TRUE.equals(isAddOnly);
 	}
 }
 

@@ -14,16 +14,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class RMMediumTypeRecordExtensionAcceptanceTest extends ConstellioTest {
 
-    @Test
-    public void whenCheckingIfMediumTypeLogicallyDeletableThenFalse() throws Exception {
-        prepareSystem(withZeCollection().withConstellioRMModule().withAllTestUsers());
-        RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-        RecordServices recordServices = getModelLayerFactory().newRecordServices();
+	@Test
+	public void whenCheckingIfMediumTypeLogicallyDeletableThenFalse() throws Exception {
+		prepareSystem(withZeCollection().withConstellioRMModule().withAllTestUsers());
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
-        Record mediumType = rm.getMediumTypeByCode("DM").getWrappedRecord();
-        assertThat(recordServices.isLogicallyDeletable(mediumType, User.GOD)).isFalse();
+		Record mediumType = rm.getMediumTypeByCode("DM").getWrappedRecord();
+		assertThat(recordServices.isLogicallyDeletable(mediumType, User.GOD)).isFalse();
 
-        mediumType = rm.getMediumTypeByCode("FI").getWrappedRecord();
-        assertThat(recordServices.isLogicallyDeletable(mediumType, User.GOD)).isTrue();
-    }
+		mediumType = rm.getMediumTypeByCode("FI").getWrappedRecord();
+		assertThat(recordServices.isLogicallyDeletable(mediumType, User.GOD)).isTrue();
+	}
 }

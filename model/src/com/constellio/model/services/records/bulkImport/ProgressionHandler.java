@@ -1,11 +1,11 @@
 package com.constellio.model.services.records.bulkImport;
 
+import com.constellio.app.services.schemas.bulkImport.BulkImportProgressionListener;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.constellio.app.services.schemas.bulkImport.BulkImportProgressionListener;
 
 public class ProgressionHandler {
 
@@ -80,5 +80,9 @@ public class ProgressionHandler {
 
 	public void afterRecordImports(String fromLegacyId, String toLegacyId, int batchQty, int errorsCount) {
 		listener.afterRecordImports(fromLegacyId, toLegacyId, stepProgression, batchQty, errorsCount);
+	}
+
+	public void beforeSecondPhase(List<String> schemaTypesWithSecondPhaseImport) {
+
 	}
 }

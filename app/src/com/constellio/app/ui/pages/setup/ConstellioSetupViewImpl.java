@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.setup;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -39,6 +31,14 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioSetupView {
 
@@ -215,13 +215,13 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 
 			demoDataField = new CheckBox($("ConstellioSetupView.demoData"));
 
-			formFields = new Field[] { languagesField, modulesField, collectionCodeField, collectionTitleField,
-					adminPasswordField, demoDataField };
+			formFields = new Field[]{languagesField, modulesField, collectionCodeField, collectionTitleField,
+									 adminPasswordField, demoDataField};
 		} else {
 			saveStateField = new BaseUploadField();
 			saveStateField.setCaption($("ConstellioSetupView.saveState"));
 
-			formFields = new Field[] { saveStateField };
+			formFields = new Field[]{saveStateField};
 		}
 
 		form = new BaseForm<ConstellioSetupBean>(bean, this, formFields) {

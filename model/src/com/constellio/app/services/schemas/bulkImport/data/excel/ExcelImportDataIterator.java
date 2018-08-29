@@ -1,24 +1,23 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorRuntimeException;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.utils.LazyIterator;
 import com.drew.metadata.MetadataException;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class ExcelImportDataIterator extends LazyIterator<ImportData> implements ImportDataIterator {
 
@@ -143,22 +142,22 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 
 			if (currentType != null) {
 				switch (currentType.getTypeName()) {
-				case ID_ATTR:
-					legacy = StringUtils.trim(cell.getContents());
-					break;
-				case SCHEMA_ATTR:
-					if (cell.isNotEmpty()) {
-						schema = cell.getContents();
-					}
-					break;
-				default:
-					if (currentType.getStructure() != null) {
-						List<Map<String, String>> structure = (List<Map<String, String>>) fields.get(currentType.getStructure());
-						fields.put(currentType.getStructure(), createOrUpdateStructureContent(currentType, structure, cell));
-					} else {
-						fields.put(types.get(cell.getColumn()).getTypeName(), parseCell(cell, types.get(cell.getColumn())));
+					case ID_ATTR:
+						legacy = StringUtils.trim(cell.getContents());
 						break;
-					}
+					case SCHEMA_ATTR:
+						if (cell.isNotEmpty()) {
+							schema = cell.getContents();
+						}
+						break;
+					default:
+						if (currentType.getStructure() != null) {
+							List<Map<String, String>> structure = (List<Map<String, String>>) fields.get(currentType.getStructure());
+							fields.put(currentType.getStructure(), createOrUpdateStructureContent(currentType, structure, cell));
+						} else {
+							fields.put(types.get(cell.getColumn()).getTypeName(), parseCell(cell, types.get(cell.getColumn())));
+							break;
+						}
 				}
 			}
 
@@ -198,8 +197,8 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 	}
 
 	private List<Map<String, String>> createOrUpdateStructureContent(ExcelDataType currentType,
-			List<Map<String, String>> structure,
-			ExcelCell cell) {
+																	 List<Map<String, String>> structure,
+																	 ExcelCell cell) {
 		structure = structure != null ? structure : new ArrayList<Map<String, String>>();
 		if (currentType.isMultiline() && currentType.getSeparator() != null) {
 			structure = createMultilineSubStructure(currentType, cell);
@@ -232,7 +231,7 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 	}
 
 	private Map<String, String> createUpdateItemSubStructure(ExcelDataType currentType, ExcelCell cell,
-			List<Map<String, String>> structure) {
+															 List<Map<String, String>> structure) {
 		Map<String, String> itemStructure;
 		if (structure.size() >= currentType.getItem() && !structure.isEmpty()) {
 			itemStructure = structure.get(currentType.getItem() - 1);
@@ -324,8 +323,9 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 	}
 
 	public Object readValue(String value, ExcelDataType type) {
-		if (nullOrInvalidData(value))
+		if (nullOrInvalidData(value)) {
 			return null;
+		}
 
 		value = StringUtils.trim(value);
 		if (type.getDatePattern() != null) {
@@ -341,23 +341,23 @@ public class ExcelImportDataIterator extends LazyIterator<ImportData> implements
 		DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(type.getDatePattern());
 
 		switch (type.getDateType()) {
-		case DATE_VALUE:
-			try {
-				return dateTimeFormatter.parseLocalDate(value);
-			} catch (IllegalArgumentException e) {
+			case DATE_VALUE:
+				try {
+					return dateTimeFormatter.parseLocalDate(value);
+				} catch (IllegalArgumentException e) {
+					throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(type.getDatePattern(),
+							value);
+				}
+			case DATETIME_VALUE:
+				try {
+					return dateTimeFormatter.parseLocalDateTime(value);
+				} catch (IllegalArgumentException e) {
+					throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(type.getDatePattern(),
+							value);
+				}
+			default:
 				throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(type.getDatePattern(),
 						value);
-			}
-		case DATETIME_VALUE:
-			try {
-				return dateTimeFormatter.parseLocalDateTime(value);
-			} catch (IllegalArgumentException e) {
-				throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(type.getDatePattern(),
-						value);
-			}
-		default:
-			throw new ImportDataIteratorRuntimeException.ImportDataIteratorRuntimeException_InvalidDate(type.getDatePattern(),
-					value);
 		}
 	}
 

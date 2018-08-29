@@ -1,30 +1,6 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
-import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM;
-import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
-import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
-import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.lang.Boolean.TRUE;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -73,6 +49,29 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM;
+import static com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior.LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
+import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM;
+import static com.constellio.model.services.records.RecordPhysicalDeleteOptions.PhysicalDeleteTaxonomyRecordsBehavior.PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.lang.Boolean.TRUE;
 
 public class RecordDeleteServices {
 
@@ -127,7 +126,7 @@ public class RecordDeleteServices {
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
 		return parentActiveOrNull && (!schemaType.hasSecurity() || user == User.GOD ||
-				authorizationsServices.hasRestaurationPermissionOnHierarchy(user, record, recordsHierarchy));
+									  authorizationsServices.hasRestaurationPermissionOnHierarchy(user, record, recordsHierarchy));
 	}
 
 	public void restore(Record record, User user) {
@@ -145,11 +144,11 @@ public class RecordDeleteServices {
 		for (Record hierarchyRecord : getAllRecordsInHierarchy(record)) {
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, null);
-			if (!transaction.isContainingUpdatedRecord(hierarchyRecord)) {
+			if (!transaction.getRecordIds().contains(hierarchyRecord.getId())) {
 				transaction.add(hierarchyRecord);
 			}
 		}
-		if (!transaction.isContainingUpdatedRecord(record)) {
+		if (!transaction.getRecordIds().contains(record.getId())) {
 			record.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 			record.set(Schemas.LOGICALLY_DELETED_ON, null);
 			transaction.add(record);
@@ -203,7 +202,8 @@ public class RecordDeleteServices {
 
 	}
 
-	private boolean isPhysicallyDeletableNoMatterTheStatus(final Record record, User user, RecordPhysicalDeleteOptions options) {
+	private boolean isPhysicallyDeletableNoMatterTheStatus(final Record record, User user,
+														   RecordPhysicalDeleteOptions options) {
 		ensureSameCollection(user, record);
 		final List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -411,7 +411,7 @@ public class RecordDeleteServices {
 			if (options.behaviorForRecordsAttachedToTaxonomy == LOGICALLY_DELETE_THEM) {
 				includeRecords = true;
 			} else if (taxonomy.hasSameCode(principalTaxonomy)
-					&& options.behaviorForRecordsAttachedToTaxonomy == LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY) {
+					   && options.behaviorForRecordsAttachedToTaxonomy == LOGICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY) {
 				includeRecords = true;
 			}
 		}
@@ -423,7 +423,8 @@ public class RecordDeleteServices {
 		}
 	}
 
-	private List<Record> getAllRecordsInHierarchyForPhysicalDeletion(Record record, RecordPhysicalDeleteOptions options) {
+	private List<Record> getAllRecordsInHierarchyForPhysicalDeletion(Record record,
+																	 RecordPhysicalDeleteOptions options) {
 
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyOf(record);
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
@@ -433,7 +434,7 @@ public class RecordDeleteServices {
 			if (options.behaviorForRecordsAttachedToTaxonomy == PHYSICALLY_DELETE_THEM) {
 				includeRecords = true;
 			} else if (taxonomy.hasSameCode(principalTaxonomy)
-					&& options.behaviorForRecordsAttachedToTaxonomy == PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY) {
+					   && options.behaviorForRecordsAttachedToTaxonomy == PHYSICALLY_DELETE_THEM_ONLY_IF_PRINCIPAL_TAXONOMY) {
 				includeRecords = true;
 			}
 		}
@@ -645,7 +646,8 @@ public class RecordDeleteServices {
 		return new RecordUtils();
 	}
 
-	List<Record> getVisibleRecordsWithReferenceToRecordInHierarchy(Record record, User user, List<Record> recordHierarchy) {
+	List<Record> getVisibleRecordsWithReferenceToRecordInHierarchy(Record record, User user,
+																   List<Record> recordHierarchy) {
 		//1 - Find all hierarchy records (including the given record) that are referenced (using the counter index)
 		List<Record> returnedRecords = new ArrayList<>();
 		List<String> recordsWithReferences = new ArrayList<>(getRecordsInHierarchyWithDependency(record, recordHierarchy));
@@ -664,7 +666,7 @@ public class RecordDeleteServices {
 	}
 
 	List<Record> getRecordsInTypeWithReferenceTo(User user, List<String> recordsWithReferences, MetadataSchemaType type,
-			List<Metadata> references) {
+												 List<Metadata> references) {
 
 		LogicalSearchQuery query = new LogicalSearchQuery().filteredWithUser(user);
 		query.setCondition(from(type).whereAny(references).isIn(recordsWithReferences));
@@ -776,4 +778,8 @@ public class RecordDeleteServices {
 
 	}
 
+	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user,
+														   RecordLogicalDeleteOptions options) {
+		return !options.isSkipValidations() && !isLogicallyDeletable(record, user);
+	}
 }

@@ -1,13 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -30,6 +22,13 @@ import com.constellio.model.services.schemas.calculators.RolesCalculator;
 import com.constellio.model.services.schemas.calculators.UserTokensCalculator2;
 import com.constellio.model.services.schemas.validators.DecisionValidator;
 import com.constellio.model.services.schemas.validators.EmailValidator;
+import org.apache.commons.lang3.StringUtils;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class CoreMigrationTo_5_0_1 implements MigrationScript {
 
@@ -40,7 +39,7 @@ public class CoreMigrationTo_5_0_1 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 		new CoreSchemaAlterationFor5_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 }
@@ -48,7 +47,8 @@ public class CoreMigrationTo_5_0_1 implements MigrationScript {
 class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 	protected CoreSchemaAlterationFor5_0_1(String collection,
-			MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+										   MigrationResourcesProvider migrationResourcesProvider,
+										   AppLayerFactory appLayerFactory) {
 		super(collection, migrationResourcesProvider, appLayerFactory);
 	}
 
@@ -67,7 +67,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder createUserDocumentType(MetadataSchemaTypesBuilder typesBuilder,
-			MetadataSchemaTypeBuilder userSchemaType) {
+															 MetadataSchemaTypeBuilder userSchemaType) {
 		MetadataSchemaTypeBuilder type = typesBuilder.createNewSchemaType(UserDocument.SCHEMA_TYPE);
 		MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
 		type.setSecurity(false);
@@ -126,7 +126,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder createUserSchemaType(MetadataSchemaTypesBuilder typesBuilder,
-			MetadataSchemaTypeBuilder groupSchemaType) {
+														   MetadataSchemaTypeBuilder groupSchemaType) {
 		typesBuilder.createNewSchemaType(User.SCHEMA_TYPE);
 		MetadataSchemaTypeBuilder userSchemaType = typesBuilder.getSchemaType("user");
 		MetadataSchemaBuilder userSchema = userSchemaType.getDefaultSchema();
@@ -147,7 +147,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		userSchema.createUndeletable(User.ALL_ROLES).setType(STRING).setMultivalue(true).defineDataEntry()
 				.asCalculated(RolesCalculator.class);
 
-//		userSchema.createUndeletable(User.GROUPS_AUTHORIZATIONS).setType(STRING).setMultivalue(true).defineDataEntry()
+		//		userSchema.createUndeletable(User.GROUPS_AUTHORIZATIONS).setType(STRING).setMultivalue(true).defineDataEntry()
 		//				.asCopied(groupsReference, groupSchemaType.getMetadata("group_default_allauthorizations"));
 		//
 		//		userSchema.createUndeletable(User.ALL_USER_AUTHORIZATIONS).setType(STRING).setMultivalue(true).defineDataEntry()
@@ -179,7 +179,7 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 	}
 
 	private MetadataSchemaTypeBuilder createTaskSchemaType(MetadataSchemaTypesBuilder typesBuilder,
-			MetadataSchemaTypeBuilder userSchema) {
+														   MetadataSchemaTypeBuilder userSchema) {
 		MetadataSchemaTypeBuilder taskSchemaType = typesBuilder.createNewSchemaType(WorkflowTask.SCHEMA_TYPE);
 		MetadataSchemaBuilder taskSchema = taskSchemaType.getDefaultSchema();
 		taskSchema.createUndeletable(WorkflowTask.ASSIGNED_TO).setType(REFERENCE).defineReferencesTo(userSchema);

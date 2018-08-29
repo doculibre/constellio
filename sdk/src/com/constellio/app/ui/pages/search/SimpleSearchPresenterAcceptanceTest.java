@@ -1,22 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -35,6 +18,7 @@ import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.CapsuleLanguage;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -49,6 +33,21 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.FakeUIContext;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 
@@ -83,8 +82,6 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-
-		Toggle.ADVANCED_SEARCH_CONFIGS.enable();
 
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent());
@@ -290,21 +287,31 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void testSearchCapsuleWithOneKeywords()
 			throws Exception {
+
+		Toggle.ADVANCED_SEARCH_CONFIGS.enable();
+
 		String html = "<h1>test</h1>";
 		List<String> keywords = asList("keyword1", "keyword2", "keyword3");
-		List<String> searchTerms = asList("keyword4", "keyword2", "keyword5");
 		String code = "code";
+
+		CapsuleLanguage frenchCapsuleLanguage = schemasRecordsServices.getCapsuleLanguageWithCode("fr");
+
 		Capsule capsule = schemasRecordsServices
 				.newCapsule()
 				.setCode(code)
+				.setLanguage(frenchCapsuleLanguage)
 				.setHTML(html)
 				.setKeywords(keywords);
 		Transaction transaction = new Transaction();
 		transaction.add(capsule);
 		getModelLayerFactory().newRecordServices().execute(transaction);
 
-		simpleSearchPresenter.setSearchExpression("q/" + StringUtils.join(searchTerms, " "));
+		simpleSearchPresenter.setSearchExpression("keyword4");
 		Capsule returnedCapsule = simpleSearchPresenter.getCapsuleForCurrentSearch();
+		assertThat(returnedCapsule).isNull();
+
+		simpleSearchPresenter.setSearchExpression("keyword1");
+		returnedCapsule = simpleSearchPresenter.getCapsuleForCurrentSearch();
 		assertThat(returnedCapsule).isNotNull();
 		assertThat(returnedCapsule.getCode()).isEqualTo(code);
 		assertThat(returnedCapsule.getHTML()).isEqualTo(html);

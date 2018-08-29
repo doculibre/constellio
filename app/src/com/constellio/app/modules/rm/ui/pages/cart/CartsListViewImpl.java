@@ -1,8 +1,10 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.buttons.*;
-import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -11,13 +13,19 @@ import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Layout;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
+public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 
 	private final CartsListPresenter presenter;
 
@@ -61,7 +69,7 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 						getWindow().close();
 					}
 				}.installOn(titleField);
-				
+
 				BaseButton saveButton = new BaseButton($("save")) {
 					@Override
 					protected void buttonClick(ClickEvent event) {
@@ -157,7 +165,7 @@ public class CartsListViewImpl  extends BaseViewImpl implements CartsListView{
 			}
 		});
 
-		RecordVOTable table = new RecordVOTable("",buttonsContainer);
+		RecordVOTable table = new RecordVOTable("", buttonsContainer);
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 90);
 		table.setPageLength(Math.min(15, container.size()));

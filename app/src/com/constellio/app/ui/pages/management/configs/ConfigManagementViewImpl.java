@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.management.configs;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.ui.entities.SystemConfigurationVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -38,6 +32,11 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigManagementView {
 
@@ -157,7 +156,7 @@ public class ConfigManagementViewImpl extends BaseViewImpl implements ConfigMana
 	private Field<?> createField(SystemConfigurationVO config) {
 		SystemConfigurationType type = config.getType();
 		if (type == SystemConfigurationType.STRING ||
-				config.getType() == SystemConfigurationType.INTEGER) {
+			config.getType() == SystemConfigurationType.INTEGER) {
 			AbstractField<String> textField;
 			if (config.isHiddenValue()) {
 				textField = new BasePasswordField();

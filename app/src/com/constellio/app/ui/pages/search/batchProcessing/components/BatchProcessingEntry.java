@@ -19,7 +19,8 @@ public class BatchProcessingEntry implements Serializable {
 		mappingType = BatchProcessingAction.NO_VALUE;
 	}
 
-	public BatchProcessingEntry(String id, String metadata, String label, BatchProcessingAction mappingType, String index,
+	public BatchProcessingEntry(String id, String metadata, String label, BatchProcessingAction mappingType,
+								String index,
 								String fixedValue, String defaultValue, String mappingTable) {
 		this.id = id;
 		this.metadataOrigin = metadata;

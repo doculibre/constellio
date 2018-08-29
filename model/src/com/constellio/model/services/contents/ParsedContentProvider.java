@@ -1,12 +1,10 @@
 package com.constellio.model.services.contents;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
 
-import com.constellio.model.entities.records.ParsedContent;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ParsedContentProvider {
 

@@ -1,11 +1,10 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDateTime;
-
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class Comment implements ModifiableStructure {
 
@@ -67,12 +66,12 @@ public class Comment implements ModifiableStructure {
 	@Override
 	public String toString() {
 		return "Comment{" +
-				"message='" + message + '\'' +
-				", borrowUserId='" + userId + '\'' +
-				", borrowerUsername='" + username + '\'' +
-				", dateTime=" + dateTime +
-				", dirty=" + dirty +
-				'}';
+			   "message='" + message + '\'' +
+			   ", borrowUserId='" + userId + '\'' +
+			   ", borrowerUsername='" + username + '\'' +
+			   ", dateTime=" + dateTime +
+			   ", dirty=" + dirty +
+			   '}';
 	}
 
 	@Override

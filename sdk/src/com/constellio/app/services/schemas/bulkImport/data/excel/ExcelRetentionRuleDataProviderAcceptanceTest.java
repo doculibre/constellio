@@ -1,21 +1,20 @@
 package com.constellio.app.services.schemas.bulkImport.data.excel;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
+import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorTest;
+import com.constellio.data.io.services.facades.IOServices;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
-import com.constellio.app.services.schemas.bulkImport.data.ImportDataIteratorTest;
-import com.constellio.data.io.services.facades.IOServices;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 
 public class ExcelRetentionRuleDataProviderAcceptanceTest extends ImportDataIteratorTest {
 

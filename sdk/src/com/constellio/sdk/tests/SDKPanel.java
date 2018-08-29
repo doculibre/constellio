@@ -1,12 +1,5 @@
 package com.constellio.sdk.tests;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.openqa.selenium.Dimension;
-import org.openqa.selenium.Point;
-import org.openqa.selenium.WebDriver;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
@@ -14,6 +7,12 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
+import org.openqa.selenium.Dimension;
+import org.openqa.selenium.Point;
+import org.openqa.selenium.WebDriver;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class SDKPanel extends HorizontalLayout {
 

@@ -1,43 +1,29 @@
 package com.constellio.app.ui.pages.management.extractors;
 
-import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.entities.*;
-import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.TabWithTable;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
-import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveTextField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
-import com.constellio.app.ui.framework.components.table.BaseTable;
-import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.extractors.fields.ListAddRemoveRegexConfigField;
 import com.constellio.app.ui.pages.management.extractors.fields.PropertiesAnalyserView;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.model.entities.records.ParsedContent;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.parser.FileParser;
-import com.constellio.model.services.parser.ForkParsers;
 import com.vaadin.data.Container;
 import com.vaadin.data.Item;
-import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import org.apache.tika.io.IOUtils;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -108,7 +94,7 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 
 	private void updateTempFile() {
 		TempFileUpload value = (TempFileUpload) uploadField.getValue();
-		File tempFile = value == null? null:value.getTempFile();
+		File tempFile = value == null ? null : value.getTempFile();
 		presenter.calculatePropertiesAndStyles(tempFile);
 	}
 
@@ -137,7 +123,7 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 		container.addContainerProperty("Key", String.class, "");
 		container.addContainerProperty("Value", valueType, "");
 
-		for(Map.Entry<String, Object> property: values.entrySet()) {
+		for (Map.Entry<String, Object> property : values.entrySet()) {
 			Item item = container.addItem(property.getKey());
 			item.getItemProperty("Key").setValue(property.getKey());
 			item.getItemProperty("Value").setValue(property.getValue().toString());
@@ -166,37 +152,37 @@ public class PropertiesAnalyserViewImpl extends BaseViewImpl implements Properti
 			@Override
 			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
 				return asList(new IntermediateBreadCrumbTailItem() {
-					@Override
-					public boolean isEnabled() {
-						return true;
-					}
+								  @Override
+								  public boolean isEnabled() {
+									  return true;
+								  }
 
-					@Override
-					public String getTitle() {
-						return $("ViewGroup.AdminViewGroup");
-					}
+								  @Override
+								  public String getTitle() {
+									  return $("ViewGroup.AdminViewGroup");
+								  }
 
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to().adminModule();
-					}
-				},
-				new IntermediateBreadCrumbTailItem() {
-					@Override
-					public boolean isEnabled() {
-						return true;
-					}
+								  @Override
+								  public void activate(Navigation navigate) {
+									  navigate.to().adminModule();
+								  }
+							  },
+						new IntermediateBreadCrumbTailItem() {
+							@Override
+							public boolean isEnabled() {
+								return true;
+							}
 
-					@Override
-					public String getTitle() {
-						return $("ListMetadataExtractorsView.viewTitle");
-					}
+							@Override
+							public String getTitle() {
+								return $("ListMetadataExtractorsView.viewTitle");
+							}
 
-					@Override
-					public void activate(Navigation navigate) {
-						navigate.to().listMetadataExtractors();
-					}
-				});
+							@Override
+							public void activate(Navigation navigate) {
+								navigate.to().listMetadataExtractors();
+							}
+						});
 			}
 		};
 	}

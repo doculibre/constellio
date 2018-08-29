@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.reports.search;
 import com.constellio.app.modules.rm.reports.builders.search.SearchResultReportWriter;
 import com.constellio.app.modules.rm.reports.model.search.SearchResultReportModel;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
-
 import org.junit.Before;
 import org.junit.Test;
 

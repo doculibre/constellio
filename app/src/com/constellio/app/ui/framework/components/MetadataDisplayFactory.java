@@ -2,13 +2,15 @@ package com.constellio.app.ui.framework.components;
 
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.components.retentionRule.AdministrativeUnitReferenceDisplay;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.*;
+import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateConverter;
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateTimeConverter;
 import com.constellio.app.ui.framework.components.converters.JodaDateTimeToStringConverter;
@@ -38,7 +40,11 @@ import org.joda.time.LocalDateTime;
 
 import java.io.Serializable;
 import java.text.NumberFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -53,8 +59,7 @@ public class MetadataDisplayFactory implements Serializable {
 
 	private JodaDateTimeToStringConverter jodaDateTimeConverter = new JodaDateTimeToStringConverter();
 
-	public Component build(RecordVO recordVO, MetadataValueVO metadataValue)
-	{
+	public Component build(RecordVO recordVO, MetadataValueVO metadataValue) {
 		Component displayComponent;
 		MetadataVO metadataVO = metadataValue.getMetadata();
 		Object displayValue = metadataValue.getValue();
@@ -79,7 +84,7 @@ public class MetadataDisplayFactory implements Serializable {
 			Collection<?> collectionDisplayValue = (Collection<?>) displayValue;
 			if (collectionDisplayValue.isEmpty()) {
 				displayComponent = null;
-			} else if (MetadataValueType.STRING.equals(metadataValueType)) {
+			} else if (MetadataValueType.STRING.equals(metadataValueType) && metadataVO.getMetadataInputType() != MetadataInputType.URL) {
 				displayComponent = newStringCollectionValueDisplayComponent((Collection<String>) collectionDisplayValue);
 			} else {
 				List<Component> elementDisplayComponents = new ArrayList<Component>();
@@ -108,8 +113,8 @@ public class MetadataDisplayFactory implements Serializable {
 
 
 	/**
-	 * @param recordVO May be null, be careful!
-	 * @param metadata The metadata for which we want a display component
+	 * @param recordVO     May be null, be careful!
+	 * @param metadata     The metadata for which we want a display component
 	 * @param displayValue The value to display
 	 * @return
 	 */
@@ -129,118 +134,118 @@ public class MetadataDisplayFactory implements Serializable {
 			displayComponent = null;
 		} else {
 			switch (metadataValueType) {
-			case BOOLEAN:
-				String key = Boolean.TRUE.equals(displayValue) ? "yes" : "no";
-				displayComponent = new Label($(key));
-				break;
-			case DATE:
-				if (displayValue instanceof LocalDate) {
-					String convertedJodaDate = jodaDateConverter
-							.convertToPresentation((LocalDate) displayValue, String.class, locale);
-					displayComponent = new Label(convertedJodaDate);
-				} else if (displayValue instanceof Date) {
-					String convertedDate = utilDateConverter.convertToPresentation((Date) displayValue, String.class, locale);
-					displayComponent = new Label(convertedDate);
-				} else {
-					displayComponent = null;
-				}
-				break;
-			case DATE_TIME:
-				if (displayValue instanceof LocalDateTime) {
-					String convertedJodaDate = jodaDateTimeConverter
-							.convertToPresentation((LocalDateTime) displayValue, String.class, locale);
-					displayComponent = new Label(convertedJodaDate);
-				} else if (displayValue instanceof Date) {
-					String convertedDate = utilDateTimeConverter.convertToPresentation((Date) displayValue, String.class, locale);
-					displayComponent = new Label(convertedDate);
-				} else {
-					displayComponent = null;
-				}
-				break;
-			case NUMBER:
-				NumberFormat numberFormat = NumberFormat.getInstance();
-				numberFormat.setGroupingUsed(false);
-
-				String strDisplayValue = numberFormat.format(displayValue);
-				if (strDisplayValue.endsWith(".0")) {
-					strDisplayValue = StringUtils.substringBefore(strDisplayValue, ".");
-				}
-				displayComponent = new Label(strDisplayValue);
-				((Label) displayComponent).setConverter(new StringToDoubleConverter());
-				break;
-			case INTEGER:
-				NumberFormat intFormat = NumberFormat.getInstance();
-				intFormat.setGroupingUsed(false);
-				displayComponent = new Label(intFormat.format(displayValue));
-				((Label) displayComponent).setConverter(new StringToIntegerConverter());
-				break;
-			case STRING:
-				if (MetadataInputType.PASSWORD.equals(metadataInputType)) {
-					displayComponent = null;
-				} else if (MetadataInputType.URL.equals(metadataInputType)) {
-					String url = displayValue.toString();
-					if (!url.startsWith("http://")) {
-						url = "http://" + url;
-					}
-					Link link = new Link(url, new ExternalResource(url));
-					link.setTargetName("_blank");
-					displayComponent = link;
-				} else {
-					String stringValue = StringUtils.replace(displayValue.toString(), "\n", "<br/>");
-					displayComponent = new Label(stringValue, ContentMode.HTML);
-				}
-				break;
-			case TEXT:
-				switch (metadataInputType) {
-				case RICHTEXT:
-					displayComponent = new Label(displayValue.toString(), ContentMode.HTML);
+				case BOOLEAN:
+					String key = Boolean.TRUE.equals(displayValue) ? "yes" : "no";
+					displayComponent = new Label($(key));
 					break;
-				default:
-					String stringValue = StringUtils.replace(displayValue.toString(), "\n", "<br/>");
-					displayComponent = new Label(stringValue, ContentMode.HTML);
-					break;
-				}
-				break;
-			case STRUCTURE:
-				displayComponent = new Label(displayValue.toString());
-				break;
-			case CONTENT:
-				ContentVersionVO contentVersionVO = (ContentVersionVO) displayValue;
-				displayComponent = new ContentVersionDisplay(recordVO, contentVersionVO);
-				break;
-			case REFERENCE:
-				switch (metadataInputType) {
-				case LOOKUP:
-					AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-					String currentCollection = metadata.getCollection();
-					displayComponent = appLayerFactory.getExtensions().forCollection(currentCollection).getDisplayForReference(allowedReferences, displayValue.toString());
-					break;
-				default:
-					if (allowedReferences != null) {
-						displayComponent = new ReferenceDisplay(displayValue.toString());
-					} else if (taxonomyCodes.length > 0) {
-						displayComponent = new Label(taxonomyCodes.toString());
+				case DATE:
+					if (displayValue instanceof LocalDate) {
+						String convertedJodaDate = jodaDateConverter
+								.convertToPresentation((LocalDate) displayValue, String.class, locale);
+						displayComponent = new Label(convertedJodaDate);
+					} else if (displayValue instanceof Date) {
+						String convertedDate = utilDateConverter.convertToPresentation((Date) displayValue, String.class, locale);
+						displayComponent = new Label(convertedDate);
 					} else {
-						displayComponent = new Label(displayValue.toString());
+						displayComponent = null;
 					}
 					break;
-				}
-				if(displayComponent != null && taxonomyCodes != null && taxonomyCodes.length > 0) {
-					displayComponent.setVisible(hasCurrentUserRightsOnTaxonomy(taxonomyCodes[0]));
-				}
-				break;
-			case ENUM:
-				if (displayValue instanceof EnumWithSmallCode) {
-					displayComponent = new EnumWithSmallCodeDisplay<>((EnumWithSmallCode) displayValue);
-				} else if (displayValue instanceof String) {
-					displayComponent = new Label($(metadata.getEnumClass().getSimpleName() + "." + displayValue));
-				} else {
+				case DATE_TIME:
+					if (displayValue instanceof LocalDateTime) {
+						String convertedJodaDate = jodaDateTimeConverter
+								.convertToPresentation((LocalDateTime) displayValue, String.class, locale);
+						displayComponent = new Label(convertedJodaDate);
+					} else if (displayValue instanceof Date) {
+						String convertedDate = utilDateTimeConverter.convertToPresentation((Date) displayValue, String.class, locale);
+						displayComponent = new Label(convertedDate);
+					} else {
+						displayComponent = null;
+					}
+					break;
+				case NUMBER:
+					NumberFormat numberFormat = NumberFormat.getInstance();
+					numberFormat.setGroupingUsed(false);
+
+					String strDisplayValue = numberFormat.format(displayValue);
+					if (strDisplayValue.endsWith(".0")) {
+						strDisplayValue = StringUtils.substringBefore(strDisplayValue, ".");
+					}
+					displayComponent = new Label(strDisplayValue);
+					((Label) displayComponent).setConverter(new StringToDoubleConverter());
+					break;
+				case INTEGER:
+					NumberFormat intFormat = NumberFormat.getInstance();
+					intFormat.setGroupingUsed(false);
+					displayComponent = new Label(intFormat.format(displayValue));
+					((Label) displayComponent).setConverter(new StringToIntegerConverter());
+					break;
+				case STRING:
+					if (MetadataInputType.PASSWORD.equals(metadataInputType)) {
+						displayComponent = null;
+					} else if (MetadataInputType.URL.equals(metadataInputType)) {
+						String url = displayValue.toString();
+						if (!url.startsWith("http://") && !url.startsWith("https://")) {
+							url = "http://" + url;
+						}
+						Link link = new Link(url, new ExternalResource(url));
+						link.setTargetName("_blank");
+						displayComponent = link;
+					} else {
+						String stringValue = StringUtils.replace(displayValue.toString(), "\n", "<br/>");
+						displayComponent = new Label(stringValue, ContentMode.HTML);
+					}
+					break;
+				case TEXT:
+					switch (metadataInputType) {
+						case RICHTEXT:
+							displayComponent = new Label(displayValue.toString(), ContentMode.HTML);
+							break;
+						default:
+							String stringValue = StringUtils.replace(displayValue.toString(), "\n", "<br/>");
+							displayComponent = new Label(stringValue, ContentMode.HTML);
+							break;
+					}
+					break;
+				case STRUCTURE:
+					displayComponent = new Label(displayValue.toString());
+					break;
+				case CONTENT:
+					ContentVersionVO contentVersionVO = (ContentVersionVO) displayValue;
+					displayComponent = new ContentVersionDisplay(recordVO, contentVersionVO, new BaseUpdatableContentVersionPresenter());
+					break;
+				case REFERENCE:
+					switch (metadataInputType) {
+						case LOOKUP:
+							AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+							String currentCollection = metadata.getCollection();
+							displayComponent = appLayerFactory.getExtensions().forCollection(currentCollection).getDisplayForReference(allowedReferences, displayValue.toString());
+							break;
+						default:
+							if (allowedReferences != null) {
+								displayComponent = new ReferenceDisplay(displayValue.toString());
+							} else if (taxonomyCodes.length > 0) {
+								displayComponent = new Label(taxonomyCodes.toString());
+							} else {
+								displayComponent = new Label(displayValue.toString());
+							}
+							break;
+					}
+					if (displayComponent != null && taxonomyCodes != null && taxonomyCodes.length > 0) {
+						displayComponent.setVisible(hasCurrentUserRightsOnTaxonomy(taxonomyCodes[0]));
+					}
+					break;
+				case ENUM:
+					if (displayValue instanceof EnumWithSmallCode) {
+						displayComponent = new EnumWithSmallCodeDisplay<>((EnumWithSmallCode) displayValue);
+					} else if (displayValue instanceof String) {
+						displayComponent = new Label($(metadata.getEnumClass().getSimpleName() + "." + displayValue));
+					} else {
+						displayComponent = null;
+					}
+					break;
+				default:
 					displayComponent = null;
-				}
-				break;
-			default:
-				displayComponent = null;
-				break;
+					break;
 			}
 		}
 		return displayComponent;
@@ -276,14 +281,14 @@ public class MetadataDisplayFactory implements Serializable {
 		UserVO currentUser = currentSessionContext.getCurrentUser();
 		String userid = currentUser.getId();
 
-		if(taxonomy != null) {
+		if (taxonomy != null) {
 			RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(currentSessionContext.getCurrentCollection(), appLayerFactory);
 			List<String> taxonomyGroupIds = taxonomy.getGroupIds();
 			List<String> taxonomyUserIds = taxonomy.getUserIds();
 			List<String> userGroups = rmSchemasRecordsServices.getUser(currentUser.getId()).getUserGroups();
-			for(String group: taxonomyGroupIds) {
-				for(String userGroup: userGroups) {
-					if(userGroup.equals(group)) {
+			for (String group : taxonomyGroupIds) {
+				for (String userGroup : userGroups) {
+					if (userGroup.equals(group)) {
 						return true;
 					}
 				}

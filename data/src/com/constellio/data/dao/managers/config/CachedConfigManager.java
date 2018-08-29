@@ -1,14 +1,5 @@
 package com.constellio.data.dao.managers.config;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jdom2.Document;
-
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.events.ConfigDeletedEventListener;
 import com.constellio.data.dao.managers.config.events.ConfigEventListener;
@@ -19,6 +10,14 @@ import com.constellio.data.dao.managers.config.values.TextConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.InsertionReason;
+import org.jdom2.Document;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class CachedConfigManager implements ConfigManager, ConfigUpdatedEventListener, ConfigDeletedEventListener {
 

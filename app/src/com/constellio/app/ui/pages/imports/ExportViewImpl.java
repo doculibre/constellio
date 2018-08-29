@@ -9,7 +9,6 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
-import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Property;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
@@ -119,7 +118,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 			}
 		});
 
-		if(presenter.hasCurrentCollectionRMModule()) {
+		if (presenter.hasCurrentCollectionRMModule()) {
 			exportationOptions.addItem(TOOL_OPTION);
 			exportationOptions.setItemCaption(TOOL_OPTION, $("ExportView.toolOption"));
 			exportationOptions.addItem(FOLDER_AND_DOCUMENT_OPTION);
@@ -172,7 +171,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		othersLayout.setSpacing(true);
 
 		mainLayout.addComponent(exportationOptions);
-		if(presenter.hasCurrentCollectionRMModule()) {
+		if (presenter.hasCurrentCollectionRMModule()) {
 			mainLayout.addComponents(collectionOptions, toolLayout, folderAndDocumentsLayout, administrativeUnitLayout);
 		}
 		mainLayout.addComponents(schemaLayout, othersLayout);
@@ -193,7 +192,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		BaseButton exportTools = new BaseButton($("ExportView.exportTools")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				if(SAME_COLLECTION.equals(collectionOptions.getValue())) {
+				if (SAME_COLLECTION.equals(collectionOptions.getValue())) {
 					ConfirmDialog.show(ConstellioUI.getCurrent(), $("ExportView.confirmTitle"), buildConfirmMessage(), $("Ok"), $("cancel"), new ConfirmDialog.Listener() {
 						@Override
 						public void onClose(ConfirmDialog dialog) {
@@ -224,7 +223,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		BaseButton exportButton = new BaseButton($("ExportView.exportNoContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				if(SAME_COLLECTION.equals(collectionOptions.getValue())) {
+				if (SAME_COLLECTION.equals(collectionOptions.getValue())) {
 					ConfirmDialog.show(ConstellioUI.getCurrent(), $("ExportView.confirmTitle"), buildConfirmMessage(), $("Ok"), $("cancel"), new ConfirmDialog.Listener() {
 						@Override
 						public void onClose(ConfirmDialog dialog) {
@@ -251,7 +250,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		BaseButton exportButton = new BaseButton($("ExportView.exportNoContents")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
-				if(SAME_COLLECTION.equals(collectionOptions.getValue())) {
+				if (SAME_COLLECTION.equals(collectionOptions.getValue())) {
 					ConfirmDialog.show(ConstellioUI.getCurrent(), $("ExportView.confirmTitle"), buildConfirmMessage(), $("Ok"), $("cancel"), new ConfirmDialog.Listener() {
 						@Override
 						public void onClose(ConfirmDialog dialog) {

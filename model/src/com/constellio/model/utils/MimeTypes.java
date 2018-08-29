@@ -7,7 +7,6 @@ import java.util.HashMap;
  *
  * @author Hery Raveloson (NURUN)
  * @version 1.0
- *
  */
 public final class MimeTypes {
 

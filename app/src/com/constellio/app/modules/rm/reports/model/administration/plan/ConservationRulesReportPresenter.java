@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -28,6 +18,16 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class ConservationRulesReportPresenter {
 
@@ -40,26 +40,28 @@ public class ConservationRulesReportPresenter {
 	private boolean byAdministrativeUnit;
 	private DecommissioningService decommissioningService;
 	private String administrativeUnitId;
+	private Locale locale;
 
-	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory) {
-		this(collection, appLayerFactory, false, null);
+	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory, Locale locale) {
+		this(collection, appLayerFactory, false, null, locale);
 	}
 
 	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory,
-			boolean byAdministrativeUnit) {
-		this(collection, appLayerFactory, byAdministrativeUnit, null);
+											boolean byAdministrativeUnit, Locale locale) {
+		this(collection, appLayerFactory, byAdministrativeUnit, null, locale);
 	}
 
 	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory,
-			boolean byAdministrativeUnit, String administrativeUnitId) {
+											boolean byAdministrativeUnit, String administrativeUnitId, Locale locale) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		searchServices = modelLayerFactory.newSearchServices();
 		decommissioningService = new DecommissioningService(collection, appLayerFactory);
-		rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rm = new RMSchemasRecordsServices(collection, appLayerFactory, locale);
 		this.byAdministrativeUnit = byAdministrativeUnit;
 		this.administrativeUnitId = administrativeUnitId;
+		this.locale = locale;
 	}
 
 	public ConservationRulesReportModel build() {
@@ -148,7 +150,8 @@ public class ConservationRulesReportPresenter {
 
 	}
 
-	private Map<AdministrativeUnit, List<RetentionRule>> getRetentionRulesByAdministrativeUnit(String administrativeUnitId) {
+	private Map<AdministrativeUnit, List<RetentionRule>> getRetentionRulesByAdministrativeUnit(
+			String administrativeUnitId) {
 
 		Map<AdministrativeUnit, List<RetentionRule>> retentionRulesByAdministrativeUnit = new HashMap<>();
 		MetadataSchemaType retentionRuleSchemaType = rm.retentionRule.schemaType();
@@ -163,7 +166,7 @@ public class ConservationRulesReportPresenter {
 	}
 
 	private List<RetentionRule> getRetentionRulesByAdministrativeUnit(AdministrativeUnit administrativeUnit,
-			MetadataSchemaType retentionRuleSchemaType) {
+																	  MetadataSchemaType retentionRuleSchemaType) {
 		//List<RetentionRule> newRetentionRules = new ArrayList<>();
 
 		LogicalSearchQuery retentionRulesQuery = new LogicalSearchQuery()
@@ -348,7 +351,7 @@ public class ConservationRulesReportPresenter {
 	}
 
 	private void appendObservation(StringBuilder builder, String commentCode, Map<String, String> commentMap,
-			String label) {
+								   String label) {
 		String observation = "";
 		if (StringUtils.isNotBlank(commentCode)) {
 			if (commentMap != null) {

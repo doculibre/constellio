@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -48,7 +38,6 @@ import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.data.util.MethodProperty;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.data.util.converter.Converter.ConversionException;
-import com.vaadin.server.VaadinSession;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -60,6 +49,15 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetentionRule>> {
 
@@ -97,13 +95,15 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 	private Table variablePeriodTable;
 	private RetentionRuleTablePresenter presenter;
 	private boolean formMode;
+	private Locale locale;
 
 	public FolderCopyRetentionRuleTable(RetentionRuleVO retentionRuleVO, boolean formMode,
-			final RetentionRuleTablePresenter presenter) {
+										final RetentionRuleTablePresenter presenter, Locale locale) {
 		this.retentionRuleVO = retentionRuleVO;
 		this.formMode = formMode;
 		this.presenter = presenter;
 		this.variableRetentionPeriodVOList = presenter.getOpenPeriodsDDVList();
+		this.locale = locale;
 
 		setSizeFull();
 
@@ -422,7 +422,7 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 		addItems();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public Class getType() {
 		return List.class;
@@ -483,13 +483,14 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 
 		private MetadataField dateMetadataField;
 
-		public RetentionPeriodFieldGroup(final CopyRetentionRule copyRetentionRule, final boolean activeRetentionPeriod) {
+		public RetentionPeriodFieldGroup(final CopyRetentionRule copyRetentionRule,
+										 final boolean activeRetentionPeriod) {
 			setSpacing(true);
 			setWidth("150px");
 
 			final RetentionPeriod retentionPeriod = (activeRetentionPeriod) ?
-					copyRetentionRule.getActiveRetentionPeriod() :
-					copyRetentionRule.getSemiActiveRetentionPeriod();
+													copyRetentionRule.getActiveRetentionPeriod() :
+													copyRetentionRule.getSemiActiveRetentionPeriod();
 
 			Property<String> dateMetadataProperty;
 			if (activeRetentionPeriod) {
@@ -507,7 +508,13 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 				openRetentionPeriodDDVField.setInputPrompt($("fixedPeriod"));
 				openRetentionPeriodDDVField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
 				for (VariableRetentionPeriodVO periodVO : container.getItemIds()) {
-					openRetentionPeriodDDVField.setItemCaption(periodVO, periodVO.getCode() + " - " + periodVO.getTitle());
+					String title;
+					if (periodVO.getCode().equals("888") || periodVO.getCode().equals("999")) {
+						title = $("variablePeriod" + periodVO.getCode());
+					} else {
+						title = periodVO.getTitle();
+					}
+					openRetentionPeriodDDVField.setItemCaption(periodVO, periodVO.getCode() + " - " + title);
 				}
 
 				final MiniTextField yearsField = new MiniTextField();
@@ -525,8 +532,8 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 						}
 					}
 					if (activeRetentionPeriod &&
-							(retentionPeriod.getRetentionType() == RetentionType.OPEN ||
-							retentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
+						(retentionPeriod.getRetentionType() == RetentionType.OPEN ||
+						 retentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
 						yearsField.setConvertedValue(copyRetentionRule.getOpenActiveRetentionPeriod());
 						yearsField.setEnabled(true);
 					} else {
@@ -549,8 +556,8 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 							}
 							yearsField.setValue(null);
 							yearsField.setEnabled(activeRetentionPeriod &&
-									(newRetentionPeriod.getRetentionType() == RetentionType.OPEN ||
-									newRetentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED));
+												  (newRetentionPeriod.getRetentionType() == RetentionType.OPEN ||
+												   newRetentionPeriod.getRetentionType() == RetentionType.UNTIL_REPLACED));
 						} else {
 							yearsField.setEnabled(true);
 						}
@@ -564,11 +571,11 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 							yearsField.validate();
 							Integer newValue = (Integer) yearsField.getConvertedValue();
 							RetentionPeriod period = activeRetentionPeriod ?
-									copyRetentionRule.getActiveRetentionPeriod() :
-									copyRetentionRule.getSemiActiveRetentionPeriod();
+													 copyRetentionRule.getActiveRetentionPeriod() :
+													 copyRetentionRule.getSemiActiveRetentionPeriod();
 							if (activeRetentionPeriod &&
-									(period.getRetentionType() == RetentionType.OPEN ||
-									period.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
+								(period.getRetentionType() == RetentionType.OPEN ||
+								 period.getRetentionType() == RetentionType.UNTIL_REPLACED)) {
 								copyRetentionRule.setOpenActiveRetentionPeriod(newValue);
 							} else if (newValue != null) {
 								openRetentionPeriodDDVField.setValue(null);
@@ -737,7 +744,6 @@ public class FolderCopyRetentionRuleTable extends CustomField<List<CopyRetention
 			String documentTypeId = copyRetentionRule.getTypeId();
 			List<MetadataVO> dateMetadataVOs = getDateMetadataVOs(documentTypeId);
 
-			Locale locale = VaadinSession.getCurrent().getLocale();
 			for (MetadataVO metadataVO : dateMetadataVOs) {
 				String metatadaCode = metadataVO.getCode();
 				addItem(metatadaCode);

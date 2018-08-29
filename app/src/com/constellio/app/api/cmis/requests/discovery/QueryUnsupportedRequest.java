@@ -1,8 +1,8 @@
 package com.constellio.app.api.cmis.requests.discovery;
 
-import java.math.BigInteger;
-import java.util.regex.Pattern;
-
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.chemistry.opencmis.commons.data.ObjectList;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
@@ -10,9 +10,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.services.factories.AppLayerFactory;
+import java.math.BigInteger;
+import java.util.regex.Pattern;
 
 public class QueryUnsupportedRequest extends CmisCollectionRequest<ObjectList> {
 
@@ -26,9 +25,10 @@ public class QueryUnsupportedRequest extends CmisCollectionRequest<ObjectList> {
 	private final ObjectInfoHandler objectInfos;
 
 	public QueryUnsupportedRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext callContext,
-			String statement, Boolean includeAllowableActions, BigInteger maxItems, BigInteger skipCount,
-			ObjectInfoHandler objectInfos) {
+								   CallContext callContext,
+								   String statement, Boolean includeAllowableActions, BigInteger maxItems,
+								   BigInteger skipCount,
+								   ObjectInfoHandler objectInfos) {
 		super(callContext, repository, appLayerFactory);
 		this.statement = statement;
 		this.includeAllowableActions = includeAllowableActions;

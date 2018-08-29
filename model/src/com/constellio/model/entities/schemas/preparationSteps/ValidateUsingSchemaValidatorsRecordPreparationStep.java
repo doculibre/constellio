@@ -1,9 +1,9 @@
 package com.constellio.model.entities.schemas.preparationSteps;
 
-import java.util.List;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
+
+import java.util.List;
 
 public class ValidateUsingSchemaValidatorsRecordPreparationStep implements RecordPreparationStep {
 

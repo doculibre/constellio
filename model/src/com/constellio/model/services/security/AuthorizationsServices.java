@@ -1,36 +1,5 @@
 package com.constellio.model.services.security;
 
-import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
-import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
-import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
-import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
-import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
-import static com.constellio.model.services.records.RecordUtils.unwrap;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException;
-import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddAuhtorizationInNonPrincipalTaxonomy;
-import static com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddUpdateWithoutPrincipalsAndOrTargetRecords;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonMap;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.data.utils.TimeProvider;
@@ -70,6 +39,9 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.AuthServices_RecordServicesException;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddAuhtorizationInNonPrincipalTaxonomy;
+import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotAddUpdateWithoutPrincipalsAndOrTargetRecords;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.CannotDetachConcept;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
@@ -79,6 +51,33 @@ import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.data.utils.LangUtils.withoutDuplicatesAndNulls;
+import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
+import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
+import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
+import static com.constellio.model.entities.schemas.Schemas.REMOVED_AUTHORIZATIONS;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
+import static com.constellio.model.services.records.RecordUtils.unwrap;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasExcept;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonMap;
 
 public class AuthorizationsServices {
 
@@ -127,7 +126,7 @@ public class AuthorizationsServices {
 	}
 
 	public List<User> getUsersWithGlobalPermissionInCollectionExcludingRoles(String permission, String collection,
-			List<String> excludingRoles) {
+																			 List<String> excludingRoles) {
 
 		Roles roles = rolesManager.getCollectionRoles(collection, modelLayerFactory);
 		List<String> rolesGivingPermission = toRolesCodes(roles.getRolesGivingPermission(permission));
@@ -218,7 +217,8 @@ public class AuthorizationsServices {
 		//				.orWhere(schemas.user.allroles()).isIn(toRolesCodes(rolesGivingPermission))));
 	}
 
-	public List<User> getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(String permission, Record concept) {
+	public List<User> getUsersWithPermissionOnRecordExcludingRecordInheritedAuthorizations(String permission,
+																						   Record concept) {
 
 		List<User> returnedUsers = new ArrayList<>();
 
@@ -329,6 +329,7 @@ public class AuthorizationsServices {
 
 	/**
 	 * Add an authorization on a record
+	 *
 	 * @param request
 	 * @return
 	 */
@@ -358,7 +359,8 @@ public class AuthorizationsServices {
 
 	/**
 	 * Add an authorization on a record. The authorization will be logged as created by the given user
-	 * @param authorization Authorization to add
+	 *
+	 * @param authorization     Authorization to add
 	 * @param userAddingTheAuth
 	 * @return The new authorization's id
 	 */
@@ -540,6 +542,7 @@ public class AuthorizationsServices {
 	/**
 	 * Modify an authorization on a specific record. The request will be handled differently depending
 	 * if the record is or not the root target of the authorization. This service will never detach/reattach or reset records.
+	 *
 	 * @param request The request to execute
 	 * @return A response with some informations
 	 */
@@ -621,7 +624,7 @@ public class AuthorizationsServices {
 	}
 
 	private AuthorizationModificationResponse executeWithoutLogging(AuthorizationModificationRequest request,
-			Authorization authorization, Record record) {
+																	Authorization authorization, Record record) {
 
 		AuthTransaction transaction = new AuthTransaction();
 		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
@@ -731,8 +734,8 @@ public class AuthorizationsServices {
 
 				boolean targettingRecordOrAncestor =
 						(record.getList(ATTACHED_ANCESTORS).contains(authorizationDetails.getTarget())
-								|| record.getId().equals(authorizationDetails.getTarget()))
-								&& !record.getList(ALL_REMOVED_AUTHS).contains(authorizationDetails.getId());
+						 || record.getId().equals(authorizationDetails.getTarget()))
+						&& !record.getList(ALL_REMOVED_AUTHS).contains(authorizationDetails.getId());
 
 				if (targettingRecordOrAncestor) {
 					authIds.add(authorizationDetails.getId());
@@ -757,6 +760,7 @@ public class AuthorizationsServices {
 	/**
 	 * Reset a securized record.
 	 * The resetted record will be reattached (inheriting all authorizations) and all its specific authorizations will be lost
+	 *
 	 * @param record The securized record
 	 */
 	public void reset(Record record) {
@@ -820,7 +824,8 @@ public class AuthorizationsServices {
 	}
 
 	public boolean hasDeletePermissionOnPrincipalConceptHierarchy(User user, Record principalTaxonomyConcept,
-			boolean includeRecords, List<Record> recordsHierarchy, MetadataSchemasManager schemasManager) {
+																  boolean includeRecords, List<Record> recordsHierarchy,
+																  MetadataSchemasManager schemasManager) {
 		if (user == User.GOD) {
 			return true;
 		}
@@ -856,12 +861,13 @@ public class AuthorizationsServices {
 		return hasPermissionOnHierarchy(user, record, recordsHierarchy, true);
 	}
 
-	public boolean hasDeletePermissionOnHierarchyNoMatterTheStatus(User user, Record record, List<Record> recordsHierarchy) {
+	public boolean hasDeletePermissionOnHierarchyNoMatterTheStatus(User user, Record record,
+																   List<Record> recordsHierarchy) {
 		return hasPermissionOnHierarchy(user, record, recordsHierarchy, null);
 	}
 
 	/**
-	 *Use user.hasReadAccess().on(record) instead
+	 * Use user.hasReadAccess().on(record) instead
 	 */
 	@Deprecated
 	public boolean canRead(User user, Record record) {
@@ -869,7 +875,7 @@ public class AuthorizationsServices {
 	}
 
 	/**
-	 *Use user.hasWriteAccess().on(record) instead
+	 * Use user.hasWriteAccess().on(record) instead
 	 */
 	@Deprecated
 	public boolean canWrite(User user, Record record) {
@@ -877,7 +883,7 @@ public class AuthorizationsServices {
 	}
 
 	/**
-	 *Use user.hasDeleteAccess().on(record) instead
+	 * Use user.hasDeleteAccess().on(record) instead
 	 */
 	@Deprecated
 	public boolean canDelete(User user, Record record) {
@@ -885,7 +891,8 @@ public class AuthorizationsServices {
 	}
 
 	private void executeOnAuthorization(AuthTransaction transaction, AuthorizationModificationRequest request,
-			AuthorizationDetails authorizationDetails, Record record, List<String> actualPrincipals) {
+										AuthorizationDetails authorizationDetails, Record record,
+										List<String> actualPrincipals) {
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(record.getCollection(), modelLayerFactory);
 
@@ -929,7 +936,7 @@ public class AuthorizationsServices {
 
 		if (request.getNewStartDate() != null || request.getNewEndDate() != null) {
 			LocalDate startDate = request.getNewStartDate() == null ?
-					authorizationDetails.getStartDate() : request.getNewStartDate();
+								  authorizationDetails.getStartDate() : request.getNewStartDate();
 			LocalDate endDate = request.getNewEndDate() == null ? authorizationDetails.getEndDate() : request.getNewEndDate();
 			validateDates(startDate, endDate);
 			transaction.add((SolrAuthorizationDetails) authorizationDetails).setStartDate(startDate).setEndDate(endDate);
@@ -942,7 +949,7 @@ public class AuthorizationsServices {
 	}
 
 	private List<Record> principalToRecords(AuthTransaction transaction, SchemasRecordsServices schemas,
-			List<String> principals) {
+											List<String> principals) {
 		List<Record> records = new ArrayList<>();
 
 		for (String principal : principals) {
@@ -1128,7 +1135,7 @@ public class AuthorizationsServices {
 	}
 
 	private void validateRecordIsAPrincipalTaxonomyConcept(Record principalTaxonomyConcept, List<String> paths,
-			Taxonomy principalTaxonomy) {
+														   Taxonomy principalTaxonomy) {
 		String schemaTypeCode = principalTaxonomyConcept.getSchemaCode().split("_")[0];
 		if (!paths.get(0).contains(principalTaxonomy.getCode()) || !principalTaxonomy.getSchemaTypes().contains(schemaTypeCode)) {
 			throw new AuthorizationsServicesRuntimeException.RecordIsNotAConceptOfPrincipalTaxonomy(
@@ -1295,9 +1302,10 @@ public class AuthorizationsServices {
 	}
 
 	private SolrAuthorizationDetails newAuthorizationDetails(String collection, String id, List<String> roles,
-			LocalDate startDate, LocalDate endDate, boolean overrideInherited) {
+															 LocalDate startDate, LocalDate endDate,
+															 boolean overrideInherited) {
 		SolrAuthorizationDetails details = id == null ? schemas(collection).newSolrAuthorizationDetails()
-				: schemas(collection).newSolrAuthorizationDetailsWithId(id);
+													  : schemas(collection).newSolrAuthorizationDetailsWithId(id);
 
 		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate).setOverrideInherited(overrideInherited);
 	}

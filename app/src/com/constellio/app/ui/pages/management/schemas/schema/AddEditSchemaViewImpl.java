@@ -19,7 +19,7 @@ import java.util.Map;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditSchemaViewImpl extends BaseViewImpl implements AddEditSchemaView {
-	
+
 	private FormMetadataSchemaVO schemaVO;
 
 	AddEditSchemaPresenter presenter;

@@ -28,7 +28,6 @@ import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.UserSerializedContentFactory;
 import com.constellio.model.services.records.StructureImportContent;
 import org.apache.commons.lang3.NotImplementedException;
@@ -79,16 +78,16 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		Document document = new Document(params.getRecord(), getTypes());
 
 		//params.getModifiableImportRecord().addField(Schemas.CREATED_BY.getLocalCode(), folder.getFormCreatedBy());
-//		if (document.getFormCreatedOn() != null) {
-//			params.getModifiableImportRecord().addField(Schemas.CREATED_ON.getLocalCode(), document.getFormCreatedOn());
-//		}
+		//		if (document.getFormCreatedOn() != null) {
+		//			params.getModifiableImportRecord().addField(Schemas.CREATED_ON.getLocalCode(), document.getFormCreatedOn());
+		//		}
 		//params.getModifiableImportRecord().addField(Schemas.MODIFIED_BY.getLocalCode(), folder.getModifiedBy());
 
-//		if (document.getFormModifiedOn() != null) {
-//			params.getModifiableImportRecord().addField(Schemas.MODIFIED_ON.getLocalCode(), document.getFormCreatedOn());
-//		}
+		//		if (document.getFormModifiedOn() != null) {
+		//			params.getModifiableImportRecord().addField(Schemas.MODIFIED_ON.getLocalCode(), document.getFormCreatedOn());
+		//		}
 
-		if(document.getContent() != null) {
+		if (document.getContent() != null) {
 			UserSerializedContentFactory contentFactory = new UserSerializedContentFactory(collection, appLayerFactory.getModelLayerFactory());
 
 			params.getModifiableImportRecord().addField(Document.CONTENT,
@@ -103,33 +102,32 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		Folder folder = new Folder(params.getRecord(), getTypes());
 
 		//params.getModifiableImportRecord().addField(Schemas.CREATED_BY.getLocalCode(), folder.getFormCreatedBy());
-//		if (folder.getFormCreatedOn() != null) {
-//			params.getModifiableImportRecord().addField(Schemas.CREATED_ON.getLocalCode(), folder.getFormCreatedOn());
-//		}
+		//		if (folder.getFormCreatedOn() != null) {
+		//			params.getModifiableImportRecord().addField(Schemas.CREATED_ON.getLocalCode(), folder.getFormCreatedOn());
+		//		}
 		//params.getModifiableImportRecord().addField(Schemas.MODIFIED_BY.getLocalCode(), folder.getModifiedBy());
 
-//		if (folder.getFormModifiedOn() != null) {
-//			params.getModifiableImportRecord().addField(Schemas.MODIFIED_ON.getLocalCode(), folder.getFormCreatedOn());
-//		}
+		//		if (folder.getFormModifiedOn() != null) {
+		//			params.getModifiableImportRecord().addField(Schemas.MODIFIED_ON.getLocalCode(), folder.getFormCreatedOn());
+		//		}
 	}
 
 	private void manageUserTask(OnWriteRecordParams params) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-		Task task  = new Task(params.getRecord(), getTypes());
+		Task task = new Task(params.getRecord(), getTypes());
 
-		List<Map<String,String>> listTaskReminder = new ArrayList<>();
+		List<Map<String, String>> listTaskReminder = new ArrayList<>();
 
-		for(TaskReminder taskReminder : task.getReminders())
-		{
-			Map<String,String> map = writeTaskReminder(taskReminder);
+		for (TaskReminder taskReminder : task.getReminders()) {
+			Map<String, String> map = writeTaskReminder(taskReminder);
 			listTaskReminder.add(map);
 		}
 
 		params.getModifiableImportRecord().addField(Task.REMINDERS, listTaskReminder);
 
-		List<Map<String,String>> listTaskFollowers = new ArrayList<>();
+		List<Map<String, String>> listTaskFollowers = new ArrayList<>();
 
-		for(TaskFollower taskFollower : task.getTaskFollowers()) {
+		for (TaskFollower taskFollower : task.getTaskFollowers()) {
 			listTaskFollowers.add(writeTaskFollowers(taskFollower));
 		}
 
@@ -137,8 +135,8 @@ public class RMRecordExportExtension extends RecordExportExtension {
 	}
 
 
-	private Map<String,String> writeTaskFollowers(TaskFollower taskFollower) {
-		Map<String,String> map = new HashMap();
+	private Map<String, String> writeTaskFollowers(TaskFollower taskFollower) {
+		Map<String, String> map = new HashMap();
 
 		map.put(TaskImportExtension.FOLLOWER_ID, taskFollower.getFollowerId());
 		map.put(TaskImportExtension.FOLLOW_TASK_STATUS_MODIFIED, Boolean.toString(taskFollower.getFollowTaskStatusModified()));
@@ -150,10 +148,10 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		return map;
 	}
 
-	private Map<String,String> writeTaskReminder(TaskReminder taskReminder) {
-		Map<String,String> map = new HashMap();
+	private Map<String, String> writeTaskReminder(TaskReminder taskReminder) {
+		Map<String, String> map = new HashMap();
 
-		map.put(TaskImportExtension.FIXED_DATE, taskReminder.getFixedDate() != null? taskReminder.getFixedDate().toString("yyyy-MM-dd"):null);
+		map.put(TaskImportExtension.FIXED_DATE, taskReminder.getFixedDate() != null ? taskReminder.getFixedDate().toString("yyyy-MM-dd") : null);
 		map.put(TaskImportExtension.NUMBER_OF_DAYS_TO_RELATIVE_DATE, Integer.toString(taskReminder.getNumberOfDaysToRelativeDate()));
 		map.put(TaskImportExtension.BEFORE_RELATIVE_DATE, convertBooleanToString(taskReminder.isBeforeRelativeDate()));
 		map.put(TaskImportExtension.RELATIVE_DATE_METADATA_CODE, taskReminder.getRelativeDateMetadataCode());
@@ -168,8 +166,7 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		List<Map<String, String>> reportList = new ArrayList<>();
 
-		for(Criterion criterion : savedSearch.getAdvancedSearch())
-		{
+		for (Criterion criterion : savedSearch.getAdvancedSearch()) {
 			writeSavedSearchCriterion(criterion);
 		}
 	}
@@ -191,21 +188,20 @@ public class RMRecordExportExtension extends RecordExportExtension {
 	public static final String BOOLEAN_OPERATOR = "booleanOperator";
 	public static final String RELATIVE_CRITERIA = "relativeCriteria";
 
-	private Map<String, String> writeSavedSearchCriterion(Criterion criterion)
-	{
+	private Map<String, String> writeSavedSearchCriterion(Criterion criterion) {
 		Map<String, String> map = new HashMap<>();
 
-		map.put(SCHEMA_TYPE,criterion.getSchemaType());
-		map.put(METADATA_CODE,criterion.getMetadataCode());
+		map.put(SCHEMA_TYPE, criterion.getSchemaType());
+		map.put(METADATA_CODE, criterion.getMetadataCode());
 		map.put(METADATA_TYPE, criterion.getMetadataType().toString());
-		map.put(ENUM_CLASS_NAME,criterion.getEnumClassName());
+		map.put(ENUM_CLASS_NAME, criterion.getEnumClassName());
 		map.put(SEARCH_OPERATOR, criterion.getSearchOperator().toString());
-//		map.put(VALUE,schemaType);
-//		map.put(END_VALUE,schemaType);
-//		map.put(LEFT_PARENS,schemaType);
-//		map.put(RIGHT_PARENS,schemaType);
-//		map.put(BOOLEAN_OPERATOR,schemaType);
-//		map.put(RELATIVE_CRITERIA,schemaType);
+		//		map.put(VALUE,schemaType);
+		//		map.put(END_VALUE,schemaType);
+		//		map.put(LEFT_PARENS,schemaType);
+		//		map.put(RIGHT_PARENS,schemaType);
+		//		map.put(BOOLEAN_OPERATOR,schemaType);
+		//		map.put(RELATIVE_CRITERIA,schemaType);
 
 
 		return map;
@@ -217,8 +213,7 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		List<Map<String, String>> reportList = new ArrayList<>();
 
-		for(ReportedMetadata reportedMetadata : report.getReportedMetadata())
-		{
+		for (ReportedMetadata reportedMetadata : report.getReportedMetadata()) {
 			reportList.add(writeReportedMetadata(reportedMetadata));
 		}
 
@@ -235,15 +230,13 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		return map;
 	}
 
-	private void manageDecomissionList(OnWriteRecordParams params)
-	{
+	private void manageDecomissionList(OnWriteRecordParams params) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		DecommissioningList decommissioningList = rm.wrapDecommissioningList(params.getRecord());
 
 		List<Map<String, String>> containerDetail = new ArrayList<>();
 
-		for(DecomListContainerDetail decomListContainerDetail : decommissioningList.getContainerDetails())
-		{
+		for (DecomListContainerDetail decomListContainerDetail : decommissioningList.getContainerDetails()) {
 			Map<String, String> map = writedecomListContainerDetail(decomListContainerDetail);
 
 			containerDetail.add(map);
@@ -252,8 +245,7 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		params.getModifiableImportRecord().addField(DecommissioningList.CONTAINER_DETAILS, containerDetail);
 
 		List<Map<String, String>> decomListFolderDetailList = new ArrayList<>();
-		for(DecomListFolderDetail decomListFolderDetail : decommissioningList.getFolderDetails())
-		{
+		for (DecomListFolderDetail decomListFolderDetail : decommissioningList.getFolderDetails()) {
 			Map<String, String> map = writeDecomListFolderDetail(decomListFolderDetail);
 
 			decomListFolderDetailList.add(map);
@@ -262,36 +254,35 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		params.getModifiableImportRecord().addField(DecommissioningList.FOLDER_DETAILS, decomListFolderDetailList);
 
 		OriginStatus originArchivisticStatus = decommissioningList.getOriginArchivisticStatus();
-		if(originArchivisticStatus != null) {
+		if (originArchivisticStatus != null) {
 			params.getModifiableImportRecord().addField(DecommissioningList.ORIGIN_ARCHIVISTIC_STATUS, originArchivisticStatus.getCode());
 		}
 
 		DecommissioningListType decommissioningListType = decommissioningList.getDecommissioningListType();
-		if(decommissioningListType != null) {
+		if (decommissioningListType != null) {
 			params.getModifiableImportRecord().addField(DecommissioningList.TYPE, decommissioningListType.getCode());
 		}
 
 		List<Map<String, String>> decomListValidationList = new ArrayList<>();
 
-		for(DecomListValidation decomListValidation : decommissioningList.getValidations())
-		{
+		for (DecomListValidation decomListValidation : decommissioningList.getValidations()) {
 			Map<String, String> map = writeDecomListValidation(decomListValidation);
 
 			decomListValidationList.add(map);
 		}
 
-		if(!decomListValidationList.isEmpty()) {
+		if (!decomListValidationList.isEmpty()) {
 			params.getModifiableImportRecord().addField(DecommissioningList.VALIDATIONS, decomListValidationList);
 		}
 
-		if(decommissioningList.getDocumentsReportContent() != null) {
+		if (decommissioningList.getDocumentsReportContent() != null) {
 			UserSerializedContentFactory contentFactory = new UserSerializedContentFactory(collection, appLayerFactory.getModelLayerFactory());
 
 			params.getModifiableImportRecord().addField(DecommissioningList.DOCUMENTS_REPORT_CONTENT,
 					new StructureImportContent(contentFactory.toString(decommissioningList.getDocumentsReportContent())));
 		}
 
-		if(decommissioningList.getFoldersReportContent() != null) {
+		if (decommissioningList.getFoldersReportContent() != null) {
 			UserSerializedContentFactory contentFactory = new UserSerializedContentFactory(collection, appLayerFactory.getModelLayerFactory());
 
 			params.getModifiableImportRecord().addField(DecommissioningList.FOLDERS_REPORT_CONTENT,
@@ -303,11 +294,11 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		Map<String, String> map = new HashMap<>();
 
 		map.put(DecommissioningListImportExtension.USER_ID, decomListValidation.getUserId());
-		if(decomListValidation.getRequestDate() != null) {
+		if (decomListValidation.getRequestDate() != null) {
 			map.put(DecommissioningListImportExtension.REQUEST_DATE,
 					decomListValidation.getRequestDate().toString("yyyy-MM-dd"));
 		}
-		if(decomListValidation.getValidationDate() != null) {
+		if (decomListValidation.getValidationDate() != null) {
 			map.put(DecommissioningListImportExtension.VALIDATION_DATE,
 					decomListValidation.getValidationDate().toString("yyyy-MM-dd"));
 		}
@@ -318,9 +309,8 @@ public class RMRecordExportExtension extends RecordExportExtension {
 	private Map<String, String> writedecomListContainerDetail(DecomListContainerDetail decomListContainerDetail) {
 		Map<String, String> map = new HashMap<>();
 
-		map.put(DecommissioningListImportExtension.CONTAINER_RECORD_ID,decomListContainerDetail.getContainerRecordId());
-		if(decomListContainerDetail.getAvailableSize() != null)
-		{
+		map.put(DecommissioningListImportExtension.CONTAINER_RECORD_ID, decomListContainerDetail.getContainerRecordId());
+		if (decomListContainerDetail.getAvailableSize() != null) {
 			map.put(DecommissioningListImportExtension.AVAILABLE_SIZE, Double.toString(decomListContainerDetail.getAvailableSize()));
 		}
 
@@ -331,11 +321,11 @@ public class RMRecordExportExtension extends RecordExportExtension {
 	private Map<String, String> writeDecomListFolderDetail(DecomListFolderDetail decomListFolderDetail) {
 		Map<String, String> map = new HashMap<>();
 
-		map.put(DecommissioningListImportExtension.FOLDER_ID,decomListFolderDetail.getFolderId());
+		map.put(DecommissioningListImportExtension.FOLDER_ID, decomListFolderDetail.getFolderId());
 		map.put(DecommissioningListImportExtension.FOLDER_EXCLUDED, Boolean.toString(decomListFolderDetail.isFolderExcluded()));
 		map.put(DecommissioningListImportExtension.CONTAINER_RECORD_ID, decomListFolderDetail.getContainerRecordId());
 		map.put(DecommissioningListImportExtension.REVERSED_SORT, Boolean.toString(decomListFolderDetail.isReversedSort()));
-		if(decomListFolderDetail.getFolderLinearSize() != null) {
+		if (decomListFolderDetail.getFolderLinearSize() != null) {
 			map.put(DecommissioningListImportExtension.FOLDER_LINEAR_SIZE, Double.toString(decomListFolderDetail.getFolderLinearSize()));
 		}
 
@@ -352,12 +342,12 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		List<Map<String, String>> importedCopyRetentionRules = new ArrayList<>();
 
 		for (CopyRetentionRule copyRetentionRule : retentionRule.getCopyRetentionRules()) {
-            //copyRetentionRule.etc
+			//copyRetentionRule.etc
 
-            Map<String, String> map = writeCopyRetentionRule(rm, copyRetentionRule, RetentionRuleImportExtension.RULES_TYPE_FOLDER);
+			Map<String, String> map = writeCopyRetentionRule(rm, copyRetentionRule, RetentionRuleImportExtension.RULES_TYPE_FOLDER);
 
-            importedCopyRetentionRules.add(map);
-        }
+			importedCopyRetentionRules.add(map);
+		}
 
 		params.getModifiableImportRecord().addField(RetentionRule.COPY_RETENTION_RULES, importedCopyRetentionRules);
 
@@ -369,21 +359,21 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		params.getModifiableImportRecord().addField(RetentionRule.DOCUMENT_COPY_RETENTION_RULES, documentCopyRetentionRules);
 
-		if(retentionRule.getPrincipalDefaultDocumentCopyRetentionRule() != null)
-		{
+		if (retentionRule.getPrincipalDefaultDocumentCopyRetentionRule() != null) {
 			params.getModifiableImportRecord().addField(RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE,
 					writeCopyRetentionRule(rm, retentionRule.getPrincipalDefaultDocumentCopyRetentionRule(),
-					RetentionRuleImportExtension.RULES_TYPE_DOCUMENTS));
+							RetentionRuleImportExtension.RULES_TYPE_DOCUMENTS));
 		}
 
-		if(retentionRule.getSecondaryDefaultDocumentCopyRetentionRule() != null) {
+		if (retentionRule.getSecondaryDefaultDocumentCopyRetentionRule() != null) {
 			params.getModifiableImportRecord().addField(RetentionRule.SECONDARY_DEFAULT_DOCUMENT_COPY_RETENTION_RULE,
 					writeCopyRetentionRule(rm, retentionRule.getSecondaryDefaultDocumentCopyRetentionRule(),
 							RetentionRuleImportExtension.RULES_TYPE_DOCUMENTS));
 		}
 	}
 
-	private Map<String, String> writeCopyRetentionRule(RMSchemasRecordsServices rm, CopyRetentionRule copyRetentionRule, String ruleType) {
+	private Map<String, String> writeCopyRetentionRule(RMSchemasRecordsServices rm, CopyRetentionRule copyRetentionRule,
+													   String ruleType) {
 		Map<String, String> map = new HashMap<>();
 
 		List<String> mediumTypesCodes = new ArrayList<>();
@@ -408,15 +398,14 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		map.put(RetentionRuleImportExtension.COPY_RETENTION_RULE_ID, copyRetentionRule.getId());
 		map.put(RetentionRuleImportExtension.MEDIUM_TYPES, StringUtils.join(mediumTypesCodes, ','));
 		map.put(RetentionRuleImportExtension.IGNORE_ACTIVE_PERIOD, Boolean.toString(copyRetentionRule.isIgnoreActivePeriod()));
-		if(copyRetentionRule.getActiveRetentionPeriod().getRetentionType() == RetentionType.OPEN &&
-				copyRetentionRule.getOpenActiveRetentionPeriod() != null) {
+		if (copyRetentionRule.getActiveRetentionPeriod().getRetentionType() == RetentionType.OPEN &&
+			copyRetentionRule.getOpenActiveRetentionPeriod() != null) {
 			map.put(RetentionRuleImportExtension.OPEN_ACTIVE_RETENTION_PERIOD,
 					Integer.toString(copyRetentionRule.getOpenActiveRetentionPeriod()));
 		}
 
 		if (copyRetentionRule.getTypeId() != null) {
-			if(RetentionRuleImportExtension.RULES_TYPE_FOLDER.equals(ruleType))
-			{
+			if (RetentionRuleImportExtension.RULES_TYPE_FOLDER.equals(ruleType)) {
 				map.put(RetentionRuleImportExtension.TYPE_ID, rm.getFolderType(copyRetentionRule.getTypeId()).getCode());
 			} else {
 				map.put(RetentionRuleImportExtension.TYPE_ID, rm.getDocumentType(copyRetentionRule.getTypeId()).getCode());
@@ -428,7 +417,7 @@ public class RMRecordExportExtension extends RecordExportExtension {
 	}
 
 	public String convertBooleanToString(Boolean b) {
-		if(b == null) {
+		if (b == null) {
 			return null;
 		}
 		return b.toString();

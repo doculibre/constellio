@@ -1,5 +1,13 @@
 package com.constellio.model.services.appManagement;
 
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Matchers;
+
+import java.io.File;
+import java.io.IOException;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doNothing;
@@ -9,15 +17,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Matchers;
-
-import com.constellio.sdk.tests.ConstellioTest;
 
 public class InstallationServiceTest extends ConstellioTest {
 
@@ -53,7 +52,7 @@ public class InstallationServiceTest extends ConstellioTest {
 		when(service.getConfigFile()).thenReturn(configFile);
 
 		int numberOfWhileLoop = (int) Math.ceil((double) InstallationService.CONFIG_FILE_COMPLETION_MAX_WAIT_TIME
-				/ (double) InstallationService.CONFIG_FILE_COMPLETION_WAIT_TIME);
+												/ (double) InstallationService.CONFIG_FILE_COMPLETION_WAIT_TIME);
 
 		when(configFile.length()).thenReturn(0L);
 

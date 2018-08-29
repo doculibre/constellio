@@ -1,21 +1,21 @@
 package com.constellio.app.ui.util;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import com.vaadin.ui.Component;
 import com.vaadin.ui.ComponentContainer;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.SingleComponentContainer;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 /**
  * Adapted from https://vaadin.com/forum/#!/thread/217291/217290
- * 
+ *
  * @author Vincent
  */
 public class ComponentTreeUtils {
-	
+
 	@SuppressWarnings("unchecked")
 	public static <T> T findParent(Component component, Class<T> clazz) {
 		T match = null;
@@ -29,12 +29,12 @@ public class ComponentTreeUtils {
 		}
 		return match;
 	}
-	
+
 	public static <T> T getFirstChild(Component component, Class<T> clazz) {
 		List<T> matches = getChildren(component, clazz);
 		return !matches.isEmpty() ? matches.get(0) : null;
 	}
-	
+
 	public static <T> List<T> getChildren(Component component, Class<T> clazz) {
 		final List<T> matches = new ArrayList<T>();
 		traverse(component, new FindByClass<T>(clazz, matches));
@@ -43,7 +43,7 @@ public class ComponentTreeUtils {
 
 	/**
 	 * Traverse all components under a given component.
-	 * 
+	 *
 	 * @param component
 	 * @param invocation
 	 */
@@ -85,27 +85,25 @@ public class ComponentTreeUtils {
 	/**
 	 * Just invoke any method on a component of the Application graph, just implement the only method
 	 * {@link #invokeMethod(String, Object)}.
-	 * 
+	 *
 	 * @version $Id: ComponentTraverser.java,v 1.11 2010/09/14 19:40:32 tettoni Exp $
 	 */
 	public static interface MethodInvoker {
 		/**
 		 * Invoke a method on theTarget.
-		 * 
-		 * @param theCaller
-		 *            Only for logging - not functional
-		 * @param theTarget
-		 *            The target object to invoke on.
+		 *
+		 * @param theCaller Only for logging - not functional
+		 * @param theTarget The target object to invoke on.
 		 */
 		public void invokeMethod(String theCaller, Object theTarget);
 	}
-	
+
 	public static class FindByClass<C> implements MethodInvoker {
-		
+
 		private Class<C> clazz;
-		
+
 		private List<C> matches;
-		
+
 		public FindByClass(Class<C> clazz, List<C> matches) {
 			this.clazz = clazz;
 			this.matches = matches;
@@ -118,7 +116,7 @@ public class ComponentTreeUtils {
 				matches.add((C) theTarget);
 			}
 		}
-		
+
 	}
 
 }

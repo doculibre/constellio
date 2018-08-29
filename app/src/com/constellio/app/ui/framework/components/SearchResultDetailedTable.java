@@ -44,8 +44,18 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class SearchResultDetailedTable extends BasePagedTable<SearchResultContainer> implements SearchResultTable {
-	
+
 	public static final String CHECKBOX_PROPERTY = "checkbox";
 
 	private Set<Object> selected;
@@ -60,9 +70,9 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 
 	public SearchResultDetailedTable(SearchResultContainer container, boolean withCheckBoxes) {
 		super("SearchResultDetailedTable", container);
-		
+
 		addStyleName("search-result-table");
-		
+
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
 			addStyleName("search-result-viewer-table");
 		} else {
@@ -105,8 +115,8 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 			});
 			setColumnAlignment(CHECKBOX_PROPERTY, Align.CENTER);
 		}
-		
-		
+
+
 		setContainerDataSource(container);
 		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		if (withCheckBoxes) {
@@ -128,7 +138,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		setColumnExpandRatio(SearchResultContainer.SEARCH_RESULT_PROPERTY, 1);
 		setPageLength(Math.min(container.size(), DEFAULT_PAGE_LENGTH));
 	}
-	
+
 	@Override
 	protected Property<?> loadContainerProperty(final Object itemId, Object propertyId) {
 		Property<?> property = super.loadContainerProperty(itemId, propertyId);
@@ -140,14 +150,14 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 					layout.addLayoutClickListener(new LayoutClickListener() {
 						@Override
 						public void layoutClick(LayoutClickEvent event) {
-							if (!(event.getSource() instanceof MenuBar)) { 
+							if (!(event.getSource() instanceof MenuBar)) {
 								MouseEventDetails mouseEventDetails = new MouseEventDetails();
 								mouseEventDetails.setButton(event.getButton());
 								mouseEventDetails.setClientX(event.getClientX());
 								mouseEventDetails.setClientY(event.getClientY());
 								mouseEventDetails.setRelativeX(event.getRelativeX());
 								mouseEventDetails.setRelativeY(event.getRelativeY());
-								
+
 								Item item = getItem(itemId);
 								Collection<?> itemClickListeners = getListeners(ItemClickEvent.class);
 								for (Object itemClickListenerObj : itemClickListeners) {
@@ -157,7 +167,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 							}
 						}
 					});
-					
+
 					List<Button> buttons = ComponentTreeUtils.getChildren(layout, Button.class);
 					for (Button button : buttons) {
 						button.addClickListener(new Button.ClickListener() {
@@ -169,7 +179,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 								mouseEventDetails.setClientY(event.getClientY());
 								mouseEventDetails.setRelativeX(event.getRelativeX());
 								mouseEventDetails.setRelativeY(event.getRelativeY());
-								
+
 								Item item = getItem(itemId);
 								Collection<?> itemClickListeners = getListeners(ItemClickEvent.class);
 								for (Object itemClickListenerObj : itemClickListeners) {
@@ -180,7 +190,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 						});
 					}
 					property = new ObjectProperty<>(layout);
-				} 
+				}
 			} else if (SearchResultContainer.THUMBNAIL_PROPERTY.equals(propertyId)) {
 				Object propertyValue = property.getValue();
 				if (propertyValue instanceof Image) {
@@ -188,7 +198,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 					image.addClickListener(new ClickListener() {
 						@Override
 						public void click(ClickEvent event) {
-							Collection<?> itemClickListeners = getListeners(ItemClickEvent.class); 
+							Collection<?> itemClickListeners = getListeners(ItemClickEvent.class);
 							MouseEventDetails mouseEventDetails = new MouseEventDetails();
 							mouseEventDetails.setButton(event.getButton());
 							mouseEventDetails.setClientX(event.getClientX());

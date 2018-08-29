@@ -1,33 +1,37 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleSearchPresenter.class);
@@ -121,12 +125,12 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	public List<MetadataVO> getMetadataAllowedInSort() {
 		List<MetadataSchemaType> schemaTypes = allowedSchemaTypes();
 		switch (schemaTypes.size()) {
-		case 0:
-			return new ArrayList<>();
-		case 1:
-			return getMetadataAllowedInSort(schemaTypes.get(0).getCode());
-		default:
-			return getCommonMetadataAllowedInSort(schemaTypes);
+			case 0:
+				return new ArrayList<>();
+			case 1:
+				return getMetadataAllowedInSort(schemaTypes.get(0).getCode());
+			default:
+				return getCommonMetadataAllowedInSort(schemaTypes);
 		}
 	}
 
@@ -161,11 +165,30 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 
 	@Override
 	protected LogicalSearchCondition getSearchCondition() {
+		LogicalSearchCondition logicalSearchCondition;
 		if (allowedSchemaTypes().isEmpty()) {
-			return fromAllSchemasIn(view.getCollection()).returnAll();
+			logicalSearchCondition = fromAllSchemasIn(view.getCollection()).returnAll();
 		} else {
-			return from(allowedSchemaTypes()).returnAll();
+			logicalSearchCondition = from(allowedSchemaTypes()).returnAll();
 		}
+		//TODO RM Module extension
+		if (isRMModuleActivated()) {
+			User user = getCurrentUser();
+			if (Boolean.TRUE.equals(user.get(RMUser.HIDE_NOT_ACTIVE))) {
+				List<String> notActiveCodes = new ArrayList<>();
+				notActiveCodes.add(FolderStatus.SEMI_ACTIVE.getCode());
+				notActiveCodes.add(FolderStatus.INACTIVE_DEPOSITED.getCode());
+				notActiveCodes.add(FolderStatus.INACTIVE_DESTROYED.getCode());
+
+				MetadataSchema folderSchema = schema(Folder.DEFAULT_SCHEMA);
+				logicalSearchCondition = logicalSearchCondition.andWhere(folderSchema.getMetadata(Folder.ARCHIVISTIC_STATUS)).isNotIn(notActiveCodes);
+			}
+		}
+		return logicalSearchCondition;
+	}
+
+	private boolean isRMModuleActivated() {
+		return appLayerFactory.getModulesManager().isModuleEnabled(collection, new ConstellioRMModule());
 	}
 
 	@Override

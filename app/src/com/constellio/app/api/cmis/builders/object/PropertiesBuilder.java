@@ -1,15 +1,10 @@
 package com.constellio.app.api.cmis.builders.object;
 
-import static com.constellio.app.api.cmis.utils.CmisRecordUtils.toGregorianCalendar;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.MathContext;
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Set;
-
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyBooleanImpl;
@@ -19,11 +14,15 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIdImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIntegerImpl;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyStringImpl;
 
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.model.entities.EnumWithSmallCode;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataValueType;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.api.cmis.utils.CmisRecordUtils.toGregorianCalendar;
 
 public class PropertiesBuilder {
 
@@ -41,7 +40,7 @@ public class PropertiesBuilder {
 	}
 
 	public void addPropertyForSingleValueMetadata(Metadata metadata,
-			Object value, String propertyCode) {
+												  Object value, String propertyCode) {
 		if (metadata.getType().isStringOrText() || metadata.getType() == MetadataValueType.REFERENCE) {
 			addPropertyString(propertyCode, (String) value);
 
@@ -132,7 +131,7 @@ public class PropertiesBuilder {
 	}
 
 	public void addPropertyListEnum(String id,
-			List<EnumWithSmallCode> value) {
+									List<EnumWithSmallCode> value) {
 		if (!checkAddProperty(id)) {
 			return;
 		}
@@ -165,7 +164,7 @@ public class PropertiesBuilder {
 	}
 
 	public void addPropertyListBigInteger(String id,
-			List<BigInteger> value) {
+										  List<BigInteger> value) {
 		if (!checkAddProperty(id)) {
 			return;
 		}
@@ -190,7 +189,7 @@ public class PropertiesBuilder {
 	}
 
 	public void addPropertyDateTime(String id,
-			GregorianCalendar value) {
+									GregorianCalendar value) {
 		if (!checkAddProperty(id)) {
 			return;
 		}
@@ -199,7 +198,7 @@ public class PropertiesBuilder {
 	}
 
 	public void addPropertyListDateTime(String id,
-			List<GregorianCalendar> value) {
+										List<GregorianCalendar> value) {
 		if (!checkAddProperty(id)) {
 			return;
 		}

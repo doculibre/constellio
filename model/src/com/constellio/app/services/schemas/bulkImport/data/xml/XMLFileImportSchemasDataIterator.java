@@ -7,40 +7,40 @@ import javax.xml.stream.XMLStreamReader;
 import java.io.Reader;
 import java.util.Map;
 
-public class XMLFileImportSchemasDataIterator extends XMLFileImportDataIterator{
-    private static final String CODE = "code";
-    private static final String SCHEMAS_TYPE_TAG = "type";
-    private static final String SCHEMA_TYPE_TAG = "schema";
-    public static final String CODE_PREFIX = "codePrefix";
-    private String codePrefix;
+public class XMLFileImportSchemasDataIterator extends XMLFileImportDataIterator {
+	private static final String CODE = "code";
+	private static final String SCHEMAS_TYPE_TAG = "type";
+	private static final String SCHEMA_TYPE_TAG = "schema";
+	public static final String CODE_PREFIX = "codePrefix";
+	private String codePrefix;
 
-    public XMLFileImportSchemasDataIterator(Reader reader, IOServices ioServices) {
-        super(reader, ioServices);
-    }
+	public XMLFileImportSchemasDataIterator(Reader reader, IOServices ioServices) {
+		super(reader, ioServices);
+	}
 
-    protected void initElementFields(String previousSystemId, Map<String, Object> fields) {
-    }
+	protected void initElementFields(String previousSystemId, Map<String, Object> fields) {
+	}
 
-    protected String getElementId(XMLStreamReader xmlReader) {
-        String code = xmlReader.getAttributeValue("", CODE);
-        if(StringUtils.isNotBlank(codePrefix)){
-            return codePrefix + "_" + code;
-        }else{
-            return code;
-        }
-    }
+	protected String getElementId(XMLStreamReader xmlReader) {
+		String code = xmlReader.getAttributeValue("", CODE);
+		if (StringUtils.isNotBlank(codePrefix)) {
+			return codePrefix + "_" + code;
+		} else {
+			return code;
+		}
+	}
 
-    protected String mainElementTag() {
-        return SCHEMAS_TYPE_TAG;
-    }
+	protected String mainElementTag() {
+		return SCHEMAS_TYPE_TAG;
+	}
 
-    protected String elementTag() {
-        return SCHEMA_TYPE_TAG;
-    }
+	protected String elementTag() {
+		return SCHEMA_TYPE_TAG;
+	}
 
-    protected void initPatterns(XMLStreamReader xmlReader, Map<String, String> patterns) {
-        this.codePrefix = xmlReader.getAttributeValue("", CODE_PREFIX);
-        patterns.put(CODE_PREFIX, codePrefix);
-    }
+	protected void initPatterns(XMLStreamReader xmlReader, Map<String, String> patterns) {
+		this.codePrefix = xmlReader.getAttributeValue("", CODE_PREFIX);
+		patterns.put(CODE_PREFIX, codePrefix);
+	}
 
 }

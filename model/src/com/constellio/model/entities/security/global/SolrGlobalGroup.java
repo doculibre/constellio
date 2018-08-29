@@ -1,11 +1,11 @@
 package com.constellio.model.entities.security.global;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SolrGlobalGroup extends RecordWrapper implements GlobalGroup {
 	public static final String SCHEMA_TYPE = "globalGroup";

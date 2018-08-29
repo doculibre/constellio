@@ -1,11 +1,5 @@
 package com.constellio.app.modules.robots.services;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.model.wrappers.RobotLog;
@@ -16,6 +10,12 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class GeneratedRobotSchemaRecordServices extends SchemasRecordsServices {
 	protected final AppLayerFactory appLayerFactory;
@@ -28,7 +28,9 @@ public class GeneratedRobotSchemaRecordServices extends SchemasRecordsServices {
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 
-	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	/**
+	 * * ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+	 **/
 
 	public ActionParameters wrapActionParameters(Record record) {
 		return record == null ? null : new ActionParameters(record, getTypes());

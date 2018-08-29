@@ -1,9 +1,12 @@
 package com.constellio.app.modules.tasks.model.wrappers.types;
 
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.Map;
 
 public class TaskType extends ValueListItem implements SchemaLinkingType {
 	public static final String SCHEMA_TYPE = "ddvTaskType";
@@ -17,6 +20,11 @@ public class TaskType extends ValueListItem implements SchemaLinkingType {
 	public TaskType setTitle(String title) {
 		super.setTitle(title);
 		return this;
+	}
+
+	@Override
+	public TaskType setTitles(Map<Language, String> titles) {
+		return (TaskType) super.setTitles(titles);
 	}
 
 	public TaskType setCode(String code) {

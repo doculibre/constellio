@@ -1,12 +1,5 @@
 package com.constellio.sdk.tests;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.robots.ui.navigation.RobotViews;
@@ -14,6 +7,12 @@ import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.pages.base.BaseView;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SDKViewNavigation {
 

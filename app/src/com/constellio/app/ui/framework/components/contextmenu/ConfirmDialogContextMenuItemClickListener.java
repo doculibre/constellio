@@ -9,13 +9,13 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickEvent;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class ConfirmDialogContextMenuItemClickListener implements BaseContextMenuItemClickListener, Button.ClickListener {
-	
+
 	private DialogMode dialogMode;
-	
+
 	public ConfirmDialogContextMenuItemClickListener() {
 		this(null);
 	}
-	
+
 	public ConfirmDialogContextMenuItemClickListener(DialogMode dialogMode) {
 		this.dialogMode = dialogMode;
 	}
@@ -43,9 +43,9 @@ public abstract class ConfirmDialogContextMenuItemClickListener implements BaseC
 	@Override
 	public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
 		ConfirmDialogButton.showDialog(
-				dialogMode, 
-				getConfirmDialogTitle(), 
-				getConfirmDialogMessage(), 
+				dialogMode,
+				getConfirmDialogTitle(),
+				getConfirmDialogMessage(),
 				getConfirmDialogOKCaption(),
 				null,
 				getConfirmDialogCancelCaption(),
@@ -78,5 +78,5 @@ public abstract class ConfirmDialogContextMenuItemClickListener implements BaseC
 	protected abstract String getConfirmDialogMessage();
 
 	protected abstract void confirmButtonClick(ConfirmDialog dialog);
-	
+
 }

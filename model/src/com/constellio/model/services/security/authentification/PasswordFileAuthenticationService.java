@@ -1,13 +1,5 @@
 package com.constellio.model.services.security.authentification;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
@@ -15,6 +7,13 @@ import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.data.utils.hashing.HashingServiceException;
 import com.constellio.model.services.security.authentification.PasswordFileAuthenticationServiceRuntimeException.IncorrectPassword;
 import com.constellio.model.services.users.UserUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 public class PasswordFileAuthenticationService implements AuthenticationService {
 

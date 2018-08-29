@@ -1,22 +1,21 @@
 package com.constellio.sdk.dev.tools;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import org.junit.Test;
-
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
+import org.junit.Test;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 @MainTest
 public class PrintSchemaTypesDiagramAcceptTest extends ConstellioTest {

@@ -5,7 +5,7 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
-import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -20,24 +20,22 @@ public class ESMigrationTo8_0_1 extends MigrationHelper implements MigrationScri
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new SchemaAlterationFor_8_0_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		updateFormAndDisplay(collection, appLayerFactory);
 	}
 
 	private void updateFormAndDisplay(String collection, AppLayerFactory appLayerFactory) {
+		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SchemasDisplayManager manager = appLayerFactory.getMetadataSchemasDisplayManager();
 
 		SchemaTypesDisplayTransactionBuilder transactionBuilder = manager.newTransactionBuilderFor(collection);
 
-		transactionBuilder.in(ConnectorHttpInstance.SCHEMA_TYPE)
-				.addToDisplay(ConnectorHttpInstance.ON_DEMANDS)
-				.atTheEnd();
-
-		transactionBuilder.in(ConnectorHttpInstance.SCHEMA_TYPE)
-				.addToForm(ConnectorHttpInstance.ON_DEMANDS)
-				.atTheEnd();
+		transactionBuilder.updateSchemaDisplayConfig(es.connectorInstance_http.schema())
+				.withNewFormMetadata(es.connectorInstance_http.onDemands().getCode())
+				.withNewDisplayMetadataQueued(es.connectorInstance_http.onDemands().getCode());
 
 		manager.execute(transactionBuilder.build());
 	}
@@ -45,8 +43,8 @@ public class ESMigrationTo8_0_1 extends MigrationHelper implements MigrationScri
 	class SchemaAlterationFor_8_0_1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor_8_0_1(String collection,
-												MigrationResourcesProvider migrationResourcesProvider,
-												AppLayerFactory appLayerFactory) {
+											MigrationResourcesProvider migrationResourcesProvider,
+											AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

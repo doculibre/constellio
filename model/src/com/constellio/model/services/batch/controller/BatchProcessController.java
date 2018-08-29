@@ -1,14 +1,13 @@
 package com.constellio.model.services.batch.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.utils.LoggerUncaughtExceptionHandler;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.services.batch.controller.BatchProcessControllerRuntimeException.ControllerAlreadyStarted;
 import com.constellio.model.services.batch.manager.BatchProcessesListUpdatedEventListener;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BatchProcessController implements StatefulService, BatchProcessesListUpdatedEventListener {
 
@@ -48,7 +47,7 @@ public class BatchProcessController implements StatefulService, BatchProcessesLi
 		if (thread != null) {
 			try {
 
-				while(thread.isAlive()) {
+				while (thread.isAlive()) {
 					thread.stopRequested();
 					thread.join(500);
 				}

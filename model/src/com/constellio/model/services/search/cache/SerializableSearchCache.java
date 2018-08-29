@@ -1,15 +1,15 @@
 package com.constellio.model.services.search.cache;
 
+import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuerySignature;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.constellio.data.dao.dto.records.FacetValue;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuerySignature;
 
 public class SerializableSearchCache implements Serializable {
 

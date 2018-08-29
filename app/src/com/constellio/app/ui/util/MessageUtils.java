@@ -1,7 +1,5 @@
 package com.constellio.app.ui.util;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -9,6 +7,8 @@ import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class MessageUtils {
 

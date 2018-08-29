@@ -1,17 +1,17 @@
 package com.constellio.app.ui.framework.components.contextmenu;
 
-import java.io.IOException;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.SchemaUtils;
 
+import java.io.IOException;
+
 public abstract class AbstractRecordContextMenuHandler implements RecordContextMenuHandler {
-	
+
 	protected transient ConstellioFactories constellioFactories;
-	
+
 	public AbstractRecordContextMenuHandler(ConstellioFactories constellioFactories) {
 		this.constellioFactories = constellioFactories;
 		initTransientObjects();
@@ -28,7 +28,7 @@ public abstract class AbstractRecordContextMenuHandler implements RecordContextM
 			constellioFactories = ConstellioFactories.getInstance();
 		}
 	}
-	
+
 	@Override
 	public boolean isContextMenuForRecordId(String recordId) {
 		RecordServices recordServices = constellioFactories.getModelLayerFactory().newRecordServices();
@@ -49,7 +49,7 @@ public abstract class AbstractRecordContextMenuHandler implements RecordContextM
 		String schemaTypeCode = getSchemaTypeCodeForSchemaCode(schemaCode);
 		return isContextMenuForSchemaTypeCode(schemaTypeCode);
 	}
-	
+
 	protected String getSchemaTypeCodeForSchemaCode(String schemaCode) {
 		return SchemaUtils.getSchemaTypeCode(schemaCode);
 	}

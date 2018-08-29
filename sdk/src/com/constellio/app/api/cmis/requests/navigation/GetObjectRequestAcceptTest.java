@@ -1,15 +1,5 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
@@ -25,6 +15,15 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DriverTest
 public class GetObjectRequestAcceptTest extends ConstellioTest {
@@ -156,7 +155,7 @@ public class GetObjectRequestAcceptTest extends ConstellioTest {
 	private void thenTaxoOneObjectHasCorrectFields(CmisObject object) {
 		assertThat(object).isNotNull();
 		assertThat(object.getId()).isEqualTo("taxo_taxo1");
-		assertThat(object.getName()).isEqualTo("taxo1");
+		assertThat(object.getName()).isEqualTo("zeTaxo");
 		assertThat(object.getProperty(PropertyIds.PARENT_ID).getValue()).isEqualTo(zeCollection);
 		assertThat(object.getProperty(PropertyIds.PATH).getValue()).isEqualTo("/taxo_taxo1");
 	}

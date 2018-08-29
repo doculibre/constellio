@@ -1,10 +1,11 @@
 package com.constellio.app.extensions.api.scripts;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -12,6 +13,9 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class Script {
 
@@ -59,6 +63,17 @@ public abstract class Script {
 		return appLayerFactory.getCollectionsManager().getCollectionCodesExcludingSystem();
 	}
 
+	public List<String> getUserManageableSchemaTypeCodes() {
+		List<String> userManageableSchemaTypeCode = new ArrayList<>();
+
+		userManageableSchemaTypeCode.add(Folder.SCHEMA_TYPE);
+		userManageableSchemaTypeCode.add(Document.SCHEMA_TYPE);
+		userManageableSchemaTypeCode.add(Task.SCHEMA_TYPE);
+		userManageableSchemaTypeCode.add(RetentionRule.SCHEMA_TYPE);
+
+		return userManageableSchemaTypeCode;
+	}
+
 	public List<String> getCollectionCodesWithSchemaType(String schemaType) {
 
 		List<String> returnedCollections = new ArrayList<>();
@@ -94,6 +109,6 @@ public abstract class Script {
 
 	public boolean getBooleanParameterValueWithDefaultValue(ScriptParameter parameter, boolean defaultValue) {
 		Boolean value = parameterValues.get(parameter);
-		return  value == null ? defaultValue : value;
+		return value == null ? defaultValue : value;
 	}
 }

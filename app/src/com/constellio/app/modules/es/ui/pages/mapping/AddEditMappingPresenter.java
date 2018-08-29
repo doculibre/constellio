@@ -1,12 +1,5 @@
 package com.constellio.app.modules.es.ui.pages.mapping;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.navigation.ESViews;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
@@ -19,6 +12,13 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class AddEditMappingPresenter extends MappingsPresenter<AddEditMappingView> {
 	private String documentType;

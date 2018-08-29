@@ -1,16 +1,5 @@
 package com.constellio.data.dao.services.records;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -22,6 +11,16 @@ import com.constellio.sdk.tests.annotations.LoadTest;
 import com.constellio.sdk.tests.concurrent.ConcurrencyUtils;
 import com.constellio.sdk.tests.concurrent.ConcurrencyUtils.IncrementForTask;
 import com.constellio.sdk.tests.concurrent.ConcurrencyUtils.WorkerContextFactory;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
 
 @LoadTest
 public class BigVaultRecordDaoLoadTest extends ConstellioTest {

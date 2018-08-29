@@ -1,11 +1,10 @@
 package com.constellio.app.ui.entities;
 
-import java.io.Serializable;
-import java.util.List;
-
+import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.model.entities.batchprocess.BatchProcessStatus;
+import java.io.Serializable;
+import java.util.List;
 
 public class BatchProcessVO implements Serializable {
 
@@ -32,12 +31,13 @@ public class BatchProcessVO implements Serializable {
 	private final String query;
 
 	private final List<String> records;
-	
+
 	private Integer rank;
 
-	public BatchProcessVO(String id, BatchProcessStatus status, LocalDateTime requestDateTime, LocalDateTime startDateTime,
-						int handledRecordsCount, int totalRecordsCount, int errors, String collection,
-						String query, List<String> records, String username, String title) {
+	public BatchProcessVO(String id, BatchProcessStatus status, LocalDateTime requestDateTime,
+						  LocalDateTime startDateTime,
+						  int handledRecordsCount, int totalRecordsCount, int errors, String collection,
+						  String query, List<String> records, String username, String title) {
 		super();
 		this.id = id;
 		this.status = status;
@@ -119,19 +119,24 @@ public class BatchProcessVO implements Serializable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		BatchProcessVO other = (BatchProcessVO) obj;
 		if (id == null) {
-			if (other.id != null)
+			if (other.id != null) {
 				return false;
-		} else if (!id.equals(other.id))
+			}
+		} else if (!id.equals(other.id)) {
 			return false;
+		}
 		return true;
 	}
-	
+
 }

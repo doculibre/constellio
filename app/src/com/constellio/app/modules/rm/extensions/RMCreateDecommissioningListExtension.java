@@ -21,6 +21,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +68,7 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 		try {
 			DecommissioningList decommissioningList = rmSchemasRecordsServices.wrapDecommissioningList(record);
 			String displayURL = "";
-			if(decommissioningList.getDecommissioningListType() != null) {
+			if (decommissioningList.getDecommissioningListType() != null) {
 				switch (decommissioningList.getDecommissioningListType()) {
 					case FOLDERS_TO_TRANSFER:
 					case FOLDERS_TO_DESTROY:
@@ -88,7 +89,7 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 			List<EmailAddress> emailAddresses = new ArrayList<>();
 
 			for (User user : userList) {
-				if(user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(record)) {
+				if (user.has(RMPermissionsTo.PROCESS_DECOMMISSIONING_LIST).on(record)) {
 					emailAddresses.add(new EmailAddress(user.getTitle(), user.getEmail()));
 				}
 			}
@@ -99,11 +100,11 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 			emailToSend.setSubject(subject);
 			emailToSend.setTemplate(RMEmailTemplateConstants.DECOMMISSIONING_LIST_CREATION_TEMPLATE_ID);
 			List<String> parameters = new ArrayList<>();
-			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 			parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(creationDate));
 			parameters.add("creationDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(creationDate));
 			String rmObjectTitle = decommissioningList.getTitle();
-			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
+			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(rmObjectTitle));
 			String constellioUrl = eimConfigs.getConstellioUrl();
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
@@ -117,7 +118,7 @@ public class RMCreateDecommissioningListExtension extends RecordExtension {
 	}
 
 	private String formatDateToParameter(LocalDateTime datetime) {
-		if(datetime == null) {
+		if (datetime == null) {
 			return "";
 		}
 		return datetime.toString("yyyy-MM-dd  HH:mm:ss");

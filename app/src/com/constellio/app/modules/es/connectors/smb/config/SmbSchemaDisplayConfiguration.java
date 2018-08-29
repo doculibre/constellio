@@ -1,8 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb.config;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
@@ -15,6 +12,9 @@ import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionB
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SmbSchemaDisplayConfiguration {
 	private ESSchemasRecordsServices es;
@@ -60,7 +60,8 @@ public class SmbSchemaDisplayConfiguration {
 		manager.execute(transactionBuilder.build());
 	}
 
-	protected SchemaDisplayConfig order(String collection, AppLayerFactory appLayerFactory, String type, SchemaDisplayConfig schema, String... localCodes) {
+	protected SchemaDisplayConfig order(String collection, AppLayerFactory appLayerFactory, String type,
+										SchemaDisplayConfig schema, String... localCodes) {
 
 		MetadataSchemaTypes schemaTypes = appLayerFactory.getModelLayerFactory()
 				.getMetadataSchemasManager()

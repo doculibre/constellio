@@ -1,17 +1,6 @@
 package com.constellio.app.modules.rm.services.reports.printableReport;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.*;
-
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -26,15 +15,33 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.jdom2.CDATA;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 
 	static final public String EMPTY_METADATA_VALUE_TAG = "This will not appear on the final report";
 
+
 	public PrintableReportXmlGenerator(AppLayerFactory appLayerFactory, String collection,
-			XmlReportGeneratorParameters xmlGeneratorParameters) {
-		super(appLayerFactory, collection);
+									   XmlReportGeneratorParameters xmlGeneratorParameters, Locale locale) {
+		super(appLayerFactory, collection, locale);
 		this.xmlGeneratorParameters = xmlGeneratorParameters;
+
 	}
 
 	@Override
@@ -46,12 +53,12 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		XmlReportGeneratorParameters parameters = getXmlGeneratorParameters();
 		for (int i = 0; i < parameters.getNumberOfCopies(); i++) {
 			Iterator<Record> recordIterator;
-			if(parameters.getQuery() == null) {
+			if (parameters.getQuery() == null) {
 				recordIterator = asList(parameters.isParametersUsingIds() ?
-						getRecordFromIds(parameters.getSchemaCode(), parameters.getIdsOfElement()) :
-						parameters.getRecordsElements()).iterator();
+										getRecordFromIds(parameters.getSchemaCode(), parameters.getIdsOfElement()) :
+										parameters.getRecordsElements()).iterator();
 			} else {
-				recordIterator = getFactory().getModelLayerFactory().newSearchServices().recordsIterator(parameters.getQuery(), 200);
+				recordIterator = getFactory().getModelLayerFactory().newSearchServices().recordsIteratorKeepingOrder(parameters.getQuery(), 200);
 			}
 
 			while (recordIterator.hasNext()) {
@@ -99,7 +106,8 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 
 	/**
 	 * Method that create Element(s) for a particular metadata and record element
-	 * @param metadata metadata
+	 *
+	 * @param metadata      metadata
 	 * @param recordElement record
 	 * @return list of element to add
 	 */
@@ -109,7 +117,7 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		}
 
 		if (metadata.getType().equals(MetadataValueType.ENUM)) {
-			return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement);
+			return createMetadataTagFromMetadataOfTypeEnum(metadata, recordElement, getLocale());
 		}
 
 		if (metadata.getType().equals(MetadataValueType.STRUCTURE)) {
@@ -119,7 +127,11 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
 		metadataXmlElement.setAttribute("label", metadata.getFrenchLabel());
 		metadataXmlElement.setAttribute("code", escapeForXmlTag(getLabelOfMetadata(metadata)));
-		String data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+		boolean isRichTextInputType = displayManager.getMetadata(getCollection(), metadata.getCode()).getInputType() == MetadataInputType.RICHTEXT;
+		String data = getToStringOrNull(recordElement.get(metadata, getLocale()));
+		if (!isRichTextInputType) {
+			data = formatData(data, metadata);
+		}
 		if (metadata.isMultivalue()) {
 			StringBuilder valueBuilder = new StringBuilder();
 			List<Object> objects = recordElement.getList(metadata);
@@ -136,12 +148,18 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 		if (metadata.getLocalCode().toLowerCase().contains("path")) {
 			data = this.getPath(recordElement);
 		}
-		metadataXmlElement.setText(data);
+
+		if (data != null && isRichTextInputType) {
+			metadataXmlElement.setContent(new CDATA(data));
+		} else {
+			metadataXmlElement.setText(data);
+		}
 		return Collections.singletonList(metadataXmlElement);
 	}
 
 	/**
 	 * Method that return all the record of each given ids.
+	 *
 	 * @param schemaType
 	 * @param ids
 	 * @return
@@ -179,6 +197,7 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 
 	/**
 	 * Method that will fill the empty tags to make sure JasperSoft correctly read them.
+	 *
 	 * @param originalElements element to check if empty
 	 * @return
 	 */
@@ -196,6 +215,7 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 	/**
 	 * Method that format a path to make it pretty
 	 * format:  folder01 > folder02 > document1
+	 *
 	 * @param recordElement
 	 * @return
 	 */

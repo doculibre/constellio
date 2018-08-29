@@ -1,27 +1,19 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.solr.client.solrj.ResponseParser;
-import org.apache.solr.client.solrj.SolrClient;
-import org.apache.solr.client.solrj.SolrRequest;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.common.params.CommonParams;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.ltr.feature.SolrFeature;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.SolrFeatureDataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.ltr.feature.SolrFeature;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 
@@ -34,12 +26,8 @@ public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 		dataProvider = new SolrFeatureDataProvider(STORE, collection, modelLayerFactory);
 	}
 
-	private String getSolrServerUrl() {
-		return ConstellioFactories.getInstance().getDataLayerConfiguration().getRecordsDaoHttpSolrServerUrl();
-	}
-
 	public SolrFeatureDataProvider newDataProvider() {
-		SolrClient solrClient = new HttpSolrFeatureClient(getSolrServerUrl());
+		SolrClient solrClient = ConstellioFactories.getInstance().getDataLayerFactory().getRecordsVaultServer().getNestedSolrServer();
 		SolrFeatureGetRequest request = new SolrFeatureGetRequest();
 
 		try {
@@ -118,8 +106,9 @@ public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 
 	protected void deleteOnSolrServer()
 			throws IOException, SolrServerException {
+		SolrClient solrClient = ConstellioFactories.getInstance().getDataLayerFactory().getRecordsVaultServer().getNestedSolrServer();
 		SolrFeatureRequest sfr = new SolrFeatureDeleteRequest();
-		sfr.process(new HttpSolrFeatureClient(getSolrServerUrl()));
+		sfr.process(solrClient);
 	}
 
 	protected void updateOnSolrServer(List<SolrFeature> features)
@@ -128,49 +117,7 @@ public class SolrFeaturePresenter extends BasePresenter<SolrFeatureView> {
 
 		SolrFeatureRequest sfr = new SolrFeaturePutRequest();
 		sfr.setFeatures(features);
-		sfr.process(new HttpSolrFeatureClient(getSolrServerUrl()));
-	}
-
-	private class HttpSolrFeatureClient extends HttpSolrClient {
-		private static final String DEFAULT_PATH = "/select";
-
-		public HttpSolrFeatureClient(String baseURL) {
-			super(baseURL);
-		}
-
-		@Override
-		protected HttpRequestBase createMethod(SolrRequest request, String collection)
-				throws IOException, SolrServerException {
-			String path = requestWriter.getPath(request);
-			if (path == null || !path.startsWith("/")) {
-				path = DEFAULT_PATH;
-			}
-
-			ResponseParser parser = request.getResponseParser();
-			if (parser == null) {
-				parser = this.parser;
-			}
-
-			// The parser 'wt=' and 'version=' params are used instead of the original
-			// params
-			ModifiableSolrParams wparams = new ModifiableSolrParams(request.getParams());
-			if (parser != null) {
-				wparams.set(CommonParams.WT, parser.getWriterType());
-				wparams.set(CommonParams.VERSION, parser.getVersion());
-			}
-			if (invariantParams != null) {
-				wparams.add(invariantParams);
-			}
-
-			String basePath = baseUrl;
-			if (collection != null)
-				basePath += "/" + collection;
-
-			if (SolrRequest.METHOD.DELETE == request.getMethod()) {
-				return new HttpDelete(basePath + path + wparams.toQueryString());
-			} else {
-				return super.createMethod(request, collection);
-			}
-		}
+		SolrClient solrClient = ConstellioFactories.getInstance().getDataLayerFactory().getRecordsVaultServer().getNestedSolrServer();
+		sfr.process(solrClient);
 	}
 }

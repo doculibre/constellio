@@ -1,14 +1,14 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
-import java.io.Serializable;
-
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
 
+import java.io.Serializable;
+
 /**
  * Implemented:
- *
+ * <p>
  * Document.TYPE
  *
  * @author Vincent
@@ -17,7 +17,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 public interface DocumentForm extends Serializable {
 
 	void reload();
-	
+
 	void commit();
 
 	ConstellioFactories getConstellioFactories();

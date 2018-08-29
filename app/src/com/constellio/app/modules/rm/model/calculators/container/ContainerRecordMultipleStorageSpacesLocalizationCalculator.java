@@ -22,10 +22,10 @@ public class ContainerRecordMultipleStorageSpacesLocalizationCalculator implemen
 	public String calculate(CalculatorParameters parameters) {
 		List<String> storageSpaceTitle = new ArrayList<>(parameters.get(this.storageSpaceTitleParam));
 		String localization = "";
-		if(storageSpaceTitle != null) {
+		if (storageSpaceTitle != null) {
 			boolean isFirst = true;
-			for(String singleStorageSpaceTitle: storageSpaceTitle) {
-				if(isFirst) {
+			for (String singleStorageSpaceTitle : storageSpaceTitle) {
+				if (isFirst) {
 					localization += singleStorageSpaceTitle;
 					isFirst = false;
 				} else {

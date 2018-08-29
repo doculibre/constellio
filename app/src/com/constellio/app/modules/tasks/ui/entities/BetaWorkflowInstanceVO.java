@@ -1,20 +1,19 @@
 package com.constellio.app.modules.tasks.ui.entities;
 
-import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.STARTED_BY;
-import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.STARTED_ON;
-import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.STATUS;
-import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.WORKFLOW;
-
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import org.joda.time.LocalDateTime;
+
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.STARTED_BY;
+import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.STARTED_ON;
+import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.STATUS;
+import static com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance.WORKFLOW;
 
 public class BetaWorkflowInstanceVO extends RecordVO {
 

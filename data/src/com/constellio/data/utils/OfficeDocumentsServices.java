@@ -1,11 +1,10 @@
 package com.constellio.data.utils;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.OfficeDocumentsServicesException.CannotReadDocumentsProperties;
+import com.constellio.data.utils.OfficeDocumentsServicesException.NotCompatibleExtension;
+import com.constellio.data.utils.OfficeDocumentsServicesException.PropertyDoesntExist;
+import com.constellio.data.utils.OfficeDocumentsServicesException.RTFFileIsNotCompatible;
 import org.apache.commons.io.IOUtils;
 import org.apache.poi.POIXMLDocument;
 import org.apache.poi.hpsf.CustomProperties;
@@ -32,20 +31,21 @@ import org.openxmlformats.schemas.officeDocument.x2006.customProperties.CTProper
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.data.utils.OfficeDocumentsServicesException.CannotReadDocumentsProperties;
-import com.constellio.data.utils.OfficeDocumentsServicesException.NotCompatibleExtension;
-import com.constellio.data.utils.OfficeDocumentsServicesException.PropertyDoesntExist;
-import com.constellio.data.utils.OfficeDocumentsServicesException.RTFFileIsNotCompatible;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
 
 public class OfficeDocumentsServices {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(OfficeDocumentsServices.class);
 
-	public void setProperty(StreamFactory<InputStream> inputStreamFactory, StreamFactory<OutputStream> outputStreamFactory,
-			String propertyName, String propertyValue, String ext)
+	public void setProperty(StreamFactory<InputStream> inputStreamFactory,
+							StreamFactory<OutputStream> outputStreamFactory,
+							String propertyName, String propertyValue, String ext)
 			throws NotCompatibleExtension, WritingNotSupportedException, CannotReadDocumentsProperties, IOException,
-			PropertyDoesntExist, MimeTypeException, RTFFileIsNotCompatible {
+				   PropertyDoesntExist, MimeTypeException, RTFFileIsNotCompatible {
 
 		Tika tika = new Tika();
 		String mimeType = null;
@@ -72,7 +72,7 @@ public class OfficeDocumentsServices {
 
 	public String getProperty(StreamFactory<InputStream> inputStreamFactory, String propertyName, String ext)
 			throws CannotReadDocumentsProperties, PropertyDoesntExist, IOException, NotCompatibleExtension,
-			RTFFileIsNotCompatible {
+				   RTFFileIsNotCompatible {
 
 		Tika tika = new Tika();
 		InputStream inputStream = inputStreamFactory.create(getClass().getName() + ".getProperty");
@@ -175,8 +175,9 @@ public class OfficeDocumentsServices {
 		return doc;
 	}
 
-	public void setProperty(StreamFactory<InputStream> inputStreamFactory, StreamFactory<OutputStream> outputStreamFactory,
-			String propertyName, String propertyValue)
+	public void setProperty(StreamFactory<InputStream> inputStreamFactory,
+							StreamFactory<OutputStream> outputStreamFactory,
+							String propertyName, String propertyValue)
 			throws IOException, CannotReadDocumentsProperties, WritingNotSupportedException {
 		OutputStream outputStream = outputStreamFactory.create(getClass().getName() + ".setProperty");
 		try {
@@ -203,7 +204,8 @@ public class OfficeDocumentsServices {
 	}
 
 	public void setPropertyNewDocument(String ext, StreamFactory<InputStream> inputStreamFactory,
-			StreamFactory<OutputStream> outputStreamFactory, String propertyName, String propertyValue)
+									   StreamFactory<OutputStream> outputStreamFactory, String propertyName,
+									   String propertyValue)
 			throws IOException, PropertyDoesntExist, NotCompatibleExtension, CannotReadDocumentsProperties {
 		POIXMLDocument doc = parseDocument(ext, inputStreamFactory, propertyName);
 

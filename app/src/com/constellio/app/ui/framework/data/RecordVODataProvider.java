@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -25,6 +19,13 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public abstract class RecordVODataProvider extends AbstractDataProvider {
@@ -39,13 +40,14 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	private int batchSize = 20;
 
 	private boolean cachedSearch;
-	
+
 	private Map<String, RecordToVOBuilder> voBuilders = new HashMap<>();
-	
+
 	private List<MetadataSchemaVO> extraSchemas = new ArrayList<>();
 
 	@Deprecated
-	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory) {
+	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
+								ModelLayerFactory modelLayerFactory) {
 		this.defaultSchema = schema;
 		this.voBuilders.put(schema.getCode(), voBuilder);
 		this.sessionContext = ConstellioUI.getCurrentSessionContext();
@@ -54,15 +56,16 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	}
 
 	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
-			SessionContextProvider sessionContextProvider) {
+								SessionContextProvider sessionContextProvider) {
 		this.defaultSchema = schema;
 		this.voBuilders.put(schema.getCode(), voBuilder);
 		this.sessionContext = sessionContextProvider.getSessionContext();
 		init(sessionContextProvider.getConstellioFactories().getModelLayerFactory());
 	}
 
-	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
-			SessionContext sessionContext) {
+	public RecordVODataProvider(MetadataSchemaVO schema, RecordToVOBuilder voBuilder,
+								ModelLayerFactory modelLayerFactory,
+								SessionContext sessionContext) {
 		this.defaultSchema = schema;
 		this.voBuilders.put(schema.getCode(), voBuilder);
 		this.sessionContext = sessionContext;
@@ -74,7 +77,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		this.defaultSchema = schemas.get(0);
 		this.voBuilders = voBuilders;
 		this.sessionContext = sessionContext;
-		
+
 		for (int i = 0; i < schemas.size(); i++) {
 			MetadataSchemaVO schema = schemas.get(i);
 			if (i == 0) {
@@ -83,7 +86,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 				extraSchemas.add(schema);
 			}
 		}
-		
+
 		init(modelLayerFactory);
 	}
 
@@ -97,26 +100,49 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		this.modelLayerFactory = modelLayerFactory;
 
 		query = getQuery();
+		query.setLanguage(sessionContext.getCurrentLocale());
 		cache = new HashMap<>();
+	}
+
+	private List<RecordVOFilter> filters = new ArrayList<>();
+
+	public void setFilters(List<RecordVOFilter> filters) {
+		this.filters = filters;
+		initializeQuery();
+	}
+
+	private LogicalSearchQuery getFilteredQuery() {
+		LogicalSearchQuery query = getQuery();
+		if (query != null) {
+			for (RecordVOFilter filter : CollectionUtils.emptyIfNull(filters)) {
+				filter.addCondition(query);
+			}
+		}
+		return query;
 	}
 
 	@Override
 	public void fireDataRefreshEvent() {
+		initializeQuery();
+		super.fireDataRefreshEvent();
+	}
+
+	protected void initializeQuery() {
 		query = getQuery();
+		query.setLanguage(sessionContext.getCurrentLocale());
 		size = null;
 		cache.clear();
 		queryCache.clear();
-		super.fireDataRefreshEvent();
 	}
 
 	public MetadataSchemaVO getSchema() {
 		return defaultSchema;
 	}
-	
+
 	public List<MetadataSchemaVO> getExtraSchemas() {
 		return extraSchemas;
 	}
-	
+
 	private MetadataSchemaVO getSchema(String code) {
 		MetadataSchemaVO match = null;
 		if (defaultSchema.getCode().equals(code)) {
@@ -161,9 +187,11 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 			recordList = new ArrayList<>();
 		} else if (isSearchCache()) {
 			query.setNumberOfRows(LogicalSearchQuery.DEFAULT_NUMBER_OF_ROWS);
+			query.setLanguage(sessionContext.getCurrentLocale());
 			SearchServices searchServices = modelLayerFactory.newSearchServices();
 			recordList = searchServices.cachedSearch(query);
 		} else {
+			query.setLanguage(sessionContext.getCurrentLocale());
 			SerializedCacheSearchService searchServices = new SerializedCacheSearchService(modelLayerFactory, queryCache, false);
 			recordList = searchServices.search(query, batchSize);
 		}

@@ -88,17 +88,21 @@ public class ImportedAuthorization {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o)
+			if (this == o) {
 				return true;
-			if (!(o instanceof ImportedAuthorizationPrincipal))
+			}
+			if (!(o instanceof ImportedAuthorizationPrincipal)) {
 				return false;
+			}
 
 			ImportedAuthorizationPrincipal that = (ImportedAuthorizationPrincipal) o;
 
-			if (principalId != null ? !principalId.equals(that.principalId) : that.principalId != null)
+			if (principalId != null ? !principalId.equals(that.principalId) : that.principalId != null) {
 				return false;
-			if (type != null ? !type.equals(that.type) : that.type != null)
+			}
+			if (type != null ? !type.equals(that.type) : that.type != null) {
 				return false;
+			}
 
 			return true;
 		}
@@ -130,17 +134,21 @@ public class ImportedAuthorization {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o)
+			if (this == o) {
 				return true;
-			if (!(o instanceof ImportedAuthorizationTarget))
+			}
+			if (!(o instanceof ImportedAuthorizationTarget)) {
 				return false;
+			}
 
 			ImportedAuthorizationTarget that = (ImportedAuthorizationTarget) o;
 
-			if (legacyId != null ? !legacyId.equals(that.legacyId) : that.legacyId != null)
+			if (legacyId != null ? !legacyId.equals(that.legacyId) : that.legacyId != null) {
 				return false;
-			if (type != null ? !type.equals(that.type) : that.type != null)
+			}
+			if (type != null ? !type.equals(that.type) : that.type != null) {
 				return false;
+			}
 
 			return true;
 		}

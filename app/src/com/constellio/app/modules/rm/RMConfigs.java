@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
@@ -20,6 +15,11 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class RMConfigs {
 
@@ -74,6 +74,7 @@ public class RMConfigs {
 			FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION,
 			LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS,
+			ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE,
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
 			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS;
 
@@ -290,6 +291,9 @@ public class RMConfigs {
 
 		add(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM = decommissioning
 				.createBooleanFalseByDefault("copyRulesAlwaysVisibleInAddForm"));
+
+		add(ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE = decommissioning
+				.createBooleanFalseByDefault("allowTransferDateFieldWhenCopyRuleHasNoSemiActiveState"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -540,6 +544,10 @@ public class RMConfigs {
 
 	public boolean isCopyRulesAlwaysVisibleInAddForm() {
 		return manager.getValue(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM);
+	}
+
+	public boolean isAllowTransferDateFieldWhenCopyRuleHasNoSemiActiveState() {
+		return manager.getValue(ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE);
 	}
 
 	public boolean isDecommissioningTypeRequiredInContainers() {

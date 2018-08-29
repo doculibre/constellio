@@ -1,13 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.entities.navigation.NavigationItem;
@@ -44,6 +36,7 @@ import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.vaadin.data.Item;
 import com.vaadin.data.Property.ValueChangeEvent;
@@ -86,6 +79,15 @@ import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
 @SuppressWarnings("serial")
 public class ConstellioHeaderImpl extends I18NHorizontalLayout implements ConstellioHeader, SelectedRecordIdsChangeListener {
 
@@ -120,10 +122,10 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	private MenuItem collectionSubMenu;
 	private CollectionCodeToLabelConverter collectionCodeToLabelConverter = new CollectionCodeToLabelConverter();
 	private HashMap<String, MenuItem> collectionButtons = new HashMap<>();
+	private Locale locale;
 
 	public ConstellioHeaderImpl() {
 		presenter = new ConstellioHeaderPresenter(this);
-
 		Resource resource = presenter.getUserLogoResource();
 		Image logo = new Image("", resource != null ? resource : new ThemeResource("images/logo_eim_406x60.png"));
 		logo.setHeight("30px");
@@ -185,7 +187,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			@Override
 			public void buttonClick(ClickEvent event) {
 				presenter.searchRequested(searchField.getValue(), getAdvancedSearchSchemaType());
-			} 
+			}
 		});
 
 		OnEnterKeyHandler onEnterHandler = new OnEnterKeyHandler() {
@@ -382,7 +384,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		advancedSearchSchemaTypeField = new BaseComboBox();
 		for (MetadataSchemaTypeVO schemaType : presenter.getSchemaTypes()) {
 			advancedSearchSchemaTypeField.addItem(schemaType.getCode());
-			String itemCaption = schemaType.getLabel(ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+			String itemCaption = schemaType.getLabel(Language.withCode(ConstellioUI.getCurrentSessionContext().getCurrentLocale().getLanguage()));
 			advancedSearchSchemaTypeField.setItemCaption(schemaType.getCode(), itemCaption);
 		}
 		advancedSearchSchemaTypeField.setItemCaptionMode(ItemCaptionMode.EXPLICIT);
@@ -454,7 +456,9 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	@Override
 	public void recordIdRemoved(String recordId) {
+		getSession().lock();
 		presenter.selectedRecordIdRemoved(recordId);
+		getSession().unlock();
 	}
 
 	@Override
@@ -464,7 +468,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		getSession().unlock();
 	}
 
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({"unchecked"})
 	private Component buildSelectionPanel() {
 		final VerticalLayout selectionPanel = new VerticalLayout();
 		selectionPanel.setSpacing(true);
@@ -607,7 +611,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 						try {
 							presenter.createNewCartAndAddToItRequested(param.getIds(), title);
 							getWindow().close();
-						} catch (Exception e){
+						} catch (Exception e) {
 							getCurrentView().showErrorMessage(MessageUtils.toMessage(e));
 						}
 					}
@@ -869,7 +873,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	@Override
 	public BaseView getCurrentView() {
 		return (BaseView) ConstellioUI.getCurrent().getCurrentView();
-}
+	}
 
 	public boolean containsOnly(List<String> list, List<String> values) {
 		for (String value : list) {
@@ -893,8 +897,8 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 	@Override
 	public void setCurrentCollectionQuietly() {
 		String currentCollection = getSessionContext().getCurrentCollection();
-		for(Map.Entry<String, MenuItem> entry: collectionButtons.entrySet()) {
-			if(currentCollection.equals(entry.getKey())) {
+		for (Map.Entry<String, MenuItem> entry : collectionButtons.entrySet()) {
+			if (currentCollection.equals(entry.getKey())) {
 				entry.getValue().setChecked(true);
 				String collectionLabel = collectionCodeToLabelConverter.getCollectionCaption(currentCollection);
 				Page.getCurrent().setTitle(collectionLabel);
@@ -902,5 +906,9 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 				entry.getValue().setChecked(false);
 			}
 		}
+	}
+
+	public ConstellioHeaderPresenter getPresenter() {
+		return presenter;
 	}
 }

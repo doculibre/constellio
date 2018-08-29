@@ -1,19 +1,11 @@
 package com.constellio.model.services.parser;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.fork.ForkParser;
 import org.apache.tika.metadata.Metadata;
@@ -26,12 +18,19 @@ import org.mockito.Mock;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class FileParserTest extends ConstellioTest {
 

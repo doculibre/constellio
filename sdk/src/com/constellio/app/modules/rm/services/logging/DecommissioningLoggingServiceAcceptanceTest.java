@@ -1,20 +1,12 @@
 package com.constellio.app.modules.rm.services.logging;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import com.constellio.app.modules.rm.wrappers.Document;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -29,6 +21,16 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest {
 	LocalDateTime shishOClock = new LocalDateTime().minusHours(3);
@@ -62,8 +64,11 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 		recordServices = getModelLayerFactory().newRecordServices();
 		loggingServices = new DecommissioningLoggingService(getModelLayerFactory());
 
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "taxo");
+
 		defineSchemasManager().using(zeCollectionSetup);
-		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, asList("zeSchemaType"));
+		Taxonomy taxonomy = Taxonomy.createPublic("taxo", labelTitle, zeCollection, asList("zeSchemaType"));
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy,
 				getModelLayerFactory().getMetadataSchemasManager());
 
@@ -122,7 +127,7 @@ public class DecommissioningLoggingServiceAcceptanceTest extends ConstellioTest 
 	}
 
 	private void whenDecommissioningEventThenAdequateEventCreated(DecommissioningListType decommissioningListType,
-			String eventType) {
+																  String eventType) {
 		DecommissioningList decommissioningList = rm.newDecommissioningList()
 				.setDecommissioningListType(decommissioningListType);
 		User bob = users.bobIn(zeCollection);

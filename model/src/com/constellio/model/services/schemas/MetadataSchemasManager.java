@@ -1,19 +1,5 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter3.FORMAT_ATTRIBUTE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
@@ -26,6 +12,7 @@ import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.utils.Delayed;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
@@ -53,6 +40,19 @@ import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter3.FORMAT_ATTRIBUTE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<MetadataSchemaTypes> {
 
@@ -69,7 +69,8 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	private Delayed<ConstellioModulesManager> modulesManagerDelayed;
 	private ConstellioCacheManager cacheManager;
 
-	public MetadataSchemasManager(ModelLayerFactory modelLayerFactory, Delayed<ConstellioModulesManager> modulesManagerDelayed) {
+	public MetadataSchemasManager(ModelLayerFactory modelLayerFactory,
+								  Delayed<ConstellioModulesManager> modulesManagerDelayed) {
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 		this.typesFactory = modelLayerFactory.getDataLayerFactory().newTypesFactory();
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
@@ -95,7 +96,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 	private static Map<String, MetadataSchemaTypes> typesCache = new HashMap<>();
 
 	OneXMLConfigPerCollectionManager<MetadataSchemaTypes> newOneXMLManager(ConfigManager configManager,
-			CollectionsListManager collectionsListManager) {
+																		   CollectionsListManager collectionsListManager) {
 		ConstellioCache cache = cacheManager.getCache(MetadataSchemasManager.class.getName());
 		return new OneXMLConfigPerCollectionManager<MetadataSchemaTypes>(configManager,
 				collectionsListManager, SCHEMAS_CONFIG_PATH, xmlConfigReader(), this, cache) {
@@ -129,14 +130,14 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		}
 	}
 
-	public void createCollectionSchemas(final String collection) {
+	public void createCollectionSchemas(final CollectionInfo collectionInfo) {
 		DocumentAlteration createConfigAlteration = new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {
-				new MetadataSchemaXMLWriter3().writeEmptyDocument(collection, document);
+				new MetadataSchemaXMLWriter3().writeEmptyDocument(collectionInfo, document);
 			}
 		};
-		oneXmlConfigPerCollectionManager.createCollectionFile(collection, createConfigAlteration);
+		oneXmlConfigPerCollectionManager.createCollectionFile(collectionInfo.getCode(), createConfigAlteration);
 	}
 
 	private XMLConfigReader<MetadataSchemaTypes> xmlConfigReader() {
@@ -147,19 +148,19 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 
 				Element rootElement = document.getRootElement();
 				String formatVersion = rootElement == null ? null : rootElement.getAttributeValue(FORMAT_ATTRIBUTE);
-
+				final CollectionInfo collectionInfo = collectionsListManager.getCollectionInfo(collection);
 				MetadataSchemaTypesBuilder typesBuilder;
 				if (formatVersion == null) {
 					typesBuilder = new MetadataSchemaXMLReader1(getClassProvider())
-							.read(collection, document, typesFactory, modelLayerFactory);
+							.read(collectionInfo, document, typesFactory, modelLayerFactory);
 
 				} else if (MetadataSchemaXMLReader2.FORMAT_VERSION.equals(formatVersion)) {
 					typesBuilder = new MetadataSchemaXMLReader2(getClassProvider())
-							.read(collection, document, typesFactory, modelLayerFactory);
+							.read(collectionInfo, document, typesFactory, modelLayerFactory);
 
 				} else if (MetadataSchemaXMLReader3.FORMAT_VERSION.equals(formatVersion)) {
 					typesBuilder = new MetadataSchemaXMLReader3(getClassProvider())
-							.read(collection, document, typesFactory, modelLayerFactory);
+							.read(collectionInfo, document, typesFactory, modelLayerFactory);
 				} else {
 					throw new ImpossibleRuntimeException("Invalid format version '" + formatVersion + "'");
 				}

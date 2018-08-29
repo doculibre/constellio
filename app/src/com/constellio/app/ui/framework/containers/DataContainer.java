@@ -6,13 +6,13 @@ import com.vaadin.data.util.IndexedContainer;
 
 @SuppressWarnings("serial")
 public abstract class DataContainer<T extends DataProvider> extends ContainerAdapter<IndexedContainer> implements RefreshableContainer {
-	
+
 	private T dataProvider;
 
 	public DataContainer(T dataProvider) {
 		super(new IndexedContainer());
 		this.dataProvider = dataProvider;
-		
+
 		refresh();
 		dataProvider.addDataRefreshListener(new DataRefreshListener() {
 			@Override
@@ -33,5 +33,5 @@ public abstract class DataContainer<T extends DataProvider> extends ContainerAda
 	}
 
 	protected abstract void populateFromData(T dataProvider);
-	
+
 }

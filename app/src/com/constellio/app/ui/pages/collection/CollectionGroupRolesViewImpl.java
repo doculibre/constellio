@@ -1,17 +1,5 @@
 package com.constellio.app.ui.pages.collection;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import com.vaadin.data.Property;
-import com.vaadin.shared.ui.label.ContentMode;
-import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RoleAuthVO;
 import com.constellio.app.ui.entities.RoleVO;
@@ -27,12 +15,28 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButt
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.vaadin.data.Property;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.shared.ui.label.ContentMode;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
+import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CollectionGroupRolesViewImpl extends BaseViewImpl implements CollectionGroupRolesView {
 	public static final String GROUP_ROLES = Group.DEFAULT_SCHEMA + "_" + Group.ROLES;

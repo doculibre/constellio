@@ -9,7 +9,7 @@ import com.constellio.app.ui.framework.components.fields.taxonomy.TaxonomyComboB
 public class ListAddRemoveTaxonomyComboBox extends ListAddRemoveField<RecordVO, TaxonomyComboBox> {
 
 	private String taxonomyCode;
-	
+
 	private String schemaTypeCode;
 
 	public ListAddRemoveTaxonomyComboBox(String taxonomyCode, String schemaTypeCode) {

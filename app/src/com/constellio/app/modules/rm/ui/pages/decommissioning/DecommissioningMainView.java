@@ -5,7 +5,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 
 public interface DecommissioningMainView extends BaseView, ArchivesManagementViewGroup {
-	
+
 	void displayListCreation();
 
 	void displayEditableTable(RecordVODataProvider dataProvider);

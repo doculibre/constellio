@@ -1,10 +1,9 @@
 package com.constellio.model.entities.records.wrappers;
 
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDateTime;
 
 public class UserDocument extends RecordWrapper {
 
@@ -19,7 +18,7 @@ public class UserDocument extends RecordWrapper {
 	public static final String FORM_MODIFIED_ON = "formModifiedOn";
 
 	public static final String CONTENT = "content";
-	
+
 	// TODO Move to RM
 	public static final String FOLDER = "folder";
 
@@ -47,7 +46,7 @@ public class UserDocument extends RecordWrapper {
 		set(USER, user);
 		return this;
 	}
-	
+
 	public LocalDateTime getFormCreatedOn() {
 		return get(FORM_CREATED_ON);
 	}
@@ -56,7 +55,7 @@ public class UserDocument extends RecordWrapper {
 		set(FORM_CREATED_ON, dateTime);
 		return this;
 	}
-	
+
 	public LocalDateTime getFormModifiedOn() {
 		return get(FORM_MODIFIED_ON);
 	}
@@ -74,11 +73,11 @@ public class UserDocument extends RecordWrapper {
 		set(CONTENT, content);
 		return this;
 	}
-	
+
 	public String getFolder() {
 		return get(FOLDER);
 	}
-	
+
 	public UserDocument setFolder(String folder) {
 		set(FOLDER, folder);
 		return this;
@@ -102,5 +101,5 @@ public class UserDocument extends RecordWrapper {
 		set(USER_FOLDER, userFolder);
 		return this;
 	}
-	
+
 }

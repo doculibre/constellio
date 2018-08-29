@@ -65,11 +65,11 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 		String fileName = tempFileUpload.getFileName();
 		String mimeType = tempFileUpload.getMimeType();
 		long length = tempFileUpload.getLength();
-		
+
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		IOServices ioServices = constellioFactories.getIoServicesFactory().newIOServices();
 		ContentManager contentManager = constellioFactories.getModelLayerFactory().getContentManager();
-		
+
 		File tempFile = tempFileUpload.getTempFile();
 		try {
 			InputStream tempFileIn = ioServices.newFileInputStream(tempFile, "TempFileUploadToContentVersionVOConverter.toContentVO");
@@ -91,9 +91,9 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 			};
 			boolean hasFoundDuplicate = uploadResponse.hasFoundDuplicate();
 			return tempFileUpload != null ?
-					new ContentVersionVO(null, null, fileName, mimeType, length, null, null, null, null, null, null,
-							inputStreamProvider).setHasFoundDuplicate(hasFoundDuplicate).setDuplicatedHash(hasFoundDuplicate? hash:null) :
-					null;
+				   new ContentVersionVO(null, shouldSetHashForTemporaryFiles() ? hash : null, fileName, mimeType, length, null, null, null, null, null, null,
+						   inputStreamProvider).setHasFoundDuplicate(hasFoundDuplicate).setDuplicatedHash(hasFoundDuplicate ? hash : null) :
+				   null;
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -101,4 +101,7 @@ public class TempFileUploadToContentVersionVOConverter implements Converter<Obje
 		}
 	}
 
+	protected boolean shouldSetHashForTemporaryFiles() {
+		return false;
+	}
 }

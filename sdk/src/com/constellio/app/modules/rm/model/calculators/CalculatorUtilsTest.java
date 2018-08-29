@@ -1,12 +1,12 @@
 package com.constellio.app.modules.rm.model.calculators;
 
+import org.joda.time.LocalDate;
+import org.junit.Test;
+
 import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.getSmallestDate;
 import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.toNextEndOfYearDate;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.joda.time.LocalDate;
-import org.junit.Test;
 
 public class CalculatorUtilsTest {
 

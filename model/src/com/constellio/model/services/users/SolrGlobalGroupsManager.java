@@ -1,13 +1,5 @@
 package com.constellio.model.services.users;
 
-import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.data.utils.LangUtils.valueOrDefault;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -28,6 +20,14 @@ import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.G
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_ParentNotFound;
 import com.constellio.model.services.users.GlobalGroupsManagerRuntimeException.GlobalGroupsManagerRuntimeException_RecordException;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.data.utils.LangUtils.valueOrDefault;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemCollectionListener {
 	private final ModelLayerFactory modelLayerFactory;
 	private final SearchServices searchServices;
@@ -41,8 +41,9 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 	}
 
 	@Override
-	public GlobalGroup create(String code, String name, List<String> collections, String parent, GlobalGroupStatus status,
-			boolean locallyCreated) {
+	public GlobalGroup create(String code, String name, List<String> collections, String parent,
+							  GlobalGroupStatus status,
+							  boolean locallyCreated) {
 		return ((SolrGlobalGroup) valueOrDefault(getGlobalGroupWithCode(code), schemas.newGlobalGroup()))
 				.setCode(code)
 				.setName(name)

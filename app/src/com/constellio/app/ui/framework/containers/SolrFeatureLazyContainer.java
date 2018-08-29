@@ -7,7 +7,11 @@ import com.vaadin.data.util.AbstractProperty;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.ltr.feature.SolrFeature;
-import org.vaadin.addons.lazyquerycontainer.*;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -89,7 +93,7 @@ public class SolrFeatureLazyContainer extends LazyQueryContainer {
 
 			@Override
 			public Property<?> getItemProperty(Object id) {
-				if(id == null) {
+				if (id == null) {
 					return null;
 				}
 
@@ -98,9 +102,9 @@ public class SolrFeatureLazyContainer extends LazyQueryContainer {
 						return new ItemProperty(feature.getName());
 					case "query":
 						String query = null;
-						if(!CollectionUtils.isEmpty(feature.getFq())) {
+						if (!CollectionUtils.isEmpty(feature.getFq())) {
 							query = StringUtils.join(feature.getFq(), "; ");
-						} else if(StringUtils.isNotBlank(feature.getQ())) {
+						} else if (StringUtils.isNotBlank(feature.getQ())) {
 							query = feature.getQ();
 						}
 						return new ItemProperty(query);

@@ -1,28 +1,5 @@
 package com.constellio.app.ui.pages.statistic;
 
-import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.getProperties;
-import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.getPropertiesWithParams;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.AbstractCSVProducer;
@@ -62,6 +39,28 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+
+import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.getProperties;
+import static com.constellio.app.ui.framework.containers.SearchEventVOLazyContainer.getPropertiesWithParams;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, Serializable {
 	private static Logger LOGGER = LoggerFactory.getLogger(StatisticsViewImpl.class);
@@ -157,7 +156,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 						(String) capsuleIdField.getValue());
 
 				if (Objects.equals(statisticType, newStatisticType)) {
-					resultTable.setContainerDataSource(getContainer(initColumnsHeader()));
+					resultTable.setContainerDataSource(getContainer(initColumnsHeader(getChoosenStatisticTypeCode())));
 				} else {
 					buildResultTable();
 				}
@@ -298,7 +297,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 	}
 
 	private Layout buildResultTable() {
-		List<String> columnsHeader = initColumnsHeader();
+		List<String> columnsHeader = initColumnsHeader(getChoosenStatisticTypeCode());
 		LazyQueryContainer container = getContainer(columnsHeader);
 
 		resultTable = new BaseTable(getClass().getName() + System.currentTimeMillis(), "", container);
@@ -408,7 +407,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 		AbstractCSVProducer csvProducer;
 		if (isStatisticTypeChoice()) {
 			csvProducer = new FacetsCSVProducer(resultTable, (Long) linesField.getConvertedValue(),
-					presenter.getStatisticsFacetsDataProvider(), initColumnsHeader());
+					presenter.getStatisticsFacetsDataProvider(), initColumnsHeader(getChoosenStatisticTypeCode()));
 		} else {
 			csvProducer = new SearchEventCSVProducer(resultTable, (Long) linesField.getConvertedValue(),
 					presenter.getStatisticsDataProvider());
@@ -428,106 +427,119 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 
 	private boolean isStatisticTypeChoice() {
 		switch (StringUtils.trimToEmpty(getChoosenStatisticTypeCode())) {
-		case StatisticsPresenter.FAMOUS_REQUEST:
-		case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
-		case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
-		case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
-		case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
-			return true;
-		default:
-			return false;
+			case StatisticsPresenter.FAMOUS_REQUEST:
+			case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
+			case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
+			case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
+			case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
+				return true;
+			default:
+				return false;
 		}
 	}
 
 	private String getColumnHeader(String property) {
 		switch (property) {
-		case FacetsLazyContainer.CLICK_COUNT:
-		case SearchEventVOLazyContainer.CLICK_COUNT:
-			return $("StatisticsView.clickCount");
+			case FacetsLazyContainer.CLICK_COUNT:
+			case SearchEventVOLazyContainer.CLICK_COUNT:
+				return $("StatisticsView.clickCount");
 
-		case FacetsLazyContainer.ORIGINAL_QUERY:
-		case SearchEventVOLazyContainer.ORIGINAL_QUERY:
-			return $("StatisticsView.originalQuery");
+			case FacetsLazyContainer.ORIGINAL_QUERY:
+			case SearchEventVOLazyContainer.ORIGINAL_QUERY:
+				return $("StatisticsView.originalQuery");
 
-		case SearchEventVOLazyContainer.LAST_PAGE_NAVIGATION:
-			return $("StatisticsView.lastPageNavigation");
+			case SearchEventVOLazyContainer.LAST_PAGE_NAVIGATION:
+				return $("StatisticsView.lastPageNavigation");
 
-		case SearchEventVOLazyContainer.PARAMS:
-			return $("StatisticsView.params");
+			case SearchEventVOLazyContainer.PARAMS:
+				return $("StatisticsView.params");
 
-		case SearchEventVOLazyContainer.Q_TIME:
-			return $("StatisticsView.qTime");
+			case SearchEventVOLazyContainer.Q_TIME:
+				return $("StatisticsView.qTime");
 
-		case SearchEventVOLazyContainer.NUM_FOUND:
-			return $("StatisticsView.numFound");
+			case SearchEventVOLazyContainer.NUM_FOUND:
+				return $("StatisticsView.numFound");
 
-		case SearchEventVOLazyContainer.QUERY:
-			return $("StatisticsView.query");
+			case SearchEventVOLazyContainer.QUERY:
+				return $("StatisticsView.query");
 
-		case SearchEventVOLazyContainer.USER:
-			return $("StatisticsView.user");
+			case SearchEventVOLazyContainer.USER:
+				return $("StatisticsView.user");
 
-		case SearchEventVOLazyContainer.CREATION_DATE:
-			return $("StatisticsView.creationDate");
+			case SearchEventVOLazyContainer.CREATION_DATE:
+				return $("StatisticsView.creationDate");
 
-		case FacetsLazyContainer.FREQUENCY:
-			return $("StatisticsView.frequency");
+			case FacetsLazyContainer.FREQUENCY:
+				return $("StatisticsView.frequency");
 
-		case SearchEventVOLazyContainer.NUM_PAGE:
-			return $("StatisticsView.numPage");
+			case SearchEventVOLazyContainer.NUM_PAGE:
+				return $("StatisticsView.numPage");
 
-		case SearchEventVOLazyContainer.SOUS_COLLECTION:
-			return $("StatisticsView.sousCollection");
+			case SearchEventVOLazyContainer.SOUS_COLLECTION:
+				return $("StatisticsView.sousCollection");
 
-		case SearchEventVOLazyContainer.LANGUE:
-			return $("StatisticsView.langue");
+			case SearchEventVOLazyContainer.LANGUE:
+				return $("StatisticsView.langue");
 
-		case SearchEventVOLazyContainer.TYPE_RECHERCHE:
-			return $("StatisticsView.typeRecherche");
+			case SearchEventVOLazyContainer.TYPE_RECHERCHE:
+				return $("StatisticsView.typeRecherche");
 
-		case SearchEventVOLazyContainer.CAPSULE:
-			return $("StatisticsView.capsule");
+			case SearchEventVOLazyContainer.CAPSULE:
+				return $("StatisticsView.capsule");
 
-		case FacetsLazyContainer.CLICKS:
-		case SearchEventVOLazyContainer.CLICKS:
-			return $("StatisticsView.clicks");
+			case FacetsLazyContainer.CLICKS:
+			case SearchEventVOLazyContainer.CLICKS:
+				return $("StatisticsView.clicks");
 
-		case SearchEventVOLazyContainer.ID:
-			return $("StatisticsView.id");
+			case SearchEventVOLazyContainer.ID:
+				return $("StatisticsView.id");
 
-		default:
-			return property;
+			default:
+				return property;
 		}
 	}
 
-	private List<String> initColumnsHeader() {
+	public List<String> initColumnsHeader(String statisticType) {
+		switch (StringUtils.trimToEmpty(statisticType)) {
+			case StatisticsPresenter.FAMOUS_REQUEST:
+			case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
+			case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
+			case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
+			case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
+				return initStatisticsColumnsHeader(statisticType);
+			default:
+				MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
+				return new ArrayList<>(isParamsShowed() ? getPropertiesWithParams(schema) : getProperties(schema));
+		}
+	}
+
+	public static List<String> initStatisticsColumnsHeader(String statisticType) {
 		List<String> properties;
 
-		switch (StringUtils.trimToEmpty(getChoosenStatisticTypeCode())) {
-		case StatisticsPresenter.FAMOUS_REQUEST:
-			properties = Arrays
-					.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT,
-							FacetsLazyContainer.CLICKS);
-			break;
-		case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
-			properties = Arrays
-					.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT,
-							FacetsLazyContainer.CLICKS);
-			break;
-		case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
-			properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY);
-			break;
-		case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
-			properties = Arrays
-					.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT,
-							FacetsLazyContainer.CLICKS);
-			break;
-		case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
-			properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY);
-			break;
-		default:
-			MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
-			properties = new ArrayList<>(isParamsShowed() ? getPropertiesWithParams(schema) : getProperties(schema));
+		switch (StringUtils.trimToEmpty(statisticType)) {
+			case StatisticsPresenter.FAMOUS_REQUEST:
+				properties = Arrays
+						.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT,
+								FacetsLazyContainer.CLICKS);
+				break;
+			case StatisticsPresenter.FAMOUS_REQUEST_WITH_RESULT:
+				properties = Arrays
+						.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT,
+								FacetsLazyContainer.CLICKS);
+				break;
+			case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_RESULT:
+				properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY);
+				break;
+			case StatisticsPresenter.FAMOUS_REQUEST_WITH_CLICK:
+				properties = Arrays
+						.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY, FacetsLazyContainer.CLICK_COUNT,
+								FacetsLazyContainer.CLICKS);
+				break;
+			case StatisticsPresenter.FAMOUS_REQUEST_WITHOUT_CLICK:
+				properties = Arrays.asList(FacetsLazyContainer.ORIGINAL_QUERY, FacetsLazyContainer.FREQUENCY);
+				break;
+			default:
+				properties = new ArrayList<>();
 		}
 
 		return properties;
@@ -535,7 +547,7 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 
 	private List<String> initVisibleColumns() {
 		if (isStatisticTypeChoice()) {
-			return initColumnsHeader();
+			return initColumnsHeader(getChoosenStatisticTypeCode());
 		} else {
 			MetadataSchemaVO schema = presenter.getStatisticsDataProvider().getSchema();
 			return new ArrayList<>(isParamsShowed() ? getPropertiesWithParams(schema) : getProperties(schema));
@@ -577,10 +589,12 @@ public class StatisticsViewImpl extends BaseViewImpl implements StatisticsView, 
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o)
+			if (this == o) {
 				return true;
-			if (o == null || getClass() != o.getClass())
+			}
+			if (o == null || getClass() != o.getClass()) {
 				return false;
+			}
 
 			CBItem cbItem = (CBItem) o;
 

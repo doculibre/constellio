@@ -1,28 +1,24 @@
 package com.constellio.app.ui.framework.buttons;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
-import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ContainersButton extends WindowButton {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ContainersButton.class);
@@ -61,12 +57,12 @@ public class ContainersButton extends WindowButton {
 		saveButton.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				try{
-					if(StringUtils.isNotBlank(containerLookup.getValue())){
+				try {
+					if (StringUtils.isNotBlank(containerLookup.getValue())) {
 						selector.putRecordsInContainer(containerLookup.getValue());
 						getWindow().close();
 					}
-				}catch(Throwable e){
+				} catch (Throwable e) {
 					showErrorMessage(e);
 				}
 

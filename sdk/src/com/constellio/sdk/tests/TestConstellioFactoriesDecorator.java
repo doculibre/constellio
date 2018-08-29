@@ -1,16 +1,5 @@
 package com.constellio.sdk.tests;
 
-import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
-import static com.constellio.data.conf.HashingEncoding.BASE32;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.conf.PropertiesAppLayerConfiguration;
 import com.constellio.app.conf.PropertiesAppLayerConfiguration.InMemoryAppLayerConfiguration;
@@ -25,6 +14,16 @@ import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration;
 import com.constellio.model.conf.PropertiesModelLayerConfiguration.InMemoryModelLayerConfiguration;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
+import static com.constellio.data.conf.HashingEncoding.BASE32;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorator {
 
@@ -44,7 +43,8 @@ public class TestConstellioFactoriesDecorator extends ConstellioFactoriesDecorat
 	final private boolean checkRollback;
 	private File transactionLogWorkFolder;
 
-	public TestConstellioFactoriesDecorator(boolean backgroundThreadsEnabled, boolean mockPluginManager, boolean checkRollback) {
+	public TestConstellioFactoriesDecorator(boolean backgroundThreadsEnabled, boolean mockPluginManager,
+											boolean checkRollback) {
 		this.backgroundThreadsEnabled = backgroundThreadsEnabled;
 		this.checkRollback = checkRollback;
 		this.mockPluginManager = mockPluginManager;

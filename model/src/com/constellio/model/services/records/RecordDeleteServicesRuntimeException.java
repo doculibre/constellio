@@ -1,8 +1,8 @@
 package com.constellio.model.services.records;
 
-import java.util.Set;
-
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
+
+import java.util.Set;
 
 @SuppressWarnings("serial")
 public class RecordDeleteServicesRuntimeException extends RuntimeException {
@@ -22,17 +22,19 @@ public class RecordDeleteServicesRuntimeException extends RuntimeException {
 	public static class RecordDeleteServicesRuntimeException_CannotDeleteRecordWithUserFromOtherCollection
 			extends RecordDeleteServicesRuntimeException {
 
-		public RecordDeleteServicesRuntimeException_CannotDeleteRecordWithUserFromOtherCollection(String recordCollection,
+		public RecordDeleteServicesRuntimeException_CannotDeleteRecordWithUserFromOtherCollection(
+				String recordCollection,
 				String userCollection) {
 			super("Record of collection '" + recordCollection + "' cannot be deleted with user in colllection '" + userCollection
-					+ "'");
+				  + "'");
 		}
 	}
 
 	public static class RecordDeleteServicesRuntimeException_RecordServicesErrorDuringOperation
 			extends RecordDeleteServicesRuntimeException {
 
-		public RecordDeleteServicesRuntimeException_RecordServicesErrorDuringOperation(String operation, Throwable cause) {
+		public RecordDeleteServicesRuntimeException_RecordServicesErrorDuringOperation(String operation,
+																					   Throwable cause) {
 			super("RecordServicesException on operation '" + operation + "'", cause);
 		}
 	}
@@ -51,10 +53,12 @@ public class RecordDeleteServicesRuntimeException extends RuntimeException {
 		Set<String> recordsIdsWithUnremovableReferences;
 		Set<String> recordsTiltlesWithUnremovableReferences;
 
-		public RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords(String deletedRecordId,
-				Set<String> recordsIdsWithUnremovableReferences, Set<String> recordsIdsTitlesWithUnremovableReferences) {
+		public RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords(
+				String deletedRecordId,
+				Set<String> recordsIdsWithUnremovableReferences,
+				Set<String> recordsIdsTitlesWithUnremovableReferences) {
 			super("Cannot physically delete record '" + deletedRecordId + "', cannot remove references to this record on ["
-					+ recordsIdsWithUnremovableReferences + "]");
+				  + recordsIdsWithUnremovableReferences + "]");
 			this.recordsIdsWithUnremovableReferences = recordsIdsWithUnremovableReferences;
 			this.recordsTiltlesWithUnremovableReferences = recordsIdsTitlesWithUnremovableReferences;
 		}

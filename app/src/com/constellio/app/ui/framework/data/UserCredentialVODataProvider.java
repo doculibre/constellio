@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
@@ -13,6 +7,12 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class UserCredentialVODataProvider extends AbstractDataProvider {
@@ -35,7 +35,7 @@ public class UserCredentialVODataProvider extends AbstractDataProvider {
 	}
 
 	public UserCredentialVODataProvider(UserCredentialToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory,
-			String globalGroupCode) {
+										String globalGroupCode) {
 		this.voBuilder = voBuilder;
 		init(modelLayerFactory, globalGroupCode);
 	}
@@ -79,13 +79,13 @@ public class UserCredentialVODataProvider extends AbstractDataProvider {
 			this.filter = filter.toLowerCase();
 			for (UserCredentialVO userCredentialVO : userCredentialVOs) {
 				if ((userCredentialVO.getUsername() != null && userCredentialVO.getUsername().toLowerCase().contains(this.filter))
-						|| (userCredentialVO.getUsername() != null && userCredentialVO.getUsername().toLowerCase()
+					|| (userCredentialVO.getUsername() != null && userCredentialVO.getUsername().toLowerCase()
 						.contains(this.filter))
-						|| (userCredentialVO.getEmail() != null && userCredentialVO.getEmail().toLowerCase()
+					|| (userCredentialVO.getEmail() != null && userCredentialVO.getEmail().toLowerCase()
 						.contains(this.filter))
-						|| (userCredentialVO.getFirstName() != null && userCredentialVO.getFirstName().toLowerCase()
+					|| (userCredentialVO.getFirstName() != null && userCredentialVO.getFirstName().toLowerCase()
 						.contains(this.filter))
-						|| (userCredentialVO.getLastName() != null && userCredentialVO.getLastName().toLowerCase()
+					|| (userCredentialVO.getLastName() != null && userCredentialVO.getLastName().toLowerCase()
 						.contains(this.filter))) {
 					filteredUserCredentialVOs.add(userCredentialVO);
 				}

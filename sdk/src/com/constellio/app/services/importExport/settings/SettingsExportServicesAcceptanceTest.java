@@ -1,27 +1,5 @@
 package com.constellio.app.services.importExport.settings;
 
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.assertj.core.api.ListAssert;
-import org.assertj.core.groups.Tuple;
-import org.jdom2.Document;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
@@ -43,6 +21,27 @@ import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.assertj.core.api.ListAssert;
+import org.assertj.core.groups.Tuple;
+import org.jdom2.Document;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.fail;
 
 public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 

@@ -15,31 +15,31 @@ import java.io.ByteArrayOutputStream;
  */
 public class DefaultMetadataPopulatorPersistenceManager implements MetadataPopulatorPersistenceManager {
 
-    @Override
-    public Element toXml(MetadataPopulator metadataPopulator) throws Exception {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        XMLEncoder xmlEncoder = new XMLEncoder(buffer);
-        xmlEncoder.writeObject(metadataPopulator);
-        xmlEncoder.close();
+	@Override
+	public Element toXml(MetadataPopulator metadataPopulator) throws Exception {
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		XMLEncoder xmlEncoder = new XMLEncoder(buffer);
+		xmlEncoder.writeObject(metadataPopulator);
+		xmlEncoder.close();
 
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer.toByteArray());
+		ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer.toByteArray());
 
-        SAXBuilder saxBuilder = new SAXBuilder();
-        Document document = saxBuilder.build(inputStream);
-        Element element = document.getRootElement();
-        element.detach();
+		SAXBuilder saxBuilder = new SAXBuilder();
+		Document document = saxBuilder.build(inputStream);
+		Element element = document.getRootElement();
+		element.detach();
 
-        return element;
-    }
+		return element;
+	}
 
-    @Override
-    public MetadataPopulator fromXML(Element xmlElement) throws Exception {
-        XMLOutputter converter = new XMLOutputter();
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        converter.output(xmlElement, buffer);
-        buffer.close();
+	@Override
+	public MetadataPopulator fromXML(Element xmlElement) throws Exception {
+		XMLOutputter converter = new XMLOutputter();
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		converter.output(xmlElement, buffer);
+		buffer.close();
 
-        XMLDecoder xmlDecoder = new XMLDecoder(new ByteArrayInputStream(buffer.toByteArray()));
-        return (MetadataPopulator) xmlDecoder.readObject();
-    }
+		XMLDecoder xmlDecoder = new XMLDecoder(new ByteArrayInputStream(buffer.toByteArray()));
+		return (MetadataPopulator) xmlDecoder.readObject();
+	}
 }

@@ -1,9 +1,5 @@
 package com.constellio.app.modules.core;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.Capsule;
@@ -23,6 +19,10 @@ import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class CoreTypes {
 

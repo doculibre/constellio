@@ -1,11 +1,7 @@
 package com.constellio.app.modules.rm.services.logging;
 
-import java.util.List;
-
-import com.constellio.app.modules.rm.wrappers.Document;
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
@@ -17,7 +13,9 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.List;
 
 public class DecommissioningLoggingService {
 	ModelLayerFactory modelLayerFactory;
@@ -31,12 +29,18 @@ public class DecommissioningLoggingService {
 		Record record = decommissioningList.getWrappedRecord();
 		Event event = schemasRecords.newEvent();
 
-		switch(decommissioningList.getDecommissioningListType()){
-			case FOLDERS_TO_DEPOSIT: event.setType(EventType.FOLDER_DEPOSIT); break;
-			case FOLDERS_TO_DESTROY: event.setType(EventType.FOLDER_DESTRUCTION); break;
-			case FOLDERS_TO_TRANSFER: event.setType(EventType.FOLDER_RELOCATION); break;
-		default : //FIXME
-			return;
+		switch (decommissioningList.getDecommissioningListType()) {
+			case FOLDERS_TO_DEPOSIT:
+				event.setType(EventType.FOLDER_DEPOSIT);
+				break;
+			case FOLDERS_TO_DESTROY:
+				event.setType(EventType.FOLDER_DESTRUCTION);
+				break;
+			case FOLDERS_TO_TRANSFER:
+				event.setType(EventType.FOLDER_RELOCATION);
+				break;
+			default: //FIXME
+				return;
 		}
 		setDefaultMetadata(event, user);
 		setRecordMetadata(event, record);

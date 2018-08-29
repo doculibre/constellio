@@ -5,24 +5,24 @@ import com.constellio.model.entities.records.wrappers.ExportAudit;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
 
 public enum TemporaryRecordType {
-    EXPORT(ExportAudit.SCHEMA), IMPORT(ImportAudit.SCHEMA), SIP_ARCHIVES(SIParchive.SCHEMA);
+	EXPORT(ExportAudit.SCHEMA), IMPORT(ImportAudit.SCHEMA), SIP_ARCHIVES(SIParchive.SCHEMA);
 
-    private String schema;
+	private String schema;
 
-    TemporaryRecordType(String schema) {
-        this.schema = schema;
-    }
+	TemporaryRecordType(String schema) {
+		this.schema = schema;
+	}
 
-    String getSchema() {
-        return this.schema;
-    }
+	String getSchema() {
+		return this.schema;
+	}
 
-    static TemporaryRecordType getFromSchema(String schema) {
-        for(TemporaryRecordType temporaryRecordType : TemporaryRecordType.values()){
-            if(temporaryRecordType.getSchema().equals(schema)){
-                return temporaryRecordType;
-            }
-        }
-        return null;
-    }
+	static TemporaryRecordType getFromSchema(String schema) {
+		for (TemporaryRecordType temporaryRecordType : TemporaryRecordType.values()) {
+			if (temporaryRecordType.getSchema().equals(schema)) {
+				return temporaryRecordType;
+			}
+		}
+		return null;
+	}
 }

@@ -1,15 +1,5 @@
 package com.constellio.sdk.tests;
 
-import static org.openqa.selenium.firefox.FirefoxProfile.PORT_PREFERENCE;
-import static org.openqa.selenium.internal.SocketLock.DEFAULT_PORT;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.Socket;
-import java.net.URL;
-
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.firefox.ExtensionConnection;
 import org.openqa.selenium.firefox.FirefoxBinary;
@@ -23,6 +13,16 @@ import org.openqa.selenium.remote.Command;
 import org.openqa.selenium.remote.HttpCommandExecutor;
 import org.openqa.selenium.remote.Response;
 import org.openqa.selenium.remote.internal.CircularOutputStream;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.Socket;
+import java.net.URL;
+
+import static org.openqa.selenium.firefox.FirefoxProfile.PORT_PREFERENCE;
+import static org.openqa.selenium.internal.SocketLock.DEFAULT_PORT;
 
 //Same as NewProfileExtensionConnection, except that "localhost" hostname is used instead of calling NetworkUtils which cause problems on some networks
 public class ZeUltimateLocalhostFirefoxConnection implements ExtensionConnection, NeedsLocalLogs {

@@ -26,6 +26,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,7 @@ public class TaskPresenterServices {
 	private SearchServices searchServices;
 
 	public TaskPresenterServices(TasksSchemasRecordsServices tasksSchemas, RecordServices recordServices,
-			TasksSearchServices tasksSearchServices, LoggingServices loggingServices) {
+								 TasksSearchServices tasksSearchServices, LoggingServices loggingServices) {
 		this.tasksSchemas = tasksSchemas;
 		this.recordServices = recordServices;
 		this.tasksSearchServices = tasksSearchServices;
@@ -181,6 +182,18 @@ public class TaskPresenterServices {
 		return task.getCreatedBy() != null && task.getCreatedBy().equals(user.getId());
 	}
 
+	public boolean isReadByUser(Record record) {
+		Task task = tasksSchemas.wrapTask(record);
+		return BooleanUtils.isTrue(task.getReadByUser());
+	}
+
+	public void setReadByUser(Record record, boolean readByUser) throws RecordServicesException {
+		Task task = tasksSchemas.wrapTask(record);
+		task.setReadByUser(readByUser);
+
+		recordServices.update(task.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions().setSkipUSRMetadatasRequirementValidations(true));
+	}
+
 	public void sendReminder(Record record, User user) {
 		Task task = tasksSchemas.wrapTask(record);
 		List<TaskReminder> newReminders = new ArrayList<>(task.getReminders());
@@ -201,10 +214,10 @@ public class TaskPresenterServices {
 
 		boolean isSubTaskWithRequiredStatusFound = false;
 
-		for(Record taskAsRecord : tasksSearchServices){
+		for (Record taskAsRecord : tasksSearchServices) {
 			Task currentTask = tasksSchemas.wrapTask(taskAsRecord);
-			if(TaskStatusType.STANDBY.getCode().equalsIgnoreCase(currentTask.getStatusType().getCode())
-					|| TaskStatusType.IN_PROGRESS.getCode().equalsIgnoreCase(currentTask.getStatusType().getCode())) {
+			if (TaskStatusType.STANDBY.getCode().equalsIgnoreCase(currentTask.getStatusType().getCode())
+				|| TaskStatusType.IN_PROGRESS.getCode().equalsIgnoreCase(currentTask.getStatusType().getCode())) {
 				isSubTaskWithRequiredStatusFound = true;
 				break;
 			}
@@ -231,7 +244,7 @@ public class TaskPresenterServices {
 		Transaction createTransaction = new Transaction();
 		createTransaction.setUser(user);
 		createTransaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-		if(updateOptions != null) {
+		if (updateOptions != null) {
 			createTransaction.setOptions(updateOptions);
 		}
 		createTransaction.addUpdate(record);

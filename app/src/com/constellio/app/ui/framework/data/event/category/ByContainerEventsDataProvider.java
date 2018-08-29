@@ -13,31 +13,32 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class ByContainerEventsDataProvider extends DefaultEventsDataProvider implements EventsCategoryDataProvider {
 
 	public ByContainerEventsDataProvider(ModelLayerFactory modelLayerFactory, String collection, String currentUserName,
-                                         LocalDateTime startDate, LocalDateTime endDate, String id) {
+										 LocalDateTime startDate, LocalDateTime endDate, String id) {
 		super(modelLayerFactory, collection, currentUserName, startDate, endDate, id);
 	}
 
 	@Override
-	protected LogicalSearchQuery createSpecificQuery(ModelLayerFactory modelLayerFactory, User currentUser, String eventType,
-			LocalDateTime startDate,
-			LocalDateTime endDate, String id) {
+	protected LogicalSearchQuery createSpecificQuery(ModelLayerFactory modelLayerFactory, User currentUser,
+													 String eventType,
+													 LocalDateTime startDate,
+													 LocalDateTime endDate, String id) {
 		RMEventsSearchServices rmSchemasRecordsServices = new RMEventsSearchServices(modelLayerFactory, collection);
 		return rmSchemasRecordsServices.newFindEventByDateRangeAndByContainerQuery(currentUser, eventType, startDate, endDate, id);//newFindEventByDateRangeAndByFolderQuery(currentUser, eventType, startDate, endDate, id);
 	}
 
 	@Override
 	public String getEventType(Integer index) {
-		if(index == 0){
+		if (index == 0) {
 			return EventType.BORROW_CONTAINER;
-		}else if (index == 1){
+		} else if (index == 1) {
 			return EventType.RETURN_CONTAINER;
-		}else if (index == 2){
+		} else if (index == 2) {
 			return EventType.BORROW_REQUEST_CONTAINER;
-		}else if (index == 3){
+		} else if (index == 3) {
 			return EventType.RETURN_REQUEST_CONTAINER;
-		}else if (index == 4){
+		} else if (index == 4) {
 			return EventType.BORROW_EXTENSION_REQUEST_CONTAINER;
-		}else{
+		} else {
 			return EventType.REACTIVATION_REQUEST_CONTAINER;
 		}
 	}

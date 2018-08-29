@@ -1,9 +1,5 @@
 package com.constellio.app.modules.es;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
@@ -14,6 +10,10 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class ESTypes {
 

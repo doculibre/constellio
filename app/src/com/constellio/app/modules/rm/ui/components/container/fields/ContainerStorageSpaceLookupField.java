@@ -1,19 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.container.fields;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.data.utils.LangUtils.isEqual;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
 import com.constellio.app.modules.rm.ui.pages.containers.edit.AddEditContainerPresenter;
@@ -26,10 +12,10 @@ import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.constellio.app.ui.framework.data.trees.LinkableRecordTreeNodesDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -41,6 +27,17 @@ import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.utils.LangUtils.isEqual;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 /**
  * Created by Constellio on 2017-01-11.
@@ -53,7 +50,7 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 	private AddEditContainerPresenter presenter;
 
 	public ContainerStorageSpaceLookupField(String containerRecordType, Double containerCapacity,
-			AddEditContainerPresenter presenter) {
+											AddEditContainerPresenter presenter) {
 		this(StorageSpace.SCHEMA_TYPE, null, containerRecordType, containerCapacity, presenter);
 		this.containerRecordType = containerRecordType;
 		this.containerCapacity = containerCapacity;
@@ -61,12 +58,13 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 	}
 
 	private ContainerStorageSpaceLookupField(String schemaTypeCode, String schemaCode, String containerRecordType,
-			Double containerCapacity, AddEditContainerPresenter presenter) {
+											 Double containerCapacity, AddEditContainerPresenter presenter) {
 		this(schemaTypeCode, schemaCode, false, containerRecordType, containerCapacity, presenter);
 	}
 
 	private ContainerStorageSpaceLookupField(String schemaTypeCode, String schemaCode, boolean writeAccess,
-			String containerRecordType, Double containerCapacity, AddEditContainerPresenter presenter) {
+											 String containerRecordType, Double containerCapacity,
+											 AddEditContainerPresenter presenter) {
 		super(new RecordTextInputDataProvider(presenter.getConstellioFactories(), presenter.getSessionContext(), schemaTypeCode,
 						schemaCode, writeAccess),
 				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, containerRecordType, containerCapacity,
@@ -114,9 +112,12 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 		setInternalValue((String) value);
 	}
 
-	private static LookupTreeDataProvider<String>[] getTreeDataProvider(final String schemaTypeCode, final String schemaCode,
-			boolean writeAccess, final String containerRecordType,
-			Double containerCapacity, AddEditContainerPresenter presenter) {
+	private static LookupTreeDataProvider<String>[] getTreeDataProvider(final String schemaTypeCode,
+																		final String schemaCode,
+																		boolean writeAccess,
+																		final String containerRecordType,
+																		Double containerCapacity,
+																		AddEditContainerPresenter presenter) {
 		SessionContext sessionContext = presenter.getSessionContext();
 		final String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -146,8 +147,9 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 		return !dataProviders.isEmpty() ? dataProviders.toArray(new RecordLookupTreeDataProvider[0]) : null;
 	}
 
-	static public LinkableRecordTreeNodesDataProvider getDataProvider(String taxonomyCode, final String containerRecordType,
-			final Double containerCapacity) {
+	static public LinkableRecordTreeNodesDataProvider getDataProvider(String taxonomyCode,
+																	  final String containerRecordType,
+																	  final Double containerCapacity) {
 		TaxonomiesSearchFilter taxonomiesSearchFilter = new TaxonomiesSearchFilter();
 		taxonomiesSearchFilter.setLinkableConceptsFilter(new LinkableConceptFilter() {
 			@Override
@@ -187,13 +189,14 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 		));
 	}
 
-	public static boolean canStorageSpaceContainContainer(StorageSpace storageSpace, String containerRecordType, Double containerCapacity) {
+	public static boolean canStorageSpaceContainContainer(StorageSpace storageSpace, String containerRecordType,
+														  Double containerCapacity) {
 		Double numberOfChild = storageSpace.getNumberOfChild();
 		boolean hasNoChildren = numberOfChild == null || isEqual(0.0, numberOfChild);
 		boolean enoughAvailableSize = storageSpace.getAvailableSize() == null
-				|| storageSpace.getAvailableSize() >= (containerCapacity == null ? 0.0 : containerCapacity);
+									  || storageSpace.getAvailableSize() >= (containerCapacity == null ? 0.0 : containerCapacity);
 		boolean sameContainerType = storageSpace.getContainerType() == null
-				|| storageSpace.getContainerType().isEmpty() || storageSpace.getContainerType().contains(containerRecordType);
+									|| storageSpace.getContainerType().isEmpty() || storageSpace.getContainerType().contains(containerRecordType);
 
 		return hasNoChildren && enoughAvailableSize && sameContainerType;
 	}

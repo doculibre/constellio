@@ -1,18 +1,5 @@
 package com.constellio.model.services.search.reliability;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.assertj.core.data.Index;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
@@ -21,6 +8,18 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.assertj.core.data.Index;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EnglishSimpleSearchReliabilityAcceptanceTest extends ConstellioTest {
 
@@ -120,6 +119,7 @@ public class EnglishSimpleSearchReliabilityAcceptanceTest extends ConstellioTest
 		assertThat(simpleSearch("CO-4?621")).containsOnly(record5, record7);
 		assertThat(simpleSearch("CO-48*")).containsOnly(record5, record6);
 	}
+
 	@Test
 	public void whenSearchingWithAndORNotThenOK()
 			throws Exception {

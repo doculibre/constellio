@@ -18,7 +18,12 @@ import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServices;
 import com.vaadin.data.Property;
-import com.vaadin.ui.*;
+import com.vaadin.ui.AbstractSelect;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -43,9 +48,9 @@ public class ESSMBConnectorUrlCriterionExtension extends SearchCriterionExtensio
 	@Override
 	public Component getComponentForCriterion(Criterion criterion) {
 		String metadataCode = criterion.getMetadataCode();
-		if(metadataCode.endsWith("_" + ConnectorSmbFolder.PARENT_CONNECTOR_URL) ||
-				(metadataCode.startsWith(ConnectorSmbFolder.SCHEMA_TYPE + "_") &&
-						metadataCode.endsWith("_" + ConnectorSmbFolder.CONNECTOR_URL))) {
+		if (metadataCode.endsWith("_" + ConnectorSmbFolder.PARENT_CONNECTOR_URL) ||
+			(metadataCode.startsWith(ConnectorSmbFolder.SCHEMA_TYPE + "_") &&
+			 metadataCode.endsWith("_" + ConnectorSmbFolder.CONNECTOR_URL))) {
 
 			return buildComponentForParentConnectorUrl(criterion);
 		}
@@ -61,7 +66,7 @@ public class ESSMBConnectorUrlCriterionExtension extends SearchCriterionExtensio
 			@Override
 			public void valueChange(Property.ValueChangeEvent event) {
 				String connectorUrl = null;
-				if(value.getValue() != null) {
+				if (value.getValue() != null) {
 					connectorUrl = esSchemasRecordsServices.wrapConnectorSmbFolder(recordServices.getDocumentById(value.getValue())).getConnectorUrl();
 				}
 				criterion.setValue(connectorUrl);
@@ -95,8 +100,8 @@ public class ESSMBConnectorUrlCriterionExtension extends SearchCriterionExtensio
 	private class SMBParentConnectorUrlLookupField extends LookupRecordField {
 		public SMBParentConnectorUrlLookupField() {
 			super(new SMBParentConnectorUrlTextInputDataProvider(getInstance(),
-					getCurrentSessionContext(), ConnectorSmbFolder.SCHEMA_TYPE, false),
-					new LookupTreeDataProvider[] {getRecordLookupTreeDataProvider(appLayerFactory, recordServices)},
+							getCurrentSessionContext(), ConnectorSmbFolder.SCHEMA_TYPE, false),
+					new LookupTreeDataProvider[]{getRecordLookupTreeDataProvider(appLayerFactory, recordServices)},
 					getTaxonomyRecordIdToContextCaptionConverter(esSchemasRecordsServices, recordServices)
 			);
 		}
@@ -104,12 +109,15 @@ public class ESSMBConnectorUrlCriterionExtension extends SearchCriterionExtensio
 
 	private class SMBParentConnectorUrlTextInputDataProvider extends RecordTextInputDataProvider {
 
-		public SMBParentConnectorUrlTextInputDataProvider(ConstellioFactories constellioFactories, SessionContext sessionContext, String schemaTypeCode, boolean writeAccess) {
+		public SMBParentConnectorUrlTextInputDataProvider(ConstellioFactories constellioFactories,
+														  SessionContext sessionContext, String schemaTypeCode,
+														  boolean writeAccess) {
 			super(constellioFactories, sessionContext, ConnectorSmbFolder.SCHEMA_TYPE, writeAccess);
 		}
 	}
 
-	static private RecordLookupTreeDataProvider getRecordLookupTreeDataProvider(AppLayerFactory appLayerFactory, final RecordServices recordServices){
+	static private RecordLookupTreeDataProvider getRecordLookupTreeDataProvider(AppLayerFactory appLayerFactory,
+																				final RecordServices recordServices) {
 		return new RecordLookupTreeDataProvider(ConnectorSmbFolder.SCHEMA_TYPE, false, new SmbRecordTreeNodesDataProvider(ESTaxonomies.SMB_FOLDERS, appLayerFactory)) {
 			@Override
 			public boolean isSelectable(String selection) {
@@ -123,24 +131,26 @@ public class ESSMBConnectorUrlCriterionExtension extends SearchCriterionExtensio
 		};
 	}
 
-	static private TaxonomyRecordIdToContextCaptionConverter getTaxonomyRecordIdToContextCaptionConverter(final ESSchemasRecordsServices esSchemasRecordsServices, final RecordServices recordServices) {
+	static private TaxonomyRecordIdToContextCaptionConverter getTaxonomyRecordIdToContextCaptionConverter(
+			final ESSchemasRecordsServices esSchemasRecordsServices, final RecordServices recordServices) {
 		return new TaxonomyRecordIdToContextCaptionConverter() {
 			@Override
-			public String convertToPresentation(String value, Class<? extends String> targetType, Locale locale) throws ConversionException {
+			public String convertToPresentation(String value, Class<? extends String> targetType, Locale locale)
+					throws ConversionException {
 				try {
 					return super.convertToPresentation(value, targetType, locale);
 				} catch (Exception e) {
 					String connectorUrl = value;
-					if(connectorUrl != null) {
-						if(connectorUrl.startsWith("\"")) {
+					if (connectorUrl != null) {
+						if (connectorUrl.startsWith("\"")) {
 							connectorUrl = connectorUrl.replaceFirst("\"", "");
 						}
-						if(connectorUrl.endsWith("\"")) {
+						if (connectorUrl.endsWith("\"")) {
 							connectorUrl = connectorUrl.substring(0, connectorUrl.lastIndexOf("\""));
 						}
 						Record connector = recordServices.getRecordByMetadata(esSchemasRecordsServices.connectorSmbFolder.connectorUrl(), connectorUrl);
 						String id = null;
-						if(connector != null) {
+						if (connector != null) {
 							id = connector.getId();
 						}
 						return super.convertToPresentation(id, targetType, locale);

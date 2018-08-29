@@ -1,35 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DESTROYED;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
-import static com.constellio.app.modules.rm.model.validators.FolderValidator.CATEGORY_CODE;
-import static com.constellio.app.modules.rm.model.validators.FolderValidator.RULE_CODE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static com.constellio.sdk.tests.TestUtils.frenchMessages;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
@@ -70,6 +40,35 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DESTROYED;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
+import static com.constellio.app.modules.rm.model.validators.FolderValidator.CATEGORY_CODE;
+import static com.constellio.app.modules.rm.model.validators.FolderValidator.RULE_CODE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 public class FolderAcceptanceTest extends ConstellioTest {
 
@@ -656,7 +655,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getMainCopyRule()).isEqualTo(principal("888-5-T", PA));
 		assertThat(folder.getActiveRetentionCode()).isEqualTo("888");
 		assertThat(folder.getSemiActiveRetentionCode()).isNull();
-		assertThat(folder.getCopyRulesExpectedTransferDates()).isEqualTo(asList(new LocalDate[] { null, null }));
+		assertThat(folder.getCopyRulesExpectedTransferDates()).isEqualTo(asList(new LocalDate[]{null, null}));
 		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(march31_2020, march31_2020);
 		assertThat(folder.getCopyRulesExpectedDepositDates()).containsExactly(march31_2020, null);
 
@@ -815,7 +814,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getSemiActiveRetentionCode()).isNull();
 		assertThat(folder.getCopyRulesExpectedTransferDates()).containsExactly((LocalDate) null);
 		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(march31_2075);
-		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[] { null }));
+		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[]{null}));
 
 		assertThat(folder.getExpectedTransferDate()).isNull();
 		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2075);
@@ -908,7 +907,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getSemiActiveRetentionCode()).isNull();
 		assertThat(folder.getCopyRulesExpectedTransferDates()).containsExactly((LocalDate) null);
 		assertThat(folder.getCopyRulesExpectedDestructionDates()).containsExactly(march31_2035);
-		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[] { null }));
+		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[]{null}));
 
 		assertThat(folder.getExpectedTransferDate()).isNull();
 		assertThat(folder.getExpectedDestructionDate()).isEqualTo(march31_2035);
@@ -954,9 +953,9 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getActualDestructionDate()).isNull();
 		assertThat(folder.getApplicableCopyRules()).containsExactly(principal("888-5-T", PA), principal("888-5-D", MD));
 		assertThat(folder.getMainCopyRule()).isEqualTo(principal("888-5-T", PA));
-		assertThat(folder.getCopyRulesExpectedTransferDates()).isEqualTo(asList(new LocalDate[] { null, null }));
-		assertThat(folder.getCopyRulesExpectedDestructionDates()).isEqualTo(asList(new LocalDate[] { null, null }));
-		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[] { null, null }));
+		assertThat(folder.getCopyRulesExpectedTransferDates()).isEqualTo(asList(new LocalDate[]{null, null}));
+		assertThat(folder.getCopyRulesExpectedDestructionDates()).isEqualTo(asList(new LocalDate[]{null, null}));
+		assertThat(folder.getCopyRulesExpectedDepositDates()).isEqualTo(asList(new LocalDate[]{null, null}));
 
 		assertThat(folder.getExpectedTransferDate()).isNull();
 		assertThat(folder.getExpectedDestructionDate()).isNull();
@@ -2993,7 +2992,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 	}
 
 	private void ensureValidationError(RecordServicesException e, Class<?> validatorClass, String errorCode,
-			Map<String, Object> parameters) {
+									   Map<String, Object> parameters) {
 		if (e instanceof ValidationException) {
 			ValidationException ve = (ValidationException) e;
 			ValidationErrors validationErrors = ve.getErrors();

@@ -1,15 +1,12 @@
 package com.constellio.model.utils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.when;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.CannotInstanciate;
+import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.UnsupportedArgument;
+import com.constellio.model.utils.ParametrizedInstanceUtilsTestResources.CorrectParametrizedClass;
+import com.constellio.model.utils.ParametrizedInstanceUtilsTestResources.PrivateConstructorClass;
+import com.constellio.model.utils.ParametrizedInstanceUtilsTestResources.UnsupportedArgumentClass;
+import com.constellio.model.utils.ParametrizedInstanceUtilsTestResources.UnsupportedChildArgumentClass;
 import org.jdom2.Attribute;
 import org.jdom2.Element;
 import org.joda.time.LocalDate;
@@ -18,13 +15,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.CannotInstanciate;
-import com.constellio.model.utils.ParametrizedInstanceUtilsRuntimeException.UnsupportedArgument;
-import com.constellio.model.utils.ParametrizedInstanceUtilsTestResources.CorrectParametrizedClass;
-import com.constellio.model.utils.ParametrizedInstanceUtilsTestResources.PrivateConstructorClass;
-import com.constellio.model.utils.ParametrizedInstanceUtilsTestResources.UnsupportedArgumentClass;
-import com.constellio.model.utils.ParametrizedInstanceUtilsTestResources.UnsupportedChildArgumentClass;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.when;
 
 public class ParametrizedInstanceUtilsTest {
 

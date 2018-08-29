@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.management.configs;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.SystemConfigurationGroupVO;
 import com.constellio.app.ui.entities.SystemConfigurationVO;
@@ -14,6 +10,10 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConfigManagementPresenter extends BasePresenter<ConfigManagementView> {
 
@@ -96,8 +96,8 @@ public class ConfigManagementPresenter extends BasePresenter<ConfigManagementVie
 			SystemConfiguration systemConfiguration = previousConfigs.get(i);
 			SystemConfigurationVO systemConfigurationVO = systemConfigurationGroup.getSystemConfigurationVO(i);
 			if (systemConfigurationVO.isUpdated()) {
-				reindexingRequired = reindexingRequired || systemConfigurationsManager
-						.setValue(systemConfiguration, systemConfigurationVO.getValue());
+				reindexingRequired = systemConfigurationsManager.setValue(systemConfiguration, systemConfigurationVO.getValue())
+									 || reindexingRequired;
 				systemConfigurationVO.afterSetValue();
 				systemConfigurationGroup.valueSave(i);
 			}

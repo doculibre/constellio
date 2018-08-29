@@ -1,22 +1,5 @@
 package com.constellio.app.modules.tasks.extensions;
 
-import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_TO_YOU;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.model.entities.records.Record;
@@ -33,6 +16,22 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_ASSIGNED_TO_YOU;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
@@ -76,10 +75,10 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 	public void givenTaskAssigneeModifiedToHeroesThenEmailToSendToHeroesCreatedWithTaskAssignedToYouTemplate()
 			throws RecordServicesException {
 		Group heroes = users.heroesIn(zeCollection);
-        for (final UserCredential user : getModelLayerFactory().newUserServices().getGlobalGroupActifUsers(heroes.getCode())) {
-            user.withPersonalEmails(Arrays.asList(user.getUsername()+".personal.mail@gmail.com"));
-            getModelLayerFactory().newUserServices().addUpdateUserCredential(user);
-        }
+		for (final UserCredential user : getModelLayerFactory().newUserServices().getGlobalGroupActifUsers(heroes.getCode())) {
+			user.withPersonalEmails(Arrays.asList(user.getUsername() + ".personal.mail@gmail.com"));
+			getModelLayerFactory().newUserServices().addUpdateUserCredential(user);
+		}
 		List<String> heroesEmails = getGroupUsersEmails(heroes);
 		assertThat(heroesEmails).isNotEmpty();
 		recordServices.add(zeTask.setAssigneeGroupsCandidates(asList(heroes.getId())).setAssignationDate(now.toLocalDate())
@@ -113,8 +112,8 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 	public void givenTaskCreatedWithAssigneeThenEmailToSendCreatedWithTaskAssignedToYouTemplate()
 			throws RecordServicesException {
 		User alice = users.aliceIn(zeCollection);
-        alice.setPersonalEmails(Arrays.asList("alice.personal.mail@gmail.com"));
-        recordServices.update(alice);
+		alice.setPersonalEmails(Arrays.asList("alice.personal.mail@gmail.com"));
+		recordServices.update(alice);
 		Task newTask = tasksSchemas.newTask();
 		recordServices
 				.add(newTask.setTitle("newTask").setAssignee(alice.getId()).setAssigner(alice.getId())
@@ -124,9 +123,9 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 
 		assertThat(toAlice.getTo().size()).isEqualTo(2);
 
-        final Set<String> actualRecipents = new HashSet<>(Arrays.asList(toAlice.getTo().get(0).getEmail(), toAlice.getTo().get(1).getEmail()));
-        final List<String> expectedRecipents = new ArrayList<>(alice.getPersonalEmails());
-        expectedRecipents.add(alice.getEmail());
+		final Set<String> actualRecipents = new HashSet<>(Arrays.asList(toAlice.getTo().get(0).getEmail(), toAlice.getTo().get(1).getEmail()));
+		final List<String> expectedRecipents = new ArrayList<>(alice.getPersonalEmails());
+		expectedRecipents.add(alice.getEmail());
 		assertThat(actualRecipents).isEqualTo(new HashSet<>(expectedRecipents));
 	}
 
@@ -141,11 +140,11 @@ public class TaskSchemasExtensionTestAssigneeAlertAcceptanceTest extends Constel
 				returnList.add(email);
 			}
 
-            if (!CollectionUtils.isEmpty(user.getPersonalEmails())) {
-                for (final String personalEmail : user.getPersonalEmails()) {
-                    returnList.add(personalEmail);
-                }
-            }
+			if (!CollectionUtils.isEmpty(user.getPersonalEmails())) {
+				for (final String personalEmail : user.getPersonalEmails()) {
+					returnList.add(personalEmail);
+				}
+			}
 		}
 		return returnList;
 	}

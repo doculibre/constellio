@@ -27,7 +27,7 @@ public class CoreMigrationTo_6_1 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor6_1 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor6_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

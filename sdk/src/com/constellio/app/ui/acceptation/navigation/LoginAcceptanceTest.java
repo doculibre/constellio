@@ -1,16 +1,5 @@
 package com.constellio.app.ui.acceptation.navigation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -18,6 +7,16 @@ import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 @InDevelopmentTest

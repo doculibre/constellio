@@ -1,10 +1,5 @@
 package com.constellio.model.services.contents;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.model.entities.records.Content;
@@ -15,6 +10,11 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataList;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ContentModificationsBuilder {
 
@@ -156,7 +156,8 @@ public class ContentModificationsBuilder {
 		}
 	}
 
-	private List<Content> getPreviousDeleteContents(List<Content> previousMetadataContents, List<Content> metadataContents) {
+	private List<Content> getPreviousDeleteContents(List<Content> previousMetadataContents,
+													List<Content> metadataContents) {
 		List<Content> removedContents = new ArrayList<>();
 		for (Content previousMetadataContent : previousMetadataContents) {
 			if (!hasContentWithId(metadataContents, previousMetadataContent.getId())) {

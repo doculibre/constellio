@@ -4,12 +4,13 @@ import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
 import org.vaadin.addons.lazyquerycontainer.QueryFactory;
 
 public abstract class DecomValidatorsTableLazyContainer extends LazyQueryContainer {
-    public static final String LABEL = "label";
-    public static final String VALUE = "value";
+	public static final String LABEL = "label";
+	public static final String VALUE = "value";
 
-    public DecomValidatorsTableLazyContainer(QueryFactory queryFactory, Object idPropertyId, int batchSize, boolean compositeItems) {
-        super(queryFactory, idPropertyId, batchSize, compositeItems);
-    }
+	public DecomValidatorsTableLazyContainer(QueryFactory queryFactory, Object idPropertyId, int batchSize,
+											 boolean compositeItems) {
+		super(queryFactory, idPropertyId, batchSize, compositeItems);
+	}
 
     /*public DecomValidatorsTableLazyContainer(DecomValidatorsDataProvider dataProvider) {
         super(new DecomValidatorVOLazyQueryDefinition(), new DecomValidatorVOLazyQueryFactory(dataProvider));

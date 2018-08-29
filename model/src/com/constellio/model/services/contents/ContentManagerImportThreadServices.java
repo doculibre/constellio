@@ -1,5 +1,19 @@
 package com.constellio.model.services.contents;
 
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.BigFileEntry;
+import com.constellio.data.utils.BigFileIterator;
+import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,21 +26,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.utils.BigFileEntry;
-import com.constellio.data.utils.BigFileIterator;
-import com.constellio.data.utils.Factory;
-import com.constellio.data.utils.PropertyFileUtils;
-import com.constellio.data.utils.TimeProvider;
-import com.constellio.model.services.contents.ContentManagerException.ContentManagerException_ContentNotParsed;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 public class ContentManagerImportThreadServices {
 
@@ -220,7 +219,7 @@ public class ContentManagerImportThreadServices {
 
 	private void writeNewEntriesInIndex(Map<String, ContentVersionDataSummary> newEntriesInIndex) {
 		Map<String, String> map = indexProperties.exists() ?
-				new HashMap<>(PropertyFileUtils.loadKeyValues(indexProperties)) : new HashMap<String, String>();
+								  new HashMap<>(PropertyFileUtils.loadKeyValues(indexProperties)) : new HashMap<String, String>();
 		for (Map.Entry<String, ContentVersionDataSummary> entry : newEntriesInIndex.entrySet()) {
 			map.put(entry.getKey(), toStringValue(entry.getValue()));
 		}
@@ -285,7 +284,7 @@ public class ContentManagerImportThreadServices {
 		int currentBatchSize = 0;
 		for (File fileToImport : allFilesRecursivelyIn(toImportFolder)) {
 			if (currentBatchSize < batchSize
-					&& TimeProvider.getLocalDateTime().minusSeconds(10).toDate().getTime() >= fileToImport.lastModified()) {
+				&& TimeProvider.getLocalDateTime().minusSeconds(10).toDate().getTime() >= fileToImport.lastModified()) {
 				if (fileToImport.getName().endsWith(".bigf")) {
 					Integer size = extractBigFile(fileToImport);
 					filesReadyToImport.add(fileToImport);
@@ -368,7 +367,7 @@ public class ContentManagerImportThreadServices {
 		private ContentVersionDataSummary contentVersionDataSummary;
 
 		public FilenameSha1PropertiesEntry(String name,
-				ContentVersionDataSummary contentVersionDataSummary) {
+										   ContentVersionDataSummary contentVersionDataSummary) {
 			this.name = name;
 			this.contentVersionDataSummary = contentVersionDataSummary;
 		}

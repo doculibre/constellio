@@ -1,10 +1,10 @@
 package com.constellio.model.entities.calculators;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.io.Serializable;
+import java.util.List;
 
 public interface MetadataValueCalculator<T> extends Serializable {
 

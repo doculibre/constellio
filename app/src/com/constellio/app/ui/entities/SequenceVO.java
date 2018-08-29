@@ -3,11 +3,11 @@ package com.constellio.app.ui.entities;
 import java.io.Serializable;
 
 public class SequenceVO implements Serializable {
-	
+
 	private final String sequenceId;
-	
+
 	private final String sequenceTitle;
-	
+
 	private Long sequenceValue;
 
 	public SequenceVO(String sequenceId, String sequenceTitle, Long sequenceValue) {

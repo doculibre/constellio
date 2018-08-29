@@ -1,5 +1,9 @@
 package com.constellio.app.ui.params;
 
+import com.vaadin.server.Page;
+import com.vaadin.ui.UI;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -8,11 +12,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-
-import com.vaadin.server.Page;
-import com.vaadin.ui.UI;
 
 public class ParamUtils {
 

@@ -1,11 +1,10 @@
 package com.constellio.model.services.encrypt;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EncryptionServiceAcceptanceTest extends ConstellioTest {
 	EncryptionServices encryptionService;

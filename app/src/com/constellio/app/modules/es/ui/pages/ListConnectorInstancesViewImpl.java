@@ -1,9 +1,5 @@
 package com.constellio.app.modules.es.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
@@ -26,6 +22,9 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListConnectorInstancesViewImpl extends BaseViewImpl implements ListConnectorInstancesView {
 
@@ -63,7 +62,7 @@ public class ListConnectorInstancesViewImpl extends BaseViewImpl implements List
 	private Table buildRecordsTables() {
 		final RecordVODataProvider dataProvider = presenter.getDataProvider();
 		Container recordsContainer = new RecordVOLazyContainer(dataProvider);
-		for(Metadata toRemove: presenter.columnToRemove()) {
+		for (Metadata toRemove : presenter.columnToRemove()) {
 			recordsContainer.removeContainerProperty(toRemove);
 		}
 		ButtonsContainer buttonsContainer = new ButtonsContainer(recordsContainer, "buttons");
@@ -94,19 +93,19 @@ public class ListConnectorInstancesViewImpl extends BaseViewImpl implements List
 				};
 			}
 		});
-//		buttonsContainer.addButton(new ContainerButton() {
-//			@Override
-//			protected Button newButtonInstance(final Object itemId) {
-//				return new EditSchemaButton() {
-//					@Override
-//					protected void buttonClick(ClickEvent event) {
-//						Integer index = (Integer) itemId;
-//						RecordVO entity = dataProvider.getRecordVO(index);
-//						presenter.editSchemasButtonClicked(entity);
-//					}
-//				};
-//			}
-//		});
+		//		buttonsContainer.addButton(new ContainerButton() {
+		//			@Override
+		//			protected Button newButtonInstance(final Object itemId) {
+		//				return new EditSchemaButton() {
+		//					@Override
+		//					protected void buttonClick(ClickEvent event) {
+		//						Integer index = (Integer) itemId;
+		//						RecordVO entity = dataProvider.getRecordVO(index);
+		//						presenter.editSchemasButtonClicked(entity);
+		//					}
+		//				};
+		//			}
+		//		});
 		buttonsContainer.addButton(new ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {

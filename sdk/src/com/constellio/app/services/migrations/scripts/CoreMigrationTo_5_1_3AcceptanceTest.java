@@ -1,6 +1,13 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.model.conf.email.EmailServerConfiguration;
+import com.constellio.model.services.emails.OldSmtpServerTestConfig;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.SDKFoldersLocator;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import org.jdom2.output.XMLOutputter;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,15 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
 
-import org.jdom2.output.XMLOutputter;
-import org.junit.Test;
-
-import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
-import com.constellio.model.conf.email.EmailServerConfiguration;
-import com.constellio.model.services.emails.OldSmtpServerTestConfig;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.SDKFoldersLocator;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {

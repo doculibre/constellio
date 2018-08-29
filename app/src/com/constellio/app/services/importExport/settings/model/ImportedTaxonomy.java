@@ -1,20 +1,19 @@
 package com.constellio.app.services.importExport.settings.model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 public class ImportedTaxonomy {
 
 	private String code;
-	private String title;
+	private Map<Language, String> title;
 	private List<String> classifiedTypes = new ArrayList<>();
 	private Boolean visibleOnHomePage;
 	private List<String> userIds = new ArrayList<>();
@@ -25,13 +24,23 @@ public class ImportedTaxonomy {
 		return this;
 	}
 
-	public ImportedTaxonomy setTitle(String title) {
+	public ImportedTaxonomy setTitle(Map<Language, String> title) {
 		this.title = title;
 		return this;
 	}
 
-	public String getTitle() {
+	public String getTitle(Language language) {
+		return title.get(language);
+	}
+
+	public Map<Language, String> getTitle() {
 		return title;
+	}
+
+	public List<Language> getTitleLanguage() {
+		List<Language> languageList = new ArrayList<>();
+		languageList.addAll(title.keySet());
+		return languageList;
 	}
 
 	public ImportedTaxonomy setClassifiedTypes(List classifiedTypes) {

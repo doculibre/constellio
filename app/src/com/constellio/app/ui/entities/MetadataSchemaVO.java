@@ -1,15 +1,14 @@
 package com.constellio.app.ui.entities;
 
+import com.constellio.app.ui.application.ConstellioUI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.app.ui.application.ConstellioUI;
 
 @SuppressWarnings("serial")
 public class MetadataSchemaVO implements Serializable {
@@ -24,13 +23,23 @@ public class MetadataSchemaVO implements Serializable {
 	final List<String> displayMetadataCodes;
 	final List<String> searchMetadataCodes;
 	final List<String> tableMetadataCodes;
+	final String localCode;
+	final CollectionInfoVO collectionInfoVO;
 
-	public MetadataSchemaVO(String code, String collection, Map<Locale, String> labels) {
-		this(code, collection, null, null, null, null, labels);
+	public MetadataSchemaVO(String code, String collection, Map<Locale, String> labels,
+							CollectionInfoVO collectionInfoVO) {
+		this(code, collection, null, null, null, null, null, labels, collectionInfoVO);
 	}
 
-	public MetadataSchemaVO(String code, String collection, List<String> formMetadataCodes, List<String> displayMetadataCodes,
-			List<String> tableMetadataCodes, List<String> searchMetadataCodes, Map<Locale, String> labels) {
+	public MetadataSchemaVO(String code, String collection, String localCode, Map<Locale, String> labels,
+							CollectionInfoVO collectionInfoVO) {
+		this(code, collection, localCode, null, null, null, null, labels, collectionInfoVO);
+	}
+
+	public MetadataSchemaVO(String code, String collection, String localCode, List<String> formMetadataCodes,
+							List<String> displayMetadataCodes,
+							List<String> tableMetadataCodes, List<String> searchMetadataCodes,
+							Map<Locale, String> labels, CollectionInfoVO collectionInfoVO) {
 		super();
 		this.code = code;
 		this.collection = collection;
@@ -39,6 +48,12 @@ public class MetadataSchemaVO implements Serializable {
 		this.searchMetadataCodes = searchMetadataCodes;
 		this.tableMetadataCodes = tableMetadataCodes;
 		this.labels = labels;
+		this.localCode = localCode;
+		this.collectionInfoVO = collectionInfoVO;
+	}
+
+	public String getLocalCode() {
+		return localCode;
 	}
 
 	public String getCode() {
@@ -73,6 +88,10 @@ public class MetadataSchemaVO implements Serializable {
 		return metadatas;
 	}
 
+	public CollectionInfoVO getCollectionInfoVO() {
+		return collectionInfoVO;
+	}
+
 	public List<MetadataVO> getFormMetadatas() {
 		List<MetadataVO> formMetadatas;
 		List<String> formMetadataCodes = getFormMetadataCodes();
@@ -81,8 +100,8 @@ public class MetadataSchemaVO implements Serializable {
 		} else {
 			formMetadatas = new ArrayList<>();
 			for (String formMetadataCode : formMetadataCodes) {
-				MetadataVO metadataVO = getMetadata(formMetadataCode);
-				formMetadatas.add(metadataVO);
+				List<MetadataVO> metadataVOs = getMetadatas(formMetadataCode);
+				formMetadatas.addAll(metadataVOs);
 			}
 		}
 		return formMetadatas;
@@ -96,8 +115,8 @@ public class MetadataSchemaVO implements Serializable {
 		} else {
 			displayMetadatas = new ArrayList<>();
 			for (String displayMetadataCode : displayMetadataCodes) {
-				MetadataVO metadataVO = getMetadata(displayMetadataCode);
-				displayMetadatas.add(metadataVO);
+				List<MetadataVO> metadataVOs = getMetadatas(displayMetadataCode);
+				displayMetadatas.addAll(metadataVOs);
 			}
 		}
 		return displayMetadatas;
@@ -111,12 +130,8 @@ public class MetadataSchemaVO implements Serializable {
 		} else {
 			tableMetadatas = new ArrayList<>();
 			for (String tableMetadataCode : tableMetadataCodes) {
-				MetadataVO metadataVO = getMetadata(tableMetadataCode);
-				if (metadataVO == null) {
-					LOGGER.warn("No such metadata '" + tableMetadataCode + "'");
-				} else {
-					tableMetadatas.add(metadataVO);
-				}
+				List<MetadataVO> metadataVOs = getMetadatas(tableMetadataCode);
+				tableMetadatas.addAll(metadataVOs);
 			}
 		}
 		return tableMetadatas;
@@ -130,29 +145,29 @@ public class MetadataSchemaVO implements Serializable {
 		} else {
 			searchMetadatas = new ArrayList<>();
 			for (String searchMetadataCode : searchMetadataCodes) {
-				MetadataVO metadataVO = getMetadata(searchMetadataCode);
-				if (metadataVO == null) {
-					LOGGER.warn("No such metadata '" + searchMetadataCode + "'");
-				} else {
-					searchMetadatas.add(metadataVO);
-				}
+				List<MetadataVO> metadataVOs = getMetadatas(searchMetadataCode);
+				searchMetadatas.addAll(metadataVOs);
 			}
 		}
 		return searchMetadatas;
 	}
 
-	public MetadataVO getMetadata(String metadataCode) {
-		MetadataVO match = null;
+	public List<MetadataVO> getMetadatas(String metadataCode) {
+		List<MetadataVO> matches = new ArrayList<>();
 		String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
 		for (MetadataVO schemaMetadata : metadatas) {
 			String schemaMetadataCode = schemaMetadata.getCode();
 			String schemaMetadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(schemaMetadataCode);
 			if (schemaMetadataCodeWithoutPrefix.equals(metadataCodeWithoutPrefix)) {
-				match = schemaMetadata;
-				break;
+				matches.add(schemaMetadata);
 			}
 		}
-		return match;
+		return matches;
+	}
+
+	public MetadataVO getMetadata(String metadataCode) {
+		List<MetadataVO> matches = getMetadatas(metadataCode);
+		return !matches.isEmpty() ? matches.get(0) : null;
 	}
 
 	public Map<Locale, String> getLabels() {
@@ -182,23 +197,30 @@ public class MetadataSchemaVO implements Serializable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		MetadataSchemaVO other = (MetadataSchemaVO) obj;
 		if (code == null) {
-			if (other.code != null)
+			if (other.code != null) {
 				return false;
-		} else if (!code.equals(other.code))
+			}
+		} else if (!code.equals(other.code)) {
 			return false;
+		}
 		if (collection == null) {
-			if (other.collection != null)
+			if (other.collection != null) {
 				return false;
-		} else if (!collection.equals(other.collection))
+			}
+		} else if (!collection.equals(other.collection)) {
 			return false;
+		}
 		return true;
 	}
 

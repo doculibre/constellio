@@ -1,15 +1,13 @@
 package com.constellio.app.ui.i18n;
 
-import java.io.File;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Set;
-
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.Language;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
@@ -19,14 +17,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.entities.EnumWithSmallCode;
-import com.constellio.model.entities.Language;
-import com.constellio.model.frameworks.validation.ValidationError;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.utils.i18n.Utf8ResourceBundles;
+import java.io.File;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
 
 public class i18n {
 
@@ -58,10 +57,22 @@ public class i18n {
 	}
 
 	public static String $(String key) {
-		return $(key, (Object) null);
+		return $(key, null, (Object) null);
 	}
 
 	public static String $(String key, Object... args) {
+		return $(key, null, args);
+	}
+
+	public static String $(String key, Map<String, Object> args) {
+		return $(key, null, args);
+	}
+
+	public static String $(String key, Locale locale) {
+		return $(key, locale, (Object) null);
+	}
+
+	public static String $(String key, Locale locale, Object... args) {
 		String message = null;
 
 		if (key == null) {
@@ -69,7 +80,7 @@ public class i18n {
 		}
 		for (Utf8ResourceBundles bundle : getBundles()) {
 
-			ResourceBundle messages = bundle.getBundle(getLocale());
+			ResourceBundle messages = bundle.getBundle(locale != null ? locale : getLocale());
 
 			if (messages.containsKey(key)) {
 
@@ -91,36 +102,14 @@ public class i18n {
 		return message;
 	}
 
-	public static String $(String key, Locale locale) {
+	public static String $(String key, Locale locale, Map<String, Object> args) {
 		String message = null;
 
 		if (key == null) {
 			return "";
 		}
 		for (Utf8ResourceBundles bundle : getBundles()) {
-
-			ResourceBundle messages = bundle.getBundle(locale);
-
-			if (messages.containsKey(key)) {
-				message = messages.getString(key);
-			}
-		}
-
-		if (message == null) {
-			message = key;
-		}
-
-		return message;
-	}
-
-	public static String $(String key, Map<String, Object> args) {
-		String message = null;
-
-		if (key == null) {
-			return "";
-		}
-		for (Utf8ResourceBundles bundle : getBundles()) {
-			ResourceBundle messages = bundle.getBundle(getLocale());
+			ResourceBundle messages = bundle.getBundle(locale != null ? locale : getLocale());
 			if (messages.containsKey(key)) {
 				message = messages.getString(key);
 				if (args.get("prefix") != null) {
@@ -320,9 +309,13 @@ public class i18n {
 	}
 
 	public static String $(ValidationError error) {
+		return $(error, null);
+	}
+
+	public static String $(ValidationError error, Locale locale) {
 		String key = error.getCode();
 		Map<String, Object> args = error.getParameters();
-		return $(key, args);
+		return $(key, locale, args);
 	}
 
 	public static String $(Throwable throwable) {

@@ -1,27 +1,27 @@
 package com.constellio.model.entities.calculators.dependencies;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.model.entities.calculators.DynamicDependencyValues;
+import com.constellio.model.entities.schemas.Metadata;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.calculators.DynamicDependencyValues;
-import com.constellio.model.entities.schemas.Metadata;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DynamicLocalDependencyTest {
 	DynamicLocalDependency dynamicLocalDependency = new DynamicLocalDependency() {
 		@Override
-		public boolean isDependentOf(Metadata metadata) {
+		public boolean isDependentOf(Metadata metadata, Metadata calculatedMetadata) {
 			return true;
 		}
 	};
+
 	@Mock
 	private DynamicDependencyValues values = mock(DynamicDependencyValues.class);
 

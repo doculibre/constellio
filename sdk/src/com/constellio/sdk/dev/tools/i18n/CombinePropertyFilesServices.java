@@ -1,5 +1,8 @@
 package com.constellio.sdk.dev.tools.i18n;
 
+import com.constellio.data.utils.PropertyFileUtils;
+import org.apache.commons.io.FileUtils;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -9,10 +12,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.io.FileUtils;
-
-import com.constellio.data.utils.PropertyFileUtils;
 
 public class CombinePropertyFilesServices {
 

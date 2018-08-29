@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.globalGroup;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.constellio.app.ui.entities.UserCredentialVO;
@@ -20,6 +14,12 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGroupView> {
@@ -176,7 +176,8 @@ public class DisplayGlobalGroupPresenter extends BasePresenter<DisplayGlobalGrou
 		return parameters;
 	}
 
-	UserCredentialVODataProvider newUserCredentialVODataProvider(String groupCode, UserCredentialToVOBuilder voBuilder) {
+	UserCredentialVODataProvider newUserCredentialVODataProvider(String groupCode,
+																 UserCredentialToVOBuilder voBuilder) {
 		return new UserCredentialVODataProvider(voBuilder, modelLayerFactory, groupCode);
 	}
 

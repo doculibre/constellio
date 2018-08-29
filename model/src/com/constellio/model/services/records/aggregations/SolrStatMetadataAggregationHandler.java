@@ -1,10 +1,5 @@
 package com.constellio.model.services.records.aggregations;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -13,6 +8,11 @@ import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParam
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class SolrStatMetadataAggregationHandler implements MetadataAggregationHandler {
 

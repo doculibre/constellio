@@ -1,23 +1,22 @@
 package com.constellio.app.modules.es.migrations;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
 import com.constellio.app.modules.es.connectors.http.ConnectorHttp;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.model.entities.Language;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class ESMigrationsAcceptanceTest extends ConstellioTest {
@@ -90,11 +89,11 @@ public class ESMigrationsAcceptanceTest extends ConstellioTest {
 	@Parameterized.Parameters(name = "{0}")
 	public static Collection<Object[]> testCases() {
 		List<Object[]> states = new ArrayList<>();
-		states.add(new Object[] { "givenNewInstallation" });
+		states.add(new Object[]{"givenNewInstallation"});
 
 		for (String state : new SDKFoldersLocator().getInitialStatesFolder().list()) {
 			if (state.endsWith(".zip") && state.contains("_es_")) {
-				states.add(new Object[] { state.replace(".zip", "") });
+				states.add(new Object[]{state.replace(".zip", "")});
 			}
 		}
 

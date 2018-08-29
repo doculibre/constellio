@@ -1,16 +1,5 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.sdk.tests.TestUtils.getElementsClasses;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidator1;
 import com.constellio.model.services.schemas.testimpl.TestRecordMetadataValidator2;
@@ -19,6 +8,16 @@ import com.constellio.model.services.schemas.testimpl.problems.TestRecordMetadat
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import static com.constellio.sdk.tests.TestUtils.getElementsClasses;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ClassListBuilderTest extends ConstellioTest {

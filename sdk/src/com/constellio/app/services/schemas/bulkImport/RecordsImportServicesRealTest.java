@@ -1,62 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE;
-import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.DISABLED_METADATA_CODE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_LOCAL_CODE;
-import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.SYSTEM_RESERVED_METADATA_CODE;
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.Schemas.CODE;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static com.constellio.sdk.tests.TestUtils.extractingWarningsSimpleCodeAndParameters;
-import static com.constellio.sdk.tests.TestUtils.frenchMessages;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasFixedSequence;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasSequenceDefinedByMetadata;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsReferencing;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSystemReserved;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
-import static java.io.File.separator;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.spy;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.solr.common.params.SolrParams;
-import org.assertj.core.api.Condition;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportValidationErrorsBehavior;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
@@ -76,8 +19,6 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
@@ -131,6 +72,64 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.io.FileUtils;
+import org.apache.solr.common.params.SolrParams;
+import org.assertj.core.api.Condition;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE;
+import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.DISABLED_METADATA_CODE;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.LEGACY_ID_LOCAL_CODE;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.SYSTEM_RESERVED_METADATA_CODE;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.Schemas.CODE;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.extractingWarningsSimpleCodeAndParameters;
+import static com.constellio.sdk.tests.TestUtils.frenchMessages;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasFixedSequence;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasSequenceDefinedByMetadata;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsReferencing;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSystemReserved;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
+import static java.io.File.separator;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 
 public class RecordsImportServicesRealTest extends ConstellioTest {
 
@@ -1057,6 +1056,72 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenImportingValuesInAMultilingualMetadataThenWrittenForGivenLocalOrMainDataLanguage()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata(whichIsMultilingual));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value1"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value2", Locale.FRENCH)
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value3", Locale.ENGLISH));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value4")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value5", Locale.ENGLISH));
+
+		bulkImport(importDataProvider, progressionListener, admin);
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.strictlyUsing(Locale.FRENCH)
+				.extractingMetadatas("legacyIdentifier", "stringMetadata").containsOnly(
+				tuple("3", "value1"),
+				tuple("4", "value2"),
+				tuple("5", "value4")
+		);
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.strictlyUsing(Locale.ENGLISH)
+				.extractingMetadatas("legacyIdentifier", "stringMetadata").containsOnly(
+				tuple("3", null),
+				tuple("4", "value3"),
+				tuple("5", "value5")
+		);
+
+		zeSchemaTypeRecords.clear();
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value6"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("4").addField("title", "Record 4")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value7", Locale.FRENCH));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("5").addField("title", "Record 5")
+				.addField(zeSchema.stringMetadata().getLocalCode(), "value8", Locale.ENGLISH));
+
+		bulkImport(importDataProvider, progressionListener, admin);
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.strictlyUsing(Locale.FRENCH)
+				.extractingMetadatas("legacyIdentifier", "stringMetadata").containsOnly(
+				tuple("3", "value6"),
+				tuple("4", "value7"),
+				tuple("5", "value4")
+		);
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.strictlyUsing(Locale.ENGLISH)
+				.extractingMetadatas("legacyIdentifier", "stringMetadata").containsOnly(
+				tuple("3", null),
+				tuple("4", "value3"),
+				tuple("5", "value8")
+		);
+
+	}
+
+	@Test
 	@Ignore
 	public void givenAnImportedRecordHasAValueToADisabledFieldThenValidationError()
 			throws Exception {
@@ -1197,9 +1262,9 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			);
 			assertThat(frenchMessages(e)).containsOnly(
 					"Ze type de schéma 5 : La valeur «" + aDate.toString()
-							+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères",
+					+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères",
 					"Ze type de schéma 6 : La valeur «" + aDateTime.toString()
-							+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères");
+					+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères");
 		}
 	}
 
@@ -1235,11 +1300,11 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			);
 			assertThat(frenchMessages(e)).containsOnly(
 					"Ze type de schéma 6 : La valeur «" + aDateTime.toString()
-							+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères",
+					+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères",
 					"Ze type de schéma 6 : La valeur «" + aDate.toString()
-							+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères",
+					+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères",
 					"Ze type de schéma 5 : La valeur «" + aDate.toString()
-							+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères");
+					+ "» définie à la métadonnée «A toAString metadata» n’est pas une chaîne de caractères");
 		}
 	}
 
@@ -1271,7 +1336,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 			assertThat(frenchMessages(e)).containsOnly(
 					"Ze type de schéma 5 : La valeur «" + aDateTime.toString()
-							+ "» définie à la métadonnée «a date metadata» n’est pas un date",
+					+ "» définie à la métadonnée «a date metadata» n’est pas un date",
 					"Ze type de schéma 6 : La valeur «a text value» définie à la métadonnée «a date metadata» n’est pas un date");
 		}
 	}
@@ -1305,7 +1370,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 			assertThat(frenchMessages(e)).containsOnly(
 					"Ze type de schéma 4 : La valeur «" + aDate.toString()
-							+ "» définie à la métadonnée «a date time metadata» n’est pas un date-heure",
+					+ "» définie à la métadonnée «a date time metadata» n’est pas un date-heure",
 					"Ze type de schéma 6 : La valeur «a text value» définie à la métadonnée «a date time metadata» n’est pas un date-heure");
 		}
 	}
@@ -1460,7 +1525,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenCyclicDependencyInRecordsThenExceptionDuringImport()
+	public void givenCyclicDependencyInRecordsParentMetadataThenExceptionDuringImport()
 			throws Exception {
 
 		defineSchemasManager().using(schemas.andCustomSchema()
@@ -1495,6 +1560,116 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			assertThat(frenchMessages(e)).containsOnly(
 					"Ze type de schéma : Il y a une dépendance cyclique entre les enregistrements importés avec ids «1, 2, 3, 4»");
 		}
+	}
+
+	@Test
+	public void givenCyclicDependencyInRecordsSecondaryMetadatasThenImportedInTwoPhases()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchema(zeSchema.code()).create("secondaryReferenceToAnotherSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType(anotherSchema.typeCode()));
+					}
+				}));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
+				.addField("secondaryReferenceToAnotherSchema", "1a"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
+				.addField("secondaryReferenceToAnotherSchema", "2a"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField("secondaryReferenceToAnotherSchema", "3a"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("1a").addField("title", "Another record 1")
+				.addField("referenceFromAnotherSchemaToZeSchema", "1"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("2a").addField("title", "Another record 2")
+				.addField("referenceFromAnotherSchemaToZeSchema", "2"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("3a").addField("title", "Another record 3")
+				.addField("referenceFromAnotherSchemaToZeSchema", "3"));
+
+		bulkImport(importDataProvider, progressionListener, admin, new BulkImportParams());
+		//TODO Modifier le mécanisme d'import afin de supporter des dépendances cycliques pendant l'import
+
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.extractingMetadatas("legacyIdentifier", "secondaryReferenceToAnotherSchema.legacyIdentifier").containsOnly(
+				tuple("1", "1a"),
+				tuple("2", "2a"),
+				tuple("3", "3a")
+		);
+
+		assertThatRecords(searchServices.search(query(from(anotherSchema.type()).returnAll())))
+				.extractingMetadatas("legacyIdentifier", "referenceFromAnotherSchemaToZeSchema.legacyIdentifier").containsOnly(
+				tuple("1a", "1"),
+				tuple("2a", "2"),
+				tuple("3a", "3")
+		);
+	}
+
+	@Test
+	public void givenInvalidDepedencyValueInSecondaryReferenceThenDetectedInSecondPhase()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema()
+				.with(new MetadataSchemaTypesConfigurator() {
+					@Override
+					public void configure(MetadataSchemaTypesBuilder schemaTypes) {
+						schemaTypes.getSchema(zeSchema.code()).create("secondaryReferenceToAnotherSchema")
+								.defineReferencesTo(schemaTypes.getSchemaType(anotherSchema.typeCode()));
+					}
+				}));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
+				.addField("secondaryReferenceToAnotherSchema", "1a"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
+				.addField("secondaryReferenceToAnotherSchema", "2a"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField("secondaryReferenceToAnotherSchema", "4a"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("1a").addField("title", "Another record 1")
+				.addField("referenceFromAnotherSchemaToZeSchema", "1"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("2a").addField("title", "Another record 2")
+				.addField("referenceFromAnotherSchemaToZeSchema", "2"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("3a").addField("title", "Another record 3")
+				.addField("referenceFromAnotherSchemaToZeSchema", "3"));
+
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+			fail("An exception was expected");
+		} catch (ValidationException e) {
+
+			assertThat(extractingSimpleCodeAndParameters(e, "metadataCode", "referencedSchemaTypeCode", "uniqueMetadataCode", "value")).containsOnly(
+					tuple("RecordsImportServicesExecutor_unresolvedDependencyDuringSecondPhase", "secondaryReferenceToAnotherSchema", "anotherSchemaType", "legacyIdentifier", "4a")
+			);
+			assertThat(frenchMessages(e)).containsOnly("Ze type de schéma 3 : Impossible de définir la métadonnée «secondaryReferenceToAnotherSchema», car aucun enregistrement de type «anotherSchemaType» n’a la valeur «4a» à la métadonnée «legacyIdentifier».");
+		}
+
+		//Since the error occured in second phase, records are imported
+		assertThatRecords(searchServices.search(query(from(zeSchema.type()).returnAll())))
+				.extractingMetadatas("legacyIdentifier", "secondaryReferenceToAnotherSchema.legacyIdentifier").containsOnly(
+				tuple("1", "1a"),
+				tuple("2", "2a"),
+				tuple("3", null)
+		);
+
+		assertThatRecords(searchServices.search(query(from(anotherSchema.type()).returnAll())))
+				.extractingMetadatas("legacyIdentifier", "referenceFromAnotherSchemaToZeSchema.legacyIdentifier").containsOnly(
+				tuple("1a", "1"),
+				tuple("2a", "2"),
+				tuple("3a", "3")
+		);
 	}
 
 	@Test
@@ -1864,7 +2039,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 					"Ze type de schéma 8 : Aucun contenu pré-importé «fileZ.pdf»",
 					"Ze type de schéma 3 : Aucun contenu pré-importé «inexistentFile.pdf»",
 					"Ze type de schéma 1 : Le contenu «Fss7pKBafi8ok5KaOwEpmNdeGCE=» n'existe pas dans la voûte à l'emplacement «"
-							+ pathOf(file1Hash) + "»");
+					+ pathOf(file1Hash) + "»");
 		}
 
 		Record record1 = recordWithLegacyId("1");
@@ -1959,7 +2134,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			assertThat(extractingSimpleCodeAndParameters(e, "filePath", "hash")).isEmpty();
 
 			String contentPath = getDataLayerFactory().getDataLayerConfiguration().getContentDaoFileSystemFolder()
-					.getAbsolutePath() + File.separator;
+										 .getAbsolutePath() + File.separator;
 			assertThat(extractingWarningsSimpleCodeAndParameters(e, "filePath", "hash")).containsOnly(
 					tuple("RecordsImportServices_hashNotFoundInVault", pathOf("inexistentHash1"), "inexistentHash1"),
 					tuple("RecordsImportServices_hashNotFoundInVault", pathOf("inexistentHash2"), "inexistentHash2"),
@@ -2010,7 +2185,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 
 	}
 
-	private Condition<? super Object> hashFilenameVersion(final String hash, final String fileName, final String version) {
+	private Condition<? super Object> hashFilenameVersion(final String hash, final String fileName,
+														  final String version) {
 		return new Condition<Object>() {
 			@Override
 			public boolean matches(Object value) {
@@ -2693,7 +2869,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	public static class NoZMetadataValidator implements RecordMetadataValidator<String> {
 
 		@Override
-		public void validate(Metadata metadata, String value, ConfigProvider configProvider, ValidationErrors validationErrors) {
+		public void validate(Metadata metadata, String value, ConfigProvider configProvider,
+							 ValidationErrors validationErrors) {
 			if (value != null && value.contains("p")) {
 				validationErrors.add(NoZMetadataValidator.class, "noP");
 			}
@@ -3333,7 +3510,7 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		String logicallyDeletedRecordId = logicallyDeletedRecord.getId();
 
 		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
-				.addField(zeSchema.referenceMetadata().getCode(), "1"));
+				.addField(zeSchema.referenceMetadata().getLocalCode(), "1"));
 
 		bulkImport(importDataProvider, progressionListener, admin);
 		Record importedRecord = recordWithLegacyId("2");
@@ -3402,14 +3579,14 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	}
 
 	private void bulkImport(ImportDataProvider importDataProvider,
-			final BulkImportProgressionListener bulkImportProgressionListener, final User user)
+							final BulkImportProgressionListener bulkImportProgressionListener, final User user)
 			throws ValidationException {
 		bulkImport(importDataProvider, bulkImportProgressionListener, user, new BulkImportParams());
 	}
 
 	private void bulkImport(ImportDataProvider importDataProvider,
-			final BulkImportProgressionListener bulkImportProgressionListener,
-			final User user, BulkImportParams params)
+							final BulkImportProgressionListener bulkImportProgressionListener,
+							final User user, BulkImportParams params)
 			throws ValidationException {
 		params.setImportErrorsBehavior(CONTINUE_FOR_RECORD_OF_SAME_TYPE);
 		services.bulkImport(importDataProvider, bulkImportProgressionListener, user, params);
@@ -3433,7 +3610,8 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		return parameters;
 	}
 
-	private Map<String, Object> asMap(String key1, String value1, String key2, String value2, String key3, String value3) {
+	private Map<String, Object> asMap(String key1, String value1, String key2, String value2, String key3,
+									  String value3) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		parameters.put(key2, value2);
@@ -3441,8 +3619,9 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		return parameters;
 	}
 
-	private Map<String, Object> asMap(String key1, String value1, String key2, String value2, String key3, String value3,
-			String key4, String value4) {
+	private Map<String, Object> asMap(String key1, String value1, String key2, String value2, String key3,
+									  String value3,
+									  String key4, String value4) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		parameters.put(key2, value2);
@@ -3451,8 +3630,9 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		return parameters;
 	}
 
-	private Map<String, Object> asMap(String key1, String value1, String key2, String value2, String key3, String value3,
-			String key4, String value4, String key5, String value5) {
+	private Map<String, Object> asMap(String key1, String value1, String key2, String value2, String key3,
+									  String value3,
+									  String key4, String value4, String key5, String value5) {
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put(key1, value1);
 		parameters.put(key2, value2);

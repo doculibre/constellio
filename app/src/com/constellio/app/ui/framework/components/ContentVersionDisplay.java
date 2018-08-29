@@ -1,7 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import java.util.List;
-
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -11,20 +9,25 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
+import com.constellio.app.ui.framework.components.content.UpdatableContentVersionPresenter;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 
+import java.util.List;
+
 public class ContentVersionDisplay extends CustomComponent {
 
-	public ContentVersionDisplay(RecordVO recordVO, MetadataVO metadataVO) {
-		this(recordVO, (ContentVersionVO) recordVO.get(metadataVO));
+	public ContentVersionDisplay(RecordVO recordVO, MetadataVO metadataVO, UpdatableContentVersionPresenter presenter) {
+		this(recordVO, (ContentVersionVO) recordVO.get(metadataVO), presenter);
 	}
 
-	public ContentVersionDisplay(RecordVO recordVO, ContentVersionVO contentVersionVO) {
-		this(recordVO, contentVersionVO, contentVersionVO.toString());
+	public ContentVersionDisplay(RecordVO recordVO, ContentVersionVO contentVersionVO,
+								 UpdatableContentVersionPresenter presenter) {
+		this(recordVO, contentVersionVO, contentVersionVO.toString(), presenter);
 	}
 
-	public ContentVersionDisplay(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption) {
+	public ContentVersionDisplay(RecordVO recordVO, ContentVersionVO contentVersionVO, String caption,
+								 UpdatableContentVersionPresenter presenter) {
 		// TODO Remove singleton use
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
@@ -35,7 +38,7 @@ public class ContentVersionDisplay extends CustomComponent {
 		Component downloadLink = null;
 		if (downloadContentVersionLinkExtensions != null) {
 			for (DownloadContentVersionLinkExtension extension : downloadContentVersionLinkExtensions) {
-				downloadLink = extension.getDownloadLink(recordVO, contentVersionVO, caption);
+				downloadLink = extension.getDownloadLink(recordVO, contentVersionVO, caption, presenter);
 				if (downloadLink != null) {
 					break;
 				}
@@ -46,5 +49,4 @@ public class ContentVersionDisplay extends CustomComponent {
 		}
 		setCompositionRoot(downloadLink);
 	}
-
 }

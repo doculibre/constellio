@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.api.extensions.TaxonomyPageExtension;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
@@ -16,7 +10,6 @@ import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
-import com.constellio.app.modules.rm.ui.builders.RetentionRuleToVOBuilder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -35,10 +28,15 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.ui.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 
@@ -65,7 +63,8 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	@Override
-	public List<TaxonomyManagementClassifiedType> getClassifiedTypesFor(GetTaxonomyManagementClassifiedTypesParams params) {
+	public List<TaxonomyManagementClassifiedType> getClassifiedTypesFor(
+			GetTaxonomyManagementClassifiedTypesParams params) {
 		List<TaxonomyManagementClassifiedType> types = new ArrayList<>();
 		SessionContextProvider sessionContextProvider = params.getSessionContextProvider();
 		String conceptId = params.getRecord().getId();
@@ -142,7 +141,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	private TaxonomyManagementClassifiedType getClassifiedFolderInAdministrativeUnits(final String conceptId,
-			final SessionContextProvider sessionContextProvider) {
+																					  final SessionContextProvider sessionContextProvider) {
 		return new TaxonomyManagementClassifiedType() {
 			@Override
 			public MetadataSchemaTypeVO getSchemaType() {
@@ -170,7 +169,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	private TaxonomyManagementClassifiedType getClassifiedRetentionRuleWithAdministrativeUnit(final String conceptId,
-			final SessionContextProvider sessionContextProvider) {
+																							  final SessionContextProvider sessionContextProvider) {
 		return new TaxonomyManagementClassifiedType() {
 			@Override
 			public MetadataSchemaTypeVO getSchemaType() {
@@ -198,7 +197,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	private TaxonomyManagementClassifiedType getClassifiedFolderInCategory(final String conceptId,
-			final SessionContextProvider sessionContextProvider) {
+																		   final SessionContextProvider sessionContextProvider) {
 		return new TaxonomyManagementClassifiedType() {
 			@Override
 			public MetadataSchemaTypeVO getSchemaType() {
@@ -225,7 +224,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	private RecordVODataProvider newRuleDataProvider(final Factory<LogicalSearchQuery> logicalSearchQueryFactory,
-			SessionContextProvider sessionContextProvider) {
+													 SessionContextProvider sessionContextProvider) {
 
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		SessionContext sessionContext = sessionContextProvider.getSessionContext();
@@ -243,7 +242,7 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	private RecordVODataProvider newFolderDataProvider(final Factory<LogicalSearchQuery> logicalSearchQueryFactory,
-			SessionContextProvider sessionContextProvider) {
+													   SessionContextProvider sessionContextProvider) {
 
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 		SessionContext sessionContext = sessionContextProvider.getSessionContext();

@@ -1,14 +1,14 @@
 package com.constellio.app.ui.framework.components.fields;
 
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.util.Collection;
-
 import com.vaadin.data.Container;
 import com.vaadin.ui.ComboBox;
 
+import java.util.Collection;
+
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
 public class BaseComboBox extends ComboBox {
-	
+
 	public static final String COMBO_BOX_STYLE = "v-filterselect-suggestmenu";
 
 	public BaseComboBox() {
@@ -29,7 +29,7 @@ public class BaseComboBox extends ComboBox {
 		super(caption);
 		init();
 	}
-	
+
 	private void init() {
 		addStyleName(COMBO_BOX_STYLE);
 		if (isRightToLeft()) {
@@ -42,5 +42,5 @@ public class BaseComboBox extends ComboBox {
 			});
 		}
 	}
-	
+
 }

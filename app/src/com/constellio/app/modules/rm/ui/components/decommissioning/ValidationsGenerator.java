@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListPresenter;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -14,6 +10,9 @@ import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ValidationsGenerator implements ColumnGenerator {
 	public static final String VALIDATOR = "validator";
@@ -61,16 +60,16 @@ public class ValidationsGenerator implements ColumnGenerator {
 		DecomListValidation validation = (DecomListValidation) itemId;
 
 		switch ((String) columnId) {
-		case VALIDATOR:
-			return new ReferenceDisplay(validation.getUserId());
-		case VALIDATION_REQUEST_DATE:
-			return new LocalDateLabel(validation.getRequestDate());
-		case VALIDATED:
-			return new BooleanLabel(validation.isValidated());
-		case VALIDATION_DATE:
-			return new LocalDateLabel(validation.getValidationDate());
-		case REMOVE:
-			return buildRemove(validation);
+			case VALIDATOR:
+				return new ReferenceDisplay(validation.getUserId());
+			case VALIDATION_REQUEST_DATE:
+				return new LocalDateLabel(validation.getRequestDate());
+			case VALIDATED:
+				return new BooleanLabel(validation.isValidated());
+			case VALIDATION_DATE:
+				return new LocalDateLabel(validation.getValidationDate());
+			case REMOVE:
+				return buildRemove(validation);
 		}
 
 		return null;

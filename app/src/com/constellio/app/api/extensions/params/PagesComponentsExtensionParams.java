@@ -17,8 +17,10 @@ public class PagesComponentsExtensionParams {
 	Layout contentFooterWrapperLayout;
 	private User currentUser;
 
-	public PagesComponentsExtensionParams(ConstellioHeader header, Component mainMenu, Layout footer, MainLayout mainLayout,
-			SingleComponentContainer contentViewWrapper, Layout contentFooterWrapperLayout, User currentUser) {
+	public PagesComponentsExtensionParams(ConstellioHeader header, Component mainMenu, Layout footer,
+										  MainLayout mainLayout,
+										  SingleComponentContainer contentViewWrapper,
+										  Layout contentFooterWrapperLayout, User currentUser) {
 		this.currentUser = currentUser;
 		this.header = header;
 		this.mainMenu = mainMenu;

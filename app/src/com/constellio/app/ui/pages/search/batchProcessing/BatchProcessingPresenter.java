@@ -6,6 +6,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServicesException;
 
 import java.io.InputStream;
@@ -16,9 +17,11 @@ public interface BatchProcessingPresenter {
 
 	RecordVO newRecordVO(String schema, String schemaType, SessionContext sessionContext);
 
-	InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject) throws RecordServicesException;
+	InputStream simulateButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+			throws RecordServicesException;
 
-	void processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject) throws RecordServicesException;
+	boolean processBatchButtonClicked(String selectedType, String schemaType, RecordVO viewObject)
+			throws RecordServicesException;
 
 	BatchProcessingMode getBatchProcessingMode();
 
@@ -40,7 +43,9 @@ public interface BatchProcessingPresenter {
 
 	boolean isSearchResultsSelectionForm();
 
-	void batchEditRequested(String code, Object convertedValue, String schemaType);
+	boolean batchEditRequested(String code, Object convertedValue, String schemaType);
 
 	List<MetadataVO> getMetadataAllowedInBatchEdit(String schemaType);
+
+	ValidationErrors validateBatchProcessing();
 }

@@ -1,11 +1,11 @@
 package com.constellio.app.modules.es.services.mapping;
 
-import java.util.List;
-
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+
+import java.util.List;
 
 public class ConnectorFieldValidator implements RecordMetadataValidator<List<ConnectorField>> {
 
@@ -14,7 +14,7 @@ public class ConnectorFieldValidator implements RecordMetadataValidator<List<Con
 
 	@Override
 	public void validate(Metadata metadata, List<ConnectorField> values, ConfigProvider configProvider,
-			ValidationErrors validationErrors) {
+						 ValidationErrors validationErrors) {
 
 		for (ConnectorField value : values) {
 

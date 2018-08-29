@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -27,6 +20,12 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements DisplaySchemaRecordView {
@@ -34,19 +33,19 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 	private DisplaySchemaRecordPresenter presenter;
 
 	private RecordVO recordVO;
-	
+
 	private RecordVODataProvider subRecordsDataProvider;
-	
+
 	private VerticalLayout mainLayout;
 
 	private RecordDisplay recordDisplay;
-	
+
 	private Button editButton;
-	
+
 	private Button deleteButton;
-	
+
 	private Button addSubRecordButton;
-	
+
 	private RecordVOTable subRecordsTable;
 
 	public DisplaySchemaRecordViewImpl() {
@@ -78,10 +77,10 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
-		
+
 		recordDisplay = new RecordDisplay(recordVO);
 		mainLayout.addComponent(recordDisplay);
-		
+
 		if (subRecordsDataProvider != null) {
 			addSubRecordButton = new AddButton(true) {
 				@Override
@@ -89,10 +88,10 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 					presenter.addSubRecordButtonClicked();
 				}
 			};
-			
-			RecordVOLazyContainer subRecordsContainer = new RecordVOLazyContainer(subRecordsDataProvider);
+
+			final RecordVOLazyContainer subRecordsContainer = new RecordVOLazyContainer(subRecordsDataProvider);
 			ButtonsContainer<RecordVOLazyContainer> buttonsContainer = new ButtonsContainer<>(subRecordsContainer);
-			
+
 			buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
 				@Override
 				protected Button newButtonInstance(final Object itemId, final ButtonsContainer<?> container) {
@@ -146,7 +145,7 @@ public class DisplaySchemaRecordViewImpl extends BaseViewImpl implements Display
 			mainLayout.addComponents(addSubRecordButton, subRecordsTable);
 			mainLayout.setComponentAlignment(addSubRecordButton, Alignment.TOP_RIGHT);
 		}
-		
+
 		return mainLayout;
 	}
 

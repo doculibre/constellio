@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.management.facet;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.model.entities.records.Transaction;
@@ -21,6 +12,14 @@ import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 @UiTest
 @InDevelopmentTest
@@ -89,20 +88,20 @@ public class AddEditFacetConfigurationAcceptTest extends ConstellioTest {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
 
 		MapStringStringStructure newValues = new MapStringStringStructure();
-		for(int i = 0; i < 10; ++i) {
+		for (int i = 0; i < 10; ++i) {
 			newValues.put("zeLabel" + i, "zeValue" + i);
 		}
 
 		Facet facet = null;
-		switch(type) {
-		case FIELD:
-			facet = schemasRecords.newFacetField();
-			facet.setFieldValuesLabel(newValues);
-			break;
-		case QUERY:
-			facet = schemasRecords.newFacetQuery();
-			facet.setListQueries(newValues);
-			break;
+		switch (type) {
+			case FIELD:
+				facet = schemasRecords.newFacetField();
+				facet.setFieldValuesLabel(newValues);
+				break;
+			case QUERY:
+				facet = schemasRecords.newFacetQuery();
+				facet.setListQueries(newValues);
+				break;
 		}
 
 		facet.setOrder(1);

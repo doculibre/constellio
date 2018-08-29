@@ -34,7 +34,7 @@ public class MetadataSchemasRuntimeException extends RuntimeException {
 	public static class CannotGetMetadatasOfAnotherSchemaType extends MetadataSchemasRuntimeException {
 		public CannotGetMetadatasOfAnotherSchemaType(String otherSchemaTypeCode, String recordSchemaTypeCode) {
 			super("Cannot get metadata of schema type '" + otherSchemaTypeCode + "' in a record of schema '"
-					+ recordSchemaTypeCode + "'");
+				  + recordSchemaTypeCode + "'");
 		}
 	}
 

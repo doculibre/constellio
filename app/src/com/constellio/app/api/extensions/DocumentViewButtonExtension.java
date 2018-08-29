@@ -8,7 +8,7 @@ import java.util.List;
 
 public class DocumentViewButtonExtension {
 
-    public List<BaseButton> addButton(final DocumentViewButtonExtensionParam param) {
-        return Collections.emptyList();
-    }
+	public List<BaseButton> addButton(final DocumentViewButtonExtensionParam param) {
+		return Collections.emptyList();
+	}
 }

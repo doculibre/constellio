@@ -1,15 +1,5 @@
 package com.constellio.app.modules.robots.reports;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.robots.model.DryRunRobotAction;
 import com.constellio.app.reports.builders.administration.plan.ReportBuilderTestFramework;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -17,6 +7,15 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * Created by Patrick on 2015-12-16.

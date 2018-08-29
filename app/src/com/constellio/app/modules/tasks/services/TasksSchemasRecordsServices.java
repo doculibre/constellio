@@ -1,18 +1,5 @@
 package com.constellio.app.modules.tasks.services;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
-import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.modules.tasks.ui.entities.TaskVO;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.wrappers.type.SchemaLinkingType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
@@ -27,6 +14,7 @@ import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
 import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
+import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
@@ -37,6 +25,17 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
+import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
@@ -50,7 +49,9 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 
-	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	/**
+	 * * ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+	 **/
 
 	public TaskStatus wrapTaskStatus(Record record) {
 		return record == null ? null : new TaskStatus(record, getTypes());
@@ -300,6 +301,10 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 		public Metadata betaWorkflowTaskSort() {
 			return metadata("workflowTaskSort");
 		}
+
+		public Metadata readByUser() {
+			return metadata("readByUser");
+		}
 	}
 
 	public BetaWorkflowTask wrapBetaWorkflowTask(Record record) {
@@ -480,7 +485,9 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- end
 
-	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	/**
+	 * * ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+	 **/
 
 	public TaskReminderEmailManager getTaskReminderEmailManager() {
 		return appLayerFactory.getRegisteredManager(getCollection(), TaskModule.ID, TaskReminderEmailManager.ID);
@@ -569,7 +576,7 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
 	//KEEP
 	public Task newBorrowFolderRequestTask(String assignerId, List<String> assignees, String folderId, int numberOfDays,
-			String recordTitle) {
+										   String recordTitle) {
 		Task task = newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME));
 		return task.setTitle($("TaskSchemasRecordsServices.borrowFolderRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
@@ -580,7 +587,8 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	//KEEP
-	public Task newReturnFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle) {
+	public Task newReturnFolderRequestTask(String assignerId, List<String> assignees, String folderId,
+										   String recordTitle) {
 		return newTaskWithType(getTaskTypeByCode(ReturnRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.returnFolderRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
@@ -590,8 +598,9 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	//KEEP
-	public Task newReactivateFolderRequestTask(String assignerId, List<String> assignees, String folderId, String recordTitle,
-			LocalDate localDate) {
+	public Task newReactivateFolderRequestTask(String assignerId, List<String> assignees, String folderId,
+											   String recordTitle,
+											   LocalDate localDate) {
 		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.reactivationFolderRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
@@ -603,7 +612,7 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
 	//KEEP
 	public Task newBorrowFolderExtensionRequestTask(String assignerId, List<String> assignees, String folderId,
-			String recordTitle, LocalDate value) {
+													String recordTitle, LocalDate value) {
 		return newTaskWithType(getTaskTypeByCode(ExtensionRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.borrowFolderExtensionRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
@@ -614,8 +623,9 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	//KEEP
-	public Task newBorrowContainerRequestTask(String assignerId, List<String> assignees, String containerId, int numberOfDays,
-			String recordTitle) {
+	public Task newBorrowContainerRequestTask(String assignerId, List<String> assignees, String containerId,
+											  int numberOfDays,
+											  String recordTitle) {
 		return newTaskWithType(getTaskTypeByCode(BorrowRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.borrowContainerRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
@@ -626,7 +636,8 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 	}
 
 	//KEEP
-	public Task newReturnContainerRequestTask(String assignerId, List<String> assignees, String containerId, String recordTitle) {
+	public Task newReturnContainerRequestTask(String assignerId, List<String> assignees, String containerId,
+											  String recordTitle) {
 		return newTaskWithType(getTaskTypeByCode(ReturnRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.returnContainerRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
@@ -637,7 +648,7 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
 	//KEEP
 	public Task newReactivationContainerRequestTask(String assignerId, List<String> assignees, String containerId,
-			String recordTitle, LocalDate localDate) {
+													String recordTitle, LocalDate localDate) {
 		return newTaskWithType(getTaskTypeByCode(ReactivationRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.reactivationContainerRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)
@@ -649,7 +660,7 @@ public class TasksSchemasRecordsServices extends SchemasRecordsServices {
 
 	//KEEP
 	public Task newBorrowContainerExtensionRequestTask(String assignerId, List<String> assignees, String containerId,
-			String recordTitle, LocalDate value) {
+													   String recordTitle, LocalDate value) {
 		return newTaskWithType(getTaskTypeByCode(ExtensionRequest.SCHEMA_NAME))
 				.setTitle($("TaskSchemasRecordsServices.borrowContainerExtensionRequest", recordTitle))
 				.setAssigneeUsersCandidates(assignees)

@@ -1,16 +1,6 @@
 package com.constellio.app.start;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-import javax.servlet.Servlet;
-
+import com.constellio.model.conf.FoldersLocator;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.bio.SocketConnector;
@@ -28,7 +18,15 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.webapp.WebInfConfiguration;
 import org.eclipse.jetty.webapp.WebXmlConfiguration;
 
-import com.constellio.model.conf.FoldersLocator;
+import javax.servlet.DispatcherType;
+import javax.servlet.Filter;
+import javax.servlet.Servlet;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ApplicationStarter {
 
@@ -62,8 +60,8 @@ public class ApplicationStarter {
 
 		// Static file handler
 		handler = new WebAppContext();
-		handler.setConfigurations(new Configuration[] { new WebXmlConfiguration(), new WebInfConfiguration(),
-				new TagLibConfiguration(), new MetaInfConfiguration(), new FragmentConfiguration() });
+		handler.setConfigurations(new Configuration[]{new WebXmlConfiguration(), new WebInfConfiguration(),
+													  new TagLibConfiguration(), new MetaInfConfiguration(), new FragmentConfiguration()});
 		handler.setContextPath("/constellio");
 
 		handler.setBaseResource(new ResourceCollection(resources.toArray(new String[0])));
@@ -111,7 +109,7 @@ public class ApplicationStarter {
 			connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
 			Server server = new Server();
-			server.setConnectors(new Connector[] { connector });
+			server.setConnectors(new Connector[]{connector});
 			return server;
 		}
 	}
@@ -133,25 +131,29 @@ public class ApplicationStarter {
 		String keystorePath = new FoldersLocator().getKeystoreFile().getAbsolutePath();
 		SslContextFactory sslContextFactory = new SslContextFactory(keystorePath);
 		sslContextFactory.setKeyStorePassword(params.getKeystorePassword());
-		sslContextFactory.addExcludeProtocols("SSLv3", "SSLv2", "SSLv2Hello");
+		sslContextFactory.addExcludeProtocols("SSLv3", "SSLv2", "SSLv2Hello", "TLSv1", "TLSv1.1");
 
-		sslContextFactory.setExcludeCipherSuites(
-				"SSL_RSA_WITH_DES_CBC_SHA",
-				"SSL_DHE_RSA_WITH_DES_CBC_SHA",
-				"SSL_DHE_DSS_WITH_DES_CBC_SHA",
-				"SSL_RSA_EXPORT_WITH_RC4_40_MD5",
-				"SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
-				"SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA",
-				"SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA",
-				"SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA",
-				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256",
-				"TLS_DHE_DSS_WITH_AES_256_CBC_SHA256",
-				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-				"TLS_DHE_DSS_WITH_AES_256_CBC_SHA",
-				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
-				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA256",
+		sslContextFactory.setIncludeCipherSuites(
+				"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+				"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+				"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+				"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+				"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+				"TLS_DHE_DSS_WITH_AES_128_GCM_SHA256",
+				"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+				"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
+				"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+				"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384",
+				"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
+				"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+				"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384",
+				"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+				"TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
 				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-				"TLS_DHE_DSS_WITH_AES_128_CBC_SHA"
+				"TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
+				"TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
+				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"
 		);
 
 		SslSocketConnector connector = new SslSocketConnector(sslContextFactory);
@@ -159,7 +161,7 @@ public class ApplicationStarter {
 
 		connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
-		sslServer.setConnectors(new Connector[] { connector });
+		sslServer.setConnectors(new Connector[]{connector});
 
 		return sslServer;
 	}

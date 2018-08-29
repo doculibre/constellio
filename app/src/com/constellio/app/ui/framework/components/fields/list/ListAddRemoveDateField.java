@@ -1,10 +1,10 @@
 package com.constellio.app.ui.framework.components.fields.list;
 
-import java.util.Date;
-
 import com.constellio.app.ui.framework.components.converters.BaseStringToDateConverter;
 import com.constellio.app.ui.framework.components.fields.date.BaseDateField;
 import com.vaadin.ui.DateField;
+
+import java.util.Date;
 
 @SuppressWarnings("unchecked")
 public class ListAddRemoveDateField extends ListAddRemoveField<Date, DateField> {

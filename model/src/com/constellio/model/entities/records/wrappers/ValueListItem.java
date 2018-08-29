@@ -1,10 +1,12 @@
 package com.constellio.model.entities.records.wrappers;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.List;
+import java.util.Map;
 
 public class ValueListItem extends RecordWrapper {
 
@@ -15,12 +17,17 @@ public class ValueListItem extends RecordWrapper {
 	public static final String COMMENTS = "comments";
 
 	public ValueListItem(Record record,
-			MetadataSchemaTypes types, String schemaType) {
+						 MetadataSchemaTypes types, String schemaType) {
 		super(record, types, schemaType);
 	}
 
 	public ValueListItem setTitle(String title) {
 		super.setTitle(title);
+		return this;
+	}
+
+	public ValueListItem setTitles(Map<Language, String> titles) {
+		super.setTitles(titles);
 		return this;
 	}
 

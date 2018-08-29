@@ -9,7 +9,6 @@ import com.constellio.app.modules.es.connectors.http.fetcher.ConnectorUrlAccepto
 import com.constellio.app.modules.es.connectors.http.fetcher.HttpURLFetchingService;
 import com.constellio.app.modules.es.connectors.http.fetcher.URLFetchingServiceRuntimeException;
 import com.constellio.app.modules.es.connectors.http.fetcher.UrlAcceptor;
-import com.constellio.app.modules.es.connectors.http.robotstxt.RobotsTxt;
 import com.constellio.app.modules.es.connectors.http.robotstxt.RobotsTxtFactory;
 import com.constellio.app.modules.es.connectors.http.utils.HtmlPageParser;
 import com.constellio.app.modules.es.connectors.http.utils.HtmlPageParser.HtmlPageParserResults;
@@ -33,15 +32,14 @@ import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.util.UrlUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -52,272 +50,290 @@ import static java.util.Arrays.asList;
 
 class ConnectorHttpFetchJob extends ConnectorJob {
 
-    public static final String PATH_TO_NOINDEX_HTML = "com/constellio/app/modules/es/connectors/http/noindex.html";
-    public static final String PROTOCOL = "file:";
-    public static final String PROTOCOL_SEP = "//";
-    private final ConnectorHttp connectorHttp;
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorHttpFetchJob.class);
 
-    private final ConnectorHttpContext context;
 
-    private final List<ConnectorHttpDocument> documents;
+	public static final String PATH_TO_NOINDEX_HTML = "com/constellio/app/modules/es/connectors/http/noindex.html";
+	public static final String PROTOCOL = "file:";
+	public static final String PROTOCOL_SEP = "//";
+	private final ConnectorHttp connectorHttp;
 
-    private final HtmlPageParser pageParser;
+	private final ConnectorHttpContext context;
 
-    private final FileParser fileParser;
+	private final List<ConnectorHttpDocument> documents;
 
-    private final HashingService hashingService;
+	private final HtmlPageParser pageParser;
 
-    private final ConnectorLogger connectorLogger;
+	private final FileParser fileParser;
 
-    private final ESSchemasRecordsServices es;
+	private final HashingService hashingService;
 
-    private final int maxLevel;
-    private final RobotsTxtFactory robotsTxtFactory;
+	private final ConnectorLogger connectorLogger;
 
-    public ConnectorHttpFetchJob(ConnectorHttp connector, ConnectorHttpInstance instance, List<ConnectorHttpDocument> documents,
-                                 ConnectorHttpContext context, ConnectorLogger connectorLogger) {
-        super(connector, "fetch");
-        this.connectorHttp = connector;
-        this.context = context;
-        this.documents = documents;
-        this.connectorLogger = connectorLogger;
-        this.es = connectorHttp.getEs();
-        this.maxLevel = instance.getMaxLevel();
-        UrlAcceptor urlAcceptor = new ConnectorUrlAcceptor(instance);
-        fileParser = connectorHttp.getEs().getModelLayerFactory().newFileParser();
-        hashingService = connectorHttp.getEs().getModelLayerFactory().getIOServicesFactory().newHashingService(BASE64);
-        this.pageParser = new HtmlPageParser(urlAcceptor, fileParser, hashingService);
-        robotsTxtFactory = new RobotsTxtFactory();
-    }
+	private final ESSchemasRecordsServices es;
 
-    @Override
-    public void execute(Connector connector) {
-        //FIXME Same instance of connector ?
-        try (HttpURLFetchingService fetchingService = connectorHttp.newFetchingService()) {
-            for (ConnectorHttpDocument httpDocument : documents) {
-                String url = httpDocument.getURL();
+	private final int maxLevel;
+	private static final RobotsTxtFactory robotsTxtFactory = new RobotsTxtFactory();
 
-                if (!robotsTxtFactory.isAuthorizedPath(url)) {
-                    String path = getClass().getClassLoader().getResource(PATH_TO_NOINDEX_HTML).getPath();
-                    if(StringUtils.startsWith(path, PROTOCOL)) {
-                        url = path;
-                    } else {
-                        url = PROTOCOL + PROTOCOL_SEP + path;
-                    }
-                }
+	public ConnectorHttpFetchJob(ConnectorHttp connector, ConnectorHttpInstance instance,
+								 List<ConnectorHttpDocument> documents,
+								 ConnectorHttpContext context, ConnectorLogger connectorLogger) {
+		super(connector, "fetch");
+		this.connectorHttp = connector;
+		this.context = context;
+		this.documents = documents;
+		this.connectorLogger = connectorLogger;
+		this.es = connectorHttp.getEs();
+		this.maxLevel = instance.getMaxLevel();
+		UrlAcceptor urlAcceptor = new ConnectorUrlAcceptor(instance);
+		fileParser = connectorHttp.getEs().getModelLayerFactory().newFileParser();
+		hashingService = connectorHttp.getEs().getModelLayerFactory().getIOServicesFactory().newHashingService(BASE64);
+		this.pageParser = new HtmlPageParser(urlAcceptor, fileParser, hashingService);
+		//robotsTxtFactory = new RobotsTxtFactory();
+	}
 
-                Page page = null;
-                //FIXME
-                long beforeFetch = new Date().getTime();
-                try {
-                    page = fetchingService.fetch(url);
-                    long afterFetch = new Date().getTime();
-                    httpDocument.setDownloadTime((double) afterFetch - beforeFetch);
+	@Override
+	public void execute(Connector connector) {
+		//FIXME Same instance of connector ?
+		try (HttpURLFetchingService fetchingService = connectorHttp.newFetchingService()) {
+			for (ConnectorHttpDocument httpDocument : documents) {
+				String url = httpDocument.getURL();
 
-                } catch (URLFetchingServiceRuntimeException e) {
-                    long afterFetch = new Date().getTime();
-                    httpDocument.setDownloadTime((double) afterFetch - beforeFetch);
-                    handleFetchException(httpDocument, e);
-                }
+				if (!robotsTxtFactory.isAuthorizedPath(url)) {
+					String path = getClass().getClassLoader().getResource(PATH_TO_NOINDEX_HTML).getPath();
+					if (StringUtils.startsWith(path, PROTOCOL)) {
+						url = path;
+					} else {
+						url = PROTOCOL + PROTOCOL_SEP + path;
+					}
+				}
 
-                if (page != null) {
-                    try {
-                        parse(httpDocument, page);
-                    } catch (ConnectorHttpDocumentFetchException e) {
-                        connectorLogger.error(e);
-                    } catch (Throwable t) {
-                        connectorLogger.errorUnexpected(t);
-                    }
-                }
-            }
-        }
-    }
+				Page page = null;
+				//FIXME
+				long beforeFetch = new Date().getTime();
+				try {
+					page = fetchingService.fetch(url);
+					long afterFetch = new Date().getTime();
+					httpDocument.setDownloadTime((double) afterFetch - beforeFetch);
 
-    private void handleFetchException(ConnectorHttpDocument httpDocument, URLFetchingServiceRuntimeException e) {
-        e.printStackTrace();
-        httpDocument.setFetched(true);
-        httpDocument.setStatus(ConnectorDocumentStatus.ERROR);
-        if (!e.getErrorCode().equals(httpDocument.getErrorCode())) {
-            httpDocument.resetErrorsCount();
-        }
-        httpDocument.incrementErrorsCount();
-        httpDocument.setErrorCode(e.getErrorCode());
-        httpDocument.setErrorMessage(e.getDescription());
-        httpDocument.setFetchedDateTime(TimeProvider.getLocalDateTime());
-        List<ConnectorDocument> documents = asList((ConnectorDocument) httpDocument);
-        if (httpDocument.getErrorsCount() >= 3) {
-            connectorHttp.getEventObserver().deleteEvents(httpDocument);
-        } else {
-            connectorHttp.getEventObserver().push(documents);
-        }
-    }
+				} catch (URLFetchingServiceRuntimeException e) {
+					long afterFetch = new Date().getTime();
+					httpDocument.setDownloadTime((double) afterFetch - beforeFetch);
+					handleFetchException(httpDocument, e);
+				}
 
-    private void parse(ConnectorHttpDocument httpDocument, Page page)
-            throws ConnectorHttpDocumentFetchException {
-        httpDocument.setFetched(true)
-                .setStatus(ConnectorDocumentStatus.OK)
-                .setFetchedDateTime(TimeProvider.getLocalDateTime());
-        if (page instanceof HtmlPage) {
-            parseHtml(httpDocument, (HtmlPage) page);
+				if (page != null) {
+					try {
+						parse(httpDocument, page);
+					} catch (ConnectorHttpDocumentFetchException e) {
+						connectorLogger.error(e);
+					} catch (Throwable t) {
+						connectorLogger.errorUnexpected(t);
+					}
+				}
+			}
+		}
+	}
 
-        } else {
-            parseBinary(httpDocument, page);
-        }
-    }
+	private void handleFetchException(ConnectorHttpDocument httpDocument, URLFetchingServiceRuntimeException e) {
 
-    private void parseBinary(ConnectorHttpDocument httpDocument, Page page)
-            throws ConnectorHttpDocumentFetchException {
+		if ("404".equals(e.getErrorCode())) {
+			LOGGER.info("Error 404, url '" + httpDocument.getUrl() + "' not found");
 
-        try {
-            InputStream inputStream = null;
-            try {
-                try {
-                    inputStream = page.getWebResponse().getContentAsStream();
-                } catch (IOException e) {
-                    //TODO Test!
-                    throw new ConnectorHttpDocumentFetchException_CannotDownloadDocument(httpDocument.getURL(), e);
-                }
-                ParsedContent parsedContent = fileParser.parse(inputStream, true);
-                if (parsedContent.getParsedContent().isEmpty()) {
-                    //TODO Test!
-                    throw new ConnectorHttpDocumentFetchException_DocumentHasNoParsedContent(httpDocument.getURL());
-                } else {
-                    httpDocument.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"));
-                    httpDocument.addStringProperty("charset", page.getWebResponse().getContentCharset());
-                    httpDocument.setLanguage(parsedContent.getLanguage());
-                    httpDocument.setParsedContent(parsedContent.getParsedContent());
-                    httpDocument.setDescription(parsedContent.getDescription());
+		} else if ("500".equals(e.getErrorCode())) {
+			LOGGER.info("Error 500, internal server error on url '" + httpDocument.getUrl() + "'");
 
-                    String metadataTitle = parsedContent.getTitle();
-                    if (StringUtils.isBlank(metadataTitle)) {
-                        metadataTitle = extractFilename(httpDocument.getURL());
-                    }
+		} else {
+			LOGGER.warn("Error fetching '" + httpDocument.getUrl() + "'", e);
+		}
 
-                    httpDocument.setTitle(metadataTitle);
-                    httpDocument.setDigest(hashingService.getHashFromString(parsedContent.getParsedContent()));
-                    httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
+		httpDocument.setFetched(true);
+		httpDocument.setStatus(ConnectorDocumentStatus.ERROR);
+		if (!e.getErrorCode().equals(httpDocument.getErrorCode())) {
+			httpDocument.resetErrorsCount();
+		}
+		httpDocument.incrementErrorsCount();
+		httpDocument.setErrorCode(e.getErrorCode());
+		httpDocument.setErrorMessage(e.getDescription());
+		httpDocument.setFetchedDateTime(TimeProvider.getLocalDateTime());
+		List<ConnectorDocument> documents = asList((ConnectorDocument) httpDocument);
+		if (httpDocument.getErrorsCount() >= 3) {
+			connectorHttp.getEventObserver().deleteEvents(httpDocument);
+		} else {
+			connectorHttp.getEventObserver().push(documents);
+		}
+	}
 
-                    AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
-                            .forCollection(connectorHttp.getEs().collection.code().getCollection());
-                    ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
+	private void parse(ConnectorHttpDocument httpDocument, Page page)
+			throws ConnectorHttpDocumentFetchException {
+		httpDocument.setFetched(true)
+				.setStatus(ConnectorDocumentStatus.OK)
+				.setFetchedDateTime(TimeProvider.getLocalDateTime());
+		if (page instanceof HtmlPage) {
+			parseHtml(httpDocument, (HtmlPage) page);
 
-                    esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
-                            .setConnectorHttpDocument(httpDocument)
-                            .setModelLayerFactory(this.es.getModelLayerFactory()));
-                }
-            } catch (FileParserException e) {
-                //TODO Test!
-                throw new ConnectorHttpDocumentFetchException_CannotParseDocument(httpDocument.getURL(), e);
+		} else {
+			parseBinary(httpDocument, page);
+		}
+	}
 
-            } catch (HashingServiceException e) {
-                throw new ImpossibleRuntimeException(e);
+	private void parseBinary(ConnectorHttpDocument httpDocument, Page page)
+			throws ConnectorHttpDocumentFetchException {
 
-            } finally {
-                IOUtils.closeQuietly(inputStream);
-            }
+		try {
+			InputStream inputStream = null;
+			try {
+				try {
+					inputStream = page.getWebResponse().getContentAsStream();
+				} catch (IOException e) {
+					//TODO Test!
+					throw new ConnectorHttpDocumentFetchException_CannotDownloadDocument(httpDocument.getURL(), e);
+				}
+				ParsedContent parsedContent = fileParser.parse(inputStream, true);
+				if (parsedContent.getParsedContent().isEmpty()) {
+					//TODO Test!
+					throw new ConnectorHttpDocumentFetchException_DocumentHasNoParsedContent(httpDocument.getURL());
+				} else {
+					httpDocument.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"));
+					httpDocument.addStringProperty("charset", page.getWebResponse().getContentCharset());
+					httpDocument.setLanguage(parsedContent.getLanguage());
+					httpDocument.setParsedContent(parsedContent.getParsedContent());
+					httpDocument.setDescription(parsedContent.getDescription());
 
-            httpDocument.setErrorCode(null)
-                    .setErrorMessage(null)
-                    .setErrorStackTrace(null)
-                    .resetErrorsCount()
-                    .setManualTokens(Record.PUBLIC_TOKEN);
+					String metadataTitle = parsedContent.getTitle();
+					if (StringUtils.isBlank(metadataTitle)) {
+						metadataTitle = extractFilename(httpDocument.getURL());
+					}
 
-        } catch (Exception e) {
-            httpDocument.setErrorCode(ConnectorHttpFetchJob.class.getSimpleName() + ".parseBinary()")
-                    .setErrorMessage(ExceptionUtils.getMessage(e))
-                    .setErrorStackTrace(ExceptionUtils.getFullStackTrace(e))
-                    .incrementErrorsCount();
-        }
+					httpDocument.setTitle(metadataTitle);
+					httpDocument.setDigest(hashingService.getHashFromString(parsedContent.getParsedContent()));
+					httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
 
-        saveDocumentDigestAndDetectCopy(httpDocument);
-        connectorHttp.getEventObserver().push(asList((ConnectorDocument) httpDocument));
-    }
+					AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
+							.forCollection(connectorHttp.getEs().collection.code().getCollection());
+					ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
 
-    private void parseHtml(ConnectorHttpDocument httpDocument, HtmlPage page)
-            throws ConnectorHttpDocumentFetchException {
-        HtmlPageParserResults results = pageParser.parse(httpDocument.getURL(), (HtmlPage) page);
+					esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
+							.setConnectorHttpDocument(httpDocument)
+							.setModelLayerFactory(this.es.getModelLayerFactory()));
+				}
+			} catch (FileParserException e) {
+				//TODO Test!
+				throw new ConnectorHttpDocumentFetchException_CannotParseDocument(httpDocument.getURL(), e);
 
-        List<ConnectorDocument> savedDocuments = new ArrayList<>();
-        List<String> urls = new ArrayList<>(results.getLinkedUrls());
-        int linksLevel = httpDocument.getLevel() + 1;
-        if (linksLevel <= maxLevel)
-            for (String url : urls) {
-                if (context.isNewUrl(url)) {
-                    context.markAsFetched(url);
+			} catch (HashingServiceException e) {
+				throw new ImpossibleRuntimeException(e);
 
-                    ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
-                    document.setInlinks(Arrays.asList(httpDocument.getUrl()));
-                    savedDocuments.add(document);
-                }
-            }
+			} finally {
+				IOUtils.closeQuietly(inputStream);
+			}
 
-        ensureNotStopped();
-        setJobStep("Fetching " + httpDocument.getURL());
+			httpDocument.setErrorCode(null)
+					.setErrorMessage(null)
+					.setErrorStackTrace(null)
+					.resetErrorsCount()
+					.setManualTokens(Record.PUBLIC_TOKEN);
 
-        String title = results.getTitle() == null ? extractFilename(httpDocument.getURL()) : results.getTitle();
+		} catch (Exception e) {
+			httpDocument.setErrorCode(ConnectorHttpFetchJob.class.getSimpleName() + ".parseBinary()")
+					.setErrorMessage(ExceptionUtils.getMessage(e))
+					.setErrorStackTrace(ExceptionUtils.getFullStackTrace(e))
+					.incrementErrorsCount();
+		}
 
-        httpDocument.setManualTokens(Record.PUBLIC_TOKEN);
+		saveDocumentDigestAndDetectCopy(httpDocument);
+		connectorHttp.getEventObserver().push(asList((ConnectorDocument) httpDocument));
+	}
 
-        httpDocument
-                .setTitle(title)
-                .setErrorCode(null)
-                .setErrorMessage(null)
-                .setErrorStackTrace(null)
-                .resetErrorsCount()
-                .setParsedContent(results.getParsedContent())
-                .setDigest(results.getDigest())
-                .setLanguage(results.getLanguage())
-                .setOutlinks(urls)
-                .setDescription(results.getDescription())
-                .setMimetype(results.getMimetype())
-                .addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"))
-                .addStringProperty("charset", page.getWebResponse().getContentCharset());
+	private void parseHtml(ConnectorHttpDocument httpDocument, HtmlPage page)
+			throws ConnectorHttpDocumentFetchException {
+		HtmlPageParserResults results = pageParser.parse(httpDocument.getURL(), (HtmlPage) page);
 
-        savedDocuments.add(httpDocument);
+		List<ConnectorDocument> savedDocuments = new ArrayList<>();
+		List<String> urls = new ArrayList<>();
+		if (!results.isNoFollow()) {
+			urls.addAll(results.getLinkedUrls());
+			int linksLevel = httpDocument.getLevel() + 1;
+			if (linksLevel <= maxLevel) {
+				for (String url : urls) {
+					if (context.isNewUrl(url)) {
+						context.markAsFetched(url);
 
-        AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
-                .forCollection(connectorHttp.getEs().collection.code().getCollection());
-        ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
-        esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
-                .setConnectorHttpDocument(httpDocument)
-                .setModelLayerFactory(this.es.getModelLayerFactory()));
+						ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
+						document.setInlinks(Arrays.asList(httpDocument.getUrl()));
+						savedDocuments.add(document);
+					}
+				}
+			}
+		}
 
-        saveDocumentDigestAndDetectCopy(httpDocument);
-        connectorHttp.getEventObserver().push(savedDocuments);
-    }
+		ensureNotStopped();
+		setJobStep("Fetching " + httpDocument.getURL());
 
-    private String extractFilename(String url) {
-        int lastSlash = url.lastIndexOf("/");
-        if (lastSlash == -1) {
-            return url;
-        } else {
-            return url.substring(lastSlash + 1);
-        }
-    }
+		String title = results.getTitle() == null ? extractFilename(httpDocument.getURL()) : results.getTitle();
 
-    private void saveDocumentDigestAndDetectCopy(ConnectorHttpDocument httpDocument) {
-        Record record = httpDocument.getWrappedRecord();
+		httpDocument.setManualTokens(Record.PUBLIC_TOKEN);
 
-        httpDocument.setSearchable(true);
-        httpDocument.setCopyOf(null);
-        String originalDigest = null;
-        if (record.isSaved()) {
-            originalDigest = record.getCopyOfOriginalRecord().get(es.connectorHttpDocument.digest());
-        }
-        if (originalDigest != null && !originalDigest.equals(httpDocument.getDigest())) {
-            context.removeDocumentDigest(originalDigest, httpDocument.getURL());
-        }
+		httpDocument
+				.setTitle(title)
+				.setErrorCode(null)
+				.setErrorMessage(null)
+				.setErrorStackTrace(null)
+				.resetErrorsCount()
+				.setParsedContent(results.getParsedContent())
+				.setDigest(results.getDigest())
+				.setLanguage(results.getLanguage())
+				.setOutlinks(urls)
+				.setDescription(results.getDescription())
+				.setMimetype(results.getMimetype())
+				.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"))
+				.addStringProperty("charset", page.getWebResponse().getContentCharset());
 
-        if (httpDocument.getDigest() != null) {
-            String documentUrlWithDigest = context.getDocumentUrlWithDigest(httpDocument.getDigest());
-            if (documentUrlWithDigest != null && !httpDocument.getURL().equals(documentUrlWithDigest)) {
-                httpDocument.setParsedContent(null);
-                httpDocument.setCopyOf(documentUrlWithDigest);
-                httpDocument.setSearchable(false);
-            } else {
-                context.addDocumentDigest(httpDocument.getDigest(), httpDocument.getURL());
-            }
-        }
-    }
+		savedDocuments.add(httpDocument);
+
+		AppLayerCollectionExtensions extentions = connectorHttp.getEs().getAppLayerFactory().getExtensions()
+				.forCollection(connectorHttp.getEs().collection.code().getCollection());
+		ESModuleExtensions esExtensions = extentions.forModule(ConstellioESModule.ID);
+		esExtensions.onHttpDocumentFetched(new OnHttpDocumentFetchedParams()
+				.setConnectorHttpDocument(httpDocument)
+				.setModelLayerFactory(this.es.getModelLayerFactory()));
+
+		saveDocumentDigestAndDetectCopy(httpDocument);
+		connectorHttp.getEventObserver().push(savedDocuments);
+	}
+
+	private String extractFilename(String url) {
+		int lastSlash = url.lastIndexOf("/");
+		if (lastSlash == -1) {
+			return url;
+		} else {
+			return url.substring(lastSlash + 1);
+		}
+	}
+
+	private void saveDocumentDigestAndDetectCopy(ConnectorHttpDocument httpDocument) {
+		Record record = httpDocument.getWrappedRecord();
+
+		httpDocument.setSearchable(true);
+		httpDocument.setCopyOf(null);
+		String originalDigest = null;
+		if (record.isSaved()) {
+			originalDigest = record.getCopyOfOriginalRecord().get(es.connectorHttpDocument.digest());
+		}
+		if (originalDigest != null && !originalDigest.equals(httpDocument.getDigest())) {
+			context.removeDocumentDigest(originalDigest, httpDocument.getURL());
+		}
+
+		if (httpDocument.getDigest() != null) {
+			String documentUrlWithDigest = context.getDocumentUrlWithDigest(httpDocument.getDigest());
+			if (documentUrlWithDigest != null && !httpDocument.getURL().equals(documentUrlWithDigest)) {
+				httpDocument.setParsedContent(null);
+				httpDocument.setCopyOf(documentUrlWithDigest);
+				httpDocument.setSearchable(false);
+			} else {
+				context.addDocumentDigest(httpDocument.getDigest(), httpDocument.getURL());
+			}
+		}
+	}
 
 }

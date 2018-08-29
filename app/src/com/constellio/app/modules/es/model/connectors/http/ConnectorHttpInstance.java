@@ -1,16 +1,15 @@
 package com.constellio.app.modules.es.model.connectors.http;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.es.model.connectors.AuthenticationScheme;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class ConnectorHttpInstance extends ConnectorInstance<ConnectorHttpInstance> {
 

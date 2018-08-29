@@ -43,8 +43,8 @@ public class TestClassFinder {
 				Method method = clz.getMethod(element.getMethodName(), new Class[0]);
 				for (Annotation annotation : method.getAnnotations()) {
 					if (annotation.annotationType() == org.junit.Test.class
-							|| annotation.annotationType() == org.junit.Before.class
-							|| annotation.annotationType() == org.junit.After.class) {
+						|| annotation.annotationType() == org.junit.Before.class
+						|| annotation.annotationType() == org.junit.After.class) {
 						return element.getClassName();
 					}
 				}

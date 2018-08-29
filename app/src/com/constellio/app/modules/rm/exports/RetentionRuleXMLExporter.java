@@ -1,27 +1,5 @@
 package com.constellio.app.modules.rm.exports;
 
-import static com.constellio.model.entities.schemas.Schemas.CODE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
-
-import org.apache.commons.io.FileUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-import org.xml.sax.SAXException;
-
 import com.constellio.app.modules.rm.exports.RetentionRuleXMLExporterRuntimeException.RetentionRuleXMLExporterRuntimeException_InvalidFile;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -36,6 +14,26 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.io.FileUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+import org.xml.sax.SAXException;
+
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.Schemas.CODE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RetentionRuleXMLExporter {
 
@@ -52,7 +50,7 @@ public class RetentionRuleXMLExporter {
 	RMSchemasRecordsServices rm;
 
 	public RetentionRuleXMLExporter(List<RetentionRule> rules, File exportFile, String collection,
-			ModelLayerFactory modelLayerFactory) {
+									ModelLayerFactory modelLayerFactory) {
 		this.rules = rules;
 		this.exportFile = exportFile;
 		this.collection = collection;
@@ -308,7 +306,8 @@ public class RetentionRuleXMLExporter {
 	}
 
 	public static RetentionRuleXMLExporter forAllApprovedRulesInCollection(String collection,
-			File exportFile, ModelLayerFactory modelLayerFactory) {
+																		   File exportFile,
+																		   ModelLayerFactory modelLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> records = searchServices.search(new LogicalSearchQuery(
@@ -320,7 +319,8 @@ public class RetentionRuleXMLExporter {
 	}
 
 	public static RetentionRuleXMLExporter forAllRulesInCollection(String collection,
-																		   File exportFile, ModelLayerFactory modelLayerFactory) {
+																   File exportFile,
+																   ModelLayerFactory modelLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		List<Record> records = searchServices.search(new LogicalSearchQuery(

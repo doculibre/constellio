@@ -1,24 +1,35 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.constellio.app.modules.rm.wrappers.RMObject;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
+import com.constellio.model.extensions.events.recordsImport.ValidationParams;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class FolderRuleImportExtension extends RecordImportExtension {
 
+	private static final String ACTIVE_WITH_TRANSFERT_DATE = "activeWithTransfertDate";
+	private static final String ACTIVE_WITH_DEPOSIT_DATE = "activeWithDepositDate";
+	private static final String ACTIVE_WITH_DESTRUCTION_DATE = "activeWithDestructionDate";
+	private static final String SEMI_ACTIVE_WITH_DEPOSIT_DATE = "semiActiveWithDepositDate";
+	private static final String SEMI_ACTIVE_WITH_DESTRUCTION_DATE = "semiActiveWithDestructionDate";
+	private static final String SEMI_ACTIVE_WITHOUT_TRANSFERT_DATE = "semiActiveWithoutTransfertDate";
+	private static final String DESTROYED_WITH_DEPOSIT_DATE = "destroyedWithDepositDate";
+	private static final String DESTROYED_WITHOUT_DESTRUCTION_DATE = "destroyedWithoutDestructionDate";
+	private static final String DEPOSITED_WITH_DESTRUCTION_DATE = "depositedWithDestructionDate";
+	private static final String DEPOSITED_WITHOUT_DEPOSIT_DATE = "depositedWithoutDepositDate";
 	public static boolean ajustManualDepositAndDestructionDates = true;
 
 	RMSchemasRecordsServices rm;
@@ -44,6 +55,69 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 		}
 	}
 
+	@Override
+	public void validate(ValidationParams event) {
+		ensureStatus(event);
+	}
+
+	private void ensureStatus(ValidationParams event) {
+		ValidationErrors errors = event.getErrors();
+		Map<String, Object> fields = event.getImportRecord().getFields();
+		String folderId = event.getImportRecord().getLegacyId();
+		Object transfertDate = fields.get(Folder.ACTUAL_TRANSFER_DATE);
+		Object destructionDate = fields.get(Folder.ACTUAL_DESTRUCTION_DATE);
+		Object depositDate = fields.get(Folder.ACTUAL_DEPOSIT_DATE);
+		String ensureStatus = event.getImportRecord().getOption("ensureStatus");
+		if (ensureStatus != null) {
+			switch (ensureStatus) {
+				case "a":
+					if (transfertDate != null) {
+						errors.add(FolderRuleImportExtension.class, ACTIVE_WITH_TRANSFERT_DATE, asMap("folderId", folderId));
+					}
+					if (depositDate != null) {
+						errors.add(FolderRuleImportExtension.class, ACTIVE_WITH_DEPOSIT_DATE, asMap("folderId", folderId));
+					}
+					if (destructionDate != null) {
+						errors.add(FolderRuleImportExtension.class, ACTIVE_WITH_DESTRUCTION_DATE, asMap("folderId", folderId));
+					}
+					break;
+				case "s":
+					if (depositDate != null) {
+						errors.add(FolderRuleImportExtension.class, SEMI_ACTIVE_WITH_DEPOSIT_DATE, asMap("folderId", folderId));
+					}
+					if (destructionDate != null) {
+						errors.add(FolderRuleImportExtension.class, SEMI_ACTIVE_WITH_DESTRUCTION_DATE, asMap("folderId", folderId));
+					}
+					if (transfertDate == null) {
+						errors.addWarning(FolderRuleImportExtension.class, SEMI_ACTIVE_WITHOUT_TRANSFERT_DATE, asMap("folderId", folderId));
+					}
+					break;
+				case "d":
+					if (depositDate != null) {
+						errors.add(FolderRuleImportExtension.class, DESTROYED_WITH_DEPOSIT_DATE, asMap("folderId", folderId));
+					}
+					if (destructionDate == null) {
+						errors.addWarning(FolderRuleImportExtension.class, DESTROYED_WITHOUT_DESTRUCTION_DATE, asMap("folderId", folderId));
+					}
+					break;
+				case "v":
+					if (destructionDate != null) {
+						errors.add(FolderRuleImportExtension.class, DEPOSITED_WITH_DESTRUCTION_DATE, asMap("folderId", folderId));
+					}
+					if (depositDate == null) {
+						errors.addWarning(FolderRuleImportExtension.class, DEPOSITED_WITHOUT_DEPOSIT_DATE, asMap("folderId", folderId));
+					}
+					break;
+			}
+		}
+	}
+
+	private Map<String, Object> asMap(String key1, String value1) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put(key1, value1);
+		return parameters;
+	}
+
 	private void autoCalculateDates(Folder folder, BuildParams event) {
 		String autoSetStatusTo = event.getImportRecord().getOption("autoSetStatusTo");
 		if (autoSetStatusTo != null) {
@@ -62,7 +136,6 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 			}
 
 		}
-
 	}
 
 	private void ajusteManualDepositAndDestructionDates(Folder folder) {
@@ -79,16 +152,16 @@ public class FolderRuleImportExtension extends RecordImportExtension {
 		}
 
 		if (manualExpectedDeposit != null && manualExpectedTransfer != null
-				&& manualExpectedDeposit.isBefore(manualExpectedTransfer)) {
+			&& manualExpectedDeposit.isBefore(manualExpectedTransfer)) {
 			folder.setManualExpectedDepositDate(null);
 		}
 		if (manualExpectedDestruction != null && actualTransfer != null
-				&& manualExpectedDestruction.isBefore(actualTransfer)) {
+			&& manualExpectedDestruction.isBefore(actualTransfer)) {
 			folder.setManualExpectedDestructionDate(null);
 		}
 
 		if (manualExpectedDestruction != null && manualExpectedTransfer != null
-				&& manualExpectedDestruction.isBefore(manualExpectedTransfer)) {
+			&& manualExpectedDestruction.isBefore(manualExpectedTransfer)) {
 			folder.setManualExpectedDestructionDate(null);
 		}
 

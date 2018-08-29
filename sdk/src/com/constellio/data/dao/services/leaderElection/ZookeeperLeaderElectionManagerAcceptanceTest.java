@@ -1,9 +1,8 @@
 package com.constellio.data.dao.services.leaderElection;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.RetryOneTime;
@@ -13,9 +12,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SlowTest
 public class ZookeeperLeaderElectionManagerAcceptanceTest extends ConstellioTest {

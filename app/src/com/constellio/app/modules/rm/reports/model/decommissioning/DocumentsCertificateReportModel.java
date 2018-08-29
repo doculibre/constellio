@@ -1,16 +1,14 @@
 package com.constellio.app.modules.rm.reports.model.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.ui.util.DateFormatUtils;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import org.joda.time.LocalDate;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import com.constellio.app.ui.util.DateFormatUtils;
-import com.constellio.data.io.streamFactories.StreamFactory;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentsCertificateReportModel {
 
@@ -100,9 +98,10 @@ public class DocumentsCertificateReportModel {
 		public DocumentsCertificateReportModel_Document() {
 		}
 
-		public DocumentsCertificateReportModel_Document(String id, String title, String md5, String filename, String folder,
-				String retentionRuleCode,
-				String principalCopyRetentionRule) {
+		public DocumentsCertificateReportModel_Document(String id, String title, String md5, String filename,
+														String folder,
+														String retentionRuleCode,
+														String principalCopyRetentionRule) {
 			this.id = id;
 			this.title = title;
 			this.md5 = md5;

@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.user;
 
-import java.util.List;
-
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BackButton;
@@ -15,6 +11,9 @@ import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
+
+import java.util.List;
 
 public class ListUserCredentialPage extends PageHelper {
 

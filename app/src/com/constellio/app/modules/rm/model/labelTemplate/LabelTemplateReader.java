@@ -1,15 +1,14 @@
 package com.constellio.app.modules.rm.model.labelTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField.LabelTemplateFieldHorizontalAlignment;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField.LabelTemplateFieldVerticalAlignment;
+import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import org.apache.commons.lang.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField.LabelTemplateFieldHorizontalAlignment;
-import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField.LabelTemplateFieldVerticalAlignment;
-import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LabelTemplateReader {
 

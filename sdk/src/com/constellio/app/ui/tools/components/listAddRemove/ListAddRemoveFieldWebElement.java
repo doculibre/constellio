@@ -1,15 +1,13 @@
 package com.constellio.app.ui.tools.components.listAddRemove;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
-import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebTableElement;
 import com.constellio.sdk.tests.selenium.conditions.ConditionWithTimeout;
+import org.openqa.selenium.By;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class ListAddRemoveFieldWebElement<T> {
 
@@ -22,7 +20,7 @@ public abstract class ListAddRemoveFieldWebElement<T> {
 	public T getInputComponent() {
 		return wrapInputElement(getInputElement());
 	}
-	
+
 	public T getInputDateComponent() {
 		return wrapInputElement(getInputDateElement());
 	}
@@ -84,7 +82,7 @@ public abstract class ListAddRemoveFieldWebElement<T> {
 	protected ConstellioWebElement getInputElement() {
 		return nestedElement.findElement(By.className(ListAddRemoveField.ADD_EDIT_FIELD_STYLE_NAME));
 	}
-	
+
 	protected ConstellioWebElement getInputDateElement() {
 		return nestedElement.findElement(By.className("v-datefield-textfield"));
 	}

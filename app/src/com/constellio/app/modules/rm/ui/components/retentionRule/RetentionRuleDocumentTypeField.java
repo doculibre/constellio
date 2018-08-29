@@ -15,20 +15,20 @@ import com.vaadin.ui.CustomField;
 import com.vaadin.ui.HorizontalLayout;
 
 public class RetentionRuleDocumentTypeField extends CustomField<RetentionRuleDocumentType> {
-	
+
 	private HorizontalLayout layout;
-	
+
 	private ComboBox documentTypeField;
-	
+
 	private EnumWithSmallCodeComboBox<DisposalType> disposalTypeField;
-	
+
 	public RetentionRuleDocumentTypeField() {
 		setSizeFull();
-		
+
 		layout = new HorizontalLayout();
 		layout.setWidth("100%");
 		layout.setSpacing(true);
-		
+
 		Property<String> documentTypeProperty = new AbstractProperty<String>() {
 			@Override
 			public String getValue() {
@@ -50,7 +50,7 @@ public class RetentionRuleDocumentTypeField extends CustomField<RetentionRuleDoc
 				return String.class;
 			}
 		};
-		
+
 		Property<DisposalType> disposalTypeProperty = new AbstractProperty<DisposalType>() {
 			@Override
 			public DisposalType getValue() {
@@ -72,7 +72,7 @@ public class RetentionRuleDocumentTypeField extends CustomField<RetentionRuleDoc
 				return DisposalType.class;
 			}
 		};
-		
+
 		documentTypeField = new RecordComboBox(DocumentType.DEFAULT_SCHEMA);
 		disposalTypeField = new EnumWithSmallCodeComboBox<DisposalType>(DisposalType.class) {
 			@Override
@@ -80,18 +80,18 @@ public class RetentionRuleDocumentTypeField extends CustomField<RetentionRuleDoc
 				return DisposalType.SORT.getCode().equals(enumCode);
 			}
 		};
-		
+
 		documentTypeField.setImmediate(true);
 		disposalTypeField.setImmediate(true);
-		
+
 		documentTypeField.setPropertyDataSource(documentTypeProperty);
 		disposalTypeField.setPropertyDataSource(disposalTypeProperty);
-		
+
 		layout.addComponents(documentTypeField, disposalTypeField);
-		
+
 		setValue(new RetentionRuleDocumentType());
 	}
-	
+
 	private RetentionRuleDocumentType getRetentionRuleDocumentType() {
 		return getValue();
 	}
@@ -100,7 +100,7 @@ public class RetentionRuleDocumentTypeField extends CustomField<RetentionRuleDoc
 	protected Component initContent() {
 		return layout;
 	}
-	
+
 	public void setDisposalTypeFieldVisible(boolean visible) {
 		this.disposalTypeField.setVisible(visible);
 	}
@@ -110,7 +110,7 @@ public class RetentionRuleDocumentTypeField extends CustomField<RetentionRuleDoc
 		return RetentionRuleDocumentType.class;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public void setPropertyDataSource(Property newDataSource) {
 		if (newDataSource != null) {
@@ -186,5 +186,5 @@ public class RetentionRuleDocumentTypeField extends CustomField<RetentionRuleDoc
 		// TODO
 		super.validate();
 	}
-	
+
 }

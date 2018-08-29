@@ -1,13 +1,6 @@
 package com.constellio.model.services.taxonomies;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
@@ -17,6 +10,15 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomySchemaTypesHaveRecords;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 
@@ -42,6 +44,9 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 
 	Transaction transaction;
 
+	Map<Language, String> labelTitle1;
+	Map<Language, String> labelTitle2;
+
 	@Before
 	public void setup()
 			throws Exception {
@@ -57,14 +62,21 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 		givenCollection("collection2");
 		defineSchemasManager().using(collection1Schema.withAStringMetadata());
 		defineSchemasManager().using(collection2Schema.withAMetadata());
+
+		labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "1");
+
+		labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, "2");
 	}
 
 	@Test
 	public void givenSchemasInMultipleCollectionsThenAllIndependent()
 			throws Exception {
 
-		Taxonomy collection1Taxonomy = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
-		Taxonomy collection2Taxonomy = Taxonomy.createPublic("2", "2", "collection2", asList("anotherSchemaType"));
+
+		Taxonomy collection1Taxonomy = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
+		Taxonomy collection2Taxonomy = Taxonomy.createPublic("2", labelTitle2, "collection2", asList("anotherSchemaType"));
 
 		taxonomiesManager.addTaxonomy(collection1Taxonomy, schemasManager);
 		taxonomiesManager.addTaxonomy(collection2Taxonomy, schemasManager);
@@ -80,8 +92,8 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 	public void givenXMLAlreadyExistingAndAuthorizationsThenManagerLoadThem()
 			throws Exception {
 
-		Taxonomy taxonomy1 = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
-		Taxonomy taxonomy2 = Taxonomy.createPublic("2", "2", "collection1", asList("anotherSchemaType"));
+		Taxonomy taxonomy1 = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
+		Taxonomy taxonomy2 = Taxonomy.createPublic("2", labelTitle2, "collection1", asList("anotherSchemaType"));
 
 		taxonomiesManager.addTaxonomy(taxonomy1, schemasManager);
 		taxonomiesManager.addTaxonomy(taxonomy2, schemasManager);
@@ -112,7 +124,10 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 
 		givenRecord();
 
-		Taxonomy taxonomy1 = Taxonomy.createPublic("zeTaxo", "zeTaxo", "collection1", asList("zeSchemaType"));
+		Map<Language, String> labelTitle3 = new HashMap<>();
+		labelTitle3.put(Language.French, "zeTaxo");
+
+		Taxonomy taxonomy1 = Taxonomy.createPublic("zeTaxo", labelTitle3, "collection1", asList("zeSchemaType"));
 
 		taxonomiesManager.addTaxonomy(taxonomy1, schemasManager);
 	}
@@ -124,8 +139,8 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 		List<String> taxoUsers = asList("user1", "user2");
 		List<String> taxoGroups = asList("group1", "group2");
 
-		Taxonomy taxonomy1 = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
-		Taxonomy taxonomy2 = new Taxonomy("2", "2", "collection1", false, taxoUsers, taxoGroups, asList("anotherSchemaType"),
+		Taxonomy taxonomy1 = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
+		Taxonomy taxonomy2 = new Taxonomy("2", labelTitle2, "collection1", false, taxoUsers, taxoGroups, asList("anotherSchemaType"),
 				true);
 
 		taxonomiesManager.addTaxonomy(taxonomy1, schemasManager);
@@ -151,8 +166,8 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 	public void whenAddTwoTaxonomiesWithSameCodeThenException()
 			throws Exception {
 
-		Taxonomy taxonomy1 = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
-		Taxonomy taxonomy2 = Taxonomy.createPublic("1", "1", "collection1", asList("anotherSchemaType"));
+		Taxonomy taxonomy1 = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
+		Taxonomy taxonomy2 = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("anotherSchemaType"));
 
 		taxonomiesManager.addTaxonomy(taxonomy1, schemasManager);
 		taxonomiesManager.addTaxonomy(taxonomy2, schemasManager);
@@ -162,8 +177,8 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 	public void whenAddTwoTaxonomiesWithSameSchemaTypeThenException()
 			throws Exception {
 
-		Taxonomy taxonomy1 = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
-		Taxonomy taxonomy2 = Taxonomy.createPublic("2", "2", "collection1", asList("zeSchemaType"));
+		Taxonomy taxonomy1 = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
+		Taxonomy taxonomy2 = Taxonomy.createPublic("2", labelTitle2, "collection1", asList("zeSchemaType"));
 
 		taxonomiesManager.addTaxonomy(taxonomy1, schemasManager);
 		taxonomiesManager.addTaxonomy(taxonomy2, schemasManager);
@@ -173,7 +188,7 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 	public void whenDisableTaxonomyThenItIsDisable()
 			throws Exception {
 
-		Taxonomy taxonomy = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
+		Taxonomy taxonomy = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
 		taxonomiesManager.addTaxonomy(taxonomy, schemasManager);
 
 		taxonomiesManager.disable(taxonomy, schemasManager);
@@ -188,7 +203,7 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 	public void givenRecordUsingTypeInTaxonomyWhenDisableTaxonomyThenException()
 			throws Exception {
 
-		Taxonomy taxonomy = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
+		Taxonomy taxonomy = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
 		taxonomiesManager.addTaxonomy(taxonomy, schemasManager);
 
 		givenRecord();
@@ -200,7 +215,7 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 	public void whenDisableAnAlreadyDisableTaxonomyThenOk()
 			throws Exception {
 
-		Taxonomy taxonomy = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
+		Taxonomy taxonomy = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
 		taxonomiesManager.addTaxonomy(taxonomy, schemasManager);
 
 		taxonomiesManager.disable(taxonomy, schemasManager);
@@ -216,7 +231,7 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 	public void givenRecordUsingTypeInTaxonomyWhenEnbaleTaxonomyThenItIsEnable()
 			throws Exception {
 
-		Taxonomy taxonomy = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
+		Taxonomy taxonomy = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
 		taxonomiesManager.addTaxonomy(taxonomy, schemasManager);
 		taxonomiesManager.disable(taxonomy, schemasManager);
 
@@ -234,7 +249,7 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 	public void whenEnbaleTaxonomyThenItIsEnable()
 			throws Exception {
 
-		Taxonomy taxonomy = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
+		Taxonomy taxonomy = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
 		taxonomiesManager.addTaxonomy(taxonomy, schemasManager);
 		taxonomiesManager.disable(taxonomy, schemasManager);
 
@@ -250,7 +265,7 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 	public void whenEnbaleAnAlreadyEnableTaxonomyThenOk()
 			throws Exception {
 
-		Taxonomy taxonomy = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
+		Taxonomy taxonomy = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
 		taxonomiesManager.addTaxonomy(taxonomy, schemasManager);
 		taxonomiesManager.disable(taxonomy, schemasManager);
 
@@ -266,8 +281,8 @@ public class TaxonomiesManagerAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenTwoTaxonomiesWhenGetTaxonomyForThenReturnTaxonomyWithTheSchemaPassed()
 			throws Exception {
-		Taxonomy taxonomy1 = Taxonomy.createPublic("1", "1", "collection1", asList("zeSchemaType"));
-		Taxonomy taxonomy2 = Taxonomy.createPublic("2", "2", "collection1", asList("anotherSchemaType"));
+		Taxonomy taxonomy1 = Taxonomy.createPublic("1", labelTitle1, "collection1", asList("zeSchemaType"));
+		Taxonomy taxonomy2 = Taxonomy.createPublic("2", labelTitle2, "collection1", asList("anotherSchemaType"));
 		taxonomiesManager.addTaxonomy(taxonomy1, schemasManager);
 		taxonomiesManager.addTaxonomy(taxonomy2, schemasManager);
 

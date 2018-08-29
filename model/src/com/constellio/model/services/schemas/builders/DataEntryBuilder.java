@@ -1,18 +1,5 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.entries.AggregationType.CALCULATED;
-import static com.constellio.model.entities.schemas.entries.AggregationType.REFERENCE_COUNT;
-import static com.constellio.model.entities.schemas.entries.AggregationType.VALUES_UNION;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -29,6 +16,19 @@ import com.constellio.model.services.schemas.builders.DataEntryBuilderRuntimeExc
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.CannotInstanciateClass;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.CannotCopyUsingACustomMetadata;
 import com.constellio.model.utils.ClassProvider;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.entries.AggregationType.CALCULATED;
+import static com.constellio.model.entities.schemas.entries.AggregationType.REFERENCE_COUNT;
+import static com.constellio.model.entities.schemas.entries.AggregationType.VALUES_UNION;
+import static java.util.Arrays.asList;
 
 public class DataEntryBuilder {
 
@@ -112,8 +112,9 @@ public class DataEntryBuilder {
 		return asStatAggregation(referenceToAgregatingSchemaType, number, AggregationType.MAX);
 	}
 
-	private MetadataBuilder asStatAggregation(MetadataBuilder referenceToAgregatingSchemaType, MetadataBuilder inputMetadata,
-			AggregationType aggregationType) {
+	private MetadataBuilder asStatAggregation(MetadataBuilder referenceToAgregatingSchemaType,
+											  MetadataBuilder inputMetadata,
+											  AggregationType aggregationType) {
 		if (!metadata.getCode().contains("_default_")) {
 			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
 		}
@@ -138,7 +139,7 @@ public class DataEntryBuilder {
 	}
 
 	public MetadataBuilder asCalculatedAggregation(MetadataBuilder referenceToAgregatingSchemaType,
-			Class<? extends AggregatedCalculator<?>> calculatorClass) {
+												   Class<? extends AggregatedCalculator<?>> calculatorClass) {
 		if (!metadata.getCode().contains("_default_")) {
 			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
 		}

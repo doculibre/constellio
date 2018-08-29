@@ -1,11 +1,11 @@
 package com.constellio.data.dao.services.contents;
 
+import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
+import com.constellio.data.io.streamFactories.CloseableStreamFactory;
+
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
-
-import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
-import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 
 public interface ContentDao {
 
@@ -32,6 +32,7 @@ public interface ContentDao {
 
 	CloseableStreamFactory<InputStream> getContentInputStreamFactory(String id)
 			throws ContentDaoException_NoSuchContent;
+
 
 	File getFileOf(String contentId);
 

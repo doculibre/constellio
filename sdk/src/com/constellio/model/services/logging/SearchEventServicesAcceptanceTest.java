@@ -1,19 +1,5 @@
 package com.constellio.model.services.logging;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.Duration;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
@@ -25,6 +11,19 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.Duration;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 
@@ -33,7 +32,7 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 	SchemasRecordsServices schemas;
 	SearchServices searchServices;
 
-	private static int TWO_SECONDS = 2000;
+	private static int FIVE_SECONDS = 5000;
 
 	@Before
 	public void setUp()
@@ -72,7 +71,7 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 			Thread.sleep(10);
 		}
 
-		assertThat(timeStampAfter - timeStampBefore).isLessThan(TWO_SECONDS);
+		assertThat(timeStampAfter - timeStampBefore).isLessThan(FIVE_SECONDS);
 		getDataLayerFactory().newEventsDao().flush();
 		assertThat(searchServices.getResultsCount(countSearchEventsQuery)).isEqualTo(5000);
 
@@ -108,7 +107,7 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 
 		getDataLayerFactory().newEventsDao().flush();
 
-		assertThat(timeStampAfter - timeStampBefore).isLessThan(TWO_SECONDS);
+		assertThat(timeStampAfter - timeStampBefore).isLessThan(FIVE_SECONDS);
 		SearchEvent event1 = schemas.getSearchEvent("search1");
 		SearchEvent event2 = schemas.getSearchEvent("search2");
 		SearchEvent event3 = schemas.getSearchEvent("search3");
@@ -169,7 +168,8 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 			// searches for number of times indicated
 			for (int i = 0; i < searchOccurence; i++) {
 				SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
-				searchEvent.setQuery(StringUtils.stripAccents(searchValue.toLowerCase())).setNumFound(numFound);
+				String query = StringUtils.stripAccents(searchValue.toLowerCase());
+				searchEvent.setQuery(query).setOriginalQuery(query).setNumFound(numFound);
 				transaction.add(searchEvent);
 			}
 		}
@@ -177,17 +177,17 @@ public class SearchEventServicesAcceptanceTest extends ConstellioTest {
 
 		String[] emptyCustomRequestExclusion = {};
 		assertThat(searchEventServices.getMostPopularQueriesAutocomplete("av", 5, emptyCustomRequestExclusion))
-				.containsExactly("avengers", "avion", "aviation", "aviron", "avionique");
+				.containsExactly("Avengers", "Avion", "Aviation", "Aviron", "Avionique");
 		assertThat(searchEventServices.getMostPopularQueriesAutocomplete("Av", 5, emptyCustomRequestExclusion))
-				.containsExactly("avengers", "avion", "aviation", "aviron", "avionique");
+				.containsExactly("Avengers", "Avion", "Aviation", "Aviron", "Avionique");
 
-		String[] singleCustomRequestExclusion = { "aviron" };
+		String[] singleCustomRequestExclusion = {"aviron"};
 		assertThat(searchEventServices.getMostPopularQueriesAutocomplete("av", 5, singleCustomRequestExclusion))
-				.containsExactly("avengers", "avion", "aviation", "avionique");
+				.containsExactly("Avengers", "Avion", "Aviation", "Avionique");
 
-		String[] multipleCustomRequestExclusions = { "aviron", "avionique" };
+		String[] multipleCustomRequestExclusions = {"aviron", "avionique"};
 		assertThat(searchEventServices.getMostPopularQueriesAutocomplete("av", 5, multipleCustomRequestExclusions))
-				.containsExactly("avengers", "avion", "aviation");
+				.containsExactly("Avengers", "Avion", "Aviation");
 
 	}
 }

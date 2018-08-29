@@ -1,6 +1,6 @@
 package com.constellio.app.services.appManagement;
 
-@SuppressWarnings({ "serial" })
+@SuppressWarnings({"serial"})
 public class AppManagementServiceRuntimeException extends RuntimeException {
 
 	public AppManagementServiceRuntimeException() {
@@ -46,7 +46,8 @@ public class AppManagementServiceRuntimeException extends RuntimeException {
 	public static class AppManagementServiceRuntimeException_SameVersionsInDifferentFolders
 			extends AppManagementServiceRuntimeException {
 
-		public AppManagementServiceRuntimeException_SameVersionsInDifferentFolders(String version, String file1, String file2) {
+		public AppManagementServiceRuntimeException_SameVersionsInDifferentFolders(String version, String file1,
+																				   String file2) {
 			super("the same version: " + version + " could not be in different folders: " + file1 + ", " + file2);
 		}
 	}

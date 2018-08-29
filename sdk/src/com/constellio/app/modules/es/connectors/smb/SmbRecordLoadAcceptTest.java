@@ -1,15 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb;
 
-import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
@@ -24,6 +14,15 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
+import static java.util.Arrays.asList;
 
 @UiTest
 public class SmbRecordLoadAcceptTest extends ConstellioTest {
@@ -139,7 +138,7 @@ public class SmbRecordLoadAcceptTest extends ConstellioTest {
 	}
 
 	private void createDocuments(List<Record> smbRecords, List<Record> referenceRecords, int folderNumber,
-			ConnectorSmbFolder connectorSmbFolder) {
+								 ConnectorSmbFolder connectorSmbFolder) {
 		String documentName = connectorSmbFolder.getTitle() + DOCUMENT + folderNumber;
 		String documentId = UUID.randomUUID().toString();
 		String documentUrl = connectorSmbFolder.getUrl() + documentName + ".txt";

@@ -1,11 +1,6 @@
 package com.constellio.data.threads;
 
-import java.text.ParseException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
-
+import com.constellio.data.dao.services.factories.DataLayerFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.quartz.CronExpression;
@@ -24,7 +19,11 @@ import org.quartz.TriggerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.data.dao.services.factories.DataLayerFactory;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  *

@@ -43,7 +43,7 @@ public class ReindexingLogger {
 	public void onEndOfIteration(int skippedRecordsCount, int currentIteration) {
 		if (skippedRecordsCount > 0) {
 			logger.info(currentPrefix + " : Iteration " + currentIteration + " has finished with " + skippedRecordsCount
-					+ " records skipped, iterating an other time...");
+						+ " records skipped, iterating an other time...");
 		}
 
 	}

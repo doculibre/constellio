@@ -43,7 +43,7 @@ public class BatchProcessingEntryTable extends CustomField<List<String>> {
 	public void refreshEntries() {
 		table.removeAllItems();
 		table.addItems(presenter.getEntries());
-		table.sort(new Object[] { table.getSortContainerPropertyId() }, new boolean[] { true });
+		table.sort(new Object[]{table.getSortContainerPropertyId()}, new boolean[]{true});
 	}
 
 	public interface BatchProcessingEntryPresenter {
@@ -52,7 +52,7 @@ public class BatchProcessingEntryTable extends CustomField<List<String>> {
 	}
 
 	private static class TableComponent extends BaseTable implements ColumnGenerator {
-		
+
 		public static final String LABEL = "label";
 		public static final String TYPE = "type";
 		public static final String INDEX = "index";

@@ -19,7 +19,7 @@ public class ConfigManagerException extends Exception {
 
 		public OptimisticLockingConfiguration(String path, String expectedHash, String wasHash) {
 			super("Could not update config '" + path + "' since it has been modified by an other thread. Expected hash '"
-					+ expectedHash + "' but was '" + wasHash + "'");
+				  + expectedHash + "' but was '" + wasHash + "'");
 		}
 	}
 

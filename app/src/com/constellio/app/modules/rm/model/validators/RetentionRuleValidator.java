@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.model.validators;
 
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -29,6 +21,14 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordValidatorParams;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.COPY_RETENTION_RULES;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RetentionRuleValidator implements RecordValidator {
 
@@ -78,7 +78,7 @@ public class RetentionRuleValidator implements RecordValidator {
 	}
 
 	void validate(RetentionRule retentionRule, MetadataSchema schema, ConfigProvider configProvider,
-			ValidationErrors validationErrors, SearchServices searchServices, MetadataSchemaTypes types) {
+				  ValidationErrors validationErrors, SearchServices searchServices, MetadataSchemaTypes types) {
 
 		if (retentionRule.getScope() != RetentionRuleScope.DOCUMENTS) {
 			validateDocumentTypes(retentionRule, validationErrors);
@@ -114,7 +114,8 @@ public class RetentionRuleValidator implements RecordValidator {
 	//	}
 
 	private void validateDefaultDocumentCopyRetentionRules(RetentionRule retentionRule, MetadataSchema schema,
-			ValidationErrors validationErrors, ConfigProvider configProvider) {
+														   ValidationErrors validationErrors,
+														   ConfigProvider configProvider) {
 		if (!configProvider.<Boolean>get(RMConfigs.DOCUMENT_RETENTION_RULES)) {
 			return;
 		}
@@ -164,8 +165,9 @@ public class RetentionRuleValidator implements RecordValidator {
 	//  je ferais cette validation uniquement lorsqu’un délai est retiré d’une règle déjà persistée
 
 	private void validateCopyRetentionRules(RetentionRule retentionRule, MetadataSchema schema,
-			ValidationErrors validationErrors, ConfigProvider configProvider, SearchServices searchServices,
-			MetadataSchemaTypes types) {
+											ValidationErrors validationErrors, ConfigProvider configProvider,
+											SearchServices searchServices,
+											MetadataSchemaTypes types) {
 
 		List<CopyRetentionRule> copyRetentionRules = retentionRule.getCopyRetentionRules();
 
@@ -271,7 +273,8 @@ public class RetentionRuleValidator implements RecordValidator {
 	}
 
 	private void validateDocumentCopyRetentionRules(RetentionRule retentionRule, MetadataSchema schema,
-			ValidationErrors validationErrors, SearchServices searchServices, MetadataSchemaTypes types) {
+													ValidationErrors validationErrors, SearchServices searchServices,
+													MetadataSchemaTypes types) {
 
 		Record record = retentionRule.getWrappedRecord();
 		List<CopyRetentionRule> copyRetentionRules = retentionRule.getDocumentCopyRetentionRules();
@@ -328,8 +331,8 @@ public class RetentionRuleValidator implements RecordValidator {
 				}
 
 				if (originalRetentionRule.getPrincipalDefaultDocumentCopyRetentionRule() != null
-						&& record.isModified(schema.getMetadata(PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE))
-						&& isUsedWithDocuments(searchServices, types,
+					&& record.isModified(schema.getMetadata(PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE))
+					&& isUsedWithDocuments(searchServices, types,
 						originalRetentionRule.getPrincipalDefaultDocumentCopyRetentionRule())) {
 					Map<String, Object> parameters = nullRequired(0,
 							originalRetentionRule.getPrincipalDefaultDocumentCopyRetentionRule(), "type",
@@ -338,8 +341,8 @@ public class RetentionRuleValidator implements RecordValidator {
 				}
 
 				if (originalRetentionRule.getSecondaryDefaultDocumentCopyRetentionRule() != null
-						&& record.isModified(schema.getMetadata(PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE))
-						&& isUsedWithDocuments(searchServices, types,
+					&& record.isModified(schema.getMetadata(PRINCIPAL_DEFAULT_DOCUMENT_COPY_RETENTION_RULE))
+					&& isUsedWithDocuments(searchServices, types,
 						originalRetentionRule.getSecondaryDefaultDocumentCopyRetentionRule())) {
 					Map<String, Object> parameters = nullRequired(0,
 							originalRetentionRule.getSecondaryDefaultDocumentCopyRetentionRule(), "type",
@@ -361,7 +364,7 @@ public class RetentionRuleValidator implements RecordValidator {
 	}
 
 	private boolean isUsedWithDocuments(SearchServices searchServices, MetadataSchemaTypes types,
-			CopyRetentionRule originalCopyRetentionRule) {
+										CopyRetentionRule originalCopyRetentionRule) {
 		MetadataSchemaType documentsSchemaType = types.getSchemaType(Document.SCHEMA_TYPE);
 		Metadata documentMainCopyRuleRuleMetadata = documentsSchemaType
 				.getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.MAIN_COPY_RULE);
@@ -435,7 +438,7 @@ public class RetentionRuleValidator implements RecordValidator {
 	//	}
 
 	private void validateAdministrativeUnits(RetentionRule retentionRule, MetadataSchema schema,
-			ConfigProvider configProvider, ValidationErrors validationErrors) {
+											 ConfigProvider configProvider, ValidationErrors validationErrors) {
 
 		List<String> administrativeUnits = retentionRule.getAdministrativeUnits();
 		boolean responsibleAdministrativeUnits = retentionRule.isResponsibleAdministrativeUnits();
