@@ -66,6 +66,7 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
+import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -117,9 +118,7 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			taskModified(task, event);
-			if (event.hasModifiedMetadata(Task.READ_BY_USER)) {
-				invalidateOldAndNewAssignees(task, event);
-			}
+			invalidateOldAndNewAssignees(task, event);
 		}
 	}
 
@@ -141,6 +140,13 @@ public class TaskRecordExtension extends RecordExtension {
 		}
 	}
 
+	@Override
+	public void recordRestored(RecordRestorationEvent event) {
+		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
+			Task task = tasksSchema.wrapTask(event.getRecord());
+			invalidateAllAssignees(task);
+		}
+	}
 
 	@Override
 	public void recordInCreationBeforeSave(final RecordInCreationBeforeSaveEvent event) {

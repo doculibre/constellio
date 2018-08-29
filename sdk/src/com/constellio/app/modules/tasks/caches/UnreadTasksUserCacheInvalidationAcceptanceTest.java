@@ -46,25 +46,6 @@ public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTe
 		loadCache();
 	}
 
-
-	@Test
-	public void whenCreatingNewTaskThenInvalidateAssigneesTest() {
-		//TODO Rabab : Effectuer des changements dans l'application et valider que la cache est bien invalidée.
-
-		instance1Cache.invalidateUser(users.aliceIn(zeCollection));
-
-		assertThatInvalidatedUsers().containsOnly(alice);
-		//La méthode assertThatInvalidatedUsers reload la cache avant le return
-
-		instance1Cache.invalidateUsersInGroup(users.legends());
-		assertThatInvalidatedUsers().containsOnly(alice, edouard, gandalf, sasquatch);
-
-
-		instance1Cache.invalidateUsersInGroup(users.heroes());
-		assertThatInvalidatedUsers().containsOnly(charles, dakota, robin, gandalf);
-
-	}
-
 	@Test
 	public void whenCreatingNewTaskThenInvalidateAllAssignees()
 			throws RecordServicesException {
@@ -108,27 +89,110 @@ public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTe
 	}
 
 	@Test
-	public void whenDeletingTaskThenInvalidateAssignees() throws RecordServicesException {
+	public void whenLogicallyDeleteTaskWithAssigneeThenInvalidateAssignee()
+			throws RecordServicesException {
 		String aliceId = users.aliceIn(zeCollection).getId();
+		String adminId = users.adminIn(zeCollection).getId();
+		task = schemas.newTask();
+		task.setTitle("task").setAssignee(aliceId).setAssigner(adminId)
+				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
+		save(task);
+		loadCache();
+
+		recordServices.logicallyDelete(task.getWrappedRecord(), User.GOD);
+
+		assertThatInvalidatedUsers().containsOnly(alice);
+	}
+
+	@Test
+	public void whenLogicallyDeleteTaskWithNoAssigneeThenInvalidatedUsersIsEmpty()
+			throws RecordServicesException {
+		task = schemas.newTask();
+		task.setTitle("task");
+		save(task);
+		loadCache();
+
+		recordServices.logicallyDelete(task.getWrappedRecord(), User.GOD);
+
+		assertThatInvalidatedUsers().isEmpty();
+	}
+
+	@Test
+	public void whenLogicallyDeleteTaskWithAssigneeCandidatesThenInvalidateAllAssigneeCandidates()
+			throws RecordServicesException {
 		String adminId = users.adminIn(zeCollection).getId();
 		String bobId = users.bobIn(zeCollection).getId();
 		String chuckId = users.chuckNorrisIn(zeCollection).getId();
 		List<String> usersCandidates = asList(bobId, chuckId);
 		List<String> groupsCandidates = asList(users.legendsIn(zeCollection).getId());
 		task = schemas.newTask();
-		task.setTitle("task").setAssignee(aliceId).setAssigner(adminId)
+		task.setTitle("task").setAssigner(adminId)
 				.setAssigneeUsersCandidates(usersCandidates)
 				.setAssigneeGroupsCandidates(groupsCandidates)
 				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
 		save(task);
+		loadCache();
 
-		task.getWrappedRecord().set(Schemas.LOGICALLY_DELETED_STATUS, true);
 		recordServices.logicallyDelete(task.getWrappedRecord(),User.GOD);
+
 		assertThatInvalidatedUsers().containsOnly(alice, bob, chuck, edouard, gandalf, sasquatch);
 	}
 
 	@Test
-	public void whenModifyingTaskAssigneesThenInvalidateOldAndNewAssignees()
+	public void whenPhysicallyDeleteTaskWithAssigneeThenInvalidateAssignee()
+			throws RecordServicesException {
+		String aliceId = users.aliceIn(zeCollection).getId();
+		String adminId = users.adminIn(zeCollection).getId();
+		task = schemas.newTask();
+		task.setTitle("task").setAssignee(aliceId).setAssigner(adminId)
+				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
+		task.getWrappedRecord().set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		save(task);
+		loadCache();
+
+		recordServices.physicallyDelete(task.getWrappedRecord(), User.GOD);
+
+		assertThatInvalidatedUsers().containsOnly(alice);
+	}
+
+	@Test
+	public void whenPhysicallyDeleteTaskWithNoAssigneeThenInvalidatedUsersIsEmpty()
+			throws RecordServicesException {
+		task = schemas.newTask();
+		task.setTitle("task");
+		task.getWrappedRecord().set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		save(task);
+		loadCache();
+
+		recordServices.physicallyDelete(task.getWrappedRecord(), User.GOD);
+
+		assertThatInvalidatedUsers().isEmpty();
+	}
+
+	@Test
+	public void whenPhysicallyDeleteTaskWithAssigneeCandidatesThenInvalidateAllAssigneeCandidates()
+			throws RecordServicesException {
+		String adminId = users.adminIn(zeCollection).getId();
+		String bobId = users.bobIn(zeCollection).getId();
+		String chuckId = users.chuckNorrisIn(zeCollection).getId();
+		List<String> usersCandidates = asList(bobId, chuckId);
+		List<String> groupsCandidates = asList(users.legendsIn(zeCollection).getId());
+		task = schemas.newTask();
+		task.setTitle("task").setAssigner(adminId)
+				.setAssigneeUsersCandidates(usersCandidates)
+				.setAssigneeGroupsCandidates(groupsCandidates)
+				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
+		task.getWrappedRecord().set(Schemas.LOGICALLY_DELETED_STATUS, true);
+		save(task);
+		loadCache();
+
+		recordServices.physicallyDelete(task.getWrappedRecord(), User.GOD);
+
+		assertThatInvalidatedUsers().containsOnly(alice, bob, chuck, edouard, gandalf, sasquatch);
+	}
+
+	@Test
+	public void whenModifyingTaskThenInvalidateOldAndNewAssignees()
 			throws RecordServicesException {
 		String aliceId = users.aliceIn(zeCollection).getId();
 		String adminId = users.adminIn(zeCollection).getId();
@@ -144,16 +208,57 @@ public class UnreadTasksUserCacheInvalidationAcceptanceTest extends ConstellioTe
 				.setAssigneeGroupsCandidates(groupsCandidates)
 				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
 		save(task);
+
+		loadCache();
+
 		task.setAssignee(charlesId);
 		task.setAssigneeUsersCandidates(new ArrayList<String>());
 		recordServices.update(task.getWrappedRecord());
-		System.out.println("AssigneeUsersCandidates:" + task.getAssigneeUsersCandidates());
+
 		assertThatInvalidatedUsers().containsOnly(alice, bob, charles, chuck, edouard, gandalf, sasquatch);
 	}
 
 	private void save(Task task)
 			throws RecordServicesException {
 		recordServices.add(task.getWrappedRecord());
+	}
+
+	@Test
+	public void whenRestoringDeletedTaskWithAssigneesThenInvalidateAllAssignees()
+			throws RecordServicesException {
+		String adminId = users.adminIn(zeCollection).getId();
+		String bobId = users.bobIn(zeCollection).getId();
+		String chuckId = users.chuckNorrisIn(zeCollection).getId();
+		List<String> usersCandidates = asList(bobId, chuckId);
+		List<String> groupsCandidates = asList(users.legendsIn(zeCollection).getId());
+		task = schemas.newTask();
+		task.setTitle("task").setAssigner(adminId)
+				.setAssigneeUsersCandidates(usersCandidates)
+				.setAssigneeGroupsCandidates(groupsCandidates)
+				.setAssignationDate(LocalDate.now()).setAssignedOn(LocalDate.now());
+		save(task);
+		loadCache();
+
+		recordServices.logicallyDelete(task.getWrappedRecord(), User.GOD);
+		loadCache();
+
+		recordServices.restore(task.getWrappedRecord(), User.GOD);
+		assertThatInvalidatedUsers().containsOnly(alice, bob, chuck, edouard, gandalf, sasquatch);
+	}
+
+	@Test
+	public void whenRestoringDeletedTaskWithNoAssigneeThenInvalidatedUsersIsEmpty()
+			throws RecordServicesException {
+		task = schemas.newTask();
+		task.setTitle("task");
+		save(task);
+		loadCache();
+
+		recordServices.logicallyDelete(task.getWrappedRecord(), User.GOD);
+		loadCache();
+
+		recordServices.restore(task.getWrappedRecord(), User.GOD);
+		assertThatInvalidatedUsers().isEmpty();
 	}
 
 	private void loadCache() {
