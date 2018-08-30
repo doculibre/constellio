@@ -1,5 +1,15 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.decommissioning.ContainerDetailTableGenerator;
 import com.constellio.app.modules.rm.ui.components.decommissioning.DecomApprobationRequestWindowButton;
@@ -50,15 +60,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningListViewImpl extends BaseViewImpl implements DecommissioningListView {
 	public static final String PROCESS = "process";
@@ -86,6 +87,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	private BaseTable processableFolders;
 	private Component excludedFolderComponent;
 	private BaseTable excludedFolders;
+	private Component selectedFoldersComponent;
+	private BaseTable selectedFolders;
 	private Component containerComponent;
 	private BaseTable containerTable;
 	private ComboBox containerComboBox;
@@ -146,6 +149,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			processableFolderComponent = new VerticalLayout(processableFolders);
 			processableFolderComponent.setVisible(false);
 		} else {
+			List<FolderDetailVO> selectedFolders = presenter.getPackageableFolders();
+			//			selectedFoldersComponent = buildSelectedFoldersComponent(selectedFolders);
+			packageableFolderComponent.setVisible(!selectedFolders.isEmpty());
+
 			List<FolderDetailVO> packageableFolders = presenter.getPackageableFolders();
 			packageableFolderComponent = buildPackageableFolderComponent(packageableFolders);
 			packageableFolderComponent.setVisible(!packageableFolders.isEmpty());
