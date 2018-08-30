@@ -1,16 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.BasePagedTable;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
@@ -47,6 +36,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -140,7 +130,7 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 	}
 
 	@Override
-	protected Property<?> loadContainerProperty(final Object itemId, Object propertyId) {
+	protected Property<?> loadContainerProperty(final Object itemId, final Object propertyId) {
 		Property<?> property = super.loadContainerProperty(itemId, propertyId);
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
 			if (SearchResultContainer.SEARCH_RESULT_PROPERTY.equals(propertyId)) {

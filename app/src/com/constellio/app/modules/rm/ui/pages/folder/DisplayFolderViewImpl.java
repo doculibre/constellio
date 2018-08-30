@@ -1,18 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
@@ -63,11 +50,11 @@ import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
-import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOContainer;
-import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTable;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel.TableCompressEvent;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel.TableCompressListener;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOContainer;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
@@ -77,7 +64,6 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.KeySetMap;
@@ -119,6 +105,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -590,7 +577,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		if (!(folderContentComponent instanceof Table)) {
 			final RecordVOLazyContainer recordVOContainer = new RecordVOLazyContainer(folderContentDataProvider);
 			UserVO currentUser = getSessionContext().getCurrentUser();
-			RecordDisplayFactory displayFactory = new RecordDisplayFactory(currentUser);
+			final RecordDisplayFactory displayFactory = new RecordDisplayFactory(currentUser);
 
 			final ViewableRecordVOContainer adapted = new ViewableRecordVOContainer(recordVOContainer) {
 				@Override
@@ -601,7 +588,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				@Override
 				protected Component getRecordDisplay(Integer index) {
 					RecordVO recordVO = getRecordVO(index);
-					SearchResultVO searchResultVO = new SearchResultVO(recordVO, new HashMap<>());
+					SearchResultVO searchResultVO = new SearchResultVO(recordVO, new HashMap<String, List<String>>());
 					return displayFactory.build(searchResultVO, null, null, null, null);
 				}
 			};
