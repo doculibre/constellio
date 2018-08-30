@@ -1,20 +1,27 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
+import com.constellio.app.modules.rm.ui.breadcrumb.ContainerByAdministrativeUnitBreadcrumbTrail;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.AdminUnitsWithContainersCountContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl implements ContainersInAdministrativeUnitView {
 
@@ -107,5 +114,17 @@ public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl impleme
 	@Override
 	protected String getTitle() {
 		return $("ContainersInAdministrativeUnitView.viewTitle");
+	}
+
+
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new ContainerByAdministrativeUnitBreadcrumbTrail(presenter.getAdministrativeUnitId(), null, this, presenter.getTabName()) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				return Arrays.asList(BreadcrumbTrailUtil.containterByUnitSector(presenter.getTabName()));
+			}
+		};
 	}
 }

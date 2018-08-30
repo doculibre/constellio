@@ -27,7 +27,6 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -37,6 +36,8 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.jgoodies.common.base.Strings;
+
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	private transient DecommissioningService decommissioningService;
 
 	private String containerId;
+	private String tabName;
+	private String administrativeUnitId;
 
 	public DisplayContainerPresenter(DisplayContainerView view) {
 		this(view, null, false);
@@ -62,7 +65,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	public DisplayContainerPresenter(DisplayContainerView view, RecordVO recordVO, boolean popup) {
 		super(view);
 		if (recordVO != null) {
-			forContainerId(recordVO.getId());
+			forParams(recordVO.getId());
 		}
 	}
 
@@ -116,7 +119,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	@Override
 	protected List<String> getRestrictedRecordIds(String params) {
-		return asList(params);
+		return asList(containerId);
 	}
 
 	public void backButtonClicked() {
@@ -140,7 +143,11 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public void editContainer() {
-		view.navigate().to(RMViews.class).editContainer(containerId);
+		if(Strings.isNotBlank(tabName) && Strings.isNotBlank(administrativeUnitId)) {
+			view.navigate().to(RMViews.class).editContainerFromContainerBySectorAndUnit(containerId, tabName, administrativeUnitId);
+		} else {
+			view.navigate().to(RMViews.class).editContainer(containerId);
+		}
 	}
 
 	public ComponentState getEmptyButtonState() {
@@ -207,8 +214,24 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		return true;
 	}
 
-	public void forContainerId(String containerId) {
-		this.containerId = containerId;
+	public void forParams(String containerId) {
+		String[] parts = containerId.split("/");
+
+		if(parts.length == 1) {
+			this.containerId = containerId;
+		} else {
+			this.containerId = parts[0];
+			this.tabName = parts[1];
+			this.administrativeUnitId = parts[2];
+		}
+	}
+
+	public String getTabName() {
+		return tabName;
+	}
+
+	public String getAdministrativeUnitId() {
+		return administrativeUnitId;
 	}
 
 	public String getContainerId() {

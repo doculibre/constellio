@@ -101,7 +101,7 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		}
 	}
 
-	public class CurrentViewItem implements BreadcrumbItem {
+	public static class CurrentViewItem implements BreadcrumbItem {
 
 		private String viewTitle;
 

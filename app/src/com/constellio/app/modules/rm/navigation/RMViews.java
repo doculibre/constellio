@@ -317,8 +317,20 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/" + containerId);
 	}
 
+	public void editContainerFromContainerBySectorAndUnit(String containerId, String tabName, String fromAdministrativeUnit) {
+		navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/" + "edit" + "/" + containerId + "/" + tabName + "/" + fromAdministrativeUnit);
+	}
+
 	public void containersByAdministrativeUnits() {
 		navigator.navigateTo(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS);
+	}
+
+	public void containersByAdministrativeUnits(String type) {
+		if(type != null) {
+			navigator.navigateTo(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS + "/" + type);
+		} else {
+			containersByAdministrativeUnits();
+		}
 	}
 
 	public void displayAdminUnitWithContainers(String tabName, String entityId) {
@@ -326,10 +338,17 @@ public class RMViews extends CoreViews {
 				.navigateTo(RMNavigationConfiguration.DISPLAY_ADMIN_UNIT_WITH_CONTAINERS + "/" + tabName + "/" + entityId);
 	}
 
+
+
 	public void displayFilingSpaceWithContainers(String tabName, String adminUnitId, String filingSpaceId) {
 		navigator.navigateTo(
 				RMNavigationConfiguration.DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/" + tabName + "/" + adminUnitId + "/"
 				+ filingSpaceId);
+	}
+
+	public void displayContainerFromContainerBySectorAndUnit(String containerId, String tabName, String fromAdministrativeUnit) {
+		navigator
+				.navigateTo(RMNavigationConfiguration.DISPLAY_CONTAINER + "/" + containerId + "/" + tabName + "/" + fromAdministrativeUnit);
 	}
 
 	public void displayContainer(String containerId) {

@@ -99,6 +99,14 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 		adminUnitId = splitParams[1];
 	}
 
+	public String getTabName() {
+		return tabName;
+	}
+
+	public String getAdministrativeUnitId() {
+		return adminUnitId;
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		Record administrativeUnit = recordServices().getDocumentById(adminUnitId);
@@ -114,6 +122,6 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 	}
 
 	public void displayContainerButtonClicked(RecordVO container) {
-		view.navigate().to(RMViews.class).displayContainer(container.getId());
+		view.navigate().to(RMViews.class).displayContainerFromContainerBySectorAndUnit(container.getId(), tabName, adminUnitId);
 	}
 }

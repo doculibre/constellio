@@ -1,5 +1,6 @@
 package com.constellio.app.ui.pages.breadcrumb;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
@@ -138,6 +139,25 @@ public class BreadcrumbTrailUtil {
 			@Override
 			public void activate(Navigation navigate) {
 				navigate.to().listSchemaRecords(schemaCode);
+			}
+
+			@Override
+			public boolean isEnabled() {
+				return true;
+			}
+		};
+	}
+
+	public static IntermediateBreadCrumbTailItem containterByUnitSector(final String type) {
+		return new IntermediateBreadCrumbTailItem() {
+			@Override
+			public String getTitle() {
+				return $("ContainersByAdministrativeUnitsView.viewTitle");
+			}
+
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).containersByAdministrativeUnits(type);
 			}
 
 			@Override
