@@ -150,7 +150,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			processableFolderComponent.setVisible(false);
 		} else {
 			List<FolderDetailVO> selectedFolders = presenter.getPackageableFolders();
-			//			selectedFoldersComponent = buildSelectedFoldersComponent(selectedFolders);
+			selectedFolders.addAll(presenter.getProcessableFolders());
+			selectedFoldersComponent = buildSelectedFoldersComponent(selectedFolders);
 			packageableFolderComponent.setVisible(!selectedFolders.isEmpty());
 
 			List<FolderDetailVO> packageableFolders = presenter.getPackageableFolders();
@@ -858,6 +859,18 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		table.setWidth("100%");
 
 		return new ContainerDetailTableGenerator(presenter).attachTo(table);
+	}
+
+	private Component buildSelectedFoldersComponent(List<FolderDetailVO> folders) {
+		Label header = new Label("Dossiers sélectionnés ");
+		header.addStyleName(ValoTheme.LABEL_H2);
+
+		selectedFolders = buildFolderTable(folders, false);
+
+		VerticalLayout layout = new VerticalLayout(header, selectedFolders, buildOrderExcludedFoldersButton());
+		layout.setSpacing(true);
+
+		return layout;
 	}
 
 	public ComboBox buildContainerSelector() {
