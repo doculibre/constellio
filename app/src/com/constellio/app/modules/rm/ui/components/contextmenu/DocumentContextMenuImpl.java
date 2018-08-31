@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
+import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentView;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -72,6 +74,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private boolean publishButtonVisible;
 	private boolean addToOrRemoveFromSelectionButtonVisible;
 
+	private DocumentActionsPresenterUtils<DocumentContextMenu> presenterUtils;
 	protected DocumentContextMenuPresenter presenter;
 
 	public DocumentContextMenuImpl() {
@@ -84,6 +87,8 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		if (documentVO != null) {
 			presenter.setRecordVO(documentVO);
 		}
+
+
 	}
 
 	protected DocumentContextMenuPresenter newPresenter() {

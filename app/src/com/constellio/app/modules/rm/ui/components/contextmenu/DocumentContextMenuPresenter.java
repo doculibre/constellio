@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
-import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -8,6 +7,7 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -17,10 +17,12 @@ import com.constellio.model.services.schemas.SchemaUtils;
 public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<DocumentContextMenu> {
 
 	private DocumentContextMenu contextMenu;
+	DocumentActionsPresenterUtils<DocumentContextMenu> documentActionPresenterUtils;
 
 	public DocumentContextMenuPresenter(DocumentContextMenu contextMenu) {
 		super(contextMenu);
 		this.contextMenu = contextMenu;
+		documentActionPresenterUtils = new DocumentActionsPresenterUtils<>(contextMenu);
 	}
 
 	@Override
@@ -48,7 +50,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 
 	public void displayDocumentButtonClicked() {
 
-		contextMenu.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		documentActionPresenterUtils.navigateToDisplayDocument(documentVO.getId(), ParamUtils.getCurrentParams());
 		updateSearchResultClicked();
 	}
 

@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.navigation;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListPresenter;
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.Navigator;
 
 import java.util.HashMap;
