@@ -89,6 +89,12 @@ public class PdfGeneratorAsyncTask implements AsyncTask {
 
 	public PdfGeneratorAsyncTask(List<String> documentIdList, String consolidatedId,
 								 String consolidatedName, String consolidatedTitle,
+								 String username, Boolean withMetadata) {
+		this(documentIdList, consolidatedId, consolidatedName, consolidatedTitle, username, withMetadata, "fr");
+	}
+
+	public PdfGeneratorAsyncTask(List<String> documentIdList, String consolidatedId,
+								 String consolidatedName, String consolidatedTitle,
 								 String username, Boolean withMetadata, String languageCode) {
 		this.documentIdList = documentIdList;
 		this.consolidatedId = consolidatedId;
