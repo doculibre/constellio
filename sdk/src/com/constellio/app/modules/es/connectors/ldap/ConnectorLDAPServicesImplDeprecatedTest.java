@@ -4,8 +4,10 @@ import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPServicesImpl.I
 import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.model.conf.ldap.RegexFilter;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
+import org.junit.Test;
 
 import javax.naming.ldap.LdapContext;
 import java.util.Arrays;
@@ -22,8 +24,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 /**
- * This test is broked, the service doesn't seem to exist anymore
+ * This test is broken, the service doesn't seem to exist anymore
  */
+@InternetTest
 public class ConnectorLDAPServicesImplDeprecatedTest extends ConstellioTest {
 	ConnectorLDAPServices connectorLDAPServices;
 
@@ -43,8 +46,8 @@ public class ConnectorLDAPServicesImplDeprecatedTest extends ConstellioTest {
 		return ctx;
 	}
 
-//	@Test
-//	@InternetTest
+	@Test
+	//	@InternetTest
 	public void whenConnectToLDAPThenOK()
 			throws Exception {
 		LdapContext ctx = getValidContext();
@@ -65,8 +68,8 @@ public class ConnectorLDAPServicesImplDeprecatedTest extends ConstellioTest {
 		assertThat(task2.getContext()).isNotNull();
 	}
 
-//	@Test
-//	@InternetTest
+	//	@Test
+	//	@InternetTest
 	public void givenAContextWhenGetAllUsersThenOk()
 			throws Exception {
 		LdapContext ctx = getValidContext();
@@ -76,8 +79,8 @@ public class ConnectorLDAPServicesImplDeprecatedTest extends ConstellioTest {
 		assertThat(usersIds.size()).isEqualTo(3001);
 	}
 
-//	@Test
-//	@InternetTest
+	//	@Test
+	//	@InternetTest
 	public void whenGetAllUsersThenOk()
 			throws Exception {
 		LdapContext ctx = getValidContext();
@@ -90,8 +93,8 @@ public class ConnectorLDAPServicesImplDeprecatedTest extends ConstellioTest {
 		assertThat(usersIds.size()).isEqualTo(3001);
 	}
 
-//	@Test
-//	@InternetTest
+	//	@Test
+	//	@InternetTest
 	public void unitTestForConnectorLDAPServicesImpl()
 			throws Exception {
 		try {
@@ -108,8 +111,8 @@ public class ConnectorLDAPServicesImplDeprecatedTest extends ConstellioTest {
 		}
 	}
 
-//	@Test
-//	@InternetTest
+	//	@Test
+	//	@InternetTest
 	public void whenGetUsersUsingFilterThenOnlyFilteredUsersAreReturned()
 			throws Exception {
 		LdapContext ctx = getValidContext();
@@ -121,8 +124,8 @@ public class ConnectorLDAPServicesImplDeprecatedTest extends ConstellioTest {
 		assertThat(usersIds).containsOnly("CN=Administrator,CN=Users,DC=test,DC=doculibre,DC=ca");
 	}
 
-//	@Test
-//	@InternetTest
+	//	@Test
+	//	@InternetTest
 	public void unitTest2ForConnectorLDAPServicesImpl()
 			throws Exception {
 		assertThat(getSimpleName("CN=admin,CN=users,DN=test")).isEqualTo("admin");
@@ -130,7 +133,7 @@ public class ConnectorLDAPServicesImplDeprecatedTest extends ConstellioTest {
 	}
 
 	//TODO see avec cola
-//	@Test
+	//	@Test
 	//	@InternetTest
 	public void whenGetObjectAttributesThenAllBasicADAttributesAreOk()
 			throws Exception {
