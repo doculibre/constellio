@@ -61,8 +61,6 @@ public class Toggle {
 
 	public static AvailableToggle SHOW_UNREAD_TASKS = newToggle(false);
 
-	public static AvailableToggle SHOW_NEW_8_1_FOLDER_FEATURES = newToggle(false);
-
 
 	// ------------------------------------------------
 
