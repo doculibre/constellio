@@ -97,7 +97,7 @@ public class i18n {
 		}
 
 		if (message == null) {
-			message = "";
+			message = key;
 		}
 
 		return message;
