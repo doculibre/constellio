@@ -152,7 +152,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			List<FolderDetailVO> selectedFolders = presenter.getPackageableFolders();
 			selectedFolders.addAll(presenter.getProcessableFolders());
 			selectedFoldersComponent = buildSelectedFoldersComponent(selectedFolders);
-			packageableFolderComponent.setVisible(!selectedFolders.isEmpty());
+			selectedFoldersComponent.setVisible(!selectedFolders.isEmpty());
 
 			List<FolderDetailVO> packageableFolders = presenter.getPackageableFolders();
 			packageableFolderComponent = buildPackageableFolderComponent(packageableFolders);
@@ -188,7 +188,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		missingFolderLabel.addStyleName(ValoTheme.LABEL_COLORED);
 		missingFolderLabel.addStyleName(ValoTheme.LABEL_BOLD);
 
-		VerticalLayout layout = new VerticalLayout(missingFolderLabel, display, validationComponent, packageableFolderComponent,
+		VerticalLayout layout = new VerticalLayout(missingFolderLabel, display, selectedFoldersComponent, validationComponent,
+				packageableFolderComponent,
 				processableFolderComponent, foldersToValidateComponent, excludedFolderComponent, containerComponent, comments);
 		layout.setSpacing(true);
 		layout.setWidth("100%");
