@@ -4,13 +4,10 @@ import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommand;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory;
 import com.constellio.app.modules.es.connectors.smb.testutils.SmbTestCommandFactory.SmbTestCommandType;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import jcifs.smb.NtlmPasswordAuthentication;
-import jcifs.smb.SmbAuthException;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
-import org.junit.Test;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -53,8 +50,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 	//		populateMinimalShare.execute();
 	//	}
 
-	@Test
-	@InDevelopmentTest
+	////@Test
+
 	/**
 	 * smbFile.exists() returns True if the file exists and is available.
 	 */
@@ -64,8 +61,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		assertThat(smbFile.exists()).isTrue();
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.exists() returns False if the file does not exist but the share/server is available.
 	 */
@@ -75,8 +72,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		assertThat(smbFile.exists()).isFalse();
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.exists() returns False if the file does not exist but the share/server is available.
 	 */
@@ -86,8 +83,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		assertThat(smbFile.exists()).isFalse();
 	}
 
-	@Test(expected = SmbException.class)
-	@InDevelopmentTest
+	//@Test(expected = SmbException.class)
+
 	/**
 	 * smbFile.exists() throws "jcifs.smb.SmbException: The network name cannot be found" if the share is invalid.
 	 */
@@ -97,8 +94,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		smbFile.exists();
 	}
 
-	@Test(expected = SmbException.class)
-	@InDevelopmentTest
+	//@Test(expected = SmbException.class)
+
 	@SlowTest
 	/**
 	 * smbFile.exists() throws "jcifs.smb.SmbException: Failed to connect: 0.0.0.0<00>/192.168.1.207" on a wrong ip.
@@ -110,8 +107,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		smbFile.exists();
 	}
 
-	@Test(expected = SmbAuthException.class)
-	@InDevelopmentTest
+	//@Test(expected = SmbAuthException.class)
+
 	/**
 	 * smbFile.exists() throws "jcifs.smb.SmbAuthException: Logon failure: unknown user name or bad password." if the username is invalid
 	 */
@@ -122,8 +119,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		smbFile.exists();
 	}
 
-	@Test(expected = SmbAuthException.class)
-	@InDevelopmentTest
+	//@Test(expected = SmbAuthException.class)
+
 	/**
 	 * smbFile.exists() throws "jcifs.smb.SmbAuthException: Logon failure: unknown user name or bad password." if the password is invalid
 	 */
@@ -134,8 +131,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		smbFile.exists();
 	}
 
-	// @Test
-	// @InDevelopmentTest
+	// //@Test
+	// 
 	// /**
 	// * smbFile.exists() throws "jcifs.smb.SmbAuthException: Logon failure: unknown user name or bad password." if the password
 	// is invalid
@@ -148,8 +145,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 	// fail("Inconclusive. Need to test with a real domain.");
 	// }
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.isFile() and smbFile.isDirectory() return respectively false and true.
 	 */
@@ -160,8 +157,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		assertThat(smbFile.isDirectory()).isTrue();
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.getCanonicalPath() returns the valid share path as smb://ip/share/
 	 */
@@ -171,8 +168,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		assertThat(smbFile.getCanonicalPath()).isEqualTo(validShare);
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.getCanonicalPath() returns the invalid share path even if it is not valid
 	 */
@@ -182,8 +179,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		assertThat(smbFile.getCanonicalPath()).isEqualTo(invalidShare);
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.getCanonicalPath() returns the invalid server path even if it is not valid
 	 */
@@ -193,8 +190,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		assertThat(smbFile.getCanonicalPath()).isEqualTo(invalidServer);
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.getCanonicalPath() returns the invalid file path even if it is not valid
 	 */
@@ -204,8 +201,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		assertThat(smbFile.getCanonicalPath()).isEqualTo(validFile);
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.getCanonicalPath() returns the invalid file path even if it is not valid
 	 */
@@ -215,8 +212,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		assertThat(smbFile.getCanonicalPath()).isEqualTo(validShareWithNonExistingFile);
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.length() returns the size
 	 */
@@ -226,8 +223,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		assertThat(smbFile.length()).isGreaterThan(0L);
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.length() returns a large, non 0, long number. Not sure what it means.
 	 */
@@ -237,8 +234,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		assertThat(smbFile.length()).isNotEqualTo(0L);
 	}
 
-	@Test(expected = SmbException.class)
-	@InDevelopmentTest
+	//@Test(expected = SmbException.class)
+
 	/**
 	 * smbFile.length() throws jcifs.smb.SmbException: The system cannot find the file specified.
 	 */
@@ -248,8 +245,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		smbFile.length();
 	}
 
-	@Test(expected = SmbException.class)
-	@InDevelopmentTest
+	//@Test(expected = SmbException.class)
+
 	/**
 	 * smbFile.length() throws jcifs.smb.SmbException: The network name cannot be found.
 	 */
@@ -259,8 +256,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		smbFile.length();
 	}
 
-	@Test(expected = SmbException.class)
-	@InDevelopmentTest
+	//@Test(expected = SmbException.class)
+
 	@SlowTest
 	/**
 	 * smbFile.length() throws jcifs.smb.SmbException: Failed to connect: 0.0.0.0<00>/192.168.1.207
@@ -271,8 +268,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		smbFile.length();
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.getInputStream() returns data from the inputstream
 	 */
@@ -284,8 +281,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 				.isNotEqualTo(-1);
 	}
 
-	@Test(expected = SmbException.class)
-	@InDevelopmentTest
+	//@Test(expected = SmbException.class)
+
 	/**
 	 * smbFile.getInputSteam() throws jcifs.smb.SmbException: The system cannot find the file specified.
 	 */
@@ -296,8 +293,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 				.read();
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.getLastModified() returns a non zero number.
 	 */
@@ -308,8 +305,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 				.isBetween(0L, System.currentTimeMillis());
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.getLastModified() unexpectedly returns 0.
 	 */
@@ -319,8 +316,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 		assertThat(smbFile.getLastModified()).isZero();
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.getLastModified() returns a non zero number.
 	 */
@@ -331,8 +328,8 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 				.isBetween(0L, System.currentTimeMillis());
 	}
 
-	@Test
-	@InDevelopmentTest
+	//@Test
+
 	/**
 	 * smbFile.listFiles() returns the file in this order
 	 * smb://192.168.1.246/share/file0
@@ -345,7 +342,7 @@ public class JcifsAssumptionsRealTest extends ConstellioTest {
 	 * smb://192.168.1.246/share/folder10/
 	 * smb://192.168.1.246/share/foldera/
 	 * smb://192.168.1.246/share/folderz/
-	 *
+	 * <p>
 	 * Also, cannot create both filea and fileA in the same location.
 	 */
 	public void whenListingShareContentThenGetSpecificOrder()

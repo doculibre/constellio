@@ -22,6 +22,10 @@ public class Utf8ResourceBundles {
 		this.urls = urls;
 	}
 
+	public String getBundleName() {
+		return bundleName;
+	}
+
 	public ResourceBundle getBundle(Locale locale) {
 		ResourceBundle bundle = RESOURCE_BUNDLES.get(locale);
 		if (bundle == null) {

@@ -42,8 +42,7 @@ public class ModuleResourcesLocatorAcceptanceTest extends ConstellioTest {
 
 		assertThat(locator.getModuleI18nBundle("rm")).isNull();
 
-		assertThat(locator.getModuleI18nBundle(null).getBundle(ENGLISH).getString("init.allTypes.allSchemas.principalpath"))
-				.isEqualTo("Main path");
+		assertThat(locator.getModuleI18nBundle(null)).isNotNull();
 
 		assertThat(locator.getModuleMigrationResourcesFolder("rm", "6.1"))
 				.isEqualTo(constellioFile("resources_i18n/migrations/rm/6_1"));

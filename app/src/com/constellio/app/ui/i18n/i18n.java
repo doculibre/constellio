@@ -1,6 +1,7 @@
 package com.constellio.app.ui.i18n;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
@@ -8,6 +9,7 @@ import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.utils.i18n.Utf8ResourceBundles;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
@@ -34,15 +36,20 @@ public class i18n {
 	// TODO Use a languageCode->Locale Map instead?
 	private static Locale locale;
 
-	private static Utf8ResourceBundles defaultBundle = null;
+	private static List<Utf8ResourceBundles> defaultBundles = null;
 
 	private static List<Utf8ResourceBundles> registeredBundles = new ArrayList<>();
 
+
 	public static Locale getLocale() {
 		try {
-			return ConstellioUI.getCurrentSessionContext().getCurrentLocale();
+			ConstellioUI constellioUI = ConstellioUI.getCurrent();
+			SessionContext context = constellioUI == null ? null : constellioUI.getSessionContext();
+			if (context != null) {
+				return context.getCurrentLocale();
+			}
 		} catch (Throwable e) {
-			//LOGGER.warn("error when trying to get session locale", e);
+			LOGGER.warn("error when trying to get session locale", e);
 		}
 		return locale;
 	}
@@ -50,9 +57,13 @@ public class i18n {
 	public static void setLocale(Locale locale) {
 		i18n.locale = locale;
 		try {
-			ConstellioUI.getCurrentSessionContext().setCurrentLocale(locale);
+			ConstellioUI constellioUI = ConstellioUI.getCurrent();
+			SessionContext context = constellioUI == null ? null : constellioUI.getSessionContext();
+			if (context != null) {
+				context.setCurrentLocale(locale);
+			}
 		} catch (Throwable e) {
-			//LOGGER.warn("error when trying to set session locale", e);
+			LOGGER.warn("error when trying to set session locale", e);
 		}
 	}
 
@@ -78,9 +89,13 @@ public class i18n {
 		if (key == null) {
 			return "";
 		}
+		if (locale == null) {
+			locale = getLocale();
+		}
+
 		for (Utf8ResourceBundles bundle : getBundles()) {
 
-			ResourceBundle messages = bundle.getBundle(locale != null ? locale : getLocale());
+			ResourceBundle messages = bundle.getBundle(locale);
 
 			if (messages.containsKey(key)) {
 
@@ -108,8 +123,14 @@ public class i18n {
 		if (key == null) {
 			return "";
 		}
+
+		if (locale == null) {
+			locale = getLocale();
+		}
+
+		String language = locale.getLanguage();
 		for (Utf8ResourceBundles bundle : getBundles()) {
-			ResourceBundle messages = bundle.getBundle(locale != null ? locale : getLocale());
+			ResourceBundle messages = bundle.getBundle(locale);
 			if (messages.containsKey(key)) {
 				message = messages.getString(key);
 				if (args.get("prefix") != null) {
@@ -130,7 +151,6 @@ public class i18n {
 								- Must fetch the entry for the current language.
 							 */
 							Map<Object, String> labelsMap = (Map<Object, String>) argValue;
-							String language = getLocale().getLanguage();
 
 							String label = null;
 							for (Map.Entry<Object, String> entry : labelsMap.entrySet()) {
@@ -143,14 +163,14 @@ public class i18n {
 						} else if (argValue instanceof EnumWithSmallCode) {
 							EnumWithSmallCode enumWithSmallCode = (EnumWithSmallCode) argValue;
 							message = message.replace("{" + argName + "}",
-									$(enumWithSmallCode.getClass().getSimpleName() + "." + enumWithSmallCode.getCode()));
+									$(enumWithSmallCode.getClass().getSimpleName() + "." + enumWithSmallCode.getCode(), locale));
 						} else if (argValue instanceof Boolean) {
 							message = message.replace("{" + argName + "}",
-									$(argValue.toString()));
+									$(argValue.toString(), locale));
 						} else if (argValue instanceof Enum) {
 							Enum anEnum = (Enum) argValue;
 							message = message.replace("{" + argName + "}",
-									$(anEnum.getClass().getSimpleName() + "." + anEnum.name()));
+									$(anEnum.getClass().getSimpleName() + "." + anEnum.name(), locale));
 						} else {
 							message = message.replace("{" + argName + "}", "");
 						}
@@ -332,16 +352,56 @@ public class i18n {
 
 	private static List<Utf8ResourceBundles> getBundles() {
 		List<Utf8ResourceBundles> bundles = new ArrayList<>();
-		bundles.add(getDefaultBundle());
-		bundles.addAll(registeredBundles);
+		for (Utf8ResourceBundles bundle : getDefaultBundle()) {
+			bundles.add(bundle);
+			bundles.addAll(registeredBundles);
+		}
 		return bundles;
 	}
 
-	public static Utf8ResourceBundles getDefaultBundle() {
-		if (defaultBundle == null) {
-			defaultBundle = Utf8ResourceBundles.forPropertiesFile(new FoldersLocator().getI18nFolder(), "i18n");
+	public static List<Utf8ResourceBundles> getDefaultBundle() {
+		List<Utf8ResourceBundles> bundles = new ArrayList<>();
+		if (defaultBundles == null) {
+			FoldersLocator foldersLocator = new FoldersLocator();
+			File i18nFolder = new File(foldersLocator.getI18nFolder().getAbsolutePath());
+
+			for (File propertyFile : FileUtils.listFiles(i18nFolder, new String[]{"properties"}, true)) {
+				System.out.println(propertyFile.getAbsolutePath());
+
+				if (!propertyFile.getName().contains("_")) {
+					//String RessourceName = StringUtils.substringBefore(propertyFile.getAbsolutePath().replace(file.getAbsolutePath(), ""), ".");
+					Utf8ResourceBundles defaultBundle = Utf8ResourceBundles.forPropertiesFile(propertyFile.getParentFile(), propertyFile.getName().replace(".properties", ""));
+					bundles.add(defaultBundle);
+				}
+			}
+			defaultBundles = bundles;
+			//            File arr[] = file.listFiles();
+			//            for (File name : arr) {
+			//                if (name.isDirectory()) {
+			//
+			//                    Collection<File> files = FileUtils.listFiles(name, new WildcardFileFilter("*.properties"), null);
+			//
+			//                    for (File filename : files) {
+			//                        if (!filename.getName().contains("_")) {
+			//                            String RessourceName = StringUtils.substringBefore(filename.getName(), ".");
+			//                            defaultBundle = Utf8ResourceBundles.forPropertiesFile(name, RessourceName);
+			//                            bundles.add(defaultBundle);
+			//
+			//
+			//                        }
+			//                    }
+			//                } else {
+			//                    String RessourceName = StringUtils.substringBefore(name.getName(), ".");
+			//                    if (!name.getName().contains("_")) {
+			//                        defaultBundle = Utf8ResourceBundles.forPropertiesFile(new FoldersLocator().getI18nFolder(), RessourceName);
+			//                        bundles.add(defaultBundle);
+			//                    }
+			//                }
+			//            }
 		}
-		return defaultBundle;
+
+
+		return defaultBundles;
 	}
 
 	public static void registerBundle(File bundleFolder, String bundleName) {
