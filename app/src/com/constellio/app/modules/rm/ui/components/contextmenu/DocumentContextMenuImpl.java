@@ -175,7 +175,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deleteDocumentButtonClicked();
+					presenter.deleteDocumentButtonClicked(ParamUtils.getCurrentParams());
 				}
 			});
 		}

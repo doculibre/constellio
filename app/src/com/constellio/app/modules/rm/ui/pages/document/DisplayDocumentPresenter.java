@@ -306,7 +306,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void deleteDocumentButtonClicked() {
-		presenterUtils.deleteDocumentButtonClicked();
+		presenterUtils.deleteDocumentButtonClicked(params);
 	}
 
 	public void linkToDocumentButtonClicked() {

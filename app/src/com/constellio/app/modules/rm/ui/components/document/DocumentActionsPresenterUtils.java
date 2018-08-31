@@ -262,7 +262,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return ComponentState.INVISIBLE;
 	}
 
-	public void deleteDocumentButtonClicked() {
+	public void deleteDocumentButtonClicked(Map<String, String> params) {
 		if (isDeleteDocumentPossibleExtensively()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
@@ -280,7 +280,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				return;
 			}
 			if (parentId != null) {
-				actionsComponent.navigate().to(RMViews.class).displayFolder(parentId);
+				navigateToDisplayFolder(parentId, params);
 			} else {
 				actionsComponent.navigate().to().recordsManagement();
 			}
@@ -499,6 +499,21 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			actionsComponent.navigate().to(RMViews.class).displayDocumentFromBatchImport(documentId, BatchNavUtil.getBatchId(params));
 		} else {
 			actionsComponent.navigate().to(RMViews.class).displayDocument(documentId);
+		}
+	}
+
+	public void navigateToDisplayFolder(String folderId, Map<String, String> params) {
+		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+		if(areSearchTypeAndSearchIdPresent) {
+			actionsComponent.navigate().to(RMViews.class)
+					.displayFolderFromDecommission(
+							folderId, DecommissionNavUtil.getHomeUri(actionsComponent.getConstellioFactories().getAppLayerFactory()),
+							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else if(BatchNavUtil.isBatchIdPresent(params)) {
+			actionsComponent.navigate().to(RMViews.class).displayFolderFromBatchImport(folderId, BatchNavUtil.getBatchId(params));
+		} else {
+			actionsComponent.navigate().to(RMViews.class).displayFolder(folderId);
 		}
 	}
 
