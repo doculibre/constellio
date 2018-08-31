@@ -24,7 +24,7 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_FOLDER, params));
 	}
 
-	public void displayFolder(String id, String batchId) {
+	public void displayFolderFromBatchImport(String id, String batchId) {
 		Map<String, String> params = new HashMap<>();
 		params.put("batchId", batchId);
 		params.put("id", id);
@@ -83,6 +83,13 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_FOLDER, params));
 	}
 
+	public void editFolderFromBatchImport(String id, String batchId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("batchId", batchId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_FOLDER, params));
+	}
+
 	public void duplicateFolder(String id, boolean structure) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
@@ -107,6 +114,20 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.DUPLICATE_FOLDER, params));
 	}
 
+
+	public void duplicateFolderFromBatchImport(String id, boolean structure, String batchId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("duplicate", Boolean.TRUE.toString());
+		if (structure) {
+			params.put("structure", Boolean.TRUE.toString());
+		}
+
+		params.put("batchId", batchId);
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DUPLICATE_FOLDER, params));
+	}
+
 	// DOCUMENT MANAGEMENT
 
 	public void displayDocument(String id) {
@@ -120,7 +141,7 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_DOCUMENT, params));
 	}
 
-	public void displayDocument(String id, String lotNumber) {
+	public void displayDocumentFromBatchImport(String id, String lotNumber) {
 		Map<String, String> params = new HashMap<>();
 		params.put("batchId", lotNumber);
 		params.put("id", id);
@@ -193,6 +214,13 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
+	public void addDocumentWithContentFromBatchImport(String id, String batchId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("idCopy", id);
+		params.put("batchId", batchId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
+	}
+
 	public void editDocument(String id) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
@@ -203,6 +231,14 @@ public class RMViews extends CoreViews {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
 		params.put("userDocumentId", userDocumentId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
+	}
+
+	public void editDocumentFromBatchImport(String id, String batchId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("batchId", batchId);
+
 		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
 	}
 

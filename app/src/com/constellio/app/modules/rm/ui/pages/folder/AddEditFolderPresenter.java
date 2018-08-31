@@ -60,6 +60,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewRe
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionField;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.util.BatchNavUtil;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -270,7 +271,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				view.navigate().to().recordsManagement();
 			}
 		} else {
-			navigateToFolderDisplay(folderVO.getId());
+			if(!isDuplicateStructureAction) {
+				navigateToFolderDisplay(BatchNavUtil.getId(params));
+			} else {
+				navigateToFolderDisplay(folderVO.getId());
+			}
 		}
 	}
 
@@ -281,6 +286,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			view.navigate().to(RMViews.class)
 					.displayFolderFromDecommission(id, DecommissionNavUtil.getHomeUri(appLayerFactory),
 							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else if (BatchNavUtil.isBatchIdPresent(params)) {
+			view.navigate().to(RMViews.class).displayFolderFromBatchImport(id, BatchNavUtil.getBatchId(params));
 		} else {
 			view.navigate().to(RMViews.class).displayFolder(id);
 		}

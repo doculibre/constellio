@@ -371,7 +371,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		Document document = presenterUtils.renameContentButtonClicked(newContentTitle);
 		if (document != null) {
 			addOrUpdate(document.getWrappedRecord());
-			view.navigate().to(RMViews.class).displayDocument(document.getId());
+			presenterUtils.navigateToDisplayDocument(document.getId(), params);
 		}
 	}
 

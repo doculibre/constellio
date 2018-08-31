@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingServ
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.BatchNavUtil;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -157,6 +158,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if(areTypeAndSearchIdPresent) {
 				actionsComponent.navigate().to(RMViews.class).editDocumentFromDecommission(documentVO.getId(),
 						DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+			} else if (BatchNavUtil.isBatchIdPresent(params)) {
+				actionsComponent.navigate().to(RMViews.class).editDocumentFromBatchImport(documentVO.getId(),
+						BatchNavUtil.getBatchId(params));
 			} else
 			{
 				actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
@@ -199,6 +203,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if(areSearchTypeAndSearchIdPresent) {
 				actionsComponent.navigate().to(RMViews.class)
 						.addDocumentWithContentFromDecommission(documentVO.getId(), DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+			} else if(BatchNavUtil.isBatchIdPresent(params)) {
+				actionsComponent.navigate().to(RMViews.class).addDocumentWithContentFromBatchImport(documentVO.getId(), BatchNavUtil.getBatchId(params));
 			} else {
 				actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
 			}
@@ -467,15 +473,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 					decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
 
-					boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-					if(areSearchTypeAndSearchIdPresent) {
-						actionsComponent.navigate().to(RMViews.class)
-								.displayDocumentFromDecommission(document.getId(), DecommissionNavUtil.getHomeUri(actionsComponent.getConstellioFactories().getAppLayerFactory()),
-										false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-					} else {
-						actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
-					}
+					navigateToDisplayDocument(document.getId(), params);
 
 					actionsComponent.showMessage($("DocumentActionsComponent.createPDFASuccess"));
 				} catch (Exception e) {
@@ -487,6 +485,20 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			}
 		} else {
 			actionsComponent.showMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
+		}
+	}
+
+	public void navigateToDisplayDocument(String documentId, Map<String, String> params) {
+		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+		if(areSearchTypeAndSearchIdPresent) {
+			actionsComponent.navigate().to(RMViews.class)
+					.displayDocumentFromDecommission(documentId, DecommissionNavUtil.getHomeUri(actionsComponent.getConstellioFactories().getAppLayerFactory()),
+							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else if(BatchNavUtil.isBatchIdPresent(params)) {
+			actionsComponent.navigate().to(RMViews.class).displayDocumentFromBatchImport(documentId, BatchNavUtil.getBatchId(params));
+		} else {
+			actionsComponent.navigate().to(RMViews.class).displayDocument(documentId);
 		}
 	}
 
@@ -953,17 +965,21 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 			SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(),
 					presenterUtils.modelLayerFactory());
+
+
 			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 
-			searchEventServices.incrementClickCounter(searchEvent.getId());
+			if(searchEvent != null) {
+				searchEventServices.incrementClickCounter(searchEvent.getId());
 
-			String url = null;
-			try {
-				url = documentVO.get("url");
-			} catch (RecordVORuntimeException_NoSuchMetadata e) {
+				String url = null;
+				try {
+					url = documentVO.get("url");
+				} catch (RecordVORuntimeException_NoSuchMetadata e) {
+				}
+				String clicks = defaultIfBlank(url, documentVO.getId());
+				searchEventServices.updateClicks(searchEvent, clicks);
 			}
-			String clicks = defaultIfBlank(url, documentVO.getId());
-			searchEventServices.updateClicks(searchEvent, clicks);
 		}
 	}
 

@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.BatchNavUtil;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
@@ -144,14 +145,18 @@ public class DocumentContentVersionPresenter implements Serializable {
 		window.closeWindow();
 		String documentId = documentVO.getId();
 		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+		boolean areBatchIdAndId = BatchNavUtil.isBatchIdPresent(params);
 
 		if(areTypeAndSearchIdPresent) {
 			window.navigate().to(RMViews.class).displayDocumentFromDecommission(documentId,
 					DecommissionNavUtil.getHomeUri(window.getConstellioFactories().getAppLayerFactory()), false,
 					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else
+		} else if (areBatchIdAndId) {
+			window.navigate().to(RMViews.class).displayDocumentFromBatchImport(documentId,BatchNavUtil.getBatchId(params));
+		}
+		else
 		{
-			window.navigate().to(RMViews.class).editDocument(documentId);
+			window.navigate().to(RMViews.class).displayDocument(documentId);
 		}
 
 		 updateSearchResultClicked();

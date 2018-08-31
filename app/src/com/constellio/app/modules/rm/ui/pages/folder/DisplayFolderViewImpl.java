@@ -643,7 +643,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 							if (presenter.isDocument(record)) {
 								presenter.displayDocumentButtonClicked(record);
 							} else {
-								presenter.subFolderClicked(record);
+								presenter.navigateToFolder(record.getId());
 							}
 						}
 					};
@@ -662,7 +662,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						if (presenter.isDocument(recordVO)) {
 							presenter.documentClicked(recordVO);
 						} else {
-							presenter.subFolderClicked(recordVO);
+							presenter.navigateToFolder(recordVO.getId());
 						}
 					}
 				}
