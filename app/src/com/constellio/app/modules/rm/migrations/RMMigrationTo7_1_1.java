@@ -76,7 +76,6 @@ public class RMMigrationTo7_1_1 extends MigrationHelper implements MigrationScri
 			folderSchema.getMetadata(Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES).setTransiency(PERSISTED);
 			folderSchema.getMetadata(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).setTransiency(PERSISTED);
 			folderSchema.getMetadata(Folder.MAIN_COPY_RULE).setTransiency(PERSISTED);
-			folderSchema.getMetadata(Folder.DECOMMISSIONING_DATE).setTransiency(PERSISTED);
 			folderSchema.getMetadata(SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode())
 					.defineDataEntry().asCalculated(FolderAutocompleteFieldCalculator.class);
 			typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(SCHEMA_AUTOCOMPLETE_FIELD.getLocalCode())

@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
@@ -20,6 +15,11 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class RMConfigs {
 
@@ -76,7 +76,8 @@ public class RMConfigs {
 			LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS,
 			ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE,
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
-			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS;
+			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
+			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -301,6 +302,9 @@ public class RMConfigs {
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG =
 				advanced.createBooleanFalseByDefault("showFolderUnicityAndFolderSummaryConfig").whichIsHidden());
+
+		add(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE = decommissioning
+				.createBooleanTrueByDefault("depositAndDestructionDatesBasedOnActualTransferDate").withReIndexionRequired());
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -559,5 +563,9 @@ public class RMConfigs {
 
 	public boolean isDecommissioningTypeRequiredInContainers() {
 		return manager.getValue(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS);
+	}
+
+	public boolean isDepositAndDestructionDatesBasedOnActualTransferDate() {
+		return manager.getValue(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE);
 	}
 }
