@@ -1,12 +1,11 @@
 package com.constellio.model.services.search.query.logical;
 
-import java.util.Arrays;
-
+import com.constellio.model.entities.schemas.DataStoreField;
+import com.constellio.model.services.search.query.logical.criteria.CompositeLogicalSearchValueOperator;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.entities.schemas.DataStoreField;
-import com.constellio.model.services.search.query.logical.criteria.CompositeLogicalSearchValueOperator;
+import java.util.Arrays;
 
 public abstract class LogicalSearchValueCondition {
 

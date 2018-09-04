@@ -1,8 +1,5 @@
 package com.constellio.model.services.factories;
 
-import java.security.Key;
-import java.util.List;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.IOServicesFactory;
@@ -38,6 +35,7 @@ import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.SynonymsConfigurationsManager;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -56,6 +54,9 @@ import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
+
+import java.security.Key;
+import java.util.List;
 
 public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory {
 
@@ -352,6 +353,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	@Override
 	public SearchConfigurationsManager getSearchConfigurationsManager() {
 		return modelLayerFactory.getSearchConfigurationsManager();
+	}
+
+	@Override
+	public SynonymsConfigurationsManager getSynonymsConfigurationsManager() {
+		return modelLayerFactory.getSynonymsConfigurationsManager();
 	}
 
 	@Override

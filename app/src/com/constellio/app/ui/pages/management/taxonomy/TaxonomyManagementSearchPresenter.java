@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.fromTypeIn;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -19,6 +12,7 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -32,6 +26,13 @@ import com.constellio.model.services.search.query.logical.condition.SchemaFilter
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.fromTypeIn;
+
 public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyManagementSearchView> {
 
 	public static final String TAXONOMY_CODE = "taxonomyCode";
@@ -41,9 +42,11 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 	private TaxonomyVO taxonomy;
 	private String queryExpression;
 	private Taxonomy retrievedTaxonomy;
+	private Language language;
 
 	public TaxonomyManagementSearchPresenter(TaxonomyManagementSearchView view) {
 		super(view);
+		this.language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 	}
 
 	public TaxonomyManagementSearchPresenter forParams(String parameters) {

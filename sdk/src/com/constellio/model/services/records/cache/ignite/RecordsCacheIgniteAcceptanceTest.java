@@ -1,37 +1,11 @@
 package com.constellio.model.services.records.cache.ignite;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchema;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.assertj.core.api.ListAssert;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCache;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.model.entities.CollectionInfo;
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
@@ -55,6 +29,34 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.IgniteTest;
+import org.assertj.core.api.ListAssert;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.search.query.ReturnedMetadatasFilter.idVersionSchema;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @IgniteTest
 public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
@@ -1465,7 +1467,8 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		private Map<String, Object> metadatas = new HashMap<>();
 
-		TestRecord(String schemaCode, String typeCode, String id, long version, boolean givenDisabledRecordDuplications) {
+		TestRecord(String schemaCode, String typeCode, String id, long version,
+				   boolean givenDisabledRecordDuplications) {
 			this.id = id;
 			this.schemaCode = schemaCode;
 			this.typeCode = typeCode;
@@ -1544,9 +1547,33 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 			return this;
 		}
 
+		@Override
+		public Record set(Metadata metadata, Locale locale, Object value) {
+			metadatas.put(metadata.getCode(), value);
+			return this;
+		}
+
 		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T get(Metadata metadata) {
+			if (Schemas.LOGICALLY_DELETED_STATUS.getCode().equals(metadata.getCode())) {
+				return (T) logicallyDeleted;
+			}
+			return (T) metadatas.get(metadata.getCode());
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T> T get(Metadata metadata, Locale locale) {
+			if (Schemas.LOGICALLY_DELETED_STATUS.getCode().equals(metadata.getCode())) {
+				return (T) logicallyDeleted;
+			}
+			return (T) metadatas.get(metadata.getCode());
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
 			if (Schemas.LOGICALLY_DELETED_STATUS.getCode().equals(metadata.getCode())) {
 				return (T) logicallyDeleted;
 			}
@@ -1564,6 +1591,11 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		}
 
 		@Override
+		public <T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+			return null;
+		}
+
+		@Override
 		public MetadataList getModifiedMetadatas(MetadataSchemaTypes schemaTypes) {
 			return null;
 		}
@@ -1575,6 +1607,11 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public String getCollection() {
+			return null;
+		}
+
+		@Override
+		public CollectionInfo getCollectionInfo() {
 			return null;
 		}
 
@@ -1674,6 +1711,20 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		public <T> List<T> getValues(Metadata metadata) {
 			Object value = get(metadata);
+			if (value == null) {
+				return Collections.emptyList();
+			} else {
+				if (metadata.isMultivalue()) {
+					return (List<T>) value;
+				} else {
+					List<T> values = asList((T) value);
+					return values;
+				}
+			}
+		}
+
+		public <T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+			Object value = get(metadata, locale);
 			if (value == null) {
 				return Collections.emptyList();
 			} else {

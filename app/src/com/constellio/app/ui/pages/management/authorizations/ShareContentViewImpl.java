@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -17,6 +15,8 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ShareContentViewImpl extends BaseViewImpl implements ShareContentView {
 	private final ShareContentPresenter presenter;

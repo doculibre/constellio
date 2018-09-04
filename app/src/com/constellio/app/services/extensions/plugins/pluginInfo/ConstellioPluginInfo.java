@@ -1,8 +1,7 @@
 package com.constellio.app.services.extensions.plugins.pluginInfo;
 
-import org.joda.time.LocalDate;
-
 import com.constellio.app.services.extensions.plugins.PluginActivationFailureCause;
+import org.joda.time.LocalDate;
 
 public class ConstellioPluginInfo {
 	String code, title, version, requiredConstellioVersion;
@@ -78,7 +77,8 @@ public class ConstellioPluginInfo {
 		return stackTrace;
 	}
 
-	public ConstellioPluginInfo setPluginActivationFailureCause(PluginActivationFailureCause pluginActivationFailureCause) {
+	public ConstellioPluginInfo setPluginActivationFailureCause(
+			PluginActivationFailureCause pluginActivationFailureCause) {
 		this.pluginActivationFailureCause = pluginActivationFailureCause;
 		return this;
 	}

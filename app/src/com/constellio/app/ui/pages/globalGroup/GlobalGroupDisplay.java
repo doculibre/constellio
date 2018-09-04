@@ -1,12 +1,12 @@
 package com.constellio.app.ui.pages.globalGroup;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.entities.GlobalGroupVO;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.Label;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class GlobalGroupDisplay extends CustomComponent {

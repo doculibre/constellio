@@ -1,41 +1,5 @@
 package com.constellio.app.services.importExport.settings;
 
-import static com.constellio.app.modules.rm.wrappers.Folder.DESCRIPTION;
-import static com.constellio.model.entities.Language.English;
-import static com.constellio.model.entities.Language.French;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.RegexConfig.RegexConfigType.SUBSTITUTION;
-import static com.constellio.model.entities.schemas.RegexConfig.RegexConfigType.TRANSFORMATION;
-import static com.constellio.model.services.schemas.SchemaUtils.localCodes;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.assertj.core.api.ListAssert;
-import org.assertj.core.data.MapEntry;
-import org.assertj.core.groups.Tuple;
-import org.jdom2.Document;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.extensions.AppLayerExtensions;
 import com.constellio.app.extensions.AppLayerSystemExtensions;
@@ -63,6 +27,7 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
 import com.constellio.data.dao.services.sequence.SequencesManager;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -81,6 +46,42 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.ListAssert;
+import org.assertj.core.data.MapEntry;
+import org.assertj.core.groups.Tuple;
+import org.jdom2.Document;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.wrappers.Folder.DESCRIPTION;
+import static com.constellio.model.entities.Language.English;
+import static com.constellio.model.entities.Language.French;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.RegexConfig.RegexConfigType.SUBSTITUTION;
+import static com.constellio.model.entities.schemas.RegexConfig.RegexConfigType.TRANSFORMATION;
+import static com.constellio.model.services.schemas.SchemaUtils.localCodes;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static java.util.Arrays.asList;
+import static java.util.Locale.ENGLISH;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 public class SettingsImportServicesAcceptanceTest extends SettingsImportServicesTestUtils {
 
@@ -110,6 +111,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	static final String CODE_SCHEMA_1 = "USRschema1";
 	static final String CODE_SCHEMA_2 = "USRschema2";
 	static final String CODE_DEFAULT_SCHEMA = "default";
+	private static final String LABEL_FR = "Label en français";
+	private static final String LABEL_EN = "Label en anglais";
 	List<String> metadataCodes;
 	Users users = new Users();
 
@@ -265,8 +268,8 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		folderType.setDefaultSchema(defaultSchema);
 
 		String pattern = "## This is a comment on the first line\n"
-				+ "'Prefixe ' + title+ ' Suffixe'\n"
-				+ "## This is a comment on the last line";
+						 + "'Prefixe ' + title+ ' Suffixe'\n"
+						 + "## This is a comment on the last line";
 		ImportedDataEntry importedDataEntry1 = ImportedDataEntry.asJEXLScript(pattern);
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setType("STRING")
 				.setDataEntry(importedDataEntry1);
@@ -359,7 +362,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingUnknownConfigsThenConfigsAreNotSet()
 			throws Exception {
 
-		i18n.setLocale(Locale.ENGLISH);
+		i18n.setLocale(ENGLISH);
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateUnknown").setValue("true"));
 
 		assertThatErrorsWhileImportingSettingsExtracting("config").contains(
@@ -392,7 +395,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void givenEnglishLocalewhenImportingBadIntegerConfigValueThenValidationExceptionThrown()
 			throws Exception {
 
-		i18n.setLocale(Locale.ENGLISH);
+		i18n.setLocale(ENGLISH);
 
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDateNumberOfYearWhenFixedRule")
 				.setValue("helloInteger"));
@@ -411,7 +414,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void giveEnglishLocaleWhenImportingNullValueConfigsThenNullValueExceptionIsRaised()
 			throws Exception {
 
-		i18n.setLocale(Locale.ENGLISH);
+		i18n.setLocale(ENGLISH);
 		settings.addConfig(new ImportedConfig().setKey("calculatedCloseDate").setValue(null));
 
 		assertThatErrorsWhileImportingSettingsExtracting("config").contains(
@@ -504,7 +507,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void givenEnglishLocalizationWhenImportSequencesWithNonNumericalValueThenEnglishErrorMessage()
 			throws Exception {
 
-		i18n.setLocale(Locale.ENGLISH);
+		i18n.setLocale(ENGLISH);
 		settings.addSequence(new ImportedSequence().setKey("1").setValue("a"));
 
 		assertThatErrorsContainsLocalizedMessagesWhileImportingSettings("calculatedCloseDateUnknown")
@@ -544,9 +547,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		i18n.setLocale(Locale.FRENCH);
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, "Le titre du domaine de valeurs 1");
+
 		settings.addCollectionSettings(new ImportedCollectionSettings().setCode("")
 				.addValueList(new ImportedValueList().setCode("ddvUSRcodeDuDomaineDeValeur1")
-						.setTitle("Le titre du domaine de valeurs 1")
+						.setTitle(titleMap)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
 
@@ -562,9 +568,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingConfigSettingsIfCollectionCodeDoesNotExistThenExceptionIsRaised()
 			throws Exception {
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, "Le titre du domaine de valeurs 1");
+
 		settings.addCollectionSettings(new ImportedCollectionSettings().setCode("unknonCollection")
 				.addValueList(new ImportedValueList().setCode("ddvUSRcodeDuDomaineDeValeur1")
-						.setTitle("Le titre du domaine de valeurs 1")
+						.setTitle(titleMap)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
 
@@ -577,9 +586,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingValueListIfCodeIsInvalidThenExceptionIsRaised()
 			throws Exception {
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, "Le titre du domaine de valeurs 1");
+
 		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addValueList(new ImportedValueList().setCode(null)
-						.setTitle("Le titre du domaine de valeurs 1")
+						.setTitle(titleMap)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
 
@@ -592,9 +604,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingValueListIfCodeDoesNotStartWithDDVPrefixThenExceptionIsRaised()
 			throws Exception {
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, "Le titre du domaine de valeurs 1");
+
 		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addValueList(new ImportedValueList().setCode("USRcodeDuDomaineDeValeur1")
-						.setTitle("Le titre du domaine de valeurs 1")
+						.setTitle(titleMap)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER)).setCodeMode("DISABLED")
 						.setHierarchical(false)));
 
@@ -604,30 +619,45 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
-
 	public void whenImportingValueListsThenSet()
 			throws Exception {
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, TITLE_FR);
+		titleMap.put(Language.English, TITLE_EN);
+
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 		ImportedValueList v1 = new ImportedValueList().setCode(CODE_1_VALUE_LIST)
-				.setTitle(TITLE_FR)
+				.setTitle(titleMap)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 				.setCodeMode("DISABLED");
 		collectionSettings.addValueList(v1);
 
+		Map<Language, String> titleMap2 = new HashMap<>();
+		titleMap2.put(Language.French, "Le titre du domaine de valeurs 2");
+		titleMap2.put(Language.English, "Second value list's updated title");
+
 		ImportedValueList v2 = new ImportedValueList().setCode(CODE_2_VALUE_LIST)
-				.setTitle("Le titre du domaine de valeurs 2")
+				.setTitle(titleMap2)
 				.setClassifiedTypes(toListOfString(DOCUMENT))
 				.setCodeMode("FACULTATIVE");
 		collectionSettings.addValueList(v2);
 
+		Map<Language, String> titleMap3 = new HashMap<>();
+		titleMap3.put(Language.French, "Le titre du domaine de valeurs 3");
+		titleMap3.put(Language.English, "Third value list's updated title");
+
 		ImportedValueList v3 = new ImportedValueList().setCode(CODE_3_VALUE_LIST)
-				.setTitle("Le titre du domaine de valeurs 3")
+				.setTitle(titleMap3)
 				.setCodeMode("REQUIRED_AND_UNIQUE").setHierarchical(true);
 		collectionSettings.addValueList(v3);
 
+		Map<Language, String> titleMap4 = new HashMap<>();
+		titleMap4.put(Language.French, "Le titre du domaine de valeurs 4");
+		titleMap4.put(Language.English, "Forth value list's updated title");
+
 		ImportedValueList v4 = new ImportedValueList().setCode(CODE_4_VALUE_LIST)
-				.setTitle("Le titre du domaine de valeurs 4")
+				.setTitle(titleMap4)
 				.setHierarchical(false);
 		collectionSettings.addValueList(v4);
 
@@ -640,6 +670,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(CODE_1_VALUE_LIST);
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(French)).isEqualTo(TITLE_FR);
+		assertThat(metadataSchemaType.getLabels().get(English)).isEqualTo(TITLE_EN);
 		Metadata codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
 		assertThat(codeMetadata).isNotNull();
 		assertThat(codeMetadata.isDefaultRequirement()).isFalse();
@@ -650,6 +681,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		metadataSchemaType = schemaTypes.getSchemaType(CODE_2_VALUE_LIST);
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(French)).isEqualTo("Le titre du domaine de valeurs 2");
+		assertThat(metadataSchemaType.getLabels().get(English)).isEqualTo("Second value list's updated title");
 		codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
 		assertThat(codeMetadata).isNotNull();
 		assertThat(codeMetadata.isDefaultRequirement()).isFalse();
@@ -660,6 +692,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		metadataSchemaType = schemaTypes.getSchemaType(CODE_3_VALUE_LIST);
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(French)).isEqualTo("Le titre du domaine de valeurs 3");
+		assertThat(metadataSchemaType.getLabels().get(English)).isEqualTo("Third value list's updated title");
 		codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
 		assertThat(codeMetadata).isNotNull();
 		assertThat(codeMetadata.isDefaultRequirement()).isTrue();
@@ -673,6 +706,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		metadataSchemaType = schemaTypes.getSchemaType(CODE_4_VALUE_LIST);
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(French)).isEqualTo("Le titre du domaine de valeurs 4");
+		assertThat(metadataSchemaType.getLabels().get(English)).isEqualTo("Forth value list's updated title");
 		codeMetadata = metadataSchemaType.getDefaultSchema().getMetadata(CODE);
 		assertThat(codeMetadata).isNotNull();
 		assertThat(codeMetadata.isDefaultRequirement()).isTrue();
@@ -685,12 +719,189 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	}
 
 	@Test
+	public void whenImportingMultiligualMetadatasThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		labelMap.put(Language.French, LABEL_FR);
+		labelMap.put(Language.English, LABEL_EN);
+		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabels(labelMap);
+
+		importMetadata(metadata);
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
+
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(English)).isEqualTo(LABEL_EN);
+	}
+
+	@Test
+	public void whenModifiyingValueOfLablesMetadatasThenValueIsUpdated() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		labelMap.put(Language.French, LABEL_FR);
+		labelMap.put(Language.English, LABEL_EN);
+		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabels(labelMap);
+
+		importMetadata(metadata);
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
+
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(English)).isEqualTo(LABEL_EN);
+
+		labelMap = new HashMap<>();
+		labelMap.put(Language.French, "Label modifié fr");
+		labelMap.put(Language.English, "Label modifié en");
+		metadata.setCode("USRm").setType(STRING).setLabels(labelMap);
+
+		importMetadata(metadata);
+		schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
+
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo("Label modifié fr");
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(English)).isEqualTo("Label modifié en");
+
+	}
+
+
+	@Test
+	public void whenImportingMetadataWithOnlyFrenchLabelThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		labelMap.put(Language.French, LABEL_FR);
+		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabels(labelMap);
+
+		importMetadata(metadata);
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().keySet()).doesNotContain(English);
+	}
+
+	@Test
+	public void whenImportingMetadataAndSettingOneValueLabelThenFrenchLabelIsSet() throws ValidationException {
+		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabel("label");
+
+		importMetadata(metadata);
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(French)).isEqualTo("label");
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().keySet()).doesNotContain(English);
+	}
+
+	@Test
+	public void whenImportingMetadataWithOnlyEnglishLableThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		labelMap.put(Language.English, LABEL_EN);
+		ImportedMetadata metadata = new ImportedMetadata().setCode("USRm").setType(STRING).setLabels(labelMap);
+
+		importMetadata(metadata);
+		MetadataSchemaTypes schemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		MetadataSchemaType metadataSchemaType = schemaTypes.getSchemaType(Folder.SCHEMA_TYPE);
+		assertThat(metadataSchemaType).isNotNull();
+		assertThat(metadataSchemaType.getMetadata("folder_default_USRm").getLabels().get(English)).isEqualTo(LABEL_EN);
+	}
+
+	private void importMetadata(ImportedMetadata metadata) throws ValidationException {
+		ImportedCollectionSettings collectionSettings = settings.newCollectionSettings(zeCollection);
+		ImportedType folderSchemaType = collectionSettings.newType(Folder.SCHEMA_TYPE);
+		ImportedMetadataSchema defaultFoldersSchema = folderSchemaType.newDefaultSchema();
+
+		defaultFoldersSchema.addMetadata(metadata);
+		settings.add(collectionSettings);
+		importSettings();
+	}
+
+	@Test
+	public void whenImportingMultiligualCustomSchemasThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		labelMap.put(Language.French, LABEL_FR);
+		labelMap.put(Language.English, LABEL_EN);
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Ze Type label");
+		ImportedMetadataSchema importedMetadataSchema = folderType.newSchema("custom").setLabels(labelMap);
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		assertThat(schemaType.getCustomSchema("custom").getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(schemaType.getCustomSchema("custom").getLabels().get(English)).isEqualTo(LABEL_EN);
+	}
+
+	@Test
+	public void whenImportingMultiligualSchemaTypeThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		labelMap.put(Language.French, LABEL_FR);
+		labelMap.put(Language.English, LABEL_EN);
+		ImportedType folderType = new ImportedType().setCode("folder").setLabels(labelMap);
+		ImportedMetadataSchema importedMetadataSchema = folderType.newSchema("custom");
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		assertThat(schemaType.getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(schemaType.getLabels().get(English)).isEqualTo(LABEL_EN);
+	}
+
+	@Test
+	public void whenImportingMultiligualDefaultSchemasThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		labelMap.put(Language.French, LABEL_FR);
+		labelMap.put(Language.English, LABEL_EN);
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Ze Type label");
+		ImportedMetadataSchema defaultSchema = folderType.newDefaultSchema().setCode("default").setLabels(labelMap);
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		assertThat(schemaType.getDefaultSchema().getLabels().get(French)).isEqualTo(LABEL_FR);
+		assertThat(schemaType.getDefaultSchema().getLabels().get(English)).isEqualTo(LABEL_EN);
+	}
+
+	@Test
+	public void whenImportingMultiligualDefaultSchemasWithOnlyEnglishThenSet() throws ValidationException {
+		Map<Language, String> labelMap = new HashMap<>();
+		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
+
+		labelMap.put(Language.English, LABEL_EN);
+		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Ze Type label");
+		ImportedMetadataSchema defaultSchema = folderType.newDefaultSchema().setCode("default").setLabels(labelMap);
+		collectionSettings.addType(folderType);
+		settings.addCollectionSettings(collectionSettings);
+
+		importSettings();
+
+		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+
+		assertThat(schemaType.getDefaultSchema().getLabels().get(English)).isEqualTo(LABEL_EN);
+	}
+
+	@Test
 	public void whenModifyingValueListTitleThenValueIsUpdated()
 			throws Exception {
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, TITLE_FR);
+
 		String codeA = "ddvUSRcodeDuDomaineDeValeurA";
 		ImportedValueList valueList = new ImportedValueList().setCode(codeA)
-				.setTitle(TITLE_FR)
+				.setTitle(titleMap)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 				.setCodeMode("DISABLED");
 
@@ -707,7 +918,10 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(metadataSchemaType).isNotNull();
 		assertThat(metadataSchemaType.getLabels().get(French)).isEqualTo(TITLE_FR);
 
-		valueList.setTitle(TITLE_FR_UPDATED)
+		Map<Language, String> titleMap2 = new HashMap<>();
+		titleMap2.put(Language.French, TITLE_FR_UPDATED);
+
+		valueList.setTitle(titleMap2)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 				.setCodeMode("DISABLED");
 
@@ -724,9 +938,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenModifyingValueListCodeModeThenValueIsUpdated()
 			throws Exception {
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, TITLE_FR);
+
 		String codeA = "ddvUSRcodeDuDomaineDeValeurA";
 		ImportedValueList valueList = new ImportedValueList().setCode(codeA)
-				.setTitle(TITLE_FR)
+				.setTitle(titleMap)
 				.setCodeMode("DISABLED");
 
 		ImportedCollectionSettings collectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
@@ -767,9 +984,13 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodeIsEmptyThenExceptionIsRaised()
 			throws Exception {
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
+
 		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addTaxonomy(new ImportedTaxonomy().setCode(null)
-						.setTitle(TAXO_1_TITLE_FR)
+						.setTitle(labelTitle1)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 						.setVisibleOnHomePage(true)
 						.setUserIds(TAXO_USERS)
@@ -785,9 +1006,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenImportingTaxonomyConfigSettingsIfTaxonomyCodePrefixIsInvalidThenExceptionIsRaised()
 			throws Exception {
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
 		settings.addCollectionSettings(new ImportedCollectionSettings().setCode(zeCollection)
 				.addTaxonomy(new ImportedTaxonomy().setCode("anotherPrefixTaxonomy")
-						.setTitle(TAXO_1_TITLE_FR)
+						.setTitle(labelTitle1)
 						.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 						.setVisibleOnHomePage(true)
 						.setUserIds(TAXO_USERS)
@@ -823,8 +1047,14 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, TAXO_2_TITLE_FR);
+
 		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
-				.setTitle(TAXO_1_TITLE_FR)
+				.setTitle(labelTitle1)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
 				.setUserIds(asList(gandalf, bobGratton))
@@ -832,7 +1062,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		zeCollectionSettings.addTaxonomy(importedTaxonomy1);
 
 		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE.replace("Type", ""))
-				.setTitle(TAXO_2_TITLE_FR);
+				.setTitle(labelTitle2);
 		zeCollectionSettings.addTaxonomy(importedTaxonomy2);
 
 		settings.addCollectionSettings(zeCollectionSettings);
@@ -848,7 +1078,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
 		assertThat(taxonomy1).isNotNull();
-		assertThat(taxonomy1.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
+		assertThat(taxonomy1.getTitle().get(Language.French)).isEqualTo(TAXO_1_TITLE_FR);
 		assertThat(taxonomy1.isVisibleInHomePage()).isFalse();
 		assertThat(taxonomy1.getGroupIds()).hasSize(1).containsExactly("group1");
 		assertThat(taxonomy1.getUserIds()).hasSize(2).containsExactly(gandalf, bobGratton);
@@ -867,7 +1097,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_2_CODE);
 
 		assertThat(taxonomy2).isNotNull();
-		assertThat(taxonomy2.getTitle()).isEqualTo(TAXO_2_TITLE_FR);
+		assertThat(taxonomy2.getTitle().get(Language.French)).isEqualTo(TAXO_2_TITLE_FR);
 		assertThat(taxonomy2.isVisibleInHomePage()).isTrue();
 		assertThat(taxonomy2.getGroupIds()).isEmpty();
 		assertThat(taxonomy2.getUserIds()).isEmpty();
@@ -887,8 +1117,11 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
 		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
-				.setTitle(TAXO_1_TITLE_FR)
+				.setTitle(labelTitle1)
 				.setClassifiedTypes(toListOfString("document", "folder"));
 		zeCollectionSettings.addTaxonomy(importedTaxonomy1);
 
@@ -905,7 +1138,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
 		assertThat(taxonomy1).isNotNull();
-		assertThat(taxonomy1.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
+		assertThat(taxonomy1.getTitle().get(Language.French)).isEqualTo(TAXO_1_TITLE_FR);
 
 		MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy1));
@@ -940,10 +1173,13 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 	public void whenModifyingCollectionTaxonomyTitleThenConfigsAreUpdated()
 			throws Exception {
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
 		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
-				.setTitle(TAXO_1_TITLE_FR);
+				.setTitle(labelTitle1);
 
 		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
 
@@ -958,11 +1194,14 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
 		assertThat(taxonomy).isNotNull();
-		assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
+		assertThat(taxonomy.getTitle().get(Language.French)).isEqualTo(TAXO_1_TITLE_FR);
+
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, TAXO_1_TITLE_FR_UPDATED);
 
 		// modify title
 		collectionSettings.addTaxonomy(importedTaxonomy
-				.setTitle(TAXO_1_TITLE_FR_UPDATED));
+				.setTitle(labelTitle2));
 
 		importSettings();
 
@@ -970,7 +1209,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
 		assertThat(taxonomy).isNotNull();
-		assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR_UPDATED);
+		assertThat(taxonomy.getTitle().get(Language.French)).isEqualTo(TAXO_1_TITLE_FR_UPDATED);
 	}
 
 	@Test
@@ -1059,8 +1298,12 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
+
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
 		ImportedTaxonomy importedTaxonomy = new ImportedTaxonomy().setCode(TAXO_1_CODE.replace("Type", ""))
-				.setTitle(TAXO_1_TITLE_FR)
+				.setTitle(labelTitle1)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER));
 
 		settings.addCollectionSettings(collectionSettings.addTaxonomy(importedTaxonomy));
@@ -1076,7 +1319,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 				.getTaxonomiesManager().getTaxonomyFor(zeCollection, TAXO_1_CODE);
 
 		assertThat(taxonomy).isNotNull();
-		assertThat(taxonomy.getTitle()).isEqualTo(TAXO_1_TITLE_FR);
+		assertThat(taxonomy.getTitle().get(Language.French)).isEqualTo(TAXO_1_TITLE_FR);
 
 		MetadataSchema folderSchemaType = schemaTypes.getDefaultSchema(FOLDER);
 		List<Metadata> references = folderSchemaType.getTaxonomyRelationshipReferences(asList(taxonomy));
@@ -2421,7 +2664,6 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		assertThat(types.getMetadata("folder_custom2_m2").getLabel(French)).isEqualTo("Custom M2 label");
 		assertThat(types.getMetadata("folder_custom2_m3").getLabel(French)).isEqualTo("M3 label");
 
-		custom1M1.setLabel(null);
 		custom1M2.setLabel("New custom label 1");
 		custom2M2.setLabel("New custom label 2");
 		defaultM3.setLabel("New m3 label");
@@ -3189,38 +3431,56 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		ImportedCollectionSettings collectionSettings =
 				new ImportedCollectionSettings().setCode(zeCollection);
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, TITLE_FR);
+
 		ImportedValueList v1 = new ImportedValueList().setCode(CODE_1_VALUE_LIST)
-				.setTitle(TITLE_FR)
+				.setTitle(titleMap)
 				.setClassifiedTypes(toListOfString(DOCUMENT, FOLDER))
 				.setCodeMode("DISABLED");
 		collectionSettings.addValueList(v1);
 
+		Map<Language, String> titleMap2 = new HashMap<>();
+		titleMap2.put(Language.French, "Le titre du domaine de valeurs 2");
+
 		ImportedValueList v2 = new ImportedValueList().setCode(CODE_2_VALUE_LIST)
-				.setTitle("Le titre du domaine de valeurs 2")
+				.setTitle(titleMap2)
 				.setClassifiedTypes(toListOfString(DOCUMENT))
 				.setCodeMode("FACULTATIVE");
 		collectionSettings.addValueList(v2);
 
+		Map<Language, String> titleMap3 = new HashMap<>();
+		titleMap3.put(Language.French, "Le titre du domaine de valeurs 3");
+
 		ImportedValueList v3 = new ImportedValueList().setCode(CODE_3_VALUE_LIST)
-				.setTitle("Le titre du domaine de valeurs 3")
+				.setTitle(titleMap3)
 				.setCodeMode("REQUIRED_AND_UNIQUE").setHierarchical(true);
 		collectionSettings.addValueList(v3);
 
+		Map<Language, String> titleMap4 = new HashMap<>();
+		titleMap4.put(Language.French, "Le titre du domaine de valeurs 4");
+
 		ImportedValueList v4 = new ImportedValueList().setCode(CODE_4_VALUE_LIST)
-				.setTitle("Le titre du domaine de valeurs 4")
+				.setTitle(titleMap4)
 				.setHierarchical(false);
 		collectionSettings.addValueList(v4);
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, TAXO_1_TITLE_FR);
+
 		ImportedTaxonomy importedTaxonomy1 = new ImportedTaxonomy().setCode(TAXO_1_CODE)
-				.setTitle(TAXO_1_TITLE_FR)
+				.setTitle(labelTitle1)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
 				.setUserIds(asList(gandalf, bobGratton))
 				.setGroupIds(asList("group1"));
 		collectionSettings.addTaxonomy(importedTaxonomy1);
 
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, TAXO_2_TITLE_FR);
+
 		ImportedTaxonomy importedTaxonomy2 = new ImportedTaxonomy().setCode(TAXO_2_CODE)
-				.setTitle(TAXO_2_TITLE_FR);
+				.setTitle(labelTitle2);
 		collectionSettings.addTaxonomy(importedTaxonomy2);
 
 		ImportedType folderType = new ImportedType().setCode("folder").setLabel("Dossier");
@@ -3268,7 +3528,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		Document outDocument = new SettingsXMLFileWriter().writeSettings(settings);
 
 		// read file1 to setting1
-		ImportedSettings settingsRead1 = new SettingsXMLFileReader(outDocument).read();
+		ImportedSettings settingsRead1 = new SettingsXMLFileReader(outDocument, zeCollection, getModelLayerFactory()).read();
 		//		assertThat(settingsRead1.toString()).isEqualTo(settings.toString());
 		assertThat(settingsRead1).isEqualToComparingFieldByField(settings);
 
@@ -3276,7 +3536,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		Document outDocument1 = new SettingsXMLFileWriter().writeSettings(settingsRead1);
 
 		// read file2 to setting2
-		ImportedSettings settingsRead2 = new SettingsXMLFileReader(outDocument1).read();
+		ImportedSettings settingsRead2 = new SettingsXMLFileReader(outDocument1, zeCollection, getModelLayerFactory()).read();
 		assertThat(settingsRead2).isEqualToComparingFieldByField(settingsRead1);
 
 	}
@@ -3328,7 +3588,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 		try {
 			// write settings1 to file ==> file2
 			Document writtenSettings = new SettingsXMLFileWriter().writeSettings(settings);
-			ImportedSettings settings2 = new SettingsXMLFileReader(writtenSettings).read();
+			ImportedSettings settings2 = new SettingsXMLFileReader(writtenSettings, zeCollection, getModelLayerFactory()).read();
 			assertThat(trimLines(settings2.toString())).isEqualTo(trimLines(settings.toString()));
 			assertThat(settings2).isEqualToComparingFieldByField(settings);
 
@@ -3390,6 +3650,7 @@ public class SettingsImportServicesAcceptanceTest extends SettingsImportServices
 			throws Exception {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users), withCollection("anotherCollection"));
+		//		givenCollection("anotherCollection");
 		services = new SettingsImportServices(getAppLayerFactory());
 		systemConfigurationsManager = getModelLayerFactory().getSystemConfigurationsManager();
 		metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();

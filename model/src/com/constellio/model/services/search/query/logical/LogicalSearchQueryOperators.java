@@ -1,9 +1,5 @@
 package com.constellio.model.services.search.query.logical;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.schemas.DataStoreField;
@@ -49,6 +45,10 @@ import com.constellio.model.services.search.query.logical.criteria.QueryCriterio
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class LogicalSearchQueryOperators {
 
 	public static LogicalSearchCondition ALL = LogicalSearchQueryOperators.where(Schemas.IDENTIFIER).isNotNull();
@@ -57,7 +57,8 @@ public class LogicalSearchQueryOperators {
 		return new OngoingLogicalSearchCondition(new SchemaFilters(schema));
 	}
 
-	public static OngoingLogicalSearchCondition from(MetadataSchemaType firstSchemaType, MetadataSchemaType... otherSchemaType) {
+	public static OngoingLogicalSearchCondition from(MetadataSchemaType firstSchemaType,
+													 MetadataSchemaType... otherSchemaType) {
 		List<MetadataSchemaType> types = new ArrayList<>();
 		if (otherSchemaType.length == 0) {
 			return new OngoingLogicalSearchCondition(new SchemaFilters(firstSchemaType));
@@ -83,7 +84,8 @@ public class LogicalSearchQueryOperators {
 		return new OngoingLogicalSearchCondition(new SchemaTypesFilters(schemaTypes, true));
 	}
 
-	public static OngoingLogicalSearchCondition fromTypesInCollectionOf(CollectionObject collectionObject, String dataStore) {
+	public static OngoingLogicalSearchCondition fromTypesInCollectionOf(CollectionObject collectionObject,
+																		String dataStore) {
 		return new OngoingLogicalSearchCondition(
 				new CollectionFilters(collectionObject.getCollection(), dataStore, false));
 	}
@@ -93,7 +95,7 @@ public class LogicalSearchQueryOperators {
 	}
 
 	public static OngoingLogicalSearchCondition fromAllSchemasInCollectionOf(CollectionObject collectionObject,
-			String dataStore) {
+																			 String dataStore) {
 		return new OngoingLogicalSearchCondition(
 				new CollectionFilters(collectionObject.getCollection(), dataStore, false));
 	}
@@ -102,7 +104,8 @@ public class LogicalSearchQueryOperators {
 		return new OngoingLogicalSearchCondition(new CollectionFilters(collection, DataStore.RECORDS, true));
 	}
 
-	public static OngoingLogicalSearchCondition fromAllSchemasInCollectioOfDataStore(String collection, String dataStore) {
+	public static OngoingLogicalSearchCondition fromAllSchemasInCollectioOfDataStore(String collection,
+																					 String dataStore) {
 		return new OngoingLogicalSearchCondition(new CollectionFilters(collection, dataStore, true));
 	}
 

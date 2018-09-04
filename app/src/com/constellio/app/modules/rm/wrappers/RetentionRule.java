@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -15,6 +9,12 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 public class RetentionRule extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "retentionRule";
@@ -45,15 +45,24 @@ public class RetentionRule extends RecordWrapper {
 	public static final String YEAR_TYPES = "yearTypes";
 	public static final String YEAR_TYPES_YEAR_END = "yearTypesYearEnd";
 
-	public RetentionRule(Record record,
-			MetadataSchemaTypes types) {
+	public RetentionRule(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
+	}
+
+	public RetentionRule(Record record, MetadataSchemaTypes types, Locale locale) {
+		super(record, types, SCHEMA_TYPE, locale);
 	}
 
 	public RetentionRule setTitle(String title) {
 		super.setTitle(title);
 		return this;
 	}
+
+	public RetentionRule setTitle(Locale locale, String title) {
+		super.setTitle(locale, title);
+		return this;
+	}
+
 
 	public String getCode() {
 		return get(CODE);
@@ -145,11 +154,16 @@ public class RetentionRule extends RecordWrapper {
 	}
 
 	public String getDescription() {
-		return get(DESCRIPTION);
+		return get(DESCRIPTION, locale);
 	}
 
 	public RetentionRule setDescription(String description) {
 		set(DESCRIPTION, description);
+		return this;
+	}
+
+	public RetentionRule setDescription(Locale locale, String description) {
+		set(DESCRIPTION, locale, description);
 		return this;
 	}
 
@@ -193,7 +207,6 @@ public class RetentionRule extends RecordWrapper {
 
 		return null;
 	}
-
 
 	public CopyRetentionRule getCopyRetentionRuleWithId(String id) {
 		for (CopyRetentionRule copyRetentionRule : getCopyRetentionRules()) {

@@ -1,25 +1,26 @@
 package com.constellio.data.io.concurrent.data;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import org.jdom2.Document;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.junit.Test;
-import org.jdom2.Document;
 
-public class XmlWrapperTestHelper implements WrapperTestHelper<Document>{
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class XmlWrapperTestHelper implements WrapperTestHelper<Document> {
 
 	private XMLOutputter xmlOutput = new XMLOutputter(Format.getPrettyFormat());
+
 	@Test
-	public void givenAByteArrayConstructedFromDataWhenConstructingAnotherDataFromTheByteArrayThenTwoDatasAreEqual(){
+	public void givenAByteArrayConstructedFromDataWhenConstructingAnotherDataFromTheByteArrayThenTwoDatasAreEqual() {
 		XmlView xmlData = new XmlView();
 		String xml = "<test> it is a test </test>";
 
 		xmlData.init(xml.getBytes());
 		XmlView newXmlData = new XmlView();
-		
+
 		newXmlData.init(xml.getBytes());
-		
+
 	}
 
 	@Override
@@ -38,7 +39,7 @@ public class XmlWrapperTestHelper implements WrapperTestHelper<Document>{
 		Document document = (Document) data;
 		document.setBaseURI("http://test.com");
 		document.detachRootElement();
-		
+
 	}
 
 	@Override

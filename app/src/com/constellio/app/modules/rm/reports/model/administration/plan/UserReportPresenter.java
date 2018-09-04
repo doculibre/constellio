@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_AdministrativeUnit;
 import com.constellio.app.modules.rm.reports.model.administration.plan.UserReportModel.UserReportModel_User;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -18,10 +13,14 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
-import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class UserReportPresenter {
 	private String collection;
@@ -31,11 +30,13 @@ public class UserReportPresenter {
 	private RecordServices recordServices;
 	private AuthorizationsServices authorizationsServices;
 	private List<AdministrativeUnit> administrativeUnits;
+	private Locale locale;
 
-	public UserReportPresenter(String collection, ModelLayerFactory modelLayerFactory) {
+	public UserReportPresenter(String collection, ModelLayerFactory modelLayerFactory, Locale locale) {
 
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
+		this.locale = locale;
 	}
 
 	public UserReportModel build() {
@@ -52,7 +53,7 @@ public class UserReportPresenter {
 
 	private void init() {
 		searchServices = modelLayerFactory.newSearchServices();
-		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory, locale);
 		recordServices = modelLayerFactory.newRecordServices();
 		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		administrativeUnits = getAdministrativeUnits();
@@ -143,7 +144,7 @@ public class UserReportPresenter {
 	List<AdministrativeUnit> getAdministrativeUnits() {
 		LogicalSearchQuery allAdminUnitsQuery = new LogicalSearchQuery(LogicalSearchQueryOperators.from(
 				rmSchemasRecordsServices.administrativeUnit.schemaType()).returnAll()).filteredByStatus(StatusFilter.ACTIVES)
-				.sortAsc(Schemas.CODE).setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.CODE));
+				.sortAsc(Schemas.CODE);
 		return rmSchemasRecordsServices.wrapAdministrativeUnits(searchServices.search(allAdminUnitsQuery));
 
 	}

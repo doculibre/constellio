@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.user;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
@@ -20,9 +16,20 @@ import com.vaadin.data.Container.Filterable;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
+import com.vaadin.ui.VerticalLayout;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUsersCredentialsView {
 	public static final String ADMIN = "admin";
@@ -117,14 +124,14 @@ public class ListUsersCredentialsViewImpl extends BaseViewImpl implements ListUs
 
 	private UserCredentialStatus getTAbId(String selectedSheet) {
 		switch (selectedSheet) {
-		case PENDING:
-			return UserCredentialStatus.PENDING;
-		case SUSPENDED:
-			return UserCredentialStatus.SUSPENDED;
-		case DELETED:
-			return UserCredentialStatus.DELETED;
-		default:
-			return UserCredentialStatus.ACTIVE;
+			case PENDING:
+				return UserCredentialStatus.PENDING;
+			case SUSPENDED:
+				return UserCredentialStatus.SUSPENDED;
+			case DELETED:
+				return UserCredentialStatus.DELETED;
+			default:
+				return UserCredentialStatus.ACTIVE;
 		}
 	}
 

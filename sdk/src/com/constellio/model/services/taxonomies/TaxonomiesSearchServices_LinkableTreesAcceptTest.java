@@ -1,32 +1,5 @@
 package com.constellio.model.services.taxonomies;
 
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
-import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
-import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
-import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.solr.common.params.SolrParams;
-import org.assertj.core.api.BooleanAssert;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ListAssert;
-import org.assertj.core.api.ObjectAssert;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
@@ -66,6 +39,32 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeE
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.solr.common.params.SolrParams;
+import org.assertj.core.api.BooleanAssert;
+import org.assertj.core.api.Condition;
+import org.assertj.core.api.ListAssert;
+import org.assertj.core.api.ObjectAssert;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIVE_UNITS;
+import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
+import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends ConstellioTest {
 
@@ -2898,7 +2897,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		});
 	}
 
-	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenSelectingFolderUsingPlanTaxonomy(final User user,
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatRootWhenSelectingFolderUsingPlanTaxonomy(
+			final User user,
 			final TaxonomiesSearchOptions options) {
 		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
 			@Override
@@ -3584,8 +3584,9 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 	}
 
-	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries, final int queryResults,
-			final int facets) {
+	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries,
+																					final int queryResults,
+																					final int facets) {
 		final Exception exception = new Exception();
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override
@@ -3607,8 +3608,8 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	}
 
 	private Condition<? super LinkableTaxonomySearchResponseCaller> secondSolrQueryCounts(final int queries,
-			final int queryResults,
-			final int facets) {
+																						  final int queryResults,
+																						  final int facets) {
 		final Exception exception = new Exception();
 		return new Condition<LinkableTaxonomySearchResponseCaller>() {
 			@Override

@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.components.converters;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
@@ -13,6 +7,11 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.vaadin.data.util.converter.Converter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class GroupIdToCaptionConverter implements Converter<String, String> {
 
@@ -37,7 +36,7 @@ public class GroupIdToCaptionConverter implements Converter<String, String> {
 		if (StringUtils.isNotBlank(value)) {
 			ModelLayerFactory modelLayerFactory = ConstellioFactories.getInstance().getModelLayerFactory();
 			Record record = modelLayerFactory.newRecordServices().getDocumentById(value);
-			caption = SchemaCaptionUtils.getCaptionForRecord(record);
+			caption = SchemaCaptionUtils.getCaptionForRecord(record, locale);
 
 			SchemasRecordsServices schemas = new SchemasRecordsServices(record.getCollection(), modelLayerFactory);
 			Group group = schemas.wrapGroup(record);

@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -15,16 +8,26 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.model.entities.records.Record;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RetentionRuleInfoBuilder {
-	
+
 	private String info;
 
-	public RetentionRuleInfoBuilder(RetentionRule retentionRule) {
+	public RetentionRuleInfoBuilder(Record record) {
 		ConstellioUI ui = ConstellioUI.getCurrent();
 		String collection = ui.getSessionContext().getCurrentCollection();
 		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, ui);
-		
+
+		//Wrap using current locale
+		RetentionRule retentionRule = rmSchemasRecordsServices.wrapRetentionRule(record);
+
 		String code = retentionRule.getCode();
 		String title = retentionRule.getTitle();
 		String description = retentionRule.getDescription();
@@ -73,18 +76,19 @@ public class RetentionRuleInfoBuilder {
 		}
 		info = sb.toString();
 	}
-	
-	public RetentionRuleInfoBuilder(RetentionRule retentionRule, CopyRetentionRule copyRetentionRule) {
+
+	public RetentionRuleInfoBuilder(Record record, CopyRetentionRule copyRetentionRule) {
 		ConstellioUI ui = ConstellioUI.getCurrent();
 		String collection = ui.getSessionContext().getCurrentCollection();
 		RMSchemasRecordsServices rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, ui);
-		
+
 		StringBuilder sb = new StringBuilder();
 		appendCopyRetentionRule(copyRetentionRule, sb, false, rmSchemasRecordsServices);
 		info = sb.toString();
 	}
 
-	private void appendCopyRetentionRule(CopyRetentionRule copyRetentionRule, StringBuilder sb, boolean addLabelAndCode, RMSchemasRecordsServices rmSchemasRecordsServices) {
+	private void appendCopyRetentionRule(CopyRetentionRule copyRetentionRule, StringBuilder sb, boolean addLabelAndCode,
+										 RMSchemasRecordsServices rmSchemasRecordsServices) {
 		CopyType copyType = copyRetentionRule.getCopyType();
 		List<String> mediumTypeIds = copyRetentionRule.getMediumTypeIds();
 		RetentionPeriod activeRetentionPeriod = copyRetentionRule.getActiveRetentionPeriod();
@@ -102,7 +106,7 @@ public class RetentionRuleInfoBuilder {
 			sb.append(copyTypeLabel);
 			sb.append(" - ");
 		}
-		
+
 		boolean firstMediumType = true;
 		for (String mediumTypeId : mediumTypeIds) {
 			MediumType mediumType = rmSchemasRecordsServices.getMediumType(mediumTypeId);

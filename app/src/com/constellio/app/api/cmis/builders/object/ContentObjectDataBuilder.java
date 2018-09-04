@@ -1,10 +1,12 @@
 package com.constellio.app.api.cmis.builders.object;
 
-import java.math.BigInteger;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
+import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.ContentVersion;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.Properties;
@@ -22,13 +24,10 @@ import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
-import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.ContentVersion;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
+import java.math.BigInteger;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ContentObjectDataBuilder {
 
@@ -40,7 +39,7 @@ public class ContentObjectDataBuilder {
 	private final AllowableActionsBuilder allowableActionsBuilder;
 
 	public ContentObjectDataBuilder(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context) {
+									CallContext context) {
 		this.repository = repository;
 		this.appLayerFactory = appLayerFactory;
 		this.context = context;
@@ -48,8 +47,9 @@ public class ContentObjectDataBuilder {
 		this.allowableActionsBuilder = new AllowableActionsBuilder(repository, appLayerFactory, context);
 	}
 
-	public ObjectData build(ContentCmisDocument contentCmisDocument, Set<String> filter, boolean includeAllowableActions,
-			boolean includeAcl, ObjectInfoHandler objectInfos) {
+	public ObjectData build(ContentCmisDocument contentCmisDocument, Set<String> filter,
+							boolean includeAllowableActions,
+							boolean includeAcl, ObjectInfoHandler objectInfos) {
 		ObjectDataImpl result = new ObjectDataImpl();
 		ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 
@@ -68,7 +68,7 @@ public class ContentObjectDataBuilder {
 	}
 
 	private Properties compileProperties(ContentCmisDocument content, Set<String> receivedFilter,
-			ObjectInfoImpl objectInfo) {
+										 ObjectInfoImpl objectInfo) {
 		if (content == null) {
 			throw new IllegalArgumentException("Content must not be null!");
 		}
@@ -126,7 +126,8 @@ public class ContentObjectDataBuilder {
 		return result;
 	}
 
-	private void setupObjectInfo(ObjectInfoImpl objectInfo, ContentCmisDocument content, ContentVersion contentVersion) {
+	private void setupObjectInfo(ObjectInfoImpl objectInfo, ContentCmisDocument content,
+								 ContentVersion contentVersion) {
 		objectInfo.setBaseType(BaseTypeId.CMIS_DOCUMENT);
 		objectInfo.setTypeId(DOCUMENT_TYPE_ID);
 		objectInfo.setContentType(contentVersion.getMimetype());
@@ -187,7 +188,7 @@ public class ContentObjectDataBuilder {
 	}
 
 	private void addPropertyDateTime(PropertiesImpl props, Set<String> filter, String id,
-			GregorianCalendar value) {
+									 GregorianCalendar value) {
 		if (!checkAddProperty(props, filter, id)) {
 			return;
 		}

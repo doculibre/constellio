@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.breadcrumb;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -19,6 +14,7 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -30,25 +26,31 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException.TaxonomiesManagerRuntimeException_EnableTaxonomyNotFound;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.util.Arrays.asList;
 
 public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private String recordId;
-	
+
 	private String taxonomyCode;
-	
+
 	private String collection;
 
 	private FolderDocumentBreadcrumbTrail breadcrumbTrail;
-	
+
 	private transient TaxonomiesManager taxonomiesManager;
-	
+
 	private transient SchemaPresenterUtils folderPresenterUtils;
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 
-	public FolderDocumentBreadcrumbTrailPresenter(String recordId, String taxonomyCode, FolderDocumentBreadcrumbTrail breadcrumbTrail) {
+	public FolderDocumentBreadcrumbTrailPresenter(String recordId, String taxonomyCode,
+												  FolderDocumentBreadcrumbTrail breadcrumbTrail) {
 		this.recordId = recordId;
 		this.taxonomyCode = taxonomyCode;
 		this.breadcrumbTrail = breadcrumbTrail;
@@ -66,7 +68,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		ConstellioFactories constellioFactories = breadcrumbTrail.getConstellioFactories();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
-		
+
 		SessionContext sessionContext = breadcrumbTrail.getSessionContext();
 		collection = sessionContext.getCurrentCollection();
 
@@ -76,7 +78,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private void addBreadcrumbItems() {
 		List<BreadcrumbItem> breadcrumbItems = new ArrayList<>();
-		
+
 		String currentRecordId = recordId;
 		while (currentRecordId != null) {
 			Record currentRecord = folderPresenterUtils.getRecord(currentRecordId);
@@ -108,7 +110,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			Record record = folderPresenterUtils.getRecord(recordId);
 			String schemaCode = record.getSchemaCode();
 			String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
-			
+
 			Taxonomy selectedTaxonomy;
 			Taxonomy administrativeUnitTaxonomy = taxonomiesManager.getTaxonomyFor(collection, AdministrativeUnit.SCHEMA_TYPE);
 			Taxonomy categoryTaxonomy = taxonomiesManager.getTaxonomyFor(collection, Category.SCHEMA_TYPE);
@@ -146,7 +148,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 						Metadata firstTaxonomyRelationshipReference = taxonomyRelationshipReferences.get(0);
 						List<String> taxonomyItemReferences = null;
 						Object value = record.get(firstTaxonomyRelationshipReference);
-						if(value != null && value instanceof String) {
+						if (value != null && value instanceof String) {
 							taxonomyItemReferences = asList((String) value);
 						} else {
 							taxonomyItemReferences = (List<String>) value;
@@ -165,12 +167,12 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 				}
 			}
 			if (selectedTaxonomy != null) {
-				breadcrumbItems.add(0, new TaxonomyBreadcrumbItem(taxonomyCode, selectedTaxonomy.getTitle()));
+				breadcrumbItems.add(0, new TaxonomyBreadcrumbItem(taxonomyCode, selectedTaxonomy.getTitle(Language.withCode(breadcrumbTrail.getSessionContext().getCurrentLocale().getLanguage()))));
 			}
 		} else if (searchId != null) {
 			breadcrumbItems.add(0, new SearchResultsBreadcrumbItem(searchId, advancedSearch));
 		}
-		
+
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);
 		}
@@ -213,7 +215,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 	class TaxonomyBreadcrumbItem implements BreadcrumbItem {
 
 		private String taxonomyCode;
-		
+
 		private String taxonomyLabel;
 
 		TaxonomyBreadcrumbItem(String taxonomyCode, String taxonomyLabel) {

@@ -13,38 +13,38 @@ import static java.util.Arrays.asList;
 
 public class StorageSpaceSingleContainerAvailableSizeCalculator implements MetadataValueCalculator<Double> {
 
-    LocalDependency<Double> numberOfContainersParam = LocalDependency.toANumber(StorageSpace.NUMBER_OF_CONTAINERS);
+	LocalDependency<Double> numberOfContainersParam = LocalDependency.toANumber(StorageSpace.NUMBER_OF_CONTAINERS);
 
-    LocalDependency<Double> capacityParam = LocalDependency.toANumber(StorageSpace.CAPACITY);
+	LocalDependency<Double> capacityParam = LocalDependency.toANumber(StorageSpace.CAPACITY);
 
-    @Override
-    public Double calculate(CalculatorParameters parameters) {
-        Double numberOfContainersParam = parameters.get(this.numberOfContainersParam);
-        Double capacityParam = parameters.get(this.capacityParam);
+	@Override
+	public Double calculate(CalculatorParameters parameters) {
+		Double numberOfContainersParam = parameters.get(this.numberOfContainersParam);
+		Double capacityParam = parameters.get(this.capacityParam);
 
-        if(numberOfContainersParam == null || numberOfContainersParam.equals(0.0D)) {
-            return capacityParam;
-        }
-        return 0.0D;
-    }
+		if (numberOfContainersParam == null || numberOfContainersParam.equals(0.0D)) {
+			return capacityParam;
+		}
+		return 0.0D;
+	}
 
-    @Override
-    public Double getDefaultValue() {
-        return null;
-    }
+	@Override
+	public Double getDefaultValue() {
+		return null;
+	}
 
-    @Override
-    public MetadataValueType getReturnType() {
-        return MetadataValueType.NUMBER;
-    }
+	@Override
+	public MetadataValueType getReturnType() {
+		return MetadataValueType.NUMBER;
+	}
 
-    @Override
-    public boolean isMultiValue() {
-        return false;
-    }
+	@Override
+	public boolean isMultiValue() {
+		return false;
+	}
 
-    @Override
-    public List<? extends Dependency> getDependencies() {
-        return asList(numberOfContainersParam, capacityParam);
-    }
+	@Override
+	public List<? extends Dependency> getDependencies() {
+		return asList(numberOfContainersParam, capacityParam);
+	}
 }

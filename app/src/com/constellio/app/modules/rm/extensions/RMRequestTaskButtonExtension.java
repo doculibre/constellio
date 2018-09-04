@@ -2,8 +2,10 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
@@ -14,7 +16,11 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
-import com.constellio.app.modules.tasks.model.wrappers.request.*;
+import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ExtensionRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReactivationRequest;
+import com.constellio.app.modules.tasks.model.wrappers.request.RequestTask;
+import com.constellio.app.modules.tasks.model.wrappers.request.ReturnRequest;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.buttons.BaseButton;
@@ -32,7 +38,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
@@ -40,7 +45,13 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.data.fieldgroup.PropertyId;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.InlineDateField;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -82,7 +93,8 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 	}
 
 	@Override
-	public void decorateMainComponentAfterViewAssembledOnViewEntered(DecorateMainComponentAfterInitExtensionParams params) {
+	public void decorateMainComponentAfterViewAssembledOnViewEntered(
+			DecorateMainComponentAfterInitExtensionParams params) {
 		super.decorateMainComponentAfterViewAssembledOnViewEntered(params);
 		Component mainComponent = params.getMainComponent();
 		Folder folder;
@@ -117,18 +129,18 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		for (Button button : actionMenuButtons) {
 			if (button.getId() != null) {
 				switch (button.getId()) {
-				case BorrowRequest.SCHEMA_NAME:
-					button.setVisible(isPrincipalRecordBorrowable(folder, containerRecord, currentUser, collection));
-					break;
-				case ReturnRequest.SCHEMA_NAME:
-					button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
-					break;
-				case ReactivationRequest.SCHEMA_NAME:
-					button.setVisible(isPrincipalRecordReativable(folder, containerRecord, currentUser));
-					break;
-				case ExtensionRequest.SCHEMA_NAME:
-					button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
-					break;
+					case BorrowRequest.SCHEMA_NAME:
+						button.setVisible(isPrincipalRecordBorrowable(folder, containerRecord, currentUser, collection));
+						break;
+					case ReturnRequest.SCHEMA_NAME:
+						button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
+						break;
+					case ReactivationRequest.SCHEMA_NAME:
+						button.setVisible(isPrincipalRecordReativable(folder, containerRecord, currentUser));
+						break;
+					case ExtensionRequest.SCHEMA_NAME:
+						button.setVisible(isPrincipalRecordReturnable(folder, containerRecord, currentUser));
+						break;
 				}
 			}
 		}
@@ -164,10 +176,11 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 				return false;
 			}
 		}
-		ModelLayerCollectionExtensions extensions = modelLayerFactory.getExtensions().forCollection(collection);
+		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
+		;
 		return folder != null && currentUser.hasAll(RMPermissionsTo.BORROW_FOLDER, RMPermissionsTo.BORROWING_REQUEST_ON_FOLDER)
 				.on(folder)
-				&& !(container != null && Boolean.TRUE.equals(container.getBorrowed())) && !extensions.isModifyBlocked(folder.getWrappedRecord(), currentUser);
+			   && !(container != null && Boolean.TRUE.equals(container.getBorrowed())) && rmModuleExtensions.isBorrowingActionPossibleOnFolder(folder, currentUser);
 	}
 
 	private boolean isContainerBorrowable(ContainerRecord container, User currentUser) {
@@ -182,7 +195,8 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 				.hasAll(RMPermissionsTo.BORROW_CONTAINER, RMPermissionsTo.BORROWING_REQUEST_ON_CONTAINER).on(container);
 	}
 
-	private boolean isPrincipalRecordBorrowable(Folder folder, ContainerRecord container, User currentUser, String collection) {
+	private boolean isPrincipalRecordBorrowable(Folder folder, ContainerRecord container, User currentUser,
+												String collection) {
 		if (folder != null) {
 			return isFolderBorrowable(folder, container, currentUser, collection);
 		} else {
@@ -210,7 +224,8 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 	}
 
 	@Override
-	public void decorateMainComponentBeforeViewAssembledOnViewEntered(DecorateMainComponentAfterInitExtensionParams params) {
+	public void decorateMainComponentBeforeViewAssembledOnViewEntered(
+			DecorateMainComponentAfterInitExtensionParams params) {
 		super.decorateMainComponentAfterViewAssembledOnViewEntered(params);
 		Component mainComponent = params.getMainComponent();
 		if (mainComponent instanceof DisplayFolderViewImpl || mainComponent instanceof DisplayContainerViewImpl) {
@@ -323,7 +338,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
 			@Override
 			protected String getConfirmDialogMessage() {
-				if(view instanceof DisplayContainerViewImpl) {
+				if (view instanceof DisplayContainerViewImpl) {
 					return $("DisplayFolderView.confirmReturnContainerMessage");
 				} else {
 					return $("DisplayFolderView.confirmReturnMessage");
@@ -447,7 +462,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		try {
 			long recordResult = getNumberOfRequestFromUser(BorrowRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
 
-			if(recordResult > 0) {
+			if (recordResult > 0) {
 				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
 			} else {
 				Task borrowRequest;
@@ -482,10 +497,9 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 
 			long recordResult = getNumberOfRequestFromUser(ReturnRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
 
-			if(recordResult > 0) {
+			if (recordResult > 0) {
 				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
-			}
-			else if (folder != null) {
+			} else if (folder != null) {
 				String folderId = folder.getId();
 				Task returnRequest = taskSchemas
 						.newReturnFolderRequestTask(currentUser.getId(), getAssigneesForFolder(folderId), folderId, folder.getTitle());
@@ -524,7 +538,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		try {
 			long recordResult = getNumberOfRequestFromUser(ReactivationRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
 
-			if(recordResult > 0) {
+			if (recordResult > 0) {
 				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
 			} else {
 				if (folder != null) {
@@ -558,7 +572,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		try {
 			long recordResult = getNumberOfRequestFromUser(ExtensionRequest.FULL_SCHEMA_NAME, currentUser, folder, container);
 
-			if(recordResult > 0) {
+			if (recordResult > 0) {
 				view.showErrorMessage($("RMRequestTaskButtonExtension.taskAlreadyCreated"));
 			} else {
 				if (folder != null) {
@@ -632,8 +646,9 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		}
 	}
 
-	public long getNumberOfRequestFromUser(String fullSchemaName, User currentUser, Folder folder, ContainerRecord containerRecord) {
-		SearchServices searchServices  = modelLayerFactory.newSearchServices();
+	public long getNumberOfRequestFromUser(String fullSchemaName, User currentUser, Folder folder,
+										   ContainerRecord containerRecord) {
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
 
 		TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		MetadataSchemaType taskSchemaType = tasksSchemasRecordsServices.taskSchemaType();
@@ -643,7 +658,7 @@ public class RMRequestTaskButtonExtension extends PagesComponentsExtension {
 		Metadata metadataApplicant = taskSchemaType.getAllMetadatas().getMetadataWithLocalCode(RequestTask.APPLICANT);
 		LogicalSearchCondition logicalSearchCondition;
 
-		if(folder != null) {
+		if (folder != null) {
 			logicalSearchCondition = from(taskSchemaType).where(Schemas.SCHEMA).isEqualTo(fullSchemaName)
 					.andWhere(metadataLinkedFolder).isEqualTo(folder).andWhere(metadataStatus).isEqualTo(TaskStatusType.STANDBY).andWhere(metadataApplicant).isEqualTo(currentUser.getId());
 		} else {

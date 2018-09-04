@@ -1,25 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_TRANSFER;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -51,6 +31,25 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_TRANSFER;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static java.util.Arrays.asList;
 
 public class DemoTestRecords {
 
@@ -779,7 +778,8 @@ public class DemoTestRecords {
 		return createEvent(username, eventType, eventDate, recordId, null);
 	}
 
-	private RecordWrapper createEvent(String username, String eventType, LocalDateTime eventDate, String recordId, String title) {
+	private RecordWrapper createEvent(String username, String eventType, LocalDateTime eventDate, String recordId,
+									  String title) {
 		return schemas.newEvent().setRecordId(recordId).setTitle(title).setUsername(username).setType(eventType)
 				.setCreatedOn(eventDate);
 	}

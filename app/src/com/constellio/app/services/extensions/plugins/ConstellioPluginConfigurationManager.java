@@ -1,21 +1,5 @@
 package com.constellio.app.services.extensions.plugins;
 
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.DISABLED;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
-import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManagerRuntimeException.ConstellioPluginConfigurationManagerRuntimeException_CouldNotDisableInvalidPlugin;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManagerRuntimeException.ConstellioPluginConfigurationManagerRuntimeException_CouldNotDisableReadyToInstallPlugin;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginConfigurationManagerRuntimeException.ConstellioPluginConfigurationManagerRuntimeException_CouldNotEnableInvalidPlugin;
@@ -28,6 +12,21 @@ import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.utils.TimeProvider;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.DISABLED;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.ENABLED;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.INVALID;
+import static com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus.READY_TO_INSTALL;
 
 public class ConstellioPluginConfigurationManager {
 
@@ -72,15 +71,15 @@ public class ConstellioPluginConfigurationManager {
 			throws ConstellioPluginConfigurationManagerRuntimeException {
 		ConstellioPluginStatus status = prValidateModule(pluginId);
 		switch (status) {
-		case INVALID:
-			throw new ConstellioPluginConfigurationManagerRuntimeException_CouldNotEnableInvalidPlugin(pluginId);
-		case READY_TO_INSTALL:
-		case DISABLED:
-			break;
-		case ENABLED:
-			return;
-		default:
-			throw new RuntimeException("Unsupported status " + status);
+			case INVALID:
+				throw new ConstellioPluginConfigurationManagerRuntimeException_CouldNotEnableInvalidPlugin(pluginId);
+			case READY_TO_INSTALL:
+			case DISABLED:
+				break;
+			case ENABLED:
+				return;
+			default:
+				throw new RuntimeException("Unsupported status " + status);
 		}
 		setPluginAttributeValue(pluginId, STATUS_ATTRIBUTE, ENABLED.toString());
 		setPluginAttributeValue(pluginId, STACK_TRACE, "");
@@ -103,22 +102,23 @@ public class ConstellioPluginConfigurationManager {
 			throws ConstellioPluginConfigurationManagerRuntimeException {
 		ConstellioPluginStatus status = prValidateModule(pluginId);
 		switch (status) {
-		case INVALID:
-			throw new ConstellioPluginConfigurationManagerRuntimeException_CouldNotDisableInvalidPlugin(pluginId);
-		case READY_TO_INSTALL:
-			throw new ConstellioPluginConfigurationManagerRuntimeException_CouldNotDisableReadyToInstallPlugin(pluginId);
-		case ENABLED:
-			break;
-		case DISABLED:
-			return;
-		default:
-			throw new RuntimeException("Unsupported status " + status);
+			case INVALID:
+				throw new ConstellioPluginConfigurationManagerRuntimeException_CouldNotDisableInvalidPlugin(pluginId);
+			case READY_TO_INSTALL:
+				throw new ConstellioPluginConfigurationManagerRuntimeException_CouldNotDisableReadyToInstallPlugin(pluginId);
+			case ENABLED:
+				break;
+			case DISABLED:
+				return;
+			default:
+				throw new RuntimeException("Unsupported status " + status);
 		}
 
 		setPluginAttributeValue(pluginId, STATUS_ATTRIBUTE, DISABLED.toString());
 	}
 
-	private void setPluginAttributeValue(final String pluginId, final String attributeName, final String attributeValue) {
+	private void setPluginAttributeValue(final String pluginId, final String attributeName,
+										 final String attributeValue) {
 		configManager.updateXML(PLUGINS_CONFIG_PATH, new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {

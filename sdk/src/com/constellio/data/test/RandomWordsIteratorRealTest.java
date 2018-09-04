@@ -1,17 +1,16 @@
 package com.constellio.data.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.data.utils.Octets;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.data.utils.Octets;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class RandomWordsIteratorRealTest extends ConstellioTest {

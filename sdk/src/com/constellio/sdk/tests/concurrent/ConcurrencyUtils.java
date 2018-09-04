@@ -8,8 +8,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class ConcurrencyUtils {
 
-	public static void concurrentIntegerFor(int nbthreads, int start, int end, int increment, final IncrementForTask task,
-			final WorkerContextFactory workerContextFactory) {
+	public static void concurrentIntegerFor(int nbthreads, int start, int end, int increment,
+											final IncrementForTask task,
+											final WorkerContextFactory workerContextFactory) {
 
 		final LinkedBlockingQueue<Integer> queue = new LinkedBlockingQueue<Integer>((int) Math.ceil((end - start) / increment));
 		for (int i = start; i < end; i += increment) {

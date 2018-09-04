@@ -61,7 +61,7 @@ public class ConfigDependency<T> implements Dependency {
 	@Override
 	public String toString() {
 		return "ConfigDependency{" +
-				"configuration=" + configuration.getCode() +
-				'}';
+			   "configuration=" + configuration.getCode() +
+			   '}';
 	}
 }

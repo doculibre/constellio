@@ -9,7 +9,7 @@ public enum LabelsReportLayout {
 	//AVERY_5162(2, 7, PageSize.LETTER, 0.1525f * 72f, 0.1525f *72f, 0.88f *72f, 0.88f *72f),
 
 	//AVERY_5162(2, 7, new RectangleReadOnly(612.0F, 900.0F), 18, 18, 60, 60),//new RectangleReadOnly(612.0F, 792.0F)
-	AVERY_5162(2, 7, 612.0F, 792.0F, 18, 18, 50,50),
+	AVERY_5162(2, 7, 612.0F, 792.0F, 18, 18, 50, 50),
 	//AVERY_5162(2, 7, 612.0F, 792.0F, 12, 12, 12, 57, 57),
 	AVERY_5162_V1(2, 7, 612.0F, 792.0F, 12, 12, 57f, 57f),//60, 60),OK
 	//AVERY_5162(2, 7, 612.0F, 792.0F, 2, 3, 60, 60),
@@ -29,8 +29,9 @@ public enum LabelsReportLayout {
 	private float topMargin;
 	private float bottomMargin;
 
-	private LabelsReportLayout(int numberOfColumns, int numberOfRows, float upperRightX, float upperRightY, float rightMargin, float leftMargin,
-			float topMargin, float bottomMargin) {
+	private LabelsReportLayout(int numberOfColumns, int numberOfRows, float upperRightX, float upperRightY,
+							   float rightMargin, float leftMargin,
+							   float topMargin, float bottomMargin) {
 		this.numberOfColumns = numberOfColumns;
 		this.numberOfRows = numberOfRows;
 		this.upperRightX = upperRightX;

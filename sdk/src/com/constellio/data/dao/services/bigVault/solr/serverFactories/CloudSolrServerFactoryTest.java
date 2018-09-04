@@ -1,16 +1,15 @@
 package com.constellio.data.dao.services.bigVault.solr.serverFactories;
 
-import static org.junit.Assert.assertEquals;
-
+import com.constellio.data.dao.services.solr.serverFactories.CloudSolrServerFactory;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.data.dao.services.solr.serverFactories.CloudSolrServerFactory;
-import com.constellio.sdk.tests.ConstellioTest;
-
 import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
 
 public class CloudSolrServerFactoryTest extends ConstellioTest {
 

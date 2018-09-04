@@ -1,8 +1,8 @@
 package com.constellio.model.extensions.events.recordsCache;
 
-import java.util.List;
-
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySignature;
+
+import java.util.List;
 
 public class CacheQueryPutParams {
 

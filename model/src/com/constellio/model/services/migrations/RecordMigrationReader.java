@@ -1,18 +1,17 @@
 package com.constellio.model.services.migrations;
 
+import com.constellio.model.services.migrations.RecordMigrationsManager.SchemaTypeRecordMigration;
+import com.constellio.model.services.migrations.RecordMigrationsManager.SchemaTypeRecordMigrations;
+import com.constellio.model.services.migrations.RecordMigrationsManager.SchemaTypesRecordMigration;
+import com.constellio.model.utils.XMLConfigReader;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-
-import com.constellio.model.services.migrations.RecordMigrationsManager.SchemaTypeRecordMigration;
-import com.constellio.model.services.migrations.RecordMigrationsManager.SchemaTypeRecordMigrations;
-import com.constellio.model.services.migrations.RecordMigrationsManager.SchemaTypesRecordMigration;
-import com.constellio.model.utils.XMLConfigReader;
 
 public class RecordMigrationReader implements XMLConfigReader<SchemaTypesRecordMigration> {
 

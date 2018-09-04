@@ -1,12 +1,11 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import org.joda.time.LocalDate;
+
+import java.util.List;
 
 public class FolderExpectedTransferDateCalculator2
 		extends AbstractFolderExpectedDateCalculator
@@ -14,7 +13,7 @@ public class FolderExpectedTransferDateCalculator2
 
 	LocalDependency<List<LocalDate>> transferDatesParam = LocalDependency
 			.toADate(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).whichIsMultivalue();
-	private LocalDependency<LocalDate> manualExpectedTransferDate= LocalDependency
+	private LocalDependency<LocalDate> manualExpectedTransferDate = LocalDependency
 			.toADate(Folder.MANUAL_EXPECTED_TRANSFER_DATE);
 
 	@Override

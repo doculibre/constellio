@@ -1,22 +1,5 @@
 package com.constellio.app.services.importExport.settings.utils;
 
-import static org.apache.commons.lang3.StringUtils.join;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedConfig;
 import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
@@ -31,6 +14,25 @@ import com.constellio.app.services.importExport.settings.model.ImportedTab;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
 import com.constellio.app.services.importExport.settings.model.ImportedValueList;
+import com.constellio.model.entities.Language;
+import com.jgoodies.common.base.Strings;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.List;
+import java.util.Map;
+
+import static org.apache.commons.lang3.StringUtils.join;
 
 public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 
@@ -38,6 +40,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private Element settingsElement;
 
 	public SettingsXMLFileWriter() {
+
 		this.document = new Document();
 		settingsElement = new Element(SETTINGS);
 		document.setRootElement(settingsElement);
@@ -144,9 +147,7 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addImportedType(Element typesElem, ImportedType importedType) {
 		Element typeItem = new Element(TYPE);
 		typeItem.setAttribute(CODE, importedType.getCode());
-		if (StringUtils.isNotBlank(importedType.getLabel())) {
-			typeItem.setAttribute(LABEL, importedType.getLabel());
-		}
+		setLabelsAttribute(typeItem, importedType.getLabels());
 		typesElem.addContent(typeItem);
 
 		addTabs(importedType, typeItem);
@@ -168,18 +169,24 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addSchemaItem(Element schemasElement, ImportedMetadataSchema customSchema) {
 		Element schemaElement = new Element(SCHEMA);
 		schemaElement.setAttribute(CODE, customSchema.getCode());
-		if (StringUtils.isNotBlank(customSchema.getLabel())) {
-			schemaElement.setAttribute(LABEL, customSchema.getLabel());
-		}
+		setLabelsAttribute(schemaElement, customSchema.getLabels());
 		schemasElement.addContent(schemaElement);
 
 		writeSchema(customSchema, schemaElement);
 	}
 
-	private void writeSchema(ImportedMetadataSchema metadataSchema, Element schemaElement) {
-		if (metadataSchema.getLabel() != null) {
-			schemaElement.setAttribute("label", metadataSchema.getLabel());
+	private void setLabelsAttribute(Element element, Map<Language, String> labels) {
+		if (labels != null && labels.keySet() != null) {
+			for (Language language : labels.keySet()) {
+				if (Strings.isNotBlank(labels.get(language))) {
+					element.setAttribute(LABEL + language.getCode(), labels.get(language));
+				}
+			}
 		}
+	}
+
+	private void writeSchema(ImportedMetadataSchema metadataSchema, Element schemaElement) {
+		setLabelsAttribute(schemaElement, metadataSchema.getLabels());
 		if (metadataSchema.getTableMetadatas() != null && !metadataSchema.getFormMetadatas().isEmpty()) {
 			schemaElement.setAttribute("formMetadatas", join(metadataSchema.getFormMetadatas(), ","));
 		}
@@ -225,10 +232,9 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	}
 
 	private void addMetadatum(Element defaultSchemaElem, ImportedMetadata importedMetadata) {
-
 		Element metadataElem = new Element(METADATA);
 		metadataElem.setAttribute(CODE, importedMetadata.getCode());
-
+		setLabelsAttribute(metadataElem, importedMetadata.getLabels());
 		if (StringUtils.isNotBlank(importedMetadata.getLabel())) {
 			metadataElem.setAttribute(TITLE, importedMetadata.getLabel());
 		}
@@ -362,38 +368,38 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 			metadataElem.addContent(dataEntryElem);
 
 			switch (dataEntry.getType()) {
-			case "calculated":
-				if (StringUtils.isNotBlank(dataEntry.getCalculator())) {
-					dataEntryElem.setAttribute("calculator", dataEntry.getCalculator());
-				}
-				break;
+				case "calculated":
+					if (StringUtils.isNotBlank(dataEntry.getCalculator())) {
+						dataEntryElem.setAttribute("calculator", dataEntry.getCalculator());
+					}
+					break;
 
-			case "copied":
-				if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
-					dataEntryElem.setAttribute("referenceMetadata", dataEntry.getReferencedMetadata());
-				}
+				case "copied":
+					if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
+						dataEntryElem.setAttribute("referenceMetadata", dataEntry.getReferencedMetadata());
+					}
 
-				if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
-					dataEntryElem.setAttribute("copiedMetadata", dataEntry.getCopiedMetadata());
-				}
-				break;
+					if (StringUtils.isNotBlank(dataEntry.getReferencedMetadata())) {
+						dataEntryElem.setAttribute("copiedMetadata", dataEntry.getCopiedMetadata());
+					}
+					break;
 
-			case "jexl":
-				if (StringUtils.isNotBlank(dataEntry.getPattern())) {
-					dataEntryElem.setText(dataEntry.getPattern());
-				}
-				break;
+				case "jexl":
+					if (StringUtils.isNotBlank(dataEntry.getPattern())) {
+						dataEntryElem.setText(dataEntry.getPattern());
+					}
+					break;
 
-			case "sequence":
-				if (StringUtils.isNotBlank(dataEntry.getFixedSequenceCode())) {
-					dataEntryElem.setAttribute("fixedSequenceCode", dataEntry.getFixedSequenceCode());
-				} else {
-					dataEntryElem.setAttribute("metadataProvidingSequenceCode", dataEntry.getMetadataProvidingSequenceCode());
-				}
-				break;
+				case "sequence":
+					if (StringUtils.isNotBlank(dataEntry.getFixedSequenceCode())) {
+						dataEntryElem.setAttribute("fixedSequenceCode", dataEntry.getFixedSequenceCode());
+					} else {
+						dataEntryElem.setAttribute("metadataProvidingSequenceCode", dataEntry.getMetadataProvidingSequenceCode());
+					}
+					break;
 
-			default:
-				break;
+				default:
+					break;
 			}
 
 		}
@@ -428,8 +434,10 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addTaxonomy(Element taxonomiesElem, ImportedTaxonomy importedTaxonomy) {
 		Element listElem = new Element(TAXONOMY);
 		listElem.setAttribute(CODE, importedTaxonomy.getCode());
-		if (importedTaxonomy.getTitle() != null) {
-			listElem.setAttribute(TITLE, importedTaxonomy.getTitle());
+		if (importedTaxonomy.getTitle() != null && importedTaxonomy.getTitleLanguage() != null) {
+			for (Language language : importedTaxonomy.getTitleLanguage()) {
+				listElem.setAttribute(TITLE + language.getCode(), importedTaxonomy.getTitle(language));
+			}
 		}
 		if (importedTaxonomy.getVisibleOnHomePage() != null) {
 			listElem.setAttribute(VISIBLE_IN_HOME_PAGE, importedTaxonomy.getVisibleOnHomePage() + "");
@@ -452,7 +460,13 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 	private void addValueListItem(Element valueListsElem, ImportedValueList valueList) {
 		Element listElem = new Element(VALUE_LIST);
 		listElem.setAttribute(CODE, valueList.getCode());
-		listElem.setAttribute(TITLE, valueList.getTitle());
+
+
+		if (valueList.getTitle() != null && valueList.getTitle().keySet() != null) {
+			for (Language language : valueList.getTitle().keySet()) {
+				listElem.setAttribute(TITLE + language.getCode(), valueList.getTitle().get(language));
+			}
+		}
 
 		if (!valueList.getClassifiedTypes().isEmpty()) {
 			listElem.setAttribute(CLASSIFIED_TYPES, join(valueList.getClassifiedTypes(), ','));
@@ -483,7 +497,6 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 		} finally {
 			IOUtils.closeQuietly(fos);
 		}
-
 	}
 
 }

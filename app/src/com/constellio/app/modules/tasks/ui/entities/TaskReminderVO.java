@@ -1,8 +1,8 @@
 package com.constellio.app.modules.tasks.ui.entities;
 
-import java.io.Serializable;
-
 import org.joda.time.LocalDate;
+
+import java.io.Serializable;
 
 public class TaskReminderVO implements Serializable {
 	LocalDate fixedDate;
@@ -11,7 +11,7 @@ public class TaskReminderVO implements Serializable {
 	String relativeDateMetadataCode;
 
 	public TaskReminderVO(LocalDate fixedDate, int numberOfDaysToRelativeDate,
-			String relativeDateMetadataCode, Boolean beforeFlexibleDate) {
+						  String relativeDateMetadataCode, Boolean beforeFlexibleDate) {
 		this.fixedDate = fixedDate;
 		this.numberOfDaysToRelativeDate = numberOfDaysToRelativeDate;
 		this.relativeDateMetadataCode = relativeDateMetadataCode;

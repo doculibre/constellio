@@ -1,17 +1,16 @@
 package com.constellio.sdk.dev.tools;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import org.junit.Test;
-
 import com.constellio.model.entities.schemas.MetadataNetworkLink;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
 import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
+import org.junit.Test;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 @MainTest
 public class PrintRMMetadatasNetwork2AcceptTest extends ConstellioTest {
@@ -34,7 +33,7 @@ public class PrintRMMetadatasNetwork2AcceptTest extends ConstellioTest {
 		for (MetadataNetworkLink link : types.getMetadataNetwork().getLinks()) {
 
 			if (restrictedMetadata.contains(link.getFromMetadata().getLocalCode()) ||
-					restrictedMetadata.contains(link.getToMetadata().getLocalCode())) {
+				restrictedMetadata.contains(link.getToMetadata().getLocalCode())) {
 				continue;
 			}
 

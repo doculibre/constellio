@@ -1,20 +1,11 @@
 package com.constellio.model.services.search.query.logical;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.search.StatusFilter;
@@ -27,6 +18,16 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.condition.SolrQueryBuilderParams;
 import com.constellio.model.services.security.SecurityTokenManager;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 //TODO Remove inheritance, rename to LogicalQuery
 public class LogicalSearchQuery implements SearchQuery {
@@ -67,6 +68,8 @@ public class LogicalSearchQuery implements SearchQuery {
 	private Map<String, String[]> overridedQueryParams = new HashMap<>();
 
 	private String name;
+
+	private String language;
 
 	public LogicalSearchQuery() {
 		numberOfRows = DEFAULT_NUMBER_OF_ROWS;
@@ -110,6 +113,7 @@ public class LogicalSearchQuery implements SearchQuery {
 		queryBoosts = new ArrayList<>(query.queryBoosts);
 
 		moreLikeThisFields = query.moreLikeThisFields;
+		language = query.language;
 	}
 
 	// The following methods are attribute accessors
@@ -247,10 +251,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	public LogicalSearchQuery sortAsc(DataStoreField field) {
 		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
 			DataStoreField sortField = field.getSortField();
-			if (sortField != null) {
-				sortFields.add(new LogicalSearchQuerySort(sortField.getDataStoreCode(), true));
-			}
-			sortFields.add(new LogicalSearchQuerySort(field.getDataStoreCode(), true));
+			sortFields.add(new FieldLogicalSearchQuerySort(field, true));
 		}
 		return this;
 	}
@@ -270,10 +271,7 @@ public class LogicalSearchQuery implements SearchQuery {
 	public LogicalSearchQuery sortDesc(DataStoreField field) {
 		if (!field.isMultivalue() && field.getType() != MetadataValueType.TEXT) {
 			DataStoreField sortField = field.getSortField();
-			if (sortField != null) {
-				sortFields.add(new LogicalSearchQuerySort(sortField.getDataStoreCode(), false));
-			}
-			sortFields.add(new LogicalSearchQuerySort(field.getDataStoreCode(), false));
+			sortFields.add(new FieldLogicalSearchQuerySort(field, false));
 		}
 		return this;
 	}
@@ -377,8 +375,8 @@ public class LogicalSearchQuery implements SearchQuery {
 	// The following methods are mainly used by the SPE itself
 
 	@Override
-	public String getQuery(String language) {
-		SolrQueryBuilderParams params = new SolrQueryBuilderParams(preferAnalyzedFields, language);
+	public String getQuery(String language, final MetadataSchemaTypes types) {
+		SolrQueryBuilderParams params = new SolrQueryBuilderParams(preferAnalyzedFields, language, types);
 		return condition.getSolrQuery(params);
 	}
 
@@ -398,30 +396,6 @@ public class LogicalSearchQuery implements SearchQuery {
 		filterQueries.addAll(facetFilters.toSolrFilterQueries());
 
 		return filterQueries;
-	}
-
-	public String getSort() {
-		StringBuilder stringBuilder = new StringBuilder();
-
-		for (LogicalSearchQuerySort sort : sortFields) {
-			if (stringBuilder.length() > 0) {
-				stringBuilder.append(", ");
-			}
-			String sorFieldName = sortFieldName(sort);
-			stringBuilder.append(sorFieldName);
-			stringBuilder.append(" ");
-			stringBuilder.append(sort.isAscending() ? "asc" : "desc");
-		}
-
-		return stringBuilder.toString();
-	}
-
-	private String sortFieldName(LogicalSearchQuerySort sort) {
-		String fieldName = sort.getFieldName();
-		if (fieldName != null && fieldName.endsWith("_s")) {
-			return fieldName.substring(0, fieldName.length() - 2) + "_fs-s";
-		}
-		return fieldName;
 	}
 
 	@Deprecated
@@ -471,7 +445,7 @@ public class LogicalSearchQuery implements SearchQuery {
 			//				break;
 			//			}
 
-			for (String lang : new String[] { "en", "fr", "ar" }) {
+			for (String lang : new String[]{"en", "fr", "ar"}) {
 				moreLikeThisFields.add(field.getAnalyzedField(lang).getDataStoreCode());
 			}
 		}
@@ -502,6 +476,20 @@ public class LogicalSearchQuery implements SearchQuery {
 		}
 	}
 
+	public String getLanguage() {
+		return language;
+	}
+
+	public LogicalSearchQuery setLanguage(String language) {
+		this.language = language;
+		return this;
+	}
+
+	public LogicalSearchQuery setLanguage(Locale locale) {
+		this.language = locale.getLanguage();
+		return this;
+	}
+
 	public interface UserFilter {
 		String buildFQ(SecurityTokenManager securityTokenManager);
 	}
@@ -526,21 +514,25 @@ public class LogicalSearchQuery implements SearchQuery {
 		public String buildFQ(SecurityTokenManager securityTokenManager) {
 			String filter;
 			switch (access) {
-			case Role.READ:
-				filter = FilterUtils.userReadFilter(user, securityTokenManager);
-				break;
-			case Role.WRITE:
-				filter = FilterUtils.userWriteFilter(user, securityTokenManager);
-				break;
-			case Role.DELETE:
-				filter = FilterUtils.userDeleteFilter(user, securityTokenManager);
-				break;
-			default:
-				filter = FilterUtils.permissionFilter(user, access);
+				case Role.READ:
+					filter = FilterUtils.userReadFilter(user, securityTokenManager);
+					break;
+				case Role.WRITE:
+					filter = FilterUtils.userWriteFilter(user, securityTokenManager);
+					break;
+				case Role.DELETE:
+					filter = FilterUtils.userDeleteFilter(user, securityTokenManager);
+					break;
+				default:
+					filter = FilterUtils.permissionFilter(user, access);
 			}
 
 			return filter;
 		}
+	}
+
+	public List<LogicalSearchQuerySort> getSortFields() {
+		return sortFields;
 	}
 
 	public static LogicalSearchQuery query(LogicalSearchCondition condition) {

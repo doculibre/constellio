@@ -1,19 +1,5 @@
 package com.constellio.model.services.search.cache;
 
-import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
-import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.startingWithText;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.apache.solr.common.params.SolrParams;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -30,6 +16,17 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.apache.solr.common.params.SolrParams;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
+import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SerializedCacheSearchServiceAcceptTest extends ConstellioTest {
 
@@ -59,10 +56,11 @@ public class SerializedCacheSearchServiceAcceptTest extends ConstellioTest {
 
 		givenTestRecords();
 
-		fromAllSchemas = fromAllSchemasInExceptEvents(zeCollection).where(Schemas.SCHEMA).isNotEqual("collection_default")
-				.andWhere(Schemas.SCHEMA).isNot(startingWithText("facet"));
-		fromAllSchemasWhereNumberIs42 = fromAllSchemasIn(zeCollection).where(Schemas.SCHEMA).isNotEqual("collection_default")
-				.andWhere(Schemas.SCHEMA).isNot(startingWithText("facet")).andWhere(zeSchema.numberMetadata()).isEqualTo(42);
+		fromAllSchemas = fromAllSchemasInExceptEvents(zeCollection)
+				.where(Schemas.SCHEMA).isEqualTo(zeSchema.code())
+				.orWhere(Schemas.SCHEMA).isEqualTo(anotherSchema.code())
+				.orWhere(Schemas.SCHEMA).isEqualTo(thirdSchema.code());
+		fromAllSchemasWhereNumberIs42 = fromAllSchemas.andWhere(zeSchema.numberMetadata()).isEqualTo(42);
 		fromZeSchema = from(zeSchema.instance()).returnAll();
 
 		RecordsCache collectionCache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);

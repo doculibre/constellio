@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.data.io.streamFactories.StreamFactory;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -8,8 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.data.io.streamFactories.StreamFactory;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ClassificationPlanReportModel {
 
@@ -38,7 +38,8 @@ public class ClassificationPlanReportModel {
 		return rootCategories;
 	}
 
-	public ClassificationPlanReportModel setRootCategories(List<ClassificationPlanReportModel_Category> rootCategories) {
+	public ClassificationPlanReportModel setRootCategories(
+			List<ClassificationPlanReportModel_Category> rootCategories) {
 		this.rootCategories = rootCategories;
 		return this;
 	}
@@ -125,7 +126,8 @@ public class ClassificationPlanReportModel {
 			return categories;
 		}
 
-		public ClassificationPlanReportModel_Category setCategories(List<ClassificationPlanReportModel_Category> categories) {
+		public ClassificationPlanReportModel_Category setCategories(
+				List<ClassificationPlanReportModel_Category> categories) {
 			this.categories = categories;
 			return this;
 		}

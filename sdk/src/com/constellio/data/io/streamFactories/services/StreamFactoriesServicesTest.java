@@ -1,19 +1,5 @@
 package com.constellio.data.io.streamFactories.services;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.data.io.streamFactories.CloseableStreamFactory;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.data.io.streamFactories.services.one.StreamOperation;
@@ -26,6 +12,19 @@ import com.constellio.data.io.streamFactories.services.two.TwoStreamsOperationRe
 import com.constellio.data.io.streamFactories.services.two.TwoStreamsOperationThrowingException;
 import com.constellio.data.io.streams.factories.StreamsServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class StreamFactoriesServicesTest extends ConstellioTest {
 

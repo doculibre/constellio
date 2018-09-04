@@ -21,5 +21,5 @@ public interface CustomFolderField<T> extends Serializable {
 	void focus();
 
 	void setCaption(String caption);
-	
+
 }

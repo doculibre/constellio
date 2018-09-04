@@ -1,21 +1,5 @@
 package com.constellio.model.services.records;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
@@ -34,6 +18,21 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends ConstellioTest {
 
@@ -67,8 +66,6 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		schemas = new TestsSchemasSetup();
 		zeSchema = schemas.new ZeSchemaMetadatas();
 		anotherSchema = schemas.new AnotherSchemaMetadatas();
-
-		record = new TestRecord(zeSchema);
 
 		services = new RecordAutomaticMetadataServices(getModelLayerFactory());
 
@@ -501,6 +498,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		defineSchemasManager().using(
 				schemas.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(false, false, false));
 		defineAnotherSchemaRecordsWithSinglevalueMetadata();
+		record = new TestRecord(zeSchema);
 	}
 
 	protected void givenSchemaWithTextAndDateCopiedEntryUsingMultivalueReferencesAndSomeRecordsInOtherSchema()
@@ -508,6 +506,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		defineSchemasManager().using(
 				schemas.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(false, true, false));
 		defineAnotherSchemaRecordsWithSinglevalueMetadata();
+		record = new TestRecord(zeSchema);
 	}
 
 	protected void givenSchemaWithMultivalueTextAndDateCopiedEntryAndSomeRecordsInOtherSchema()
@@ -515,6 +514,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		defineSchemasManager().using(
 				schemas.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(true, false, false));
 		defineAnotherSchemaRecordsWithMultivaluesMetadata();
+		record = new TestRecord(zeSchema);
 	}
 
 	protected void givenSchemaWithMultivalueTextAndDateCopiedEntryUsingMultivalueReferencesAndSomeRecordsInOtherSchema()
@@ -522,6 +522,7 @@ public class RecordAutomaticMetadataServicesCopyAcceptanceTest extends Constelli
 		defineSchemasManager().using(
 				schemas.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(true, true, false));
 		defineAnotherSchemaRecordsWithMultivaluesMetadata();
+		record = new TestRecord(zeSchema);
 	}
 
 	private void defineAnotherSchemaRecordsWithSinglevalueMetadata()

@@ -9,15 +9,15 @@ import org.joda.time.LocalDate;
 import java.util.List;
 
 public class SIPFolder extends SIPMetadataObject implements SIPObject {
-	
+
 	private String title;
-	
+
 	private SIPFolder parentFolder;
-	
+
 	private SIPCategory category;
 
 	private EntityRetriever entityRetriever;
-	
+
 	public SIPFolder(Folder folder, List<Metadata> folderMetadatas, EntityRetriever entityRetriever) {
 		super(adjust(folder).getWrappedRecord(), folderMetadatas);
 		this.title = folder.getTitle();
@@ -30,7 +30,7 @@ public class SIPFolder extends SIPMetadataObject implements SIPObject {
 			category = new SIPCategory(processusActivite, entityRetriever);
 		}
 	}
-	
+
 	private static Folder adjust(Folder ficheDossier) {
 		ficheDossier.setCloseDateEntered(new LocalDate());
 		return ficheDossier;
@@ -61,7 +61,7 @@ public class SIPFolder extends SIPMetadataObject implements SIPObject {
 				sb.insert(0, "/");
 			}
 			sb.insert(0, currentFolderId);
-			
+
 			if (currentFolder.getParentFolder() == null) {
 				SIPCategory category = currentFolder.getCategory();
 				// Recursive call

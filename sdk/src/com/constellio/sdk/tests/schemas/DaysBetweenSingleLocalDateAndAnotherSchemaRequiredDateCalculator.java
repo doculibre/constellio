@@ -1,18 +1,17 @@
 package com.constellio.sdk.tests.schemas;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.joda.time.Days;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.joda.time.Days;
+import org.joda.time.LocalDateTime;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DaysBetweenSingleLocalDateAndAnotherSchemaRequiredDateCalculator implements MetadataValueCalculator<Double> {
 

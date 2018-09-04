@@ -1,17 +1,5 @@
 package com.constellio.app.ui;
 
-import static com.constellio.app.modules.es.connectors.http.utils.WebsitesUtils.startWebsite;
-import static com.constellio.sdk.tests.TestUtils.asList;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import com.constellio.model.entities.records.Transaction;
-import org.eclipse.jetty.server.Server;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.http.utils.WebsitesUtils;
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.services.ConnectorManager;
@@ -20,6 +8,7 @@ import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.model.conf.LDAPTestConfig;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.SDKPasswords;
@@ -29,6 +18,16 @@ import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.setups.Users;
+import org.eclipse.jetty.server.Server;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static com.constellio.app.modules.es.connectors.http.utils.WebsitesUtils.startWebsite;
+import static com.constellio.sdk.tests.TestUtils.asList;
 
 @UiTest
 @MainTest
@@ -163,15 +162,15 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		connectorManager
 				.createConnector(es.newConnectorLDAPInstance()
-								.setNumberOfJobsInParallel(15)
-								.setNumberOfJobsInParallel(30)
-								.setUrls(LDAPTestConfig.getUrls())
-								.setUsersBaseContextList(LDAPTestConfig.getUsersWithoutGroupsBaseContextList())
-								.setConnectionUsername(LDAPTestConfig.getUser() + "@" + LDAPTestConfig.getDomains().get(0))
-								.setPassword(LDAPTestConfig.getPassword())
-								.setCode("ldap")
-								.setTitle("users")
-								.setEnabled(true)
+						.setNumberOfJobsInParallel(15)
+						.setNumberOfJobsInParallel(30)
+						.setUrls(LDAPTestConfig.getUrls())
+						.setUsersBaseContextList(LDAPTestConfig.getUsersWithoutGroupsBaseContextList())
+						.setConnectionUsername(LDAPTestConfig.getUser() + "@" + LDAPTestConfig.getDomains().get(0))
+						.setPassword(LDAPTestConfig.getPassword())
+						.setCode("ldap")
+						.setTitle("users")
+						.setEnabled(true)
 				);
 
 		connectorManager
@@ -216,15 +215,15 @@ public class StartDemoESConstellioAcceptTest extends ConstellioTest {
 
 		connectorManager
 				.createConnector(es.newConnectorLDAPInstance()
-								.setNumberOfJobsInParallel(15)
-								.setNumberOfJobsInParallel(30)
-								.setUrls(LDAPTestConfig.getUrls())
-								.setUsersBaseContextList(LDAPTestConfig.getUsersWithoutGroupsBaseContextList())
-								.setConnectionUsername(LDAPTestConfig.getUser() + "@" + LDAPTestConfig.getDomains().get(0))
-								.setPassword(LDAPTestConfig.getPassword())
-								.setCode("ldap")
-								.setTitle("users")
-								.setEnabled(true)
+						.setNumberOfJobsInParallel(15)
+						.setNumberOfJobsInParallel(30)
+						.setUrls(LDAPTestConfig.getUrls())
+						.setUsersBaseContextList(LDAPTestConfig.getUsersWithoutGroupsBaseContextList())
+						.setConnectionUsername(LDAPTestConfig.getUser() + "@" + LDAPTestConfig.getDomains().get(0))
+						.setPassword(LDAPTestConfig.getPassword())
+						.setCode("ldap")
+						.setTitle("users")
+						.setEnabled(true)
 				);
 
 		driver = newWebDriver(loggedAsUserInCollection(admin, zeCollection));

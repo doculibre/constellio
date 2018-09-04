@@ -1,18 +1,10 @@
 package com.constellio.app.modules.robots.ui.pages;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.modules.robots.model.wrappers.Robot;
 import com.constellio.app.modules.robots.ui.components.actionParameters.DynamicParametersField;
 import com.constellio.app.modules.robots.ui.components.criteria.AdvancedSearchCriteriaField;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory.Choice;
 import com.constellio.app.ui.framework.components.RecordForm;
@@ -27,6 +19,10 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AddEditRobotViewImpl extends BaseViewImpl implements AddEditRobotView {
 	private final AddEditRobotPresenter presenter;
@@ -168,7 +164,7 @@ public class AddEditRobotViewImpl extends BaseViewImpl implements AddEditRobotVi
 	}
 
 	public static class RobotMetadataFieldFactory extends OverridingMetadataFieldFactory<AddEditRobotPresenter> {
-		
+
 		public RobotMetadataFieldFactory(AddEditRobotPresenter presenter) {
 			super(presenter);
 		}

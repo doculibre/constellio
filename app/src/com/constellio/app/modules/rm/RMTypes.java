@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -28,6 +24,10 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class RMTypes {
 

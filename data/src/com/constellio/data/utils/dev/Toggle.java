@@ -1,16 +1,15 @@
 package com.constellio.data.utils.dev;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.data.utils.ImpossibleRuntimeException;
-
 public class Toggle {
 
-	public static AvailableToggle DEMO_FEATURES = newToggle();
 	public static AvailableToggle SDK_REQUEST_CACHE_VALIDATION = newToggle();
 
 	public static AvailableToggle ROLES_WITH_NEW_7_2_PERMISSIONS = newToggle();
@@ -52,7 +51,15 @@ public class Toggle {
 
 	public static AvailableToggle EVENT_BUS_RECORDS_CACHE = newToggle(true);
 
+	public static AvailableToggle MULTI_LINGUAL = newToggle(true);
+
 	public static AvailableToggle FORCE_MULTIPLE_CONTAINERS_VIEW_TO_DISPLAY = newToggle(false);
+
+	public static AvailableToggle SHOW_CAPSULES_FOR_ALL_LANGUAGES = newToggle(false);
+
+	public static AvailableToggle DANGER_DANGER_DANGER___ALLOW_UPDATE_TO_OLDER_VERSION___DANGER_DANGER_DANGER = newToggle(false);
+
+	public static AvailableToggle SHOW_UNREAD_TASKS = newToggle(false);
 
 
 	// ------------------------------------------------
@@ -91,6 +98,7 @@ public class Toggle {
 		}
 		AvailableToggle toggle = new AvailableToggle();
 		toggle.enabled = value;
+		toggle.defaultValue = value;
 		toggles.add(toggle);
 		return toggle;
 	}
@@ -117,6 +125,7 @@ public class Toggle {
 	public static class AvailableToggle {
 
 		private boolean enabled;
+		private boolean defaultValue;
 
 		private String id;
 
@@ -128,6 +137,10 @@ public class Toggle {
 			if (enabled) {
 				throw new ImpossibleRuntimeException("Unsupported with toggle '" + id + "'");
 			}
+		}
+
+		public void reset() {
+			enabled = defaultValue;
 		}
 
 		public void ensureEnabled() {

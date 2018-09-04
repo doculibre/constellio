@@ -1,8 +1,5 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
@@ -12,13 +9,17 @@ import com.vaadin.data.util.AbstractProperty;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyContainer> {
 	public final static String SEARCH_RESULT_PROPERTY = "searchResult";
 
 	private RecordDisplayFactory displayFactory;
 	String query;
 
-	public SearchResultContainer(SearchResultVOLazyContainer adapted, RecordDisplayFactory displayFactory, String query) {
+	public SearchResultContainer(SearchResultVOLazyContainer adapted, RecordDisplayFactory displayFactory,
+								 String query) {
 		super(adapted);
 		this.displayFactory = displayFactory;
 		this.query = query;
@@ -66,15 +67,15 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 			}
 		};
 	}
-	
+
 	protected ClickListener getClickListener(SearchResultVO searchResultVO) {
 		return null;
 	}
-	
+
 	protected ClickListener getElevationClickListener(SearchResultVO searchResultVO) {
 		return null;
 	}
-	
+
 	protected ClickListener getExclusionClickListener(SearchResultVO searchResultVO) {
 		return null;
 	}

@@ -1,11 +1,12 @@
 package com.constellio.model.entities.records.wrappers;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.data.utils.AccentApostropheCleaner;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Capsule extends RecordWrapper {
 
@@ -18,6 +19,10 @@ public class Capsule extends RecordWrapper {
 	public static final String HTML = "html";
 
 	public static final String KEYWORDS = "keywords";
+
+	public static final String LANGUAGE = "language";
+
+	public static final String IMAGES = "images";
 
 	public Capsule(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -63,5 +68,28 @@ public class Capsule extends RecordWrapper {
 			trimmedKeyWords.add(accentRemoved);
 		}
 		return trimmedKeyWords;
+	}
+
+	public String getLanguage() {
+		return get(LANGUAGE);
+	}
+
+	public Capsule setLanguage(String language) {
+		set(LANGUAGE, language);
+		return this;
+	}
+
+	public Capsule setLanguage(CapsuleLanguage language) {
+		set(LANGUAGE, language);
+		return this;
+	}
+
+	public List<Content> getImages() {
+		return get(IMAGES);
+	}
+
+	public Capsule setImages(List<Content> images) {
+		set(IMAGES, images);
+		return this;
 	}
 }

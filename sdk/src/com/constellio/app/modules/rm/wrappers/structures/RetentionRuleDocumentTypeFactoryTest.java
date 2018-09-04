@@ -1,11 +1,10 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RetentionRuleDocumentTypeFactoryTest extends ConstellioTest {
 

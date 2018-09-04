@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.model.labelTemplate;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jdom2.Document;
-import org.jdom2.input.SAXBuilder;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField.LabelTemplateFieldHorizontalAlignment;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateField.LabelTemplateFieldVerticalAlignment;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManagerRuntimeException.LabelTemplateManagerRuntimeException_CannotCreateLabelTemplate;
@@ -17,6 +7,15 @@ import com.constellio.app.modules.rm.reports.model.labels.LabelsReportLayout;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.jdom2.Document;
+import org.jdom2.input.SAXBuilder;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class LabelTemplateManagerAcceptanceTest extends ConstellioTest {
 

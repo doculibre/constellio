@@ -1,12 +1,12 @@
 package com.constellio.app.modules.es.extensions.api;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.extensions.ModuleExtensions;
 import com.constellio.app.modules.es.extensions.api.params.CustomTargetFlagsParams;
 import com.constellio.app.modules.es.extensions.api.params.TargetMetadataCreationParams;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ESModuleExtensions implements ModuleExtensions {
 	public VaultBehaviorsList<ConnectorMappingExtension> connectorMappingExtensions = new VaultBehaviorsList<>();
@@ -27,7 +27,7 @@ public class ESModuleExtensions implements ModuleExtensions {
 	}
 
 	public void onHttpDocumentFetched(OnHttpDocumentFetchedParams onHttpDocumentFetchedParams) {
-		for(ConnectorHttpDocumentExtension connectorHttpDocumentExtension : connectorHttpDocumentExtensions) {
+		for (ConnectorHttpDocumentExtension connectorHttpDocumentExtension : connectorHttpDocumentExtensions) {
 			connectorHttpDocumentExtension.onHttpDocumentFetched(onHttpDocumentFetchedParams);
 		}
 	}

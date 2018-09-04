@@ -1,16 +1,16 @@
 /**
  * Constellio, Open Source Enterprise Search
  * Copyright (C) 2010 DocuLibre inc.
- *
+ * <p>
  * This copyrighted material is made available to anyone wishing to use, modify,
  * copy, or redistribute it subject to the terms and conditions of the GNU
  * Lesser General Public License, as published by the Free Software Foundation.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public License
  * for more details.
- *
+ * <p>
  * You should have received a copy of the GNU Lesser General Public License
  * along with this distribution; if not, write to:
  * Free Software Foundation, Inc.
@@ -26,11 +26,23 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-import static com.constellio.model.services.thesaurus.util.SkosUtil.*;
+import static com.constellio.model.services.thesaurus.util.SkosUtil.containsWithParsing;
+import static com.constellio.model.services.thesaurus.util.SkosUtil.equalsWithParsing;
+import static com.constellio.model.services.thesaurus.util.SkosUtil.getToLowerCase;
+import static com.constellio.model.services.thesaurus.util.SkosUtil.parseForSearch;
 
 @SuppressWarnings("serial")
 public class ThesaurusService implements Serializable {
@@ -55,18 +67,22 @@ public class ThesaurusService implements Serializable {
 	private Set<SkosConcept> topConcepts;
 	private Map<String, SkosConcept> allConcepts;
 
-	public ThesaurusService(){
+	public ThesaurusService() {
 		deniedTerms = new HashSet<>();
 		topConcepts = new HashSet<>();
 		allConcepts = new ConcurrentHashMap<>();
 	}
 
-	public void setSearchEventServices(SearchEventServices searchEventServices){
+	public void setSearchEventServices(SearchEventServices searchEventServices) {
 		this.searchEventServices = searchEventServices;
 	}
 
 	public void setDeniedTerms(List<String> deniedTerms) {
 		this.deniedTerms = getToLowerCase(new HashSet<>(deniedTerms));
+	}
+
+	public Set<SkosConcept> getTopConcepts() {
+		return topConcepts;
 	}
 
 	public Map<String, SkosConcept> getAllConcepts() {
@@ -121,7 +137,6 @@ public class ThesaurusService implements Serializable {
 		this.dcLanguage = dcLanguage;
 	}
 
-
 	public void addTopConcept(SkosConcept topConcept) {
 		topConcept.getBroader().clear();
 		this.topConcepts.add(topConcept);
@@ -129,28 +144,34 @@ public class ThesaurusService implements Serializable {
 	}
 
 	public boolean equalsRdfAbout(ThesaurusService obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (super.equals(obj))
+		}
+		if (super.equals(obj)) {
 			return true;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		ThesaurusService other = (ThesaurusService) obj;
 		if (rdfAbout == null) {
-			if (other.rdfAbout != null)
+			if (other.rdfAbout != null) {
 				return false;
-		} else if (!rdfAbout.equals(other.rdfAbout))
+			}
+		} else if (!rdfAbout.equals(other.rdfAbout)) {
 			return false;
+		}
 		return true;
 	}
 
-	public Set<SkosConcept> getPrefLabelsThatEqualsOrSpecify(String input, Locale locale){
+	public Set<SkosConcept> getPrefLabelsThatEqualsOrSpecify(String input, Locale locale) {
 
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
-		if(StringUtils.isNotBlank(input) && !input.startsWith("*")) {
+		if (StringUtils.isNotBlank(input) && !input.startsWith("*")) {
 			String parsedInput = parseForSearch(input);
 			Pattern p = Pattern.compile(parsedInput + ".*\\(.*\\)"); // search for "generalSearchedWord (specification)"
 
@@ -164,7 +185,8 @@ public class ThesaurusService implements Serializable {
 
 					String parsedLabelValue = parseForSearch(thesaurusLabel.getValue(locale));
 
-					if (parsedInput.equals(parsedLabelValue) || p.matcher(parsedLabelValue).find()) {
+					if (parsedLabelValue != null && (parsedInput.equals(parsedLabelValue) || p.matcher(parsedLabelValue)
+							.find())) {
 						skosConcepts.add(skosConcept);
 					}
 				}
@@ -174,11 +196,11 @@ public class ThesaurusService implements Serializable {
 		return skosConcepts;
 	}
 
-	public Set<SkosConcept> getPrefLabelsThatContains(String input, Locale locale){
+	public Set<SkosConcept> getPrefLabelsThatContains(String input, Locale locale) {
 
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
-		if(StringUtils.isNotBlank(input)) {
+		if (StringUtils.isNotBlank(input)) {
 			// for each concept
 			for (Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()) {
 				SkosConcept skosConcept = skosConceptEntry.getValue();
@@ -199,11 +221,11 @@ public class ThesaurusService implements Serializable {
 		return skosConcepts;
 	}
 
-	public Set<SkosConcept> getAltLabelsThatContains(String input, Locale locale){
+	public Set<SkosConcept> getAltLabelsThatContains(String input, Locale locale) {
 
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
-		if(StringUtils.isNotBlank(input)) {
+		if (StringUtils.isNotBlank(input)) {
 			// for each concept
 			for (Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()) {
 				SkosConcept skosConcept = skosConceptEntry.getValue();
@@ -221,11 +243,11 @@ public class ThesaurusService implements Serializable {
 		return skosConcepts;
 	}
 
-	public Set<SkosConcept> getAltLabelsThatEquals(String input, Locale locale){
+	public Set<SkosConcept> getAltLabelsThatEquals(String input, Locale locale) {
 
 		Set<SkosConcept> skosConcepts = new HashSet<>();
 
-		if(StringUtils.isNotBlank(input)) {
+		if (StringUtils.isNotBlank(input)) {
 			// for each concept
 			for (Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()) {
 				SkosConcept skosConcept = skosConceptEntry.getValue();
@@ -243,7 +265,7 @@ public class ThesaurusService implements Serializable {
 		return skosConcepts;
 	}
 
-	public Set<SkosConcept> getAllLabelsThatContains(String input, Locale locale){
+	public Set<SkosConcept> getAllLabelsThatContains(String input, Locale locale) {
 
 		Set<SkosConcept> searchPrefLabel = getPrefLabelsThatContains(input, locale);
 		Set<SkosConcept> searchAltLabel = getAltLabelsThatContains(input, locale);
@@ -259,28 +281,26 @@ public class ThesaurusService implements Serializable {
 		List<String> idsMatching = new ArrayList<>();
 		boolean isDenied = false;
 
-		for(String key : allConcepts.keySet()) {
+		for (SkosConcept skosConcept : allConcepts.values()) {
 			isDenied = false;
-			SkosConcept skosConcept = allConcepts.get(key);
-			String prefLabel = skosConcept.getPrefLabelWithoutParentheses(locale);
+			String prefLabel = skosConcept.getUppercasedPrefLabelWithoutParentheses(locale);
 
-			for(String term : deniedTerms) {
-				if(term.equalsIgnoreCase(prefLabel)) {
+			for (String term : deniedTerms) {
+				if (term.equalsIgnoreCase(prefLabel)) {
 					isDenied = true;
 					break;
 				}
 			}
-			if(isDenied) {
+			if (isDenied) {
 				continue;
 			}
 
-			if(prefLabel != null && !Strings.isNullOrEmpty(prefLabel)) {
+			if (prefLabel != null && !Strings.isNullOrEmpty(prefLabel)) {
 				String skosConceptId = SkosUtil.getSkosConceptId(skosConcept.getRdfAbout());
 
-				int count = StringUtils.countMatches(normalisedTextForMatching, " " + prefLabel
-						.toUpperCase() + " ");
-				if(count  > 0) {
-					for(int i = 0; i < count; i++) {
+				int count = StringUtils.countMatches(normalisedTextForMatching, " " + prefLabel + " ");
+				if (count > 0) {
+					for (int i = 0; i < count; i++) {
 						idsMatching.add(skosConceptId);
 					}
 				}
@@ -291,53 +311,54 @@ public class ThesaurusService implements Serializable {
 	}
 
 	public List<SkosConcept> findRootDomain(String skosId) {
-	    SkosConcept skosConcept = getSkosConcept(skosId);
+		SkosConcept skosConcept = getSkosConcept(skosId);
 		List<SkosConcept> domainSkosConcept = new ArrayList<>();
 		findDomainOfSkosConcept(skosConcept, DOMAINE_LABEL, domainSkosConcept);
 		return domainSkosConcept;
 	}
 
-	public void findDomainOfSkosConcept(SkosConcept skosConcept, String frenchLabelParentRequirement, List<SkosConcept> domainSkosConcepts) {
+	public void findDomainOfSkosConcept(SkosConcept skosConcept, String frenchLabelParentRequirement,
+										List<SkosConcept> domainSkosConcepts) {
 
-		if(domainSkosConcepts == null) {
+		if (domainSkosConcepts == null) {
 			throw new IllegalArgumentException("domainSkosConcepts cannot be null when calling this" +
-					" mehtod it is an out parameter.");
+											   " mehtod it is an out parameter.");
 		}
 
-		if(skosConcept.getBroader() == null || skosConcept.getBroader().size() == 0) {
+		if (skosConcept.getBroader() == null || skosConcept.getBroader().size() == 0) {
 			return;
 		}
 
-		for(SkosConcept skosConcept1 : skosConcept.getBroader()) {
-			if(skosConcept1.getBroader() == null || skosConcept1.getBroader().size() == 0) {
+		for (SkosConcept skosConcept1 : skosConcept.getBroader()) {
+			if (skosConcept1.getBroader() == null || skosConcept1.getBroader().size() == 0) {
 				return;
 			} else {
 				boolean isFound = false;
-				for(SkosConcept skosConcept2 : skosConcept1.getBroader()) {
+				for (SkosConcept skosConcept2 : skosConcept1.getBroader()) {
 					boolean meetParentLabelCriteria = false;
-					if(frenchLabelParentRequirement != null && StringUtils.isNotBlank(frenchLabelParentRequirement)) {
-						for(ThesaurusLabel thesaurusLabel : skosConcept2.getLabels()) {
+					if (frenchLabelParentRequirement != null && StringUtils.isNotBlank(frenchLabelParentRequirement)) {
+						for (ThesaurusLabel thesaurusLabel : skosConcept2.getLabels()) {
 							String frLabel = thesaurusLabel.getValue(new Locale("fr"));
-							if(frenchLabelParentRequirement.equalsIgnoreCase(frLabel)) {
+							if (frenchLabelParentRequirement.equalsIgnoreCase(frLabel)) {
 								meetParentLabelCriteria = true;
 							}
 						}
 					} else {
 						meetParentLabelCriteria = true;
 					}
-					if(skosConcept2.getBroader() == null || skosConcept2.getBroader().size() == 0 &&
-							meetParentLabelCriteria) {
+					if (skosConcept2.getBroader() == null || skosConcept2.getBroader().size() == 0 &&
+															 meetParentLabelCriteria) {
 						boolean found = false;
-						for(SkosConcept skosConcept3 : domainSkosConcepts) {
-							if(skosConcept1.getRdfAbout().equals(skosConcept3.getRdfAbout())) {
+						for (SkosConcept skosConcept3 : domainSkosConcepts) {
+							if (skosConcept1.getRdfAbout().equals(skosConcept3.getRdfAbout())) {
 								found = true;
 							}
 						}
-						if(!found) {
+						if (!found) {
 							domainSkosConcepts.add(skosConcept1);
 						}
 					} else {
-						if(!isFound) {
+						if (!isFound) {
 							findDomainOfSkosConcept(skosConcept1, frenchLabelParentRequirement, domainSkosConcepts);
 						}
 					}
@@ -350,7 +371,7 @@ public class ThesaurusService implements Serializable {
 		for (Map.Entry<String, SkosConcept> skosConceptEntry : allConcepts.entrySet()) {
 			SkosConcept skosConcept = skosConceptEntry.getValue();
 			String currentId = SkosUtil.getSkosConceptId(skosConcept.getRdfAbout());
-			if(currentId.equals(id)) {
+			if (currentId.equals(id)) {
 				return skosConcept;
 			}
 		}
@@ -359,25 +380,27 @@ public class ThesaurusService implements Serializable {
 
 	/**
 	 * Get skos concepts for all languages available.
-	 * @param input unparsed search term
+	 *
+	 * @param input                      unparsed search term
 	 * @param languageCodesAvailableList
 	 * @return skos concept response
 	 */
 	public ResponseSkosConcept getSkosConcepts(String input, List<String> languageCodesAvailableList) {
 
-			ResponseSkosConcept responseSkosConcept = new ResponseSkosConcept();
-			Set<String> languageCodesAvailable = new HashSet<>(languageCodesAvailableList);
+		ResponseSkosConcept responseSkosConcept = new ResponseSkosConcept();
+		Set<String> languageCodesAvailable = new HashSet<>(languageCodesAvailableList);
 
-			for (final String languageCodeAvailable : languageCodesAvailable) {
-				getSkosConceptForGivenLang(input, languageCodeAvailable, responseSkosConcept);
-			}
+		for (final String languageCodeAvailable : languageCodesAvailable) {
+			getSkosConceptForGivenLang(input, languageCodeAvailable, responseSkosConcept);
+		}
 
 		return responseSkosConcept;
 	}
 
 	/**
 	 * Get skos concept for a given language.
-	 * @param input unparsed search term
+	 *
+	 * @param input                 unparsed search term
 	 * @param languageCodeAvailable
 	 * @return skos concept response
 	 */
@@ -385,7 +408,7 @@ public class ThesaurusService implements Serializable {
 
 		ResponseSkosConcept responseSkosConcept = new ResponseSkosConcept();
 
-		if(input != null && input.length() > MIN_INPUT_LENGTH) {
+		if (input != null && input.length() > MIN_INPUT_LENGTH) {
 			getSkosConceptForGivenLang(input, languageCodeAvailable
 					.getLocale().getLanguage(), responseSkosConcept);
 		}
@@ -393,7 +416,8 @@ public class ThesaurusService implements Serializable {
 		return responseSkosConcept;
 	}
 
-	public void getSkosConceptForGivenLang(String input, String languageCodeAvailable, ResponseSkosConcept responseSkosConcept){
+	public void getSkosConceptForGivenLang(String input, String languageCodeAvailable,
+										   ResponseSkosConcept responseSkosConcept) {
 		final Locale currentLanguage = new Locale(languageCodeAvailable);
 		Set<String> localeDisambiguationsNL = new LinkedHashSet<>();
 		Set<String> localeSuggestionsNL = new LinkedHashSet<>();
@@ -507,7 +531,6 @@ public class ThesaurusService implements Serializable {
 			}
 		});
 
-
 		for (SkosConcept linkConcept : linkConcepts) {
 			String prefLabel = linkConcept.getPrefLabel(currentLanguage);
 			prefLabel = StringUtils.capitalize(prefLabel.toLowerCase());
@@ -524,14 +547,14 @@ public class ThesaurusService implements Serializable {
 			prefLabel = StringUtils.capitalize(prefLabel.toLowerCase());
 			String disambiguation = prefLabel;
 
-			if(isNotExcludedByUser(disambiguation)){
+			if (isNotExcludedByUser(disambiguation)) {
 				localeDisambiguationsNL.add(disambiguation);
 				allLinks.remove(disambiguation); // so disambiguations are not in suggestions
 			}
 		}
 		for (int i = 0; i < max && i < allLinks.size(); i++) {
 			String suggestion = allLinks.get(i);
-			if(isNotExcludedByUser(suggestion)){
+			if (isNotExcludedByUser(suggestion)) {
 				localeSuggestionsNL.add(suggestion);
 			}
 		}
@@ -544,46 +567,48 @@ public class ThesaurusService implements Serializable {
 		return !deniedTerms.contains(term.toLowerCase());
 	}
 
-	public List<String> suggestSimpleSearch(String input, Locale locale) {
+	public List<String> suggestSimpleSearch(String input, Locale locale, int minInputLength, int maxResults) {
 
 		// ordered Set to prioritize results found first (since last results are often found as last resort)
 		List<String> suggestions = new ArrayList<>();
 
-		if (StringUtils.isNotEmpty(input) && input.length() >= MIN_INPUT_LENGTH) {
+		if (StringUtils.isNotEmpty(input) && input.length() >= minInputLength) {
 
-				// get related pref labels that contains input
+			// get related pref labels that contains input
 
-				Set<SkosConcept> prefLabelSuggestions = getPrefLabelsThatContains(input, locale);
+			Set<SkosConcept> prefLabelSuggestions = getPrefLabelsThatContains(input, locale);
 
-				for (SkosConcept suggestion : prefLabelSuggestions) {
-					String localeSuggestion = suggestion.getPrefLabel(locale);
+			for (SkosConcept suggestion : prefLabelSuggestions) {
+				String localeSuggestion = suggestion.getPrefLabel(locale);
 
-					if(isValidAutocompleteSuggestion(input, localeSuggestion)){
-						addToSuggestions(suggestions, localeSuggestion);
-					}
+				if (isValidAutocompleteSuggestion(input, localeSuggestion)) {
+					addToSuggestions(suggestions, localeSuggestion);
 				}
+			}
 
-				// if not enough results, get related alt labels
+			// if not enough results, get related alt labels
 
-				if(suggestions.size() <= MAX_AUTOCOMPLETE_RESULTS) {
-					Set<SkosConcept> altLabelSuggestions = getAltLabelsThatContains(input, locale);
+			if (suggestions.size() <= maxResults) {
+				Set<SkosConcept> altLabelSuggestions = getAltLabelsThatContains(input, locale);
 
-					for (SkosConcept suggestion : altLabelSuggestions) {
-						for (String localeSuggestion : suggestion.getAltLabels(locale)) {
-							if (isValidAutocompleteSuggestion(input, localeSuggestion)) {
-								addToSuggestions(suggestions, localeSuggestion);
-							}
+				for (SkosConcept suggestion : altLabelSuggestions) {
+					for (String localeSuggestion : suggestion.getAltLabels(locale)) {
+						if (isValidAutocompleteSuggestion(input, localeSuggestion)) {
+							addToSuggestions(suggestions, localeSuggestion);
 						}
 					}
 				}
+			}
 
-				List<String> autocompleteSuggestions = searchEventServices.getMostPopularQueriesAutocomplete(parseForSearch(input), MAX_AUTOCOMPLETE_RESULTS, deniedTerms.toArray(new String[deniedTerms.size()]));
+			List<String> autocompleteSuggestions = searchEventServices
+					.getMostPopularQueriesAutocomplete(parseForSearch(input), MAX_AUTOCOMPLETE_RESULTS,
+							deniedTerms.toArray(new String[deniedTerms.size()]));
 
-				for (String suggestion : autocompleteSuggestions) {
-					if(isValidAutocompleteSuggestion(input, suggestion)){
-						addToSuggestions(suggestions, suggestion);
-					}
+			for (String suggestion : autocompleteSuggestions) {
+				if (isValidAutocompleteSuggestion(input, suggestion)) {
+					addToSuggestions(suggestions, suggestion);
 				}
+			}
 
 		}
 
@@ -591,13 +616,14 @@ public class ThesaurusService implements Serializable {
 	}
 
 	private void addToSuggestions(List<String> suggestions, String suggestion) {
-		if(suggestions.size()<MAX_AUTOCOMPLETE_RESULTS) {
-			suggestions.add(suggestion.toLowerCase());
+		if (suggestions.size() < MAX_AUTOCOMPLETE_RESULTS) {
+			suggestions.add(StringUtils.capitalize(suggestion.toLowerCase()));
 		}
 	}
 
 	/**
 	 * Validates pertinence of autocomplete suggestion result.
+	 *
 	 * @param input
 	 * @param suggestion
 	 * @return true if matching and not in exclusions.
@@ -605,7 +631,9 @@ public class ThesaurusService implements Serializable {
 	private boolean isValidAutocompleteSuggestion(String input, String suggestion) {
 		boolean valid = false;
 
-		if (isNotExcludedByUser(suggestion) && suggestion.startsWith(parseForSearch(input))) {
+		String normalizedInput = parseForSearch(input);
+		String normalizedSuggestion = parseForSearch(suggestion);
+		if (isNotExcludedByUser(suggestion) && normalizedSuggestion.startsWith(normalizedInput)) {
 			valid = true;
 		}
 

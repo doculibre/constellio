@@ -37,7 +37,7 @@ public class AdministrativeUnitReferenceDisplay extends ReferenceDisplay {
 		stringBuilder.append(caption);
 		while (id != null) {
 			record = recordServices.getDocumentById(id);
-			String value = recordIdToCaptionConverter.convertToPresentation(id, String.class, getLocale()) + SEPARATOR;
+			String value = recordIdToCaptionConverter.convertToPresentation(id, String.class, ConstellioUI.getCurrentSessionContext().getCurrentLocale()) + SEPARATOR;
 			stringBuilder.insert(0, value);
 			id = record.get(rmSchemasRecordsServices.administrativeUnit.parent());
 		}

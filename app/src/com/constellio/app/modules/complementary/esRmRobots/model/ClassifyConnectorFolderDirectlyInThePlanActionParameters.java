@@ -1,17 +1,16 @@
 package com.constellio.app.modules.complementary.esRmRobots.model;
 
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
 
 public class ClassifyConnectorFolderDirectlyInThePlanActionParameters extends ActionParameters
 		implements ClassifyConnectorFolderActionParameters {
@@ -32,7 +31,7 @@ public class ClassifyConnectorFolderDirectlyInThePlanActionParameters extends Ac
 	public static final String DEFAULT_COPY_STATUS = "defaultCopyStatus";
 
 	public ClassifyConnectorFolderDirectlyInThePlanActionParameters(Record record,
-			MetadataSchemaTypes types) {
+																	MetadataSchemaTypes types) {
 		super(record, types);
 	}
 
@@ -85,7 +84,8 @@ public class ClassifyConnectorFolderDirectlyInThePlanActionParameters extends Ac
 		return null;
 	}
 
-	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultAdminUnit(AdministrativeUnit defaultAdminUnit) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultAdminUnit(
+			AdministrativeUnit defaultAdminUnit) {
 		set(DEFAULT_ADMIN_UNIT, defaultAdminUnit);
 		return this;
 	}
@@ -95,17 +95,20 @@ public class ClassifyConnectorFolderDirectlyInThePlanActionParameters extends Ac
 		return this;
 	}
 
-	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultUniformSubdivision(String defaultUniformSubdivision) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultUniformSubdivision(
+			String defaultUniformSubdivision) {
 		set(DEFAULT_UNIFORM_SUBDIVISION, defaultUniformSubdivision);
 		return this;
 	}
 
-	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultUniformSubdivision(UniformSubdivision defaultUniformSubdivision) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultUniformSubdivision(
+			UniformSubdivision defaultUniformSubdivision) {
 		set(DEFAULT_UNIFORM_SUBDIVISION, defaultUniformSubdivision);
 		return this;
 	}
 
-	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultUniformSubdivision(Record defaultUniformSubdivision) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultUniformSubdivision(
+			Record defaultUniformSubdivision) {
 		set(DEFAULT_UNIFORM_SUBDIVISION, defaultUniformSubdivision);
 		return this;
 	}
@@ -146,17 +149,20 @@ public class ClassifyConnectorFolderDirectlyInThePlanActionParameters extends Ac
 		return get(DEFAULT_RETENTION_RULE);
 	}
 
-	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultRetentionRule(String defaultRetentionRule) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultRetentionRule(
+			String defaultRetentionRule) {
 		set(DEFAULT_RETENTION_RULE, defaultRetentionRule);
 		return this;
 	}
 
-	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultRetentionRule(RetentionRule defaultRetentionRule) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultRetentionRule(
+			RetentionRule defaultRetentionRule) {
 		set(DEFAULT_RETENTION_RULE, defaultRetentionRule);
 		return this;
 	}
 
-	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultRetentionRule(Record defaultRetentionRule) {
+	public ClassifyConnectorFolderDirectlyInThePlanActionParameters setDefaultRetentionRule(
+			Record defaultRetentionRule) {
 		set(DEFAULT_RETENTION_RULE, defaultRetentionRule);
 		return this;
 	}

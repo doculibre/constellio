@@ -11,7 +11,7 @@ public enum LDAPDirectoryType {
 		this.code = code;
 	}
 
-	public String getCode(){
+	public String getCode() {
 		return code;
 	}
 

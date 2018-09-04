@@ -1,12 +1,5 @@
 package com.constellio.model.services.records.cache.ignite;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.data.conf.CacheType;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
@@ -16,6 +9,12 @@ import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.IgniteTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @IgniteTest
 public class RecordsCachesIgniteAcceptanceTest extends ConstellioTest {

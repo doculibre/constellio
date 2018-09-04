@@ -2,7 +2,11 @@ package com.constellio.app.modules.rm.model;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
-import com.constellio.app.modules.rm.model.enums.*;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DecomListStatus;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
+import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -30,7 +34,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.*;
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ANALOG;
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ELECTRONIC;
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.HYBRID;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;

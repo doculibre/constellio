@@ -1,18 +1,17 @@
 package com.constellio.app.ui.pages.management.configs;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
-
 import com.constellio.app.ui.tools.AutocompleteWebElement;
 import com.constellio.app.ui.tools.BaseComboBoxWebElement;
 import com.constellio.app.ui.tools.CheckboxWebElement;
 import com.constellio.app.ui.tools.components.basic.TextFieldWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ConfigGroupFacade {
 	private ConstellioWebDriver driver;
@@ -32,9 +31,9 @@ public class ConfigGroupFacade {
 
 	private void clickTab(String groupCode) {
 		List<WebElement> tabs = this.driver.findElements(By.className("v-tabsheet-tabitem"));
-		for(WebElement tab : tabs){
+		for (WebElement tab : tabs) {
 			String title = getTitle(tab);
-			if (title.equals(this.title)){
+			if (title.equals(this.title)) {
 				tab.click();
 				return;
 			}
@@ -59,11 +58,11 @@ public class ConfigGroupFacade {
 	}
 
 	public boolean getChecboxElementValue(int i) {
-		return new CheckboxWebElement((ConstellioWebElement)elements.get(i)).isChecked();
+		return new CheckboxWebElement((ConstellioWebElement) elements.get(i)).isChecked();
 	}
 
 	public String getComboBoxElementValue(int i) {
-		return new AutocompleteWebElement((ConstellioWebElement)elements.get(i)).getSelectedValue();
+		return new AutocompleteWebElement((ConstellioWebElement) elements.get(i)).getSelectedValue();
 	}
 
 	public void setElementValue(int i, String newValue) {
@@ -72,11 +71,11 @@ public class ConfigGroupFacade {
 	}
 
 	public void setComboBoxElementValue(int i, int newValueindex) {
-		ConstellioWebElement element = (ConstellioWebElement)elements.get(i);
+		ConstellioWebElement element = (ConstellioWebElement) elements.get(i);
 		new BaseComboBoxWebElement(element).selectFromListValues(newValueindex);
 	}
 
 	public void toggleCheckBox(int i) {
-		new CheckboxWebElement((ConstellioWebElement)elements.get(i)).toggle();
+		new CheckboxWebElement((ConstellioWebElement) elements.get(i)).toggle();
 	}
 }

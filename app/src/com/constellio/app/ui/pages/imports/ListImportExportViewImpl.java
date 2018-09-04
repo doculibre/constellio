@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.imports;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
@@ -20,6 +16,10 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListImportExportViewImpl extends BaseViewImpl implements ListImportExportView {
 
@@ -61,7 +61,7 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 			@Override
 			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
 				if (metadataValue.getMetadata().getLocalCode().equals(TemporaryRecord.CONTENT)
-						&& metadataValue.getValue() != null) {
+					&& metadataValue.getValue() != null) {
 					ContentVersionVO content = (ContentVersionVO) metadataValue.getValue();
 					return new DownloadContentVersionLink(content, content.getFileName());
 				} else {

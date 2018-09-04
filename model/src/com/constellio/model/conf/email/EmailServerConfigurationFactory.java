@@ -1,23 +1,21 @@
 package com.constellio.model.conf.email;
 
-import java.util.Map;
-
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.model.conf.email.EmailServerConfigurationRuntimeException.InvalidBlankHostRuntimeException;
 import com.constellio.model.conf.email.EmailServerConfigurationRuntimeException.InvalidBlankUsernameRuntimeException;
 import com.constellio.model.conf.email.EmailServerConfigurationRuntimeException.InvalidEmailAddressRuntimeException;
 import com.constellio.model.conf.email.EmailServerConfigurationRuntimeException.InvalidPropertiesRuntimeException;
 import com.constellio.model.conf.email.EmailServerConfigurationRuntimeException.UnknownServerConfigurationRuntimeException;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import java.util.Map;
 
 public class EmailServerConfigurationFactory {
 	private static final String SMTP_SERVER_KEY = "mail.smtp.auth";
 
 	public EmailServerConfiguration getServerConfiguration(String username, String defaultSenderEmail, String password,
-			Map<String, String> serverProperties, boolean enabled) {
+														   Map<String, String> serverProperties, boolean enabled) {
 		if (serverProperties.isEmpty()) {
 			throw new InvalidPropertiesRuntimeException();
 		}
@@ -46,8 +44,9 @@ public class EmailServerConfigurationFactory {
 		}
 	}
 
-	private EmailServerConfiguration getSmtpServerProperties(String username, String defaultSenderEmail, String password,
-			Map<String, String> serverProperties, boolean enabled) {
+	private EmailServerConfiguration getSmtpServerProperties(String username, String defaultSenderEmail,
+															 String password,
+															 Map<String, String> serverProperties, boolean enabled) {
 		//		String isSmtpConfig = serverProperties.get(SMTP_SERVER_KEY);
 		//		if (isSmtpConfig == null || !isSmtpConfig.equalsIgnoreCase("true")) {
 		//			return null;

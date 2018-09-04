@@ -1,14 +1,14 @@
 package com.constellio.app.modules.robots.model.wrappers;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.pages.search.criteria.CriterionBuilder;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class Robot extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "robot";

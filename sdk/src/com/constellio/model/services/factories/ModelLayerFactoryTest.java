@@ -1,22 +1,5 @@
 package com.constellio.model.services.factories;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
@@ -29,6 +12,8 @@ import com.constellio.data.dao.services.cache.ConstellioCacheManager;
 import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
 import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.events.EventBus;
+import com.constellio.data.events.EventBusEventsExecutionStrategy;
 import com.constellio.data.events.EventBusManager;
 import com.constellio.data.events.EventDataSerializer;
 import com.constellio.data.io.IOServicesFactory;
@@ -46,6 +31,23 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+
+import java.io.File;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ModelLayerFactoryTest extends ConstellioTest {
 
@@ -70,6 +72,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 	@Mock BigVaultServer bigVaultServer;
 	@Mock EventBusManager eventBusManager;
 	@Mock EventDataSerializer eventDataSerializer;
+	@Mock EventBus eventBus;
 
 	ConstellioCache zeCache;
 
@@ -100,7 +103,11 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(profiles.listFiles()).thenReturn(new File[0]);
 
 		when(dataLayerFactory.getEventBusManager()).thenReturn(eventBusManager);
+		when(eventBusManager.createEventBus(anyString(), any(EventBusEventsExecutionStrategy.class))).thenReturn(eventBus);
+		when(eventBusManager.getEventBus(anyString())).thenReturn(eventBus);
 		when(eventBusManager.getEventDataSerializer()).thenReturn(eventDataSerializer);
+		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn("fr");
+
 
 		modelLayerFactory = spy(
 				new ModelLayerFactoryImpl(dataLayerFactory, foldersLocator, modelLayerConfiguration,

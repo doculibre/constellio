@@ -1,22 +1,21 @@
 package com.constellio.model.services.schemas;
 
+import com.constellio.model.entities.schemas.AllowedReferences;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
 import static com.constellio.sdk.tests.TestUtils.mockMetadata;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Collection;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.model.entities.schemas.AllowedReferences;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.sdk.tests.ConstellioTest;
 
 public class MetadataListTest extends ConstellioTest {
 
@@ -371,6 +370,25 @@ public class MetadataListTest extends ConstellioTest {
 		assertThat(filteredMetadataList.nestedList.get(1)).isEqualTo(USRmetadata4);
 		assertThat(filteredMetadataList.contains(metadata2)).isTrue();
 		assertThat(filteredMetadataList.contains(USRmetadata4)).isTrue();
+	}
+
+	@Test
+	public void whenFilterOnTypesThenOK()
+			throws Exception {
+
+		when(metadata1.getType()).thenReturn(MetadataValueType.NUMBER);
+		when(metadata2.getType()).thenReturn(MetadataValueType.BOOLEAN);
+		when(metadata3.getType()).thenReturn(MetadataValueType.BOOLEAN);
+		when(USRmetadata4.getType()).thenReturn(MetadataValueType.STRING);
+
+		metadataList.addAll(metadatas1);
+		metadataList.addAll(metadatas2);
+
+		assertThat(metadataList.onlyWithType(MetadataValueType.BOOLEAN, MetadataValueType.STRING))
+				.containsOnly(metadata2, metadata3, USRmetadata4);
+
+		assertThat(metadataList.excludingValueTypes(MetadataValueType.BOOLEAN, MetadataValueType.STRING))
+				.containsOnly(metadata1);
 	}
 
 	@Test

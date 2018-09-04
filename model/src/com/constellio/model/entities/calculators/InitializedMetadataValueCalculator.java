@@ -1,10 +1,10 @@
 package com.constellio.model.entities.calculators;
 
-import java.util.List;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.List;
 
 public interface InitializedMetadataValueCalculator<T> extends MetadataValueCalculator<T> {
 

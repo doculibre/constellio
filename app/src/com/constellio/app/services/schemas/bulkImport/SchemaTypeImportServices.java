@@ -1,22 +1,11 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder;
 import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeBuilderOptions;
-import com.constellio.app.modules.rm.services.ValueListItemSchemaTypeBuilder.ValueListItemSchemaTypeCodeMode;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemas.bulkImport.data.ImportData;
@@ -43,6 +32,15 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilderR
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException;
 import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeException;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class SchemaTypeImportServices implements ImportServices {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SchemaTypeImportServices.class);
@@ -61,8 +59,9 @@ public class SchemaTypeImportServices implements ImportServices {
 		this(appLayerFactory, appLayerFactory.getModelLayerFactory(), collection, DEFAULT_BATCH_SIZE);
 	}
 
-	public SchemaTypeImportServices(AppLayerFactory appLayerFactory, ModelLayerFactory modelLayerFactory, String collection,
-			int batchSize) {
+	public SchemaTypeImportServices(AppLayerFactory appLayerFactory, ModelLayerFactory modelLayerFactory,
+									String collection,
+									int batchSize) {
 		this.batchSize = batchSize;
 		this.modelLayerFactory = modelLayerFactory;
 		this.appLayerFactory = appLayerFactory;
@@ -72,15 +71,17 @@ public class SchemaTypeImportServices implements ImportServices {
 	}
 
 	@Override
-	public BulkImportResults bulkImport(ImportDataProvider importDataProvider, BulkImportProgressionListener progressionListener,
-			User user, List<String> collections, BulkImportParams params)
+	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
+										BulkImportProgressionListener progressionListener,
+										User user, List<String> collections, BulkImportParams params)
 			throws RecordsImportServicesRuntimeException {
 		return bulkImport(importDataProvider, progressionListener, user, collections);
 	}
 
 	@Override
-	public BulkImportResults bulkImport(ImportDataProvider importDataProvider, BulkImportProgressionListener progressionListener,
-			User user, List<String> collections)
+	public BulkImportResults bulkImport(ImportDataProvider importDataProvider,
+										BulkImportProgressionListener progressionListener,
+										User user, List<String> collections)
 			throws RecordsImportServicesRuntimeException {
 		currentElement = 0;
 		importDataProvider.initialize();
@@ -150,7 +151,7 @@ public class SchemaTypeImportServices implements ImportServices {
 	}
 
 	private int importSchemaType(List<Taxonomy> taxonomies, MetadataSchemaTypesBuilder typesBuilder,
-			BulkImportResults importResults, ImportData toImport) {
+								 BulkImportResults importResults, ImportData toImport) {
 		try {
 			String schemaTypeCode_schemaCode = toImport.getLegacyId();
 			if (!schemaTypeCode_schemaCode.contains("_")) {
@@ -160,6 +161,8 @@ public class SchemaTypeImportServices implements ImportServices {
 			final String schemaLocalCode = StringUtils.substringAfter(schemaTypeCode_schemaCode, "_");
 			Map<String, Object> fields = new HashMap<>(toImport.getFields());
 			final String title = (String) fields.get(DESCRIPTION);
+			Map<Language, String> mapLabel = new HashMap<>();
+			mapLabel.put(Language.French, title);
 
 			Object metadataListFields = fields.get(METADATA_LIST);
 			List<Map<String, String>> metadataListFieldsMap = new ArrayList<>();
@@ -173,7 +176,7 @@ public class SchemaTypeImportServices implements ImportServices {
 			} else {
 				metadataList = new ArrayList<>();
 			}
-			createTaxonomyOrValueDomain(taxonomies, typesBuilder, schemaTypeCode, title);
+			createTaxonomyOrValueDomain(taxonomies, typesBuilder, schemaTypeCode, mapLabel);
 
 			addMetadataList(typesBuilder, schemaTypeCode, schemaLocalCode, title, metadataList);
 			return 0;
@@ -183,9 +186,10 @@ public class SchemaTypeImportServices implements ImportServices {
 		}
 	}
 
-	private int importSchemaTypeDisplay(SchemaDisplayManagerTransaction transaction, MetadataSchemaTypesBuilder typesBuilder,
-			BulkImportResults importResults,
-			ImportData toImport) {
+	private int importSchemaTypeDisplay(SchemaDisplayManagerTransaction transaction,
+										MetadataSchemaTypesBuilder typesBuilder,
+										BulkImportResults importResults,
+										ImportData toImport) {
 		try {
 			String schemaTypeCode_schemaCode = toImport.getLegacyId();
 			if (!schemaTypeCode_schemaCode.contains("_")) {
@@ -244,8 +248,9 @@ public class SchemaTypeImportServices implements ImportServices {
 		}
 	}
 
-	private void updateMetadataDisplay(SchemaDisplayManagerTransaction transaction, SchemasDisplayManager schemasDisplayManager,
-			ImportedMetadata importedMetadata, String code) {
+	private void updateMetadataDisplay(SchemaDisplayManagerTransaction transaction,
+									   SchemasDisplayManager schemasDisplayManager,
+									   ImportedMetadata importedMetadata, String code) {
 		MetadataInputType type = importedMetadata.getInput();
 
 		if (type == null) {
@@ -264,8 +269,10 @@ public class SchemaTypeImportServices implements ImportServices {
 		transaction.addReplacing(metadataDisplayConfig);
 	}
 
-	private void createTaxonomyOrValueDomain(List<Taxonomy> taxonomies, MetadataSchemaTypesBuilder typesBuilder, String typeCode,
-			String title) {
+	private void createTaxonomyOrValueDomain(List<Taxonomy> taxonomies, MetadataSchemaTypesBuilder typesBuilder,
+											 String typeCode,
+											 Map<Language, String> title) {
+
 		try {
 			metadataSchemasManager.getSchemaTypes(collection).getSchemaType(typeCode);
 		} catch (MetadataSchemasRuntimeException.NoSuchSchemaType e) {
@@ -279,12 +286,13 @@ public class SchemaTypeImportServices implements ImportServices {
 				if (StringUtils.isBlank(taxoCode)) {
 					throw new TaxonomiesManagerRuntimeException.InvalidTaxonomyCode(typeCode);
 				}
-				taxonomies.add(valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title));
+				taxonomies.add(valueListServices.lazyCreateTaxonomy(typesBuilder, taxoCode, title, true));
 			}
 		}
 	}
 
-	private MetadataSchemaTypeBuilder getOrCreateUserSchemaType(MetadataSchemaTypesBuilder types, String code, String title) {
+	private MetadataSchemaTypeBuilder getOrCreateUserSchemaType(MetadataSchemaTypesBuilder types, String code,
+																String title) {
 		MetadataSchemaTypeBuilder builder;
 		try {
 			builder = types.getSchemaType(code);
@@ -303,7 +311,7 @@ public class SchemaTypeImportServices implements ImportServices {
 	}
 
 	void addMetadataList(MetadataSchemaTypesBuilder types, String schemaTypeCode, String schemaCode, String schemaLabel,
-			List<ImportedMetadata> importedMetadataList) {
+						 List<ImportedMetadata> importedMetadataList) {
 		MetadataSchemaTypeBuilder schemaTypeBuilder = getOrCreateSchemaType(types, schemaTypeCode);
 
 		MetadataSchemaBuilder schemaBuilder = getOrCreateSchemaBuilder(schemaTypeBuilder, schemaCode);
@@ -321,7 +329,7 @@ public class SchemaTypeImportServices implements ImportServices {
 	}
 
 	private void updateMetadata(ImportedMetadata importedMetadata, MetadataSchemaBuilder schemaBuilder,
-			MetadataSchemaTypesBuilder types) {
+								MetadataSchemaTypesBuilder types) {
 		MetadataBuilder builder = getOrCreateMetadataBuilder(schemaBuilder, importedMetadata);
 		if (importedMetadata.getUsingReference() != null) {
 			MetadataBuilder referenceMetadata = getMetadataBuilder(schemaBuilder, importedMetadata.getUsingReference());
@@ -341,7 +349,7 @@ public class SchemaTypeImportServices implements ImportServices {
 	}
 
 	private void processMetadata(ImportedMetadata importedMetadata, MetadataSchemaBuilder schemaBuilder,
-			List<Metadata> allGlobalMetadata, MetadataSchemaTypesBuilder types) {
+								 List<Metadata> allGlobalMetadata, MetadataSchemaTypesBuilder types) {
 		MetadataBuilder builder = getOrCreateMetadataBuilder(schemaBuilder, importedMetadata);
 		importedMetadata.setCode(builder.getCode());
 
@@ -363,7 +371,8 @@ public class SchemaTypeImportServices implements ImportServices {
 		}
 	}
 
-	private MetadataSchemaBuilder getOrCreateSchemaBuilder(MetadataSchemaTypeBuilder schemaTypeBuilder, String schemaCode) {
+	private MetadataSchemaBuilder getOrCreateSchemaBuilder(MetadataSchemaTypeBuilder schemaTypeBuilder,
+														   String schemaCode) {
 		MetadataSchemaBuilder schemaBuilder;
 		try {
 			if (schemaCode.isEmpty() || schemaCode.equals("default")) {
@@ -411,7 +420,7 @@ public class SchemaTypeImportServices implements ImportServices {
 	}
 
 	private void updateMetadataSchemaBuilder(MetadataSchemaTypesBuilder types, MetadataBuilder builder,
-			ImportedMetadata importedMetadata) {
+											 ImportedMetadata importedMetadata) {
 		if (importedMetadata.isNewMetadata()) {
 			builder.setMultivalue(importedMetadata.isMultivalue());
 			builder.setType(importedMetadata.getValueType());
@@ -443,7 +452,7 @@ public class SchemaTypeImportServices implements ImportServices {
 	}
 
 	void updateMetadataDisplay(SchemaDisplayManagerTransaction transaction, String schemaTypeCode_schemaCode,
-			List<ImportedMetadata> importedMetadataList, MetadataSchemaTypesBuilder typesBuilder) {
+							   List<ImportedMetadata> importedMetadataList, MetadataSchemaTypesBuilder typesBuilder) {
 		SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		List<String> newMetadataCodes = new ArrayList<>();
 		List<String> newMetadataCodesToDisplayInAllSchemas = new ArrayList<>();
@@ -461,9 +470,11 @@ public class SchemaTypeImportServices implements ImportServices {
 		saveFacetDisplay(transaction, schemasDisplayManager, importedMetadataList);
 	}
 
-	private void addCodesToAllSchemaDisplay(SchemaDisplayManagerTransaction transaction, String schemaTypeCode_schemaCode,
-			SchemasDisplayManager schemasDisplayManager, List<String> newMetadataCodesToDisplayInAllSchemas,
-			MetadataSchemaTypesBuilder typesBuilder) {
+	private void addCodesToAllSchemaDisplay(SchemaDisplayManagerTransaction transaction,
+											String schemaTypeCode_schemaCode,
+											SchemasDisplayManager schemasDisplayManager,
+											List<String> newMetadataCodesToDisplayInAllSchemas,
+											MetadataSchemaTypesBuilder typesBuilder) {
 		if (!newMetadataCodesToDisplayInAllSchemas.isEmpty() && schemaTypeCode_schemaCode.endsWith("_default")) {
 			//Add to all schemas
 			String schemaTypeCode = StringUtils.substringBeforeLast(schemaTypeCode_schemaCode, "_");
@@ -494,7 +505,7 @@ public class SchemaTypeImportServices implements ImportServices {
 	}
 
 	private void addCodesToSchema(SchemaDisplayManagerTransaction transaction, String schemaCode,
-			SchemasDisplayManager schemasDisplayManager, List<String> newCodes) {
+								  SchemasDisplayManager schemasDisplayManager, List<String> newCodes) {
 		SchemaDisplayConfig schemaConfig = transaction.getModifiedSchema(schemaCode);
 
 		if (schemaConfig == null) {
@@ -516,7 +527,7 @@ public class SchemaTypeImportServices implements ImportServices {
 	}
 
 	private void saveFacetDisplay(SchemaDisplayManagerTransaction transaction, SchemasDisplayManager displayManager,
-			List<ImportedMetadata> importedMetadataList) {
+								  List<ImportedMetadata> importedMetadataList) {
 		SchemaTypesDisplayConfig typesConfig = transaction.getModifiedCollectionTypes();
 
 		if (typesConfig == null) {
@@ -526,11 +537,13 @@ public class SchemaTypeImportServices implements ImportServices {
 		for (ImportedMetadata importedMetadata : importedMetadataList) {
 			if (importedMetadata.isFacet()) {
 				if (importedMetadata.isGlobal()) {
-					if (!facets.contains(importedMetadata.getLocalCode()))
+					if (!facets.contains(importedMetadata.getLocalCode())) {
 						facets.add(importedMetadata.getLocalCode());
+					}
 				} else {
-					if (!facets.contains(importedMetadata.getCode()))
+					if (!facets.contains(importedMetadata.getCode())) {
 						facets.add(importedMetadata.getCode());
+					}
 				}
 			} else {
 				if (facets.contains(importedMetadata.getLocalCode())) {

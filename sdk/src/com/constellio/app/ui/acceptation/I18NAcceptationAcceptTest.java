@@ -1,26 +1,6 @@
 package com.constellio.app.ui.acceptation;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.LangUtils.ListComparisonResults;
 import com.constellio.model.conf.FoldersLocator;
@@ -38,13 +18,30 @@ import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.constellio.sdk.dev.tools.CompareI18nKeys;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.apache.commons.io.IOUtils;
+import org.junit.Test;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class I18NAcceptationAcceptTest extends ConstellioTest {
 
 	RecordServices recordServices;
 	ConstellioWebDriver driver;
 	RMTestRecords records;
-	RMSchemasRecordsServices schemas;
 
 	protected List<String> missingKeys = new ArrayList<>();
 	Locale locale;
@@ -54,6 +51,14 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 
 	static {
 		keysWithSameFrenchEnglishValue.add("SystemConfigurationGroup.agent");
+	}
+
+	@Test
+	public void whenUsingI18nThenAllBundlesFound() {
+		givenEnglishSystem();
+
+		assertThat(i18n.getDefaultBundle()).extracting("bundleName")
+				.containsOnly("baseView", "imports", "managementViews", "model", "schemasManagementViews", "search", "security", "usersAndGroupsManagementViews", "userViews", "webservices", "i18n", "i18n", "audits", "decommissioningViews", "demo", "foldersAndDocuments", "managementViews", "model", "reports", "storageAndContainers", "userViews", "i18n", "model", "views", "workflowBeta");
 	}
 
 	@Test
@@ -333,12 +338,9 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	}
 
 	private void findTaxonomiesMissingKeys() {
-		List<String> missingKeys = new ArrayList<>();
-
 		for (Taxonomy taxonomy : getModelLayerFactory().getTaxonomiesManager().getEnabledTaxonomies(zeCollection)) {
-			addIfNoValue(taxonomy.getTitle());
+			addIfNoValue(taxonomy.getTitle().get(i18n.getLanguage()));
 		}
-
 	}
 
 	protected void addIfNoValueInMainI18N(String key) {

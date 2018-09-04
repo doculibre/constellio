@@ -1,12 +1,5 @@
 package com.constellio.app.modules.es.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
@@ -15,6 +8,7 @@ import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttp;
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAP;
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
+import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
@@ -27,30 +21,46 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
+
 public class ESMigrationCombo implements ComboMigrationScript {
 	@Override
 	public List<MigrationScript> getVersions() {
-		return Arrays.asList(
-				new ESMigrationTo5_1_6(),
-				new ESMigrationTo6_1(),
-				new ESMigrationTo6_2(),
-				new ESMigrationTo6_4(),
-				new ESMigrationTo6_5_42(),
-				new ESMigrationTo6_5_58(),
-				new ESMigrationTo7_1_3(),
-				new ESMigrationTo7_4_1(),
-				new ESMigrationTo7_4_2(),
-				new ESMigrationTo7_4_3(),
-				new ESMigrationTo7_5(),
-				new ESMigrationTo7_6_1(),
-				new ESMigrationTo7_6_1_1(),
-				new ESMigrationTo7_6_2(),
-				new ESMigrationTo7_6_3()
-		);
+		List<MigrationScript> scripts = new ArrayList<>();
+
+		scripts.add(new ESMigrationTo5_1_6());
+		scripts.add(new ESMigrationTo6_1());
+		scripts.add(new ESMigrationTo6_2());
+		scripts.add(new ESMigrationTo6_4());
+		scripts.add(new ESMigrationTo6_5_42());
+		scripts.add(new ESMigrationTo6_5_58());
+		scripts.add(new ESMigrationTo7_1_3());
+		scripts.add(new ESMigrationTo7_4_1());
+		scripts.add(new ESMigrationTo7_4_2());
+		scripts.add(new ESMigrationTo7_4_3());
+		scripts.add(new ESMigrationTo7_5());
+		scripts.add(new ESMigrationTo7_6_1());
+		scripts.add(new ESMigrationTo7_6_1_1());
+		scripts.add(new ESMigrationTo7_6_2());
+		scripts.add(new ESMigrationTo7_6_3());
+		scripts.add(new ESMigrationTo7_6_6());
+		scripts.add(new ESMigrationTo7_7());
+		scripts.add(new ESMigrationTo7_7_0_42());
+		scripts.add(new ESMigrationTo8_0());
+		scripts.add(new ESMigrationTo8_0_1());
+		scripts.add(new ESMigrationTo8_0_2());
+
+		return scripts;
 	}
 
 	@Override
@@ -63,7 +73,8 @@ public class ESMigrationCombo implements ComboMigrationScript {
 	MigrationResourcesProvider migrationResourcesProvider;
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.migrationResourcesProvider = migrationResourcesProvider;
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -84,14 +95,15 @@ public class ESMigrationCombo implements ComboMigrationScript {
 	}
 
 	private void applySchemasDisplay2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			SchemasDisplayManager manager) {
+									  SchemasDisplayManager manager) {
 		SchemaTypesDisplayTransactionBuilder transaction = manager.newTransactionBuilderFor(collection);
 
 		manager.execute(transaction.build());
 	}
 
-	private Transaction createRecordTransaction(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory, MetadataSchemaTypes types) {
+	private Transaction createRecordTransaction(String collection,
+												MigrationResourcesProvider migrationResourcesProvider,
+												AppLayerFactory appLayerFactory, MetadataSchemaTypes types) {
 		Transaction transaction = new Transaction();
 
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
@@ -130,7 +142,7 @@ public class ESMigrationCombo implements ComboMigrationScript {
 		Facet mimetypeFacet = es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorDocument.mimetype().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.mimetype"));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.mimetype"));
 		addAllMimetypeLabels(mimetypeFacet);
 		transaction.add(mimetypeFacet);
 
@@ -138,7 +150,7 @@ public class ESMigrationCombo implements ComboMigrationScript {
 		transaction.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorSmbDocument.language().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.language"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.language"))
 				.withLabel("fr", migrationResourcesProvider.get("init.facet.language.fr"))
 				.withLabel("en", migrationResourcesProvider.get("init.facet.language.en"))
 				.withLabel("es", migrationResourcesProvider.get("init.facet.language.es")));
@@ -146,7 +158,7 @@ public class ESMigrationCombo implements ComboMigrationScript {
 		transaction.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorSmbDocument.extension().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.extension")));
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.extension")));
 
 		//		transaction.add(es.newFacetField()
 		//				.setUsedByModule(ConstellioESModule.ID)
@@ -156,7 +168,7 @@ public class ESMigrationCombo implements ComboMigrationScript {
 		transaction.add(es.newFacetField()
 				.setUsedByModule(ConstellioESModule.ID)
 				.setFieldDataStoreCode(es.connectorLdapUserDocument.enabled().getDataStoreCode())
-				.setTitle(migrationResourcesProvider.get("init.facet.ldapUserEnabled"))
+				.setTitles(migrationResourcesProvider.getLanguagesString("init.facet.ldapUserEnabled"))
 				//FIXME
 				.withLabel("_TRUE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.true"))
 				.withLabel("_FALSE_", migrationResourcesProvider.get("init.facet.ldapUserEnabled.false")));
@@ -236,13 +248,16 @@ public class ESMigrationCombo implements ComboMigrationScript {
 	class SchemaAlteration extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlteration(String collection,
-				MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
+								   MigrationResourcesProvider migrationResourcesProvider,
+								   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			generatedComboMigration.applyGeneratedSchemaAlteration(typesBuilder);
+			typesBuilder.getDefaultSchema(ConnectorInstance.SCHEMA_TYPE).get(Schemas.TITLE_CODE).setMultiLingual(true);
+			typesBuilder.getDefaultSchema(ConnectorType.SCHEMA_TYPE).get(Schemas.TITLE_CODE).setMultiLingual(true);
 		}
 
 	}

@@ -27,10 +27,12 @@ public class ReportViewer extends VerticalLayout {
 		StreamSource source = buildSource(reportWriter);
 
 		Embedded viewer = new Embedded();
-		viewer.setSource(new StreamResource(source, filename));
+		StreamResource streamResource = new StreamResource(source, filename);
+		streamResource.setCacheTime(0);
+		viewer.setSource(streamResource);
 		viewer.setType(Embedded.TYPE_BROWSER);
 		viewer.setWidth("100%");
-		viewer.setHeight("100%");
+		viewer.setHeight("95%");
 
 		Link download = new Link($("ReportViewer.download", filename),
 				new DownloadStreamResource(source, filename, getMimeTypeFromFileName(filename)));
@@ -46,7 +48,7 @@ public class ReportViewer extends VerticalLayout {
 			return DownloadStreamResource.PDF_MIMETYPE;
 		} else {
 			String extension = StringUtils.substringAfterLast(filename, ".").toLowerCase();
-			if(StringUtils.isBlank(extension)) {
+			if (StringUtils.isBlank(extension)) {
 				return DownloadStreamResource.PDF_MIMETYPE;
 			}
 			return MimeTypes.lookupMimeType(extension);

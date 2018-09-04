@@ -1,21 +1,5 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPDocumentType.USER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.naming.NamingException;
-import javax.naming.ldap.LdapContext;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import com.constellio.app.modules.es.connectors.ConnectorDeleterJob;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.connectors.spi.DefaultAbstractConnector;
@@ -24,9 +8,21 @@ import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.RegexFilter;
-import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import javax.naming.ldap.LdapContext;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPDocumentType.USER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 public class ConnectorLDAP extends DefaultAbstractConnector {
 	private static final Logger LOGGER = LogManager.getLogger(ConnectorLDAP.class);
@@ -93,7 +89,7 @@ public class ConnectorLDAP extends DefaultAbstractConnector {
 
 	private boolean isFetchEnded() {
 		if (this.allObjectsToFetch.isEmpty()
-				&& this.allObjectsToRemoveConstellioIds.isEmpty()) {
+			&& this.allObjectsToRemoveConstellioIds.isEmpty()) {
 			return true;
 		} else {
 			return false;
@@ -147,7 +143,7 @@ public class ConnectorLDAP extends DefaultAbstractConnector {
 
 	private boolean isFetchStarting() {
 		return this.allObjectsToFetch == null
-				|| this.allObjectsToRemoveConstellioIds == null;
+			   || this.allObjectsToRemoveConstellioIds == null;
 	}
 
 	private ConnectorJob createRemoveJob() {
@@ -184,7 +180,8 @@ public class ConnectorLDAP extends DefaultAbstractConnector {
 		this.ldapInstance = getEs().wrapConnectorLDAPInstance(instance);
 	}
 
-	List<String> getObjectsToRemoveConstellioIds(List<String> allObjectsToFetch, ConnectorLDAPInstance connectorInstance) {
+	List<String> getObjectsToRemoveConstellioIds(List<String> allObjectsToFetch,
+												 ConnectorLDAPInstance connectorInstance) {
 		List<String> returnSet = new ArrayList<>();
 		List<ConnectorDocument<?>> allConnectorInstanceDocument = es
 				.searchConnectorDocuments(
@@ -199,23 +196,24 @@ public class ConnectorLDAP extends DefaultAbstractConnector {
 		return returnSet;
 	}
 
-	static LdapContext connectToLDAP(String url, ConnectorLDAPInstance connectorInstance, ConnectorLDAPServices ldapServices) {
+	static LdapContext connectToLDAP(String url, ConnectorLDAPInstance connectorInstance,
+									 ConnectorLDAPServices ldapServices) {
 		String user = connectorInstance.getConnectionUsername();
 		String password = connectorInstance.getPassword();
 		boolean followReferences = (connectorInstance.getFollowReferences() == null) ?
-				false :
-				connectorInstance.getFollowReferences();
+								   false :
+								   connectorInstance.getFollowReferences();
 		boolean activeDirectory = (connectorInstance.getDirectoryType() == null) ?
-				true :
-				connectorInstance.getDirectoryType().equals(
-						LDAPDirectoryType.ACTIVE_DIRECTORY);
+								  true :
+								  connectorInstance.getDirectoryType().equals(
+										  LDAPDirectoryType.ACTIVE_DIRECTORY);
 		return ldapServices.connectToLDAP(url, user, password, followReferences, activeDirectory);
 	}
 
 	boolean isFetchOnlyForUsers(ConnectorLDAPInstance ldapInstance) {
 		if ((ldapInstance.getFetchGroups() != null && ldapInstance.getFetchGroups())
-				||
-				(ldapInstance.getFetchComputers() != null && ldapInstance.getFetchComputers())) {
+			||
+			(ldapInstance.getFetchComputers() != null && ldapInstance.getFetchComputers())) {
 			return false;
 		}
 		return ldapInstance.getFetchUsers();
@@ -226,7 +224,7 @@ public class ConnectorLDAP extends DefaultAbstractConnector {
 		if (urls.size() != 1) {
 			throw new RuntimeException(
 					"Unsupported in the current version. Connector instance should have only one url, given urls are "
-							+ StringUtils.join(urls, ","));
+					+ StringUtils.join(urls, ","));
 		}
 		//should have at least one value since metadata is a default requirement
 		return urls.get(0);

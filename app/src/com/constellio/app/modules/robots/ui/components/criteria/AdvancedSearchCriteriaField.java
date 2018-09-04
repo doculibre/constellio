@@ -1,9 +1,5 @@
 package com.constellio.app.modules.robots.ui.components.criteria;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.modules.robots.ui.pages.AddEditRobotPresenter;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
@@ -15,6 +11,10 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class AdvancedSearchCriteriaField extends CustomField<List<Criterion>> {
 	private final AddEditRobotPresenter presenter;

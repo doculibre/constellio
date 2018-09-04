@@ -50,12 +50,12 @@ public class ContainerDetailTableGenerator implements ColumnGenerator {
 		DecomListContainerDetail detail = (DecomListContainerDetail) itemId;
 
 		switch ((String) columnId) {
-		case IDENTIFIER:
-			return new ReferenceDisplay(detail.getContainerRecordId());
-		case FULL:
-			return presenter.isEditable() ? buildFullCheckBox(detail) : buildFullDisplay(detail);
-		case AVAILABLE_SIZE:
-			return buildAvailableSizeComponent(detail);
+			case IDENTIFIER:
+				return new ReferenceDisplay(detail.getContainerRecordId());
+			case FULL:
+				return presenter.isEditable() ? buildFullCheckBox(detail) : buildFullDisplay(detail);
+			case AVAILABLE_SIZE:
+				return buildAvailableSizeComponent(detail);
 		}
 
 		return null;
@@ -79,7 +79,7 @@ public class ContainerDetailTableGenerator implements ColumnGenerator {
 
 	private Component buildAvailableSizeComponent(final DecomListContainerDetail detail) {
 		Double availableSize = detail.getAvailableSize();
-		String caption = availableSize == null? "":availableSize.toString() + " cm";
+		String caption = availableSize == null ? "" : availableSize.toString() + " cm";
 		return new Label(caption);
 	}
 }

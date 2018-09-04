@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
-import static com.constellio.app.modules.rm.wrappers.Document.ACTUAL_DEPOSIT_DATE_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Document.ACTUAL_DESTRUCTION_DATE_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Document.FOLDER;
-import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_DEPOSIT_DATE;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -18,6 +8,15 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.joda.time.LocalDate;
+
+import java.util.List;
+
+import static com.constellio.app.modules.rm.wrappers.Document.ACTUAL_DEPOSIT_DATE_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Document.ACTUAL_DESTRUCTION_DATE_ENTERED;
+import static com.constellio.app.modules.rm.wrappers.Document.FOLDER;
+import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_DEPOSIT_DATE;
+import static java.util.Arrays.asList;
 
 public class DocumentActualDepositDateCalculator implements MetadataValueCalculator<LocalDate> {
 
@@ -33,7 +32,7 @@ public class DocumentActualDepositDateCalculator implements MetadataValueCalcula
 	public LocalDate calculate(CalculatorParameters parameters) {
 		CalculatorInput input = new CalculatorInput(parameters);
 		if (input.documentRetentionRulesEnabled && (input.actualDepositDateEntered != null
-				|| input.actualDestructionDateEntered != null)) {
+													|| input.actualDestructionDateEntered != null)) {
 			return input.actualDepositDateEntered;
 		} else {
 			return input.folderActualDepositDate;

@@ -1,15 +1,5 @@
 package com.constellio.app.api.cmis.requests;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.InputStream;
-import java.util.Set;
-
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.slf4j.Logger;
-
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_Runtime;
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_UnsupportedOperation;
 import com.constellio.app.api.cmis.ConstellioCmisException;
@@ -21,6 +11,8 @@ import com.constellio.app.api.cmis.builders.object.ObjectDataBuilder;
 import com.constellio.app.api.cmis.builders.object.TaxonomyObjectBuilder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.PropertyFileUtils;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -34,8 +26,30 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.slf4j.Logger;
+
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class CmisCollectionRequest<T> {
+
+	private static boolean LOG_CMIS = false;
+
+	static {
+		try {
+			Map<String, String> constellioProperties = PropertyFileUtils.loadKeyValues(new FoldersLocator().getConstellioProperties());
+			String logRequest = constellioProperties.get("cmis.logRequests");
+			LOG_CMIS = Boolean.parseBoolean(logRequest);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
 
 	protected final ConstellioCollectionRepository repository;
 	protected final ModelLayerFactory modelLayerFactory;
@@ -52,7 +66,7 @@ public abstract class CmisCollectionRequest<T> {
 	protected final AllowableActionsBuilder allowableActionsBuilder;
 
 	public CmisCollectionRequest(CallContext callContext, ConstellioCollectionRepository repository,
-			AppLayerFactory appLayerFactory) {
+								 AppLayerFactory appLayerFactory) {
 		this.repository = repository;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -89,6 +103,10 @@ public abstract class CmisCollectionRequest<T> {
 
 		try {
 			T response = process();
+			if (LOG_CMIS) {
+				String requestString = toString().replace("com.constellio.app.api.cmis.requests.", "");
+				logger.info("Logging cmis request ' " + requestString + "'");
+			}
 			return response;
 
 		} catch (UnsupportedOperationException e) {
@@ -148,7 +166,7 @@ public abstract class CmisCollectionRequest<T> {
 	}
 
 	protected ContentManager.ContentVersionDataSummaryResponse uploadContent(final InputStream inputStream,
-			final String fileName) {
+																			 final String fileName) {
 
 		UploadOptions options = new UploadOptions(fileName).setHandleDeletionOfUnreferencedHashes(false);
 		try {

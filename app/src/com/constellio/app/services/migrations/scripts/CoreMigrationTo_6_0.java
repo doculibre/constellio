@@ -1,14 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
-import static com.constellio.data.conf.DigitSeparatorMode.TWO_DIGITS;
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -36,6 +27,15 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 import com.constellio.model.services.users.UserCredentialAndGlobalGroupsMigration;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.constellio.data.conf.DigitSeparatorMode.THREE_LEVELS_OF_ONE_DIGITS;
+import static com.constellio.data.conf.DigitSeparatorMode.TWO_DIGITS;
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
 
 public class CoreMigrationTo_6_0 implements MigrationScript {
 	@Override
@@ -110,7 +110,7 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor6_0 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor6_0(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

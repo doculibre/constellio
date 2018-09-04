@@ -1,9 +1,12 @@
 package com.constellio.sdk.tests;
 
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.File;
@@ -12,14 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
-import com.constellio.data.io.streamFactories.StreamFactory;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class StreamsTestFeatures {
 
@@ -153,7 +152,8 @@ public class StreamsTestFeatures {
 		return mockedStream;
 	}
 
-	public <T extends Closeable> StreamFactory<T> ensureAllCreatedCloseableAreClosed(final StreamFactory<T> nestedStreamFactory) {
+	public <T extends Closeable> StreamFactory<T> ensureAllCreatedCloseableAreClosed(
+			final StreamFactory<T> nestedStreamFactory) {
 		return new StreamFactory<T>() {
 
 			@Override

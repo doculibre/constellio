@@ -1,20 +1,5 @@
 package com.constellio.model.services.taxonomies;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.jdom2.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
@@ -27,7 +12,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -46,6 +30,20 @@ import com.constellio.model.services.taxonomies.TaxonomiesManagerRuntimeExceptio
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
+import org.jdom2.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<TaxonomiesManagerCache> {
 
@@ -62,8 +60,9 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	private ConstellioEIMConfigs eimConfigs;
 
 	public TaxonomiesManager(ConfigManager configManager, SearchServices searchServices,
-			BatchProcessesManager batchProcessesManager, CollectionsListManager collectionsListManager,
-			RecordsCaches recordsCaches, ConstellioCacheManager cacheManager, ConstellioEIMConfigs eimConfigs) {
+							 BatchProcessesManager batchProcessesManager, CollectionsListManager collectionsListManager,
+							 RecordsCaches recordsCaches, ConstellioCacheManager cacheManager,
+							 ConstellioEIMConfigs eimConfigs) {
 		this.searchServices = searchServices;
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
@@ -90,7 +89,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 
 			@Override
 			public TaxonomiesManagerCache read(String collection, Document document) {
-				TaxonomiesReader reader = newTaxonomyReader(document);
+				TaxonomiesReader reader = newTaxonomyReader(document, collectionsListManager.getCollectionLanguages(collection));
 				List<Taxonomy> enableTaxonomies = Collections.unmodifiableList(reader.readEnables());
 				List<Taxonomy> disableTaxonomies = Collections.unmodifiableList(reader.readDisables());
 
@@ -152,11 +151,6 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	}
 
 	public void setPrincipalTaxonomy(Taxonomy taxonomy, MetadataSchemasManager schemasManager) {
-
-		List<Metadata> metadatas = asList(Schemas.PRINCIPAL_PATH);
-		List<MetadataSchemaType> types = schemasManager.getSchemaTypes(taxonomy.getCollection())
-				.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
-
 		validateCanBePrincipalTaxonomy(taxonomy, schemasManager);
 		String collection = taxonomy.getCollection();
 		oneXMLConfigPerCollectionManager.updateXML(collection, newSetPrincipalTaxonomy(taxonomy));
@@ -231,8 +225,8 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		return new TaxonomiesWriter(document);
 	}
 
-	TaxonomiesReader newTaxonomyReader(Document document) {
-		return new TaxonomiesReader(document);
+	TaxonomiesReader newTaxonomyReader(Document document, List<String> collectionLanguageList) {
+		return new TaxonomiesReader(document, collectionLanguageList);
 	}
 
 	DocumentAlteration newAddTaxonomyDocumentAlteration(final Taxonomy taxonomy) {
@@ -395,7 +389,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	}
 
 	public List<Taxonomy> getAvailableTaxonomiesForSchema(String schemaCode, User user,
-			MetadataSchemasManager metadataSchemasManager) {
+														  MetadataSchemasManager metadataSchemasManager) {
 
 		Set<Taxonomy> taxonomies = new HashSet<>();
 
@@ -410,7 +404,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 	}
 
 	public List<Taxonomy> getAvailableTaxonomiesForSelectionOfType(String schemaType, User user,
-			MetadataSchemasManager metadataSchemasManager) {
+																   MetadataSchemasManager metadataSchemasManager) {
 
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(user.getCollection());
 
@@ -482,7 +476,8 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		final List<Taxonomy> enableTaxonomies;
 		final List<Taxonomy> disableTaxonomies;
 
-		TaxonomiesManagerCache(Taxonomy principalTaxonomy, List<Taxonomy> enableTaxonomies, List<Taxonomy> disableTaxonomies) {
+		TaxonomiesManagerCache(Taxonomy principalTaxonomy, List<Taxonomy> enableTaxonomies,
+							   List<Taxonomy> disableTaxonomies) {
 			this.principalTaxonomy = principalTaxonomy;
 			this.enableTaxonomies = enableTaxonomies;
 			this.disableTaxonomies = disableTaxonomies;

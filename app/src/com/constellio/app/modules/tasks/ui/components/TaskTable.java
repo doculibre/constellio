@@ -1,13 +1,5 @@
 package com.constellio.app.modules.tasks.ui.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
@@ -29,6 +21,8 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.vaadin.data.Container;
+import com.vaadin.data.Item;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Component;
@@ -36,6 +30,13 @@ import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.MenuBar.Command;
 import com.vaadin.ui.MenuBar.MenuItem;
 import com.vaadin.ui.Table;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaskTable extends RecordVOTable {
 	public static final String PREFIX = "images/icons/task/";
@@ -53,6 +54,27 @@ public class TaskTable extends RecordVOTable {
 		setCellStyleGenerator(new TaskStyleGenerator());
 		setPageLength(Math.min(15, provider.size()));
 		setWidth("100%");
+
+		addDisplayOnClickListener();
+	}
+
+	protected void addDisplayOnClickListener() {
+		this.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Item item = event.getItem();
+				RecordVO recordVO = null;
+				if (item instanceof RecordVO) {
+					recordVO = (RecordVO) item;
+				} else if (item instanceof RecordVOItem) {
+					recordVO = ((RecordVOItem) item).getRecord();
+				}
+
+				if (recordVO != null) {
+					displayTask(recordVO);
+				}
+			}
+		});
 	}
 
 	@Override
@@ -72,23 +94,38 @@ public class TaskTable extends RecordVOTable {
 				final RecordVO recordVO = records.getRecordVO((int) itemId);
 				MenuBar menuBar = new BaseMenuBar();
 				MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
-				
+
 				rootItem.addItem($("display"), DisplayButton.ICON_RESOURCE, new Command() {
 					@Override
 					public void menuSelected(MenuItem selectedItem) {
-						presenter.displayButtonClicked(recordVO);
+						displayTask(recordVO);
 					}
 				});
-				
+
 				if (presenter.isEditButtonEnabled(recordVO)) {
 					rootItem.addItem($("edit"), EditButton.ICON_RESOURCE, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
-							presenter.editButtonClicked(recordVO);
+							editTask(recordVO);
 						}
 					});
 				}
 
+				if (presenter.isReadByUser(recordVO)) {
+					rootItem.addItem($("TaskTable.markAsUnread"), EditButton.ICON_RESOURCE, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.setReadByUser(recordVO, false);
+						}
+					});
+				} else {
+					rootItem.addItem($("TaskTable.markAsRead"), EditButton.ICON_RESOURCE, new Command() {
+						@Override
+						public void menuSelected(MenuItem selectedItem) {
+							presenter.setReadByUser(recordVO, true);
+						}
+					});
+				}
 
 				if (presenter.isCompleteButtonEnabled(recordVO)) {
 
@@ -98,7 +135,7 @@ public class TaskTable extends RecordVOTable {
 						public void menuSelected(MenuItem selectedItem) {
 							String completeTaskDialog = $("DisplayTaskView.completeTaskDialogMessage");
 
-							if(presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
+							if (presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
 								completeTaskDialog = $("DisplayTaskView.subTaskPresentComplete");
 							}
 
@@ -107,9 +144,9 @@ public class TaskTable extends RecordVOTable {
 									new ConfirmDialog.Listener() {
 										@Override
 										public void onClose(ConfirmDialog dialog) {
-											if(dialog.isConfirmed()) {
+											if (dialog.isConfirmed()) {
 												presenter.completeQuicklyButtonClicked(recordVO);
-											} else if(dialog.isCanceled()) {
+											} else if (dialog.isCanceled()) {
 
 											} else {
 												presenter.completeButtonClicked(recordVO);
@@ -119,7 +156,7 @@ public class TaskTable extends RecordVOTable {
 						}
 					});
 				}
-				
+
 				if (presenter.isCloseButtonEnabled(recordVO)) {
 					rootItem.addItem($("TaskTable.close"), CLOSE_ICON, new Command() {
 						@Override
@@ -128,12 +165,12 @@ public class TaskTable extends RecordVOTable {
 						}
 					});
 				}
-				
+
 				if (presenter.isDeleteButtonVisible(recordVO)) {
 					rootItem.addItem($("delete"), DeleteButton.ICON_RESOURCE, new ConfirmDialogMenuBarItemCommand() {
 						@Override
 						protected String getConfirmDialogMessage() {
-							if(presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
+							if (presenter.isSubTaskPresentAndHaveCertainStatus(recordVO)) {
 								return $("DisplayTaskView.subTaskPresentWarning");
 							} else {
 								return $("ConfirmDialog.confirmDelete");
@@ -147,7 +184,7 @@ public class TaskTable extends RecordVOTable {
 					}).setEnabled(presenter.isDeleteButtonEnabled(recordVO));
 				}
 
-				if(presenter.isMetadataReportAllowed(recordVO)) {
+				if (presenter.isMetadataReportAllowed(recordVO)) {
 					rootItem.addItem($("TaskTable.reportMetadata"), FontAwesome.LIST_ALT, new Command() {
 						@Override
 						public void menuSelected(MenuItem selectedItem) {
@@ -155,7 +192,7 @@ public class TaskTable extends RecordVOTable {
 						}
 					});
 				}
-				
+
 				return menuBar;
 			}
 		});
@@ -163,10 +200,22 @@ public class TaskTable extends RecordVOTable {
 		return records;
 	}
 
+	private void editTask(RecordVO recordVO) {
+		presenter.setReadByUser(recordVO, true);
+		presenter.registerPreviousSelectedTab();
+		presenter.editButtonClicked(recordVO);
+	}
+
+	private void displayTask(RecordVO recordVO) {
+		presenter.setReadByUser(recordVO, true);
+		presenter.registerPreviousSelectedTab();
+		presenter.displayButtonClicked(recordVO);
+	}
+
 	@Override
 	protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-		if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
-			return new StarredFieldImpl(recordVO.getId(), (List<String>)metadataValue.getValue(), presenter.getCurrentUserId()) {
+		if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
+			return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(), presenter.getCurrentUserId()) {
 				@Override
 				public void updateTaskStarred(boolean isStarred, String taskId) {
 					presenter.updateTaskStarred(isStarred, taskId);
@@ -176,7 +225,6 @@ public class TaskTable extends RecordVOTable {
 			return super.buildMetadataComponent(metadataValue, recordVO);
 		}
 	}
-
 
 
 	public interface TaskPresenter {
@@ -204,19 +252,23 @@ public class TaskTable extends RecordVOTable {
 
 		boolean isEditButtonEnabled(RecordVO recordVO);
 
+		boolean isReadByUser(RecordVO recordVO);
+
+		void setReadByUser(RecordVO recordVO, boolean readByUser);
+
 		boolean isCompleteButtonEnabled(RecordVO recordVO);
 
 		boolean isCloseButtonEnabled(RecordVO recordVO);
 
 		boolean isDeleteButtonEnabled(RecordVO recordVO);
-		
+
 		boolean isDeleteButtonVisible(RecordVO recordVO);
 
 		boolean isMetadataReportAllowed(RecordVO recordVO);
 
 		void completeQuicklyButtonClicked(RecordVO recordVO);
 
-		public BaseView getView();
+		BaseView getView();
 
 		void reloadTaskModified(Task task);
 
@@ -224,6 +276,7 @@ public class TaskTable extends RecordVOTable {
 
 		void updateTaskStarred(boolean isStarred, String taskId);
 
+		void registerPreviousSelectedTab();
 	}
 
 	public class TaskStyleGenerator implements CellStyleGenerator {
@@ -233,7 +286,15 @@ public class TaskTable extends RecordVOTable {
 		@Override
 		public String getStyle(Table source, Object itemId, Object propertyId) {
 			String style;
-			if (!isDueDateColumn(propertyId)) {
+			if (isTitleColumn(propertyId)) {
+				RecordVOItem item = (RecordVOItem) source.getItem(itemId);
+				if (!presenter.isReadByUser(item.getRecord())) {
+					// TODO Rendre gras le texte plutôt que le fond
+					style = OVER_DUE_TASK_STYLE;
+				} else {
+					style = null;
+				}
+			} else if (!isDueDateColumn(propertyId)) {
 				style = null;
 			} else {
 				RecordVOItem item = (RecordVOItem) source.getItem(itemId);
@@ -247,6 +308,14 @@ public class TaskTable extends RecordVOTable {
 				}
 			}
 			return style;
+		}
+
+		private boolean isTitleColumn(Object propertyId) {
+			if (!(propertyId instanceof MetadataVO)) {
+				return false;
+			}
+			MetadataVO metadata = (MetadataVO) propertyId;
+			return Task.TITLE.equals(MetadataVO.getCodeWithoutPrefix(metadata.getCode()));
 		}
 
 		private boolean isDueDateColumn(Object propertyId) {
@@ -263,8 +332,8 @@ public class TaskTable extends RecordVOTable {
 		return new RecordVOTableColumnsManager() {
 			@Override
 			protected String toColumnId(Object propertyId) {
-				if(propertyId instanceof MetadataVO) {
-					if(Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+				if (propertyId instanceof MetadataVO) {
+					if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
 						setColumnHeader(propertyId, "");
 						setColumnWidth(propertyId, 60);
 					}
@@ -280,7 +349,7 @@ public class TaskTable extends RecordVOTable {
 		Iterator<?> iterator = sortableContainerPropertyIds.iterator();
 		while (iterator.hasNext()) {
 			Object property = iterator.next();
-			if(property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
+			if (property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
 				iterator.remove();
 			}
 		}

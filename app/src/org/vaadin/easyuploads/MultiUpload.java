@@ -1,5 +1,11 @@
 package org.vaadin.easyuploads;
 
+import com.vaadin.server.PaintException;
+import com.vaadin.server.PaintTarget;
+import com.vaadin.server.StreamVariable;
+import com.vaadin.ui.AbstractComponent;
+import com.vaadin.ui.LegacyComponent;
+
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -7,12 +13,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import com.vaadin.server.PaintException;
-import com.vaadin.server.PaintTarget;
-import com.vaadin.server.StreamVariable;
-import com.vaadin.ui.AbstractComponent;
-import com.vaadin.ui.LegacyComponent;
 
 /**
  * Server side component for the VMultiUpload widget. Pretty much hacked up
@@ -155,7 +155,7 @@ public class MultiUpload extends AbstractComponent implements LegacyComponent {
 			String[] split = data.split("---xXx---");
 			caption = split[1];
 			contentLength = Long.parseLong(split[0]);
-      if (split.length >= 3) {
+			if (split.length >= 3) {
 				mimeType = split[2];
 			}
 		}

@@ -1,14 +1,5 @@
 package com.constellio.sdk.tests;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.apache.commons.io.FileUtils;
-
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.io.services.facades.OpenedResourcesWatcher;
 import com.constellio.data.utils.TimeProvider;
@@ -16,6 +7,14 @@ import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.sdk.tests.schemas.SchemaTestFeatures;
 import com.constellio.sdk.tests.selenium.SeleniumTestFeatures;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class ConstellioTestSession {
 
@@ -42,7 +41,9 @@ public class ConstellioTestSession {
 	}
 
 	public static ConstellioTestSession build(boolean isUniTest, Map<String, String> sdkProperties,
-			SkipTestsRule skipTestsRule, Class<? extends AbstractConstellioTest> constellioTest, boolean checkRollback) {
+											  SkipTestsRule skipTestsRule,
+											  Class<? extends AbstractConstellioTest> constellioTest,
+											  boolean checkRollback) {
 		session = new ConstellioTestSession();
 		i18n.setLocale(Locale.FRENCH);
 		TimeProvider.setTimeProvider(new DefaultTimeProvider());

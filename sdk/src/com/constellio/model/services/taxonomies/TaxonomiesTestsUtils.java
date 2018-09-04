@@ -1,13 +1,14 @@
 package com.constellio.model.services.taxonomies;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
-
 public class TaxonomiesTestsUtils {
 
-	public static boolean ajustIfBetterThanExpected(StackTraceElement[] stackTraceElements, String current, String expected) {
+	public static boolean ajustIfBetterThanExpected(StackTraceElement[] stackTraceElements, String current,
+													String expected) {
 
 		String filePath = "/Users/francisbaril/Constellio/IdeaProjects/constellio-dev/constellio/sdk/src/com/constellio/model/services/taxonomies/";
 
@@ -19,9 +20,9 @@ public class TaxonomiesTestsUtils {
 			for (StackTraceElement element : stackTraceElements) {
 
 				if (element.getClassName().endsWith("AcceptTest")
-						&& !(element.getMethodName().equals("solrQueryCounts")
-						|| element.getMethodName().equals("secondSolrQueryCounts")
-						|| element.getMethodName().equals("secondCallQueryCounts"))) {
+					&& !(element.getMethodName().equals("solrQueryCounts")
+						 || element.getMethodName().equals("secondSolrQueryCounts")
+						 || element.getMethodName().equals("secondCallQueryCounts"))) {
 					filename = element.getFileName();
 					lineNumber = element.getLineNumber();
 
@@ -59,7 +60,7 @@ public class TaxonomiesTestsUtils {
 	}
 
 	private static boolean isBetterThanExpected(String current, String expected) {
-//		if (!current.equals(expected)) {
+		//		if (!current.equals(expected)) {
 		//			int[] currentParts = toInts(current.split("-"));
 		//			int[] expectedParts = toInts(expected.split("-"));
 		//

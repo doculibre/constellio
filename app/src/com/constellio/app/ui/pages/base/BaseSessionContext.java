@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class BaseSessionContext implements SessionContext {
-	
+
 	private List<SelectedRecordIdsChangeListener> selectedRecordIdsChangeListeners = new ArrayList<>();
 
 	@Override
@@ -39,7 +39,7 @@ public abstract class BaseSessionContext implements SessionContext {
 	@Override
 	public void removeSelectedRecordId(String recordId, String schemaTypeCode) {
 		List<String> selectedRecordIds = ensureSelectedRecordIds();
-		if(selectedRecordIds.contains(recordId)) {
+		if (selectedRecordIds.contains(recordId)) {
 			selectedRecordIds.remove(recordId);
 			Map<String, Long> selectedRecordSchemaTypeCodes = ensureSelectedRecordSchemaTypeCodes();
 			Long selectionCountForSchemaType = selectedRecordSchemaTypeCodes.get(schemaTypeCode);
@@ -67,19 +67,19 @@ public abstract class BaseSessionContext implements SessionContext {
 			listener.selectionCleared();
 		}
 	}
-	
+
 	public List<SelectedRecordIdsChangeListener> getSelectedRecordIdsChangeListeners() {
 		return Collections.unmodifiableList(selectedRecordIdsChangeListeners);
 	}
-	
+
 	public void addSelectedRecordIdsChangeListener(SelectedRecordIdsChangeListener listener) {
 		this.selectedRecordIdsChangeListeners.add(listener);
 	}
-	
+
 	public void removeSelectedRecordIdsChangeListener(SelectedRecordIdsChangeListener listener) {
 		this.selectedRecordIdsChangeListeners.remove(listener);
 	}
-	
+
 	protected abstract List<String> ensureSelectedRecordIds();
 
 	protected abstract Map<String, Long> ensureSelectedRecordSchemaTypeCodes();

@@ -15,7 +15,7 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.services.schemas.SchemaUtils;
 
 public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<DocumentMenuBar> {
-	
+
 	private DocumentMenuBar menuBar;
 
 	public DocumentMenuBarPresenter(DocumentMenuBar menuBar) {
@@ -48,6 +48,7 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 
 	public void displayDocumentButtonClicked() {
 		menuBar.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		updateSearchResultClicked();
 	}
 
 	public boolean openForRequested(String recordId) {
@@ -80,8 +81,9 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 		return openForRequested(recordVO.getId());
 	}
 
-	public boolean hasMetadataReport(){
-		return !ReportGeneratorUtils.getPrintableReportTemplate(presenterUtils.appLayerFactory(), presenterUtils.getCollection(), getDocumentVO().getSchema().getCode(), PrintableReportListPossibleType.DOCUMENT).isEmpty();
+	public boolean hasMetadataReport() {
+		return !ReportGeneratorUtils.getPrintableReportTemplate(presenterUtils.appLayerFactory(), presenterUtils.getCollection(),
+				getDocumentVO().getSchema().getCode(), PrintableReportListPossibleType.DOCUMENT).isEmpty();
 	}
 
 }

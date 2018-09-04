@@ -197,6 +197,10 @@ $popup-view-z-index: 3;
 		@include file-icon(unquote("docx.gif"));
 	}
 
+	.v-table-cell-content-file-icon-docm {
+		@include file-icon(unquote("docm.gif"));
+	}
+
 	.v-table-cell-content-file-icon-eml {
 		@include file-icon(unquote("eml.gif"));
 	}
@@ -297,6 +301,14 @@ $popup-view-z-index: 3;
 		@include file-icon(unquote("text.gif"));
 	}
 
+	.v-table-cell-content-file-icon-tif {
+		@include file-icon(unquote("tif.gif"));
+	}
+
+	.v-table-cell-content-file-icon-tiff {
+		@include file-icon(unquote("tiff.gif"));
+	}
+
 	.v-table-cell-content-file-icon-unknown {
 		@include file-icon(unquote("unknown.gif"));
 	}
@@ -331,6 +343,10 @@ $popup-view-z-index: 3;
 
 	.v-table-cell-content-file-icon-xlsx {
 		@include file-icon(unquote("xlsx.gif"));
+	}
+
+	.v-table-cell-content-file-icon-xlsm {
+		@include file-icon(unquote("xlsm.gif"));
 	}
 
 	.v-table-cell-content-file-icon-xlt {
@@ -417,19 +433,9 @@ $popup-view-z-index: 3;
 	}
 
 
-
 	.v-table-cell-content-error {
-		color: #FFFFFF;
-		background-color: #F5A9A9;
-		/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ff3019+0,cf0404+100;Red+3D */
-		background: #F5A9A9; /* Old browsers */
-		background: -moz-linear-gradient(top,  #F5A9A9 0%, #d65353 100%); /* FF3.6+ */
-		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#F5A9A9), color-stop(100%,#d65353)); /* Chrome,Safari4+ */
-		background: -webkit-linear-gradient(top,  #F5A9A9 0%,#d65353 100%); /* Chrome10+,Safari5.1+ */
-		background: -o-linear-gradient(top,  #F5A9A9 0%,#d65353 100%); /* Opera 11.10+ */
-		background: -ms-linear-gradient(top,  #F5A9A9 0%,#d65353 100%); /* IE10+ */
-		background: linear-gradient(to bottom,  #F5A9A9 0%,#d65353 100%); /* W3C */
-		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#F5A9A9', endColorstr='#d65353',GradientType=0 ); /* IE6-9 */
+		color: red;
+		font-weight: bold;
 	}
 
 	.v-table-cell-content-disabled {
@@ -466,6 +472,9 @@ $popup-view-z-index: 3;
 		.popupContent {
 			overflow-y: auto;
 			overflow-x: hidden;
+            .gwt-MenuBar {
+                overflow-y: auto;
+            }
 		}
 	}
 
@@ -583,6 +592,12 @@ $popup-view-z-index: 3;
     		}
     	}
     }
+    
+    .filters-panel {
+    	.v-filterselect {
+    		height: 23px;
+    	}
+    }
 
     .autocomplete-error, .lookup-error {
     	.v-filterselect-input {
@@ -622,9 +637,26 @@ $popup-view-z-index: 3;
 	}
 	
 	.information-capsule {
+		min-height: 38px;
+	    position: relative;
+	    border-radius: 10px;
+	    padding: 10px 10px 10px 10px;
+	    margin: 0 0 0 0px;
+	    box-shadow: inset 0px 5px 15px -12px rgba(0, 0, 0, 1);
+	    
+	    background-color: #ebebeb;
+		background-image: url('images/icons/suggestion.png');
+		background-repeat: no-repeat;
+	    background-position: left center; 
+	    
+		.information-capsule-title {
+			font-weight: bold;
+			padding-left: 50px;
+		}
+		
 		.information-capsule-content {
-			padding-left: 10px;	
-			padding-right: 10px;	
+			padding-bottom: 15px;
+			padding-left: 60px;
 		}
 	}
 	
@@ -1085,6 +1117,10 @@ $popup-view-z-index: 3;
 			}
 		}
 	}
+	
+	.force-higher-opacity.v-textarea-force-higher-opacity {
+	   	opacity: 2 !important;
+	}
 
 	.base-form {
 		.v-slot-base-form-field {
@@ -1137,6 +1173,26 @@ $popup-view-z-index: 3;
 			.v-context-menu-item-basic-icon-container {
 				float: left;
 				padding-right: 3px;
+				float: left;
+				width: 26px;
+				height: 26px;
+				margin-right: 5px;
+				border-right: 1px solid #d0d0d0;
+				text-align: center;
+
+				.v-icon {
+					float: left;
+					width: 16px;
+					height: 16px;
+					padding: 5px;
+				}
+			}
+			
+			.v-context-menu-item-basic-text {
+				float: left;
+				height: 26px;
+				line-height: 26px;
+				padding: 0 20px 0 10px;
 			}
 		}
 
@@ -1420,6 +1476,7 @@ $popup-view-z-index: 3;
 							.reference-display {
             					white-space: normal;
             					height: inherit;
+            					color: inherit;
 							}
 							
 							.agent-action-link {
@@ -1486,6 +1543,7 @@ $popup-view-z-index: 3;
 								}
 
 								.search-result-title {
+									padding-top: 8px;
 									font-size: 18px;
 									text-align: left;
 								}
@@ -1514,9 +1572,11 @@ $popup-view-z-index: 3;
 									}
 								}
 								
-								.v-slot-search-result-elevation-buttons {
+								.search-result-elevation-buttons {
 								    border: 1px solid rgb(25, 125, 225);
 								    border-radius: 4px;
+								    margin-left: 10px;
+								    margin-top: 3px;
 								    padding-left: 5px;
 								    padding-right: 5px;
 								}
@@ -1725,6 +1785,22 @@ $popup-view-z-index: 3;
     	.v-table {
 	    	.v-scrollable {
 	    		overflow-x: hidden;
+	    	}
+    	}
+    	
+    	.stats-table-layout {
+	    	.v-table {
+		    	.v-scrollable {
+		    		overflow-x: auto;
+		    	}
+	    	}
+    	} 
+
+    	.stats-table-layout {
+	    	.v-table {
+		    	.v-scrollable {
+		    		overflow-x: auto;
+		    	}
 	    	}
     	}
 
@@ -2367,6 +2443,10 @@ $popup-view-z-index: 3;
 		}
 
 		.popupContent {
+		
+			.gwt-MenuBar {
+				overflow-y: auto;
+			}
 		
 			.action-menu {
 		        right: inherit;

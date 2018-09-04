@@ -1,16 +1,16 @@
 package com.constellio.app.services.schemas.bulkImport.data.xml;
 
-import java.io.File;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataIterator;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.io.File;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class XMLImportDataProvider implements ImportDataProvider {
 	//TODO lock mechanism when importing data
@@ -62,7 +62,8 @@ public class XMLImportDataProvider implements ImportDataProvider {
 		return forSingleXMLFile(modelLayerFactory, xmlFile, xmlFile.getName());
 	}
 
-	public static XMLImportDataProvider forSingleXMLFile(ModelLayerFactory modelLayerFactory, File xmlFile, String fileName) {
+	public static XMLImportDataProvider forSingleXMLFile(ModelLayerFactory modelLayerFactory, File xmlFile,
+														 String fileName) {
 		XMLImportDataProvider instance = new XMLImportDataProvider();
 		instance.xmlFile = xmlFile;
 		instance.fileName = fileName;
@@ -100,7 +101,7 @@ public class XMLImportDataProvider implements ImportDataProvider {
 				iterator.next();
 				size++;
 			}
-		} finally{
+		} finally {
 			iterator.close();
 		}
 		return size;

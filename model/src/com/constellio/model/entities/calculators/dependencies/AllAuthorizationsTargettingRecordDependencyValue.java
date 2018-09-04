@@ -1,8 +1,8 @@
 package com.constellio.model.entities.calculators.dependencies;
 
-import java.util.List;
-
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+
+import java.util.List;
 
 public class AllAuthorizationsTargettingRecordDependencyValue {
 

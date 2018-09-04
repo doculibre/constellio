@@ -1,12 +1,12 @@
 package com.constellio.app.services.schemas.bulkImport.data;
 
-import static org.apache.commons.lang3.StringUtils.substringAfter;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.apache.commons.lang3.StringUtils.substringAfter;
 
 public class ImportData {
 

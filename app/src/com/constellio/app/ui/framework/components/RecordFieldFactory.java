@@ -1,13 +1,14 @@
 package com.constellio.app.ui.framework.components;
 
-import java.io.Serializable;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.vaadin.ui.Field;
 
+import java.io.Serializable;
+import java.util.Locale;
+
 public class RecordFieldFactory implements Serializable {
-	
+
 	private MetadataFieldFactory metadataFieldFactory;
 	private boolean isViewOnly;
 
@@ -24,11 +25,15 @@ public class RecordFieldFactory implements Serializable {
 	public RecordFieldFactory(MetadataFieldFactory metadataFieldFactory) {
 		this.metadataFieldFactory = metadataFieldFactory;
 	}
-	
-	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
-		return metadataFieldFactory.build(metadataVO);
+
+	public final Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+		return build(recordVO, metadataVO, null);
 	}
-	
+
+	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
+		return metadataFieldFactory.build(metadataVO, locale);
+	}
+
 	protected void postBuild(Field<?> field, RecordVO recordVO, MetadataVO metadataVO) {
 		metadataFieldFactory.postBuild(field, metadataVO);
 	}

@@ -1,27 +1,5 @@
 package com.constellio.model.services.users;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Fail.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
@@ -45,13 +23,32 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 public class UserServicesUnitTest extends ConstellioTest {
 
@@ -226,24 +223,6 @@ public class UserServicesUnitTest extends ConstellioTest {
 		} catch (Exception e) {
 			assertThat(e.getMessage()).isEqualTo("No such group 'heroes'");
 		}
-	}
-
-	@Test
-	public void whenGetGroupInCollectionThenReturnRecordOfCorrectCollection()
-			throws Exception {
-
-		when(bob.getCollections()).thenReturn(Arrays.asList("collection2", "collection1"));
-		when(globalGroupsManager.getGlobalGroupWithCode("legends")).thenReturn(legends);
-		ArgumentCaptor<LogicalSearchCondition> conditionCaptor = ArgumentCaptor.forClass(LogicalSearchCondition.class);
-		when(searchServices.searchSingleResult(conditionCaptor.capture())).thenReturn(groupRecord);
-
-		Group returnedGroup = userServices.getGroupInCollection("legends", "collection2");
-		assertThat(returnedGroup.getWrappedRecord()).isSameAs(groupRecord);
-
-		LogicalSearchCondition condition = conditionCaptor.getValue();
-		assertThat(condition).isEqualTo(
-				LogicalSearchQueryOperators.from(collection2GroupSchema).where(collection2GroupCodeMetadata).is("legends"));
-
 	}
 
 	@Test

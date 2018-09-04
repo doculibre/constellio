@@ -1,13 +1,16 @@
 package com.constellio.data.events;
 
-import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
-import static com.constellio.sdk.tests.TestUtils.asMap;
-import static com.constellio.sdk.tests.TestUtils.asSet;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.spy;
+import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_EventBusAlreadyExist;
+import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_NoSuchEventBus;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,18 +20,13 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.DatatypeConverter;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-
-import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_EventBusAlreadyExist;
-import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_NoSuchEventBus;
-import com.constellio.data.extensions.DataLayerSystemExtensions;
-import com.constellio.sdk.tests.ConstellioTest;
+import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
+import static com.constellio.sdk.tests.TestUtils.asMap;
+import static com.constellio.sdk.tests.TestUtils.asSet;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.spy;
 
 public class EventBusManagerTest extends ConstellioTest {
 
@@ -269,10 +267,12 @@ public class EventBusManagerTest extends ConstellioTest {
 
 	}
 
-	/** Read the object from Base64 string. */
+	/**
+	 * Read the object from Base64 string.
+	 */
 	private static Object deserializeBase64(String s)
 			throws IOException,
-			ClassNotFoundException {
+				   ClassNotFoundException {
 		byte[] data = DatatypeConverter.parseBase64Binary(s);
 		ObjectInputStream ois = new ObjectInputStream(
 				new ByteArrayInputStream(data));
@@ -281,7 +281,9 @@ public class EventBusManagerTest extends ConstellioTest {
 		return o;
 	}
 
-	/** Write the object to a Base64 string. */
+	/**
+	 * Write the object to a Base64 string.
+	 */
 	private static String serializeToBase64(Serializable o)
 			throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -309,10 +311,12 @@ public class EventBusManagerTest extends ConstellioTest {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o)
+			if (this == o) {
 				return true;
-			if (!(o instanceof UnserializableObject))
+			}
+			if (!(o instanceof UnserializableObject)) {
 				return false;
+			}
 
 			UnserializableObject that = (UnserializableObject) o;
 
@@ -327,8 +331,8 @@ public class EventBusManagerTest extends ConstellioTest {
 		@Override
 		public String toString() {
 			return "UnserializableObject{" +
-					"simpleData='" + simpleData + '\'' +
-					'}';
+				   "simpleData='" + simpleData + '\'' +
+				   '}';
 		}
 	}
 }

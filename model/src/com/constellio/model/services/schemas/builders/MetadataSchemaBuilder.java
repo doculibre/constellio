@@ -1,21 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -48,6 +34,20 @@ import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 import com.constellio.model.utils.Lazy;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class MetadataSchemaBuilder {
 
@@ -59,7 +59,7 @@ public class MetadataSchemaBuilder {
 
 	private String localCode;
 
-	private String collection;
+	private CollectionInfo collectionInfo;
 
 	private String code;
 
@@ -77,6 +77,8 @@ public class MetadataSchemaBuilder {
 
 	private ClassListBuilder<RecordValidator> schemaValidators;
 
+	private boolean active = true;
+
 	MetadataSchemaBuilder() {
 	}
 
@@ -86,10 +88,11 @@ public class MetadataSchemaBuilder {
 		builder.setDefaultSchema(schemaType.getDefaultSchema());
 		builder.setSchemaTypeBuilder(schemaType);
 		builder.setLocalCode(schema.getLocalCode());
-		builder.setCollection(schema.getCollection());
+		builder.setCollectionInfo(schema.getCollectionInfo());
 		builder.setCode(schema.getCode());
 		builder.setUndeletable(schema.isUndeletable());
 		builder.setLabels(schema.getLabels());
+		builder.setActive(schema.isActive());
 		builder.metadatas = new ArrayList<>();
 		for (Metadata metadata : schema.getMetadatas()) {
 			if (metadata.inheritDefaultSchema()) {
@@ -116,15 +119,17 @@ public class MetadataSchemaBuilder {
 		return builder;
 	}
 
-	static MetadataSchemaBuilder modifyDefaultSchema(MetadataSchema defaultSchema, MetadataSchemaTypeBuilder typeBuilder) {
+	static MetadataSchemaBuilder modifyDefaultSchema(MetadataSchema defaultSchema,
+													 MetadataSchemaTypeBuilder typeBuilder) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
 		builder.classProvider = typeBuilder.getClassProvider();
 		builder.setLabels(defaultSchema.getLabels());
 		builder.setLocalCode(defaultSchema.getLocalCode());
 		builder.setCode(defaultSchema.getCode());
-		builder.setCollection(defaultSchema.getCollection());
+		builder.setCollectionInfo(defaultSchema.getCollectionInfo());
 		builder.setUndeletable(defaultSchema.isUndeletable());
 		builder.setSchemaTypeBuilder(typeBuilder);
+		builder.setActive(defaultSchema.isActive());
 		builder.metadatas = new ArrayList<>();
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
 			builder.metadatas.add(MetadataBuilder.modifyMetadataWithoutInheritance(builder, metadata, builder.classProvider));
@@ -134,14 +139,17 @@ public class MetadataSchemaBuilder {
 		return builder;
 	}
 
-	static MetadataSchemaBuilder createSchema(MetadataSchemaBuilder defaultSchema, String localCode, boolean commonMetadatas) {
+	static MetadataSchemaBuilder createSchema(MetadataSchemaBuilder defaultSchema, String localCode,
+											  boolean commonMetadatas) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
+
 		builder.classProvider = defaultSchema.classProvider;
 		builder.setDefaultSchema(defaultSchema);
 		builder.metadatas = new ArrayList<>();
-		builder.setCollection(defaultSchema.getCollection());
+		builder.setCollectionInfo(defaultSchema.getCollectionInfo());
 		builder.setLocalCode(localCode);
 		builder.setLabels(configureLabels(localCode, defaultSchema));
+		builder.setActive(defaultSchema.isActive());
 		builder.setCode(defaultSchema.getSchemaTypeBuilder().getCode() + UNDERSCORE + localCode);
 
 		for (MetadataBuilder metadata : defaultSchema.metadatas) {
@@ -157,21 +165,23 @@ public class MetadataSchemaBuilder {
 	}
 
 	private static Map<Language, String> configureLabels(String code, MetadataSchemaBuilder typesBuilder,
-			Map<Language, String> labels) {
+														 Map<Language, String> labels) {
 		for (Language language : typesBuilder.getLabels().keySet()) {
-			if (StringUtils.isBlank(labels.get(language)))
+			if (labels.get(language) == null || StringUtils.isBlank(labels.get(language))) {
 				labels.put(language, code);
+			}
 		}
 		return labels;
 	}
 
 	static MetadataSchemaBuilder createDefaultSchema(MetadataSchemaTypeBuilder schemaTypeBuilder,
-			MetadataSchemaTypesBuilder schemaTypesBuilder, boolean initialize) {
+													 MetadataSchemaTypesBuilder schemaTypesBuilder,
+													 boolean initialize) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
 		builder.classProvider = schemaTypeBuilder.getClassProvider();
 		builder.setSchemaTypeBuilder(schemaTypeBuilder);
 		builder.setLocalCode(DEFAULT);
-		builder.setCollection(schemaTypeBuilder.getCollection());
+		builder.setCollectionInfo(schemaTypeBuilder.getCollectionInfo());
 		builder.setLabels(schemaTypeBuilder.getLabels());
 		builder.setCode(schemaTypeBuilder.getCode() + UNDERSCORE + DEFAULT);
 		builder.setUndeletable(true);
@@ -184,11 +194,15 @@ public class MetadataSchemaBuilder {
 	}
 
 	public String getCollection() {
-		return collection;
+		return collectionInfo.getCode();
 	}
 
-	MetadataSchemaBuilder setCollection(String collection) {
-		this.collection = collection;
+	public CollectionInfo getCollectionInfo() {
+		return collectionInfo;
+	}
+
+	MetadataSchemaBuilder setCollectionInfo(CollectionInfo collectionInfo) {
+		this.collectionInfo = collectionInfo;
 		return this;
 	}
 
@@ -358,9 +372,11 @@ public class MetadataSchemaBuilder {
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
 		Set<RecordValidator> recordValidators = this.schemaValidators.build();
 
-		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabels, newMetadatas, this.isUndeletable(),
+		MetadataSchema metadataSchema = new MetadataSchema(this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
+				this.isUndeletable(),
 				inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators),
-				schemaTypeBuilder.getDataStore());
+				schemaTypeBuilder.getDataStore(), this.isActive());
+		return metadataSchema;
 	}
 
 	public String getTypeCode() {
@@ -376,7 +392,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	private Lazy<MetadataSchemaCalculatedInfos> lazyCalculateSchemaInfos(final MetadataList newMetadatas,
-			final Set<RecordValidator> recordValidators) {
+																		 final Set<RecordValidator> recordValidators) {
 		return new Lazy<MetadataSchemaCalculatedInfos>() {
 			@Override
 			protected MetadataSchemaCalculatedInfos load() {
@@ -386,7 +402,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	private MetadataSchemaCalculatedInfos calculateSchemaInfos(MetadataList newMetadatas,
-			Set<RecordValidator> recordValidators) {
+															   Set<RecordValidator> recordValidators) {
 
 		for (Metadata metadata : newMetadatas.onlyCalculated().onlyWithoutInheritance()) {
 			MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) metadata.getDataEntry())
@@ -504,7 +520,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	private List<Metadata> orderAutomaticMetadatas(List<Metadata> metadatas,
-			Map<String, Set<String>> automaticMetadatasDependencies) {
+												   Map<String, Set<String>> automaticMetadatasDependencies) {
 		List<String> sortedMetadataCodes;
 
 		try {
@@ -551,7 +567,7 @@ public class MetadataSchemaBuilder {
 	}
 
 	MetadataSchema buildCustom(MetadataSchema defaultSchema, DataStoreTypesFactory typesFactory,
-			ModelLayerFactory modelLayerFactory) {
+							   ModelLayerFactory modelLayerFactory) {
 		final MetadataList newMetadatas = new MetadataList();
 		for (MetadataBuilder metadataBuilder : this.metadatas) {
 			try {
@@ -571,9 +587,10 @@ public class MetadataSchemaBuilder {
 		final Set<RecordValidator> recordValidators = this.schemaValidators.build(defaultSchema.getValidators());
 
 		boolean inTransactionLog = schemaTypeBuilder.isInTransactionLog();
-		return new MetadataSchema(this.getLocalCode(), this.getCode(), collection, newLabels, newMetadatas,
+		MetadataSchema metadataSchema = new MetadataSchema(this.getLocalCode(), this.getCode(), collectionInfo, newLabels, newMetadatas,
 				this.isUndeletable(), inTransactionLog, recordValidators, calculateSchemaInfos(newMetadatas, recordValidators)
-				, schemaTypeBuilder.getDataStore());
+				, schemaTypeBuilder.getDataStore(), this.isActive());
+		return metadataSchema;
 	}
 
 	public boolean isInheriting() {
@@ -583,7 +600,7 @@ public class MetadataSchemaBuilder {
 	@Override
 	public String toString() {
 		return "MetadataSchemaBuilder [localCode=" + localCode + ", code=" + code + ", label=" + labels + ", metadatas="
-				+ metadatas + ", undeletable=" + undeletable + "]";
+			   + metadatas + ", undeletable=" + undeletable + "]";
 	}
 
 	public ClassListBuilder<RecordValidator> defineValidators() {
@@ -700,5 +717,13 @@ public class MetadataSchemaBuilder {
 				.createCustomMetadataFromOriginalCustomMetadata(this, metadataBuilder, this.code);
 		metadatas.add(metadata);
 		return metadata;
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 }

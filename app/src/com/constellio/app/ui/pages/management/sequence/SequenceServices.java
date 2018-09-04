@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.sequence;
 
-import static java.lang.Math.max;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -16,6 +11,11 @@ import com.constellio.data.dao.services.sequence.SequencesManager;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.Math.max;
 
 public class SequenceServices {
 

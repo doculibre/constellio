@@ -1,18 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.pdf;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
@@ -27,6 +14,18 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ConsolidatedPdfWindow extends BaseWindow implements PollListener {
 
@@ -102,8 +101,9 @@ public class ConsolidatedPdfWindow extends BaseWindow implements PollListener {
 			String extension = FilenameUtils.getExtension(pdfFileName);
 
 			Set<String> keySet = pdfTabPanels.keySet();
-			for (int i = 1; keySet.contains(pdfFileName = baseName + (i++) + "." + extension); )
+			for (int i = 1; keySet.contains(pdfFileName = baseName + (i++) + "." + extension); ) {
 				;
+			}
 		}
 
 		PdfStatusViewImpl panel = new PdfStatusViewImpl(pdfFileName, documentIds, withMetadata);

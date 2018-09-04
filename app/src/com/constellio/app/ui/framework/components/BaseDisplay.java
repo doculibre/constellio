@@ -1,17 +1,17 @@
 package com.constellio.app.ui.framework.components;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 
+import java.io.Serializable;
+import java.util.List;
+
 @SuppressWarnings("serial")
 public class BaseDisplay extends CustomComponent {
-	
+
 	public static final String STYLE_NAME = "base-display";
 	public static final String STYLE_CAPTION = "display-caption";
 	public static final String STYLE_VALUE = "display-value";
@@ -20,19 +20,19 @@ public class BaseDisplay extends CustomComponent {
 
 	public BaseDisplay(List<CaptionAndComponent> captionsAndDisplayComponents) {
 		addStyleName(STYLE_NAME);
-		
+
 		setSizeFull();
 
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeUndefined();
 		mainLayout.setSpacing(true);
-		mainLayout.addStyleName(STYLE_NAME + "-main-layout"); 
-		
+		mainLayout.addStyleName(STYLE_NAME + "-main-layout");
+
 		setCaptionsAndComponents(captionsAndDisplayComponents);
 
 		setCompositionRoot(mainLayout);
 	}
-	
+
 	protected void setCaptionsAndComponents(List<CaptionAndComponent> captionsAndDisplayComponents) {
 		if (mainLayout.iterator().hasNext()) {
 			mainLayout.removeAllComponents();
@@ -45,7 +45,7 @@ public class BaseDisplay extends CustomComponent {
 			addCaptionAndDisplayComponent(captionLabel, displayComponent);
 		}
 	}
-	
+
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent) {
 		if (displayComponent.isVisible()) {
 			I18NHorizontalLayout captionAndComponentLayout = new I18NHorizontalLayout();
@@ -54,21 +54,21 @@ public class BaseDisplay extends CustomComponent {
 			} else {
 				captionAndComponentLayout.setSizeFull();
 			}
-			
+
 			mainLayout.addComponent(captionAndComponentLayout);
 			captionAndComponentLayout.addComponent(captionLabel);
 			captionAndComponentLayout.addComponent(displayComponent);
 		}
 	}
-	
+
 	protected boolean isCaptionAndDisplayComponentWidthUndefined() {
 		return false;
 	}
-	
+
 	public static class CaptionAndComponent implements Serializable {
-		
+
 		public Label captionLabel;
-		
+
 		public Component displayComponent;
 
 		public CaptionAndComponent(Label captionLabel, Component displayComponent) {
@@ -76,7 +76,7 @@ public class BaseDisplay extends CustomComponent {
 			this.captionLabel = captionLabel;
 			this.displayComponent = displayComponent;
 		}
-		
+
 	}
 
 }

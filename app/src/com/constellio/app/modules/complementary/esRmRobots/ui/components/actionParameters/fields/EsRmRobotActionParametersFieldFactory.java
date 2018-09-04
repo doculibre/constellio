@@ -6,7 +6,6 @@ import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionP
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.category.ActionParametersCategoryFieldImpl;
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.retentionRule.ActionParametersRetentionRuleField;
 import com.constellio.app.modules.complementary.esRmRobots.ui.components.actionParameters.fields.retentionRule.ActionParametersRetentionRuleFieldImpl;
-import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -14,10 +13,10 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.schemas.Metadata;
 import com.vaadin.ui.Field;
 
 import java.util.Arrays;
+import java.util.Locale;
 
 import static com.constellio.app.modules.complementary.esRmRobots.model.ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_UNIFORM_SUBDIVISION;
 
@@ -36,42 +35,42 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 	private LookupRecordField uniformSubdivisionField;
 
 	private EsRmRobotActionParametersPresenter presenter;
-	
+
 	private static final String[] CUSTOM_FIELDS = {
 			ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_CATEGORY,
 			ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_CATEGORY,
-			ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_RETENTION_RULE,	
+			ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_RETENTION_RULE,
 			ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_RETENTION_RULE,
-	};
+			};
 
 	public EsRmRobotActionParametersFieldFactory() {
 		this.presenter = new EsRmRobotActionParametersPresenter(this);
 	}
-	
+
 	@Override
-	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 		Field<?> field;
-		if(DEFAULT_UNIFORM_SUBDIVISION.equals(metadataVO.getLocalCode()) && !presenter.areUniformSubdivisionsEnabled()) {
-			return null;
-		}
-		
-		if(DEFAULT_COPY_STATUS.equals(metadataVO.getLocalCode())) {
-			return null;
-		}
-		
-		if(IN_TAXONOMY.equals(metadataVO.getLocalCode())) {
-			return null;
-		}
-		
-		if(DEFAULT_CATEGORY.equals(metadataVO.getLocalCode()) && !metadataVO.isRequired()) {
+		if (DEFAULT_UNIFORM_SUBDIVISION.equals(metadataVO.getLocalCode()) && !presenter.areUniformSubdivisionsEnabled()) {
 			return null;
 		}
 
-		if(DEFAULT_RETENTION_RULE.equals(metadataVO.getLocalCode()) && !metadataVO.isRequired()) {
+		if (DEFAULT_COPY_STATUS.equals(metadataVO.getLocalCode())) {
 			return null;
 		}
 
-		if(PATH_PREFIX.equals(metadataVO.getLocalCode())) {
+		if (IN_TAXONOMY.equals(metadataVO.getLocalCode())) {
+			return null;
+		}
+
+		if (DEFAULT_CATEGORY.equals(metadataVO.getLocalCode()) && !metadataVO.isRequired()) {
+			return null;
+		}
+
+		if (DEFAULT_RETENTION_RULE.equals(metadataVO.getLocalCode()) && !metadataVO.isRequired()) {
+			return null;
+		}
+
+		if (PATH_PREFIX.equals(metadataVO.getLocalCode())) {
 			return null;
 		}
 
@@ -82,20 +81,20 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 				retentionRuleField = new ActionParametersRetentionRuleFieldImpl();
 				presenter.rmFieldsCreated();
 			}
-			if (ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_CATEGORY.equals(code) || 
-					ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_CATEGORY.equals(code)) {
+			if (ClassifyConnectorFolderDirectlyInThePlanActionParameters.DEFAULT_CATEGORY.equals(code) ||
+				ClassifyConnectorFolderInTaxonomyActionParameters.DEFAULT_CATEGORY.equals(code)) {
 				field = categoryField;
 			} else {
 				field = retentionRuleField;
 			}
 			super.postBuild(field, recordVO, metadataVO);
 		} else {
-			if(code.equals(DEFAULT_UNIFORM_SUBDIVISION)) {
+			if (code.equals(DEFAULT_UNIFORM_SUBDIVISION)) {
 				uniformSubdivisionField = (LookupRecordField) super.build(recordVO, metadataVO);
 				presenter.subdivisionFieldCreated();
 				return uniformSubdivisionField;
 			}
-			field = super.build(recordVO, metadataVO);
+			field = super.build(recordVO, metadataVO, locale);
 		}
 
 		return field;

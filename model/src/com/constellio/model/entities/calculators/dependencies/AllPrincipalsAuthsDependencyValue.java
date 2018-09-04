@@ -1,15 +1,15 @@
 package com.constellio.model.entities.calculators.dependencies;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class AllPrincipalsAuthsDependencyValue {
 
@@ -24,7 +24,7 @@ public class AllPrincipalsAuthsDependencyValue {
 	}
 
 	public KeyListMap<String, String> getPrincipalIdsWithAnyAuthorization(Map<String, List<String>> authorizations,
-			GroupAuthorizationsInheritance inheritanceMode) {
+																		  GroupAuthorizationsInheritance inheritanceMode) {
 
 		KeyListMap<String, String> principalsAccesses = new KeyListMap<>();
 		for (User user : users) {

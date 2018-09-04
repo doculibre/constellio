@@ -5,6 +5,6 @@ package com.constellio.app.extensions.api.scripts;
  */
 public enum ScriptParameterType {
 
-    FILE, COMBOBOX, BOOLEAN, STRING;
+	FILE, COMBOBOX, BOOLEAN, STRING, TEXT;
 
 }

@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -19,6 +13,12 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 // AFTER: Rename to MultitypeRecordVoDataProvider
 @SuppressWarnings("serial")
@@ -34,8 +34,8 @@ public abstract class RecordVOWithDistinctSchemasDataProvider implements DataPro
 	SessionContext sessionContext;
 
 	public RecordVOWithDistinctSchemasDataProvider(List<MetadataSchemaVO> schemas, RecordToVOBuilder voBuilder,
-			ModelLayerFactory modelLayerFactory,
-			SessionContext sessionContext) {
+												   ModelLayerFactory modelLayerFactory,
+												   SessionContext sessionContext) {
 		this.schemas = schemas;
 		this.voBuilder = voBuilder;
 		this.sessionContext = sessionContext;

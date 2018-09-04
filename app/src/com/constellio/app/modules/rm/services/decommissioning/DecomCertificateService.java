@@ -31,7 +31,12 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.io.IOUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,8 +57,10 @@ public class DecomCertificateService {
 	AppLayerFactory appLayerFactory;
 
 	public DecomCertificateService(RMSchemasRecordsServices rm,
-			SearchServices searchServices, ContentManager contentManager, FileService fileService,
-			User user, DecommissioningList decommissioningList, AppLayerFactory appLayerFactory) {
+								   SearchServices searchServices, ContentManager contentManager,
+								   FileService fileService,
+								   User user, DecommissioningList decommissioningList,
+								   AppLayerFactory appLayerFactory) {
 		this.rm = rm;
 		this.decommissioningList = decommissioningList;
 		this.searchServices = searchServices;
@@ -155,8 +162,8 @@ public class DecomCertificateService {
 
 	List<Folder> getFolders(List<DecomListFolderDetail> foldersDetails) {
 		List<String> foldersIds = new ArrayList<>();
-		for(DecomListFolderDetail detail: foldersDetails) {
-			if(detail.isFolderIncluded()) {
+		for (DecomListFolderDetail detail : foldersDetails) {
+			if (detail.isFolderIncluded()) {
 				foldersIds.add(detail.getFolderId());
 			}
 		}
@@ -209,7 +216,8 @@ public class DecomCertificateService {
 		List<DocumentsCertificateReportModel_Document> documents = new ArrayList<>();
 		List<FoldersCertificateReportModel_Folder> folders = new ArrayList<>();
 
-		public DocumentsCertificateReportModel_Elements addAllDocuments(RMSchemasRecordsServices rm, List<Document> documents) {
+		public DocumentsCertificateReportModel_Elements addAllDocuments(RMSchemasRecordsServices rm,
+																		List<Document> documents) {
 			if (documents != null) {
 				DocumentToDocumentCertificate builder = new DocumentToDocumentCertificate(rm);
 				for (Document document : documents) {
@@ -219,7 +227,8 @@ public class DecomCertificateService {
 			return this;
 		}
 
-		public DocumentsCertificateReportModel_Elements addAllFolders(RMSchemasRecordsServices rm, List<Folder> folders) {
+		public DocumentsCertificateReportModel_Elements addAllFolders(RMSchemasRecordsServices rm,
+																	  List<Folder> folders) {
 			if (folders != null) {
 				FolderToFolderCertificate builder = new FolderToFolderCertificate(rm);
 				for (Folder folder : folders) {

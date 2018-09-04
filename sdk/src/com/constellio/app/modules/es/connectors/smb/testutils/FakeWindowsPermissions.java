@@ -1,11 +1,10 @@
 package com.constellio.app.modules.es.connectors.smb.testutils;
 
-import java.util.List;
-
-import jcifs.smb.SmbFile;
-
 import com.constellio.app.modules.es.connectors.smb.security.TrusteeManager;
 import com.constellio.app.modules.es.connectors.smb.security.WindowsPermissions;
+import jcifs.smb.SmbFile;
+
+import java.util.List;
 
 public class FakeWindowsPermissions extends WindowsPermissions {
 	private List<String> allowTokens;
@@ -14,8 +13,9 @@ public class FakeWindowsPermissions extends WindowsPermissions {
 	private List<String> denyShareTokens;
 	private String permissionsHash;
 
-	public FakeWindowsPermissions(SmbFile file, TrusteeManager trusteeManager, List<String> allowTokens, List<String> allowShareTokens,
-			List<String> denyTokens, List<String> denyShareTokens, String permissionsHash) {
+	public FakeWindowsPermissions(SmbFile file, TrusteeManager trusteeManager, List<String> allowTokens,
+								  List<String> allowShareTokens,
+								  List<String> denyTokens, List<String> denyShareTokens, String permissionsHash) {
 		super(file, trusteeManager, false);
 
 		this.allowTokens = allowTokens;

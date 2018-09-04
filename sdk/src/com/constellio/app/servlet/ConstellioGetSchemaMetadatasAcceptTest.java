@@ -1,21 +1,5 @@
 package com.constellio.app.servlet;
 
-import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-
-import java.io.StringReader;
-import java.util.List;
-
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.input.SAXBuilder;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
@@ -23,6 +7,25 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.WebClient;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.StringReader;
+import java.util.List;
+
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedAllauthorizationsMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedDdvContainerMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedDdvDocumentMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedDocumentDefaultSchemaMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedDocumentEmailSchemaMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedFolderDefaultSchemaMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedKeywordMetadatas;
+import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedTypeMetadatas;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConstellioGetSchemaMetadatasAcceptTest extends ConstellioTest {
 
@@ -221,7 +224,7 @@ public class ConstellioGetSchemaMetadatasAcceptTest extends ConstellioTest {
 			throws Exception {
 		label = label.replace(" ", "%20");
 		String url = "http://localhost:7070/constellio/getSchemaMetadatas?collection=" + collection
-				+ "&type=" + type + "&label=" + label;
+					 + "&type=" + type + "&label=" + label;
 
 		WebClient webClient = new WebClient();
 

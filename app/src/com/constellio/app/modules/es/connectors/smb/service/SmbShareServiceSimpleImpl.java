@@ -1,19 +1,5 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
-import java.lang.reflect.Field;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-
-import jcifs.smb.NtlmPasswordAuthentication;
-import jcifs.smb.SmbException;
-import jcifs.smb.SmbFile;
-import jcifs.smb.SmbFileFilter;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.es.connectors.smb.config.SmbRetrievalConfiguration;
 import com.constellio.app.modules.es.connectors.smb.security.Credentials;
 import com.constellio.app.modules.es.connectors.smb.security.TrusteeManager;
@@ -25,6 +11,18 @@ import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.connectors.smb.utils.SmbUrlComparator;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import jcifs.smb.NtlmPasswordAuthentication;
+import jcifs.smb.SmbException;
+import jcifs.smb.SmbFile;
+import jcifs.smb.SmbFileFilter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 public class SmbShareServiceSimpleImpl implements SmbShareService {
 	private NtlmPasswordAuthentication auth;
@@ -36,15 +34,18 @@ public class SmbShareServiceSimpleImpl implements SmbShareService {
 	private WindowsPermissionsFactory permissionsFactory;
 	private SmbUrlComparator urlComparator;
 
-	public SmbShareServiceSimpleImpl(Credentials credentials, SmbRetrievalConfiguration smbRetrievalConfiguration, ConnectorSmbUtils smbUtils,
-			ConnectorLogger logger, ESSchemasRecordsServices es) {
+	public SmbShareServiceSimpleImpl(Credentials credentials, SmbRetrievalConfiguration smbRetrievalConfiguration,
+									 ConnectorSmbUtils smbUtils,
+									 ConnectorLogger logger, ESSchemasRecordsServices es) {
 		this(credentials, smbRetrievalConfiguration, smbUtils, logger, es,
 				new WindowsPermissionsFactoryImpl(new TrusteeManager(), smbRetrievalConfiguration.isSkipSharePermissions()),
 				new SmbFileFactoryImpl());
 	}
 
-	public SmbShareServiceSimpleImpl(Credentials credentials, SmbRetrievalConfiguration smbRetrievalConfiguration, ConnectorSmbUtils smbUtils,
-			ConnectorLogger logger, ESSchemasRecordsServices es, WindowsPermissionsFactory permissionsFactory, SmbFileFactory smbFactory) {
+	public SmbShareServiceSimpleImpl(Credentials credentials, SmbRetrievalConfiguration smbRetrievalConfiguration,
+									 ConnectorSmbUtils smbUtils,
+									 ConnectorLogger logger, ESSchemasRecordsServices es,
+									 WindowsPermissionsFactory permissionsFactory, SmbFileFactory smbFactory) {
 		this.auth = new NtlmPasswordAuthentication(credentials.getDomain(), credentials.getUsername(), credentials.getPassword());
 		this.smbFactory = smbFactory;
 		this.smbRetrievalConfiguration = smbRetrievalConfiguration;
@@ -89,7 +90,7 @@ public class SmbShareServiceSimpleImpl implements SmbShareService {
 			smbFile = smbFactory.getSmbFile(url, auth);
 			SmbFile[] filesAndFolders = smbFile.listFiles(new CustomSmbFileFilter());
 			for (SmbFile fileOrFolder : filesAndFolders) {
-                //http://issues.constellio.com/browse/CONSTELLIOEIM-933
+				//http://issues.constellio.com/browse/CONSTELLIOEIM-933
 				Object value = getUNC(smbFile, fileOrFolder);
 				String fileOrFolderUrl = fileOrFolder.getCanonicalPath();
 				if (value != null) {

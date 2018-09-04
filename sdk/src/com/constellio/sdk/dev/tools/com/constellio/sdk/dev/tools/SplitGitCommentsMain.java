@@ -13,6 +13,11 @@ import org.joda.time.LocalTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 public class SplitGitCommentsMain {
 
 	//git log --since='2 years' --pretty=format:'"%h","%an","%ad","%s"' > ~/logConstellio.csv

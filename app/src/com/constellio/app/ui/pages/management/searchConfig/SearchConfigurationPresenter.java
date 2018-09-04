@@ -1,11 +1,14 @@
 package com.constellio.app.ui.pages.management.searchConfig;
 
+import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+
+import java.util.List;
 
 public class SearchConfigurationPresenter extends BasePresenter<SearchConfigurationView> {
 
@@ -14,7 +17,7 @@ public class SearchConfigurationPresenter extends BasePresenter<SearchConfigurat
 	}
 
 	public SearchConfigurationPresenter(SearchConfigurationView view, ConstellioFactories constellioFactories,
-			SessionContext sessionContext) {
+										SessionContext sessionContext) {
 		super(view, constellioFactories, sessionContext);
 	}
 
@@ -34,13 +37,13 @@ public class SearchConfigurationPresenter extends BasePresenter<SearchConfigurat
 	public boolean canManageCorrectorExclusions() {
 		User user = getCurrentUser();
 		return Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-				&& user.has(CorePermissions.DELETE_CORRECTION_SUGGESTION).globally();
+			   && user.has(CorePermissions.DELETE_CORRECTION_SUGGESTION).globally();
 	}
 
 	public boolean isSystemSectionTitleVisible() {
 		User user = getCurrentUser();
 		return Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-				&& user.hasAny(CorePermissions.MANAGE_SYNONYMS, CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT).globally();
+			   && user.hasAny(CorePermissions.MANAGE_SYNONYMS, CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT).globally();
 	}
 
 	public boolean isBoostMetadataButtonVisible() {
@@ -56,7 +59,7 @@ public class SearchConfigurationPresenter extends BasePresenter<SearchConfigurat
 	public boolean isElevationManagementButtonVisible() {
 		User user = getCurrentUser();
 		return Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-				&& user.has(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT).globally();
+			   && user.has(CorePermissions.EXCLUDE_AND_RAISE_SEARCH_RESULT).globally();
 	}
 
 	public boolean isSearchBoostByQueryButtonVisible() {
@@ -72,11 +75,13 @@ public class SearchConfigurationPresenter extends BasePresenter<SearchConfigurat
 	public boolean isCapsulesManagementButtonVisible() {
 		User user = getCurrentUser();
 		return Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
-				&& user.has(CorePermissions.ACCESS_SEARCH_CAPSULE).globally();
+			   && user.has(CorePermissions.ACCESS_SEARCH_CAPSULE).globally();
 	}
 
 	public boolean isThesaurusConfigurationButtonVisible() {
-		return true;
+		User user = getCurrentUser();
+		return Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()
+			   && user.has(CorePermissions.MANAGE_THESAURUS).globally();
 	}
 
 	public boolean isSpellCheckerExclusionsManagementButtonVisible() {
@@ -125,7 +130,15 @@ public class SearchConfigurationPresenter extends BasePresenter<SearchConfigurat
 
 	public void statisticsButtonClicked() {
 		view.navigate().to().statistics();
-		
+
+	}
+
+	public List<NavigationItem> getCollectionItems() {
+		return navigationConfig().getNavigation(SearchConfigurationView.COLLECTION_SECTION);
+	}
+
+	public List<NavigationItem> getSystemItems() {
+		return navigationConfig().getNavigation(SearchConfigurationView.SYSTEM_SECTION);
 	}
 
 }

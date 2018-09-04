@@ -1,10 +1,10 @@
 package com.constellio.model.services.schemas.builders;
 
+import org.junit.Test;
+
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static junit.framework.Assert.fail;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
 
 public class MetadataBuilder_CustomAttributesTest extends MetadataBuilderTest {
 
@@ -76,7 +76,7 @@ public class MetadataBuilder_CustomAttributesTest extends MetadataBuilderTest {
 
 	}
 
-	@Test (expected = MetadataBuilderRuntimeException.class)
+	@Test(expected = MetadataBuilderRuntimeException.class)
 	public void givenCustomAttributesWithCommasThenException()
 			throws Exception {
 		inheritedMetadataBuilder.setType(STRING).addCustomAttribute("fla,g1");

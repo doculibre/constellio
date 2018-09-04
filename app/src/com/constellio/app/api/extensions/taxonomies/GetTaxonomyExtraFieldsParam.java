@@ -12,7 +12,7 @@ public class GetTaxonomyExtraFieldsParam {
 	private SessionContextProvider sessionContextProvider;
 
 	public GetTaxonomyExtraFieldsParam(Taxonomy taxonomy, Record record,
-			SessionContextProvider sessionContextProvider) {
+									   SessionContextProvider sessionContextProvider) {
 		this.taxonomy = taxonomy;
 		this.record = record;
 		this.sessionContextProvider = sessionContextProvider;

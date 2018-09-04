@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas.xml;
 
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -13,7 +14,12 @@ import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManagerRuntimeException;
-import com.constellio.model.services.schemas.builders.*;
+import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
@@ -34,8 +40,9 @@ public class MetadataSchemaXMLReader1 {
 		this.classProvider = classProvider;
 	}
 
-	public MetadataSchemaTypesBuilder read(String collection, Document document, DataStoreTypesFactory typesFactory,
-			ModelLayerFactory modelLayerFactory) {
+	public MetadataSchemaTypesBuilder read(CollectionInfo collection, Document document,
+										   DataStoreTypesFactory typesFactory,
+										   ModelLayerFactory modelLayerFactory) {
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
@@ -48,7 +55,8 @@ public class MetadataSchemaXMLReader1 {
 	}
 
 	private MetadataSchemaType parseProfilType(MetadataSchemaTypesBuilder typesBuilder, Element element,
-			DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
+											   DataStoreTypesFactory typesFactory,
+											   ModelLayerFactory modelLayerFactory) {
 		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(getCodeValue(element), false).addLabel(
 				Language.French, getLabelValue(element));
 		schemaTypeBuilder.setSecurity(getBooleanFlagValue(element, "security"));
@@ -196,7 +204,7 @@ public class MetadataSchemaXMLReader1 {
 	}
 
 	private void setAccessRestrictions(MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder,
-			Element metadataElement) {
+									   Element metadataElement) {
 		Element accessRestrictionsElement = metadataElement.getChild("accessRestrictions");
 		Element readAccessRestrictionsElement = accessRestrictionsElement.getChild("readAccessRestrictions");
 		Element writeAccessRestrictionsElement = accessRestrictionsElement.getChild("writeAccessRestrictions");

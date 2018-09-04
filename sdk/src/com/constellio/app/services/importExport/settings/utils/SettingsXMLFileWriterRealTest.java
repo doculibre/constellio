@@ -1,9 +1,18 @@
 package com.constellio.app.services.importExport.settings.utils;
 
 import com.constellio.app.services.importExport.settings.SettingsImportServicesTestUtils;
-import com.constellio.app.services.importExport.settings.model.*;
+import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedConfig;
+import com.constellio.app.services.importExport.settings.model.ImportedDataEntry;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadata;
+import com.constellio.app.services.importExport.settings.model.ImportedMetadataSchema;
+import com.constellio.app.services.importExport.settings.model.ImportedSequence;
+import com.constellio.app.services.importExport.settings.model.ImportedSettings;
+import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
+import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.model.ImportedValueList;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
-
+import com.constellio.model.entities.Language;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -16,7 +25,12 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -138,20 +152,36 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 	public void whenWritingValueListsThenValuesAreSaved() {
 		ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, "domaine1");
+
+
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl1")
-				.setTitle("domaine1")
+				.setTitle(titleMap)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setCodeMode("DISABLED"));
+
+		Map<Language, String> titleMap2 = new HashMap<>();
+		titleMap2.put(Language.French, "domaine2");
+
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl2")
-				.setTitle("domaine2")
+				.setTitle(titleMap2)
 				.setClassifiedTypes(toListOfString("document"))
 				.setCodeMode("FACULTATIVE"));
+
+		Map<Language, String> titleMap3 = new HashMap<>();
+		titleMap3.put(Language.French, "domaine3");
+
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl3")
-				.setTitle("domaine3")
+				.setTitle(titleMap3)
 				.setCodeMode("REQUIRED_AND_UNIQUE")
 				.setHierarchical(true));
+
+		Map<Language, String> titleMap4 = new HashMap<>();
+		titleMap4.put(Language.French, "domaine4");
+
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl4")
-				.setTitle("domaine4")
+				.setTitle(titleMap4)
 				.setHierarchical(false));
 
 		ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
@@ -173,7 +203,7 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 
 		Element ddv1Elem = valueListsItems.get(0);
 		assertThat(ddv1Elem.getAttributeValue(CODE)).isEqualTo("ddvUSRvl1");
-		assertThat(ddv1Elem.getAttributeValue(TITLE)).isEqualTo("domaine1");
+		assertThat(ddv1Elem.getAttributeValue(TITLE + Language.French.getCode())).isEqualTo("domaine1");
 		assertThat(ddv1Elem.getAttributeValue(CLASSIFIED_TYPES)).isEqualTo("document,folder");
 		assertThat(ddv1Elem.getAttributeValue("codeMode")).isEqualTo("DISABLED");
 	}
@@ -184,16 +214,22 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 
 		ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "taxo1Titre1");
+
 		ImportedTaxonomy taxonomy1 = new ImportedTaxonomy().setCode("taxoT1Type")
-				.setTitle("taxo1Titre1")
+				.setTitle(labelTitle1)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
 				.setUserIds(asList("user1", "user2"))
 				.setGroupIds(asList("group1"));
 		zeCollectionSettings.addTaxonomy(taxonomy1);
 
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, "taxo1Titre2");
+
 		ImportedTaxonomy taxonomy2 = new ImportedTaxonomy().setCode("taxoT2Type")
-				.setTitle("taxo1Titre2");
+				.setTitle(labelTitle2);
 		zeCollectionSettings.addTaxonomy(taxonomy2);
 
 		ImportedSettings importedSettings = new ImportedSettings().addCollectionSettings(zeCollectionSettings);
@@ -214,7 +250,7 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 
 		Element taxonomy1Elem = taxonomiesElem.getChildren().get(0);
 		assertThat(taxonomy1Elem.getAttributeValue(CODE)).isEqualTo("taxoT1Type");
-		assertThat(taxonomy1Elem.getAttributeValue(TITLE)).isEqualTo("taxo1Titre1");
+		assertThat(taxonomy1Elem.getAttributeValue(TITLE + Language.French.getCode())).isEqualTo("taxo1Titre1");
 		assertThat(taxonomy1Elem.getAttributeValue(VISIBLE_IN_HOME_PAGE)).isEqualTo("false");
 		assertThat(taxonomy1Elem.getAttributeValue(USERS)).isEqualTo("user1,user2");
 		assertThat(taxonomy1Elem.getAttributeValue(GROUPS)).isEqualTo("group1");
@@ -345,8 +381,8 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 		ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 
 		String pattern = "## This is a comment on the first line\n"
-				+ "'Prefixe ' + title+ ' Suffixe'\n"
-				+ "## This is a comment on the last line";
+						 + "'Prefixe ' + title+ ' Suffixe'\n"
+						 + "## This is a comment on the last line";
 
 		ImportedMetadata m1 = new ImportedMetadata().setCode("m1").setLabel("titre m1")
 				.setType("STRING")
@@ -683,33 +719,54 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 
 		writer.addSequences(sequences);
 
+		Map<Language, String> titleMap = new HashMap<>();
+		titleMap.put(Language.French, "domaine1");
+
 		ImportedCollectionSettings zeCollectionSettings = new ImportedCollectionSettings().setCode(zeCollection);
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl1")
-				.setTitle("domaine1")
+				.setTitle(titleMap)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setCodeMode("DISABLED"));
+
+		Map<Language, String> titleMap2 = new HashMap<>();
+		titleMap2.put(Language.French, "domaine2");
+
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl2")
-				.setTitle("domaine2")
+				.setTitle(titleMap2)
 				.setClassifiedTypes(toListOfString("document"))
 				.setCodeMode("FACULTATIVE"));
+
+		Map<Language, String> titleMap3 = new HashMap<>();
+		titleMap3.put(Language.French, "domaine3");
+
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl3")
-				.setTitle("domaine3")
+				.setTitle(titleMap3)
 				.setCodeMode("REQUIRED_AND_UNIQUE")
 				.setHierarchical(true));
+
+		Map<Language, String> titleMap4 = new HashMap<>();
+		titleMap4.put(Language.French, "domaine4");
+
 		zeCollectionSettings.addValueList(new ImportedValueList().setCode("ddvUSRvl4")
-				.setTitle("domaine4")
+				.setTitle(titleMap4)
 				.setHierarchical(false));
 
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "taxo1Titre1");
+
 		ImportedTaxonomy taxonomy1 = new ImportedTaxonomy().setCode("taxoT1Type")
-				.setTitle("taxo1Titre1")
+				.setTitle(labelTitle1)
 				.setClassifiedTypes(toListOfString("document", "folder"))
 				.setVisibleOnHomePage(false)
 				.setUserIds(asList("user1", "user2"))
 				.setGroupIds(asList("group1"));
 		zeCollectionSettings.addTaxonomy(taxonomy1);
 
+		Map<Language, String> labelTitle2 = new HashMap<>();
+		labelTitle2.put(Language.French, "taxo1Titre2");
+
 		ImportedTaxonomy taxonomy2 = new ImportedTaxonomy().setCode("taxoT2Type")
-				.setTitle("taxo1Titre2");
+				.setTitle(labelTitle2);
 		zeCollectionSettings.addTaxonomy(taxonomy2);
 
 		Map<String, String> tabParams = new TreeMap<>();
@@ -763,7 +820,7 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 
 		Element ddv1Elem = valueListsItems.get(0);
 		assertThat(ddv1Elem.getAttributeValue(CODE)).isEqualTo("ddvUSRvl1");
-		assertThat(ddv1Elem.getAttributeValue(TITLE)).isEqualTo("domaine1");
+		assertThat(ddv1Elem.getAttributeValue(TITLE + Language.French.getCode())).isEqualTo("domaine1");
 		assertThat(ddv1Elem.getAttributeValue(CLASSIFIED_TYPES)).isEqualTo("document,folder");
 		assertThat(ddv1Elem.getAttributeValue("codeMode")).isEqualTo("DISABLED");
 
@@ -773,7 +830,7 @@ public class SettingsXMLFileWriterRealTest extends SettingsImportServicesTestUti
 
 		Element taxonomy1Elem = taxonomiesElem.getChildren().get(0);
 		assertThat(taxonomy1Elem.getAttributeValue(CODE)).isEqualTo("taxoT1Type");
-		assertThat(taxonomy1Elem.getAttributeValue(TITLE)).isEqualTo("taxo1Titre1");
+		assertThat(taxonomy1Elem.getAttributeValue(TITLE + Language.French.getCode())).isEqualTo("taxo1Titre1");
 		assertThat(taxonomy1Elem.getAttributeValue(VISIBLE_IN_HOME_PAGE)).isEqualTo("false");
 		assertThat(taxonomy1Elem.getAttributeValue(USERS)).isEqualTo("user1,user2");
 		assertThat(taxonomy1Elem.getAttributeValue(GROUPS)).isEqualTo("group1");

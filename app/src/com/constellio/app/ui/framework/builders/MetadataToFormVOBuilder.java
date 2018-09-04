@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.builders;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
@@ -20,6 +14,12 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.SchemaUtils;
 
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 @SuppressWarnings("serial")
 public class MetadataToFormVOBuilder implements Serializable {
 
@@ -30,12 +30,12 @@ public class MetadataToFormVOBuilder implements Serializable {
 	}
 
 	public FormMetadataVO build(Metadata metadata, SchemasDisplayManager configManager, String schemaTypeCode,
-			SessionContext sessionContext) {
+								SessionContext sessionContext) {
 		return build(metadata, null, configManager, schemaTypeCode, sessionContext);
 	}
 
 	public FormMetadataVO build(Metadata metadata, MetadataSchemaVO schemaVO, SchemasDisplayManager configManager,
-			String schemaTypeCode, SessionContext sessionContext) {
+								String schemaTypeCode, SessionContext sessionContext) {
 		MetadataDisplayConfig config = configManager.getMetadata(metadata.getCollection(), metadata.getCode());
 		SchemaTypesDisplayConfig types = configManager.getTypes(metadata.getCollection());
 
@@ -50,6 +50,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 		MetadataDisplayType displayType = config.getDisplayType();
 		boolean sortable = metadata.isSortable();
 		boolean searchable = metadata.isSearchable();
+		boolean isMultiLingual = metadata.isMultiLingual();
 
 		boolean advancedSearch;
 		if (metadata.getInheritance() == null) {
@@ -76,7 +77,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 		if (metadata.getType().equals(MetadataValueType.REFERENCE)) {
 			reference = metadata.getAllowedReferences().getAllowedSchemaType();
 			Set<String> allowedSchemas = metadata.getAllowedReferences().getAllowedSchemas();
-			if(reference == null && allowedSchemas != null && allowedSchemas.size() == 1) {
+			if (reference == null && allowedSchemas != null && allowedSchemas.size() == 1) {
 				reference = SchemaUtils.getSchemaTypeCode((String) allowedSchemas.toArray()[0]);
 			}
 		}
@@ -100,7 +101,7 @@ public class MetadataToFormVOBuilder implements Serializable {
 				inputMask,
 				duplicable, uniqueValue,
 				metadata.getCustomAttributes(),
-				sessionContext);
+				sessionContext, isMultiLingual);
 		if (metadata.getInheritance() != null) {
 			formMetadataVO.setInheritance(
 					this.build(metadata.getInheritance(), schemaVO, configManager, schemaTypeCode, sessionContext));

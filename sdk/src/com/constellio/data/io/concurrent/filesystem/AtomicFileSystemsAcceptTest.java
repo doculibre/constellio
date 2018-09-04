@@ -1,29 +1,6 @@
 package com.constellio.data.io.concurrent.filesystem;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-import org.apache.zookeeper.server.NIOServerCnxnFactory;
-import org.apache.zookeeper.server.ZooKeeperServer;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-
-import com.constellio.data.io.IOServicesFactory;
-import com.constellio.data.io.concurrent.data.DataWithVersion;
-import com.constellio.data.io.concurrent.exception.FileNotFoundException;
-import com.constellio.data.io.concurrent.exception.OptimisticLockingException;
-import com.constellio.data.utils.hashing.HashingService;
-import com.constellio.model.conf.FoldersLocator;
 
 @InDevelopmentTest
 //@RunWith(value = Parameterized.class)

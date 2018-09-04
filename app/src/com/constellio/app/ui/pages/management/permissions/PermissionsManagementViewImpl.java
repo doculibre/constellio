@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.management.permissions;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -31,6 +24,13 @@ import com.vaadin.ui.Table.CellStyleGenerator;
 import com.vaadin.ui.Table.ColumnGenerator;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class PermissionsManagementViewImpl extends BaseViewImpl implements PermissionsManagementView {
 	public static final String CREATE_ROLE = "create-role";
@@ -191,20 +191,20 @@ public class PermissionsManagementViewImpl extends BaseViewImpl implements Permi
 				return null;
 			}
 			return roles.get(propertyId).isPermissionDirty((String) itemId) ?
-					"permission-dirty" : "permission-clean";
+				   "permission-dirty" : "permission-clean";
 		}
 
 		@Override
-        public Object generateCell(Table source, Object itemId, Object columnId) {
-            String permission = (String) itemId;
-            return columnId.equals(PERMISSION_NAME_COLUMN) ?
-                    buildCaption(permission) :
-                    buildCheckBox(roles.get(columnId), permission, source);
-        }
+		public Object generateCell(Table source, Object itemId, Object columnId) {
+			String permission = (String) itemId;
+			return columnId.equals(PERMISSION_NAME_COLUMN) ?
+				   buildCaption(permission) :
+				   buildCheckBox(roles.get(columnId), permission, source);
+		}
 
-        private Object buildCaption(String permission) {
-            return new Label($("perm." + permission), ContentMode.HTML);
-        }
+		private Object buildCaption(String permission) {
+			return new Label($("perm." + permission), ContentMode.HTML);
+		}
 
 		private Object buildCheckBox(final RoleVO role, final String permission, final Table table) {
 			final CheckBox checkBox = new CheckBox();
@@ -238,7 +238,7 @@ public class PermissionsManagementViewImpl extends BaseViewImpl implements Permi
 	public class CreateRoleButton extends WindowButton {
 		public static final String ROLE_CODE = "role-code";
 		public static final String ROLE_TITLE = "role-title";
-		
+
 		@PropertyId("code") private BaseTextField code;
 		@PropertyId("title") private BaseTextField title;
 

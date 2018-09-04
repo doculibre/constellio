@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.document.newFile;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
@@ -28,8 +23,13 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
-	
+
 	private boolean opened;
 
 	private List<NewFileCreatedListener> newFileCreatedListeners = new ArrayList<>();
@@ -37,7 +37,7 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 	private VerticalLayout mainLayout;
 
 	private Label errorLabel;
-	
+
 	private LookupRecordField documentTypeField;
 
 	private ComboBox extensionField;
@@ -52,7 +52,7 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 
 	private NewFilePresenter presenter;
 
-	public NewFileWindowImpl(){
+	public NewFileWindowImpl() {
 		this(false);
 	}
 
@@ -72,7 +72,7 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 		errorLabel = new Label();
 		errorLabel.addStyleName("error-label");
 		errorLabel.setVisible(false);
-		
+
 		documentTypeField = new LookupRecordField(DocumentType.SCHEMA_TYPE);
 		documentTypeField.setCaption($("NewFileWindow.documentType"));
 
@@ -219,7 +219,7 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 		fileNameField.setValue(null);
 		errorLabel.setVisible(false);
 		extensionField.focus();
-		
+
 		boolean selectableTemplates = !templateField.getItemIds().isEmpty();
 		documentTypeField.setVisible(documentTypeField.getValue() == null);
 		labelAndTemplateLayout.setVisible(selectableTemplates);

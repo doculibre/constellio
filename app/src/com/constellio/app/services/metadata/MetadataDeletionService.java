@@ -1,22 +1,5 @@
 package com.constellio.app.services.metadata;
 
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.CALCULATED_METADATA_SOURCE;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.COPIED_METADATA_REFERENCE;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.COPIED_METADATA_SOURCE;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.EXTRACTED_METADATA_SOURCE;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.FACET_METADATA;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.INHERITED_METADATA;
-import static com.constellio.app.services.metadata.DeletionProhibitionReason.POPULATED_METADATA;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.metadata.MetadataDeletionException.MetadataDeletionException_CalculatedMetadataSource;
@@ -46,6 +29,22 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.CALCULATED_METADATA_SOURCE;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.COPIED_METADATA_REFERENCE;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.COPIED_METADATA_SOURCE;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.EXTRACTED_METADATA_SOURCE;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.FACET_METADATA;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.INHERITED_METADATA;
+import static com.constellio.app.services.metadata.DeletionProhibitionReason.POPULATED_METADATA;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class MetadataDeletionService {
 	final private MetadataSchemasManager schemasManager;
@@ -74,7 +73,7 @@ public class MetadataDeletionService {
 		} else {
 			localCode = codeOrLocalCode;
 		}
-		return localCode.startsWith("USR") || localCode.startsWith("MAP");
+		return localCode.startsWith("USR") || localCode.startsWith("MAP") || localCode.endsWith("Ref");
 	}
 
 	DeletionProhibitionReason canDeleteMetadata(String code) {
@@ -124,7 +123,7 @@ public class MetadataDeletionService {
 	}
 
 	private void computeDependencies(Metadata dependOnMetadata, Metadata dependentMetadata,
-			MetadataDependency metadataDependency) {
+									 MetadataDependency metadataDependency) {
 		String dependOnMetadataCode = dependOnMetadata.getCode();
 		String dependOnMetadataLocalCode = dependOnMetadata.getLocalCode();
 		if (dependentMetadata.getDataEntry().getType() == DataEntryType.COPIED) {
@@ -132,12 +131,12 @@ public class MetadataDeletionService {
 			String referenceMetadata = dataEntry.getReferenceMetadata();
 			if (referenceMetadata != null && (referenceMetadata.equals(dependOnMetadataCode) || referenceMetadata
 					.equals(dependOnMetadataLocalCode))
-					) {
+			) {
 				metadataDependency.addCopyReferenceDependency(dependentMetadata.getCode());
 			}
 			String sourceMetadata = dataEntry.getCopiedMetadata();
 			if (sourceMetadata != null && (sourceMetadata.equals(dependOnMetadataCode)
-					|| sourceMetadata.equals(dependOnMetadataLocalCode))) {
+										   || sourceMetadata.equals(dependOnMetadataLocalCode))) {
 				metadataDependency.addCopySourceDependency(dependentMetadata.getCode());
 			}
 		} else if (dependentMetadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
@@ -145,24 +144,24 @@ public class MetadataDeletionService {
 			for (Dependency dependency : dataEntry.getCalculator().getDependencies()) {
 				String dependencyLocalCode = dependency.getLocalMetadataCode();
 				if (dependencyLocalCode != null && (dependencyLocalCode.equals(dependOnMetadataLocalCode)
-						|| dependencyLocalCode
-						.equals(dependOnMetadataCode))) {
+													|| dependencyLocalCode
+															.equals(dependOnMetadataCode))) {
 					metadataDependency.addCalculationDependency(dependentMetadata.getCode());
 				}
 				if (dependency instanceof ReferenceDependency) {
 					ReferenceDependency referenceDependency = (ReferenceDependency) dependency;
 					String dependentMetadataCode = referenceDependency.getDependentMetadataCode();
 					if (dependentMetadataCode != null && (dependentMetadataCode.equals(dependOnMetadataLocalCode)
-							|| dependentMetadataCode
-							.equals(dependOnMetadataCode))) {
+														  || dependentMetadataCode
+																  .equals(dependOnMetadataCode))) {
 						metadataDependency.addCalculationDependency(dependentMetadata.getCode());
 					}
 				}
 			}
 		}
 		List<String> properties = (dependentMetadata.getPopulateConfigs() == null) ?
-				new ArrayList<String>() :
-				dependentMetadata.getPopulateConfigs().getProperties();
+								  new ArrayList<String>() :
+								  dependentMetadata.getPopulateConfigs().getProperties();
 		if (properties.contains(dependOnMetadataCode) || properties.contains(dependOnMetadataLocalCode)) {
 			metadataDependency.addExtractionDependency(dependentMetadata.getCode());
 		}
@@ -216,25 +215,24 @@ public class MetadataDeletionService {
 		DeletionProhibitionReason reason = canDeleteMetadata(metadata);
 		if (reason != null) {
 			switch (reason) {
-			case POPULATED_METADATA:
-				throw new MetadataDeletionException_PopulatedMetadata();
-			case INHERITED_METADATA:
-				throw new MetadataDeletionException_InheritedMetadata();
-			case COPIED_METADATA_SOURCE:
-				throw new MetadataDeletionException_CopiedMetadataSource();
-			case COPIED_METADATA_REFERENCE:
-				throw new MetadataDeletionException_CopiedMetadataReference();
-			case CALCULATED_METADATA_SOURCE:
-				throw new MetadataDeletionException_CalculatedMetadataSource();
-			case EXTRACTED_METADATA_SOURCE:
-				throw new MetadataDeletionException_ExtractedMetadataSource();
-			case FACET_METADATA:
-				throw new MetadataDeletionException_FacetMetadata();
-			default:
-				throw new RuntimeException("Unsupported reason " + reason);
+				case POPULATED_METADATA:
+					throw new MetadataDeletionException_PopulatedMetadata();
+				case INHERITED_METADATA:
+					throw new MetadataDeletionException_InheritedMetadata();
+				case COPIED_METADATA_SOURCE:
+					throw new MetadataDeletionException_CopiedMetadataSource();
+				case COPIED_METADATA_REFERENCE:
+					throw new MetadataDeletionException_CopiedMetadataReference();
+				case CALCULATED_METADATA_SOURCE:
+					throw new MetadataDeletionException_CalculatedMetadataSource();
+				case EXTRACTED_METADATA_SOURCE:
+					throw new MetadataDeletionException_ExtractedMetadataSource();
+				case FACET_METADATA:
+					throw new MetadataDeletionException_FacetMetadata();
+				default:
+					throw new RuntimeException("Unsupported reason " + reason);
 			}
 		}
-
 		MetadataSchemaTypesBuilder typesBuilder = schemasManager.modify(collection);
 		MetadataSchemaBuilder schemaBuilder = typesBuilder
 				.getSchema(metadata.getSchemaCode());

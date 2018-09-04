@@ -1,14 +1,14 @@
 package com.constellio.app.modules.rm.ui.components.folder;
 
-import java.io.Serializable;
-
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
 
+import java.io.Serializable;
+
 /**
  * Implemented:
- *
+ * <p>
  * Folder.TYPE
  * Folder.ADMINISTRATIVE_UNIT : String
  * Folder.FILING_SPACE
@@ -18,10 +18,10 @@ import com.constellio.app.ui.pages.base.SessionContext;
  * Folder.ACTUAL_TRANSFER_DATE
  * Folder.ACTUAL_DEPOSIT_DATE
  * Folder.ACTUAL_DESTRUCTION_DATE
- *
+ * <p>
  * Always invisible:
  * Folder.CONTAINER
- *
+ * <p>
  * Folder.FOLDER_DEFAULT_MEDIA_TYPE should have an enum-backed CHECKBOXES input type
  *
  * @author Vincent
@@ -29,7 +29,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 public interface FolderForm extends Serializable {
 
 	void reload();
-	
+
 	void commit();
 
 	ConstellioFactories getConstellioFactories();
@@ -37,7 +37,7 @@ public interface FolderForm extends Serializable {
 	SessionContext getSessionContext();
 
 	CustomFolderField<?> getCustomField(String metadataCode);
-	
+
 	void setFieldVisible(String metadataCode, boolean visible);
 
 }

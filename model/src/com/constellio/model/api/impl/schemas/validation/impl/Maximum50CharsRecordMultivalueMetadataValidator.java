@@ -1,13 +1,13 @@
 package com.constellio.model.api.impl.schemas.validation.impl;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.schemas.ConfigProvider;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.frameworks.validation.ValidationErrors;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Maximum50CharsRecordMultivalueMetadataValidator implements RecordMetadataValidator<List<String>> {
 
@@ -17,7 +17,7 @@ public class Maximum50CharsRecordMultivalueMetadataValidator implements RecordMe
 
 	@Override
 	public void validate(Metadata metadata, List<String> values, ConfigProvider configProvider,
-			ValidationErrors validationErrors) {
+						 ValidationErrors validationErrors) {
 		for (String value : values) {
 			if (value != null && value.length() > 50) {
 				Map<String, Object> parameters = new HashMap<>();

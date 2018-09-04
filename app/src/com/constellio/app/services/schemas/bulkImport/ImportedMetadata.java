@@ -1,13 +1,12 @@
 package com.constellio.app.services.schemas.bulkImport;
 
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.MetadataValueType;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
-import com.constellio.app.ui.i18n.i18n;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.MetadataValueType;
 
 @SuppressWarnings("serial")
 public class ImportedMetadata implements Serializable {
@@ -37,11 +36,15 @@ public class ImportedMetadata implements Serializable {
 	String calculator;
 	boolean displayInAllSchemas;
 
-	public ImportedMetadata(String schemaTypeCode, String schemaCode, String localCode, MetadataValueType type, boolean required,
-			String reference,
-			String label, boolean searchable, boolean multivalue, boolean sortable, boolean advancedSearch, boolean facet,
-			MetadataInputType input, boolean highlight, boolean autocomplete, boolean enabled, String metadataGroup,
-			String copyMetadata, String usingReference, String calculator, boolean displayInAllSchemas) {
+	public ImportedMetadata(String schemaTypeCode, String schemaCode, String localCode, MetadataValueType type,
+							boolean required,
+							String reference,
+							String label, boolean searchable, boolean multivalue, boolean sortable,
+							boolean advancedSearch, boolean facet,
+							MetadataInputType input, boolean highlight, boolean autocomplete, boolean enabled,
+							String metadataGroup,
+							String copyMetadata, String usingReference, String calculator,
+							boolean displayInAllSchemas) {
 		super();
 
 		if (localCode.contains("USR")) {
@@ -55,8 +58,8 @@ public class ImportedMetadata implements Serializable {
 		this.valueType = type;
 		this.required = required;
 		this.labels = new HashMap<>();
-		for(Language language : Language.getAvailableLanguages()){
-			if(!language.equals(Language.UNKNOWN)){
+		for (Language language : Language.getAvailableLanguages()) {
+			if (!language.equals(Language.UNKNOWN)) {
 				this.labels.put(language, label);
 			}
 		}

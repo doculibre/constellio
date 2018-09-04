@@ -15,6 +15,7 @@ public class StandaloneLeaderElectionManager implements LeaderElectionManager {
 
 	/**
 	 * For test purposes only
+	 *
 	 * @param leader
 	 */
 	public StandaloneLeaderElectionManager setLeader(boolean leader) {
@@ -24,7 +25,7 @@ public class StandaloneLeaderElectionManager implements LeaderElectionManager {
 
 	@Override
 	public void initialize() {
-		
+
 	}
 
 	@Override

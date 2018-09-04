@@ -1,7 +1,5 @@
 package com.constellio.app.ui.acceptation.management.authorizations;
 
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.pages.management.authorizations.ListAuthorizationsViewImpl;
 import com.constellio.app.ui.tools.PageHelper;
@@ -9,6 +7,7 @@ import com.constellio.app.ui.tools.RecordContainerWebElement;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
 
 public class ListAuthorizationsPage extends PageHelper {
 	protected ListAuthorizationsPage(ConstellioWebDriver driver) {

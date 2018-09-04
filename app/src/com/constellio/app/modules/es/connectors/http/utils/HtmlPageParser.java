@@ -1,17 +1,5 @@
 package com.constellio.app.modules.es.connectors.http.utils;
 
-import static org.apache.tika.io.IOUtils.toByteArray;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.james.mime4j.io.LimitedInputStream;
-
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_CannotDownloadDocument;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_CannotParseDocument;
@@ -25,8 +13,29 @@ import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.gargoylesoftware.htmlunit.WebResponse;
+import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.DomNode;
+import com.gargoylesoftware.htmlunit.html.DomNodeList;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.james.mime4j.io.LimitedInputStream;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Locale;
+import java.util.Set;
+
+import static org.apache.tika.io.IOUtils.toByteArray;
 
 public class HtmlPageParser {
 
@@ -46,24 +55,117 @@ public class HtmlPageParser {
 
 	public HtmlPageParserResults parse(String url, HtmlPage page)
 			throws ConnectorHttpDocumentFetchException {
+		HtmlPageParserResults htmlPageParserResults;
 
-		ParsedContent parsedContent;
-		Set<String> uniqueAnchors = getUniqueAnchors(page);
-		byte[] content;
-		String digest, title, parsedContentText;
-		try {
-			content = getContent(page);
+		if (!isNoIndexContent(page)) {
+			ParsedContent parsedContent;
+			Set<String> uniqueAnchors = getUniqueAnchors(page);
+			byte[] content;
+			try {
+				content = getContent(page);
 
-		} catch (IOException e) {
-			throw new ConnectorHttpDocumentFetchException_CannotDownloadDocument(url, e);
+			} catch (IOException e) {
+				throw new ConnectorHttpDocumentFetchException_CannotDownloadDocument(url, e);
+			}
+
+			try {
+				parsedContent = fileParser.parse(new ByteArrayInputStream(content), true);
+			} catch (FileParserException e) {
+				throw new ConnectorHttpDocumentFetchException_CannotParseDocument(url, e);
+			}
+
+			htmlPageParserResults = finalizeHtmlPageParserResults(url, page, parsedContent, uniqueAnchors);
+		} else {
+			htmlPageParserResults = createNoIndexHtmlPageParserResults();
 		}
 
+		htmlPageParserResults.setNoFollow(isNoFollowLinks(page));
+
+		return htmlPageParserResults;
+	}
+
+	private boolean isNoIndexContent(HtmlPage page) {
+		return hasContentRestriction(page, "noindex");
+	}
+
+	private boolean isNoFollowLinks(HtmlPage page) {
+		return hasContentRestriction(page, "nofollow");
+	}
+
+	private boolean hasContentRestriction(HtmlPage page, String typeOfRestriction) {
+		DomNodeList<DomElement> metas = page.getElementsByTagName("meta");
+		if (metas != null) {
+			ListIterator<DomElement> listIterator = metas.listIterator();
+			while (listIterator.hasNext()) {
+				DomElement element = listIterator.next();
+				String name = element.getAttribute("name");
+				if ("robots".equalsIgnoreCase(name)) {
+					String content = element.getAttribute("content");
+					if (StringUtils.containsIgnoreCase(content, typeOfRestriction)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private HtmlPageParserResults createNoIndexHtmlPageParserResults() {
 		try {
-			parsedContent = fileParser.parse(new ByteArrayInputStream(content), true);
-			title = (String) parsedContent.getNormalizedProperty("title");
-			parsedContentText = parsedContent.getParsedContent();
-		} catch (FileParserException e) {
-			throw new ConnectorHttpDocumentFetchException_CannotParseDocument(url, e);
+			String content = "NOINDEX";
+			String hash = hashingService.getHashFromString(content);
+			return new HtmlPageParserResults(hash, content, content, SetUtils.<String>emptySet(),
+					"text/html", "fr", null);
+		} catch (HashingServiceException e) {
+			throw new ImpossibleRuntimeException(e);
+		}
+	}
+
+	@NotNull
+	private HtmlPageParserResults finalizeHtmlPageParserResults(String url, HtmlPage page, ParsedContent parsedContent,
+																Set<String> uniqueAnchors)
+			throws ConnectorHttpDocumentFetchException_DocumentHasNoParsedContent {
+		String title;
+		String parsedContentText;
+		String digest;
+		title = (String) parsedContent.getNormalizedProperty("title");
+		parsedContentText = parsedContent.getParsedContent();
+
+		String description = parsedContent.getDescription();
+		if (StringUtils.isEmpty(description)) {
+			List<HtmlElement> h1 = ListUtils.emptyIfNull(page.getDocumentElement().getHtmlElementsByTagName("h1"));
+			if (!h1.isEmpty()) {
+				List<HtmlElement> scripts = ListUtils.emptyIfNull(page.getDocumentElement().getHtmlElementsByTagName("script"));
+
+				DomElement h1Element = h1.get(0);
+				StringBuilder builder = new StringBuilder();
+				for (DomElement nextElement = h1Element; nextElement != null; nextElement = nextElement.getNextElementSibling()) {
+					String textContent = getTextContent(nextElement);
+					if (StringUtils.isNotBlank(textContent)) {
+						for (HtmlElement script : scripts) {
+							textContent = StringUtils.remove(textContent, getTextContent(script));
+						}
+
+						builder.append(textContent);
+						if (builder.length() > 200) {
+							break;
+						}
+					}
+				}
+
+				parsedContent.setDescription(StringUtils.left(builder.toString(), 200));
+			}
+		}
+
+		String language = parsedContent.getLanguage();
+		HtmlElement docElement = page.getDocumentElement();
+		if (docElement != null) {
+			String lang = docElement.getLangAttribute();
+			try {
+				Locale langLocale = new Locale(lang);
+				language = langLocale.getLanguage();
+			} catch (Exception e) {
+			}
 		}
 
 		if (parsedContentText.isEmpty()) {
@@ -76,7 +178,37 @@ public class HtmlPageParser {
 			throw new ImpossibleRuntimeException(e);
 		}
 		return new HtmlPageParserResults(digest, parsedContentText, title, uniqueAnchors,
-				parsedContent.getMimetypeWithoutCharset(), parsedContent.getLanguage());
+				parsedContent.getMimetypeWithoutCharset(), language, parsedContent.getDescription());
+	}
+
+	public String getTextContent(DomNode node) {
+		switch (node.getNodeType()) {
+			case DomNode.ELEMENT_NODE:
+			case DomNode.ATTRIBUTE_NODE:
+			case DomNode.ENTITY_NODE:
+			case DomNode.ENTITY_REFERENCE_NODE:
+			case DomNode.DOCUMENT_FRAGMENT_NODE:
+				final StringBuilder builder = new StringBuilder();
+				for (final DomNode child : node.getChildren()) {
+					final short childType = child.getNodeType();
+					if (childType != DomNode.COMMENT_NODE && childType != DomNode.PROCESSING_INSTRUCTION_NODE) {
+						if (builder.length() > 0) {
+							builder.append(" ");
+						}
+						builder.append(getTextContent(child));
+					}
+				}
+				return builder.toString();
+
+			case DomNode.TEXT_NODE:
+			case DomNode.CDATA_SECTION_NODE:
+			case DomNode.COMMENT_NODE:
+			case DomNode.PROCESSING_INSTRUCTION_NODE:
+				return node.getNodeValue();
+
+			default:
+				return null;
+		}
 	}
 
 	private byte[] getContent(HtmlPage page)
@@ -136,14 +268,20 @@ public class HtmlPageParser {
 
 		private String mimetype;
 
-		public HtmlPageParserResults(String digest, String parsedContent, String title, Set<String> linkedUrls, String mimetype,
-				String language) {
+		private String description;
+
+		private boolean noFollow;
+
+		public HtmlPageParserResults(String digest, String parsedContent, String title, Set<String> linkedUrls,
+									 String mimetype,
+									 String language, String description) {
 			this.digest = digest;
 			this.parsedContent = parsedContent;
 			this.title = title;
 			this.linkedUrls = linkedUrls;
 			this.mimetype = mimetype;
 			this.language = language;
+			this.description = description;
 		}
 
 		public String getDigest() {
@@ -168,6 +306,18 @@ public class HtmlPageParser {
 
 		public String getLanguage() {
 			return language;
+		}
+
+		public String getDescription() {
+			return description;
+		}
+
+		public boolean isNoFollow() {
+			return noFollow;
+		}
+
+		public void setNoFollow(boolean noFollow) {
+			this.noFollow = noFollow;
 		}
 	}
 }

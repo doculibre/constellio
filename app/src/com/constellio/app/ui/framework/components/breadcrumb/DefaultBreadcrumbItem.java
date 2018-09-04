@@ -1,9 +1,9 @@
 package com.constellio.app.ui.framework.components.breadcrumb;
 
 public class DefaultBreadcrumbItem implements BreadcrumbItem {
-	
+
 	private String label;
-	
+
 	private boolean enabled;
 
 	public DefaultBreadcrumbItem(String label, boolean enabled) {

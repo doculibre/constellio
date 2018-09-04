@@ -1,31 +1,30 @@
 /**
  * Constellio
  * Copyright (C) 2010 DocuLibre inc.
- *
+ * <p>
  * This program is free software: you can redistribute it and/or modifyTo
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package com.constellio.sdk.tests.selenium.adapters.constellio;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.sdk.tests.selenium.adapters.base.WebElementAdapter;
+import com.constellio.sdk.tests.selenium.adapters.base.WebElementFinder;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 
-import com.constellio.sdk.tests.selenium.adapters.base.WebElementAdapter;
-import com.constellio.sdk.tests.selenium.adapters.base.WebElementFinder;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConstellioWebTableElement extends ConstellioWebElement {
 
@@ -117,7 +116,7 @@ public class ConstellioWebTableElement extends ConstellioWebElement {
 		if (!actualTagName.equals(expectedTagName)) {
 			throw new java.lang.RuntimeException(
 					"L'objet ConstellioWebTableElement ne doit être construit que sur une balise <table>. Il s'agit ici d'une balise <"
-							+ actualTagName + ">.");
+					+ actualTagName + ">.");
 		}
 	}
 }

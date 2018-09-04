@@ -1,20 +1,5 @@
 package com.constellio.app.services.factories;
 
-import static com.constellio.model.services.records.reindexing.ReindexationParams.recalculateAndRewriteSchemaTypesInBackground;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-import com.constellio.data.dao.services.transactionLog.SecondTransactionLogManager;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.cmis.binding.global.CmisCacheManager;
 import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.extensions.AppLayerExtensions;
@@ -22,6 +7,7 @@ import com.constellio.app.extensions.api.scripts.Scripts;
 import com.constellio.app.extensions.impl.DefaultPagesComponentsExtension;
 import com.constellio.app.modules.complementary.ESRMRobotsModule;
 import com.constellio.app.modules.es.ConstellioESModule;
+import com.constellio.app.modules.restapi.ConstellioRestApiModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplateManager;
 import com.constellio.app.modules.robots.ConstellioRobotsModule;
@@ -69,6 +55,19 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.model.services.records.reindexing.ReindexationParams.recalculateAndRewriteSchemaTypesInBackground;
 
 public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFactory {
 
@@ -113,7 +112,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 	private final CorrectorExcluderManager correctorExcluderManager;
 
 	public AppLayerFactoryImpl(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
-			DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator, String instanceName) {
+							   DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator,
+							   String instanceName) {
 		super(modelLayerFactory, statefullServiceDecorator, instanceName);
 
 		this.appLayerExtensions = new AppLayerExtensions();
@@ -142,13 +142,14 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		pluginManager.registerModule(new TaskModule());
 		pluginManager.registerModule(new ConstellioRobotsModule());
 		pluginManager.registerModule(new ESRMRobotsModule());
+		pluginManager.registerModule(new ConstellioRestApiModule());
 
 		Delayed<MigrationServices> migrationServicesDelayed = new Delayed<>();
 		this.modulesManager = add(new ConstellioModulesManagerImpl(this, pluginManager, migrationServicesDelayed));
 
 		this.systemGlobalConfigsManager = add(new SystemGlobalConfigsManager(modelLayerFactory.getDataLayerFactory()));
 		this.collectionsManager = add(
-				new CollectionsManager(modelLayerFactory, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
+				new CollectionsManager(this, modulesManager, migrationServicesDelayed, systemGlobalConfigsManager));
 		migrationServicesDelayed.set(newMigrationServices());
 		try {
 			newMigrationServices().migrate(null, false);

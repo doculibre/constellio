@@ -1,12 +1,13 @@
 package com.constellio.data.utils.hashing;
 
-import static com.constellio.data.conf.HashingEncoding.BASE32;
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import com.constellio.data.io.EncodingService;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.utils.Factory;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.apache.commons.io.input.ReaderInputStream;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,15 +18,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.io.input.ReaderInputStream;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import com.constellio.data.io.EncodingService;
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.data.utils.Factory;
-import com.constellio.sdk.tests.ConstellioTest;
+import static com.constellio.data.conf.HashingEncoding.BASE32;
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class HashingServiceTest extends ConstellioTest {
 

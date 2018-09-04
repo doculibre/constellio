@@ -1,19 +1,23 @@
 package com.constellio.model.utils;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.Serializable;
-import java.util.List;
-
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.managers.config.ConfigManagerException;
+import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
+import com.constellio.data.dao.managers.config.DocumentAlteration;
+import com.constellio.data.dao.managers.config.FileSystemConfigManager;
+import com.constellio.data.dao.services.cache.ConstellioCache;
+import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
+import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.events.EventBus;
+import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.data.extensions.DataLayerSystemExtensions;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.hashing.HashingService;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -25,22 +29,20 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
-import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.dao.managers.config.ConfigManagerException;
-import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
-import com.constellio.data.dao.managers.config.DocumentAlteration;
-import com.constellio.data.dao.managers.config.FileSystemConfigManager;
-import com.constellio.data.dao.services.cache.ConstellioCache;
-import com.constellio.data.dao.services.cache.ConstellioCacheOptions;
-import com.constellio.data.dao.services.cache.serialization.SerializationCheckCache;
-import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
-import com.constellio.data.events.EventBus;
-import com.constellio.data.extensions.DataLayerExtensions;
-import com.constellio.data.extensions.DataLayerSystemExtensions;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.utils.hashing.HashingService;
-import com.constellio.model.services.collections.CollectionsListManager;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.io.File;
+import java.io.Serializable;
+import java.util.List;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class OneXMLConfigPerCollectionManagerUsingAttributeVersionAcceptanceTest extends ConstellioTest {
 
@@ -97,7 +99,13 @@ public class OneXMLConfigPerCollectionManagerUsingAttributeVersionAcceptanceTest
 				eventBus);
 		collection1ZeConfigFile = new File(tempFolder,
 				"collection1" + File.separator + "subFolder" + File.separator + "zeConfig.xml");
-		collectionsListManager = new CollectionsListManager(configManager);
+
+		ModelLayerFactory modelLayerFactory = mock(ModelLayerFactory.class);
+		DataLayerFactory dataLayerFactory = mock(DataLayerFactory.class);
+		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
+		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);
+
+		collectionsListManager = new CollectionsListManager(modelLayerFactory);
 		collectionsListManager.initialize();
 
 		manager = newManager(managerListener);
@@ -148,7 +156,7 @@ public class OneXMLConfigPerCollectionManagerUsingAttributeVersionAcceptanceTest
 	}
 
 	@Test
-	public void givenModifiedValuesWhenInstanciatedThenLoadModifiedValues()
+	public void facegivenModifiedValuesWhenInstanciatedThenLoadModifiedValues()
 			throws Exception {
 
 		createCollectionFile("collection1");

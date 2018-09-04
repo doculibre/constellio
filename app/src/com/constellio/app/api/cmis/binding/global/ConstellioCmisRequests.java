@@ -1,39 +1,5 @@
 package com.constellio.app.api.cmis.binding.global;
 
-import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
-
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.data.AllowableActions;
-import org.apache.chemistry.opencmis.commons.data.BulkUpdateObjectIdAndChangeToken;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
-import org.apache.chemistry.opencmis.commons.data.FailedToDeleteData;
-import org.apache.chemistry.opencmis.commons.data.ObjectData;
-import org.apache.chemistry.opencmis.commons.data.ObjectInFolderContainer;
-import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
-import org.apache.chemistry.opencmis.commons.data.ObjectList;
-import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
-import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.data.RenditionData;
-import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
-import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
-import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
-import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
-import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
-import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
-import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
-import org.apache.chemistry.opencmis.commons.enums.VersioningState;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectListImpl;
-import org.apache.chemistry.opencmis.commons.impl.server.AbstractCmisService;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.chemistry.opencmis.commons.spi.Holder;
-import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
-
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.app.api.cmis.requests.acl.ApplyAclRequest;
 import com.constellio.app.api.cmis.requests.acl.GetAclRequest;
@@ -69,6 +35,39 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.users.UserServices;
+import org.apache.chemistry.opencmis.commons.data.Acl;
+import org.apache.chemistry.opencmis.commons.data.AllowableActions;
+import org.apache.chemistry.opencmis.commons.data.BulkUpdateObjectIdAndChangeToken;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
+import org.apache.chemistry.opencmis.commons.data.FailedToDeleteData;
+import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.data.ObjectInFolderContainer;
+import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
+import org.apache.chemistry.opencmis.commons.data.ObjectList;
+import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
+import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.data.RenditionData;
+import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
+import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
+import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
+import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
+import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
+import org.apache.chemistry.opencmis.commons.enums.UnfileObject;
+import org.apache.chemistry.opencmis.commons.enums.VersioningState;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectListImpl;
+import org.apache.chemistry.opencmis.commons.impl.server.AbstractCmisService;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static com.constellio.model.entities.CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION;
 
 public class ConstellioCmisRequests extends AbstractCmisService implements CallContextAwareCmisService {
 
@@ -80,7 +79,7 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 	 * The role of this class is to dispatch the service call to the correct constellio collection repository
 	 */
 	public ConstellioCmisRequests(AppLayerFactory appLayerFactory,
-			final CmisCacheManager repositoryManager) {
+								  final CmisCacheManager repositoryManager) {
 
 		this.appLayerFactory = appLayerFactory;
 		this.repositoryManager = repositoryManager;
@@ -134,7 +133,7 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public TypeDefinitionList getTypeChildren(String repositoryId, String typeId, Boolean includePropertyDefinitions,
-			BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
+											  BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
 		return new GetTypeChildrenRequest(getConstellioCollectionRepository(repositoryId), getCallContext(), typeId, maxItems,
 				includePropertyDefinitions, skipCount, appLayerFactory).processRequest();
 	}
@@ -148,7 +147,8 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public List<TypeDefinitionContainer> getTypeDescendants(String repositoryId, String typeId, BigInteger depth,
-			Boolean includePropertyDefinitions, ExtensionsData extension) {
+															Boolean includePropertyDefinitions,
+															ExtensionsData extension) {
 		return new GetTypeDescendantsRequest(getConstellioCollectionRepository(repositoryId), getCallContext(), typeId, depth,
 				includePropertyDefinitions, appLayerFactory).processRequest();
 	}
@@ -157,16 +157,21 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public ObjectInFolderList getChildren(String repositoryId, String folderId, String filter, String orderBy,
-			Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
-			Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
+										  Boolean includeAllowableActions, IncludeRelationships includeRelationships,
+										  String renditionFilter,
+										  Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount,
+										  ExtensionsData extension) {
 		return new GetChildrenRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				folderId, filter, includeAllowableActions, includePathSegment, maxItems, skipCount, this).processRequest();
 	}
 
 	@Override
-	public List<ObjectInFolderContainer> getDescendants(String repositoryId, String folderId, BigInteger depth, String filter,
-			Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
-			Boolean includePathSegment, ExtensionsData extension) {
+	public List<ObjectInFolderContainer> getDescendants(String repositoryId, String folderId, BigInteger depth,
+														String filter,
+														Boolean includeAllowableActions,
+														IncludeRelationships includeRelationships,
+														String renditionFilter,
+														Boolean includePathSegment, ExtensionsData extension) {
 		return new GetDescendantsUnsupportedRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory,
 				getCallContext(),
 				folderId, depth, filter, includeAllowableActions, includePathSegment, this, false).processRequest();
@@ -181,9 +186,12 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 	}
 
 	@Override
-	public List<ObjectInFolderContainer> getFolderTree(String repositoryId, String folderId, BigInteger depth, String filter,
-			Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
-			Boolean includePathSegment, ExtensionsData extension) {
+	public List<ObjectInFolderContainer> getFolderTree(String repositoryId, String folderId, BigInteger depth,
+													   String filter,
+													   Boolean includeAllowableActions,
+													   IncludeRelationships includeRelationships,
+													   String renditionFilter,
+													   Boolean includePathSegment, ExtensionsData extension) {
 		return new GetDescendantsUnsupportedRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory,
 				getCallContext(),
 				folderId, depth, filter, includeAllowableActions, includePathSegment, this, true).processRequest();
@@ -191,8 +199,9 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public List<ObjectParentData> getObjectParents(String repositoryId, String objectId, String filter,
-			Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
-			Boolean includeRelativePathSegment, ExtensionsData extension) {
+												   Boolean includeAllowableActions,
+												   IncludeRelationships includeRelationships, String renditionFilter,
+												   Boolean includeRelativePathSegment, ExtensionsData extension) {
 		return new GetObjectParentsRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory,
 				getCallContext(),
 				objectId, filter, includeAllowableActions, includeRelativePathSegment, this).processRequest();
@@ -200,8 +209,9 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public ObjectList getCheckedOutDocs(String repositoryId, String folderId, String filter, String orderBy,
-			Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
-			BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
+										Boolean includeAllowableActions, IncludeRelationships includeRelationships,
+										String renditionFilter,
+										BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
 		ObjectListImpl result = new ObjectListImpl();
 		result.setHasMoreItems(false);
 		result.setNumItems(BigInteger.ZERO);
@@ -215,7 +225,7 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public String create(String repositoryId, Properties properties, String folderId, ContentStream contentStream,
-			VersioningState versioningState, List<String> policies, ExtensionsData extension) {
+						 VersioningState versioningState, List<String> policies, ExtensionsData extension) {
 		CreateFolderRequest createFolderRequest = new CreateFolderRequest(getConstellioCollectionRepository(repositoryId),
 				appLayerFactory, getCallContext(), properties, folderId);
 		CreateDocumentRequest createDocumentRequest = new CreateDocumentRequest(getConstellioCollectionRepository(repositoryId),
@@ -229,29 +239,33 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 	}
 
 	@Override
-	public String createDocument(String repositoryId, Properties properties, String folderId, ContentStream contentStream,
-			VersioningState versioningState, List<String> policies, Acl addAces, Acl removeAces, ExtensionsData extension) {
+	public String createDocument(String repositoryId, Properties properties, String folderId,
+								 ContentStream contentStream,
+								 VersioningState versioningState, List<String> policies, Acl addAces, Acl removeAces,
+								 ExtensionsData extension) {
 		return new CreateDocumentRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				properties, folderId, contentStream, versioningState).processRequest().getDocumentId();
 	}
 
 	@Override
-	public String createFolder(String repositoryId, Properties properties, String folderId, List<String> policies, Acl addAces,
-			Acl removeAces, ExtensionsData extension) {
+	public String createFolder(String repositoryId, Properties properties, String folderId, List<String> policies,
+							   Acl addAces,
+							   Acl removeAces, ExtensionsData extension) {
 		return new CreateFolderRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				properties, folderId).processRequest();
 	}
 
 	@Override
 	public void deleteObjectOrCancelCheckOut(String repositoryId, String objectId, Boolean allVersions,
-			ExtensionsData extension) {
+											 ExtensionsData extension) {
 		new DeleteObjectRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(), objectId)
 				.processRequest();
 	}
 
 	@Override
-	public FailedToDeleteData deleteTree(String repositoryId, String folderId, Boolean allVersions, UnfileObject unfileObjects,
-			Boolean continueOnFailure, ExtensionsData extension) {
+	public FailedToDeleteData deleteTree(String repositoryId, String folderId, Boolean allVersions,
+										 UnfileObject unfileObjects,
+										 Boolean continueOnFailure, ExtensionsData extension) {
 		return new DeleteTreeRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				folderId,
 				continueOnFailure).processRequest();
@@ -266,7 +280,7 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public ContentStream getContentStream(String repositoryId, String objectId, String streamId, BigInteger offset,
-			BigInteger length, ExtensionsData extension) {
+										  BigInteger length, ExtensionsData extension) {
 		ContentStream contentStream = new GetContentStreamRequest(getConstellioCollectionRepository(repositoryId),
 				appLayerFactory,
 				getCallContext(), objectId, offset, length).processRequest();
@@ -275,8 +289,9 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public ObjectData getObject(String repositoryId, String objectId, String filter, Boolean includeAllowableActions,
-			IncludeRelationships includeRelationships, String renditionFilter, Boolean includePolicyIds, Boolean includeAcl,
-			ExtensionsData extension) {
+								IncludeRelationships includeRelationships, String renditionFilter,
+								Boolean includePolicyIds, Boolean includeAcl,
+								ExtensionsData extension) {
 		return new GetObjectRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				objectId,
 				null, filter, includeAllowableActions, includeAcl, this).processRequest();
@@ -284,8 +299,9 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public ObjectData getObjectByPath(String repositoryId, String path, String filter, Boolean includeAllowableActions,
-			IncludeRelationships includeRelationships, String renditionFilter, Boolean includePolicyIds, Boolean includeAcl,
-			ExtensionsData extension) {
+									  IncludeRelationships includeRelationships, String renditionFilter,
+									  Boolean includePolicyIds, Boolean includeAcl,
+									  ExtensionsData extension) {
 		return new GetObjectByPathRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				path, filter, includeAllowableActions, includeAcl, this).processRequest();
 	}
@@ -299,42 +315,45 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 	}
 
 	@Override
-	public List<RenditionData> getRenditions(String repositoryId, String objectId, String renditionFilter, BigInteger maxItems,
-			BigInteger skipCount, ExtensionsData extension) {
+	public List<RenditionData> getRenditions(String repositoryId, String objectId, String renditionFilter,
+											 BigInteger maxItems,
+											 BigInteger skipCount, ExtensionsData extension) {
 		return Collections.emptyList();
 	}
 
 	@Override
 	public void moveObject(String repositoryId, Holder<String> objectId, String targetFolderId, String sourceFolderId,
-			ExtensionsData extension) {
+						   ExtensionsData extension) {
 		new MoveObjectRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(), objectId,
 				targetFolderId, this).processRequest();
 	}
 
 	@Override
-	public void setContentStream(String repositoryId, Holder<String> objectId, Boolean overwriteFlag, Holder<String> changeToken,
-			ContentStream contentStream, ExtensionsData extension) {
+	public void setContentStream(String repositoryId, Holder<String> objectId, Boolean overwriteFlag,
+								 Holder<String> changeToken,
+								 ContentStream contentStream, ExtensionsData extension) {
 		new ChangeContentStreamRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				objectId, overwriteFlag, contentStream, false).processRequest();
 	}
 
 	@Override
 	public void appendContentStream(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
-			ContentStream contentStream, boolean isLastChunk, ExtensionsData extension) {
+									ContentStream contentStream, boolean isLastChunk, ExtensionsData extension) {
 		new ChangeContentStreamRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				objectId, true, contentStream, true).processRequest();
 	}
 
 	@Override
 	public void deleteContentStream(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
-			ExtensionsData extension) {
+									ExtensionsData extension) {
 		new ChangeContentStreamRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				objectId, true, null, false).processRequest();
 	}
 
 	@Override
-	public void updateProperties(String repositoryId, Holder<String> objectId, Holder<String> changeToken, Properties properties,
-			ExtensionsData extension) {
+	public void updateProperties(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
+								 Properties properties,
+								 ExtensionsData extension) {
 		new UpdatePropertiesRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				objectId,
 				properties, this).processRequest();
@@ -342,8 +361,11 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public List<BulkUpdateObjectIdAndChangeToken> bulkUpdateProperties(String repositoryId,
-			List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken, Properties properties,
-			List<String> addSecondaryTypeIds, List<String> removeSecondaryTypeIds, ExtensionsData extension) {
+																	   List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken,
+																	   Properties properties,
+																	   List<String> addSecondaryTypeIds,
+																	   List<String> removeSecondaryTypeIds,
+																	   ExtensionsData extension) {
 		UpdatePropertiesRequest updatePropertiesRequest = new UpdatePropertiesRequest(getConstellioCollectionRepository(
 				repositoryId),
 				appLayerFactory, getCallContext(), null, properties, this);
@@ -355,14 +377,15 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public List<ObjectData> getAllVersions(String repositoryId, String objectId, String versionSeriesId, String filter,
-			Boolean includeAllowableActions, ExtensionsData extension) {
+										   Boolean includeAllowableActions, ExtensionsData extension) {
 
 		return new GetAllVersionsRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				repositoryId, objectId, versionSeriesId, filter, includeAllowableActions, extension, this).processRequest();
 	}
 
 	@Override
-	public void checkOut(String repositoryId, Holder<String> objectId, ExtensionsData extension, Holder<Boolean> contentCopied) {
+	public void checkOut(String repositoryId, Holder<String> objectId, ExtensionsData extension,
+						 Holder<Boolean> contentCopied) {
 		new CheckOutRequest(getConstellioCollectionRepository(repositoryId), context, appLayerFactory, repositoryId,
 				objectId,
 				extension,
@@ -377,25 +400,29 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 
 	@Override
 	public void checkIn(String repositoryId, Holder<String> objectId, Boolean major, Properties properties,
-			ContentStream contentStream, String checkinComment, List<String> policies, Acl addAces, Acl removeAces,
-			ExtensionsData extension) {
+						ContentStream contentStream, String checkinComment, List<String> policies, Acl addAces,
+						Acl removeAces,
+						ExtensionsData extension) {
 		new CheckInRequest(getConstellioCollectionRepository(repositoryId), getCallContext(), appLayerFactory, repositoryId,
 				objectId, major, properties, contentStream, checkinComment, policies, addAces, removeAces, extension)
 				.processRequest();
 	}
 
 	@Override
-	public ObjectData getObjectOfLatestVersion(String repositoryId, String objectId, String versionSeriesId, Boolean major,
-			String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
-			Boolean includePolicyIds, Boolean includeAcl, ExtensionsData extension) {
+	public ObjectData getObjectOfLatestVersion(String repositoryId, String objectId, String versionSeriesId,
+											   Boolean major,
+											   String filter, Boolean includeAllowableActions,
+											   IncludeRelationships includeRelationships, String renditionFilter,
+											   Boolean includePolicyIds, Boolean includeAcl, ExtensionsData extension) {
 		return new GetObjectOfLatestVersionUnsupportedRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory,
 				getCallContext(), objectId, versionSeriesId, major, filter, includeAllowableActions, includeRelationships,
 				renditionFilter, includePolicyIds, includeAcl, extension, this).processRequest();
 	}
 
 	@Override
-	public Properties getPropertiesOfLatestVersion(String repositoryId, String objectId, String versionSeriesId, Boolean major,
-			String filter, ExtensionsData extension) {
+	public Properties getPropertiesOfLatestVersion(String repositoryId, String objectId, String versionSeriesId,
+												   Boolean major,
+												   String filter, ExtensionsData extension) {
 		return new GetPropertiesOfLatestVersionRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory,
 				getCallContext(), objectId, versionSeriesId, major, filter, extension).processRequest();
 	}
@@ -409,8 +436,9 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 	}
 
 	@Override
-	public Acl applyAcl(String repositoryId, String objectId, Acl addAces, Acl removeAces, AclPropagation aclPropagation,
-			ExtensionsData extension) {
+	public Acl applyAcl(String repositoryId, String objectId, Acl addAces, Acl removeAces,
+						AclPropagation aclPropagation,
+						ExtensionsData extension) {
 		return new ApplyAclRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				repositoryId, objectId, addAces, removeAces, aclPropagation, extension).processRequest();
 	}
@@ -424,9 +452,11 @@ public class ConstellioCmisRequests extends AbstractCmisService implements CallC
 	// --- discovery service ---
 
 	@Override
-	public ObjectList query(String repositoryId, String statement, Boolean searchAllVersions, Boolean includeAllowableActions,
-			IncludeRelationships includeRelationships, String renditionFilter, BigInteger maxItems, BigInteger skipCount,
-			ExtensionsData extension) {
+	public ObjectList query(String repositoryId, String statement, Boolean searchAllVersions,
+							Boolean includeAllowableActions,
+							IncludeRelationships includeRelationships, String renditionFilter, BigInteger maxItems,
+							BigInteger skipCount,
+							ExtensionsData extension) {
 		return new QueryUnsupportedRequest(getConstellioCollectionRepository(repositoryId), appLayerFactory, getCallContext(),
 				statement,
 				includeAllowableActions, maxItems, skipCount, this).processRequest();

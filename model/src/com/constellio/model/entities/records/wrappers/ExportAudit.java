@@ -1,29 +1,25 @@
 package com.constellio.model.entities.records.wrappers;
 
-import com.constellio.model.entities.EnumWithSmallCode;
-import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.joda.time.LocalDateTime;
 
-import java.util.List;
-
 public class ExportAudit extends TemporaryRecord {
-    public static final String SCHEMA = "exportAudit";
-    public static final String FULL_SCHEMA = SCHEMA_TYPE + "_" + SCHEMA;
+	public static final String SCHEMA = "exportAudit";
+	public static final String FULL_SCHEMA = SCHEMA_TYPE + "_" + SCHEMA;
 
-    public static final String END_DATE = "endDate";
+	public static final String END_DATE = "endDate";
 
-    public ExportAudit(Record record, MetadataSchemaTypes types) {
-        super(record, types);
-    }
+	public ExportAudit(Record record, MetadataSchemaTypes types) {
+		super(record, types);
+	}
 
-    public LocalDateTime getEndDate() {
-        return get(END_DATE);
-    }
+	public LocalDateTime getEndDate() {
+		return get(END_DATE);
+	}
 
-    public ExportAudit setEndDate(LocalDateTime localDateTime) {
-        set(END_DATE, localDateTime);
-        return this;
-    }
+	public ExportAudit setEndDate(LocalDateTime localDateTime) {
+		set(END_DATE, localDateTime);
+		return this;
+	}
 }

@@ -1,18 +1,17 @@
 package com.constellio.model.entities.schemas;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.sdk.tests.ConstellioTest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class AllowedReferencesTest extends ConstellioTest {
 
@@ -43,7 +42,7 @@ public class AllowedReferencesTest extends ConstellioTest {
 
 		when(zeType.getCode()).thenReturn(allowedTypeCode);
 		when(zeType.getDefaultSchema()).thenReturn(zeTypeDefaultSchema);
-		when(zeType.getSchemas()).thenReturn(allowedSchemas);
+		when(zeType.getCustomSchemas()).thenReturn(allowedSchemas);
 		when(anotherType.getCode()).thenReturn("anotherType");
 
 		when(zeTypeDefaultSchema.getCode()).thenReturn("zeType_default");

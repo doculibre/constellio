@@ -1,32 +1,39 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import com.constellio.app.modules.rm.services.ValueListServices;
+import com.constellio.app.services.metadata.MetadataDeletionException;
+import com.constellio.app.ui.entities.TaxonomyVO;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedFactories;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.modules.rm.services.ValueListServices;
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.entities.TaxonomyVO;
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.MockedFactories;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ListTaxonomyPresenterTest extends ConstellioTest {
 
 	@Mock ListTaxonomyViewImpl view;
-	MockedNavigation navigator;
 	@Mock ValueListServices valueListServices;
 	@Mock Taxonomy taxonomy1;
 	@Mock TaxonomyVO taxonomyVO;
+	@Mock TaxonomiesManager taxonomiesManager;
+
+	MockedNavigation navigator;
 	ListTaxonomyPresenter presenter;
-	String newTaxonomyTitle;
 	MockedFactories mockedFactories = new MockedFactories();
 
 	@Before
@@ -39,8 +46,10 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 		when(view.getSessionContext()).thenReturn(FakeSessionContext.dakotaInCollection(zeCollection));
 		when(view.navigate()).thenReturn(navigator);
 
-		newTaxonomyTitle = "taxonomy 1";
-		when(taxonomy1.getTitle()).thenReturn(newTaxonomyTitle);
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "taxonomy 1");
+
+		when(taxonomy1.getTitle()).thenReturn(labelTitle);
 
 		presenter = spy(new ListTaxonomyPresenter(view));
 
@@ -68,6 +77,32 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 		presenter.displayButtonClicked(taxonomyVO);
 
 		verify(view.navigate().to()).taxonomyManagement("taxoCode");
+	}
+
+	@Test
+	public void whenDeleteButtonClickedAndTaxonomyHasConceptsThenCannotDeleteTaxonomy()
+			throws MetadataDeletionException {
+		presenter = spy(new ListTaxonomyPresenter(view, taxonomiesManager));
+		when(taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, "taxo1Code")).thenReturn(taxonomy1);
+		doReturn(true).when(presenter).hasConcepts(taxonomy1);
+
+		presenter.deleteButtonClicked("taxo1Code");
+
+		verify(view).showMessage($("ListTaxonomyView.cannotDeleteTaxonomy"));
+	}
+
+	@Test
+	public void whenDeleteButtonClickedAndTaxonomyDoesntHaveConceptsThenDeleteTaxonomyAndReferencedMetadatas()
+			throws MetadataDeletionException {
+		presenter = spy(new ListTaxonomyPresenter(view, taxonomiesManager));
+		when(taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, "taxo1Code")).thenReturn(taxonomy1);
+		doReturn(false).when(presenter).hasConcepts(taxonomy1);
+		doNothing().when(presenter).deleteMetadatasInClassifiedObjects(taxonomy1);
+
+		presenter.deleteButtonClicked("taxo1Code");
+
+		verify(taxonomiesManager).deleteWithoutValidations(taxonomy1);
+		verify(view.navigate().to()).listTaxonomies();
 	}
 
 }

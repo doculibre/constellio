@@ -1,10 +1,10 @@
 package com.constellio.model.conf.ldap.user;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
 
 public class LDAPGroup {
 	//TODO hierarchie de groupes (plus cn mais plutot distinguishedName)
@@ -15,7 +15,7 @@ public class LDAPGroup {
 	//requete ldap (&(objectCategory=person)(objectClass=user)(primaryGroupID=XXXX))
 	public static final String MEMBER = "member";
 	public static final String MEMBER_OF = "memberof";
-	public static final String[] FETCHED_ATTRIBUTES = { DISTINGUISHED_NAME, COMMON_NAME, MEMBER, MEMBER_OF };
+	public static final String[] FETCHED_ATTRIBUTES = {DISTINGUISHED_NAME, COMMON_NAME, MEMBER, MEMBER_OF};
 
 	private String distinguishedName;
 	private String simpleName;
@@ -70,17 +70,20 @@ public class LDAPGroup {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
+		}
 
 		LDAPGroup ldapGroup = (LDAPGroup) o;
 
 		if (distinguishedName != null ?
-				!distinguishedName.equals(ldapGroup.distinguishedName) :
-				ldapGroup.distinguishedName != null)
+			!distinguishedName.equals(ldapGroup.distinguishedName) :
+			ldapGroup.distinguishedName != null) {
 			return false;
+		}
 
 		return true;
 	}

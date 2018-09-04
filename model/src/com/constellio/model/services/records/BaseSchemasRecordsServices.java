@@ -1,14 +1,7 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
@@ -21,6 +14,15 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.model.services.records.RecordUtils.changeSchemaTypeAccordingToTypeLinkedSchema;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 public class BaseSchemasRecordsServices implements Serializable {
 
 	protected String collection;
@@ -29,10 +31,21 @@ public class BaseSchemasRecordsServices implements Serializable {
 
 	private Factory<ModelLayerFactory> modelLayerFactoryFactory;
 
+	protected Locale locale;
+
 	public BaseSchemasRecordsServices(String collection, Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+		this(collection, modelLayerFactoryFactory, null);
+	}
+
+	public BaseSchemasRecordsServices(String collection, Factory<ModelLayerFactory> modelLayerFactoryFactory,
+									  Locale locale) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactoryFactory.get();
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
+		this.locale = locale;
+		if (this.locale == null) {
+			this.locale = Language.withCode(modelLayerFactory.getConfiguration().getMainDataLanguage()).getLocale();
+		}
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)

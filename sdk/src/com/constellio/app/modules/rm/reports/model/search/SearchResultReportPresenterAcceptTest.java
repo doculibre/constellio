@@ -1,42 +1,34 @@
 package com.constellio.app.modules.rm.reports.model.search;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
-import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.Language;
-import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.parser.FileParser;
-import com.constellio.model.services.parser.FileParserException;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
-import org.apache.solr.schema.SchemaManager;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -121,27 +113,27 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		presenter.buildModel(getModelLayerFactory());
 	}
 
-//	@Test
-//	public void givenValidReportWhenNoFolderChosenThenGenerateReportWithAllQueryRecords() {
-//		SearchResultReportPresenter.LIMIT = 1000;
-//		SearchResultReportPresenter.BATCH_SIZE = 100;
-//		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
-//		presenter = new SearchResultReportPresenter(getAppLayerFactory(), new ArrayList<String>(), folderSchemaType,
-//				zeCollection, chuckNorris, reportTitle, null, Locale.FRENCH);
-//		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
-//		reportTestUtils.validateUserReportWithAllQueryFolders(model);
-//	}
+	//	@Test
+	//	public void givenValidReportWhenNoFolderChosenThenGenerateReportWithAllQueryRecords() {
+	//		SearchResultReportPresenter.LIMIT = 1000;
+	//		SearchResultReportPresenter.BATCH_SIZE = 100;
+	//		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
+	//		presenter = new SearchResultReportPresenter(getAppLayerFactory(), new ArrayList<String>(), folderSchemaType,
+	//				zeCollection, chuckNorris, reportTitle, null, Locale.FRENCH);
+	//		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+	//		reportTestUtils.validateUserReportWithAllQueryFolders(model);
+	//	}
 
-//	@Test
-//	public void givenValidReportAndQueryWithResultCountGreaterThanLimitWhenNoFolderChosenThenGenerateFirstQueryRecords() {
-//		SearchResultReportPresenter.LIMIT = 2;
-//		SearchResultReportPresenter.BATCH_SIZE = 1;
-//		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
-//		presenter = new SearchResultReportPresenter(getAppLayerFactory(), new ArrayList<String>(), folderSchemaType,
-//				zeCollection, chuckNorris, reportTitle, null, Locale.FRENCH);
-//		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
-//		reportTestUtils.validateUserReportWithSelectedFolders(model);
-//	}
+	//	@Test
+	//	public void givenValidReportAndQueryWithResultCountGreaterThanLimitWhenNoFolderChosenThenGenerateFirstQueryRecords() {
+	//		SearchResultReportPresenter.LIMIT = 2;
+	//		SearchResultReportPresenter.BATCH_SIZE = 1;
+	//		reportTestUtils.addUserReport(reportTitle, records.getChuckNorris().getUsername());
+	//		presenter = new SearchResultReportPresenter(getAppLayerFactory(), new ArrayList<String>(), folderSchemaType,
+	//				zeCollection, chuckNorris, reportTitle, null, Locale.FRENCH);
+	//		SearchResultReportModel model = presenter.buildModel(getModelLayerFactory());
+	//		reportTestUtils.validateUserReportWithSelectedFolders(model);
+	//	}
 
 	@Test
 	public void givenValidReportWhenTwoFoldersThenGenerateValidReportWithValidData() {
@@ -250,9 +242,9 @@ public class SearchResultReportPresenterAcceptTest extends ConstellioTest {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		MetadataSchemasManager manager = getAppLayerFactory().getModelLayerFactory().getMetadataSchemasManager();
 		final String richText = "<blockquote><blockquote><b>Ceci </b><i>est </i><u>un </u>tes<sub>t</sub> " +
-				"pou<sup>r</sup> l'<strike>université</strike>.<br><hr><br><br><ol><li>1</li><li>2</li>" +
-				"<ol><li>2.1</li></ol></ol><ul><li>A</li><li>B</li><ul><li>B.A<br><hr></li></ul></ul><p>" +
-				"<br></p></blockquote></blockquote>";
+								"pou<sup>r</sup> l'<strike>université</strike>.<br><hr><br><br><ol><li>1</li><li>2</li>" +
+								"<ol><li>2.1</li></ol></ol><ul><li>A</li><li>B</li><ul><li>B.A<br><hr></li></ul></ul><p>" +
+								"<br></p></blockquote></blockquote>";
 		manager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {

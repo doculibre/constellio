@@ -1,18 +1,5 @@
 package com.constellio.model.conf.ldap;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.PatternSyntaxException;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.Duration;
-import org.joda.time.format.PeriodFormatter;
-import org.joda.time.format.PeriodFormatterBuilder;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.PropertiesAlteration;
@@ -27,6 +14,18 @@ import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.sync.LDAPFastBind;
 import com.constellio.model.services.users.sync.RuntimeNamingException;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.Duration;
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.PatternSyntaxException;
 
 public class LDAPConfigurationManager implements StatefulService {
 	private static final String CACHE_KEY = "configs";
@@ -62,12 +61,13 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	public void saveLDAPConfiguration(final LDAPServerConfiguration ldapServerConfiguration,
-			final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+									  final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration, true);
 	}
 
 	public void saveLDAPConfiguration(final LDAPServerConfiguration ldapServerConfiguration,
-			final LDAPUserSyncConfiguration ldapUserSyncConfiguration, boolean validateBeforeSave) {
+									  final LDAPUserSyncConfiguration ldapUserSyncConfiguration,
+									  boolean validateBeforeSave) {
 		if (validateBeforeSave) {
 			validateLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration);
 		}
@@ -225,7 +225,8 @@ public class LDAPConfigurationManager implements StatefulService {
 		return StringUtils.join(list, "#");
 	}
 
-	private void validateLDAPConfiguration(LDAPServerConfiguration configs, LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+	private void validateLDAPConfiguration(LDAPServerConfiguration configs,
+										   LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		Boolean authenticationActive = configs.getLdapAuthenticationActive();
 		if (authenticationActive) {
 			LDAPDirectoryType directoryType = configs.getDirectoryType();
@@ -236,7 +237,7 @@ public class LDAPConfigurationManager implements StatefulService {
 			}
 
 			if (ldapUserSyncConfiguration.getDurationBetweenExecution() != null
-					&& ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() != 0L) {
+				&& ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() != 0L) {
 				if (ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() < MIN_DURATION) {
 					throw new TooShortDurationRuntimeException(ldapUserSyncConfiguration.getDurationBetweenExecution());
 				}
@@ -245,7 +246,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	private void validateADAndEDirectoryConfiguration(LDAPServerConfiguration configs,
-			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+													  LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		boolean activeDirectory = configs.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
 		for (String url : configs.getUrls()) {
 			try {
@@ -268,7 +269,8 @@ public class LDAPConfigurationManager implements StatefulService {
 		}
 	}
 
-	private void validateAzurConfig(LDAPServerConfiguration configs, LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+	private void validateAzurConfig(LDAPServerConfiguration configs,
+									LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		//TODO
 	}
 
@@ -388,7 +390,7 @@ public class LDAPConfigurationManager implements StatefulService {
 		String directoryTypeString = getString(configs, "ldap.serverConfiguration.directoryType",
 				LDAPDirectoryType.ACTIVE_DIRECTORY.getCode()).toLowerCase();
 		if (StringUtils.isBlank(directoryTypeString) ||
-				directoryTypeString.equals(LDAPDirectoryType.ACTIVE_DIRECTORY.getCode().toLowerCase())) {
+			directoryTypeString.equals(LDAPDirectoryType.ACTIVE_DIRECTORY.getCode().toLowerCase())) {
 			return LDAPDirectoryType.ACTIVE_DIRECTORY;
 		} else if (directoryTypeString.equals(LDAPDirectoryType.E_DIRECTORY.getCode().toLowerCase())) {
 			return LDAPDirectoryType.E_DIRECTORY;
@@ -401,7 +403,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	private List<String> getSharpSeparatedValuesWithoutBlanks(Map<String, String> configs, String key,
-			ArrayList<String> defaultValues) {
+															  ArrayList<String> defaultValues) {
 		String allValuesString = getString(configs, key, "");
 		String[] allVales = StringUtils.split(allValuesString, "#");
 		if (allVales.length == 0) {

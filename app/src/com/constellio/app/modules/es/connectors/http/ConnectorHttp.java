@@ -1,17 +1,5 @@
 package com.constellio.app.modules.es.connectors.http;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.auth.AuthScope;
-
 import com.constellio.app.modules.es.connectors.http.fetcher.HttpURLFetchingService;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
@@ -21,19 +9,26 @@ import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
 import com.constellio.app.modules.es.services.mapping.ConnectorField;
 import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
-import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.ConfigurationAlreadyExists;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.gargoylesoftware.htmlunit.DefaultCredentialsProvider;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.auth.AuthScope;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
 
 public class ConnectorHttp extends Connector {
 
 	private ConnectorHttpContext context;
-
-	ConfigManager configManager;
 
 	String connectorId;
 
@@ -42,7 +37,6 @@ public class ConnectorHttp extends Connector {
 	@Override
 	public void initialize(Record instanceRecord) {
 		this.connectorId = instanceRecord.getId();
-		this.configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
 		this.contextServices = new ConnectorHttpContextServices(es);
 	}
 
@@ -83,13 +77,7 @@ public class ConnectorHttp extends Connector {
 	}
 
 	public void start() {
-		try {
-			context = contextServices.createContext(connectorId);
-
-		} catch (ConfigurationAlreadyExists e) {
-			contextServices.deleteContext(connectorId);
-			context = contextServices.createContext(connectorId);
-		}
+		context = contextServices.createContext(connectorId);
 
 		ConnectorHttpInstance connectorInstance = getConnectorInstance();
 		List<ConnectorDocument> documents = new ArrayList<>();
@@ -97,7 +85,9 @@ public class ConnectorHttp extends Connector {
 		urls.addAll(connectorInstance.getSeedsList());
 		urls.removeAll(connectorInstance.getOnDemandsList());
 		for (String url : urls) {
-			documents.add(newUnfetchedURLDocument(url, 0));
+			ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
+			httpDocument.setInlinks(Arrays.asList(url));
+			documents.add(httpDocument);
 			context.markAsFetched(url);
 
 		}
@@ -115,7 +105,9 @@ public class ConnectorHttp extends Connector {
 		List<ConnectorHttpDocument> documents = new ArrayList<>();
 		for (String url : getConnectorInstance().getOnDemandsList()) {
 			if (context.isNewUrl(url)) {
-				documents.add(newUnfetchedURLDocument(url, 0));
+				ConnectorHttpDocument httpDocument = newUnfetchedURLDocument(url, 0);
+				httpDocument.setInlinks(Arrays.asList(url));
+				documents.add(httpDocument);
 				context.markAsFetched(url);
 			} else {
 				documents.add(es.getConnectorHttpDocumentByUrl(url));
@@ -169,11 +161,7 @@ public class ConnectorHttp extends Connector {
 
 	@Override
 	public void onAllDocumentsDeleted() {
-		String configFolderPath = "connectors/http/" + connectorId + "/";
-		ConfigManager configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
-		if (configManager.folderExist(configFolderPath)) {
-			configManager.deleteFolder(configFolderPath);
-		}
+		contextServices.deleteContext(connectorId);
 	}
 
 	@Override
@@ -182,7 +170,10 @@ public class ConnectorHttp extends Connector {
 		for (String url : connectorInstance.getSeedsList()) {
 			if (context.isNewUrl(url)) {
 				try {
-					es.getRecordServices().add(newUnfetchedURLDocument(url, 0).getWrappedRecord());
+					ConnectorHttpDocument connectorHttpDocument = newUnfetchedURLDocument(url, 0);
+					connectorHttpDocument.setInlinks(Arrays.asList(url));
+
+					es.getRecordServices().add(connectorHttpDocument.getWrappedRecord());
 				} catch (RecordServicesException e) {
 					throw new RuntimeException(e);
 				}

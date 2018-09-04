@@ -1,9 +1,5 @@
 package com.constellio.model.services.security.roles;
 
-import java.util.List;
-
-import org.jdom2.Document;
-
 import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.managers.config.DocumentAlteration;
@@ -19,6 +15,9 @@ import com.constellio.model.services.security.roles.RolesManagerRuntimeException
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
+import org.jdom2.Document;
+
+import java.util.List;
 
 public class RolesManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<List<Role>> {
 

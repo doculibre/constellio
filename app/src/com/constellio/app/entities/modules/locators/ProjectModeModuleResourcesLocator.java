@@ -1,11 +1,11 @@
 package com.constellio.app.entities.modules.locators;
 
-import static com.constellio.app.entities.modules.locators.DefaultModuleResourcesLocator.getResourceBundle;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.utils.i18n.Utf8ResourceBundles;
 
 import java.io.File;
 
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.utils.i18n.Utf8ResourceBundles;
+import static com.constellio.app.entities.modules.locators.DefaultModuleResourcesLocator.getResourceBundle;
 
 public class ProjectModeModuleResourcesLocator implements ModuleResourcesLocator {
 

@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.trash;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.records.RecordNavigationExtension;
 import com.constellio.app.extensions.records.params.NavigationParams;
@@ -36,15 +26,24 @@ import com.constellio.model.services.trash.TrashServices;
 import com.constellio.model.services.trash.TrashServices.RecordsIdsAndTitles;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Table;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class TrashPresenter extends BasePresenter<TrashView> {
-	
+
 	Boolean allItemsSelected = false;
-	
+
 	Boolean allItemsDeselected = false;
-	
+
 	Set<String> selectedRecordIds = new HashSet<>();
-	
+
 	private RecordVODataProvider dataProvider;
 
 	private transient TrashServices trashServices;
@@ -65,7 +64,7 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 	public void recordSelectionChanged(RecordVO record, boolean selected) {
 		allItemsSelected = false;
 		allItemsDeselected = false;
-		
+
 		String recordId = record.getId();
 		if (!selected && selectedRecordIds.contains(recordId)) {
 			selectedRecordIds.remove(recordId);
@@ -92,7 +91,7 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 			}
 		};
 	}
-	
+
 	private LogicalSearchQuery getQuery() {
 		return trashServices().getTrashRecordsQueryForType(view.getSelectedType(), getCurrentUser());
 	}
@@ -175,10 +174,10 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 			return $("TrashView.noRelatedRecord");
 		} else {
 			return $("TrashView.relatedRecordIds") + "<br>" + StringUtils.join(relatedRecordIds, "<br>")
-					+ "<br>" + $("TrashView.relatedRecordTitles") + "<br>" + StringUtils.join(relatedRecordTitles, "<br>");
+				   + "<br>" + $("TrashView.relatedRecordTitles") + "<br>" + StringUtils.join(relatedRecordTitles, "<br>");
 		}
 	}
-	
+
 	Set<String> computeSelection() {
 		Set<String> selection = new HashSet<>();
 		if (allItemsSelected) {
@@ -210,5 +209,5 @@ public class TrashPresenter extends BasePresenter<TrashView> {
 		allItemsDeselected = true;
 		view.enableOrDisableActionButtons();
 	}
-	
+
 }

@@ -1,10 +1,5 @@
 package com.constellio.app.modules.tasks.migrations;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.io.IOUtils;
-
 import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -12,6 +7,10 @@ import com.constellio.app.modules.tasks.TasksEmailTemplates;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.model.services.emails.EmailTemplatesManager;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class TasksMigrationTo5_1_3 extends MigrationHelper implements MigrationScript {
 	@Override
@@ -20,15 +19,16 @@ public class TasksMigrationTo5_1_3 extends MigrationHelper implements MigrationS
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		addAndReloadEmailTemplates(appLayerFactory, migrationResourcesProvider, collection);
 
 	}
 
 	private void addAndReloadEmailTemplates(AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider,
-			String collection) {
+											MigrationResourcesProvider migrationResourcesProvider,
+											String collection) {
 
 		String taskReminderTemplate;
 		String subTasksModificationTemplate;
@@ -72,9 +72,10 @@ public class TasksMigrationTo5_1_3 extends MigrationHelper implements MigrationS
 				TasksEmailTemplates.TASK_ASSIGNED_TO_YOU);
 	}
 
-	private void addEmailTemplate(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection,
-			String templateFileName, String templateId) {
+	private void addEmailTemplate(AppLayerFactory appLayerFactory,
+								  MigrationResourcesProvider migrationResourcesProvider,
+								  String collection,
+								  String templateFileName, String templateId) {
 		InputStream stream = migrationResourcesProvider.getStream(templateFileName);
 		try {
 			appLayerFactory.getModelLayerFactory().getEmailTemplatesManager()
@@ -86,9 +87,10 @@ public class TasksMigrationTo5_1_3 extends MigrationHelper implements MigrationS
 		}
 	}
 
-	private void reloadEmailTemplate(AppLayerFactory appLayerFactory, MigrationResourcesProvider migrationResourcesProvider,
-			String collection,
-			String templateFileName, String templateId) {
+	private void reloadEmailTemplate(AppLayerFactory appLayerFactory,
+									 MigrationResourcesProvider migrationResourcesProvider,
+									 String collection,
+									 String templateFileName, String templateId) {
 		InputStream templateInputStream = migrationResourcesProvider.getStream(templateFileName);
 		EmailTemplatesManager emailTemplateManager = appLayerFactory.getModelLayerFactory()
 				.getEmailTemplatesManager();

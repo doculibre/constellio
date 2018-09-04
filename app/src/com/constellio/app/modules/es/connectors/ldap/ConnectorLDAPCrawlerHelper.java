@@ -1,17 +1,5 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPDocumentType.GROUP;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPUserDocument;
@@ -20,6 +8,17 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPDocumentType.GROUP;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class ConnectorLDAPCrawlerHelper {
 	private static final Logger LOGGER = LogManager.getLogger(ConnectorLDAPCrawlerHelper.class);
@@ -29,8 +28,9 @@ public class ConnectorLDAPCrawlerHelper {
 		this.esSchemas = esSchemas;
 	}
 
-	List<ConnectorDocument> wrapDocuments(ConnectorLDAPInstance connectorInstance, Map<String, LDAPObjectAttributes> ldapObjects,
-			ConnectorLDAPDocumentType documentType, String url) {
+	List<ConnectorDocument> wrapDocuments(ConnectorLDAPInstance connectorInstance,
+										  Map<String, LDAPObjectAttributes> ldapObjects,
+										  ConnectorLDAPDocumentType documentType, String url) {
 		List<ConnectorDocument> returnList = new ArrayList<>();
 		for (Entry<String, LDAPObjectAttributes> ldapObject : ldapObjects.entrySet()) {
 			try {
@@ -43,25 +43,25 @@ public class ConnectorLDAPCrawlerHelper {
 	}
 
 	ConnectorDocument wrapDocument(ConnectorLDAPInstance connectorInstance,
-			Entry<String, LDAPObjectAttributes> ldapObject,
-			ConnectorLDAPDocumentType documentType, String url) {
+								   Entry<String, LDAPObjectAttributes> ldapObject,
+								   ConnectorLDAPDocumentType documentType, String url) {
 		ConnectorDocument document = getOrCreateDocumentByDNAndUrl(ldapObject.getKey(), url, connectorInstance).setURL(url);
 		//Done by ConnectorEventObserver :
 		// document = populateMappedMetadas(document, connectorInstance, ldapObject.getValue());
 		switch (documentType) {
-		case USER:
-			ConnectorLDAPUserDocument returnDocument = (ConnectorLDAPUserDocument) ConnectorLDAPUserDocumentFactory
-					.populateUser((ConnectorLDAPUserDocument) document, ldapObject.getValue(), connectorInstance)
-					.setSearchable(true).setFetched(true).setManualTokens(Record.PUBLIC_TOKEN);
-			if (returnDocument.getDistinguishedName().equals(ldapObject.getKey())) {
-				return returnDocument.setTitle(returnDocument.getUsername());
-			} else {
-				throw new ConnectorLDAPCrawlerHelper_InvalidLDAPUserDN(ldapObject.getKey(),
-						returnDocument.getDistinguishedName());
-			}
+			case USER:
+				ConnectorLDAPUserDocument returnDocument = (ConnectorLDAPUserDocument) ConnectorLDAPUserDocumentFactory
+						.populateUser((ConnectorLDAPUserDocument) document, ldapObject.getValue(), connectorInstance)
+						.setSearchable(true).setFetched(true).setManualTokens(Record.PUBLIC_TOKEN);
+				if (returnDocument.getDistinguishedName().equals(ldapObject.getKey())) {
+					return returnDocument.setTitle(returnDocument.getUsername());
+				} else {
+					throw new ConnectorLDAPCrawlerHelper_InvalidLDAPUserDN(ldapObject.getKey(),
+							returnDocument.getDistinguishedName());
+				}
 
-		default:
-			throw new RuntimeException("Unsupported type " + GROUP);
+			default:
+				throw new RuntimeException("Unsupported type " + GROUP);
 		}
 	}
 
@@ -85,7 +85,7 @@ public class ConnectorLDAPCrawlerHelper {
 	}
 
 	private ConnectorDocument populateMappedMetadas(ConnectorDocument document, ConnectorLDAPInstance connectorInstance,
-			LDAPObjectAttributes ldapObject) {
+													LDAPObjectAttributes ldapObject) {
 		MapStringListStringStructure propertiesMapping = connectorInstance
 				.getPropertiesMapping();
 		for (Entry<String, List<String>> entry : propertiesMapping.entrySet()) {
@@ -106,19 +106,20 @@ public class ConnectorLDAPCrawlerHelper {
 		if (attributesNames.size() > 1) {
 			throw new RuntimeException(
 					"Several values to populate a single value metadata " + StringUtils.join(attributesNames, "; ") + " :"
-							+ metadata.getCode());
+					+ metadata.getCode());
 		}
 		MetadataValueType metadataType = metadata.getType();
 		switch (metadataType) {
-		case TEXT:
-		case STRING:
-			return ldapObject.get(attributesNames.get(0)).getStringValue();
-		default:
-			throw new RuntimeException("Unsupported " + metadataType);
+			case TEXT:
+			case STRING:
+				return ldapObject.get(attributesNames.get(0)).getStringValue();
+			default:
+				throw new RuntimeException("Unsupported " + metadataType);
 		}
 	}
 
-	private List<Object> getMultiValues(List<String> attributesNames, LDAPObjectAttributes ldapObject, Metadata metadata) {
+	private List<Object> getMultiValues(List<String> attributesNames, LDAPObjectAttributes ldapObject,
+										Metadata metadata) {
 		List<Object> returnList = new ArrayList<>();
 		for (String attributeName : attributesNames) {
 			List<Object> value = ldapObject.get(attributeName).getValue();

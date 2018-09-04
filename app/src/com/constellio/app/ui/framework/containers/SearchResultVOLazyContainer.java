@@ -1,15 +1,5 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
-import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.Query;
-import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
-import org.vaadin.addons.lazyquerycontainer.QueryFactory;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
@@ -17,6 +7,15 @@ import com.constellio.app.ui.framework.data.DataProvider.DataRefreshListener;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.BeanItem;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
+import org.vaadin.addons.lazyquerycontainer.LazyQueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.Query;
+import org.vaadin.addons.lazyquerycontainer.QueryDefinition;
+import org.vaadin.addons.lazyquerycontainer.QueryFactory;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SearchResultVOLazyContainer extends LazyQueryContainer {
 	private SearchResultVODataProvider dataProvider;

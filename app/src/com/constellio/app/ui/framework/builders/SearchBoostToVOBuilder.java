@@ -1,9 +1,9 @@
 package com.constellio.app.ui.framework.builders;
 
-import java.io.Serializable;
-
 import com.constellio.app.ui.entities.SearchBoostVO;
 import com.constellio.model.services.search.entities.SearchBoost;
+
+import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class SearchBoostToVOBuilder implements Serializable {

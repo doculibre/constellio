@@ -1,11 +1,10 @@
 package com.constellio.app.conf;
 
+import com.constellio.model.conf.ConstellioLicense;
+import com.constellio.model.entities.modules.ConstellioPlugin;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import com.constellio.model.conf.ConstellioLicense;
-import com.constellio.model.entities.modules.ConstellioPlugin;
 
 public abstract class RegisteredLicense extends ConstellioLicense implements ConstellioPlugin {
 

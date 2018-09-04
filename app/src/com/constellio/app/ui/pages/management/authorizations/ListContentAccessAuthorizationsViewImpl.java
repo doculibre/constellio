@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
@@ -14,10 +12,12 @@ import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class ListContentAccessAuthorizationsViewImpl extends ListAuthorizationsViewImpl implements ListContentAccessAuthorizationsView {
 
 	private BreadcrumbTrail breadcrumbTrail;
-	
+
 	public ListContentAccessAuthorizationsViewImpl() {
 		initPresenter();
 	}
@@ -88,5 +88,5 @@ public class ListContentAccessAuthorizationsViewImpl extends ListAuthorizationsV
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		return breadcrumbTrail != null ? (BaseBreadcrumbTrail) breadcrumbTrail : super.buildBreadcrumbTrail();
 	}
-	
+
 }

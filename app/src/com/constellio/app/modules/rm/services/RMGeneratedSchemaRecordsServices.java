@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.services;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -34,26 +28,40 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
 public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public RMGeneratedSchemaRecordsServices(String collection,
-			ModelLayerFactory modelLayerFactory) {
+											ModelLayerFactory modelLayerFactory) {
 		super(collection, modelLayerFactory);
+	}
+
+	public RMGeneratedSchemaRecordsServices(String collection,
+											ModelLayerFactory modelLayerFactory, Locale locale) {
+		super(collection, modelLayerFactory, locale);
 	}
 
 	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
 	// Auto-generated methods by GenerateHelperClassAcceptTest -- start
 
-	/** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **/
+	/**
+	 * * ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** **
+	 **/
 
 	public AdministrativeUnit wrapAdministrativeUnit(Record record) {
-		return record == null ? null : new AdministrativeUnit(record, getTypes());
+		return record == null ? null : new AdministrativeUnit(record, getTypes(), locale);
 	}
 
 	public List<AdministrativeUnit> wrapAdministrativeUnits(List<Record> records) {
 		List<AdministrativeUnit> wrapped = new ArrayList<>();
 		for (Record record : records) {
-			wrapped.add(new AdministrativeUnit(record, getTypes()));
+			wrapped.add(new AdministrativeUnit(record, getTypes(), locale));
 		}
 
 		return wrapped;
@@ -70,11 +78,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public AdministrativeUnit getAdministrativeUnit(String id) {
-		return wrapAdministrativeUnit(get(id));
+		return wrapAdministrativeUnit(get(administrativeUnit.schemaType(), id));
 	}
 
 	public List<AdministrativeUnit> getAdministrativeUnits(List<String> ids) {
-		return wrapAdministrativeUnits(get(ids));
+		return wrapAdministrativeUnits(get(administrativeUnit.schemaType(), ids));
 	}
 
 	public AdministrativeUnit getAdministrativeUnitWithCode(String code) {
@@ -162,11 +170,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Cart getCart(String id) {
-		return wrapCart(get(id));
+		return wrapCart(get(cart.schemaType(), id));
 	}
 
 	public List<Cart> getCarts(List<String> ids) {
-		return wrapCarts(get(ids));
+		return wrapCarts(get(cart.schemaType(), ids));
 	}
 
 	public Cart getCartWithLegacyId(String legacyId) {
@@ -211,13 +219,13 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Category wrapCategory(Record record) {
-		return record == null ? null : new Category(record, getTypes());
+		return record == null ? null : new Category(record, getTypes(), locale);
 	}
 
 	public List<Category> wrapCategorys(List<Record> records) {
 		List<Category> wrapped = new ArrayList<>();
 		for (Record record : records) {
-			wrapped.add(new Category(record, getTypes()));
+			wrapped.add(new Category(record, getTypes(), locale));
 		}
 
 		return wrapped;
@@ -234,11 +242,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Category getCategory(String id) {
-		return wrapCategory(get(id));
+		return wrapCategory(get(category.schemaType(), id));
 	}
 
 	public List<Category> getCategorys(List<String> ids) {
-		return wrapCategorys(get(ids));
+		return wrapCategorys(get(category.schemaType(), ids));
 	}
 
 	public Category getCategoryWithCode(String code) {
@@ -326,11 +334,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public ContainerRecord getContainerRecord(String id) {
-		return wrapContainerRecord(get(id));
+		return wrapContainerRecord(get(containerRecord.schemaType(), id));
 	}
 
 	public List<ContainerRecord> getContainerRecords(List<String> ids) {
-		return wrapContainerRecords(get(ids));
+		return wrapContainerRecords(get(containerRecord.schemaType(), ids));
 	}
 
 	public ContainerRecord getContainerRecordWithLegacyId(String legacyId) {
@@ -498,11 +506,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public DocumentType getDocumentType(String id) {
-		return wrapDocumentType(get(id));
+		return wrapDocumentType(get(ddvDocumentType.schemaType(), id));
 	}
 
 	public List<DocumentType> getDocumentTypes(List<String> ids) {
-		return wrapDocumentTypes(get(ids));
+		return wrapDocumentTypes(get(ddvDocumentType.schemaType(), ids));
 	}
 
 	public DocumentType getDocumentTypeWithCode(String code) {
@@ -562,11 +570,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public FolderType getFolderType(String id) {
-		return wrapFolderType(get(id));
+		return wrapFolderType(get(ddvFolderType.schemaType(), id));
 	}
 
 	public List<FolderType> getFolderTypes(List<String> ids) {
-		return wrapFolderTypes(get(ids));
+		return wrapFolderTypes(get(ddvFolderType.schemaType(), ids));
 	}
 
 	public FolderType getFolderTypeWithCode(String code) {
@@ -622,11 +630,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public StorageSpaceType getStorageSpaceType(String id) {
-		return wrapStorageSpaceType(get(id));
+		return wrapStorageSpaceType(get(ddvStorageSpaceType.schemaType(), id));
 	}
 
 	public List<StorageSpaceType> getStorageSpaceTypes(List<String> ids) {
-		return wrapStorageSpaceTypes(get(ids));
+		return wrapStorageSpaceTypes(get(ddvStorageSpaceType.schemaType(), ids));
 	}
 
 	public StorageSpaceType getStorageSpaceTypeWithCode(String code) {
@@ -682,11 +690,15 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public YearType getYearType(String id) {
-		return wrapYearType(get(id));
+		return wrapYearType(get(ddvYearType.schemaType(), id));
 	}
 
 	public List<YearType> getYearTypes(List<String> ids) {
-		return wrapYearTypes(get(ids));
+		return wrapYearTypes(get(ddvYearType.schemaType(), ids));
+	}
+
+	public YearType getYearTypeWithCode(String code) {
+		return wrapYearType(getByCode(ddvYearType.schemaType(), code));
 	}
 
 	public YearType getYearTypeWithLegacyId(String legacyId) {
@@ -738,11 +750,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public DecommissioningList getDecommissioningList(String id) {
-		return wrapDecommissioningList(get(id));
+		return wrapDecommissioningList(get(decommissioningList.schemaType(), id));
 	}
 
 	public List<DecommissioningList> getDecommissioningLists(List<String> ids) {
-		return wrapDecommissioningLists(get(ids));
+		return wrapDecommissioningLists(get(decommissioningList.schemaType(), ids));
 	}
 
 	public DecommissioningList getDecommissioningListWithLegacyId(String legacyId) {
@@ -918,11 +930,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Document getDocument(String id) {
-		return wrapDocument(get(id));
+		return wrapDocument(get(document.schemaType(), id));
 	}
 
 	public List<Document> getDocuments(List<String> ids) {
-		return wrapDocuments(get(ids));
+		return wrapDocuments(get(document.schemaType(), ids));
 	}
 
 	public Document getDocumentWithLegacyId(String legacyId) {
@@ -1017,6 +1029,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("content");
 		}
 
+		public Metadata contentCheckedOutBy() {
+			return metadata("contentCheckedOutBy");
+		}
+
 		public Metadata copyStatus() {
 			return metadata("copyStatus");
 		}
@@ -1104,10 +1120,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		public Metadata version() {
 			return metadata("version");
 		}
-
-		public Metadata contentCheckedOutBy() {
-			return metadata(Document.CONTENT_CHECKED_OUT_BY);
-		}
 	}
 
 	public Email wrapEmail(Record record) {
@@ -1134,11 +1146,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Email getEmail(String id) {
-		return wrapEmail(get(id));
+		return wrapEmail(get(document.schemaType(), id));
 	}
 
 	public List<Email> getEmails(List<String> ids) {
-		return wrapEmails(get(ids));
+		return wrapEmails(get(document.schemaType(), ids));
 	}
 
 	public Email getEmailWithLegacyId(String legacyId) {
@@ -1175,10 +1187,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata emailCompany() {
 			return metadata("emailCompany");
-		}
-
-		public Metadata emailContent() {
-			return metadata("emailContent");
 		}
 
 		public Metadata emailFrom() {
@@ -1234,11 +1242,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public Folder getFolder(String id) {
-		return wrapFolder(get(id));
+		return wrapFolder(get(folder.schemaType(), id));
 	}
 
 	public List<Folder> getFolders(List<String> ids) {
-		return wrapFolders(get(ids));
+		return wrapFolders(get(folder.schemaType(), ids));
 	}
 
 	public Folder getFolderWithLegacyId(String legacyId) {
@@ -1393,6 +1401,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("description");
 		}
 
+		public Metadata documentsTokens() {
+			return metadata("documentsTokens");
+		}
+
 		public Metadata enteredClosingDate() {
 			return metadata("enteredClosingDate");
 		}
@@ -1449,12 +1461,20 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("mainCopyRule");
 		}
 
+		public Metadata mainCopyRuleCode() {
+			return metadata("mainCopyRuleCode");
+		}
+
 		public Metadata mainCopyRuleIdEntered() {
 			return metadata("mainCopyRuleIdEntered");
 		}
 
 		public Metadata manualArchivisticStatus() {
 			return metadata("manualArchivisticStatus");
+		}
+
+		public Metadata manualDisposalType() {
+			return metadata("manualDisposalType");
 		}
 
 		public Metadata manualExpectedDepositDate() {
@@ -1529,6 +1549,14 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("semiactiveRetentionType");
 		}
 
+		public Metadata subFoldersTokens() {
+			return metadata("subFoldersTokens");
+		}
+
+		public Metadata summary() {
+			return metadata("summary");
+		}
+
 		public Metadata timerange() {
 			return metadata("timerange");
 		}
@@ -1539,6 +1567,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata type() {
 			return metadata("type");
+		}
+
+		public Metadata uniqueKey() {
+			return metadata("uniqueKey");
 		}
 
 		public Metadata uniformSubdivision() {
@@ -1574,11 +1606,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public PrintableLabel getPrintableLabel(String id) {
-		return wrapPrintableLabel(get(id));
+		return wrapPrintableLabel(get(printable.schemaType(), id));
 	}
 
 	public List<PrintableLabel> getPrintableLabels(List<String> ids) {
-		return wrapPrintableLabels(get(ids));
+		return wrapPrintableLabels(get(printable.schemaType(), ids));
 	}
 
 	public PrintableLabel getPrintableLabelWithLegacyId(String legacyId) {
@@ -1638,11 +1670,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public PrintableReport getPrintableReport(String id) {
-		return wrapPrintableReport(get(id));
+		return wrapPrintableReport(get(printable.schemaType(), id));
 	}
 
 	public List<PrintableReport> getPrintableReports(List<String> ids) {
-		return wrapPrintableReports(get(ids));
+		return wrapPrintableReports(get(printable.schemaType(), ids));
 	}
 
 	public PrintableReport getPrintableReportWithLegacyId(String legacyId) {
@@ -1675,13 +1707,13 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public RetentionRule wrapRetentionRule(Record record) {
-		return record == null ? null : new RetentionRule(record, getTypes());
+		return record == null ? null : new RetentionRule(record, getTypes(), locale);
 	}
 
 	public List<RetentionRule> wrapRetentionRules(List<Record> records) {
 		List<RetentionRule> wrapped = new ArrayList<>();
 		for (Record record : records) {
-			wrapped.add(new RetentionRule(record, getTypes()));
+			wrapped.add(new RetentionRule(record, getTypes(), locale));
 		}
 
 		return wrapped;
@@ -1698,11 +1730,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public RetentionRule getRetentionRule(String id) {
-		return wrapRetentionRule(get(id));
+		return wrapRetentionRule(get(retentionRule.schemaType(), id));
 	}
 
 	public List<RetentionRule> getRetentionRules(List<String> ids) {
-		return wrapRetentionRules(get(ids));
+		return wrapRetentionRules(get(retentionRule.schemaType(), ids));
 	}
 
 	public RetentionRule getRetentionRuleWithCode(String code) {
@@ -1854,11 +1886,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public StorageSpace getStorageSpace(String id) {
-		return wrapStorageSpace(get(id));
+		return wrapStorageSpace(get(storageSpace.schemaType(), id));
 	}
 
 	public List<StorageSpace> getStorageSpaces(List<String> ids) {
-		return wrapStorageSpaces(get(ids));
+		return wrapStorageSpaces(get(storageSpace.schemaType(), ids));
 	}
 
 	public StorageSpace getStorageSpaceWithCode(String code) {
@@ -1970,11 +2002,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public SIParchive getSIParchive(String id) {
-		return wrapSIParchive(get(id));
+		return wrapSIParchive(get(temporaryRecord.schemaType(), id));
 	}
 
 	public List<SIParchive> getSIParchives(List<String> ids) {
-		return wrapSIParchives(get(ids));
+		return wrapSIParchives(get(temporaryRecord.schemaType(), ids));
 	}
 
 	public SIParchive getSIParchiveWithLegacyId(String legacyId) {
@@ -2034,11 +2066,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public UniformSubdivision getUniformSubdivision(String id) {
-		return wrapUniformSubdivision(get(id));
+		return wrapUniformSubdivision(get(uniformSubdivision.schemaType(), id));
 	}
 
 	public List<UniformSubdivision> getUniformSubdivisions(List<String> ids) {
-		return wrapUniformSubdivisions(get(ids));
+		return wrapUniformSubdivisions(get(uniformSubdivision.schemaType(), ids));
 	}
 
 	public UniformSubdivision getUniformSubdivisionWithCode(String code) {
@@ -2106,11 +2138,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public RMUserFolder getRMUserFolder(String id) {
-		return wrapRMUserFolder(get(id));
+		return wrapRMUserFolder(get(userFolder.schemaType(), id));
 	}
 
 	public List<RMUserFolder> getRMUserFolders(List<String> ids) {
-		return wrapRMUserFolders(get(ids));
+		return wrapRMUserFolders(get(userFolder.schemaType(), ids));
 	}
 
 	public RMUserFolder getRMUserFolderWithLegacyId(String legacyId) {
@@ -2174,11 +2206,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 	}
 
 	public RMTask getRMTask(String id) {
-		return wrapRMTask(get(id));
+		return wrapRMTask(get(userTask.schemaType(), id));
 	}
 
 	public List<RMTask> getRMTasks(List<String> ids) {
-		return wrapRMTasks(get(ids));
+		return wrapRMTasks(get(userTask.schemaType(), ids));
 	}
 
 	public RMTask getRMTaskWithLegacyId(String legacyId) {
@@ -2205,12 +2237,12 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("administrativeUnit");
 		}
 
-		public Metadata linkedDocuments() {
-			return metadata("linkedDocuments");
-		}
-
 		public Metadata linkedContainers() {
 			return metadata("linkedContainers");
+		}
+
+		public Metadata linkedDocuments() {
+			return metadata("linkedDocuments");
 		}
 
 		public Metadata linkedFolders() {

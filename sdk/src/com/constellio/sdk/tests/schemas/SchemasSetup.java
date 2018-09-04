@@ -1,10 +1,7 @@
 package com.constellio.sdk.tests.schemas;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.services.collections.CollectionsManager;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataNetwork;
@@ -18,6 +15,11 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.utils.DefaultClassProvider;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
+
 public abstract class SchemasSetup {
 
 	private static MetadataSchemasManager manager;
@@ -29,7 +31,7 @@ public abstract class SchemasSetup {
 	private boolean wasSetUp;
 
 	protected SchemasSetup(String collection) {
-		this(collection, Arrays.asList("fr"));
+		this(collection, asList("fr"));
 	}
 
 	protected SchemasSetup(String collection, List<String> languages) {
@@ -51,10 +53,17 @@ public abstract class SchemasSetup {
 			}
 
 			if (!setup.wasSetUp) {
+
+				CollectionInfo collectionInfo;
+				if (collectionsManager == null) {
+					collectionInfo = new CollectionInfo(setup.collection, "fr", asList("fr"));
+				} else {
+					collectionInfo = collectionsManager.getCollectionInfo(setup.collection);
+				}
 				MetadataSchemaTypes types = manager.getSchemaTypes(setup.collection);
 				if (collectionsManager == null && types == null) {
-					types = new MetadataSchemaTypes(setup.collection, 0, new ArrayList<MetadataSchemaType>(),
-							new ArrayList<String>(), new ArrayList<String>(), Arrays.asList(Language.French),
+					types = new MetadataSchemaTypes(collectionInfo, 0, new ArrayList<MetadataSchemaType>(),
+							new ArrayList<String>(), new ArrayList<String>(), asList(Language.French),
 							MetadataNetwork.EMPTY());
 				}
 
@@ -96,15 +105,15 @@ public abstract class SchemasSetup {
 	}
 
 	protected void configureMetadataBuilder(MetadataBuilder metadataBuilder, MetadataSchemaTypesBuilder typesBuilder,
-			com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator... builderConfigurators) {
+											com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator... builderConfigurators) {
 		for (com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator builderConfigurator : builderConfigurators) {
 			builderConfigurator.configure(metadataBuilder, typesBuilder);
 		}
 	}
 
 	protected void configureMetadataBuilder(MetadataSchemaTypeBuilder metadataSchemaTypeBuilder,
-			MetadataSchemaTypesBuilder typesBuilder,
-			com.constellio.sdk.tests.schemas.MetadataSchemaTypeConfigurator... builderConfigurators) {
+											MetadataSchemaTypesBuilder typesBuilder,
+											com.constellio.sdk.tests.schemas.MetadataSchemaTypeConfigurator... builderConfigurators) {
 		for (com.constellio.sdk.tests.schemas.MetadataSchemaTypeConfigurator builderConfigurator : builderConfigurators) {
 			builderConfigurator.configure(metadataSchemaTypeBuilder, typesBuilder);
 		}
@@ -132,6 +141,5 @@ public abstract class SchemasSetup {
 	public void refresh() {
 		types = manager.getSchemaTypes(collection);
 	}
-
 
 }

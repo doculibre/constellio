@@ -1,17 +1,5 @@
 package com.constellio.model.services.records.cache.eventBus;
 
-import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
-import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.events.Event;
 import com.constellio.data.events.EventBus;
@@ -22,6 +10,17 @@ import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.CacheInsertionStatus;
 import com.constellio.model.services.records.cache.DefaultRecordsCacheAdapter;
 import com.constellio.model.services.records.cache.RecordsCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
+import static java.util.Arrays.asList;
 
 /**
  * insertQueryRecords and insertQueryIds are not distributed, the request may repeated once per node
@@ -135,28 +134,28 @@ public class EventBusRecordsCacheImpl extends DefaultRecordsCacheAdapter impleme
 	@Override
 	public void onEventReceived(Event event) {
 		switch (event.getType()) {
-		case INSERT_RECORDS_EVENT_TYPE:
-			InsertionReason insertionReason = event.getData("reason");
-			for (Record record : event.<List<Record>>getData("records")) {
-				nestedRecordsCache.forceInsert(record, insertionReason);
-			}
-			break;
+			case INSERT_RECORDS_EVENT_TYPE:
+				InsertionReason insertionReason = event.getData("reason");
+				for (Record record : event.<List<Record>>getData("records")) {
+					nestedRecordsCache.forceInsert(record, insertionReason);
+				}
+				break;
 
-		case INVALIDATE_SCHEMA_TYPE_EVENT_TYPE:
-			nestedRecordsCache.invalidateRecordsOfType(event.<String>getData());
-			break;
+			case INVALIDATE_SCHEMA_TYPE_EVENT_TYPE:
+				nestedRecordsCache.invalidateRecordsOfType(event.<String>getData());
+				break;
 
-		case INVALIDATE_RECORDS_EVENT_TYPE:
-			nestedRecordsCache.invalidate(event.<List<String>>getData());
-			break;
+			case INVALIDATE_RECORDS_EVENT_TYPE:
+				nestedRecordsCache.invalidate(event.<List<String>>getData());
+				break;
 
-		case INVALIDATE_RECORDS_WITH_OLDER_VERSION_EVENT_TYPE:
-			invalidateRecordsWithOlderVersions(event.<Map<String, Long>>getData());
-			break;
+			case INVALIDATE_RECORDS_WITH_OLDER_VERSION_EVENT_TYPE:
+				invalidateRecordsWithOlderVersions(event.<Map<String, Long>>getData());
+				break;
 
-		default:
-			throw new ImpossibleRuntimeException("Unsupported event type '" + event.getType()
-					+ "' on record's cache event bus '" + eventBus.getName());
+			default:
+				throw new ImpossibleRuntimeException("Unsupported event type '" + event.getType()
+													 + "' on record's cache event bus '" + eventBus.getName());
 
 		}
 	}

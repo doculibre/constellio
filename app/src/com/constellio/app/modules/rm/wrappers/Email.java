@@ -1,11 +1,10 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDateTime;
+
+import java.util.List;
 
 public class Email extends Document {
 
@@ -26,7 +25,7 @@ public class Email extends Document {
 	public static final String SUBJECT_TO_BROADCAST_RULE = "subjectToBroadcastRule";
 
 	public Email(Record record,
-			MetadataSchemaTypes types) {
+				 MetadataSchemaTypes types) {
 		super(record, types);
 	}
 

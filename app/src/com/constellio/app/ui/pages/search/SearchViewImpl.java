@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.search;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.FacetValueVO;
@@ -61,15 +51,24 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.jetbrains.annotations.Nullable;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
-	
+
 	public static final String FACET_BOX_STYLE = "facet-box";
 	public static final String FACET_TITLE_STYLE = "facet-title";
 	public static final String SORT_BOX_STYLE = "sort-box";
@@ -82,6 +81,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private VerticalLayout summary;
 	private VerticalLayout resultsArea;
 	private VerticalLayout facetsArea;
+	private VerticalLayout capsuleArea;
 	private SearchResultTable results;
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
@@ -123,7 +123,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private void buildThesaurusDisambiguation(List<String> disambiguationSuggestions) {
 		if (disambiguationSuggestions != null && disambiguationSuggestions.size() > 0) {
 			thesaurusDisambiguation.setVisible(true);
-			
+
 			VerticalLayout suggestionsLayout = new VerticalLayout();
 			suggestionsLayout.addStyleName("disambiguation-suggestions");
 
@@ -153,20 +153,20 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 	public Component buildThesaurusSemanticNetwork() {
 		List<String> semanticNetworkSuggestions = presenter.getThesaurusSemanticNetworkSuggestions();
-		
+
 		VerticalLayout semanticNetworkLayout = new VerticalLayout();
 		semanticNetworkLayout.addStyleName("thesaurus-semantic-network");
-		
+
 		if (semanticNetworkSuggestions != null && semanticNetworkSuggestions.size() > 0) {
 			Label title = new Label($("SearchView.suggestion.title", presenter.getUserSearchExpression()));
 			title.setStyleName("thesaurus-semantic-network-title");
 			semanticNetworkLayout.addComponent(title);
-			
+
 			int columnCount = 3;
 			int columnIndex = 0;
 			int suggestionIndex = 0;
-			
-			double suggestionsPerColumnDouble = (double) semanticNetworkSuggestions.size() / columnCount; 
+
+			double suggestionsPerColumnDouble = (double) semanticNetworkSuggestions.size() / columnCount;
 			int suggestionsPerColumnInt = (int) suggestionsPerColumnDouble;
 			double suggestionsPerColumnDecimal = suggestionsPerColumnDouble - suggestionsPerColumnInt;
 			if (suggestionsPerColumnDecimal > 0) {
@@ -176,7 +176,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			CssLayout cssLayout = new CssLayout();
 			cssLayout.addStyleName("thesaurus-semantic-network-columns");
 			semanticNetworkLayout.addComponent(cssLayout);
-			
+
 			VerticalLayout currentColumnLayout = null;
 			for (final String semanticNetworkSuggestion : semanticNetworkSuggestions) {
 				if (currentColumnLayout == null || suggestionIndex % suggestionsPerColumnInt == 0) {
@@ -234,7 +234,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
 		spellCheckerSuggestions.removeAllComponents();
 		results = buildResultTable(dataProvider);
-		
+
 
 		List<String> disambiguationSuggestions = presenter.getDisambiguationSuggestions();
 		buildThesaurusDisambiguation(disambiguationSuggestions);
@@ -251,6 +251,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			resultsArea.removeAllComponents();
 			resultsArea.addComponent(results);
 		}
+
+		refreshCapsule();
 
 		return dataProvider;
 	}
@@ -292,10 +294,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		spellCheckerSuggestions = new VerticalLayout();
 		spellCheckerSuggestions.addStyleName("spell-checker");
 		spellCheckerSuggestions.setWidth("100%");
-		
+		spellCheckerSuggestions.setVisible(false);
+
 		thesaurusDisambiguation = new VerticalLayout();
 		thesaurusDisambiguation.setWidth("100%");
 		thesaurusDisambiguation.addStyleName("thesaurus-disambiguation");
+		thesaurusDisambiguation.setVisible(false);
 
 		summary = new VerticalLayout();
 		summary.addStyleName("search-result-summary");
@@ -315,24 +319,38 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		body.setWidth("100%");
 		body.setExpandRatio(resultsArea, 1);
 		body.setSpacing(true);
-		Component capsuleComponent = null;
-		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
-			List<Capsule> capsules = presenter.getCapsuleForCurrentSearch();
-			if (!capsules.isEmpty()) {
-				capsuleComponent = buildCapsuleIU(capsules);
-			}
-		}
 
-		VerticalLayout main = new VerticalLayout(thesaurusDisambiguation, spellCheckerSuggestions, summary);
-		if (capsuleComponent != null) {
-			main.addComponent(capsuleComponent);
-		}
+		refreshCapsule();
+
+		VerticalLayout main = new VerticalLayout(thesaurusDisambiguation, spellCheckerSuggestions, summary, capsuleArea);
+
 		main.addComponent(body);
 		main.addStyleName("suggestions-summary-results-facets");
 		main.setWidth("100%");
 		main.setSpacing(true);
 
 		return main;
+	}
+
+	@Nullable
+	private void refreshCapsule() {
+		if (capsuleArea == null) {
+			capsuleArea = new VerticalLayout();
+		} else {
+			capsuleArea.removeAllComponents();
+		}
+
+		Component capsuleComponent = null;
+		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+			Capsule capsule = presenter.getCapsuleForCurrentSearch();
+			if (capsule != null) {
+				capsuleComponent = buildCapsuleUI(capsule);
+			}
+		}
+
+		if (capsuleComponent != null) {
+			capsuleArea.addComponent(capsuleComponent);
+		}
 	}
 
 	protected SearchResultTable buildResultTable(SearchResultVODataProvider dataProvider) {
@@ -368,9 +386,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		int currentPage = presenter.getPageNumber();
 
 		int selectedPageLength = presenter.getSelectedPageLength();
-		if (selectedPageLength == 0) {
-			selectedPageLength = Math.min(totalResults, presenter.getDefaultPageLength());
-		}
 		presenter.setSelectedPageLength(selectedPageLength);
 
 		srTable.setPageLength(selectedPageLength);
@@ -380,7 +395,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 			@Override
 			public void itemClick(ItemClickEvent event) {
-				System.out.println("Jonathan Plamndon");
 			}
 		});
 
@@ -405,6 +419,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			public void valueChange(Property.ValueChangeEvent event) {
 				presenter.setSelectedPageLength((int) event.getProperty().getValue());
 				hashMapAllSelection = new HashMap<>();
+
+				presenter.searchNavigationButtonClicked();
 			}
 		});
 
@@ -427,6 +443,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					@Override
 					public void buttonClick(ClickEvent event) {
 						presenter.searchResultClicked(searchResultVO.getRecordVO());
+
 					}
 				};
 			}
@@ -462,7 +479,8 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return container;
 	}
 
-	private void buildSpellCheckerSuggestions(SearchResultVODataProvider dataProvider, List<String> disambiguationSuggestions) {
+	private void buildSpellCheckerSuggestions(SearchResultVODataProvider dataProvider,
+											  List<String> disambiguationSuggestions) {
 		if (!presenter.mustDisplaySpellCheckerSuggestions(dataProvider, disambiguationSuggestions)) {
 			spellCheckerSuggestions.setVisible(false);
 			return;
@@ -476,14 +494,14 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		suggestionsLayout.setWidth("100%");
 		suggestionsLayout.addStyleName("spell-checker-suggestions");
 		spellCheckerSuggestions.addComponent(suggestionsLayout);
-		
+
 		suggestionsLayout.addComponent(spellCheckerMessage);
-		
+
 		List<String> foundSuggestions = presenter.getAllNonExcluded(getCollection(), presenter.getSuggestions());
 		for (final String suggestion : foundSuggestions) {
 			HorizontalLayout suggestionLayout = new HorizontalLayout();
 			suggestionLayout.addStyleName("spell-checker-suggestion-and-exclude");
-			
+
 			Button suggestionLink = new Button(suggestion);
 			suggestionLink.addStyleName(ValoTheme.BUTTON_LINK);
 			suggestionLink.addStyleName("spell-checker-suggestion");
@@ -769,15 +787,13 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		return button;
 	}
 
-	private Component buildCapsuleIU(List<Capsule> capsules) {
+	private Component buildCapsuleUI(Capsule capsule) {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setSpacing(true);
 		layout.addStyleName("search-result-capsule");
-		for (Capsule capsule : capsules) {
-			Panel capsuleComponent = new CapsuleComponent(capsule.getTitle(), capsule.getHTML());
-			capsuleComponent.setSizeFull();
-			layout.addComponent(capsuleComponent);
-		}
+		Component capsuleComponent = new CapsuleComponent(capsule.getTitle(), capsule.getHTML());
+		capsuleComponent.setSizeFull();
+		layout.addComponent(capsuleComponent);
 		return layout;
 	}
 

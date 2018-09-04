@@ -1,8 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -13,6 +10,9 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class FolderCopyStatusCalculator2 implements MetadataValueCalculator<CopyType> {
 

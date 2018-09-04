@@ -1,16 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verifyZeroInteractions;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
@@ -23,6 +12,16 @@ import com.constellio.sdk.tests.schemas.DaysBetweenSingleLocalDateAndAnotherSche
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends ConstellioTest {
 
@@ -54,8 +53,6 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 		zeSchema = schemas.new ZeSchemaMetadatas();
 		anotherSchema = schemas.new AnotherSchemaMetadatas();
 
-		record = new TestRecord(zeSchema);
-
 		services = new RecordAutomaticMetadataServices(getModelLayerFactory());
 
 		recordServices = spy((RecordServicesImpl) getModelLayerFactory().newCachelessRecordServices());
@@ -71,6 +68,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 	public void givenCalculatedMetadataOfNewRecordWhenUpdatingThenCalculateValue()
 			throws Exception {
 		givenCalculatedNumberBasedOnLocalDateAndAnotherSchemaReferenceDate(false);
+		record = new TestRecord(zeSchema);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithJan1DateValue);
 		record.set(zeSchema.dateTimeMetadata(), jan3);
 
@@ -83,6 +81,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 	public void givenCalculatedMetadataOfNewRecordWithMultivaluesWhenUpdatingThenCalculateValue()
 			throws Exception {
 		givenCalculatedNumberBasedOnLocalDateAndAnotherSchemaReferenceDate(true);
+		record = new TestRecord(zeSchema);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), asList(idReferencedRecordWithJan1DateValue));
 		record.set(zeSchema.dateTimeMetadata(), asList(jan1, jan2));
 
@@ -95,6 +94,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 	public void givenCalculatedMetadataOfNewRecordMissingRequiredReferenceDependencyWhenUpdatingThenCalculatedValueIsDefaultValue()
 			throws Exception {
 		givenCalculatedNumberBasedOnLocalDateAndAnotherSchemaReferenceDate(false);
+		record = new TestRecord(zeSchema);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithoutDateValue);
 		record.set(zeSchema.dateTimeMetadata(), jan3);
 
@@ -107,6 +107,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 	public void givenCalculatedMetadataOfNewRecordMissingRequiredLocalDependencyWhenUpdatingThenCalculatedValueIsDefaultValue()
 			throws Exception {
 		givenCalculatedNumberBasedOnLocalDateAndAnotherSchemaReferenceDate(false);
+		record = new TestRecord(zeSchema);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithJan1DateValue);
 		record.set(zeSchema.dateTimeMetadata(), null);
 
@@ -119,6 +120,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 	public void givenExistingRecordDependenciesOfCalculatedMetadataNotModifiedWhenUpdatingThenNotRecalculate()
 			throws Exception {
 		givenCalculatedNumberBasedOnLocalDateAndAnotherSchemaReferenceDate(false);
+		record = new TestRecord(zeSchema);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithJan1DateValue);
 		record.set(zeSchema.dateTimeMetadata(), jan3);
 		add();
@@ -134,6 +136,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 	public void givenExistingRecordReferenceDependencyOfCalculatedMetadataModifiedWhenUpdatingThenRecalculate()
 			throws Exception {
 		givenCalculatedNumberBasedOnLocalDateAndAnotherSchemaReferenceDate(false);
+		record = new TestRecord(zeSchema);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithJan1DateValue);
 		record.set(zeSchema.dateTimeMetadata(), jan3);
 		add();
@@ -149,6 +152,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 	public void givenExistingRecordLocalDependencyOfCalculatedMetadataModifiedWhenUpdatingThenRecalculate()
 			throws Exception {
 		givenCalculatedNumberBasedOnLocalDateAndAnotherSchemaReferenceDate(false);
+		record = new TestRecord(zeSchema);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithJan1DateValue);
 		record.set(zeSchema.dateTimeMetadata(), jan3);
 		add();
@@ -164,6 +168,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 	public void givenExistingRecordReferenceDependencyOfCalculatedMetadataRemovedWhenUpdatingThenReplaceWithDefaultValue()
 			throws Exception {
 		givenCalculatedNumberBasedOnLocalDateAndAnotherSchemaReferenceDate(false);
+		record = new TestRecord(zeSchema);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithJan1DateValue);
 		record.set(zeSchema.dateTimeMetadata(), jan3);
 		add();
@@ -181,6 +186,7 @@ public class RecordAutomaticMetadataServicesCalculationAcceptanceTest extends Co
 	public void givenExistingRecordLocalDependencyOfCalculatedMetadataRemovedWhenUpdatingThenReplaceWithDefaultValue()
 			throws Exception {
 		givenCalculatedNumberBasedOnLocalDateAndAnotherSchemaReferenceDate(false);
+		record = new TestRecord(zeSchema);
 		record.set(zeSchema.secondReferenceToAnotherSchema(), idReferencedRecordWithJan1DateValue);
 		record.set(zeSchema.dateTimeMetadata(), jan3);
 		add();

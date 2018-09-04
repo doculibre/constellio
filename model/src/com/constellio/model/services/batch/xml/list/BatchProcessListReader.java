@@ -1,18 +1,5 @@
 package com.constellio.model.services.batch.xml.list;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.filter.Filter;
-import org.jdom2.filter.Filters;
-import org.jdom2.util.IteratorIterable;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.batchprocess.AsyncTask;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
@@ -22,6 +9,18 @@ import com.constellio.model.entities.batchprocess.BatchProcessStatus;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReaderException.NoBatchProcessesInList;
 import com.constellio.model.utils.ParametrizedInstanceUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.filter.Filter;
+import org.jdom2.filter.Filters;
+import org.jdom2.util.IteratorIterable;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class BatchProcessListReader {
 
@@ -238,21 +237,21 @@ public class BatchProcessListReader {
 	private BatchProcessStatus getStatus(String statusStr) {
 		BatchProcessStatus status;
 		switch (statusStr) {
-		case PENDING_BATCH_PROCESSES:
-			status = BatchProcessStatus.PENDING;
-			break;
-		case CURRENT_BATCH_PROCESS:
-			status = BatchProcessStatus.CURRENT;
-			break;
-		case PREVIOUS_BATCH_PROCESSES:
-			status = BatchProcessStatus.FINISHED;
-			break;
-		case STANDBY_BATCH_PROCESSES:
-			status = BatchProcessStatus.STANDBY;
-			break;
-		default:
-			status = null;
-			break;
+			case PENDING_BATCH_PROCESSES:
+				status = BatchProcessStatus.PENDING;
+				break;
+			case CURRENT_BATCH_PROCESS:
+				status = BatchProcessStatus.CURRENT;
+				break;
+			case PREVIOUS_BATCH_PROCESSES:
+				status = BatchProcessStatus.FINISHED;
+				break;
+			case STANDBY_BATCH_PROCESSES:
+				status = BatchProcessStatus.STANDBY;
+				break;
+			default:
+				status = null;
+				break;
 		}
 		return status;
 	}

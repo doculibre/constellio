@@ -1,10 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class DecomListContainerDetail implements ModifiableStructure {
 
@@ -65,10 +64,10 @@ public class DecomListContainerDetail implements ModifiableStructure {
 	@Override
 	public String toString() {
 		return "DecommissioningListContainerDetail{" +
-				"containerRecordId='" + containerRecordId + '\'' +
-				", full=" + full +
-				", dirty=" + dirty +
-				'}';
+			   "containerRecordId='" + containerRecordId + '\'' +
+			   ", full=" + full +
+			   ", dirty=" + dirty +
+			   '}';
 	}
 
 	@Override

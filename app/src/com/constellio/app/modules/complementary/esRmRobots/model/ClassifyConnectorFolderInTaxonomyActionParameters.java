@@ -1,17 +1,16 @@
 package com.constellio.app.modules.complementary.esRmRobots.model;
 
-import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.complementary.esRmRobots.model.enums.ActionAfterClassification;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.modules.robots.model.wrappers.ActionParameters;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDate;
 
 public class ClassifyConnectorFolderInTaxonomyActionParameters extends ActionParameters
 		implements ClassifyConnectorFolderActionParameters {
@@ -36,7 +35,7 @@ public class ClassifyConnectorFolderInTaxonomyActionParameters extends ActionPar
 	public static final String PATH_PREFIX = "pathPrefix";
 
 	public ClassifyConnectorFolderInTaxonomyActionParameters(Record record,
-			MetadataSchemaTypes types) {
+															 MetadataSchemaTypes types) {
 		super(record, types);
 	}
 
@@ -95,17 +94,20 @@ public class ClassifyConnectorFolderInTaxonomyActionParameters extends ActionPar
 		return this;
 	}
 
-	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultUniformSubdivision(String defaultUniformSubdivision) {
+	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultUniformSubdivision(
+			String defaultUniformSubdivision) {
 		set(DEFAULT_UNIFORM_SUBDIVISION, defaultUniformSubdivision);
 		return this;
 	}
 
-	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultUniformSubdivision(UniformSubdivision defaultUniformSubdivision) {
+	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultUniformSubdivision(
+			UniformSubdivision defaultUniformSubdivision) {
 		set(DEFAULT_UNIFORM_SUBDIVISION, defaultUniformSubdivision);
 		return this;
 	}
 
-	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultUniformSubdivision(Record defaultUniformSubdivision) {
+	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultUniformSubdivision(
+			Record defaultUniformSubdivision) {
 		set(DEFAULT_UNIFORM_SUBDIVISION, defaultUniformSubdivision);
 		return this;
 	}
@@ -170,7 +172,8 @@ public class ClassifyConnectorFolderInTaxonomyActionParameters extends ActionPar
 		return this;
 	}
 
-	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultRetentionRule(RetentionRule defaultRetentionRule) {
+	public ClassifyConnectorFolderInTaxonomyActionParameters setDefaultRetentionRule(
+			RetentionRule defaultRetentionRule) {
 		set(DEFAULT_RETENTION_RULE, defaultRetentionRule);
 		return this;
 	}

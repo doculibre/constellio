@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.home;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentItem;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -31,6 +20,16 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.joda.time.LocalDateTime;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RecentItemProvider implements Serializable {
 	public static int DEFAULT_QUANTITY = 50;
@@ -43,7 +42,8 @@ public class RecentItemProvider implements Serializable {
 	private final String schemaType;
 	private final int quantity;
 
-	public RecentItemProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext, String schemaType, int quantity) {
+	public RecentItemProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext, String schemaType,
+							  int quantity) {
 		init(modelLayerFactory, sessionContext);
 		this.schemaType = schemaType;
 		this.quantity = quantity;
@@ -58,7 +58,7 @@ public class RecentItemProvider implements Serializable {
 		ArrayList<RecentItem> items = new ArrayList<>();
 		for (Record record : getRecentEvents()) {
 			RecordVO vo = builder.build(record, VIEW_MODE.TABLE, sessionContext);
-			String caption = SchemaCaptionUtils.getCaptionForRecord(record);
+			String caption = SchemaCaptionUtils.getCaptionForRecord(record, sessionContext.getCurrentLocale());
 			items.add(new RecentItem(vo, caption));
 		}
 		return items;
@@ -105,7 +105,6 @@ public class RecentItemProvider implements Serializable {
 		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(user.getCollection());
 		searchServices = modelLayerFactory.newSearchServices();
 	}
-
 
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {

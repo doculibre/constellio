@@ -1,14 +1,13 @@
 package com.constellio.model.entities.structures;
 
+import com.constellio.model.entities.schemas.ModifiableStructure;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class MapStringStringStructure implements ModifiableStructure, Map<String, String> {
 
@@ -76,9 +75,9 @@ public class MapStringStringStructure implements ModifiableStructure, Map<String
 	@Override
 	public String toString() {
 		return "MapStringString{" +
-				"stringStringMap=" + stringStringMap +
-				", dirty=" + dirty +
-				'}';
+			   "stringStringMap=" + stringStringMap +
+			   ", dirty=" + dirty +
+			   '}';
 	}
 
 	@Override

@@ -1,8 +1,5 @@
 package com.constellio.app.ui.framework.components.table.columns;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -12,6 +9,9 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.vaadin.ui.Table;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecordVOTableColumnsManager extends TableColumnsManager {
 
@@ -33,13 +33,13 @@ public class RecordVOTableColumnsManager extends TableColumnsManager {
 			String collection = sessionContext.getCurrentCollection();
 			AppLayerFactory appLayerFactory = constellioFactories.getAppLayerFactory();
 			SchemasDisplayManager schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
-			
+
 			for (MetadataSchemaVO schemaVO : schemaVOs) {
 				String schemaCode = schemaVO.getCode();
 				SchemaDisplayConfig schemaDisplayConfig = schemasDisplayManager.getSchema(collection, schemaCode);
 				defaultVisibleColumnIds.addAll(schemaDisplayConfig.getTableMetadataCodes());
 			}
-			
+
 			Object[] tableVisibleColumns = table.getVisibleColumns();
 			for (Object tableVisibleColumn : tableVisibleColumns) {
 				if (!(tableVisibleColumn instanceof MetadataVO)) {

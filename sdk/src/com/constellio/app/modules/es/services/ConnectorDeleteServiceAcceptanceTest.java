@@ -1,17 +1,5 @@
 package com.constellio.app.modules.es.services;
 
-import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
-import org.eclipse.jetty.server.Server;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.http.utils.WebsitesUtils;
 import com.constellio.app.modules.es.connectors.spi.ConnectorLogger;
 import com.constellio.app.modules.es.connectors.spi.ConsoleConnectorLogger;
@@ -21,11 +9,23 @@ import com.constellio.app.modules.es.sdk.TestConnectorEventObserver;
 import com.constellio.app.modules.es.services.crawler.ConnectorCrawler;
 import com.constellio.app.modules.es.services.crawler.DefaultConnectorEventObserver;
 import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.services.contents.ContentDao;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.eclipse.jetty.server.Server;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class ConnectorDeleteServiceAcceptanceTest extends ConstellioTest {
@@ -41,6 +41,7 @@ public class ConnectorDeleteServiceAcceptanceTest extends ConstellioTest {
 	private String zeMimetypeCode = "zeMimetype";
 	private List<ConnectorHttpDocument> connectorDocuments;
 	private ConfigManager configManager;
+	private ContentDao contentDao;
 
 	private TestConnectorEventObserver eventObserver;
 
@@ -55,6 +56,7 @@ public class ConnectorDeleteServiceAcceptanceTest extends ConstellioTest {
 		eventObserver = new TestConnectorEventObserver(es, new DefaultConnectorEventObserver(es, logger, "crawlerObserver"));
 		connectorManager.setCrawler(ConnectorCrawler.runningJobsSequentially(es, eventObserver).withoutSleeps());
 		configManager = getDataLayerFactory().getConfigManager();
+		this.contentDao = getDataLayerFactory().getContentsDao();
 	}
 
 	@Test
@@ -81,12 +83,13 @@ public class ConnectorDeleteServiceAcceptanceTest extends ConstellioTest {
 
 		connectorDocuments = tickAndGetAllDocuments();
 		assertThat(connectorDocuments).isNotEmpty();
-		assertThat(configManager.folderExist("connectors/http/" + connectorInstance.getId() + "/")).isTrue();
+		assertThat(contentDao.isFolderExisting("connectors/" + connectorInstance.getId() + "/")).isTrue();
+		//assertThat(configManager.folderExist("connectors/http/" + connectorInstance.getId() + "/")).isTrue();
 
 		new ConnectorDeleteService(zeCollection, getAppLayerFactory()).deleteConnector(connectorInstance);
 
 		assertThat(connectorDocuments()).isEmpty();
-		assertThat(configManager.folderExist("connectors/http/" + connectorInstance.getId() + "/")).isFalse();
+		assertThat(contentDao.isFolderExisting("connectors/" + connectorInstance.getId() + "/")).isFalse();
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		assertThat(types.hasSchema(ConnectorHttpDocument.SCHEMA_TYPE + "_" + connectorInstance.getId())).isFalse();
 		assertThat(recordDoesNotExist(connectorInstance.getId())).isTrue();

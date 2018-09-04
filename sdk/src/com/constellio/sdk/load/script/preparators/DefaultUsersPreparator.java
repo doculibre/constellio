@@ -1,8 +1,5 @@
 package com.constellio.sdk.load.script.preparators;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -10,6 +7,9 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.security.global.XmlGlobalGroup;
 import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.sdk.load.script.UserPreparator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DefaultUsersPreparator implements UserPreparator {
 

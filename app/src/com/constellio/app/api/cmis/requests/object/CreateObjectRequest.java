@@ -1,18 +1,5 @@
 package com.constellio.app.api.cmis.requests.object;
 
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.data.ObjectData;
-import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.apache.chemistry.opencmis.commons.enums.VersioningState;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_ObjectNotFound;
 import com.constellio.app.api.cmis.ConstellioCmisException;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
@@ -21,6 +8,17 @@ import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.chemistry.opencmis.commons.enums.VersioningState;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CreateObjectRequest extends CmisCollectionRequest<ObjectData> {
 
@@ -31,9 +29,11 @@ public class CreateObjectRequest extends CmisCollectionRequest<ObjectData> {
 	CreateDocumentRequest createDocumentRequest;
 
 	public CreateObjectRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CreateFolderRequest createFolderRequest, CreateDocumentRequest createDocumentRequest, CallContext context,
-			Properties properties, String folderId, ContentStream contentStream, VersioningState versioningState,
-			ObjectInfoHandler objectInfos) {
+							   CreateFolderRequest createFolderRequest, CreateDocumentRequest createDocumentRequest,
+							   CallContext context,
+							   Properties properties, String folderId, ContentStream contentStream,
+							   VersioningState versioningState,
+							   ObjectInfoHandler objectInfos) {
 		super(context, repository, appLayerFactory);
 		this.createFolderRequest = createFolderRequest;
 		this.createDocumentRequest = createDocumentRequest;

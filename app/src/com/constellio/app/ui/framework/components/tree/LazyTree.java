@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.components.tree;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.ObjectsResponse;
@@ -25,6 +20,11 @@ import com.vaadin.ui.Tree.CollapseListener;
 import com.vaadin.ui.Tree.ExpandEvent;
 import com.vaadin.ui.Tree.ExpandListener;
 import com.vaadin.ui.Tree.ItemStyleGenerator;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class LazyTree<T extends Serializable> extends CustomField<T> {
 
@@ -55,7 +55,7 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 		this.bufferSize = bufferSize;
 
 		adaptee = new Tree() {
-			@SuppressWarnings({ "rawtypes", "unchecked" })
+			@SuppressWarnings({"rawtypes", "unchecked"})
 			@Override
 			public Collection getContainerPropertyIds() {
 				Collection propertyIds = LazyTree.this.getContainerPropertyIds();
@@ -466,7 +466,7 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 		return null;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public Class getType() {
 		return Object.class;
@@ -481,13 +481,13 @@ public class LazyTree<T extends Serializable> extends CustomField<T> {
 	}
 
 	/**
-	 * Will load the nodes corresponding to the item ids passed. Each item id corresponds to a parent 
+	 * Will load the nodes corresponding to the item ids passed. Each item id corresponds to a parent
 	 * except for the last one, which is the last node, which can be a leaf.
-	 *
-	 * The item ids are ordered from the root level to the leaf level. Omitting any level will prevent 
+	 * <p>
+	 * The item ids are ordered from the root level to the leaf level. Omitting any level will prevent
 	 * the tree from loading the desired node.
-	 *
-	 * Note: The lazy loading of a level will stop after 10 attempts. This is necessary to prevent 
+	 * <p>
+	 * Note: The lazy loading of a level will stop after 10 attempts. This is necessary to prevent
 	 * performance issues.
 	 *
 	 * @param itemIds The item ids to load, from the root level to the leaf level.

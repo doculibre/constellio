@@ -1,14 +1,14 @@
 package com.constellio.model.services.schemas.validators;
 
-import java.util.HashMap;
-import java.util.List;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
 import com.constellio.model.services.records.RecordImplRuntimeException.RecordImplException_RecordCannotHaveTwoParents;
+
+import java.util.HashMap;
+import java.util.List;
 
 public class MetadataChildOfValidator implements Validator<Record> {
 

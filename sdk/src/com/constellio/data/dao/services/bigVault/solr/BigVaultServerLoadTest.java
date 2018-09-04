@@ -1,8 +1,15 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
-import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.TestUtils;
+import com.constellio.sdk.tests.annotations.LoadTest;
+import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
+import org.apache.solr.common.params.SolrParams;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,17 +17,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.apache.solr.common.params.SolrParams;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.data.dao.services.solr.ConstellioSolrInputDocument;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.TestUtils;
-import com.constellio.sdk.tests.annotations.LoadTest;
+import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @LoadTest
 public class BigVaultServerLoadTest extends ConstellioTest {

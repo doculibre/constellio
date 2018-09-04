@@ -1,11 +1,10 @@
 package com.constellio.app.ui.framework.components.converters;
 
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.vaadin.data.util.converter.Converter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Locale;
 
 public class RecordIdToCaptionConverter implements Converter<String, String> {
 
@@ -20,7 +19,7 @@ public class RecordIdToCaptionConverter implements Converter<String, String> {
 			throws com.vaadin.data.util.converter.Converter.ConversionException {
 		String caption;
 		if (StringUtils.isNotBlank(value)) {
-			caption = SchemaCaptionUtils.getCaptionForRecordId(value);
+			caption = SchemaCaptionUtils.getCaptionForRecordId(value, locale);
 		} else {
 			caption = "";
 		}

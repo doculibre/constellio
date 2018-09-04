@@ -46,7 +46,8 @@ public class ContentImplRuntimeException extends RuntimeException {
 
 	public static class ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion extends ContentImplRuntimeException {
 
-		public ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion(String givenVersion, String previousVersion) {
+		public ContentImplRuntimeException_VersionMustBeHigherThanPreviousVersion(String givenVersion,
+																				  String previousVersion) {
 			super("Bad version '" + givenVersion + "'. Must be higher than previous version '" + previousVersion + "'");
 		}
 	}

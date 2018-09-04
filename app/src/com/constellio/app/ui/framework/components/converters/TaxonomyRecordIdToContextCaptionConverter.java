@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.components.converters;
 
-import java.io.IOException;
-import java.util.Locale;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
@@ -14,15 +9,19 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.vaadin.server.Resource;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.IOException;
+import java.util.Locale;
 
 public class TaxonomyRecordIdToContextCaptionConverter extends RecordIdToCaptionConverter {
-	
+
 	public static final String DELIM = " | ";
-	
+
 	private transient RecordServices recordServices;
-	
+
 	private transient TaxonomiesManager taxonomiesManager;
-	
+
 	public TaxonomyRecordIdToContextCaptionConverter() {
 		super();
 		initTransientObjects();
@@ -56,9 +55,9 @@ public class TaxonomyRecordIdToContextCaptionConverter extends RecordIdToCaption
 						if (sb.length() > 0) {
 							sb.insert(0, DELIM);
 						}
-						String currentRecordCaption = SchemaCaptionUtils.getCaptionForRecord(currentRecord);
+						String currentRecordCaption = SchemaCaptionUtils.getCaptionForRecord(currentRecord, locale);
 						sb.insert(0, currentRecordCaption);
-						
+
 						String parentRecordId = currentRecord.getParentId();
 						if (parentRecordId != null) {
 							currentRecord = recordServices.getDocumentById(parentRecordId);

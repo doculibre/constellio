@@ -1,9 +1,10 @@
 package com.constellio.model.entities.records.wrappers;
 
-import java.util.List;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class SearchEvent extends RecordWrapper {
 
@@ -13,10 +14,14 @@ public class SearchEvent extends RecordWrapper {
 	public static final String QUERY = "query";
 	public static final String CLICK_COUNT = "clickCount";
 	public static final String PAGE_NAVIGATION_COUNT = "pageNavigationCount";
+	public static final String LAST_PAGE_NAVIGATION = "lastPageNavigation";
 	public static final String PARAMS = "params";
 	public static final String ORIGINAL_QUERY = "originalQuery";
 	public static final String NUM_FOUND = "numFound";
 	public static final String Q_TIME = "qTime";
+	public static final String CAPSULE = "capsule";
+	public static final String DWELL_TIME = "dwellTime";
+	public static final String CLICKS = "clicks";
 
 	public SearchEvent(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE + "_");
@@ -37,6 +42,15 @@ public class SearchEvent extends RecordWrapper {
 
 	public SearchEvent setQuery(String query) {
 		set(QUERY, query);
+		return this;
+	}
+
+	public String getOriginalQuery() {
+		return get(ORIGINAL_QUERY);
+	}
+
+	public SearchEvent setOriginalQuery(String query) {
+		set(ORIGINAL_QUERY, query);
 		return this;
 	}
 
@@ -82,8 +96,51 @@ public class SearchEvent extends RecordWrapper {
 		return value == null ? 0 : value.longValue();
 	}
 
+	public int getLastPageNavigation() {
+		Number value = get(LAST_PAGE_NAVIGATION);
+		return value == null ? 0 : value.intValue();
+	}
+
 	public SearchEvent setQTime(long qTime) {
 		set(Q_TIME, qTime);
+		return this;
+	}
+
+	public long getDwellTime() {
+		Number dwellTime = get(DWELL_TIME);
+		return dwellTime == null ? 0 : dwellTime.longValue();
+	}
+
+	public SearchEvent setDwellTime(long dwellTime) {
+		set(DWELL_TIME, dwellTime);
+		return this;
+	}
+
+	public List<String> getCapsule() {
+		return get(CAPSULE);
+	}
+
+	public SearchEvent setCapsule(List<String> capsule) {
+		set(CAPSULE, capsule);
+		return this;
+	}
+
+	public SearchEvent setCapsule(Record... capsule) {
+		set(CAPSULE, Arrays.asList(capsule));
+		return this;
+	}
+
+	public SearchEvent setCapsule(Capsule... capsule) {
+		set(CAPSULE, Arrays.asList(capsule));
+		return this;
+	}
+
+	public List<String> getClicks() {
+		return get(CLICKS);
+	}
+
+	public SearchEvent setClicks(List<String> clicks) {
+		set(CLICKS, clicks);
 		return this;
 	}
 }

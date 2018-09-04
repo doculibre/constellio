@@ -1,9 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.StringMetadataValueCalculator;
@@ -11,6 +7,10 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.Schemas;
+
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class DocumentCaptionCalculator extends StringMetadataValueCalculator {
 

@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.events;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Date;
-
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.components.DateRangePanel;
 import com.constellio.app.ui.framework.components.EventByIdSearchPanel;
@@ -28,6 +24,10 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+
+import java.util.Date;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEventCategoryView {
 	public static final String TABLE_STYLE_CODE = "seleniumTableCode";
@@ -141,7 +141,7 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 					protected void buttonClick(ClickEvent event) {
 						EventStatistics entity = provider.getEventStatistics((Integer) itemId);
 						Float value = entity.getValue();
-						if(value != 0){
+						if (value != 0) {
 							displayButtonClicked((Integer) itemId);
 						}
 					}

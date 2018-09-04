@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.data.io.streamFactories.StreamFactory;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 /**
@@ -14,112 +13,112 @@ import static com.constellio.app.ui.i18n.i18n.$;
  */
 public class AvailableSpaceReportModel {
 
-    public static final String UNIT = "cm";
+	public static final String UNIT = "cm";
 
-    private Boolean showFullSpaces;
+	private Boolean showFullSpaces;
 
-    private StreamFactory<InputStream> headerLogo;
+	private StreamFactory<InputStream> headerLogo;
 
-    private List<AvailableSpaceReportModelNode> rootNodes = new ArrayList<>();
+	private List<AvailableSpaceReportModelNode> rootNodes = new ArrayList<>();
 
-    List<AvailableSpaceReportModelNode> nodes = new ArrayList<AvailableSpaceReportModelNode>();
+	List<AvailableSpaceReportModelNode> nodes = new ArrayList<AvailableSpaceReportModelNode>();
 
-    public StreamFactory<InputStream> getHeaderLogo() {
-        return headerLogo;
-    }
+	public StreamFactory<InputStream> getHeaderLogo() {
+		return headerLogo;
+	}
 
-    public AvailableSpaceReportModel setHeaderLogo(StreamFactory<InputStream> headerLogo) {
-        this.headerLogo = headerLogo;
-        return this;
-    }
+	public AvailableSpaceReportModel setHeaderLogo(StreamFactory<InputStream> headerLogo) {
+		this.headerLogo = headerLogo;
+		return this;
+	}
 
-    public List<AvailableSpaceReportModelNode> getRootNodes() {
-        return rootNodes;
-    }
+	public List<AvailableSpaceReportModelNode> getRootNodes() {
+		return rootNodes;
+	}
 
-    public AvailableSpaceReportModel setRootNodes(List<AvailableSpaceReportModelNode> rootNodes) {
-        this.rootNodes = rootNodes;
-        return this;
-    }
+	public AvailableSpaceReportModel setRootNodes(List<AvailableSpaceReportModelNode> rootNodes) {
+		this.rootNodes = rootNodes;
+		return this;
+	}
 
-    public boolean isShowFullSpaces() {
-        return showFullSpaces;
-    }
+	public boolean isShowFullSpaces() {
+		return showFullSpaces;
+	}
 
-    public void setShowFullSpaces(boolean showFullSpaces) {
-        this.showFullSpaces = showFullSpaces;
-    }
+	public void setShowFullSpaces(boolean showFullSpaces) {
+		this.showFullSpaces = showFullSpaces;
+	}
 
-    public String getTitle() {
-        return this.isShowFullSpaces() ? $("AvailableSpaceReport.All") : $("AvailableSpaceReport.Title");
-    }
+	public String getTitle() {
+		return this.isShowFullSpaces() ? $("AvailableSpaceReport.All") : $("AvailableSpaceReport.Title");
+	}
 
-    public static class AvailableSpaceReportModelNode {
+	public static class AvailableSpaceReportModelNode {
 
-        private String code;
+		private String code;
 
-        private String title;
+		private String title;
 
-        private double availableSpace;
+		private double availableSpace;
 
-        private double capacity;
+		private double capacity;
 
-        private String image;
+		private String image;
 
-        private List<AvailableSpaceReportModelNode> childrenNodes = new ArrayList<>();
+		private List<AvailableSpaceReportModelNode> childrenNodes = new ArrayList<>();
 
-        public String getCode() {
-            return code;
-        }
+		public String getCode() {
+			return code;
+		}
 
-        public AvailableSpaceReportModelNode setCode(String code) {
-            this.code = code;
-            return this;
-        }
+		public AvailableSpaceReportModelNode setCode(String code) {
+			this.code = code;
+			return this;
+		}
 
-        public String getTitle() {
-            return title;
-        }
+		public String getTitle() {
+			return title;
+		}
 
-        public AvailableSpaceReportModelNode setTitle(String title) {
-            this.title = title;
-            return this;
-        }
+		public AvailableSpaceReportModelNode setTitle(String title) {
+			this.title = title;
+			return this;
+		}
 
-        public List<AvailableSpaceReportModelNode> getChildrenNodes() {
-            return childrenNodes;
-        }
+		public List<AvailableSpaceReportModelNode> getChildrenNodes() {
+			return childrenNodes;
+		}
 
-        public AvailableSpaceReportModelNode setChildrenNodes(List<AvailableSpaceReportModelNode> childrenNodes) {
-            this.childrenNodes = childrenNodes;
-            return this;
-        }
+		public AvailableSpaceReportModelNode setChildrenNodes(List<AvailableSpaceReportModelNode> childrenNodes) {
+			this.childrenNodes = childrenNodes;
+			return this;
+		}
 
-        public double getAvailableSpace() {
-            return availableSpace;
-        }
+		public double getAvailableSpace() {
+			return availableSpace;
+		}
 
-        public AvailableSpaceReportModelNode setAvailableSpace(double availableSpace) {
-            this.availableSpace = availableSpace;
-            return this;
-        }
+		public AvailableSpaceReportModelNode setAvailableSpace(double availableSpace) {
+			this.availableSpace = availableSpace;
+			return this;
+		}
 
-        public double getCapacity() {
-            return capacity;
-        }
+		public double getCapacity() {
+			return capacity;
+		}
 
-        public AvailableSpaceReportModelNode setCapacity(double capacity) {
-            this.capacity = capacity;
-            return this;
-        }
+		public AvailableSpaceReportModelNode setCapacity(double capacity) {
+			this.capacity = capacity;
+			return this;
+		}
 
-        public String getImage() {
-            return image;
-        }
+		public String getImage() {
+			return image;
+		}
 
-        public AvailableSpaceReportModelNode setImage(String image) {
-            this.image = image;
-            return this;
-        }
-    }
+		public AvailableSpaceReportModelNode setImage(String image) {
+			this.image = image;
+			return this;
+		}
+	}
 }

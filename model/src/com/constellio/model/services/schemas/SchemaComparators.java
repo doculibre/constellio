@@ -1,12 +1,12 @@
 package com.constellio.model.services.schemas;
 
-import java.util.Comparator;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.Comparator;
 
 public class SchemaComparators {
 

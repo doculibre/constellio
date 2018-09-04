@@ -1,12 +1,12 @@
 package com.constellio.data.dao.services.bigVault;
 
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.util.NamedList;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.util.NamedList;
 
 public class TermVectoreResponse {
 	private String uniqueKeyFieldName;
@@ -30,8 +30,9 @@ public class TermVectoreResponse {
 			} else {
 				NamedList<Object> fields = (NamedList<Object>) aDoc.getValue();
 				searchedDocId = aDoc.getKey();
-				if (searchedDocId.equals("warnings"))
+				if (searchedDocId.equals("warnings")) {
 					return;
+				}
 				Iterator<Entry<String, Object>> iterField = fields.iterator();
 
 				String docId = null;

@@ -1,14 +1,5 @@
 package com.constellio.app.modules;
 
-import static java.util.Locale.ENGLISH;
-import static java.util.Locale.FRENCH;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.Locale;
-
-import org.junit.Test;
-
 import com.constellio.app.entities.modules.locators.DefaultModuleResourcesLocator;
 import com.constellio.app.entities.modules.locators.ModuleResourcesLocator;
 import com.constellio.app.entities.modules.locators.ProjectModeModuleResourcesLocator;
@@ -16,6 +7,14 @@ import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Test;
+
+import java.io.File;
+import java.util.Locale;
+
+import static java.util.Locale.ENGLISH;
+import static java.util.Locale.FRENCH;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModuleResourcesLocatorAcceptanceTest extends ConstellioTest {
 
@@ -43,8 +42,7 @@ public class ModuleResourcesLocatorAcceptanceTest extends ConstellioTest {
 
 		assertThat(locator.getModuleI18nBundle("rm")).isNull();
 
-		assertThat(locator.getModuleI18nBundle(null).getBundle(ENGLISH).getString("init.allTypes.allSchemas.principalpath"))
-				.isEqualTo("Main path");
+		assertThat(locator.getModuleI18nBundle(null)).isNotNull();
 
 		assertThat(locator.getModuleMigrationResourcesFolder("rm", "6.1"))
 				.isEqualTo(constellioFile("resources_i18n/migrations/rm/6_1"));

@@ -1,16 +1,5 @@
 package com.constellio.app.ui.pages.management.facet;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -31,6 +20,16 @@ import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFacetConfigurationView> {
 
@@ -94,7 +93,7 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 			view.getForm().commit();
 			for (MetadataVO metadataVO : recordVO.getMetadatas()) {
 				if (recordVO.getMetadataValue(metadataVO) != null
-						&& recordVO.getMetadataValue(metadataVO).getValue() != null) {
+					&& recordVO.getMetadataValue(metadataVO).getValue() != null) {
 					newRecordVO.set(metadataVO, recordVO.getMetadataValue(metadataVO).getValue());
 				}
 			}
@@ -126,14 +125,14 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 
 		MapStringStringStructure valuesMap;
 		switch (facetType) {
-		case FIELD:
-			valuesMap = recordVO.get(Facet.FIELD_VALUES_LABEL);
-			break;
-		case QUERY:
-			valuesMap = recordVO.get(Facet.LIST_QUERIES);
-			break;
-		default:
-			throw new ImpossibleRuntimeException("Unknown type");
+			case FIELD:
+				valuesMap = recordVO.get(Facet.FIELD_VALUES_LABEL);
+				break;
+			case QUERY:
+				valuesMap = recordVO.get(Facet.LIST_QUERIES);
+				break;
+			default:
+				throw new ImpossibleRuntimeException("Unknown type");
 		}
 		if (valuesMap != null) {
 			for (String key : valuesMap.keySet()) {
@@ -150,13 +149,13 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 
 		List<String> values = new ArrayList<>();
 		switch (facetType) {
-		case FIELD:
-			values = service.getFieldFacetValues(dataFieldCode);
-			break;
-		case QUERY:
-			break;
-		default:
-			throw new ImpossibleRuntimeException("Unknown type");
+			case FIELD:
+				values = service.getFieldFacetValues(dataFieldCode);
+				break;
+			case QUERY:
+				break;
+			default:
+				throw new ImpossibleRuntimeException("Unknown type");
 		}
 		for (String value : values) {
 			if (!valuesInTable.contains(value)) {
@@ -190,14 +189,14 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 				OngoingLogicalSearchConditionWithDataStoreFields condition = from(schema(Facet.FIELD_SCHEMA))
 						.where(defaultSchema.get(Facet.FACET_TYPE));
 				switch (facetType) {
-				case FIELD:
-					query.setCondition(condition.isEqualTo(FacetType.FIELD));
-					break;
-				case QUERY:
-					query.setCondition(condition.isEqualTo(FacetType.QUERY));
-					break;
-				default:
-					throw new ImpossibleRuntimeException("Unknown type");
+					case FIELD:
+						query.setCondition(condition.isEqualTo(FacetType.FIELD));
+						break;
+					case QUERY:
+						query.setCondition(condition.isEqualTo(FacetType.QUERY));
+						break;
+					default:
+						throw new ImpossibleRuntimeException("Unknown type");
 				}
 
 				return query;
@@ -215,23 +214,23 @@ public class AddEditFacetConfigurationPresenter extends BasePresenter<AddEditFac
 
 		filterValues(values);
 		switch (facetType) {
-		case FIELD:
-			if (recordVO.get(Facet.FIELD_DATA_STORE_CODE) == null) {
-				throw new RuntimeException("no data field");
-			}
-			recordVO.set(Facet.FIELD_VALUES_LABEL, service.getStructureValue(values));
-			break;
-		case QUERY:
-			List<Integer> invalidQuery = service.getInvalidQuery(values);
-			if (invalidQuery.isEmpty())
-				recordVO.set(Facet.LIST_QUERIES, service.getStructureValue(values));
-			else {
-				view.displayInvalidQuery(invalidQuery);
-				return;
-			}
-			break;
-		default:
-			throw new ImpossibleRuntimeException("Unknown type");
+			case FIELD:
+				if (recordVO.get(Facet.FIELD_DATA_STORE_CODE) == null) {
+					throw new RuntimeException("no data field");
+				}
+				recordVO.set(Facet.FIELD_VALUES_LABEL, service.getStructureValue(values));
+				break;
+			case QUERY:
+				List<Integer> invalidQuery = service.getInvalidQuery(values);
+				if (invalidQuery.isEmpty()) {
+					recordVO.set(Facet.LIST_QUERIES, service.getStructureValue(values));
+				} else {
+					view.displayInvalidQuery(invalidQuery);
+					return;
+				}
+				break;
+			default:
+				throw new ImpossibleRuntimeException("Unknown type");
 		}
 
 		if (!edit) {

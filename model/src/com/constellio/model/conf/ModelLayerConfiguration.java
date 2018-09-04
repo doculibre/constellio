@@ -1,12 +1,11 @@
 package com.constellio.model.conf;
 
-import java.io.File;
-
-import org.joda.time.Duration;
-
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.services.encrypt.EncryptionServices;
+import org.joda.time.Duration;
+
+import java.io.File;
 
 public interface ModelLayerConfiguration {
 

@@ -22,6 +22,10 @@ public class Utf8ResourceBundles {
 		this.urls = urls;
 	}
 
+	public String getBundleName() {
+		return bundleName;
+	}
+
 	public ResourceBundle getBundle(Locale locale) {
 		ResourceBundle bundle = RESOURCE_BUNDLES.get(locale);
 		if (bundle == null) {
@@ -36,7 +40,7 @@ public class Utf8ResourceBundles {
 	public static Utf8ResourceBundles forPropertiesFile(File propertiesFolder, String bundleName) {
 		URL[] urls;
 		try {
-			urls = new URL[] { propertiesFolder.toURI().toURL() };
+			urls = new URL[]{propertiesFolder.toURI().toURL()};
 		} catch (MalformedURLException e) {
 			throw new RuntimeException(e);
 		}

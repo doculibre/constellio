@@ -1,8 +1,5 @@
 package com.constellio.app.ui.framework.containers;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.items.RecordVOItem;
@@ -15,6 +12,9 @@ import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.AbstractProperty;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 public class TaxonomyConceptsWithChildrenCountContainer extends ContainerAdapter {
 
 	public static final String CHILDREN_COUNT = "taxonomyChildrenCount";
@@ -25,8 +25,9 @@ public class TaxonomyConceptsWithChildrenCountContainer extends ContainerAdapter
 	private String taxonomy;
 	private String schemaType;
 
-	public TaxonomyConceptsWithChildrenCountContainer(Container adapted, String collection, String username, String taxonomy,
-			String schemaType) {
+	public TaxonomyConceptsWithChildrenCountContainer(Container adapted, String collection, String username,
+													  String taxonomy,
+													  String schemaType) {
 		super(adapted);
 		this.collection = collection;
 		this.username = username;
@@ -35,9 +36,10 @@ public class TaxonomyConceptsWithChildrenCountContainer extends ContainerAdapter
 		init();
 	}
 
-	public TaxonomyConceptsWithChildrenCountContainer(Container adapted, String collection, String username, String taxonomy,
-			String schemaType,
-			ModelLayerFactory modelLayerFactory) {
+	public TaxonomyConceptsWithChildrenCountContainer(Container adapted, String collection, String username,
+													  String taxonomy,
+													  String schemaType,
+													  ModelLayerFactory modelLayerFactory) {
 		this(adapted, username, taxonomy, schemaType, collection);
 		this.modelLayerFactory = modelLayerFactory;
 		init();

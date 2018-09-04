@@ -1,25 +1,5 @@
 package com.constellio.model.services.emails;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
-import javax.mail.internet.MimeMessage;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.model.conf.email.EmailConfigurationsManager;
 import com.constellio.model.conf.email.EmailServerConfiguration;
@@ -36,6 +16,25 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import javax.mail.internet.MimeMessage;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 // TODO Nouha: Fix test
 public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
@@ -234,7 +233,8 @@ public class EmailQueueManagerAcceptanceTest extends ConstellioTest {
 		assertThat(searchServices.getResultsCount(query)).isEqualTo(0);
 	}
 
-	private void assertOneEmailToSendWithDateAndWithNumberOfTry(LocalDateTime expectedDate, double expectedNumberOfTry) {
+	private void assertOneEmailToSendWithDateAndWithNumberOfTry(LocalDateTime expectedDate,
+																double expectedNumberOfTry) {
 		assertThatRecord(
 				searchServices.searchSingleResult(from(schemas.emailToSend()).returnAll()))
 				.hasMetadataValue(schemas.emailToSend().getMetadata(EmailToSend.SEND_ON), expectedDate)

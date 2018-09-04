@@ -1,14 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.chemistry.opencmis.commons.impl.IOUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.ReportViewer.DownloadStreamResource;
 import com.constellio.model.services.contents.ContentManager;
@@ -18,6 +9,14 @@ import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.ui.Embedded;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.chemistry.opencmis.commons.impl.IOUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ContentViewer extends VerticalLayout {
 	final String contentId, contentName;
@@ -28,7 +27,9 @@ public class ContentViewer extends VerticalLayout {
 		StreamSource source = getStreamFromContent();
 
 		Embedded viewer = new Embedded();
-		viewer.setSource(new StreamResource(source, contentName));
+		StreamResource streamResource = new StreamResource(source, contentName);
+		streamResource.setCacheTime(0);
+		viewer.setSource(streamResource);
 		viewer.setType(Embedded.TYPE_BROWSER);
 		viewer.setWidth("100%");
 		viewer.setHeight("1024px");

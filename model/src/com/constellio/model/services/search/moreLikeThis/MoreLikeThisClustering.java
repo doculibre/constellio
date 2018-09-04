@@ -1,5 +1,8 @@
 package com.constellio.model.services.search.moreLikeThis;
 
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.search.MoreLikeThisRecord;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -8,9 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.services.search.MoreLikeThisRecord;
 
 public class MoreLikeThisClustering {
 	public static interface StringConverter<T> {
@@ -25,11 +25,13 @@ public class MoreLikeThisClustering {
 
 		for (MoreLikeThisRecord moreLikeThisRecord : records) {
 			String facetValue = converter.converToString(moreLikeThisRecord.getRecord());
-			if (facetValue == null)
+			if (facetValue == null) {
 				continue;
+			}
 			Double score = facetValues.get(facetValue);
-			if (score == null)
+			if (score == null) {
 				score = 0d;
+			}
 
 			score += moreLikeThisRecord.getScore();
 			if (score > maxScore) {
@@ -50,12 +52,14 @@ public class MoreLikeThisClustering {
 
 			@Override
 			public int compare(Entry<String, Double> o1,
-					Entry<String, Double> o2) {
+							   Entry<String, Double> o2) {
 				double diff = o1.getValue() - o2.getValue();
-				if (diff > 0)
+				if (diff > 0) {
 					return 1;
-				if (diff < 0)
+				}
+				if (diff < 0) {
 					return -1;
+				}
 				return o1.getKey().compareTo(o2.getKey());
 			}
 		});

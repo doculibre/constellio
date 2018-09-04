@@ -1,22 +1,21 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import com.constellio.data.dao.services.solr.SolrServerFactory;
+import com.constellio.data.dao.services.solr.SolrServers;
+import com.constellio.data.extensions.DataLayerExtensions;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.solr.client.solrj.SolrClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.data.dao.services.solr.SolrServerFactory;
-import com.constellio.data.dao.services.solr.SolrServers;
-import com.constellio.data.extensions.DataLayerExtensions;
-import com.constellio.sdk.tests.ConstellioTest;
-
 import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class SolrServersTest extends ConstellioTest {
 

@@ -1,20 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ANALOG;
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ELECTRONIC;
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.HYBRID;
-import static com.constellio.app.modules.rm.model.enums.FolderMediaType.UNKNOWN;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.Arrays;
-
-import org.assertj.core.api.Condition;
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -37,6 +22,20 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.Condition;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ANALOG;
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.ELECTRONIC;
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.HYBRID;
+import static com.constellio.app.modules.rm.model.enums.FolderMediaType.UNKNOWN;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMTestRecordsAcceptanceTest extends ConstellioTest {
 

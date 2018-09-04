@@ -1,18 +1,5 @@
 package com.constellio.model.services.users;
 
-import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.data.utils.LangUtils.valueOrDefault;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.users.UserUtils.cleanUsername;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
@@ -27,6 +14,18 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserCredentialsManagerRuntimeException.UserCredentialsManagerRuntimeException_CannotExecuteTransaction;
+import org.joda.time.LocalDateTime;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.data.utils.LangUtils.valueOrDefault;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.users.UserUtils.cleanUsername;
 
 public class SolrUserCredentialsManager implements UserCredentialsManager {
 	private final ModelLayerFactory modelLayerFactory;
@@ -41,8 +40,10 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 
 	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
-			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
-			UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
+								 Map<String, LocalDateTime> tokens,
+								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+								 String dn) {
 		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
@@ -60,10 +61,13 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 	}
 
 	@Override
-	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails,
-			String serviceKey,
-			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
-			UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+	public UserCredential create(String username, String firstName, String lastName, String email,
+								 List<String> personalEmails,
+								 String serviceKey,
+								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
+								 Map<String, LocalDateTime> tokens,
+								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+								 String dn) {
 		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
@@ -82,10 +86,13 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 	}
 
 	@Override
-	public UserCredential create(String username, String firstName, String lastName, String email, List<String> personalEmails,
-			String serviceKey, boolean systemAdmin, List<String> globalGroups, List<String> collections,
-			Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
-			String dn, String jobTitle, String phone, String fax, String address) {
+	public UserCredential create(String username, String firstName, String lastName, String email,
+								 List<String> personalEmails,
+								 String serviceKey, boolean systemAdmin, List<String> globalGroups,
+								 List<String> collections,
+								 Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain,
+								 List<String> msExchDelegateListBL,
+								 String dn, String jobTitle, String phone, String fax, String address) {
 		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
@@ -109,22 +116,26 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 
 	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
-			boolean systemAdmin, List<String> globalGroups, List<String> collections, Map<String, LocalDateTime> tokens,
-			UserCredentialStatus status) {
+								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
+								 Map<String, LocalDateTime> tokens,
+								 UserCredentialStatus status) {
 		return create(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status,
 				null, null, null);
 	}
 
 	@Override
-	public UserCredential create(String username, String firstName, String lastName, String email, List<String> globalGroups,
-			List<String> collections, UserCredentialStatus status, String domain, List<String> msExchDelegateListBL, String dn) {
+	public UserCredential create(String username, String firstName, String lastName, String email,
+								 List<String> globalGroups,
+								 List<String> collections, UserCredentialStatus status, String domain,
+								 List<String> msExchDelegateListBL, String dn) {
 		return create(username, firstName, lastName, email, null, false, globalGroups, collections,
 				Collections.<String, LocalDateTime>emptyMap(), status, domain, msExchDelegateListBL, dn);
 	}
 
 	@Override
-	public UserCredential create(String username, String firstName, String lastName, String email, List<String> globalGroups,
-			List<String> collections, UserCredentialStatus status) {
+	public UserCredential create(String username, String firstName, String lastName, String email,
+								 List<String> globalGroups,
+								 List<String> collections, UserCredentialStatus status) {
 		return create(username, firstName, lastName, email, null, false, globalGroups, collections,
 				Collections.<String, LocalDateTime>emptyMap(), status, null, null, null);
 	}

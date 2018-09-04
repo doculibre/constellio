@@ -1,21 +1,10 @@
 package com.constellio.app.ui.pages.management.ldap;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.vaadin.ui.*;
-import org.joda.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.CollectionsSelectionPanel;
-import com.constellio.app.ui.framework.components.DurationPanel;
-import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.ScheduleComponent;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.RegexFilter;
@@ -25,8 +14,25 @@ import com.constellio.model.services.users.sync.LDAPUserSyncManager.LDAPSynchPro
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.ui.Alignment;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Field;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.TextArea;
+import com.vaadin.ui.TextField;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPConfigManagementView {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LDAPConfigBaseView.class);
@@ -158,7 +164,7 @@ public abstract class LDAPConfigBaseView extends BaseViewImpl implements LDAPCon
 					testAuthentication.setValue(
 							presenter.getAuthenticationResultMessage(ldapServerConfiguration, getAuthenticationUser(),
 									getAuthenticationPassword()) + "\n"
-									+ presenter.getSynchResultMessage(ldapServerConfiguration, ldapUserSyncConfiguration));
+							+ presenter.getSynchResultMessage(ldapServerConfiguration, ldapUserSyncConfiguration));
 					layout.replaceComponent(testAuthentication, testAuthentication);
 				} catch (Throwable e) {
 					LOGGER.warn("Error when testing ldap configuration ", e);

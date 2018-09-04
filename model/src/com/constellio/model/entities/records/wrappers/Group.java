@@ -1,11 +1,13 @@
 package com.constellio.model.entities.records.wrappers;
 
-import java.util.*;
-import java.util.Collection;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class Group extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "group";

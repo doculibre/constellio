@@ -1,19 +1,22 @@
 package com.constellio.app.services.importExport.settings.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.constellio.model.entities.schemas.MetadataValueType;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class ImportedMetadata {
 
 	private String code;
-	private String label;
+	private Map<Language, String> labels = new HashMap<>();
 	private String type;
 	private String referencedType;
 	private Boolean enabled;// = true;
@@ -60,12 +63,26 @@ public class ImportedMetadata {
 	}
 
 	public String getLabel() {
-		return label;
+		return labels.get(Language.French);
 	}
 
 	public ImportedMetadata setLabel(String label) {
-		this.label = label;
+		labels.put(Language.French, label);
 		return this;
+	}
+
+	public ImportedMetadata setLabel(Locale locale, String label) {
+		labels.put(Language.withLocale(locale), label);
+		return this;
+	}
+
+	public ImportedMetadata setLabels(Map<Language, String> labels) {
+		this.labels = labels;
+		return this;
+	}
+
+	public Map<Language, String> getLabels() {
+		return labels;
 	}
 
 	public String getType() {
@@ -352,20 +369,20 @@ public class ImportedMetadata {
 	public List<String> getVisibleInListInSchemas(ListType listType) {
 		switch (listType) {
 
-		case DISPLAY:
-			return getVisibleInDisplayIn();
+			case DISPLAY:
+				return getVisibleInDisplayIn();
 
-		case FORM:
-			return getVisibleInFormIn();
+			case FORM:
+				return getVisibleInFormIn();
 
-		case SEARCH:
-			return getVisibleInResultIn();
+			case SEARCH:
+				return getVisibleInResultIn();
 
-		case TABLES:
-			return getVisibleInTablesIn();
+			case TABLES:
+				return getVisibleInTablesIn();
 
-		default:
-			throw new RuntimeException("Unsupported list " + listType);
+			default:
+				throw new RuntimeException("Unsupported list " + listType);
 
 		}
 
@@ -374,20 +391,20 @@ public class ImportedMetadata {
 	public Boolean getVisible(ListType listType) {
 		switch (listType) {
 
-		case DISPLAY:
-			return getVisibleInDisplay();
+			case DISPLAY:
+				return getVisibleInDisplay();
 
-		case FORM:
-			return getVisibleInForm();
+			case FORM:
+				return getVisibleInForm();
 
-		case SEARCH:
-			return getVisibleInSearchResult();
+			case SEARCH:
+				return getVisibleInSearchResult();
 
-		case TABLES:
-			return getVisibleInTables();
+			case TABLES:
+				return getVisibleInTables();
 
-		default:
-			throw new RuntimeException("Unsupported list " + listType);
+			default:
+				throw new RuntimeException("Unsupported list " + listType);
 
 		}
 

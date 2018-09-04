@@ -13,13 +13,24 @@ import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.CustomField;
+import com.vaadin.ui.DragAndDropWrapper;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.easyuploads.FileBuffer;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class BaseUploadField extends CustomField<Object> implements DropHandler {
@@ -94,9 +105,9 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 			protected FileBuffer createReceiver() {
 				FileBuffer receiver = super.createReceiver();
 				/*
-                 * Make receiver not to deleteLogically files after they have been
-                 * handled by #handleFile().
-                 */
+				 * Make receiver not to deleteLogically files after they have been
+				 * handled by #handleFile().
+				 */
 				receiver.setDeleteFiles(false);
 				return receiver;
 			}
@@ -134,7 +145,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 		fileUploadsContainer = new ButtonsContainer<>(new IndexedContainer());
 		fileUploadsContainer.addContainerProperty(CAPTION_PROPERTY_ID, Component.class, null);
 
-		if (haveDeleteButton){
+		if (haveDeleteButton) {
 			fileUploadsContainer.addButton(new ContainerButton() {
 				@Override
 				protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
@@ -175,20 +186,20 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 		multiFileUpload.setVisible(!isViewOnly);
 
-		mainLayout.addComponents(multiFileUpload,fileUploadsTable);
+		mainLayout.addComponents(multiFileUpload, fileUploadsTable);
 	}
-	
+
 	@Override
 	public void attach() {
 		super.attach();
-		
+
 		if (viewChangeListener == null) {
 			viewChangeListener = new ViewChangeListener() {
 				@Override
 				public boolean beforeViewChange(ViewChangeEvent event) {
 					return true;
 				}
-				
+
 				@Override
 				public void afterViewChange(ViewChangeEvent event) {
 					deleteTempFiles();
@@ -206,11 +217,11 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 	protected Object getItemId(TempFileUpload tempFileUpload) {
 		return tempFileUpload;
 	}
-	
+
 	protected Component getItemCaption(Object itemId) {
 		return itemCaptions.get(itemId);
 	}
-	
+
 	protected Map<Object, Component> getItemCaptions() {
 		return Collections.unmodifiableMap(itemCaptions);
 	}
@@ -241,7 +252,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 
 	@Override
 	public void drop(DragAndDropEvent event) {
-		if(isViewOnly) {
+		if (isViewOnly) {
 			return;
 		}
 

@@ -1,13 +1,43 @@
 package com.constellio.app.extensions;
 
-import java.io.File;
-import java.util.*;
-
-import com.constellio.app.api.extensions.*;
+import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
-import com.constellio.app.api.extensions.params.*;
+import com.constellio.app.api.extensions.DocumentViewButtonExtension;
+import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
+import com.constellio.app.api.extensions.GenericRecordPageExtension;
+import com.constellio.app.api.extensions.LabelTemplateExtension;
+import com.constellio.app.api.extensions.ListSchemaExtention;
+import com.constellio.app.api.extensions.MetadataFieldExtension;
+import com.constellio.app.api.extensions.PageExtension;
+import com.constellio.app.api.extensions.PagesComponentsExtension;
+import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
+import com.constellio.app.api.extensions.RecordExportExtension;
+import com.constellio.app.api.extensions.RecordFieldFactoryExtension;
+import com.constellio.app.api.extensions.SchemaTypesPageExtension;
+import com.constellio.app.api.extensions.SearchCriterionExtension;
+import com.constellio.app.api.extensions.SearchPageExtension;
+import com.constellio.app.api.extensions.SelectionPanelExtension;
+import com.constellio.app.api.extensions.SystemCheckExtension;
+import com.constellio.app.api.extensions.TaxonomyPageExtension;
+import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
+import com.constellio.app.api.extensions.params.AvailableActionsParam;
+import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
+import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
+import com.constellio.app.api.extensions.params.DocumentViewButtonExtensionParam;
+import com.constellio.app.api.extensions.params.FilterCapsuleParam;
+import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
+import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
+import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
+import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
+import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
+import com.constellio.app.api.extensions.params.OnWriteRecordParams;
+import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
+import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
+import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
+import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
@@ -15,7 +45,6 @@ import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassif
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
-import com.constellio.app.extensions.treenode.TreeNodeExtension;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
 import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
@@ -34,13 +63,14 @@ import com.constellio.app.extensions.records.params.IsMetadataVisibleInRecordFor
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
 import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
+import com.constellio.app.extensions.treenode.TreeNodeExtension;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
@@ -50,6 +80,7 @@ import com.constellio.data.utils.KeyListMap;
 import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
@@ -57,6 +88,16 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.api.extensions.GenericRecordPageExtension.OTHERS_TAB;
 
@@ -107,6 +148,10 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<LabelTemplateExtension> labelTemplateExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<DocumentViewButtonExtension> documentViewButtonExtension = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<ListSchemaExtention> listSchemaCommandExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -276,7 +321,8 @@ public class AppLayerCollectionExtensions {
 		return null;
 	}
 
-	public List<TaxonomyManagementClassifiedType> getClassifiedTypes(GetTaxonomyManagementClassifiedTypesParams params) {
+	public List<TaxonomyManagementClassifiedType> getClassifiedTypes(
+			GetTaxonomyManagementClassifiedTypesParams params) {
 		List<TaxonomyManagementClassifiedType> types = new ArrayList<>();
 		for (TaxonomyPageExtension extension : taxonomyAccessExtensions) {
 			types.addAll(extension.getClassifiedTypesFor(params));
@@ -292,8 +338,9 @@ public class AppLayerCollectionExtensions {
 		return fields;
 	}
 
-	public boolean hasPageAccess(boolean defaultValue, final Class<? extends BasePresenter> presenterClass, final String params,
-			final User user) {
+	public boolean hasPageAccess(boolean defaultValue, final Class<? extends BasePresenter> presenterClass,
+								 final String params,
+								 final User user) {
 		return pageAccessExtensions.getBooleanValue(defaultValue, new BooleanCaller<PageExtension>() {
 			@Override
 			public ExtensionBooleanResult call(PageExtension behavior) {
@@ -303,7 +350,7 @@ public class AppLayerCollectionExtensions {
 	}
 
 	public boolean hasRestrictedRecordAccess(boolean defaultValue, final Class<? extends BasePresenter> presenterClass,
-			final String params, final User user, final Record restrictedRecord) {
+											 final String params, final User user, final Record restrictedRecord) {
 		return pageAccessExtensions.getBooleanValue(defaultValue, new BooleanCaller<PageExtension>() {
 			@Override
 			public ExtensionBooleanResult call(PageExtension behavior) {
@@ -322,7 +369,7 @@ public class AppLayerCollectionExtensions {
 	}
 
 	public boolean canViewSchemaRecord(boolean defaultValue, final User user, final MetadataSchemaType schemaType,
-			final Record restrictedRecord) {
+									   final Record restrictedRecord) {
 		return schemaTypeAccessExtensions.getBooleanValue(defaultValue, new BooleanCaller<GenericRecordPageExtension>() {
 			@Override
 			public ExtensionBooleanResult call(GenericRecordPageExtension behavior) {
@@ -332,7 +379,7 @@ public class AppLayerCollectionExtensions {
 	}
 
 	public boolean canModifySchemaRecord(boolean defaultValue, final User user, final MetadataSchemaType schemaType,
-			final Record restrictedRecord) {
+										 final Record restrictedRecord) {
 		return schemaTypeAccessExtensions.getBooleanValue(defaultValue, new BooleanCaller<GenericRecordPageExtension>() {
 			@Override
 			public ExtensionBooleanResult call(GenericRecordPageExtension behavior) {
@@ -341,8 +388,9 @@ public class AppLayerCollectionExtensions {
 		});
 	}
 
-	public boolean canLogicallyDeleteSchemaRecord(boolean defaultValue, final User user, final MetadataSchemaType schemaType,
-			final Record restrictedRecord) {
+	public boolean canLogicallyDeleteSchemaRecord(boolean defaultValue, final User user,
+												  final MetadataSchemaType schemaType,
+												  final Record restrictedRecord) {
 		return schemaTypeAccessExtensions.getBooleanValue(defaultValue, new BooleanCaller<GenericRecordPageExtension>() {
 			@Override
 			public ExtensionBooleanResult call(GenericRecordPageExtension behavior) {
@@ -362,13 +410,13 @@ public class AppLayerCollectionExtensions {
 
 	public String getSchemaTypeDisplayGroup(final MetadataSchemaType schemaType) {
 		String schemaTypeDisplayGroup = null;
-		for(GenericRecordPageExtension extension: schemaTypeAccessExtensions) {
+		for (GenericRecordPageExtension extension : schemaTypeAccessExtensions) {
 			schemaTypeDisplayGroup = extension.getSchemaTypeDisplayGroup(schemaType);
-			if(schemaTypeDisplayGroup != null) {
+			if (schemaTypeDisplayGroup != null) {
 				break;
 			}
 		}
-		return schemaTypeDisplayGroup != null? schemaTypeDisplayGroup:OTHERS_TAB;
+		return schemaTypeDisplayGroup != null ? schemaTypeDisplayGroup : OTHERS_TAB;
 	}
 
 	public boolean canManageTaxonomy(boolean defaultValue, final User user, final Taxonomy taxonomy) {
@@ -401,13 +449,15 @@ public class AppLayerCollectionExtensions {
 		}
 	}
 
-	public void decorateMainComponentAfterViewAssembledOnViewEntered(DecorateMainComponentAfterInitExtensionParams params) {
+	public void decorateMainComponentAfterViewAssembledOnViewEntered(
+			DecorateMainComponentAfterInitExtensionParams params) {
 		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
 			extension.decorateMainComponentAfterViewAssembledOnViewEntered(params);
 		}
 	}
 
-	public void decorateMainComponentBeforeViewAssembledOnViewEntered(DecorateMainComponentAfterInitExtensionParams params) {
+	public void decorateMainComponentBeforeViewAssembledOnViewEntered(
+			DecorateMainComponentAfterInitExtensionParams params) {
 		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
 			extension.decorateMainComponentBeforeViewAssembledOnViewEntered(params);
 		}
@@ -422,7 +472,8 @@ public class AppLayerCollectionExtensions {
 		});
 	}
 
-	public boolean isMetadataModifiableInBatchProcessing(final Metadata metadata, final User user, final String recordId) {
+	public boolean isMetadataModifiableInBatchProcessing(final Metadata metadata, final User user,
+														 final String recordId) {
 		return batchProcessingExtensions.getBooleanValue(true, new BooleanCaller<BatchProcessingExtension>() {
 			@Override
 			public ExtensionBooleanResult call(BatchProcessingExtension behavior) {
@@ -432,7 +483,7 @@ public class AppLayerCollectionExtensions {
 	}
 
 	public Map<String, String> getCustomLabels(final MetadataSchema schema, final Locale locale,
-			final Provider<String, String> resourceProvider) {
+											   final Provider<String, String> resourceProvider) {
 		Map<String, String> customLabels = new HashMap<>();
 		for (BatchProcessingExtension extension : batchProcessingExtensions) {
 			extension.addCustomLabel(new AddCustomLabelsParams(schema, locale, resourceProvider, customLabels));
@@ -455,6 +506,14 @@ public class AppLayerCollectionExtensions {
 		for (SearchPageExtension extension : searchPageExtensions) {
 			extension.notifyNewUserSearch(event);
 		}
+	}
+
+	public Capsule filter(FilterCapsuleParam param) {
+		Capsule result = null;
+		for (SearchPageExtension extension : searchPageExtensions) {
+			result = extension.filter(param);
+		}
+		return result;
 	}
 
 	public void notifyFolderDeletion(FolderDeletionEvent event) {
@@ -528,7 +587,7 @@ public class AppLayerCollectionExtensions {
 			}
 		});
 	}
-	
+
 	public List<String> getDynamicFieldMetadatas(GetDynamicFieldMetadatasParams params) {
 		List<String> dynamicFieldMetadatas = new ArrayList<>();
 		for (RecordAppExtension recordAppExtension : recordAppExtensions) {
@@ -548,9 +607,9 @@ public class AppLayerCollectionExtensions {
 
 	public File changeDownloadableTemplate() {
 		File file = null;
-		for(LabelTemplateExtension extension : labelTemplateExtensions) {
+		for (LabelTemplateExtension extension : labelTemplateExtensions) {
 			File temp = extension.changeDownloadableTemplate();
-			if(temp != null) {
+			if (temp != null) {
 				file = temp;
 			}
 		}
@@ -567,9 +626,9 @@ public class AppLayerCollectionExtensions {
 	}
 
 	public Component getComponentForCriterion(Criterion criterion) {
-		for(SearchCriterionExtension extension: searchCriterionExtensions) {
+		for (SearchCriterionExtension extension : searchCriterionExtensions) {
 			Component component = extension.getComponentForCriterion(criterion);
-			if(component != null) {
+			if (component != null) {
 				return component;
 			}
 		}
@@ -577,35 +636,56 @@ public class AppLayerCollectionExtensions {
 	}
 
 	public Component getDisplayForReference(AllowedReferences allowedReferences, String id) {
-		for(RecordDisplayFactoryExtension extension: recordDisplayFactoryExtensions) {
+		for (RecordDisplayFactoryExtension extension : recordDisplayFactoryExtensions) {
 			Component component = extension.getDisplayForReference(allowedReferences, id);
-			if(component != null) {
+			if (component != null) {
 				return component;
 			}
 		}
 		return getDefaultDisplayForReference(id);
 	}
 
+	public Field<?> getFieldForMetadata(MetadataVO metadataVO) {
+		for (MetadataFieldExtension extension : metadataFieldExtensions) {
+			Field<?> component = extension.getMetadataField(metadataVO);
+			if (component != null) {
+				return component;
+			}
+		}
+		return new MetadataFieldFactory().build(metadataVO);
+	}
+
 	public List<Button> getDocumentViewButtonExtension(Record record, User user) {
 		List<Button> buttons = new ArrayList<>();
-		for(DocumentViewButtonExtension extension : documentViewButtonExtension) {
+		for (DocumentViewButtonExtension extension : documentViewButtonExtension) {
 			buttons.addAll(extension.addButton(new DocumentViewButtonExtensionParam(record, user)));
 		}
 		return buttons;
+	}
+
+	public List<ListSchemaExtraCommandReturnParams> getListSchemaExtraCommandExtensions(
+			ListSchemaExtraCommandParams listSchemaExtraCommandParams) {
+		List<ListSchemaExtraCommandReturnParams> listSchemaParams = new ArrayList<>();
+		for (ListSchemaExtention listSchemaCommandExtention : listSchemaCommandExtensions) {
+			listSchemaParams.addAll(listSchemaCommandExtention.getExtraCommands(listSchemaExtraCommandParams));
+		}
+
+		return listSchemaParams;
 	}
 
 	public Component getDefaultDisplayForReference(String id) {
 		return new ReferenceDisplay(id);
 	}
 
-    public List<String> getUnwantedTaxonomiesForExportation() {
+	public List<String> getUnwantedTaxonomiesForExportation() {
 		Set<String> unwantedTaxonomies = new HashSet<>();
-		for(RecordExportExtension extension: recordExportExtensions) {
+		for (RecordExportExtension extension : recordExportExtensions) {
 			List<String> unwantedTaxonomiesFromExtension = extension.getUnwantedTaxonomiesForExportation();
-			if(unwantedTaxonomiesFromExtension != null) {
+			if (unwantedTaxonomiesFromExtension != null) {
 				unwantedTaxonomies.addAll(unwantedTaxonomiesFromExtension);
 			}
 		}
-        return new ArrayList<>(unwantedTaxonomies);
-    }
+		return new ArrayList<>(unwantedTaxonomies);
+	}
+
 }

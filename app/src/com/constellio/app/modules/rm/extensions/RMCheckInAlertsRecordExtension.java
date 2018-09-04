@@ -1,17 +1,7 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -28,9 +18,19 @@ import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RMCheckInAlertsRecordExtension extends RecordExtension {
 
@@ -98,18 +98,18 @@ public class RMCheckInAlertsRecordExtension extends RecordExtension {
 					LocalDateTime returnDate = TimeProvider.getLocalDateTime();
 					emailToSend.setTo(toAddress);
 					emailToSend.setSendOn(returnDate);
-                    final String subject = $("RMObject.alertWhenAvailableSubject", $("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase()) + ": " + record.getTitle();
+					final String subject = $("RMObject.alertWhenAvailableSubject", $("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase()) + ": " + record.getTitle();
 					emailToSend.setSubject(subject);
 					emailToSend.setTemplate(RMEmailTemplateConstants.ALERT_AVAILABLE_ID);
 					List<String> parameters = new ArrayList<>();
-					parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+					parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 					parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 					String rmObjectTitle = rmObject.getTitle();
-					parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + rmObjectTitle);
+					parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(rmObjectTitle));
 					String constellioUrl = eimConfigs.getConstellioUrl();
 					parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 					parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());
-					parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + $("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase());
+					parameters.add("recordType" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4($("AddEditTaxonomyView.classifiedObject." + schemaType).toLowerCase()));
 					emailToSend.setParameters(parameters);
 					transaction.add(emailToSend);
 				}
@@ -122,7 +122,7 @@ public class RMCheckInAlertsRecordExtension extends RecordExtension {
 	}
 
 	private String formatDateToParameter(LocalDateTime datetime) {
-		if(datetime == null) {
+		if (datetime == null) {
 			return "";
 		}
 		return datetime.toString("yyyy-MM-dd  HH:mm:ss");

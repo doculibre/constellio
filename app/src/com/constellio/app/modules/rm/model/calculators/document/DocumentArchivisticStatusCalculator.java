@@ -1,16 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.document;
 
-import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS;
-import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_DEPOSIT_DATE;
-import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_DESTRUCTION_DATE;
-import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_TRANSFER_DATE;
-import static com.constellio.app.modules.rm.wrappers.RetentionRule.SCOPE;
-import static java.util.Arrays.asList;
-
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
@@ -23,6 +12,16 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import org.joda.time.LocalDate;
+
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS;
+import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_DEPOSIT_DATE;
+import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_DESTRUCTION_DATE;
+import static com.constellio.app.modules.rm.wrappers.Document.FOLDER_ACTUAL_TRANSFER_DATE;
+import static com.constellio.app.modules.rm.wrappers.RetentionRule.SCOPE;
+import static java.util.Arrays.asList;
 
 public class DocumentArchivisticStatusCalculator implements MetadataValueCalculator<FolderStatus> {
 

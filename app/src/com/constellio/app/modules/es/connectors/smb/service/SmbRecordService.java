@@ -1,28 +1,26 @@
 package com.constellio.app.modules.es.connectors.smb.service;
 
-import java.util.*;
-
 import com.constellio.app.modules.es.connectors.smb.ConnectorSmb;
-import com.constellio.app.modules.es.model.connectors.DocumentSmbConnectorUrlCalculator;
-import com.constellio.data.dao.dto.records.FacetValue;
-import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.search.SPEQueryResponse;
-import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.es.connectors.smb.utils.ConnectorSmbUtils;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbDocument;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbFolder;
 import com.constellio.app.modules.es.model.connectors.smb.ConnectorSmbInstance;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.SPEQueryResponse;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SmbRecordService {
 	private ESSchemasRecordsServices es;
@@ -114,10 +112,10 @@ public class SmbRecordService {
 
 	public Set<String> duplicateDocuments() {
 		LogicalSearchQuery query = new LogicalSearchQuery(es.fromAllDocumentsOf(connectorInstance.getId()))
-			.addFieldFacet(Schemas.URL.getDataStoreCode())
-			.setFieldFacetLimit(10_000)
-			.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.URL))
-			.setNumberOfRows(0);
+				.addFieldFacet(Schemas.URL.getDataStoreCode())
+				.setFieldFacetLimit(10_000)
+				.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.URL))
+				.setNumberOfRows(0);
 		Map<String, String[]> solrParams = new HashMap<>();
 		solrParams.put("facet.mincount", new String[]{"2"});
 		query.setOverridedQueryParams(solrParams);

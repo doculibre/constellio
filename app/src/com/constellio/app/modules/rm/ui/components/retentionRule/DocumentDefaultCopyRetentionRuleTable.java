@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.retentionRule;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.RetentionPeriod;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -52,6 +45,13 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 	private static final String COPY_TYPE = "copyType";
 	private static final String DETAILS = "details";
@@ -83,7 +83,7 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 	private Field<CopyRetentionRule> secondaryCopyField;
 
 	public DocumentDefaultCopyRetentionRuleTable(RetentionRuleVO retentionRuleVO, boolean formMode,
-			RetentionRuleTablePresenter presenter) {
+												 RetentionRuleTablePresenter presenter) {
 		this.retentionRuleVO = retentionRuleVO;
 		this.formMode = formMode;
 		this.dateMetadataVOs = getDateMetadataVOs();
@@ -349,12 +349,13 @@ public class DocumentDefaultCopyRetentionRuleTable extends CustomComponent {
 
 	private class RetentionPeriodFieldGroup extends VerticalLayout {
 
-		public RetentionPeriodFieldGroup(final CopyRetentionRule copyRetentionRule, final boolean activeRetentionPeriod) {
+		public RetentionPeriodFieldGroup(final CopyRetentionRule copyRetentionRule,
+										 final boolean activeRetentionPeriod) {
 			setSpacing(true);
 
 			RetentionPeriod retentionPeriod = (activeRetentionPeriod) ?
-					copyRetentionRule.getActiveRetentionPeriod() :
-					copyRetentionRule.getSemiActiveRetentionPeriod();
+											  copyRetentionRule.getActiveRetentionPeriod() :
+											  copyRetentionRule.getSemiActiveRetentionPeriod();
 
 			Property<String> dateMetadataProperty;
 			if (activeRetentionPeriod) {

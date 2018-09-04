@@ -1,9 +1,5 @@
 package com.constellio.app.api.extensions;
 
-import java.io.Serializable;
-import java.util.Locale;
-import java.util.Map;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -12,8 +8,17 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.ui.Field;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public abstract class BatchProcessingExtension implements Serializable {
 
@@ -34,6 +39,12 @@ public abstract class BatchProcessingExtension implements Serializable {
 
 	public boolean hasMetadataSpecificAssociatedField(MetadataVO metadataVO) {
 		return false;
+	}
+
+	public void validateBatchProcess(BatchProcessFeededByQueryParams params) {
+	}
+
+	public void validateBatchProcess(BatchProcessFeededByIdsParams params) {
 	}
 
 	public static class IsMetadataDisplayedWhenModifiedParams {
@@ -87,7 +98,7 @@ public abstract class BatchProcessingExtension implements Serializable {
 		Locale locale;
 
 		public AddCustomLabelsParams(MetadataSchema schema, Locale locale,
-				Provider<String, String> resourceProvider, Map<String, String> customLabels) {
+									 Provider<String, String> resourceProvider, Map<String, String> customLabels) {
 			this.locale = locale;
 			this.schema = schema;
 			this.resourceProvider = resourceProvider;
@@ -121,5 +132,19 @@ public abstract class BatchProcessingExtension implements Serializable {
 		public boolean isSchemaType(String schemaType) {
 			return schema.getCode().startsWith(schemaType + "_");
 		}
+	}
+
+	@AllArgsConstructor
+	public static class BatchProcessFeededByQueryParams {
+		@Getter ValidationErrors validationErrors;
+		@Getter LogicalSearchQuery query;
+		@Getter String schemaTypeCode;
+	}
+
+	@AllArgsConstructor
+	public static class BatchProcessFeededByIdsParams {
+		@Getter ValidationErrors validationErrors;
+		@Getter List<String> ids;
+		@Getter String schemaTypeCode;
 	}
 }

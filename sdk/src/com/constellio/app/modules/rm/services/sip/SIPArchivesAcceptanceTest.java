@@ -1,29 +1,5 @@
 package com.constellio.app.modules.rm.services.sip;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Stack;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.Namespace;
-import org.jdom2.input.SAXBuilder;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -50,6 +26,30 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jdom2.input.SAXBuilder;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Stack;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SIPArchivesAcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
@@ -85,7 +85,7 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 				filter, new ProgressInfo());
 		if (!metsObjectsProvider.list().isEmpty()) {
 			ConstellioSIP constellioSIP = new ConstellioSIP(metsObjectsProvider, bagInfoLines, false,
-					getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo());
+					getAppLayerFactory().newApplicationService().getWarVersion(), new ProgressInfo(), Locale.FRENCH);
 			constellioSIP.build(outFile);
 		}
 
@@ -166,7 +166,7 @@ public class SIPArchivesAcceptanceTest extends ConstellioTest {
 
 		SIPBuildAsyncTask task = new SIPBuildAsyncTask("testSIPFile", asList("test1", "test2"),
 				Collections.singletonList(email.getId()), Collections.<String>emptyList(), false,
-				records.getAdmin().getUsername(), false, getAppLayerFactory().newApplicationService().getWarVersion());
+				records.getAdmin().getUsername(), false, getAppLayerFactory().newApplicationService().getWarVersion(), "fr");
 		getAppLayerFactory().getModelLayerFactory().getBatchProcessesManager().addAsyncTask(
 				new AsyncTaskCreationRequest(task, zeCollection,
 						"SIPArchive from test com.constellio.app.modules.rm.services.sip.SIPBuildAsyncTaskAcceptanceTest"));

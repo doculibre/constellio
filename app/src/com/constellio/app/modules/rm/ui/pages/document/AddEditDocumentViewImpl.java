@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.modules.rm.ui.components.document.DocumentForm;
 import com.constellio.app.modules.rm.ui.components.document.DocumentFormImpl;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
@@ -17,8 +15,10 @@ import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView {
-	
+
 	private final AddEditDocumentPresenter presenter;
 	private RecordVO recordVO;
 	private DocumentFormImpl recordForm;
@@ -26,7 +26,7 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 	public AddEditDocumentViewImpl() {
 		presenter = newPresenter();
 	}
-	
+
 	protected AddEditDocumentPresenter newPresenter() {
 		return new AddEditDocumentPresenter(this);
 	}
@@ -63,7 +63,7 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 	}
 
 	private DocumentFormImpl newForm() {
-		recordForm = new DocumentFormImpl(recordVO, !presenter.isAddView()) {
+		recordForm = new DocumentFormImpl(recordVO, (!presenter.isAddView() || presenter.isNewFileAtStart())) {
 			@Override
 			protected void saveButtonClick(RecordVO viewObject)
 					throws ValidationException {
@@ -115,5 +115,5 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 	public void openAgentURL(String agentURL) {
 		Page.getCurrent().open(agentURL, null);
 	}
-	
+
 }

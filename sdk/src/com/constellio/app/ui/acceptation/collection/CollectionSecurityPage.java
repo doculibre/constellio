@@ -1,7 +1,5 @@
 package com.constellio.app.ui.acceptation.collection;
 
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.pages.collection.ListCollectionUserViewImpl;
 import com.constellio.app.ui.tools.ButtonWebElement;
@@ -12,6 +10,7 @@ import com.constellio.app.ui.tools.RecordContainerWebElement;
 import com.constellio.app.ui.tools.RecordContainerWebElement.RecordContainerWebElementRow;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
 
 public class CollectionSecurityPage extends PageHelper {
 	public static final int CODE_COLUMN = 0;

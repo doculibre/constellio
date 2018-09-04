@@ -1,10 +1,10 @@
 package com.constellio.model.services.schemas.builders;
 
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 
 public class MetadataAccessRestrictionBuilder {
 
@@ -101,9 +101,9 @@ public class MetadataAccessRestrictionBuilder {
 
 	public boolean isEmpty() {
 		return requiredReadRoles.isEmpty()
-				&& requiredWriteRoles.isEmpty()
-				&& requiredModificationRoles.isEmpty()
-				&& requiredDeleteRoles.isEmpty();
+			   && requiredWriteRoles.isEmpty()
+			   && requiredModificationRoles.isEmpty()
+			   && requiredDeleteRoles.isEmpty();
 	}
 
 }

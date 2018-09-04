@@ -1,7 +1,5 @@
 package com.constellio.app.modules.rm.wrappers;
 
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
@@ -9,6 +7,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+
+import java.util.List;
+import java.util.Locale;
 
 public class Category extends RecordWrapper {
 
@@ -33,14 +34,28 @@ public class Category extends RecordWrapper {
 	public static final String LEVEL = "level";
 	public static final String COPY_RETENTION_RULES_ON_DOCUMENT_TYPES = "copyRetentionRulesOnDocumentTypes";
 
-	public Category(Record record,
-			MetadataSchemaTypes types) {
+	@Deprecated
+	public Category(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 
-	public Category setTitle(String title) {
-		super.setTitle(title);
+	public Category(Record record, MetadataSchemaTypes types, Locale locale) {
+		super(record, types, SCHEMA_TYPE, locale);
+	}
+
+	public Category setTitle(Locale locale, String title) {
+		super.set(TITLE, locale, title);
 		return this;
+	}
+
+	public Category setTitle(String title) {
+		super.set(TITLE, title);
+		return this;
+	}
+
+	@Override
+	public String getTitle() {
+		return get(Schemas.TITLE.getLocalCode(), locale);
 	}
 
 	public String getParent() {
@@ -94,7 +109,12 @@ public class Category extends RecordWrapper {
 	}
 
 	public String getDescription() {
-		return get(DESCRIPTION);
+		return get(DESCRIPTION, locale);
+	}
+
+	public Category setDescription(Locale locale, String description) {
+		set(DESCRIPTION, locale, description);
+		return this;
 	}
 
 	public Category setDescription(String description) {
@@ -108,6 +128,11 @@ public class Category extends RecordWrapper {
 
 	public Category setKeywords(List<String> keywords) {
 		set(KEYWORDS, keywords);
+		return this;
+	}
+
+	public Category setKeywords(Locale locale, List<String> keywords) {
+		set(KEYWORDS, locale, keywords);
 		return this;
 	}
 

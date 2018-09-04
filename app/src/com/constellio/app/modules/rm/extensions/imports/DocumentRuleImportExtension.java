@@ -1,16 +1,15 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
-import java.util.Map;
-
-import com.constellio.app.modules.rm.wrappers.RMObject;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.joda.time.LocalDateTime;
+
+import java.util.Map;
 
 public class DocumentRuleImportExtension extends RecordImportExtension {
 
@@ -33,7 +32,6 @@ public class DocumentRuleImportExtension extends RecordImportExtension {
 	public void build(BuildParams event) {
 		Map<String, Object> fields = event.getImportRecord().getFields();
 		Document document = rm.wrapDocument(event.getRecord());
-
 
 
 		String createdBy = (String) fields.get(Schemas.CREATED_BY.getLocalCode());

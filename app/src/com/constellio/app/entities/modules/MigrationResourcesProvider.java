@@ -1,6 +1,11 @@
 package com.constellio.app.entities.modules;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.entities.modules.MigrationResourcesProviderRuntimeException.MigrationResourcesProviderRuntimeException_NoBundle;
+import com.constellio.app.entities.modules.locators.ModuleResourcesLocator;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.Language;
+import com.constellio.model.utils.i18n.Utf8ResourceBundles;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.InputStream;
@@ -10,13 +15,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.constellio.app.entities.modules.MigrationResourcesProviderRuntimeException.MigrationResourcesProviderRuntimeException_NoBundle;
-import com.constellio.app.entities.modules.locators.ModuleResourcesLocator;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.model.entities.Language;
-import com.constellio.model.utils.i18n.Utf8ResourceBundles;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class MigrationResourcesProvider {
 
@@ -28,9 +27,10 @@ public class MigrationResourcesProvider {
 	Language language;
 	List<Language> collectionLanguages;
 
-	public MigrationResourcesProvider(String module, Language language, List<Language> collectionLanguages, String version,
-			IOServices ioServices,
-			ModuleResourcesLocator moduleResourcesLocator) {
+	public MigrationResourcesProvider(String module, Language language, List<Language> collectionLanguages,
+									  String version,
+									  IOServices ioServices,
+									  ModuleResourcesLocator moduleResourcesLocator) {
 		this.module = module;
 		this.version = version;
 		this.ioServices = ioServices;
@@ -39,6 +39,21 @@ public class MigrationResourcesProvider {
 		this.propertiesFolder = moduleResourcesLocator.getModuleMigrationResourcesFolder(module, version);
 		this.bundles = moduleResourcesLocator.getModuleMigrationI18nBundle(module, version);
 
+	}
+
+	public String getValuesOfAllLanguagesWithSeparator(String key, String separator) {
+		StringBuilder sb = new StringBuilder();
+
+		for (Language language : collectionLanguages) {
+
+			if (sb.length() > 0) {
+				sb.append(separator);
+			}
+
+			sb.append(getString(key, language.getLocale()));
+		}
+
+		return sb.toString();
 	}
 
 	public String get(String key) {

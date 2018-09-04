@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS;
-import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS_AND_FOLDER;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -21,6 +13,13 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS;
+import static com.constellio.app.modules.rm.model.enums.RetentionRuleScope.DOCUMENTS_AND_FOLDER;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CategoryCalculatorsAcceptanceTest extends ConstellioTest {
 
@@ -189,7 +188,7 @@ public class CategoryCalculatorsAcceptanceTest extends ConstellioTest {
 				principal888_9_C.in("rule2", "w100", 1)); //type4
 	}
 
-//	@Test
+	//	@Test
 	//	public void givenRubricAsDefaultCopyRuleIdThenDefaultRuleAndDefaultCopyRule()
 	//			throws Exception {
 	//

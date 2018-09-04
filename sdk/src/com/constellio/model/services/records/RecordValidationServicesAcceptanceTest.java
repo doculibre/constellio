@@ -1,41 +1,9 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator.MAX_SIZE;
-import static com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator.VALUE_LENGTH_TOO_LONG;
-import static com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator.WAS_SIZE;
-import static com.constellio.model.services.schemas.validators.MaskedMetadataValidator.VALUE_INCOMPATIBLE_WITH_SPECIFIED_MASK;
-import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.EXPECTED_TYPE_MESSAGE_PARAM;
-import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.INVALID_VALUE_FOR_METADATA;
-import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.METADATA_CODE_MESSAGE_PARAM;
-import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.WAS_VALUE_CLASS_MESSAGE_PARAM;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabel;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivaluesAndLimitedTo50Characters;
-import static com.thoughtworks.selenium.SeleneseTestBase.fail;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.MapEntry.entry;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.api.Condition;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import org.mockito.MockitoAnnotations.Mock;
-
 import com.constellio.model.api.impl.schemas.validation.impl.CreationDateIsBeforeOrEqualToLastModificationDateValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator;
 import com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMultivalueMetadataValidator;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -56,6 +24,40 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.Condition;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import org.mockito.MockitoAnnotations.Mock;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator.MAX_SIZE;
+import static com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator.VALUE_LENGTH_TOO_LONG;
+import static com.constellio.model.api.impl.schemas.validation.impl.Maximum50CharsRecordMetadataValidator.WAS_SIZE;
+import static com.constellio.model.services.schemas.validators.MaskedMetadataValidator.VALUE_INCOMPATIBLE_WITH_SPECIFIED_MASK;
+import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.EXPECTED_TYPE_MESSAGE_PARAM;
+import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.INVALID_VALUE_FOR_METADATA;
+import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.METADATA_CODE_MESSAGE_PARAM;
+import static com.constellio.model.services.schemas.validators.MetadataValueTypeValidator.WAS_VALUE_CLASS_MESSAGE_PARAM;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabel;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivaluesAndLimitedTo50Characters;
+import static com.thoughtworks.selenium.SeleneseTestBase.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.MapEntry.entry;
+import static org.mockito.Mockito.when;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
@@ -630,9 +632,12 @@ public class RecordValidationServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenTheNewParentOfARecordIsOneOfItsDescendantThenException()
 			throws Exception {
+		Map<Language, String> labelTitle = new HashMap<>();
+		labelTitle.put(Language.French, "taxo");
+
 		defineSchemasManager()
 				.using(schemas.withAParentReferenceFromZeSchemaToZeSchema().withAReferenceMetadataToZeSchema());
-		Taxonomy taxonomy = Taxonomy.createPublic("taxo", "taxo", zeCollection, Arrays.asList("zeSchemaType"));
+		Taxonomy taxonomy = Taxonomy.createPublic("taxo", labelTitle, zeCollection, Arrays.asList("zeSchemaType"));
 		getModelLayerFactory().getTaxonomiesManager()
 				.addTaxonomy(taxonomy, getModelLayerFactory().getMetadataSchemasManager());
 		getModelLayerFactory().getTaxonomiesManager()

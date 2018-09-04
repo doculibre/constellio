@@ -1,10 +1,10 @@
 package com.constellio.model.services.security;
 
+import com.constellio.data.utils.ImpossibleRuntimeException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.constellio.data.utils.ImpossibleRuntimeException;
 
 public final class ContentPermissions {
 
@@ -33,7 +33,8 @@ public final class ContentPermissions {
 		throw new ImpossibleRuntimeException("No such permission : " + permissionCode);
 	}
 
-	public static boolean hasPermission(List<ContentPermission> contentPermissions, ContentPermission wantedContentPermission) {
+	public static boolean hasPermission(List<ContentPermission> contentPermissions,
+										ContentPermission wantedContentPermission) {
 		String wantedPermissionCode = wantedContentPermission.getCode();
 		for (ContentPermission contentPermission : contentPermissions) {
 			if (contentPermission.getCode().equals(wantedPermissionCode) || contentPermission.getDependencies()

@@ -1,8 +1,21 @@
 package com.constellio.model.services.migrations;
 
-import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
+import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
+import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.model.entities.configs.SystemConfigurationGroup;
+import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
+import com.constellio.model.entities.enums.BatchProcessingMode;
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
+import com.constellio.model.entities.enums.MemoryConsumptionLevel;
+import com.constellio.model.entities.enums.MetadataPopulatePriority;
+import com.constellio.model.entities.enums.ParsingBehavior;
+import com.constellio.model.entities.enums.SearchSortType;
+import com.constellio.model.entities.enums.TitleMetadataPopulatePriority;
+import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import org.joda.time.LocalDate;
 
-import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -10,16 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.model.entities.configs.AbstractSystemConfigurationScript;
-import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.configs.SystemConfigurationGroup;
-import com.constellio.model.entities.configs.core.listeners.UserTitlePatternConfigScript;
-import com.constellio.model.entities.enums.*;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
+import static com.constellio.model.services.migrations.TimeScheduleConfigurationValidator.isCurrentlyInSchedule;
 
 public class ConstellioEIMConfigs {
 
@@ -80,20 +84,20 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS;
 
 	public static final String DEFAULT_CKEDITOR_TOOLBAR_CONFIG = "" +
-			"   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
-			"	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" +
-			"	{ name: 'editing', items: [ 'Find', 'Replace', '-', 'SelectAll', '-' ] },\n" +
-			"	'/',\n" +
-			"	{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },\n"
-			+
-			"	{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl'] },\n"
-			+
-			"	{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },\n" +
-			"	{ name: 'insert', items: [ 'Image', 'Table', 'HorizontalRule', 'SpecialChar', 'PageBreak' ] },\n" +
-			"	'/',\n" +
-			"	{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },\n" +
-			"	{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },\n" +
-			"	{ name: 'tools', items: [ 'Maximize', 'ShowBlocks' ] }";
+																 "   { name: 'document', items: [ 'Source', 'NewPage', 'Preview', 'Print' ] },\n" +
+																 "	{ name: 'clipboard', items: [ 'Cut', 'Copy', 'Paste', 'PasteText', 'PasteFromWord', '-', 'Undo', 'Redo' ] },\n" +
+																 "	{ name: 'editing', items: [ 'Find', 'Replace', '-', 'SelectAll', '-' ] },\n" +
+																 "	'/',\n" +
+																 "	{ name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript', '-', 'RemoveFormat' ] },\n"
+																 +
+																 "	{ name: 'paragraph', items: [ 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote', 'CreateDiv', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock', '-', 'BidiLtr', 'BidiRtl'] },\n"
+																 +
+																 "	{ name: 'links', items: [ 'Link', 'Unlink', 'Anchor' ] },\n" +
+																 "	{ name: 'insert', items: [ 'Image', 'Table', 'HorizontalRule', 'SpecialChar', 'PageBreak' ] },\n" +
+																 "	'/',\n" +
+																 "	{ name: 'styles', items: [ 'Styles', 'Format', 'Font', 'FontSize' ] },\n" +
+																 "	{ name: 'colors', items: [ 'TextColor', 'BGColor' ] },\n" +
+																 "	{ name: 'tools', items: [ 'Maximize', 'ShowBlocks' ] }";
 
 	public static final SystemConfiguration DEFAULT_START_TAB;
 
@@ -118,6 +122,15 @@ public class ConstellioEIMConfigs {
 	public static final SystemConfiguration UNREFERENCED_CONTENTS_DELETE_SCHEDULE;
 	public static final SystemConfiguration ENABLE_STATISTIC_REPORT;
 	public static final SystemConfiguration BATCH_PROCESSES_SCHEDULE;
+	public static final SystemConfiguration IS_RUNNING_WITH_SOLR_6;
+	public static final SystemConfiguration PRIVACY_POLICY;
+	public static final SystemConfiguration ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE;
+	public static final SystemConfiguration INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS;
+
+	public static final SystemConfiguration SEIZE_MULTILANGUAL_VALUES;
+	public static final SystemConfiguration ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY;
+
+	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
 
 	public static final SystemConfiguration NEGATIVE_AUTHORIZATION;
 
@@ -135,12 +148,14 @@ public class ConstellioEIMConfigs {
 		add(LOGO = others.createBinary("logo"));
 		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
 		add(AUTHENTIFICATION_IMAGE = others.createBinary("authentificationImage"));
+		add(PRIVACY_POLICY = others.createBinary("privacyPolicy"));
 		add(METADATA_POPULATE_PRIORITY = others.createEnum("metadataPopulatePriority", MetadataPopulatePriority.class)
 				.withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
 				.createEnum("titleMetadataPopulatePriority", TitleMetadataPopulatePriority.class)
 				.withDefaultValue(TitleMetadataPopulatePriority.STYLES_FILENAME_PROPERTIES));
 		add(CONSTELLIO_URL = others.createString("constellioUrl", "http://localhost:8080/constellio/"));
+		add(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS = others.createBooleanTrueByDefault("includeFromFieldWhenGeneratingEmails"));
 
 		add(DATE_FORMAT = others.createString("dateFormat").withDefaultValue("yyyy-MM-dd"));
 		add(DATE_TIME_FORMAT = others.createString("dateTimeFormat").withDefaultValue("yyyy-MM-dd HH:mm:ss"));
@@ -171,6 +186,7 @@ public class ConstellioEIMConfigs {
 		SystemConfigurationGroup search = new SystemConfigurationGroup(null, "search");
 		add(SEARCH_SORT_TYPE = search.createEnum("sortType", SearchSortType.class).withDefaultValue(SearchSortType.RELEVENCE));
 		add(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS = search.createBooleanFalseByDefault("replaceSpacesInSimpleSearchForAnds"));
+		add(IS_RUNNING_WITH_SOLR_6 = search.createBooleanFalseByDefault("isRunningWithSolr6").whichIsHidden());
 
 		add(MAX_SELECTABLE_SEARCH_RESULTS = advanced.createInteger("maxSelectableSearchResults").withDefaultValue(500));
 		add(WRITE_ZZRECORDS_IN_TLOG = advanced.createBooleanFalseByDefault("writeZZRecordsInTlog")
@@ -182,6 +198,11 @@ public class ConstellioEIMConfigs {
 		add(TABLE_DYNAMIC_CONFIGURATION = advanced.createBooleanTrueByDefault("tableDynamicConfiguration"));
 
 		add(LAZY_LOADED_FACETS = search.createBooleanTrueByDefault("lazyLoadedFacets"));
+
+		add(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE = search.createBooleanTrueByDefault("addSecondarySortWhenSortingByScore")
+				.whichIsHidden());
+
+		add(ENABLE_INACTIF_SCHEMAS_IN_SEARCH = search.createBooleanTrueByDefault("enableInactifSchemasInSearch"));
 
 		SystemConfigurationGroup icapConfigurationGroup = new SystemConfigurationGroup(null, "icapScan");
 		add(ICAP_SCAN_ACTIVATED = icapConfigurationGroup.createBooleanFalseByDefault("icapScanActivated"));
@@ -222,9 +243,14 @@ public class ConstellioEIMConfigs {
 		add(BATCH_PROCESSES_SCHEDULE = advanced.createString("batchProcessesSchedule")
 				.scriptedBy(TimeScheduleConfigurationValidator.class).whichIsHidden());
 
+		add(SEIZE_MULTILANGUAL_VALUES = advanced.createBooleanFalseByDefault("seizeMultiLangual"));
+
+
 		SystemConfigurationGroup reports = new SystemConfigurationGroup(null, "reports");
 
 		add(ENABLE_STATISTIC_REPORT = reports.createBooleanTrueByDefault("enableStatisticReport"));
+
+		add(ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY = advanced.createBooleanFalseByDefault("areMultiLangualValuesMandatory"));
 
 		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
 				.whichIsHidden());
@@ -277,6 +303,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(TABLE_DYNAMIC_CONFIGURATION);
 	}
 
+	public Boolean areInactifSchemasEnabledInSearch() {
+		return manager.getValue(ENABLE_INACTIF_SCHEMAS_IN_SEARCH);
+	}
+
 	public Boolean isCleanDuringInstall() {
 		return manager.getValue(CLEAN_DURING_INSTALL);
 	}
@@ -327,6 +357,10 @@ public class ConstellioEIMConfigs {
 
 	public GroupAuthorizationsInheritance getGroupAuthorizationsInheritance() {
 		return manager.getValue(GROUP_AUTHORIZATIONS_INHERITANCE);
+	}
+
+	public boolean isIncludingFromFieldWhenGeneratingEmails() {
+		return !Boolean.FALSE.equals(GROUP_AUTHORIZATIONS_INHERITANCE);
 	}
 
 	public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
@@ -418,6 +452,10 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(REPLACE_SPACES_IN_SIMPLE_SEARCH_FOR_ANDS);
 	}
 
+	public boolean isRunningWithSolr6() {
+		return manager.getValue(IS_RUNNING_WITH_SOLR_6);
+	}
+
 	public String getTaxonomyOrderInHomeView() {
 		return manager.getValue(TAXONOMY_ORDER_IN_HOME_VIEW);
 	}
@@ -449,6 +487,10 @@ public class ConstellioEIMConfigs {
 
 	public boolean isStatisticReportEnabled() {
 		return manager.getValue(ENABLE_STATISTIC_REPORT);
+	}
+
+	public boolean isAddingSecondarySortWhenSortingByScore() {
+		return manager.getValue(ADD_SECONDARY_SORT_WHEN_SORTING_BY_SCORE);
 	}
 
 	public boolean isAdminPasswordChangeEnabled() {

@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.extensions;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -22,6 +16,11 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 	Users users = new Users();
@@ -186,6 +185,7 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 		ruleResponsible_withResponsible = records.getRule2();
 		ruleUnits_withAdministrativeUnitsAndAdminUnits10_20 = records.getRule1();
 		ruleBoth_withResponsibleAndAdministrativeUnitsAndAdminUnits10_20 = records.getRule3();
+
 		if (openHolderActive) {
 			recordServices.add(ruleBoth_withResponsibleAndAdministrativeUnitsAndAdminUnits10_20
 					.setAdministrativeUnits(ruleUnits_withAdministrativeUnitsAndAdminUnits10_20.getAdministrativeUnits())
@@ -201,10 +201,12 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 				.setRetentionRuleEntered(ruleUnits_withAdministrativeUnitsAndAdminUnits10_20).setCreatedBy(
 						bobInAdminUnit10AndOthers.getId());
 		folderWithRuleResponsible_WithCreatorInNoAdminUnit = (Folder) newFolder("2")
+				.setCopyStatusEntered(CopyType.PRINCIPAL)
 				.setRetentionRuleEntered(ruleResponsible_withResponsible).setCreatedBy(
 						aliceInNoAdminUnit.getId());
 		folderWithRuleBoth_WithCreatorInNoAdminUnit = (Folder) newFolder("3")
-				.setRetentionRuleEntered(ruleBoth_withResponsibleAndAdministrativeUnitsAndAdminUnits10_20).setCreatedBy(
+				.setRetentionRuleEntered(ruleBoth_withResponsibleAndAdministrativeUnitsAndAdminUnits10_20)
+				.setCopyStatusEntered(CopyType.PRINCIPAL).setCreatedBy(
 						aliceInNoAdminUnit.getId());
 		folderWithRuleBoth_WithCreatorInAdminUnit10AndOthers = (Folder) newFolder("4")
 				.setRetentionRuleEntered(ruleBoth_withResponsibleAndAdministrativeUnitsAndAdminUnits10_20).setCreatedBy(

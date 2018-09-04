@@ -1,14 +1,5 @@
 package com.constellio.sdk.dev.tools;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.constellio.model.entities.records.wrappers.*;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.app.modules.es.model.connectors.ConnectorType;
 import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument;
@@ -48,6 +39,24 @@ import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
+import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.CapsuleLanguage;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.records.wrappers.EmailToSend;
+import com.constellio.model.entities.records.wrappers.Event;
+import com.constellio.model.entities.records.wrappers.ExportAudit;
+import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.ImportAudit;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.records.wrappers.Report;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.UserDocument;
+import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -57,6 +66,15 @@ import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 @MainTest
 public class GenerateHelperClassAcceptTest extends ConstellioTest {
@@ -105,6 +123,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(Capsule.DEFAULT_SCHEMA, Capsule.class);
 		wrappers.put(SearchEvent.DEFAULT_SCHEMA, SearchEvent.class);
 		wrappers.put(ThesaurusConfig.DEFAULT_SCHEMA, ThesaurusConfig.class);
+		wrappers.put(CapsuleLanguage.DEFAULT_SCHEMA, CapsuleLanguage.class);
 
 		System.out.println(header());
 
@@ -216,8 +235,18 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 			MetadataSchema defaultSchema = type.getDefaultSchema();
 
 			Class<? extends RecordWrapper> defaultSchemaWrapperClass = wrappers.get(defaultSchema.getCode());
+
 			if (defaultSchemaWrapperClass != null) {
-				stringBuilder.append(generateSchemaHelperMethods(defaultSchema, defaultSchemaWrapperClass.getSimpleName()));
+				boolean hasConstructorWithLocale = false;
+				for (Constructor constructor : defaultSchemaWrapperClass.getConstructors()) {
+					if (constructor.getParameterTypes().length > 0) {
+						hasConstructorWithLocale |= constructor.getParameterTypes()
+								[constructor.getParameterTypes().length - 1].equals(Locale.class);
+					}
+				}
+
+				stringBuilder.append(generateSchemaHelperMethods(defaultSchema, defaultSchemaWrapperClass.getSimpleName(),
+						hasConstructorWithLocale));
 				stringBuilder.append(metadatasHelperMethod(type, defaultSchema, defaultSchemaWrapperClass));
 			}
 
@@ -226,7 +255,16 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 				Class<? extends RecordWrapper> wrapperClass = wrappers.get(schema.getCode());
 
 				if (wrapperClass != null) {
-					stringBuilder.append(generateSchemaHelperMethods(schema, wrapperClass.getSimpleName()));
+					boolean hasConstructorWithLocale = false;
+					for (Constructor constructor : wrapperClass.getConstructors()) {
+						if (constructor.getParameterTypes().length > 0) {
+							hasConstructorWithLocale |= constructor.getParameterTypes()
+									[constructor.getParameterTypes().length - 1].equals(Locale.class);
+						}
+					}
+
+					stringBuilder
+							.append(generateSchemaHelperMethods(schema, wrapperClass.getSimpleName(), hasConstructorWithLocale));
 					stringBuilder.append(metadatasHelperMethod(type, schema, wrapperClass));
 				}
 
@@ -242,11 +280,11 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		System.out.println(code);
 	}
 
-	private String generateSchemaHelperMethods(MetadataSchema schema, String wrapperName) {
+	private String generateSchemaHelperMethods(MetadataSchema schema, String wrapperName, boolean withLocale) {
 		StringBuilder stringBuilder = new StringBuilder();
 
-		appendWrapElementHelperMethod(schema, wrapperName, stringBuilder);
-		appendWrapElementsHelperMethod(schema, wrapperName, stringBuilder);
+		appendWrapElementHelperMethod(schema, wrapperName, withLocale, stringBuilder);
+		appendWrapElementsHelperMethod(schema, wrapperName, withLocale, stringBuilder);
 		appendSearchByQueryElementsHelperMethod(schema, wrapperName, stringBuilder);
 		appendSearchByConditionElementsHelperMethod(schema, wrapperName, stringBuilder);
 		appendGetByIdHelperMethod(schema, wrapperName, stringBuilder);
@@ -301,7 +339,8 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		stringBuilder.append("\n\t}\n");
 	}
 
-	private void appendGetByLegacyIdHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+	private void appendGetByLegacyIdHelperMethod(MetadataSchema schema, String wrapperName,
+												 StringBuilder stringBuilder) {
 
 		String schemaTypeCall = schemaTypeCallerFor(schema);
 
@@ -324,26 +363,35 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		stringBuilder.append("\n\t}\n");
 	}
 
-	private void appendWrapElementHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+	private void appendWrapElementHelperMethod(MetadataSchema schema, String wrapperName, boolean withLocale,
+											   StringBuilder stringBuilder) {
 
 		if (schema.getCode().equals(User.DEFAULT_SCHEMA)) {
 			stringBuilder.append("\n\tpublic abstract " + wrapperName + " wrap" + wrapperName + "(Record record);");
 		} else {
-
 			stringBuilder.append("\n\tpublic " + wrapperName + " wrap" + wrapperName + "(Record record) {");
-			stringBuilder.append("\n\t\treturn record == null ? null : new " + wrapperName + "(record, getTypes());");
+			if (withLocale) {
+				stringBuilder.append("\n\t\treturn record == null ? null : new " + wrapperName + "(record, getTypes(), locale);");
+			} else {
+				stringBuilder.append("\n\t\treturn record == null ? null : new " + wrapperName + "(record, getTypes());");
+			}
 			stringBuilder.append("\n\t}\n");
 		}
 	}
 
-	private void appendWrapElementsHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+	private void appendWrapElementsHelperMethod(MetadataSchema schema, String wrapperName, boolean withLocale,
+												StringBuilder stringBuilder) {
 		if (schema.getCode().equals(User.DEFAULT_SCHEMA)) {
 			stringBuilder.append("\n\tpublic abstract List<" + wrapperName + "> wrap" + wrapperName + "s(List<Record> records);");
 		} else {
 			stringBuilder.append("\n\tpublic List<" + wrapperName + "> wrap" + wrapperName + "s(List<Record> records) {");
 			stringBuilder.append("\n\t\tList<" + wrapperName + "> wrapped = new ArrayList<>();");
 			stringBuilder.append("\n\t\tfor (Record record : records) {");
-			stringBuilder.append("\n\t\t\twrapped.add(new " + wrapperName + "(record, getTypes()));");
+			if (withLocale) {
+				stringBuilder.append("\n\t\t\twrapped.add(new " + wrapperName + "(record, getTypes(), locale));");
+			} else {
+				stringBuilder.append("\n\t\t\twrapped.add(new " + wrapperName + "(record, getTypes()));");
+			}
 			stringBuilder.append("\n\t\t}\n");
 
 			stringBuilder.append("\n\t\treturn wrapped;");
@@ -351,15 +399,16 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		}
 	}
 
-	private void appendSearchByQueryElementsHelperMethod(MetadataSchema schema, String wrapperName, StringBuilder stringBuilder) {
+	private void appendSearchByQueryElementsHelperMethod(MetadataSchema schema, String wrapperName,
+														 StringBuilder stringBuilder) {
 		stringBuilder.append("\n\tpublic List<" + wrapperName + "> search" + wrapperName + "s(LogicalSearchQuery query) {");
 		stringBuilder.append("\n\t\treturn wrap" + wrapperName
-				+ "s(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));");
+							 + "s(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));");
 		stringBuilder.append("\n\t}\n");
 	}
 
 	private void appendSearchByConditionElementsHelperMethod(MetadataSchema schema, String wrapperName,
-			StringBuilder stringBuilder) {
+															 StringBuilder stringBuilder) {
 		stringBuilder
 				.append("\n\tpublic List<" + wrapperName + "> search" + wrapperName + "s(LogicalSearchCondition condition) {");
 
@@ -367,12 +416,12 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		stringBuilder
 				.append("\n\t\tLogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));");
 		stringBuilder.append("\n\t\treturn wrap" + wrapperName
-				+ "s(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));");
+							 + "s(appLayerFactory.getModelLayerFactory().newSearchServices().search(query));");
 		stringBuilder.append("\n\t}\n");
 	}
 
 	private String metadatasHelperMethod(MetadataSchemaType type, MetadataSchema schema,
-			Class<? extends RecordWrapper> recordWrapperClass)
+										 Class<? extends RecordWrapper> recordWrapperClass)
 			throws Exception {
 
 		StringBuilder stringBuilder = new StringBuilder();
@@ -393,7 +442,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		}
 
 		stringBuilder.append("\n\tpublic final " + shortcutClass + " " + variableName + "\n\t\t = new " + shortcutClass + "(\""
-				+ schema.getCode() + "\");");
+							 + schema.getCode() + "\");");
 		stringBuilder.append("\n\tpublic class " + shortcutClass + " extends " + shortcutExtendsClass + " {");
 
 		stringBuilder.append("\n\t\tprotected " + shortcutClass + "(String schemaCode) {");
@@ -436,7 +485,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 	protected String header() {
 		String line = "/** " + StringUtils.repeat("** ", 25) + "**/";
 		return line + "\n\t\t// Auto-generated methods by "
-				+ "" + this.getClass().getSimpleName() + " -- start\n" + line + "\n\n";
+			   + "" + this.getClass().getSimpleName() + " -- start\n" + line + "\n\n";
 	}
 
 	protected String footer() {

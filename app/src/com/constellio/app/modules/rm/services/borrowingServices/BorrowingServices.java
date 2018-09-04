@@ -1,17 +1,5 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -48,6 +36,18 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class BorrowingServices {
 
@@ -75,7 +75,7 @@ public class BorrowingServices {
 	}
 
 	public void borrowRecordsFromTask(String taskId, LocalDate borrowingDate, LocalDate returnDate, User respondant,
-			User applicant, BorrowingType borrowingType, boolean isAccepted)
+									  User applicant, BorrowingType borrowingType, boolean isAccepted)
 			throws RecordServicesException {
 
 		String schemaType = "";
@@ -140,7 +140,8 @@ public class BorrowingServices {
 		}
 	}
 
-	public void returnRecordsFromTask(String taskId, LocalDate returnDate, User respondant, User applicant, boolean isAccepted)
+	public void returnRecordsFromTask(String taskId, LocalDate returnDate, User respondant, User applicant,
+									  boolean isAccepted)
 			throws RecordServicesException {
 
 		Record taskRecord = recordServices.getDocumentById(taskId);
@@ -205,8 +206,9 @@ public class BorrowingServices {
 		}
 	}
 
-	public void extendRecordsBorrowingPeriodFromTask(String taskId, LocalDate returnDate, User respondant, User applicant,
-			boolean isAccepted)
+	public void extendRecordsBorrowingPeriodFromTask(String taskId, LocalDate returnDate, User respondant,
+													 User applicant,
+													 boolean isAccepted)
 			throws RecordServicesException {
 		Record taskRecord = recordServices.getDocumentById(taskId);
 		RMTask task = rm.wrapRMTask(taskRecord);
@@ -246,7 +248,7 @@ public class BorrowingServices {
 	}
 
 	public void borrowFolder(String folderId, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
-			User borrowerEntered, BorrowingType borrowingType, boolean isCreateEvent)
+							 User borrowerEntered, BorrowingType borrowingType, boolean isCreateEvent)
 			throws RecordServicesException {
 
 		Record folderRecord = recordServices.getDocumentById(folderId);
@@ -270,8 +272,9 @@ public class BorrowingServices {
 		}
 	}
 
-	public void borrowContainer(String containerId, LocalDate borrowingDate, LocalDate previewReturnDate, User currentUser,
-			User borrowerEntered, BorrowingType borrowingType, boolean isCreateEvent)
+	public void borrowContainer(String containerId, LocalDate borrowingDate, LocalDate previewReturnDate,
+								User currentUser,
+								User borrowerEntered, BorrowingType borrowingType, boolean isCreateEvent)
 			throws RecordServicesException {
 
 		Record record = recordServices.getDocumentById(containerId);
@@ -292,7 +295,8 @@ public class BorrowingServices {
 		}
 	}
 
-	public void extendBorrowDateForFolder(String folderId, LocalDate previewReturnDate, User currentUser, boolean isCreateEvent)
+	public void extendBorrowDateForFolder(String folderId, LocalDate previewReturnDate, User currentUser,
+										  boolean isCreateEvent)
 			throws RecordServicesException {
 
 		Record folderRecord = recordServices.getDocumentById(folderId);
@@ -305,7 +309,7 @@ public class BorrowingServices {
 	}
 
 	public void extendBorrowDateForContainer(String containerId, LocalDate previewReturnDate, User currentUser,
-			boolean isCreateEvent)
+											 boolean isCreateEvent)
 			throws RecordServicesException {
 
 		Record record = recordServices.getDocumentById(containerId);
@@ -415,7 +419,7 @@ public class BorrowingServices {
 	}
 
 	private void setBorrowedMetadatasToFolder(Folder folder, LocalDateTime borrowingDate, LocalDate previewReturnDate,
-			String userId, String borrowerEnteredId, BorrowingType borrowingType) {
+											  String userId, String borrowerEnteredId, BorrowingType borrowingType) {
 		folder.setBorrowed(true);
 		folder.setBorrowDate(borrowingDate != null ? borrowingDate : TimeProvider.getLocalDateTime());
 		folder.setBorrowPreviewReturnDate(previewReturnDate);
@@ -426,8 +430,8 @@ public class BorrowingServices {
 	}
 
 	private void setBorrowedMetadatasToContainer(ContainerRecord containerRecord, LocalDateTime borrowingDate,
-			LocalDate previewReturnDate,
-			String userId) {
+												 LocalDate previewReturnDate,
+												 String userId) {
 		containerRecord.setBorrowed(true);
 		containerRecord.setBorrowDate(borrowingDate != null ? borrowingDate.toLocalDate() : TimeProvider.getLocalDate());
 		containerRecord.setPlanifiedReturnDate(previewReturnDate);
@@ -451,7 +455,7 @@ public class BorrowingServices {
 	}
 
 	public String validateBorrowingInfos(String userId, LocalDate borrowingDate, LocalDate previewReturnDate,
-			BorrowingType borrowingType, LocalDate returnDate) {
+										 BorrowingType borrowingType, LocalDate returnDate) {
 		String errorMessage = null;
 		if (borrowingDate == null) {
 			borrowingDate = TimeProvider.getLocalDate();
@@ -512,13 +516,13 @@ public class BorrowingServices {
 	}
 
 	private void alertUsers(String template, String schemaType, Record task, Record record, LocalDate borrowingDate,
-			LocalDate returnDate, LocalDate reactivationDate, User currentUser,
-			User borrowerEntered, BorrowingType borrowingType, boolean isAccepted) {
+							LocalDate returnDate, LocalDate reactivationDate, User currentUser,
+							User borrowerEntered, BorrowingType borrowingType, boolean isAccepted) {
 
 		try {
 			String displayURL = schemaType.equals(Folder.SCHEMA_TYPE) ?
-					RMNavigationConfiguration.DISPLAY_FOLDER :
-					RMNavigationConfiguration.DISPLAY_CONTAINER;
+								RMNavigationConfiguration.DISPLAY_FOLDER :
+								RMNavigationConfiguration.DISPLAY_CONTAINER;
 			String subject = "";
 			List<String> parameters = new ArrayList<>();
 			Transaction transaction = new Transaction();
@@ -529,8 +533,8 @@ public class BorrowingServices {
 			if (template.equals(RMEmailTemplateConstants.ALERT_BORROWED)) {
 				toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
 				parameters.add("borrowingType" + EmailToSend.PARAMETER_SEPARATOR + borrowingType);
-				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
-						" (" + borrowerEntered.getUsername() + ")");
+				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
+																												   " (" + borrowerEntered.getUsername() + ")"));
 				parameters.add("borrowingDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(borrowingDate));
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			} else if (template.equals(RMEmailTemplateConstants.ALERT_REACTIVATED)) {
@@ -541,8 +545,12 @@ public class BorrowingServices {
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 			} else if (template.equals(RMEmailTemplateConstants.ALERT_BORROWING_EXTENTED)) {
 				toAddress = new EmailAddress(borrowerEntered.getTitle(), borrowerEntered.getEmail());
+				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
+							   " (" + borrowerEntered.getUsername() + ")");
 				parameters.add("extensionDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(LocalDate.now()));
 				parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
+				parameters.add("borrowerEntered" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(borrowerEntered.getFirstName() + " " + borrowerEntered.getLastName() +
+																												   " (" + borrowerEntered.getUsername() + ")"));
 			}
 
 			LocalDateTime sendDate = TimeProvider.getLocalDateTime();
@@ -550,14 +558,14 @@ public class BorrowingServices {
 			emailToSend.setSendOn(sendDate);
 			emailToSend.setSubject(subject);
 			String fullTemplate = isAccepted ?
-					template + RMEmailTemplateConstants.ACCEPTED :
-					template + RMEmailTemplateConstants.DENIED;
+								  template + RMEmailTemplateConstants.ACCEPTED :
+								  template + RMEmailTemplateConstants.DENIED;
 			emailToSend.setTemplate(fullTemplate);
-			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + subject);
+			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 			String recordTitle = record.getTitle();
-			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + recordTitle);
-			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + currentUser.getFirstName() + " " + currentUser.getLastName() +
-					" (" + currentUser.getUsername() + ")");
+			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle));
+			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(currentUser.getFirstName() + " " + currentUser.getLastName() +
+																										   " (" + currentUser.getUsername() + ")"));
 			String constellioUrl = eimConfigs.getConstellioUrl();
 			parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 			parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record
@@ -565,8 +573,7 @@ public class BorrowingServices {
 			Map<Language, String> labels = metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType)
 					.getLabels();
 			for (Map.Entry<Language, String> label : labels.entrySet()) {
-				parameters.add("recordType" + "_" + label.getKey().getCode() + EmailToSend.PARAMETER_SEPARATOR + label.getValue()
-						.toLowerCase());
+				parameters.add("recordType" + "_" + label.getKey().getCode() + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(label.getValue().toLowerCase()));
 			}
 			parameters.add("isAccepted" + EmailToSend.PARAMETER_SEPARATOR + $(String.valueOf(isAccepted)));
 			emailToSend.setParameters(parameters);

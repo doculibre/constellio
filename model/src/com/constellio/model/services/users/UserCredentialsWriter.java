@@ -1,10 +1,8 @@
 package com.constellio.model.services.users;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.security.global.UserCredential;
+import com.constellio.model.services.encrypt.EncryptionServices;
 import org.apache.commons.collections.IteratorUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -13,9 +11,10 @@ import org.jdom2.filter.Filters;
 import org.jdom2.util.IteratorIterable;
 import org.joda.time.LocalDateTime;
 
-import com.constellio.data.utils.Factory;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.encrypt.EncryptionServices;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 public class UserCredentialsWriter {
 

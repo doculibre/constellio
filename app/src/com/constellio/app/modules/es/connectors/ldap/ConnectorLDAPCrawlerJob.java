@@ -1,25 +1,19 @@
 package com.constellio.app.modules.es.connectors.ldap;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.naming.NamingException;
-import javax.naming.ldap.LdapContext;
-
-import org.apache.log4j.Logger;
-
 import com.constellio.app.modules.es.connectors.ldap.ConnectorLDAPCrawlerJobRuntimeException.ConnectorLDAPCrawlerJobRuntimeException_LDAPCloseExceptionJob;
 import com.constellio.app.modules.es.connectors.spi.Connector;
 import com.constellio.app.modules.es.connectors.spi.ConnectorJob;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ldap.ConnectorLDAPInstance;
-import com.constellio.model.conf.ldap.LDAPDirectoryType;
 import com.constellio.model.conf.ldap.services.LDAPConnectionFailure;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordServicesException;
+import org.apache.log4j.Logger;
+
+import javax.naming.NamingException;
+import javax.naming.ldap.LdapContext;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ConnectorLDAPCrawlerJob extends ConnectorJob {
 	private static final Logger LOGGER = Logger.getLogger(ConnectorLDAPCrawlerJob.class);
@@ -31,7 +25,8 @@ public class ConnectorLDAPCrawlerJob extends ConnectorJob {
 	private final String url;
 
 	public ConnectorLDAPCrawlerJob(Connector connector, ConnectorLDAPInstance connectorLDAPInstance,
-			ConnectorLDAPDocumentType documentType, String url, List<String> documentsToCrawlLDAPIds) {
+								   ConnectorLDAPDocumentType documentType, String url,
+								   List<String> documentsToCrawlLDAPIds) {
 		super(connector, "ldapFetch");
 		this.documentsToCrawlIds = new HashSet(documentsToCrawlLDAPIds);
 		this.ldapServices = ((ConnectorLDAP) connector).getLdapServices();

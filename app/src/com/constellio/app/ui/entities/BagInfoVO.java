@@ -2,160 +2,174 @@ package com.constellio.app.ui.entities;
 
 import java.util.List;
 
-import static com.constellio.app.modules.rm.wrappers.BagInfo.*;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.ADRESSE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.ARCHIVE_TITLE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.CATEGORIE_DOCUMENT;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.COURRIEL_RESPONSABLE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.DESCRIPTION_SOMMAIRE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.ENCODAGE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.ENTITE_RESPONSABLE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.IDENTIFICATION_RESPONSABLE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.ID_ORGANISME_VERSEUR_OU_DONATEUR;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.METHODE_TRANSFERE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.NOTE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.NUMERO_TELEPHONE_RESPONSABLE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.REGION_ADMINISTRATIVE;
+import static com.constellio.app.modules.rm.wrappers.BagInfo.RESTRICTION_ACCESSIBILITE;
 
 public class BagInfoVO extends RecordVO {
 
-    private boolean limitSize;
+	private boolean limitSize;
 
-    private boolean deleteFiles;
+	private boolean deleteFiles;
 
-    public BagInfoVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
-        super(id, metadataValues, viewMode);
-    }
+	public BagInfoVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
+		super(id, metadataValues, viewMode);
+	}
 
-    public boolean isLimitSize() {
-        return limitSize;
-    }
+	public boolean isLimitSize() {
+		return limitSize;
+	}
 
-    public void setLimitSize(boolean limitSize) {
-        this.limitSize = limitSize;
-    }
+	public void setLimitSize(boolean limitSize) {
+		this.limitSize = limitSize;
+	}
 
-    public boolean isDeleteFiles() {
-        return deleteFiles;
-    }
+	public boolean isDeleteFiles() {
+		return deleteFiles;
+	}
 
-    public void setDeleteFiles(boolean deleteFile) {
-        this.deleteFiles = deleteFile;
-    }
+	public void setDeleteFiles(boolean deleteFile) {
+		this.deleteFiles = deleteFile;
+	}
 
-    public String getNote() {
-        return get(NOTE);
-    }
+	public String getNote() {
+		return get(NOTE);
+	}
 
-    public void setNote(String note) {
-        set(NOTE, note);
-    }
+	public void setNote(String note) {
+		set(NOTE, note);
+	}
 
-    public String getIdentificationOrganismeVerseurOuDonateur() {
-        return get(IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR);
-    }
+	public String getIdentificationOrganismeVerseurOuDonateur() {
+		return get(IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR);
+	}
 
-    public void setIdentificationOrganismeVerseurOuDonateur(String identificationOrganismeVerseurOuDonateur) {
-        set(IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR, identificationOrganismeVerseurOuDonateur);
-    }
+	public void setIdentificationOrganismeVerseurOuDonateur(String identificationOrganismeVerseurOuDonateur) {
+		set(IDENTIFICATION_ORGANISME_VERSEUR_OU_DONATEUR, identificationOrganismeVerseurOuDonateur);
+	}
 
-    public String getIDOrganismeVerseurOuDonateur() {
-        return get(ID_ORGANISME_VERSEUR_OU_DONATEUR);
-    }
+	public String getIDOrganismeVerseurOuDonateur() {
+		return get(ID_ORGANISME_VERSEUR_OU_DONATEUR);
+	}
 
-    public void setIDOrganismeVerseurOuDonateur(String IDOrganismeVerseurOuDonateur) {
-        set(ID_ORGANISME_VERSEUR_OU_DONATEUR, IDOrganismeVerseurOuDonateur);
-    }
+	public void setIDOrganismeVerseurOuDonateur(String IDOrganismeVerseurOuDonateur) {
+		set(ID_ORGANISME_VERSEUR_OU_DONATEUR, IDOrganismeVerseurOuDonateur);
+	}
 
-    public String getAddress() {
-        return get(ADRESSE);
-    }
+	public String getAddress() {
+		return get(ADRESSE);
+	}
 
-    public void setAddress(String address) {
-        set(ADRESSE, address);
-    }
+	public void setAddress(String address) {
+		set(ADRESSE, address);
+	}
 
-    public String getRegionAdministrative() {
-        return get(REGION_ADMINISTRATIVE);
-    }
+	public String getRegionAdministrative() {
+		return get(REGION_ADMINISTRATIVE);
+	}
 
-    public void setRegionAdministrative(String regionAdministrative) {
-        set(REGION_ADMINISTRATIVE, regionAdministrative);
-    }
+	public void setRegionAdministrative(String regionAdministrative) {
+		set(REGION_ADMINISTRATIVE, regionAdministrative);
+	}
 
-    public String getEntiteResponsable() {
-        return get(ENTITE_RESPONSABLE);
-    }
+	public String getEntiteResponsable() {
+		return get(ENTITE_RESPONSABLE);
+	}
 
-    public void setEntiteResponsable(String entiteResponsable) {
-        set(ENTITE_RESPONSABLE, entiteResponsable);
-    }
+	public void setEntiteResponsable(String entiteResponsable) {
+		set(ENTITE_RESPONSABLE, entiteResponsable);
+	}
 
-    public String getIdentificationEntiteResponsable() {
-        return get(IDENTIFICATION_RESPONSABLE);
-    }
+	public String getIdentificationEntiteResponsable() {
+		return get(IDENTIFICATION_RESPONSABLE);
+	}
 
-    public void setIdentificationEntiteResponsable(String identificationEntiteResponsable) {
-        set(IDENTIFICATION_RESPONSABLE, identificationEntiteResponsable);
-    }
+	public void setIdentificationEntiteResponsable(String identificationEntiteResponsable) {
+		set(IDENTIFICATION_RESPONSABLE, identificationEntiteResponsable);
+	}
 
-    public String getCourrielResponsable() {
-        return get(COURRIEL_RESPONSABLE);
-    }
+	public String getCourrielResponsable() {
+		return get(COURRIEL_RESPONSABLE);
+	}
 
-    public void setCourrielResponsable(String courrielResponsable) {
-        set(COURRIEL_RESPONSABLE, courrielResponsable);
-    }
+	public void setCourrielResponsable(String courrielResponsable) {
+		set(COURRIEL_RESPONSABLE, courrielResponsable);
+	}
 
-    public String getTelephoneResponsable() {
-        return get(NUMERO_TELEPHONE_RESPONSABLE);
-    }
+	public String getTelephoneResponsable() {
+		return get(NUMERO_TELEPHONE_RESPONSABLE);
+	}
 
-    public void setTelephoneResponsable(String telephoneResponsable) {
-        set(NUMERO_TELEPHONE_RESPONSABLE, telephoneResponsable);
-    }
+	public void setTelephoneResponsable(String telephoneResponsable) {
+		set(NUMERO_TELEPHONE_RESPONSABLE, telephoneResponsable);
+	}
 
-    public String getArchiveTitle() {
-        return get(ARCHIVE_TITLE);
-    }
+	public String getArchiveTitle() {
+		return get(ARCHIVE_TITLE);
+	}
 
-    public void setArchiveTitle(String title) {
-        set(ARCHIVE_TITLE, title);
-    }
+	public void setArchiveTitle(String title) {
+		set(ARCHIVE_TITLE, title);
+	}
 
-    public String getDescriptionSommaire() {
-        return get(DESCRIPTION_SOMMAIRE);
-    }
+	public String getDescriptionSommaire() {
+		return get(DESCRIPTION_SOMMAIRE);
+	}
 
-    public void setDescriptionSommaire(String descriptionSommaire) {
-        set(DESCRIPTION_SOMMAIRE, descriptionSommaire);
-    }
+	public void setDescriptionSommaire(String descriptionSommaire) {
+		set(DESCRIPTION_SOMMAIRE, descriptionSommaire);
+	}
 
-    public String getCategoryDocument() {
-        return get(CATEGORIE_DOCUMENT);
-    }
+	public String getCategoryDocument() {
+		return get(CATEGORIE_DOCUMENT);
+	}
 
-    public void setCategoryDocument(String categoryDocument) {
-        set(CATEGORIE_DOCUMENT, categoryDocument);
-    }
+	public void setCategoryDocument(String categoryDocument) {
+		set(CATEGORIE_DOCUMENT, categoryDocument);
+	}
 
-    public String getMethodeTransfere() {
-        return get(METHODE_TRANSFERE);
-    }
+	public String getMethodeTransfere() {
+		return get(METHODE_TRANSFERE);
+	}
 
-    public void setMethodeTransfere(String methodeTransfere) {
-       set(METHODE_TRANSFERE, methodeTransfere);
-    }
+	public void setMethodeTransfere(String methodeTransfere) {
+		set(METHODE_TRANSFERE, methodeTransfere);
+	}
 
-    public String getRestrictionAccessibilite() {
-        return get(RESTRICTION_ACCESSIBILITE);
-    }
+	public String getRestrictionAccessibilite() {
+		return get(RESTRICTION_ACCESSIBILITE);
+	}
 
-    public String getEncoding() {
-        return get(ENCODAGE);
-    }
+	public String getEncoding() {
+		return get(ENCODAGE);
+	}
 
-    public void setEncoding(String encoding){
-        set(ENCODAGE, encoding);
-    }
+	public void setEncoding(String encoding) {
+		set(ENCODAGE, encoding);
+	}
 
-    public void setRestrictionAccessibilite(String restrictionAccessibilite) {
-        set(RESTRICTION_ACCESSIBILITE, restrictionAccessibilite);
-    }
+	public void setRestrictionAccessibilite(String restrictionAccessibilite) {
+		set(RESTRICTION_ACCESSIBILITE, restrictionAccessibilite);
+	}
 
-    @Override
-    public <T> T get(String metadataCode) {
-        try{
-            return super.get(metadataCode);
-        } catch(RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e ){
-            return null;
-        }
-    }
+	@Override
+	public <T> T get(String metadataCode) {
+		try {
+			return super.get(metadataCode);
+		} catch (RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e) {
+			return null;
+		}
+	}
 }

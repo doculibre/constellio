@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.framework.buttons.SearchButton;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
@@ -16,6 +11,10 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class TableStringFilter extends HorizontalLayout {
 
@@ -25,7 +24,7 @@ public class TableStringFilter extends HorizontalLayout {
 
 	public TableStringFilter(final Table table) {
 		setSpacing(true);
-		
+
 		this.table = table;
 
 		filterField = new BaseTextField();

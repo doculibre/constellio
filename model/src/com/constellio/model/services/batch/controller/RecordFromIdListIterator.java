@@ -12,27 +12,27 @@ import java.util.List;
  */
 public class RecordFromIdListIterator implements Iterator<Record> {
 
-    List<String> records;
-    int nextIndex;
-    RecordServices recordServices;
+	List<String> records;
+	int nextIndex;
+	RecordServices recordServices;
 
-    RecordFromIdListIterator(List<String> records, ModelLayerFactory modelLayerFactory) {
-        this.records = records;
-        nextIndex = 0;
-        recordServices = modelLayerFactory.newRecordServices();
-    }
+	public RecordFromIdListIterator(List<String> records, ModelLayerFactory modelLayerFactory) {
+		this.records = records;
+		nextIndex = 0;
+		recordServices = modelLayerFactory.newRecordServices();
+	}
 
-    @Override
-    public boolean hasNext() {
-        return nextIndex < records.size();
-    }
+	@Override
+	public boolean hasNext() {
+		return nextIndex < records.size();
+	}
 
-    @Override
-    public Record next() {
-        return recordServices.getDocumentById(records.get(nextIndex++));
-    }
+	@Override
+	public Record next() {
+		return recordServices.getDocumentById(records.get(nextIndex++));
+	}
 
-    public void beginAfterId(String lastId) {
-        nextIndex = records.indexOf(lastId) + 1;
-    }
+	public void beginAfterId(String lastId) {
+		nextIndex = records.indexOf(lastId) + 1;
+	}
 }

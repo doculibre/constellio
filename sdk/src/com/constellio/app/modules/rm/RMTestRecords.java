@@ -1,36 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.modules.rm.constants.RMRoles.MANAGER;
-import static com.constellio.app.modules.rm.constants.RMRoles.RGD;
-import static com.constellio.app.modules.rm.constants.RMRoles.USER;
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DESTROY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_TRANSFER;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_TRANSFER;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
-import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -92,6 +61,38 @@ import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.constants.RMRoles.MANAGER;
+import static com.constellio.app.modules.rm.constants.RMRoles.RGD;
+import static com.constellio.app.modules.rm.constants.RMRoles.USER;
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_DESTROY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.DOCUMENTS_TO_TRANSFER;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_CLOSE;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_DESTROY;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningListType.FOLDERS_TO_TRANSFER;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.DESTRUCTION;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.DEFAULT_PARSING_BEHAVIOR;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static java.util.Locale.ENGLISH;
 
 public class RMTestRecords {
 
@@ -673,7 +674,8 @@ public class RMTestRecords {
 
 	private void setupCategories(Transaction transaction) {
 
-		transaction.add(rm.newCategoryWithId(categoryId_X).setCode("X").setTitle("Xe category"))
+		transaction.add(rm.newCategoryWithId(categoryId_X).setCode("X")
+				.setTitle("Xe category").setTitle(Locale.ENGLISH, "Xe category"))
 				.setDescription("Ze ultimate category X")
 				.setRetentionRules(asList(ruleId_1));
 
@@ -690,11 +692,12 @@ public class RMTestRecords {
 				.setParent(categoryId_X100).setRetentionRules(asList(ruleId_3, ruleId_4)));
 
 		transaction.add(rm.newCategoryWithId(categoryId_X13).setCode("X13").setTitle("Agent Secreet")
+				.setTitle(Locale.ENGLISH, "Secret agent")
 				.setDescription("218. Requiem pour un espion").setParent(categoryId_X)
 				.setRetentionRules(asList(ruleId_1, ruleId_2, ruleId_3, ruleId_4)));
 
 		transaction.add(rm.newCategoryWithId(categoryId_Z).setCode("Z").setTitle("Ze category")
-				.setDescription("Ze ultimate category Z"));
+				.setTitle(Locale.ENGLISH, "The category").setDescription("Ze ultimate category Z"));
 
 		transaction.add(rm.newCategoryWithId(categoryId_Z100).setCode("Z100").setTitle("Z100")
 				.setDescription("Ze category Z100")
@@ -731,34 +734,47 @@ public class RMTestRecords {
 	}
 
 	private void setupAdministrativeUnits(Transaction transaction) {
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_10)).setCode("10").setTitle("Unité 10").setAdress("Unit 10 Adress")
-				.setDescription("Ze ultimate unit 10");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_10a)).setCode("10A").setTitle("Unité 10-A").setParent(unitId_10)
-				.setDescription("Ze ultimate unit 10A");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_10)).setCode("10")
+				.setTitle("Unité 10").setTitle(ENGLISH, "Unit 10")
+				.setAdress("Unit 10 Adress").setDescription("Ze ultimate unit 10");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_10a)).setCode("10A")
+				.setTitle("Unité 10-A").setTitle(ENGLISH, "Unit 10-A")
+				.setParent(unitId_10).setDescription("Ze ultimate unit 10A");
 
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_11)).setCode("11").setTitle("Unité 11").setParent(unitId_10)
-				.setDescription("Ze ultimate unit 11");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_11b)).setCode("11B").setTitle("Unité 11-B").setParent(unitId_11)
-				.setDescription("Ze ultimate unit 11B");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_11)).setCode("11")
+				.setTitle("Unité 11").setTitle(ENGLISH, "Unit 11")
+				.setParent(unitId_10).setDescription("Ze ultimate unit 11");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_11b)).setCode("11B")
+				.setTitle("Unité 11-B").setTitle(ENGLISH, "Unit 11-B")
+				.setParent(unitId_11).setDescription("Ze ultimate unit 11B");
 
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_12)).setCode("12").setTitle("Unité 12").setParent(unitId_10)
-				.setDescription("Ze ultimate unit 12");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_12b)).setCode("12B").setTitle("Unité 12-B").setParent(unitId_12)
-				.setDescription("Ze ultimate unit 12B");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_12c)).setCode("12C").setTitle("Unité 12-C").setParent(unitId_12)
-				.setDescription("Ze ultimate unit 12C");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_12)).setCode("12")
+				.setTitle("Unité 12").setTitle(ENGLISH, "Unit 12")
+				.setParent(unitId_10).setDescription("Ze ultimate unit 12");
 
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_20)).setCode("20").setTitle("Unité 20")
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_12b)).setCode("12B")
+				.setTitle("Unité 12-B").setTitle(ENGLISH, "Unit 12-B")
+				.setParent(unitId_12).setDescription("Ze ultimate unit 12B");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_12c)).setCode("12C")
+				.setTitle("Unité 12-C").setTitle(ENGLISH, "Unit 12-C")
+				.setParent(unitId_12).setDescription("Ze ultimate unit 12C");
+
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_20)).setCode("20")
+				.setTitle("Unité 20").setTitle(ENGLISH, "Unit 20")
 				.setDescription("Ze ultimate unit 20");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_20d)).setCode("20D").setTitle("Unité 20-D").setParent(unitId_20)
-				.setDescription("Ze ultimate unit 20D");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_20e)).setCode("20E").setTitle("Unité 20-E").setParent(unitId_20)
-				.setDescription("Ze ultimate unit 20E");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_20d)).setCode("20D")
+				.setTitle("Unité 20-D").setTitle(ENGLISH, "Unit 20-D")
+				.setParent(unitId_20).setDescription("Ze ultimate unit 20D");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_20e)).setCode("20E")
+				.setTitle("Unité 20-E").setTitle(ENGLISH, "Unit 20-E")
+				.setParent(unitId_20).setDescription("Ze ultimate unit 20E");
 
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_30)).setCode("30").setTitle("Unité 30")
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_30)).setCode("30")
+				.setTitle("Unité 30").setTitle(ENGLISH, "Unit 30")
 				.setDescription("Ze ultimate unit 30");
-		transaction.add(rm.newAdministrativeUnitWithId(unitId_30c)).setCode("30C").setTitle("Unité 30-C").setParent(unitId_30)
-				.setDescription("Ze ultimate unit 30C");
+		transaction.add(rm.newAdministrativeUnitWithId(unitId_30c)).setCode("30C")
+				.setTitle("Unité 30-C").setTitle(ENGLISH, "Unit 30-C")
+				.setParent(unitId_30).setDescription("Ze ultimate unit 30C");
 	}
 
 	private void setupUniformSubdivisions(Transaction transaction) {
@@ -793,7 +809,8 @@ public class RMTestRecords {
 		secondary888_0_D.setSemiActiveRetentionComment("R3");
 		secondary888_0_D.setInactiveDisposalComment("R4");
 
-		transaction.add(rm.newRetentionRuleWithId(ruleId_1)).setCode("1").setTitle("Rule #1")
+		transaction.add(rm.newRetentionRuleWithId(ruleId_1)).setCode("1")
+				.setTitle("Règle de conservation #1").setTitle(ENGLISH, "Retention rule #1")
 				.setAdministrativeUnits(asList(unitId_10, unitId_20)).setApproved(true)
 				.setCopyRetentionRules(asList(principal42_5_C, secondary888_0_D)).setKeywords(asList("Rule #1"))
 				.setCorpus("Corpus Rule 1").setDescription("Description Rule 1")
@@ -806,7 +823,8 @@ public class RMTestRecords {
 
 		CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
 		CopyRetentionRule secondary2_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "2-0-D");
-		transaction.add(rm.newRetentionRuleWithId(ruleId_2)).setCode("2").setTitle("Rule #2")
+		transaction.add(rm.newRetentionRuleWithId(ruleId_2)).setCode("2")
+				.setTitle("Règle de conservation #2").setTitle(ENGLISH, "Retention rule #2")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal5_2_T, secondary2_0_D))
 				.setDocumentTypesDetails(asList(
@@ -818,7 +836,8 @@ public class RMTestRecords {
 		CopyRetentionRule principal999_4_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "999-4-T");
 		principal999_4_T.setContentTypesComment("R1");
 		CopyRetentionRule secondary1_0_D = copyBuilder.newSecondary(asList(rm.PA(), rm.DM()), "1-0-D");
-		transaction.add(rm.newRetentionRuleWithId(ruleId_3)).setCode("3").setTitle("Rule #3")
+		transaction.add(rm.newRetentionRuleWithId(ruleId_3)).setCode("3")
+				.setTitle("Règle de conservation #3").setTitle(ENGLISH, "Retention rule #3")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal999_4_T, secondary1_0_D))
 				.setDocumentTypesDetails(asList(
@@ -833,7 +852,8 @@ public class RMTestRecords {
 		secondary666_0_D.setInactiveDisposalComment("R4");
 		CopyRetentionRule principal_PA_3_888_D = copyBuilder.newPrincipal(asList(rm.PA()), "3-888-D");
 		CopyRetentionRule principal_MD_3_888_C = copyBuilder.newPrincipal(asList(rm.DM()), "3-888-C");
-		transaction.add(rm.newRetentionRuleWithId(ruleId_4)).setCode("4").setTitle("Rule #4")
+		transaction.add(rm.newRetentionRuleWithId(ruleId_4)).setCode("4")
+				.setTitle("Règle de conservation #4").setTitle(ENGLISH, "Retention rule #4")
 				.setResponsibleAdministrativeUnits(true).setApproved(true)
 				.setCopyRetentionRules(asList(principal_PA_3_888_D, principal_MD_3_888_C, secondary666_0_D))
 				.setCopyRulesComment(Arrays.asList("R3:comment3")).setDocumentTypesDetails(asList(
@@ -842,8 +862,8 @@ public class RMTestRecords {
 				new RetentionRuleDocumentType(documentTypeId_4)));
 
 		RetentionRule rule5 = rm.newRetentionRuleWithId(ruleId_5);
+		rule5.setTitle("Conseil d’administration").setTitle(ENGLISH, "Board of directors");
 		rule5.setCode("0122");
-		rule5.setTitle("Conseil d’administration");
 		rule5.setDocumentTypesDetails(asList(
 				new RetentionRuleDocumentType(documentTypeId_5),
 				new RetentionRuleDocumentType(documentTypeId_6),
@@ -931,7 +951,8 @@ public class RMTestRecords {
 		return createEvent(username, eventType, eventDate, recordId, null);
 	}
 
-	private RecordWrapper createEvent(String username, String eventType, LocalDateTime eventDate, String recordId, String title) {
+	private RecordWrapper createEvent(String username, String eventType, LocalDateTime eventDate, String recordId,
+									  String title) {
 		return rm.newEvent().setRecordId(recordId).setTitle(title).setUsername(username).setType(eventType)
 				.setCreatedOn(eventDate);
 	}
@@ -1257,7 +1278,8 @@ public class RMTestRecords {
 		return this;
 	}
 
-	private List<String> createDocumentsAndReturnThoseWhithDifferentCopyForEach(Transaction transaction, String... folders) {
+	private List<String> createDocumentsAndReturnThoseWhithDifferentCopyForEach(Transaction transaction,
+																				String... folders) {
 
 		ContentManager contentManager = modelLayerFactory.getContentManager();
 		User user = users.adminIn(collection);

@@ -5,12 +5,12 @@ import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrai
 import com.constellio.app.ui.pages.base.BaseView;
 
 public class TaxonomyBreadcrumbTrail extends TitleBreadcrumbTrail {
-	
+
 	private TaxonomyBreadcrumbTrailPresenter presenter;
 
 	public TaxonomyBreadcrumbTrail(String taxonomyCode, String recordId, BaseView view, String viewTitle) {
 		super(view, viewTitle);
-		this.presenter = new TaxonomyBreadcrumbTrailPresenter(taxonomyCode,recordId, this);
+		this.presenter = new TaxonomyBreadcrumbTrailPresenter(taxonomyCode, recordId, this);
 	}
 
 	@Override

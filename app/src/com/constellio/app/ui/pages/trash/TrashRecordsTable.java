@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.trash;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -24,18 +22,20 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class TrashRecordsTable extends SelectionTableAdapter {
-	
+
 	private static final Resource RELATED_RESOURCE = new ThemeResource("images/commun/warning.png");
 	private final TrashPresenter presenter;
 	private final RecordVODataProvider dataProvider;
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public TrashRecordsTable(RecordVODataProvider dataProvider, final TrashPresenter presenter) {
 		super();
 		this.presenter = presenter;
 		this.dataProvider = dataProvider;
-		
+
 		RecordVOTable table = new RecordVOTable() {
 			@Override
 			protected TableColumnsManager newColumnsManager() {
@@ -95,7 +95,7 @@ public class TrashRecordsTable extends SelectionTableAdapter {
 
 		table.setPageLength(Math.min(15, dataProvider.size()));
 		table.setSizeFull();
-		
+
 		table.setColumnHeader("buttons", "");
 		table.setCellStyleGenerator(new TrashStyleGenerator());
 		setTable(table);
@@ -149,5 +149,5 @@ public class TrashRecordsTable extends SelectionTableAdapter {
 		RecordVO entity = dataProvider.getRecordVO(index);
 		presenter.recordSelectionChanged(entity, selected);
 	}
-	
+
 }

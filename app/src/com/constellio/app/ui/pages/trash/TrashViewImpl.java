@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.trash;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.containers.SchemaTypeVOLazyContainer;
@@ -24,9 +17,15 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TrashViewImpl extends BaseViewImpl implements TrashView {
-	
+
 	private final TrashPresenter presenter;
 	private ComboBox typeSelectionDropDown;
 	private Label recordsToDeleteMessage;
@@ -59,7 +58,7 @@ public class TrashViewImpl extends BaseViewImpl implements TrashView {
 	private Label buildRecordsToDeleteMessage() {
 		Label message = new Label(
 				"<p style=\"color:red\">" + $("TrashView.recordsToDeleteMessage", presenter.getLogicallyDeletedRecordsCount())
-						+ "</p>",
+				+ "</p>",
 				ContentMode.HTML);
 		return message;
 	}

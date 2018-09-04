@@ -1,17 +1,16 @@
 package com.constellio.data.conf;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.data.conf.PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_ConfigNotDefined;
+import com.constellio.data.conf.PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_InvalidConfigValue;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Duration;
 
-import com.constellio.data.conf.PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_ConfigNotDefined;
-import com.constellio.data.conf.PropertiesConfigurationRuntimeException.PropertiesConfigurationRuntimeException_InvalidConfigValue;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 public abstract class PropertiesConfiguration {
 
@@ -24,7 +23,7 @@ public abstract class PropertiesConfiguration {
 		this.propertyFile = propertyFile;
 	}
 
-	protected Object getEnum(String key, Enum<?> defaultValue) {
+	public Object getEnum(String key, Enum<?> defaultValue) {
 		String value = getString(key, null);
 
 		if (value == null) {
@@ -41,7 +40,7 @@ public abstract class PropertiesConfiguration {
 		}
 	}
 
-	protected String getString(String key, String defaultValue) {
+	public String getString(String key, String defaultValue) {
 		String value = configs.get(key);
 		return value == null ? defaultValue : value;
 	}
@@ -94,12 +93,12 @@ public abstract class PropertiesConfiguration {
 		configs.put(key, value);
 	}
 
-	protected Boolean getBoolean(String key, boolean defaultValue) {
+	public Boolean getBoolean(String key, boolean defaultValue) {
 		String stringValue = getString(key, defaultValue ? "true" : "false");
 		return Boolean.valueOf(stringValue);
 	}
 
-	protected File getFile(String key, File defaultValue) {
+	public File getFile(String key, File defaultValue) {
 		String value = configs.get(key);
 
 		if (value == null) {
@@ -141,7 +140,7 @@ public abstract class PropertiesConfiguration {
 		return Integer.parseInt(getRequiredString(key));
 	}
 
-	protected int getInt(String key, int defaultValue) {
+	public int getInt(String key, int defaultValue) {
 		try {
 			return Integer.parseInt(getRequiredString(key));
 		} catch (Exception e) {
@@ -149,7 +148,7 @@ public abstract class PropertiesConfiguration {
 		}
 	}
 
-	protected long getLong(String key, long defaultValue) {
+	public long getLong(String key, long defaultValue) {
 		try {
 			return Long.parseLong(getRequiredString(key));
 		} catch (Exception e) {
@@ -157,7 +156,7 @@ public abstract class PropertiesConfiguration {
 		}
 	}
 
-	protected Duration getDuration(String key, Duration defaultDuration) {
+	public Duration getDuration(String key, Duration defaultDuration) {
 		String durationString = getString(key, null);
 
 		if (durationString == null) {

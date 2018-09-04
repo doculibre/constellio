@@ -1,13 +1,12 @@
 package com.constellio.sdk.tests;
 
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.data.utils.dev.Toggle.AvailableToggle;
+import org.junit.internal.AssumptionViolatedException;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import org.junit.internal.AssumptionViolatedException;
-
-import com.constellio.data.utils.dev.Toggle;
-import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 
 public class ToggleTestFeature {
 

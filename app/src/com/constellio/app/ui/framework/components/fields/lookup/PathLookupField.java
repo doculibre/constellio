@@ -1,17 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.lookup;
 
-import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.*;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.model.services.schemas.SchemaUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
@@ -26,6 +14,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -33,8 +22,17 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.server.Resource;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.NotSupportedException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.autocompleteFieldMatching;
+import static java.util.Arrays.asList;
 
 public class PathLookupField extends LookupField<String> {
 	private final TaxonomyCodeToCaptionConverter captionConverter;
@@ -122,7 +120,8 @@ public class PathLookupField extends LookupField<String> {
 		private transient SessionContext sessionContext;
 		private transient String schemaType;
 
-		public PathInputDataProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext, String schemaType) {
+		public PathInputDataProvider(ModelLayerFactory modelLayerFactory, SessionContext sessionContext,
+									 String schemaType) {
 			this.modelLayerFactory = modelLayerFactory;
 			this.sessionContext = sessionContext;
 			this.schemaType = schemaType;
@@ -170,11 +169,11 @@ public class PathLookupField extends LookupField<String> {
 
 			LogicalSearchCondition condition = from(schemaTypesToSearch, sessionContext.getCurrentCollection())
 					.where(autocompleteFieldMatching(text)).andWhere(Schemas.PATH).isNotNull();
-			if(!taxonomyCodesForUser.isEmpty()) {
+			if (!taxonomyCodesForUser.isEmpty()) {
 				List<LogicalSearchCondition> conditionList = new ArrayList<>();
-				for(String taxonomyCode: taxonomyCodesForUser) {
+				for (String taxonomyCode : taxonomyCodesForUser) {
 					conditionList.add(from(schemaTypesToSearch, sessionContext.getCurrentCollection())
-							.where(Schemas.PATH).isStartingWithText("/"+taxonomyCode+"/"));
+							.where(Schemas.PATH).isStartingWithText("/" + taxonomyCode + "/"));
 				}
 				LogicalSearchCondition taxonomyCondition = from(schemaTypesToSearch, sessionContext.getCurrentCollection()).whereAnyCondition(conditionList);
 				condition = from(schemaTypesToSearch, sessionContext.getCurrentCollection()).whereAllConditions(asList(condition, taxonomyCondition));

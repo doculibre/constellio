@@ -1,12 +1,12 @@
 package com.constellio.sdk.tests;
 
-import static org.mockito.Mockito.mock;
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.constellio.app.ui.application.Navigation;
-import com.constellio.app.ui.application.CoreViews;
+import static org.mockito.Mockito.mock;
 
 public class MockedNavigation extends Navigation {
 	Map<Class<? extends CoreViews>, CoreViews> mocks = new HashMap<>();

@@ -1,6 +1,6 @@
 package com.constellio.data.utils;
 
-import static java.util.Arrays.asList;
+import com.constellio.data.io.services.facades.IOServices;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import com.constellio.data.io.services.facades.IOServices;
+import static java.util.Arrays.asList;
 
 public class BigFileFolderIterator extends LazyIterator<BigFileEntry> {
 

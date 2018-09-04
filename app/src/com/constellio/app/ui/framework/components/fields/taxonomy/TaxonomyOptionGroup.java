@@ -37,12 +37,13 @@ public class TaxonomyOptionGroup extends ListOptionGroup implements TaxonomyFiel
 	}
 
 	public void initStyleName() {
-		if(metadataDisplayType != null && metadataDisplayType.equals(MetadataDisplayType.HORIZONTAL)) {
+		if (metadataDisplayType != null && metadataDisplayType.equals(MetadataDisplayType.HORIZONTAL)) {
 			this.addStyleName("horizontal");
-		}
-		else {
+		} else {
 			this.addStyleName("vertical");
 		}
-	};
+	}
+
+	;
 
 }

@@ -32,7 +32,7 @@ public class BatchProcessResults {
 		//sb.append("")
 
 		return "BatchProcessResults{" +
-				"recordModifications=" + recordModifications +
-				'}';
+			   "recordModifications=" + recordModifications +
+			   '}';
 	}
 }

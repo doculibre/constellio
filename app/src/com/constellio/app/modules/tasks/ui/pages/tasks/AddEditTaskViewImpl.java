@@ -43,10 +43,10 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 	@Override
 	public void adjustAcceptedField(boolean isVisible) {
 		BooleanOptionGroup field = (BooleanOptionGroup) getForm().getCustomField(BorrowRequest.ACCEPTED);
-		if(isVisible) {
+		if (isVisible) {
 			field.setVisible(true);
 			field.setRequired(true);
-		} else if(field != null){
+		} else if (field != null) {
 			field.setVisible(false);
 			field.setRequired(false);
 		}
@@ -76,12 +76,12 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 			@Override
 			protected void saveButtonClick(final RecordVO viewObject)
 					throws ValidationException {
-				if(presenter.isCompletedOrClosedStatus(viewObject) && presenter.isSubTaskPresentAndHaveCertainStatus(viewObject)) {
+				if (presenter.isCompletedOrClosedStatus(viewObject) && presenter.isSubTaskPresentAndHaveCertainStatus(viewObject)) {
 					ConfirmDialog.show(UI.getCurrent(), $("DisplayTaskView.subTaskSpecialCaseCompleteTask"),
 							new ConfirmDialog.Listener() {
 								@Override
 								public void onClose(ConfirmDialog dialog) {
-									if(dialog.isConfirmed()) {
+									if (dialog.isConfirmed()) {
 										presenter.saveButtonClicked(viewObject);
 									}
 								}
@@ -123,6 +123,13 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 					}
 				});
 			}
+
+			field.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					presenter.fieldValueChanged(field);
+				}
+			});
 		}
 
 		return recordForm;

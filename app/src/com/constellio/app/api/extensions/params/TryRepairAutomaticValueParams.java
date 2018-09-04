@@ -1,9 +1,9 @@
 package com.constellio.app.api.extensions.params;
 
-import java.util.List;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
+
+import java.util.List;
 
 public class TryRepairAutomaticValueParams {
 
@@ -13,7 +13,7 @@ public class TryRepairAutomaticValueParams {
 	List<String> valuesToRemove;
 
 	public TryRepairAutomaticValueParams(Record record, Metadata metadata, List<String> currentValues,
-			List<String> valuesToRemove) {
+										 List<String> valuesToRemove) {
 		this.record = record;
 		this.metadata = metadata;
 		this.currentValues = currentValues;

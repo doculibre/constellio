@@ -1,17 +1,16 @@
 package com.constellio.app.api.cmis.requests.objectType;
 
-import java.math.BigInteger;
-import java.util.List;
-
+import com.constellio.app.api.cmis.ConstellioCmisException;
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.ConstellioCmisException;
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.services.factories.AppLayerFactory;
+import java.math.BigInteger;
+import java.util.List;
 
 public class GetTypeDescendantsRequest extends CmisCollectionRequest<List<TypeDefinitionContainer>> {
 
@@ -22,7 +21,8 @@ public class GetTypeDescendantsRequest extends CmisCollectionRequest<List<TypeDe
 	private CallContext context;
 
 	public GetTypeDescendantsRequest(ConstellioCollectionRepository repository, CallContext context, String typeId,
-			BigInteger depth, Boolean includePropertiesDefinition, AppLayerFactory appLayerFactory) {
+									 BigInteger depth, Boolean includePropertiesDefinition,
+									 AppLayerFactory appLayerFactory) {
 		super(context, repository, appLayerFactory);
 		this.context = context;
 		this.typeId = typeId;
@@ -44,10 +44,10 @@ public class GetTypeDescendantsRequest extends CmisCollectionRequest<List<TypeDe
 	@Override
 	public String toString() {
 		return "GetTypeDescendantsRequest{" +
-				"includePropertiesDefinition=" + includePropertiesDefinition +
-				", depth=" + depth +
-				", typeId='" + typeId + '\'' +
-				", repository='" + repository + '\'' +
-				'}';
+			   "includePropertiesDefinition=" + includePropertiesDefinition +
+			   ", depth=" + depth +
+			   ", typeId='" + typeId + '\'' +
+			   ", repository='" + repository + '\'' +
+			   '}';
 	}
 }

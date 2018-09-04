@@ -1,11 +1,8 @@
 package com.constellio.data.utils;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.data.dao.dto.records.RecordDTO;
+import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.dao.dto.records.TransactionDTO;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.SolrParams;
 import org.jdom2.Document;
@@ -13,9 +10,11 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.slf4j.Logger;
 
-import com.constellio.data.dao.dto.records.RecordDTO;
-import com.constellio.data.dao.dto.records.RecordDeltaDTO;
-import com.constellio.data.dao.dto.records.TransactionDTO;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class LoggerUtils {
 

@@ -1,19 +1,8 @@
 package com.constellio.model.entities.records.wrappers;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.CollectionObject;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.MetadataSchemaTypesMustBeNotNull;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException.RecordWrapperRuntimeException_CannotUseDisconnectedRecordWrapper;
@@ -25,6 +14,20 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.SchemaUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.joda.time.LocalDateTime;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class RecordWrapper implements Serializable, CollectionObject {
 
@@ -34,7 +37,13 @@ public class RecordWrapper implements Serializable, CollectionObject {
 
 	MetadataSchemaTypes types;
 
+	protected Locale locale;
+
 	public RecordWrapper(Record record, MetadataSchemaTypes types, String typeRequirement) {
+		this(record, types, typeRequirement, types == null ? null : types.getLanguages().get(0).getLocale());
+	}
+
+	public RecordWrapper(Record record, MetadataSchemaTypes types, String typeRequirement, Locale locale) {
 		if (record == null) {
 			throw new WrappedRecordMustBeNotNull();
 		}
@@ -46,13 +55,14 @@ public class RecordWrapper implements Serializable, CollectionObject {
 			throw new WrappedRecordMustMeetRequirements(schemaCode, typeRequirement);
 		}
 		if (record.getCollection() != null && types.getCollection() != null
-				&& !record.getCollection().equals(types.getCollection())) {
+			&& !record.getCollection().equals(types.getCollection())) {
 			throw new RecordWrapperRuntimeException.WrappedRecordAndTypesCollectionMustBeTheSame(record.getId(),
 					record.getCollection(), types.getCollection());
 		}
 
 		this.types = types;
 		this.wrappedRecord = record;
+		this.locale = locale;
 	}
 
 	public Record getWrappedRecord() {
@@ -86,6 +96,36 @@ public class RecordWrapper implements Serializable, CollectionObject {
 
 		Metadata metadata = types.getSchema(wrappedRecord.getSchemaCode()).getMetadata(localCode);
 		return wrappedRecord.get(metadata);
+	}
+
+	public <T> T get(Metadata metadata, Locale locale) {
+		return wrappedRecord.get(metadata, locale);
+	}
+
+	public <T> T get(String localCode, Locale locale) {
+		ensureConnected();
+
+		if (localCode.contains("_")) {
+			localCode = StringUtils.substringAfterLast(localCode, "_");
+		}
+
+		Metadata metadata = types.getSchema(wrappedRecord.getSchemaCode()).getMetadata(localCode);
+		return wrappedRecord.get(metadata, locale);
+	}
+
+	public <T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		return wrappedRecord.get(metadata, locale, mode);
+	}
+
+	public <T> T get(String localCode, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		ensureConnected();
+
+		if (localCode.contains("_")) {
+			localCode = StringUtils.substringAfterLast(localCode, "_");
+		}
+
+		Metadata metadata = types.getSchema(wrappedRecord.getSchemaCode()).getMetadata(localCode);
+		return wrappedRecord.get(metadata, locale, mode);
 	}
 
 	public <T> T getOriginal(String localCode) {
@@ -122,6 +162,14 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		String code = wrappedRecord.getSchemaCode() + "_" + localCode;
 		Metadata metadata = types.getMetadata(code);
 		wrappedRecord.set(metadata, value);
+		return (W) this;
+	}
+
+	public <T, W extends RecordWrapper> W set(String localeCode, Locale locale, T value) {
+		ensureConnected();
+		String code = wrappedRecord.getSchemaCode() + "_" + localeCode;
+		Metadata metadata = types.getMetadata(code);
+		wrappedRecord.set(metadata, locale, value);
 		return (W) this;
 	}
 
@@ -229,11 +277,27 @@ public class RecordWrapper implements Serializable, CollectionObject {
 	}
 
 	public String getTitle() {
-		return wrappedRecord.get(Schemas.TITLE);
+		return wrappedRecord.get(Schemas.TITLE, locale);
+	}
+
+	public String getTitle(Locale locale) {
+		return wrappedRecord.get(Schemas.TITLE, locale);
 	}
 
 	public RecordWrapper setTitle(String title) {
 		wrappedRecord.set(Schemas.TITLE, title);
+		return this;
+	}
+
+	public RecordWrapper setTitles(Map<Language, String> titles) {
+		for (Map.Entry<Language, String> entry : titles.entrySet()) {
+			wrappedRecord.set(Schemas.TITLE, entry.getKey().getLocale(), entry.getValue());
+		}
+		return this;
+	}
+
+	public RecordWrapper setTitle(Locale locale, String title) {
+		wrappedRecord.set(Schemas.TITLE, locale, title);
 		return this;
 	}
 

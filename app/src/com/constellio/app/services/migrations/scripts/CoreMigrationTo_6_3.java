@@ -26,58 +26,58 @@ import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class CoreMigrationTo_6_3 implements MigrationScript {
-    @Override
-    public String getVersion() {
-        return "6.3";
-    }
+	@Override
+	public String getVersion() {
+		return "6.3";
+	}
 
-    @Override
-    public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory)
-            throws Exception {
-        //FIXME is called several times for the different installed modules!!
-        new CoreSchemaAlterationFor6_3(collection, provider, appLayerFactory).migrate();
-        appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
-        //initializeUsersLanguages(collection, appLayerFactory);
-    }
+	@Override
+	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory)
+			throws Exception {
+		//FIXME is called several times for the different installed modules!!
+		new CoreSchemaAlterationFor6_3(collection, provider, appLayerFactory).migrate();
+		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+		//initializeUsersLanguages(collection, appLayerFactory);
+	}
 
-    private void initializeUsersLanguages(final String collection, AppLayerFactory appLayerFactory) throws Exception {
-        //FIXME not possible since collection not created yet!
-        final String collectionLanguageCode = appLayerFactory.getCollectionsManager().getCollection(collection).getLanguages().get(0);
-        SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
-        final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-        final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-        new ActionExecutorInBatch(searchServices, "Create users login languages.", 1000) {
-            @Override
-            public void doActionOnBatch(List<Record> records)
-                    throws Exception {
-                Transaction transaction = new Transaction();
+	private void initializeUsersLanguages(final String collection, AppLayerFactory appLayerFactory) throws Exception {
+		//FIXME not possible since collection not created yet!
+		final String collectionLanguageCode = appLayerFactory.getCollectionsManager().getCollection(collection).getLanguages().get(0);
+		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		final RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		final RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
+		new ActionExecutorInBatch(searchServices, "Create users login languages.", 1000) {
+			@Override
+			public void doActionOnBatch(List<Record> records)
+					throws Exception {
+				Transaction transaction = new Transaction();
 
-                for (User user : rm.wrapUsers(records)) {
-                    user.setLoginLanguageCode(collectionLanguageCode);
-                    transaction.add(user);
-                    }
+				for (User user : rm.wrapUsers(records)) {
+					user.setLoginLanguageCode(collectionLanguageCode);
+					transaction.add(user);
+				}
 
-                transaction.setSkippingRequiredValuesValidation(true);
-                recordServices.executeWithImpactHandler(transaction, new UnhandledRecordModificationImpactHandler());
-            }
-        }.execute(from(rm.userSchema()).returnAll());
-    }
+				transaction.setSkippingRequiredValuesValidation(true);
+				recordServices.executeWithImpactHandler(transaction, new UnhandledRecordModificationImpactHandler());
+			}
+		}.execute(from(rm.userSchema()).returnAll());
+	}
 
-    private class CoreSchemaAlterationFor6_3 extends MetadataSchemasAlterationHelper {
-        public CoreSchemaAlterationFor6_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
-                                          AppLayerFactory appLayerFactory) {
-            super(collection, migrationResourcesProvider, appLayerFactory);
-        }
+	private class CoreSchemaAlterationFor6_3 extends MetadataSchemasAlterationHelper {
+		public CoreSchemaAlterationFor6_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
+										  AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
 
-        @Override
-        protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-            MetadataSchemaBuilder user = typesBuilder.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema();
-            user.createUndeletable(User.LOGIN_LANGUAGE_CODE).setType(MetadataValueType.STRING);
-            MetadataSchemaTypeBuilder type = typesBuilder.getSchemaType(SavedSearch.SCHEMA_TYPE);
-            MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
-            defaultSchema.createUndeletable(SavedSearch.TEMPORARY).setType(BOOLEAN);
-            defaultSchema.createUndeletable(SavedSearch.PAGE_NUMBER).setType(NUMBER);
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+			MetadataSchemaBuilder user = typesBuilder.getSchemaType(User.SCHEMA_TYPE).getDefaultSchema();
+			user.createUndeletable(User.LOGIN_LANGUAGE_CODE).setType(MetadataValueType.STRING);
+			MetadataSchemaTypeBuilder type = typesBuilder.getSchemaType(SavedSearch.SCHEMA_TYPE);
+			MetadataSchemaBuilder defaultSchema = type.getDefaultSchema();
+			defaultSchema.createUndeletable(SavedSearch.TEMPORARY).setType(BOOLEAN);
+			defaultSchema.createUndeletable(SavedSearch.PAGE_NUMBER).setType(NUMBER);
 
-        }
-    }
+		}
+	}
 }

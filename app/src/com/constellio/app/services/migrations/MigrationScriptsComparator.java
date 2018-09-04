@@ -1,17 +1,16 @@
 package com.constellio.app.services.migrations;
 
-import java.util.ArrayList;
+import com.constellio.app.entities.modules.Migration;
+import com.constellio.model.entities.modules.Module;
+import com.constellio.model.entities.modules.PluginUtil;
+import com.constellio.model.utils.DependencyUtils;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.constellio.app.entities.modules.Migration;
-import com.constellio.model.entities.modules.Module;
-import com.constellio.model.entities.modules.PluginUtil;
-import com.constellio.model.utils.DependencyUtils;
 
 public class MigrationScriptsComparator implements Comparator<Migration> {
 

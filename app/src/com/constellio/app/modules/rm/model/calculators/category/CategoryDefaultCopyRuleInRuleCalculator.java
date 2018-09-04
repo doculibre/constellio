@@ -1,13 +1,5 @@
 package com.constellio.app.modules.rm.model.calculators.category;
 
-import static java.util.Arrays.asList;
-
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.SortedMap;
-
-import org.apache.poi.ss.formula.functions.T;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -19,6 +11,12 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
+
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.SortedMap;
+
+import static java.util.Arrays.asList;
 
 public abstract class CategoryDefaultCopyRuleInRuleCalculator<T> implements MetadataValueCalculator<T> {
 

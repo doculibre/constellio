@@ -1,5 +1,10 @@
 package com.constellio.app.modules.es.connectors.http;
 
+import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
+import com.constellio.data.dao.services.contents.ContentDao;
+import com.constellio.data.dao.services.contents.ContentDaoException.ContentDaoException_NoSuchContent;
+import org.apache.commons.io.FileUtils;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -7,15 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashSet;
 import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-
-import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
-import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
-import com.constellio.data.dao.managers.config.values.BinaryConfiguration;
-import com.constellio.data.utils.ImpossibleRuntimeException;
+import java.util.Set;
 
 public class ConnectorHttpContextServices {
 
@@ -29,6 +28,8 @@ public class ConnectorHttpContextServices {
 
 	ESSchemasRecordsServices es;
 
+	public static final Set<String> dirtyContexts = new HashSet<>();
+
 	public ConnectorHttpContextServices(ESSchemasRecordsServices es) {
 		this.es = es;
 	}
@@ -38,28 +39,35 @@ public class ConnectorHttpContextServices {
 	}
 
 	private void save(ConnectorHttpContext context, boolean add) {
-		File tempFile = es.getIOServices().newTemporaryFile(URLS_TEMP_FILE_WRITING_RESOURCE);
-		InputStream tempFileInputStream = null;
-		try {
-			ConfigManager configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
-			saveTo(context, tempFile);
 
-			tempFileInputStream = es.getIOServices().newBufferedFileInputStream(tempFile, URLS_TEMP_FILE_INPUTSTREAM_RESOURCE);
-			String path = "/connectors/http/" + context.getConnectorId() + "/fetchedUrls.txt";
-			if (add) {
-				configManager.add(path, tempFileInputStream);
-			} else {
-				String hash = configManager.getBinary(path).getHash();
-				configManager.update(path, hash, tempFileInputStream);
+		if (dirtyContexts.contains(context.connectorId)) {
+			dirtyContexts.remove(context.connectorId);
+			File tempFile = es.getIOServices().newTemporaryFile(URLS_TEMP_FILE_WRITING_RESOURCE);
+			InputStream tempFileInputStream = null;
+			try {
+				ContentDao contentDao = es.getModelLayerFactory().getDataLayerFactory().getContentsDao();
+				saveTo(context, tempFile);
+
+				String vaultFilePath = "connectors/" + context.getConnectorId() + "/fetchedUrls.txt";
+
+				tempFileInputStream = es.getIOServices()
+						.newBufferedFileInputStream(tempFile, URLS_TEMP_FILE_INPUTSTREAM_RESOURCE);
+				//String path = "/connectors/http/" + context.getConnectorId() + "/fetchedUrls.txt";
+				contentDao.add(vaultFilePath, tempFileInputStream);
+				//			if (add) {
+				//				configManager.add(path, tempFileInputStream);
+				//			} else {
+				//				String hash = configManager.getBinary(path).getHash();
+				//				configManager.update(path, hash, tempFileInputStream);
+				//			}
+
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+
+			} finally {
+				es.getIOServices().closeQuietly(tempFileInputStream);
+				es.getIOServices().deleteQuietly(tempFile);
 			}
-
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} catch (OptimisticLockingConfiguration e) {
-			throw new ImpossibleRuntimeException(e);
-		} finally {
-			es.getIOServices().closeQuietly(tempFileInputStream);
-			es.getIOServices().deleteQuietly(tempFile);
 		}
 	}
 
@@ -80,25 +88,29 @@ public class ConnectorHttpContextServices {
 	public ConnectorHttpContext createContext(String connectorId) {
 
 		ConnectorHttpContext connectorHttpContext = new ConnectorHttpContext(connectorId);
+		ConnectorHttpContextServices.dirtyContexts.add(connectorId);
 		save(connectorHttpContext, true);
 		return connectorHttpContext;
 	}
 
 	public ConnectorHttpContext loadContext(String connectorId) {
 
-		ConfigManager configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
-		String path = "/connectors/http/" + connectorId + "/fetchedUrls.txt";
-		BinaryConfiguration binaryConfiguration = configManager.getBinary(path);
-		ObjectInputStream binaryConfigurationInputStream = null;
+		ContentDao contentDao = es.getModelLayerFactory().getDataLayerFactory().getContentsDao();
 
+		String vaultFilePath = "connectors/" + connectorId + "/fetchedUrls.txt";
+
+		ObjectInputStream binaryConfigurationInputStream = null;
 		try {
-			binaryConfigurationInputStream = new ObjectInputStream(new BufferedInputStream(
-					binaryConfiguration.getInputStreamFactory().create(URLS_CONFIG_INPUTSTREAM_RESOURCE)));
+			InputStream contextInputStream = contentDao.getContentInputStream(vaultFilePath, URLS_CONFIG_INPUTSTREAM_RESOURCE);
+			binaryConfigurationInputStream = null;
+			binaryConfigurationInputStream = new ObjectInputStream(new BufferedInputStream(contextInputStream));
 			return (ConnectorHttpContext) binaryConfigurationInputStream.readObject();
 
 		} catch (IOException | ClassNotFoundException e) {
+			this.deleteContext(connectorId);
 			throw new RuntimeException(e);
-
+		} catch (ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
+			throw new RuntimeException(contentDaoException_noSuchContent);
 		} finally {
 			es.getIOServices().closeQuietly(binaryConfigurationInputStream);
 
@@ -122,8 +134,10 @@ public class ConnectorHttpContextServices {
 	}
 
 	public void deleteContext(String connectorId) {
-		ConfigManager configManager = es.getModelLayerFactory().getDataLayerFactory().getConfigManager();
-		String path = "/connectors/http/" + connectorId + "/fetchedUrls.txt";
-		configManager.delete(path);
+		ContentDao contentDao = es.getModelLayerFactory().getDataLayerFactory().getContentsDao();
+		String vaultFilePath = "connectors/" + connectorId;
+		if (contentDao.isFolderExisting(vaultFilePath)) {
+			contentDao.deleteFolder(vaultFilePath);
+		}
 	}
 }

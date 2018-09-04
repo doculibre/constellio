@@ -1,14 +1,13 @@
 package com.constellio.app.modules.rm.model;
 
-import java.io.Serializable;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.app.modules.rm.model.RetentionPeriod.RetentionPeriodRuntimeException.RetentionPeriodRuntimeException_PeriodIsFixed;
 import com.constellio.app.modules.rm.model.RetentionPeriod.RetentionPeriodRuntimeException.RetentionPeriodRuntimeException_PeriodIsOpened;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.io.Serializable;
 
 public class RetentionPeriod implements Serializable {
 

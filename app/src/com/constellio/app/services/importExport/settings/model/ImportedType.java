@@ -1,17 +1,22 @@
 package com.constellio.app.services.importExport.settings.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.model.entities.Language;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class ImportedType {
 
 	private String code;
 	private String label;
+	private Map<Language, String> labels = new HashMap<>();
+	;
 	private List<ImportedTab> tabs = new ArrayList<>();
 	private ImportedMetadataSchema defaultSchema = new ImportedMetadataSchema().setCode("default");
 	private List<ImportedMetadataSchema> customSchemata = new ArrayList<>();
@@ -84,12 +89,21 @@ public class ImportedType {
 		return this;
 	}
 
-	public String getLabel() {
-		return label;
+	public ImportedType setLabel(String label) {
+		this.labels.put(Language.French, label);
+		return this;
 	}
 
-	public ImportedType setLabel(String label) {
-		this.label = label;
+	public String getLabel() {
+		return labels.get(Language.French);
+	}
+
+	public Map<Language, String> getLabels() {
+		return labels;
+	}
+
+	public ImportedType setLabels(Map<Language, String> labels) {
+		this.labels = labels;
 		return this;
 	}
 

@@ -1,17 +1,16 @@
 package com.constellio.data.dao.managers.config;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.jdom2.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException.ConfigurationAlreadyExists;
 import com.constellio.data.dao.managers.config.values.PropertiesConfiguration;
 import com.constellio.data.dao.managers.config.values.XMLConfiguration;
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import org.jdom2.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ConfigManagerHelper {
 
@@ -33,7 +32,11 @@ public class ConfigManagerHelper {
 	public void createXMLDocumentIfInexistent(String path, DocumentAlteration documentAlteration) {
 		if (!configManager.exist(path)) {
 			Document document = new Document();
-			documentAlteration.alter(document);
+			if (documentAlteration != null) {
+				documentAlteration.alter(document);
+			} else {
+				throw new ImpossibleRuntimeException("Cannot create empty xml");
+			}
 			try {
 				configManager.add(path, document);
 			} catch (ConfigurationAlreadyExists e) {

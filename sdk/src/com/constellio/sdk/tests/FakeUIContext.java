@@ -1,17 +1,17 @@
 package com.constellio.sdk.tests;
 
+import com.constellio.app.ui.pages.base.UIContext;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.constellio.app.ui.pages.base.UIContext;
 
 public class FakeUIContext implements UIContext {
 
 	Map<String, Object> values = new HashMap<>();
 
 	@Override
-	public void clearAttribute(String key) {
-		values.remove(key);
+	public <T> T clearAttribute(String key) {
+		return (T) values.remove(key);
 	}
 
 	@Override

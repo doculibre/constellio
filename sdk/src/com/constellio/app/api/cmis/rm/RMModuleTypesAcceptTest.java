@@ -1,16 +1,10 @@
 package com.constellio.app.api.cmis.rm;
 
-import static org.apache.chemistry.opencmis.commons.enums.PropertyType.DATETIME;
-import static org.apache.chemistry.opencmis.commons.enums.PropertyType.STRING;
-import static org.apache.chemistry.opencmis.commons.enums.Updatability.READONLY;
-import static org.apache.chemistry.opencmis.commons.enums.Updatability.READWRITE;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.services.users.UserServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
 import org.apache.chemistry.opencmis.client.api.ObjectType;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
@@ -20,11 +14,16 @@ import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.model.services.users.UserServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.setups.Users;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static org.apache.chemistry.opencmis.commons.enums.PropertyType.DATETIME;
+import static org.apache.chemistry.opencmis.commons.enums.PropertyType.STRING;
+import static org.apache.chemistry.opencmis.commons.enums.Updatability.READONLY;
+import static org.apache.chemistry.opencmis.commons.enums.Updatability.READWRITE;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMModuleTypesAcceptTest extends ConstellioTest {
 

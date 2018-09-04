@@ -1,17 +1,16 @@
 package com.constellio.data.dao.services.recovery;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.sun.star.uno.RuntimeException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
-import com.sun.star.uno.RuntimeException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class TransactionLogRecoveryManagerAcceptanceTest extends ConstellioTest {
 	TransactionLogRecoveryManager transactionLogRecoveryManager;

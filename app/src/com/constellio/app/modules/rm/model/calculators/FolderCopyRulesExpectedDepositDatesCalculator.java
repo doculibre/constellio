@@ -1,11 +1,10 @@
 package com.constellio.app.modules.rm.model.calculators;
 
-import java.util.List;
-
-import org.joda.time.LocalDate;
-
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
+import org.joda.time.LocalDate;
+
+import java.util.List;
 
 public class FolderCopyRulesExpectedDepositDatesCalculator
 		extends AbstractFolderExpectedInactiveDatesCalculator

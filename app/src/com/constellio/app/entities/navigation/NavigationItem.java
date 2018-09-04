@@ -1,7 +1,5 @@
 package com.constellio.app.entities.navigation;
 
-import java.io.Serializable;
-
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -9,15 +7,19 @@ import com.constellio.app.ui.pages.viewGroups.MenuViewGroup;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.server.FontAwesome;
 
+import java.io.Serializable;
+
 public interface NavigationItem extends CodedItem, Serializable, Comparable<NavigationItem> {
-	
+
 	FontAwesome getFontAwesome();
-	
+
 	String getCode();
 
 	String getIcon();
 
 	int getOrderValue();
+
+	String getBadge(User user, AppLayerFactory appLayerFactory);
 
 	Class<? extends MenuViewGroup> getViewGroup();
 
@@ -34,6 +36,11 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 		@Override
 		public int getOrderValue() {
 			return 999;
+		}
+
+		@Override
+		public String getBadge(User user, AppLayerFactory appLayerFactory) {
+			return null;
 		}
 	}
 
@@ -78,7 +85,7 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 		public String getIcon() {
 			return icon;
 		}
-		
+
 		public FontAwesome getFontAwesome() {
 			return fontAwesome;
 		}
@@ -104,7 +111,7 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 		public String getIcon() {
 			return item.getIcon();
 		}
-		
+
 		@Override
 		public FontAwesome getFontAwesome() {
 			return item.getFontAwesome();
@@ -127,11 +134,11 @@ public interface NavigationItem extends CodedItem, Serializable, Comparable<Navi
 	}
 
 	class Inactive extends Active {
-		
+
 		public Inactive(String code, String icon) {
 			super(code, icon);
 		}
-		
+
 		public Inactive(String code, FontAwesome fontAwesome) {
 			super(code, fontAwesome);
 		}

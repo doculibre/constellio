@@ -27,9 +27,9 @@ import java.io.StringWriter;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ImportSettingsPresenter extends BasePresenter<ImportFileView> implements ImportFilePresenterInterface {
-	
-	private static final Logger LOGGER = LogManager.getLogger(ImportSettingsPresenter.class); 
-	
+
+	private static final Logger LOGGER = LogManager.getLogger(ImportSettingsPresenter.class);
+
 	private transient SettingsImportServices settingsImportServices;
 
 	public ImportSettingsPresenter(ImportFileView view) {
@@ -63,7 +63,7 @@ public class ImportSettingsPresenter extends BasePresenter<ImportFileView> imple
 			try {
 				if (upload.getFileName().endsWith(".xml")) {
 					Document settingsDocument = getDocumentFromFile(file); //jdom document
-					ImportedSettings settings = new SettingsXMLFileReader(settingsDocument, view.getCollection()).read();
+					ImportedSettings settings = new SettingsXMLFileReader(settingsDocument, collection, modelLayerFactory).read();
 					try {
 						settingsImportServices.importSettings(settings);
 						view.showImportCompleteMessage();
@@ -104,5 +104,5 @@ public class ImportSettingsPresenter extends BasePresenter<ImportFileView> imple
 			throw new RuntimeException("build Document JDOM2 from file", e);
 		}
 	}
-	
+
 }

@@ -1,9 +1,8 @@
 package com.constellio.data.dao.services.bigVault.solr;
 
-import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
-import static com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransactionCombinator.combineAll;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.apache.solr.common.SolrInputDocument;
+import org.assertj.core.api.ObjectAssert;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,9 +12,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.solr.common.SolrInputDocument;
-import org.assertj.core.api.ObjectAssert;
-import org.junit.Test;
+import static com.constellio.data.dao.dto.records.RecordsFlushing.NOW;
+import static com.constellio.data.dao.services.bigVault.solr.BigVaultServerTransactionCombinator.combineAll;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BigVaultServerTransactionTest {
 
@@ -707,14 +707,14 @@ public class BigVaultServerTransactionTest {
 								java.util.Collection<Object> values2 = doc2.getFieldValues(fieldName);
 								if (!values1.equals(values2)) {
 									System.out.println("Different values for field " + fieldName + " in document " + id + " : "
-											+ values1 + " is not equal to " + values2);
+													   + values1 + " is not equal to " + values2);
 									return false;
 								}
 							}
 
 						} else {
 							System.out.println("Different field name for document " + id + " : "
-									+ fieldNames1 + " is not equal to " + fieldNames2);
+											   + fieldNames1 + " is not equal to " + fieldNames2);
 							return false;
 						}
 

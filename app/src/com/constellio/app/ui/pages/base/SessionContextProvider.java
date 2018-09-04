@@ -1,8 +1,8 @@
 package com.constellio.app.ui.pages.base;
 
-import java.io.Serializable;
-
 import com.constellio.app.services.factories.ConstellioFactories;
+
+import java.io.Serializable;
 
 public interface SessionContextProvider extends Serializable {
 

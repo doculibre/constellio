@@ -1,11 +1,10 @@
 package com.constellio.model.services.search;
 
-import java.util.Iterator;
-
+import com.constellio.model.services.search.entities.SearchBoost;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import com.constellio.model.services.search.entities.SearchBoost;
+import java.util.Iterator;
 
 public class SearchBoostWriter {
 

@@ -1,10 +1,5 @@
 package com.constellio.app.ui.pages.management.app;
 
-import java.io.OutputStream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.services.appManagement.AppManagementService;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
@@ -13,6 +8,10 @@ import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.io.streamFactories.StreamFactory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.OutputStream;
 
 @SuppressWarnings("serial")
 public class AppManagementPresenter extends BasePresenter<AppManagementView> {

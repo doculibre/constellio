@@ -11,6 +11,7 @@ import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.components.window.QuickCompleteWindow;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -29,7 +30,6 @@ import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.IOException;
@@ -43,6 +43,8 @@ import static com.constellio.model.entities.records.wrappers.RecordWrapper.TITLE
 import static java.util.Arrays.asList;
 
 public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskView> implements TaskPresenter {
+	private static final String DISPLAY_TASK_PRESENTER_PREVIOUS_TAB = "DisplayTaskPresenterPreviousTab";
+
 	TaskVO taskVO;
 	private RecordVODataProvider subTaskDataProvider;
 	private RecordVODataProvider eventsDataProvider;
@@ -85,7 +87,16 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		taskPresenterServices = new TaskPresenterServices(tasksSchemas, recordServices(), tasksSearchServices, loggingServices);
 	}
 
+	public String getPreviousSelectedTab() {
+		String attribute = ConstellioUI.getCurrentSessionContext().getAttribute(DISPLAY_TASK_PRESENTER_PREVIOUS_TAB);
+		ConstellioUI.getCurrentSessionContext().setAttribute(DISPLAY_TASK_PRESENTER_PREVIOUS_TAB, null);
 
+		return attribute;
+	}
+
+	public void registerPreviousSelectedTab() {
+		ConstellioUI.getCurrentSessionContext().setAttribute(DISPLAY_TASK_PRESENTER_PREVIOUS_TAB, view.getSelectedTab().getId());
+	}
 
 	public RecordVO getTask() {
 		return taskVO;
@@ -138,7 +149,9 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 
 	@Override
 	public void generateReportButtonClicked(RecordVO recordVO) {
-		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, recordVO);
+		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
+				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK,
+				recordVO);
 		button.click();
 	}
 
@@ -169,11 +182,28 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	@Override
+	public boolean isReadByUser(RecordVO recordVO) {
+		return taskPresenterServices.isReadByUser(toRecord(recordVO));
+	}
+
+	@Override
+	public void setReadByUser(RecordVO recordVO, boolean readByUser) {
+		try {
+			taskPresenterServices.setReadByUser(toRecord(recordVO), readByUser);
+			reloadCurrentTask();
+			view.getMainLayout().getMenu().refreshBadges();
+		} catch (RecordServicesException e) {
+			view.showErrorMessage(e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	@Override
 	public boolean isCompleteButtonEnabled(RecordVO recordVO) {
 		return taskPresenterServices.isCompleteTaskButtonVisible(toRecord(recordVO), getCurrentUser());
 	}
 
-    @Override
+	@Override
 	public boolean isCloseButtonEnabled(RecordVO recordVO) {
 		return taskPresenterServices.isCloseTaskButtonVisible(toRecord(recordVO), getCurrentUser());
 	}
@@ -275,13 +305,19 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		Task task = tasksSchemas.getTask(recordVO.getId());
 		Object decisions = task.get(Task.BETA_NEXT_TASKS_DECISIONS);
-		if((task.getModelTask() != null && decisions != null && !((MapStringStringStructure)decisions).isEmpty() && task.getDecision() == null && !containsExpressionLanguage(decisions))
-				|| tasksSchemas.isRequestTask(task)) {
+		if ((task.getModelTask() != null && decisions != null && !((MapStringStringStructure) decisions).isEmpty()
+			 && task.getDecision() == null && !containsExpressionLanguage(decisions))
+			|| tasksSchemas.isRequestTask(task)) {
 			QuickCompleteWindow quickCompleteWindow = new QuickCompleteWindow(this, appLayerFactory, recordVO);
 			quickCompleteWindow.show();
 		} else {
-			QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
-			reloadCurrentTask();
+			try {
+				QuickCompleteWindow.quickCompleteTask(appLayerFactory, task, null, null, null, null);
+				reloadCurrentTask();
+			} catch (RecordServicesException e) {
+				view.showErrorMessage(e.getMessage());
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -316,7 +352,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	public void updateTaskStarred(boolean isStarred, String taskId) {
 		TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 		Task task = taskSchemas.getTask(taskId);
-		if(isStarred) {
+		if (isStarred) {
 			task.addStarredBy(getCurrentUser().getId());
 		} else {
 			task.removeStarredBy(getCurrentUser().getId());
@@ -333,7 +369,12 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	public void selectInitialTabForUser() {
-		view.selectMetadataTab();
+		String previousSelectedTab = getPreviousSelectedTab();
+		if (previousSelectedTab != null && DisplayTaskView.SUB_TASKS_ID.equals(previousSelectedTab)) {
+			view.selectTasksTab();
+		} else {
+			view.selectMetadataTab();
+		}
 	}
 
 	public void viewAssembled() {
@@ -375,13 +416,14 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	public void refreshEvents() {
-		modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
+		//modelLayerFactory.getDataLayerFactory().newEventsDao().flush();
 		view.setEvents(getEventsDataProvider());
 	}
 
 	public boolean isLogicallyDeleted() {
 		RecordVO task = getTask();
-		return Boolean.TRUE.equals(task.getMetadataValue(task.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).getValue());
+		return Boolean.TRUE
+				.equals(task.getMetadataValue(task.getMetadata(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode())).getValue());
 	}
 
 	private List<String> getFinishedOrClosedStatuses() {
@@ -390,7 +432,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 
 	public boolean isClosedOrTerminated() {
 		Record record = toRecord(taskVO);
-		Task  task = tasksSchemas.wrapTask(record);
+		Task task = tasksSchemas.wrapTask(record);
 		String closed = task.getStatus();
 		boolean isClosedOrTerminated = getFinishedOrClosedStatuses().contains(closed);
 

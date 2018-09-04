@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -11,12 +8,18 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSchemaRecordsView> {
 
@@ -39,11 +42,20 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 				schemaVO, voBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(defaultSchema()).returnAll())
-						.filteredByStatus(StatusFilter.ACTIVES).sortAsc(Schemas.TITLE);
+				MetadataSchema schema = defaultSchema();
+				LogicalSearchCondition condition = from(schema).returnAll();
+				if (isHierarchical()) {
+					condition = condition.andWhere(schema.get(HierarchicalValueListItem.PARENT)).isNull();
+				}
+				return new LogicalSearchQuery(condition).filteredByStatus(StatusFilter.ACTIVES).sortAsc(Schemas.TITLE);
 			}
 		};
 		return dataProvider;
+	}
+
+	private boolean isHierarchical() {
+		MetadataSchema schema = schema(schemaCode);
+		return schema.hasMetadataWithCode(HierarchicalValueListItem.PARENT);
 	}
 
 	public void displayButtonClicked(RecordVO recordVO) {

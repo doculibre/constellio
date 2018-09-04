@@ -1,16 +1,15 @@
 package com.constellio.model.services.records.reindexing;
 
+import com.constellio.data.utils.KeyIntMap;
+import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.constellio.data.utils.KeyIntMap;
-import com.constellio.model.entities.schemas.entries.AggregatedValuesEntry;
 
 public class InMemoryReindexingAggregatedValuesTempStorage implements ReindexingAggregatedValuesTempStorage {
 
@@ -22,7 +21,7 @@ public class InMemoryReindexingAggregatedValuesTempStorage implements Reindexing
 
 	@Override
 	public void addOrReplace(String recordIdAggregatingValues, String recordId, String inputMetadataLocalCode,
-			List<Object> values) {
+							 List<Object> values) {
 		Map<String, Map<String, List<Object>>> entriesOfAggregatingRecord = entries.get(recordIdAggregatingValues);
 		if (entriesOfAggregatingRecord == null) {
 			entriesOfAggregatingRecord = new HashMap<>();

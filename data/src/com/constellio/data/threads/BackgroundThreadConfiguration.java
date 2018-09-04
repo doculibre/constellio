@@ -17,6 +17,8 @@ public class BackgroundThreadConfiguration {
 
 	private BackgroundThreadExceptionHandling exceptionHandling = BackgroundThreadExceptionHandling.STOP;
 
+	private boolean runOnAllInstances;
+
 	private BackgroundThreadConfiguration(String id, Runnable repeatedAction) {
 		this.id = id;
 		this.repeatedAction = repeatedAction;
@@ -40,6 +42,15 @@ public class BackgroundThreadConfiguration {
 	public BackgroundThreadConfiguration handlingExceptionWith(BackgroundThreadExceptionHandling exceptionHandling) {
 		this.exceptionHandling = exceptionHandling;
 		return this;
+	}
+
+	public BackgroundThreadConfiguration runningOnAllInstances() {
+		this.runOnAllInstances = true;
+		return this;
+	}
+
+	public boolean isRunOnAllInstances() {
+		return runOnAllInstances;
 	}
 
 	public Runnable getRepeatedAction() {

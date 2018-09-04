@@ -1,5 +1,9 @@
 package com.constellio.app.api.cmis.requests.versioning;
 
+import com.constellio.app.api.cmis.ConstellioCmisException;
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
@@ -8,11 +12,6 @@ import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.constellio.app.api.cmis.ConstellioCmisException;
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.services.factories.AppLayerFactory;
 
 public class GetObjectOfLatestVersionUnsupportedRequest extends CmisCollectionRequest<ObjectData> {
 
@@ -31,10 +30,13 @@ public class GetObjectOfLatestVersionUnsupportedRequest extends CmisCollectionRe
 	ObjectInfoHandler objectInfos;
 
 	public GetObjectOfLatestVersionUnsupportedRequest(ConstellioCollectionRepository repository,
-			AppLayerFactory appLayerFactory,
-			CallContext callContext, String objectId, String versionSeriesId, Boolean major, String filter,
-			Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
-			Boolean includePolicyIds, Boolean includeAcl, ExtensionsData extension, ObjectInfoHandler objectInfos) {
+													  AppLayerFactory appLayerFactory,
+													  CallContext callContext, String objectId, String versionSeriesId,
+													  Boolean major, String filter,
+													  Boolean includeAllowableActions,
+													  IncludeRelationships includeRelationships, String renditionFilter,
+													  Boolean includePolicyIds, Boolean includeAcl,
+													  ExtensionsData extension, ObjectInfoHandler objectInfos) {
 		super(callContext, repository, appLayerFactory);
 		this.objectId = objectId;
 		this.versionSeriesId = versionSeriesId;

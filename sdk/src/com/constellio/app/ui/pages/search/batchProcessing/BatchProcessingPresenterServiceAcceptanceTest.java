@@ -1,5 +1,53 @@
 package com.constellio.app.ui.pages.search.batchProcessing;
 
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
+import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRecordFieldModification;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
+import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
+import com.constellio.app.ui.util.DateFormatUtils;
+import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
@@ -18,48 +66,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessRequest;
-import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
-import com.constellio.app.ui.util.DateFormatUtils;
-import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.batch.actions.ChangeValueOfMetadataBatchProcessAction;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
-import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.setups.Users;
-
 public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTest {
 
 	RMSchemasRecordsServices rm;
@@ -70,6 +76,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 	MetadataSchemaType folderSchemaType;
 	SearchServices searchServices;
 	CopyRetentionRuleFactory copyRetentionRuleFactory;
+	RecordServices recordService;
 
 	LocalDate date1 = aDate();
 	LocalDate date2 = aDate();
@@ -91,7 +98,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				.withAllTest(users));
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-
+		recordService = getModelLayerFactory().newRecordServices();
 		folderSchemaType = rm.folderSchemaType();
 		searchServices = getModelLayerFactory().newSearchServices();
 		presenterService = new BatchProcessingPresenterService(zeCollection, getAppLayerFactory(), Locale.FRENCH);
@@ -116,6 +123,184 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		dateTime1String = DateFormatUtils.format(dateTime1);
 		dateTime2String = DateFormatUtils.format(dateTime2);
 		dateTime3String = DateFormatUtils.format(dateTime3);
+	}
+
+	@Test
+	public void givenTwoFolderOnePrincipalAndOneSecondaryAndThreePossibleDelaiWhenSelectingPrincipalDelaiThenOnlyPrincpalRuleChanged()
+			throws Exception {
+
+		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_10);
+
+		RetentionRule retentionRule1 = rm.getRetentionRule(records.ruleId_2);
+		retentionRule1.setResponsibleAdministrativeUnits(false);
+		retentionRule1.setAdministrativeUnits(asList(records.unitId_30));
+		recordService.update(retentionRule1);
+
+		recordService.update(folder1);
+		recordService.recalculate(folder1);
+
+		Folder folder2 = rm.getFolder(records.folder_A05).setAdministrativeUnitEntered(records.unitId_30);
+		folder2.setRetentionRuleEntered(records.ruleId_2);
+		recordService.update(folder2);
+
+		CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+		CopyRetentionRule principal5_2_C = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
+
+		principal5_2_C.setInactiveDisposalType(DisposalType.DEPOSIT);
+
+		RetentionRule retentionRule2 = rm.getRetentionRule(records.ruleId_1);
+
+		List newRetentionRuleList = new ArrayList();
+		for (CopyRetentionRule currentCopyRetentionRule : retentionRule2.getCopyRetentionRules()) {
+			newRetentionRuleList.add(currentCopyRetentionRule);
+		}
+		newRetentionRuleList.add(principal5_2_C);
+
+		retentionRule2.setCopyRetentionRules(newRetentionRuleList);
+
+		recordService.update(retentionRule2);
+
+		assertThat(folder1.getMainCopyRule().getCopyType() == CopyType.PRINCIPAL);
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04, records.folder_A05))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED, records.ruleId_1)
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.MAIN_COPY_RULE_ID_ENTERED, principal5_2_C.getId());
+
+		BatchProcessResults results = presenterService.simulateWithQuery(request);
+
+		BatchProcessRecordFieldModification batchProcessRecordFieldModification = getFieldByKey(results.getRecordModifications(folder2.getId()).getFieldsModifications(), "folder_default_formModifiedBy");
+		String valueAfterFormModifedBy = batchProcessRecordFieldModification.getValueAfter();
+		String idForFormModifedBy = valueAfterFormModifedBy.substring(0, valueAfterFormModifedBy.indexOf(' '));
+
+
+		Map<String, Map<String, Object>> mapSpecialCase = request.getSpecialCaseModifiedMetadatas();
+
+		assertThat(mapSpecialCase.size() == 1);
+		assertThat(mapSpecialCase.get("A05").get("folder_default_mainCopyRuleIdEntered").equals(retentionRule1.getSecondaryCopy().getId()));
+		assertThat(mapSpecialCase.get("A04")).isNull();
+		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn", results.getRecordModifications(folder2.getId()).getFieldsModifications())).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
+				tuple("Principal", "Secondaire", "folder_default_copyStatus"),
+				tuple("5-2-T", "888-0-D", "folder_default_mainCopyRule"),
+				tuple("2 (Règle de conservation #2)", "1 (Règle de conservation #1)", "folder_default_retentionRule"),
+				tuple(null, idForFormModifedBy + " (System Admin)", "folder_default_formModifiedBy"));
+		assertThat(results.getRecordModifications(folder1.getId()).getFieldsModifications()).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
+				tuple("42-5-C", "5-2-C", "folder_default_mainCopyRule"));
+	}
+
+	@Test
+	public void givenFolderWithTwoPossibleDelaiAndWithPrincipalCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange()
+			throws Exception {
+
+		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_10);
+		recordService.update(folder1);
+		recordService.recalculate(folder1);
+
+		assertThat(folder1.getMainCopyRule().getCopyType() == CopyType.PRINCIPAL);
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_30);
+
+		BatchProcessResults results = presenterService.simulateWithQuery(request);
+		BatchProcessRecordFieldModification batchProcessRecordFieldModification = getFieldByKey(results.getRecordModifications(folder1.getId()).getFieldsModifications(), "folder_default_formModifiedBy");
+		String valueAfterFormModifedBy = batchProcessRecordFieldModification.getValueAfter();
+		String idForFormModifedBy = valueAfterFormModifedBy.substring(0, valueAfterFormModifedBy.indexOf(' '));
+
+		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn", results.getRecordModifications(folder1.getId()).getFieldsModifications())).extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
+				tuple("10", "30", "folder_default_administrativeUnitCode"),
+				tuple("Principal", "Secondaire", "folder_default_copyStatus"),
+				tuple("10 (Unité 10)", "30 (Unité 30)", "folder_default_administrativeUnit"),
+				tuple("42-5-C", "888-0-D", "folder_default_mainCopyRule"),
+				tuple(null, idForFormModifedBy + " (System Admin)", "folder_default_formModifiedBy")
+		);
+	}
+
+	public static BatchProcessRecordFieldModification getFieldByKey(
+			List<BatchProcessRecordFieldModification> batchProcessRecordFieldModificationList, String metadataCode) {
+		for (BatchProcessRecordFieldModification batchProcessRecordFieldModification : batchProcessRecordFieldModificationList) {
+			if (batchProcessRecordFieldModification.getMetadata().getCode().equals(metadataCode)) {
+				return batchProcessRecordFieldModification;
+			}
+		}
+
+		return null;
+	}
+
+	@Test
+	public void givenFolderWithThreePossibleDelaiAndWithSecondCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange()
+			throws Exception {
+		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_30);
+		recordService.update(folder1);
+		recordService.recalculate(folder1);
+
+		CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+		CopyRetentionRule principal5_2_T = copyBuilder.newPrincipal(asList(rm.PA(), rm.DM()), "5-2-T");
+
+		principal5_2_T.setInactiveDisposalType(DisposalType.DEPOSIT);
+
+		RetentionRule retentionRule = rm.getRetentionRule(records.ruleId_1);
+
+		List newRetentionRuleList = new ArrayList();
+		for (CopyRetentionRule currentCopyRetentionRule : retentionRule.getCopyRetentionRules()) {
+			newRetentionRuleList.add(currentCopyRetentionRule);
+		}
+		newRetentionRuleList.add(principal5_2_T);
+
+		retentionRule.setCopyRetentionRules(newRetentionRuleList);
+
+		recordService.update(retentionRule);
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_10);
+
+		BatchProcessResults results = presenterService.simulateWithQuery(request);
+
+		assertThat(results.getRecordModifications(folder1.getId()).getFieldsModifications())
+				.extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
+				tuple("30", "10", "folder_default_administrativeUnitCode"),
+				tuple("Secondaire", "Principal", "folder_default_copyStatus"),
+				tuple("30 (Unité 30)", "10 (Unité 10)", "folder_default_administrativeUnit"),
+				tuple("888-0-D", "42-5-C", "folder_default_mainCopyRule")
+		);
+
+	}
+
+	@Test
+	public void givenFolderWithTwoPossibleDelaiAndWithSecondCopyTypeWhenBatchProcessRequestForAdministrativeUnitChangeThenCopyTypeChange()
+			throws Exception {
+
+		Folder folder1 = rm.getFolder(records.folder_A04).setAdministrativeUnitEntered(records.unitId_30);
+		recordService.update(folder1);
+		recordService.recalculate(folder1);
+
+		assertThat(folder1.getMainCopyRule().getCopyType() == CopyType.PRINCIPAL);
+
+		BatchProcessRequest request = new BatchProcessRequest().setUser(users.adminIn(zeCollection))
+				.setQuery(new LogicalSearchQuery().setCondition(fromAllSchemasIn(zeCollection).where(Schemas.IDENTIFIER)
+						.isIn(asList(records.folder_A04))))
+				.addModifiedMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.ADMINISTRATIVE_UNIT_ENTERED, records.unitId_10);
+
+		BatchProcessResults results = presenterService.simulateWithQuery(request);
+
+		BatchProcessRecordFieldModification batchProcessRecordFieldModification = getFieldByKey(results.getRecordModifications(folder1.getId()).getFieldsModifications(), "folder_default_formModifiedBy");
+		String valueAfterFormModifedBy = batchProcessRecordFieldModification.getValueAfter();
+		String idForFormModifedBy = valueAfterFormModifedBy.substring(0, valueAfterFormModifedBy.indexOf(' '));
+
+
+		assertThat(removeMetadataCodeAndConfirmPresence("folder_default_formModifiedOn", results.getRecordModifications(folder1.getId()).getFieldsModifications()))
+				.extracting("valueBefore", "valueAfter", "metadata.code").containsOnly(
+
+				tuple("30", "10", "folder_default_administrativeUnitCode"),
+				tuple("Secondaire", "Principal", "folder_default_copyStatus"),
+				tuple("30 (Unité 30)", "10 (Unité 10)", "folder_default_administrativeUnit"),
+				tuple("888-0-D", "42-5-C", "folder_default_mainCopyRule"),
+				tuple(null, idForFormModifedBy + " (System Admin)", "folder_default_formModifiedBy")
+		);
 	}
 
 	@Test
@@ -300,6 +485,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
+		request.setModifiedMetadatas(modifications);
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
 				records.getAdmin().getUsername(), "Edit records");
 
@@ -328,6 +514,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.RETENTION_RULE_ENTERED, records.ruleId_2);
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.COPY_STATUS_ENTERED, CopyType.SECONDARY);
+		request.setModifiedMetadatas(modifications);
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getIds(),
 				records.getAdmin().getUsername(), "Edit records");
 
@@ -365,14 +552,33 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 				tuple(document2.getId(), document2.getTitle()),
 				tuple(document3.getId(), document3.getTitle()));
 
+
 		assertThat(results.getRecordModifications(document1.getId()).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 
-				tuple("document_default_retentionRule", "1 (Rule #1)", "3 (Rule #3)"),
 				tuple("document_default_category", "X110 (X110)", "Z112 (Z112)"),
 				tuple("document_default_folder", "A04 (Baleine)", "A07 (Bouc)"),
-				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T")
+				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T"),
+				tuple("document_default_categoryCode", "X110", "Z112"),
+				tuple("document_default_retentionRule", "1 (Règle de conservation #1)", "3 (Règle de conservation #3)")
 		);
+	}
+
+	public List<BatchProcessRecordFieldModification> removeMetadataCodeAndConfirmPresence(String code,
+																						  List<BatchProcessRecordFieldModification> batchProcessRecordFieldModificationList) {
+
+		List<BatchProcessRecordFieldModification> newbatchProcessRecordFieldModificationsList = new ArrayList<>();
+
+		for (BatchProcessRecordFieldModification batchProcessRecordFieldModification : batchProcessRecordFieldModificationList) {
+			if (!batchProcessRecordFieldModification.getMetadata().getCode().equals(code)) {
+				newbatchProcessRecordFieldModificationsList.add(batchProcessRecordFieldModification);
+			}
+		}
+
+		// Test if the code have been found and not added to the new list.
+		assertThat(batchProcessRecordFieldModificationList.size() - newbatchProcessRecordFieldModificationsList.size()).isEqualTo(1);
+
+		return newbatchProcessRecordFieldModificationsList;
 	}
 
 	@Test
@@ -398,10 +604,11 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 		assertThat(results.getRecordModifications(document1.getId()).getFieldsModifications())
 				.extracting("metadata.code", "valueBefore", "valueAfter").containsOnly(
 
-				tuple("document_default_retentionRule", "1 (Rule #1)", "3 (Rule #3)"),
 				tuple("document_default_category", "X110 (X110)", "Z112 (Z112)"),
 				tuple("document_default_folder", "A04 (Baleine)", "A07 (Bouc)"),
-				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T")
+				tuple("document_default_mainCopyRule", "42-5-C", "999-4-T"),
+				tuple("document_default_categoryCode", "X110", "Z112"),
+				tuple("document_default_retentionRule", "1 (Règle de conservation #1)", "3 (Règle de conservation #3)")
 
 		);
 	}
@@ -773,6 +980,7 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		Map<String, Object> modifications = new HashMap<>();
 		modifications.put(Folder.DEFAULT_SCHEMA + "_" + Folder.TYPE, records.folderTypeMeeting().getId());
+		request.setModifiedMetadatas(modifications);
 		presenterService.execute(request, new ChangeValueOfMetadataBatchProcessAction(modifications), request.getQuery(),
 				records.getAdmin().getUsername(), "Edit records");
 
@@ -858,7 +1066,6 @@ public class BatchProcessingPresenterServiceAcceptanceTest extends ConstellioTes
 
 		assertThat(records.getFolder_A01().get("subType")).isEqualTo("customSubType");
 		assertThat(records.getFolder_A02().get("subType")).isEqualTo("Meeting important");
-
 	}
 
 	public void whenBatchProcessingThenOriginalTypeIsNonNullIfEachRecordsHaveTheSameType()

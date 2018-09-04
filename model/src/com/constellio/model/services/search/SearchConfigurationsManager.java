@@ -1,95 +1,127 @@
 package com.constellio.model.services.search;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
-import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.managers.config.DocumentAlteration;
 import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
-import com.constellio.data.dao.services.cache.InsertionReason;
-import com.constellio.data.dao.services.factories.DataLayerFactory;
-import com.constellio.data.io.concurrent.data.DataWithVersion;
-import com.constellio.data.io.concurrent.data.TextView;
-import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.search.QueryElevation.DocElevation;
+import com.constellio.model.utils.AbstractOneXMLConfigPerCollectionManager;
+import com.constellio.model.utils.XMLConfigReader;
+import org.jdom2.Document;
 
-public class SearchConfigurationsManager {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+public class SearchConfigurationsManager extends AbstractOneXMLConfigPerCollectionManager<Elevations> {
 	public static final String ELEVATE_FILE_NAME = "/elevate.xml";
-	public static final String SYNONYME_FILE_PATH = "/synonyms.txt";
 
-	ConstellioCache constellioCache;
-
-	List<String> synonyms = new ArrayList<>();
-
-	DataLayerFactory dataLayerFactory;
-	ConstellioCacheManager constellioCacheManager;
-
-	ModelLayerFactory modelLayerFactory;
-	private BigVaultServer server;
-
-	public SearchConfigurationsManager(DataLayerFactory dataLayerFacotry, ModelLayerFactory modelLayerFactory) {
-		this.dataLayerFactory = dataLayerFacotry;
-		this.modelLayerFactory = modelLayerFactory;
-		server = dataLayerFacotry.getRecordsVaultServer();
-		constellioCacheManager = dataLayerFactory.getSettingsCacheManager();
-		constellioCache = constellioCacheManager.getCache(SearchConfigurationsManager.class.getName());
-		initialize();
+	public SearchConfigurationsManager(ConfigManager configManager, CollectionsListManager collectionsListManager,
+									   ConstellioCacheManager cacheManager) {
+		super(configManager, collectionsListManager, cacheManager);
 	}
 
-	public void initialize() {
-		synonyms = getSynonymsOnServer();
-		Elevations elevations = getAllElevationsFromDisk();
+	@Override
+	public void close() {
 
-		for (Elevations.QueryElevation queryElevation : elevations.getQueryElevations()) {
-			constellioCache
-					.put(queryElevation.getQuery(), (ArrayList) queryElevation.getDocElevations(), InsertionReason.WAS_OBTAINED);
+	}
+
+	@Override
+	protected String getCollectionFolderRelativeConfigPath() {
+		return ELEVATE_FILE_NAME;
+	}
+
+	@Override
+	protected ConstellioCache getConstellioCache() {
+		return cacheManager.getCache(SearchConfigurationsManager.class.getName());
+	}
+
+	@Override
+	protected XMLConfigReader<Elevations> xmlConfigReader() {
+		return new XMLConfigReader<Elevations>() {
+			@Override
+			public Elevations read(String collection, Document document) {
+				return new ElevationsReader(document).load();
+			}
+		};
+	}
+
+	@Override
+	protected DocumentAlteration createConfigAlteration() {
+		return new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				ElevationsWriter writer = new ElevationsWriter(document);
+				writer.initRootElement();
+			}
+		};
+	}
+
+	public void createCollectionElevations(String collection) {
+		createCollection(collection);
+	}
+
+	public void updateCollectionElevations(String collection, final Elevations elevations) {
+		DocumentAlteration documentAlteration = new DocumentAlteration() {
+			@Override
+			public void alter(Document document) {
+				ElevationsWriter writer = new ElevationsWriter(document);
+				writer.update(elevations);
+			}
+		};
+
+		updateCollection(collection, documentAlteration);
+	}
+
+	public List<DocElevation> getDocElevations(String collection, String query) {
+		Elevations elevations = getCollection(collection);
+		if (elevations != null) {
+			List<QueryElevation> queryElevations = elevations.getQueryElevations();
+			for (QueryElevation queryElevation : queryElevations) {
+				if (Objects.equals(queryElevation.getQuery(), query)) {
+					return queryElevation.getDocElevations();
+				}
+			}
 		}
+
+		return new ArrayList<>();
 	}
 
-	public List<Elevations.QueryElevation.DocElevation> getDocElevation(String query) {
-		return constellioCache.get(query);
-	}
-
-	public Elevations getAllElevationsFromDisk() {
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		if (solrFileSystem != null) {
-			DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
-			ElevationsView anElevationsView = readData.getView(new ElevationsView());
-			Elevations elevations = anElevationsView.getData();
-
-			return elevations;
-		} else {
-			return new Elevations();
+	public List<String> getDocExlusions(String collection) {
+		Elevations elevations = getCollection(collection);
+		if (elevations != null) {
+			return elevations.getDocExclusions();
 		}
+
+		return new ArrayList<>();
 	}
 
-	public List<String> getAllQuery() {
+	public List<String> getAllQuery(String collection) {
 		List<String> allQuery = new ArrayList<>();
-		for (Iterator<String> iterator = constellioCache.keySet(); iterator.hasNext(); ) {
-			allQuery.add(iterator.next());
+		Elevations elevations = getCollection(collection);
+		if (elevations != null) {
+			List<QueryElevation> queryElevations = elevations.getQueryElevations();
+			for (QueryElevation queryElevation : queryElevations) {
+				allQuery.add(queryElevation.getQuery());
+			}
 		}
 		return allQuery;
 	}
 
-	public boolean isElevated(String freeTextQuery, Record record) {
-		return isElevated(freeTextQuery, record.getId());
+	public boolean isElevated(String collection, String freeTextQuery, Record record) {
+		return isElevated(collection, freeTextQuery, record.getId());
 	}
 
-	public boolean isElevated(String freeTextQuery, String recordId) {
+	public boolean isElevated(String collection, String freeTextQuery, String recordId) {
 		boolean found = false;
 
-		ArrayList<Elevations.QueryElevation.DocElevation> docElevations = constellioCache.get(freeTextQuery);
+		List<DocElevation> docElevations = getDocElevations(collection, freeTextQuery);
 
 		if (docElevations != null) {
-			for (Elevations.QueryElevation.DocElevation docElevation : docElevations) {
-				if (recordId.equals(docElevation.getId()) && !docElevation.isExclude()) {
+			for (DocElevation docElevation : docElevations) {
+				if (recordId.equals(docElevation.getId())) {
 					found = true;
 					break;
 				}
@@ -99,207 +131,77 @@ public class SearchConfigurationsManager {
 		return found;
 	}
 
-	public boolean isExcluded(String freeTextQuery, Record record) {
-		boolean found = false;
-		// Facebook.com youtube.com
-
-		ArrayList<Elevations.QueryElevation.DocElevation> docElevations = constellioCache.get(freeTextQuery);
-
-		if (docElevations != null) {
-			for (Elevations.QueryElevation.DocElevation docElevation : docElevations) {
-				if (record.getId().equals(docElevation.getId()) && docElevation.isExclude()) {
-					found = true;
-					break;
-				}
-			}
-		}
-
-		return found;
+	public boolean isExcluded(String collection, Record record) {
+		Elevations elevations = getCollection(collection);
+		return elevations.getDocExclusions().contains(record.getId());
 	}
 
-	public void removeQuery(String query) {
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
-		ElevationsView anElevationsView = readData.getView(new ElevationsView());
-
-		Elevations elevations = anElevationsView.getData();
-
-		elevations.removeQueryElevation(query);
-
-		anElevationsView.setData(elevations);
-		readData.setDataFromView(anElevationsView);
-
-		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
-		solrFileSystem.close();
-
-		constellioCache.remove(query);
-
-		server.reload();
-	}
-
-	public void removeAllExclusion(String query) {
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
-		ElevationsView anElevationsView = readData.getView(new ElevationsView());
-
-		Elevations elevations = anElevationsView.getData();
-
-		elevations.removeAllExclusion(query);
-
-		anElevationsView.setData(elevations);
-		readData.setDataFromView(anElevationsView);
-
-		Elevations.QueryElevation queryElevation = elevations.getQueryElevation(query);
-
-		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
-		solrFileSystem.close();
-
-		if (queryElevation != null && queryElevation.getDocElevations().size() > 0) {
-			constellioCache.put(query, (ArrayList) queryElevation.getDocElevations(), InsertionReason.WAS_MODIFIED);
-		} else {
-			constellioCache.remove(query);
-		}
-
-		server.reload();
-	}
-
-	public void removeAllElevation(String query) {
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
-		ElevationsView anElevationsView = readData.getView(new ElevationsView());
-
-		Elevations elevations = anElevationsView.getData();
-
-		elevations.removeAllElevation(query);
-
-		anElevationsView.setData(elevations);
-		readData.setDataFromView(anElevationsView);
-
-		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
-		solrFileSystem.close();
-
-		Elevations.QueryElevation queryElevation = elevations.getQueryElevation(query);
-		if (queryElevation != null && queryElevation.getDocElevations().size() > 0) {
-			constellioCache.put(query, (ArrayList) queryElevation.getDocElevations(), InsertionReason.WAS_MODIFIED);
-		} else {
-			constellioCache.remove(query);
+	public void removeAllElevation(String collection) {
+		Elevations elevations = getCollection(collection);
+		if (elevations != null) {
+			elevations.removeAllElevation();
+			updateCollectionElevations(collection, elevations);
 		}
 	}
 
-	public void removeElevated(String freeTextQuery, String recordId) {
-		if (StringUtils.isBlank(freeTextQuery)) {
-			freeTextQuery = "*:*";
-		}
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
-		ElevationsView anElevationsView = readData.getView(new ElevationsView());
-
-		Elevations elevations = anElevationsView.getData();
-
-		elevations.removeElevation(freeTextQuery, recordId);
-
-		anElevationsView.setData(elevations);
-		readData.setDataFromView(anElevationsView);
-
-		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
-		solrFileSystem.close();
-
-		ArrayList<Elevations.QueryElevation.DocElevation> docElevations = constellioCache.get(freeTextQuery);
-		for (Iterator<Elevations.QueryElevation.DocElevation> iterator = docElevations.iterator(); iterator.hasNext(); ) {
-			Elevations.QueryElevation.DocElevation docElevation = iterator.next();
-			if (docElevation.getId().equals(recordId)) {
-				iterator.remove();
-				break;
-			}
-		}
-
-		if (docElevations.size() < 1) {
-			constellioCache.remove(freeTextQuery);
-		}
-
-		server.reload();
-	}
-
-	public void setElevated(String freeTextQuery, Record record, boolean isExcluded) {
-
-		if (StringUtils.isBlank(freeTextQuery)) {
-			freeTextQuery = "*:*";
-		}
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		DataWithVersion readData = solrFileSystem.readData(ELEVATE_FILE_NAME);
-		ElevationsView anElevationsView = readData.getView(new ElevationsView());
-
-		Elevations elevations = anElevationsView.getData();
-
-		elevations.addOrUpdate(
-				new Elevations.QueryElevation().setQuery(freeTextQuery)
-						.addDocElevation(new Elevations.QueryElevation.DocElevation(record.getId(), isExcluded)));
-
-		anElevationsView.setData(elevations);
-		readData.setDataFromView(anElevationsView);
-
-		solrFileSystem.writeData(ELEVATE_FILE_NAME, readData);
-		solrFileSystem.close();
-
-		Elevations.QueryElevation queryElevation = elevations.getQueryElevation(freeTextQuery);
-
-		constellioCache.put(freeTextQuery, (ArrayList) queryElevation.getDocElevations(), InsertionReason.WAS_MODIFIED);
-
-		server.reload();
-	}
-
-	public List<String> getSynonyms() {
-		return Collections.unmodifiableList(synonyms);
-	}
-
-	public void setSynonyms(List<String> synonyms) {
-		this.synonyms = new ArrayList<>(synonyms);
-		setSynonyms();
-	}
-
-	private void setSynonyms() {
-		BigVaultServer server = dataLayerFactory.getRecordsVaultServer();
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		if (solrFileSystem != null) {
-			DataWithVersion readData = solrFileSystem.readData(SYNONYME_FILE_PATH);
-			TextView aStringView = readData.getView(new TextView());
-			aStringView.setData(getSynonymeAsOneString());
-			readData.setDataFromView(aStringView);
-			solrFileSystem.writeData(SYNONYME_FILE_PATH, readData);
-			server.reload();
+	public void removeExclusion(String collection, String id) {
+		Elevations elevations = getCollection(collection);
+		if (elevations != null) {
+			elevations.removeDocExclusion(id);
+			updateCollectionElevations(collection, elevations);
 		}
 	}
 
-	private List<String> getSynonymsOnServer() {
-		BigVaultServer server = dataLayerFactory.getRecordsVaultServer();
-		AtomicFileSystem solrFileSystem = server.getSolrFileSystem();
-
-		if (solrFileSystem != null) {
-			DataWithVersion readData = solrFileSystem.readData(SYNONYME_FILE_PATH);
-
-			TextView aStringView = readData.getView(new TextView());
-
-			String synonymsAsOneString = aStringView.getData();
-
-			return Arrays.asList(synonymsAsOneString.split("\\r\\n|\\n|\\r"));
-		} else {
-			return new ArrayList<>();
+	public void removeAllExclusion(String collection) {
+		Elevations elevations = getCollection(collection);
+		if (elevations != null) {
+			elevations.removeAllDocExclusion();
+			updateCollectionElevations(collection, elevations);
 		}
 	}
 
-	private String getSynonymeAsOneString() {
-		StringBuilder allSynonyms = new StringBuilder();
-
-		for (String synonym : synonyms) {
-			allSynonyms.append(synonym + "\n");
+	public void removeQueryElevation(String collection, String query) {
+		Elevations elevations = getCollection(collection);
+		if (elevations != null && elevations.removeQueryElevation(query)) {
+			updateCollectionElevations(collection, elevations);
 		}
+	}
 
-		return allSynonyms.toString();
+	public void removeElevated(String collection, String freeTextQuery, String recordId) {
+		Elevations elevations = getCollection(collection);
+		if (elevations != null && elevations.removeDocElevation(freeTextQuery, recordId)) {
+			updateCollectionElevations(collection, elevations);
+		}
+	}
+
+	public void setElevated(String collection, String freeTextQuery, Record record) {
+		setElevated(collection, freeTextQuery, record.getId());
+	}
+
+	public void setElevated(String collection, String freeTextQuery, String recordId) {
+		Elevations elevations = getCollection(collection);
+		if (elevations != null) {
+			elevations.addOrUpdate(
+					new QueryElevation(freeTextQuery)
+							.addDocElevation(new DocElevation(recordId, freeTextQuery)));
+
+			updateCollectionElevations(collection, elevations);
+		}
+	}
+
+	public void setExcluded(String collection, Record record) {
+		setExcluded(collection, record.getId());
+	}
+
+	public void setExcluded(String collection, String recordId) {
+		Elevations elevations = getCollection(collection);
+		if (elevations != null && elevations.addDocExclusion(recordId)) {
+			updateCollectionElevations(collection, elevations);
+		}
+	}
+
+	@Override
+	public void onValueModified(String collection, Elevations newValue) {
+
 	}
 }

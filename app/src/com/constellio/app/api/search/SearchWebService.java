@@ -1,69 +1,38 @@
 package com.constellio.app.api.search;
 
-import com.constellio.app.api.HttpServletRequestAuthenticator;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.model.entities.Language;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.search.FreeTextSearchServices;
-import com.constellio.model.services.search.query.logical.FreeTextQuery;
 import com.constellio.model.services.thesaurus.ResponseSkosConcept;
-import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.thesaurus.ThesaurusService;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.util.NamedList;
-import org.apache.solr.request.LocalSolrQueryRequest;
-import org.apache.solr.response.JSONResponseWriter;
-import org.apache.solr.response.SolrQueryResponse;
-import org.apache.solr.response.XMLResponseWriter;
-import org.apache.solr.servlet.SolrRequestParsers;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class SearchWebService extends HttpServlet {
-
-	private static synchronized ConstellioFactories getConstellioFactories() {
-		return ConstellioFactories.getInstance();
-	}
-	public static final String THESAURUS_VALUE = "thesaurusValue";
-	public static final String SKOS_CONCEPTS = "skosConcepts";
-
-
+public class SearchWebService extends AbstractSearchServlet {
 	@Override
-	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+	protected void doGet(UserCredential user, HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
+		ModifiableSolrParams solrParams = getModifiableSolrParams(req.getQueryString());
+		boolean searchingInEvents = "true".equals(req.getParameter("searchEvents"));
+		String thesaurusValue = req.getParameter(THESAURUS_VALUE);
 
-
-		HttpServletRequestAuthenticator authenticator = new HttpServletRequestAuthenticator(modelLayerFactory());
-		UserCredential user = authenticator.authenticate(request);
-		if (user == null) {
-			throw new RuntimeException("Invalid serviceKey/token");
-		}
-
-		boolean searchingInEvents = "true".equals(request.getParameter("searchEvents"));
-		ModifiableSolrParams solrParams = new ModifiableSolrParams(
-				SolrRequestParsers.parseQueryString(request.getQueryString()));
-		String thesaurusValue = solrParams.get(THESAURUS_VALUE);
-		solrParams.remove("searchEvents");
-		solrParams.remove(THESAURUS_VALUE);
-		solrParams.remove(HttpServletRequestAuthenticator.USER_SERVICE_KEY);
-		solrParams.remove(HttpServletRequestAuthenticator.USER_TOKEN);
 		solrParams.add("fq", "-type_s:index");
+
+		solrParams.set("rows", StringUtils.defaultString(solrParams.get("rows"), "" + 10));
+		solrParams.set("start", StringUtils.defaultString(solrParams.get("start"), "" + 0));
 
 		String[] strings = solrParams.getParams("fq");
 
@@ -71,18 +40,17 @@ public class SearchWebService extends HttpServlet {
 
 		ResponseSkosConcept responseSkosConcept = null;
 
-		for(String param : strings) {
-			if(param.startsWith("collection_s")) {
+		for (String param : strings) {
+			if (param.startsWith("collection_s")) {
 				collection = param.replace("collection_s:", "");
 				break;
 			}
 		}
 
 		QueryResponse queryResponse;
-		if(!Strings.isNullOrEmpty(thesaurusValue) && searchingInEvents) {
+		if (!Strings.isNullOrEmpty(thesaurusValue) && searchingInEvents) {
 			throw new RuntimeException("You cannot search event and have a thesaurusValue");
-		}
-		else if (searchingInEvents) {
+		} else if (searchingInEvents) {
 			if (!user.isSystemAdmin()) {
 				throw new RuntimeException("You need system admin privileges");
 			}
@@ -94,15 +62,19 @@ public class SearchWebService extends HttpServlet {
 			ArrayList<String> paramList = new ArrayList<>();
 			SearchEvent searchEvent = null;
 
-			if(!Strings.isNullOrEmpty(collection)) {
+			if (!Strings.isNullOrEmpty(collection)) {
 				schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory());
 				searchEvent = schemasRecordsServices.newSearchEvent();
+				searchEvent.setClickCount(0);
 
 				for (String paramName : solrParams.getParameterNames()) {
 					if (!paramName.equals("qf") && !paramName.equals("pf")
-							&& !paramName.equals("fl")) {
+						&& !paramName.equals("fl")) {
 						if (paramName.equals("q")) {
-							searchEvent.setQuery(StringUtils.stripAccents(solrParams.get(paramName).toLowerCase()));
+							String query = StringUtils.stripAccents(solrParams.get(paramName).toLowerCase());
+
+							searchEvent.setQuery(query);
+							searchEvent.setOriginalQuery(query);
 						} else {
 							String[] values = solrParams.getParams(paramName);
 
@@ -123,25 +95,36 @@ public class SearchWebService extends HttpServlet {
 
 			queryResponse = getQueryResponse(solrParams, user);
 
-			if(schemasRecordsServices != null) {
+			if (schemasRecordsServices != null) {
+
+				if (solrParams.get("rows") == null) {
+					paramList.add("rows=10");
+				}
+
+				if (solrParams.get("start") == null) {
+					paramList.add("start=0");
+				}
+
 				searchEvent.setParams(paramList);
 				searchEvent.setQTime(queryResponse.getQTime());
 				searchEvent.setNumFound(queryResponse.getResults().getNumFound());
 
-				SearchEventServices searchEventServices = new SearchEventServices(collection, modelLayerFactory());
-				searchEventServices.save(searchEvent);
+				if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+					SearchEventServices searchEventServices = new SearchEventServices(collection, modelLayerFactory());
+					searchEventServices.save(searchEvent);
+				}
 			}
 		}
 
 		NamedList skosConceptsNL = new NamedList();
 
-		if(responseSkosConcept != null && responseSkosConcept.getSuggestions().size() > 0) {
+		if (responseSkosConcept != null && responseSkosConcept.getSuggestions().size() > 0) {
 			NamedList suggestionsNL = new NamedList();
 
-			for(Locale locale : responseSkosConcept.getSuggestions().keySet()) {
+			for (Locale locale : responseSkosConcept.getSuggestions().keySet()) {
 				List<String> suggestionList = responseSkosConcept.getSuggestions().get(locale);
 				NamedList localeSuggestionsNL = new NamedList();
-				for(String suggestion : suggestionList) {
+				for (String suggestion : suggestionList) {
 					localeSuggestionsNL.add("label", suggestion);
 				}
 
@@ -151,13 +134,13 @@ public class SearchWebService extends HttpServlet {
 			skosConceptsNL.add(ThesaurusService.SUGGESTIONS, suggestionsNL);
 		}
 
-		if(responseSkosConcept != null && responseSkosConcept.getDisambiguations().size() > 0) {
+		if (responseSkosConcept != null && responseSkosConcept.getDisambiguations().size() > 0) {
 			NamedList disambiguationsNL = new NamedList();
 
-			for(Locale locale : responseSkosConcept.getDisambiguations().keySet()) {
+			for (Locale locale : responseSkosConcept.getDisambiguations().keySet()) {
 				List<String> disambiguationList = responseSkosConcept.getDisambiguations().get(locale);
 				NamedList localeDisambiguationsNL = new NamedList();
-				for(String disambiguation : disambiguationList) {
+				for (String disambiguation : disambiguationList) {
 					localeDisambiguationsNL.add("label", disambiguation);
 				}
 
@@ -167,55 +150,6 @@ public class SearchWebService extends HttpServlet {
 			skosConceptsNL.add(ThesaurusService.DESAMBIUGATIONS, disambiguationsNL);
 		}
 
-		writeResponse(response, solrParams, queryResponse, skosConceptsNL);
-	}
-
-	private ModelLayerFactory modelLayerFactory() {
-		return ConstellioFactories.getInstance().getModelLayerFactory();
-	}
-
-	private QueryResponse getQueryResponse(ModifiableSolrParams solrParams, UserCredential user) {
-		ModelLayerFactory modelLayerFactory = getConstellioFactories().getModelLayerFactory();
-		FreeTextSearchServices freeTextSearchServices = modelLayerFactory.newFreeTextSearchServices();
-		return freeTextSearchServices.search(new FreeTextQuery(solrParams).filteredByUser(user));
-	}
-
-	private QueryResponse getEventQueryResponse(ModifiableSolrParams solrParams) {
-		ModelLayerFactory modelLayerFactory = getConstellioFactories().getModelLayerFactory();
-		FreeTextSearchServices freeTextSearchServices = modelLayerFactory.newFreeTextSearchServices();
-		return freeTextSearchServices.search(new FreeTextQuery(solrParams).searchEvents());
-	}
-
-	private void writeResponse(HttpServletResponse response, ModifiableSolrParams solrParams, QueryResponse queryResponse, NamedList skosConceptsNL) {
-		response.setContentType("application/xml; charset=UTF-8");
-		OutputStream outputStream;
-		try {
-			outputStream = response.getOutputStream();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-
-		SolrQueryResponse sResponse = new SolrQueryResponse();
-		sResponse.setAllValues(queryResponse.getResponse());
-
-		if(skosConceptsNL  != null || skosConceptsNL.size() > 0) {
-			sResponse.getValues().add(SKOS_CONCEPTS , skosConceptsNL);
-		}
-
-		XMLResponseWriter xmlWriter = new XMLResponseWriter();
-
-		try (OutputStreamWriter out = new OutputStreamWriter(outputStream)) {
-			if (("json").equals(solrParams.get("wt"))) {
-				response.setCharacterEncoding("UTF-8");
-				response.setContentType("application/json; charset=UTF-8");
-				JSONResponseWriter jsonWriter = new JSONResponseWriter();
-				jsonWriter.write(out, new LocalSolrQueryRequest(null, solrParams), sResponse);
-			} else {
-				xmlWriter.write(out, new LocalSolrQueryRequest(null, solrParams), sResponse);
-			}
-			out.flush();
-		} catch (IOException e) {
-			throw new RuntimeException("Unable to convert Solr response into XML", e);
-		}
+		writeResponse(resp, solrParams, queryResponse, skosConceptsNL, null, null, null, null);
 	}
 }

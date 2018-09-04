@@ -1,10 +1,5 @@
 package com.constellio.model.services.records.cache;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-import static com.constellio.data.dao.services.records.DataStore.RECORDS;
-
-import java.util.List;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
@@ -29,13 +24,19 @@ import com.constellio.model.services.schemas.ModificationImpactCalculatorRespons
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
+import java.util.List;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.data.dao.services.records.DataStore.RECORDS;
+
 public class CachedRecordServices extends BaseRecordServices implements RecordServices {
 
 	RecordsCaches disconnectableRecordsCaches;
 
 	RecordServices recordServices;
 
-	public CachedRecordServices(ModelLayerFactory modelLayerFactory, RecordServices recordServices, RecordsCaches recordsCaches) {
+	public CachedRecordServices(ModelLayerFactory modelLayerFactory, RecordServices recordServices,
+								RecordsCaches recordsCaches) {
 		super(modelLayerFactory);
 		this.recordServices = recordServices;
 		this.disconnectableRecordsCaches = recordsCaches;
@@ -119,7 +120,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public List<Record> getRecordsById(String collection,
-			List<String> ids) {
+									   List<String> ids) {
 
 		//TODO
 
@@ -145,6 +146,11 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 		//		}
 
 		return recordServices.getRecordsById(collection, ids);
+	}
+
+	@Override
+	public void prepareRecords(Transaction transaction) throws ValidationException {
+		recordServices.prepareRecords(transaction);
 	}
 
 	@Override
@@ -198,7 +204,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public void executeWithImpactHandler(Transaction transaction,
-			RecordModificationImpactHandler handler)
+										 RecordModificationImpactHandler handler)
 			throws RecordServicesException {
 		recordServices.executeWithImpactHandler(transaction, handler);
 	}
@@ -221,7 +227,7 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public void validateRecordInTransaction(Record record,
-			Transaction transaction)
+											Transaction transaction)
 			throws ValidationException {
 		recordServices.validateRecordInTransaction(record, transaction);
 	}
@@ -261,31 +267,31 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public boolean isRestorable(Record record,
-			User user) {
+								User user) {
 		return recordServices.isRestorable(record, user);
 	}
 
 	@Override
 	public void restore(Record record,
-			User user) {
+						User user) {
 		recordServices.restore(record, user);
 	}
 
 	@Override
 	public boolean isPhysicallyDeletable(Record record,
-			User user) {
+										 User user) {
 		return recordServices.isPhysicallyDeletable(record, user);
 	}
 
 	@Override
 	public void physicallyDelete(Record record,
-			User user) {
+								 User user) {
 		recordServices.physicallyDelete(record, user);
 	}
 
 	@Override
 	public void physicallyDelete(Record record,
-			User user, RecordPhysicalDeleteOptions options) {
+								 User user, RecordPhysicalDeleteOptions options) {
 		recordServices.physicallyDelete(record, user, options);
 	}
 
@@ -296,25 +302,30 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 
 	@Override
 	public boolean isLogicallyDeletable(Record record,
-			User user) {
+										User user) {
 		return recordServices.isLogicallyDeletable(record, user);
 	}
 
 	@Override
+	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user) {
+		return recordServices.isLogicallyDeletableAndIsSkipValidation(record, user);
+	}
+
+	@Override
 	public boolean isLogicallyThenPhysicallyDeletable(Record record,
-			User user) {
+													  User user) {
 		return recordServices.isLogicallyThenPhysicallyDeletable(record, user);
 	}
 
 	@Override
 	public void logicallyDelete(Record record,
-			User user) {
+								User user) {
 		recordServices.logicallyDelete(record, user);
 	}
 
 	@Override
 	public void logicallyDelete(Record record,
-			User user, RecordLogicalDeleteOptions options) {
+								User user, RecordLogicalDeleteOptions options) {
 		recordServices.logicallyDelete(record, user, options);
 	}
 

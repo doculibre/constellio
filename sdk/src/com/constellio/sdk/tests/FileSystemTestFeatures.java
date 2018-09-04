@@ -1,6 +1,14 @@
 package com.constellio.sdk.tests;
 
-import static com.constellio.sdk.tests.TestUtils.aString;
+import com.constellio.data.io.services.facades.FileService;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.io.services.zip.ZipServiceException;
+import com.constellio.data.utils.Octets;
+import com.constellio.sdk.tests.annotations.PreserveState;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
@@ -16,16 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-
-import com.constellio.data.io.services.facades.FileService;
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.services.zip.ZipService;
-import com.constellio.data.io.services.zip.ZipServiceException;
-import com.constellio.data.utils.Octets;
-import com.constellio.sdk.tests.annotations.PreserveState;
+import static com.constellio.sdk.tests.TestUtils.aString;
 
 public class FileSystemTestFeatures {
 
@@ -37,7 +36,7 @@ public class FileSystemTestFeatures {
 	private Class<? extends AbstractConstellioTest> testClass;
 
 	public FileSystemTestFeatures(String tempFolderName, Map<String, String> sdkProperties,
-			Class<? extends AbstractConstellioTest> testClass) {
+								  Class<? extends AbstractConstellioTest> testClass) {
 		this.testClass = testClass;
 		String tempFoldersLocation = sdkProperties.get("tempFoldersLocation");
 		if (tempFoldersLocation == null) {
@@ -103,7 +102,7 @@ public class FileSystemTestFeatures {
 					FileUtils.deleteDirectory(folderToDelete);
 				} catch (IOException e) {
 					throw new RuntimeException("Cannot delete logically temp directory '" + folderToDelete
-							+ "' after test execution. It probably means that a resource has not been closed", e);
+											   + "' after test execution. It probably means that a resource has not been closed", e);
 				}
 				folderToDelete = null;
 
@@ -114,7 +113,7 @@ public class FileSystemTestFeatures {
 					FileUtils.forceDelete(testClassFolder);
 				} catch (IOException e) {
 					throw new RuntimeException("Cannot delete temp directory '" + testClassFolder
-							+ "' after test execution. It probably means that a resource has not been closed", e);
+											   + "' after test execution. It probably means that a resource has not been closed", e);
 				}
 			}
 		} catch (RuntimeException e) {
@@ -122,7 +121,7 @@ public class FileSystemTestFeatures {
 			throw e;
 		}
 	}
-	
+
 	private void writeStackTrace(Throwable t) {
 		String stackTrace = ExceptionUtils.getStackTrace(t);
 		String dateTimeStr = new SimpleDateFormat("yyyy-MM-dd_HH_mm_ss").format(new Date());

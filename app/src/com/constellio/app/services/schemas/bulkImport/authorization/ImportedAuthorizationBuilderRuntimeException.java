@@ -1,6 +1,6 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
-public class ImportedAuthorizationBuilderRuntimeException extends RuntimeException{
+public class ImportedAuthorizationBuilderRuntimeException extends RuntimeException {
 	public static class ImportedAuthorizationBuilderRuntimeException_NoValidPrincipal extends ImportedAuthorizationBuilderRuntimeException {
 	}
 

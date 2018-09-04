@@ -1,24 +1,16 @@
 package com.constellio.app.ui.framework.buttons.report;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
-import com.constellio.app.utils.ReportGeneratorUtils;
-
 import com.constellio.app.modules.rm.model.PrintableReport.PrintableReportTemplate;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
-import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.base.BaseView;
+import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Validator;
@@ -29,6 +21,12 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ReportGeneratorButton extends WindowButton {
 	//Window property
@@ -47,8 +45,9 @@ public class ReportGeneratorButton extends WindowButton {
 	private PrintableReportListPossibleType currentSchema;
 	private BaseView view;
 
-	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory, String collection,
-			PrintableReportListPossibleType currentSchema) {
+	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory,
+								 String collection,
+								 PrintableReportListPossibleType currentSchema) {
 		super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "90%"));
 		this.factory = factory;
 		this.collection = collection;
@@ -56,14 +55,15 @@ public class ReportGeneratorButton extends WindowButton {
 		this.view = view;
 	}
 
-	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory, String collection,
+	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory,
+								 String collection,
 								 PrintableReportListPossibleType currentSchema, RecordVO... elements) {
 		this(caption, windowCaption, view, factory, collection, currentSchema);
 		this.setElements(elements);
 	}
 
 	public void setElements(RecordVO... elements) {
-		if(this.currentSchema == null) {
+		if (this.currentSchema == null) {
 			this.currentSchema = PrintableReportListPossibleType.getValue(elements[0].getSchema().getTypeCode().toUpperCase());
 		}
 		this.elements = elements;
@@ -71,7 +71,8 @@ public class ReportGeneratorButton extends WindowButton {
 
 	@Override
 	public boolean isVisible() {
-		return !ReportGeneratorUtils.getPrintableReportTemplate(factory, collection, getSchemaFromRecords().getCode(),currentSchema).isEmpty();
+		return !ReportGeneratorUtils
+				.getPrintableReportTemplate(factory, collection, getSchemaFromRecords().getCode(), currentSchema).isEmpty();
 	}
 
 	private MetadataSchema getSchemaFromRecords() {
@@ -98,31 +99,34 @@ public class ReportGeneratorButton extends WindowButton {
 		return null;
 	}
 
-    private List<PrintableReportTemplate> getPrintableReportTemplate(){
-		return ReportGeneratorUtils.getPrintableReportTemplate(factory, collection, getSchemaFromRecords().getCode(), currentSchema);
+	private List<PrintableReportTemplate> getPrintableReportTemplate() {
+		return ReportGeneratorUtils
+				.getPrintableReportTemplate(factory, collection, getSchemaFromRecords().getCode(), currentSchema);
 	}
 
-	private void setupPrintableReportTemplateSelection() throws Exception{
-        printableItemsFields = new BaseComboBox();
-        List<PrintableReportTemplate> printableReportTemplateList = getPrintableReportTemplate();
-        if(printableReportTemplateList.size() > 0) {
-        	boolean first = true;
-            for(PrintableReportTemplate printableReportTemplate : getPrintableReportTemplate()) {
-                printableItemsFields.addItem(printableReportTemplate);
-                printableItemsFields.setItemCaption(printableReportTemplate, printableReportTemplate.getTitle());
-                if(first) {
+	private void setupPrintableReportTemplateSelection()
+			throws Exception {
+		printableItemsFields = new BaseComboBox();
+		List<PrintableReportTemplate> printableReportTemplateList = getPrintableReportTemplate();
+		if (printableReportTemplateList.size() > 0) {
+			boolean first = true;
+			for (PrintableReportTemplate printableReportTemplate : getPrintableReportTemplate()) {
+				printableItemsFields.addItem(printableReportTemplate);
+				printableItemsFields.setItemCaption(printableReportTemplate, printableReportTemplate.getTitle());
+				if (first) {
 					printableItemsFields.setValue(printableReportTemplate);
-                	first = false;
+					first = false;
 				}
-            }
-        } else {
-            throw new Exception("No report generated");
-        }
-        printableItemsFields.setCaption($("ReportTabButton.selectTemplate"));
-        printableItemsFields.addValidator(new Validator() {
+			}
+		} else {
+			throw new Exception("No report generated");
+		}
+		printableItemsFields.setCaption($("ReportTabButton.selectTemplate"));
+		printableItemsFields.addValidator(new Validator() {
 			@Override
-			public void validate(Object value) throws InvalidValueException {
-				if(value == null) {
+			public void validate(Object value)
+					throws InvalidValueException {
+				if (value == null) {
 					throw new InvalidValueException($("ReportTabButton.invalidChoosenReport"));
 				}
 			}
@@ -130,7 +134,7 @@ public class ReportGeneratorButton extends WindowButton {
 		printableItemsFields.requestRepaint();
 		printableItemsFields.setNullSelectionAllowed(false);
 		printableItemsFields.setValue(printableReportTemplateList.get(0));
-    }
+	}
 
 	private void setupCopieFields() {
 		copiesField = new TextField($("LabelsButton.numberOfCopies"));
@@ -141,7 +145,8 @@ public class ReportGeneratorButton extends WindowButton {
 	private class ReportGeneratorButtonForm extends BaseForm<LabelParametersVO> {
 		private ReportGeneratorButton parent;
 
-		public ReportGeneratorButtonForm(LabelParametersVO viewObject, Serializable objectWithMemberFields, Field... fields) {
+		public ReportGeneratorButtonForm(LabelParametersVO viewObject, Serializable objectWithMemberFields,
+										 Field... fields) {
 			super(viewObject, objectWithMemberFields, fields);
 			parent = ReportGeneratorButton.this;
 		}
@@ -149,8 +154,10 @@ public class ReportGeneratorButton extends WindowButton {
 		@Override
 		protected void saveButtonClick(LabelParametersVO viewObject)
 				throws ValidationException {
-			getWindow().setContent(ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getTypeCode(),
-					(PrintableReportTemplate) parent.printableItemsFields.getValue(), 1, getIdsFromRecordVO(), null));
+			getWindow().setContent(
+					ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getTypeCode(),
+							(PrintableReportTemplate) parent.printableItemsFields.getValue(), 1, getIdsFromRecordVO(), null,
+							view.getSessionContext().getCurrentLocale()));
 		}
 
 		@Override

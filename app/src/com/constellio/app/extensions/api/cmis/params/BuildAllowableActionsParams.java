@@ -1,11 +1,10 @@
 package com.constellio.app.extensions.api.cmis.params;
 
-import java.util.Set;
-
-import org.apache.chemistry.opencmis.commons.enums.Action;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+
+import java.util.Set;
 
 public class BuildAllowableActionsParams {
 

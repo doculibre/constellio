@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas;
 
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.mockito.Mock;
-
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -13,6 +7,11 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.MockedFactories;
+import org.junit.Before;
+import org.mockito.Mock;
+
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class ListSchemaTypePresenterTest extends ConstellioTest {
 

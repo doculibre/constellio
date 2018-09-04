@@ -1,12 +1,5 @@
 package com.constellio.app.modules.tasks.model.calculators;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -16,7 +9,13 @@ import com.constellio.model.entities.calculators.dependencies.ReferenceDependenc
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
-import com.constellio.model.services.schemas.calculators.TokensCalculator2;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class TaskTokensCalculator implements MetadataValueCalculator<List<String>> {
 

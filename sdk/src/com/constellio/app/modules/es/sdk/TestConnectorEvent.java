@@ -1,16 +1,15 @@
 package com.constellio.app.modules.es.sdk;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestConnectorEvent {
 

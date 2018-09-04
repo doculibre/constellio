@@ -6,8 +6,14 @@ import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.*;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
@@ -72,9 +78,12 @@ public class RecordsImportValidator {
 	SkippedRecordsImport skippedRecordsImport;
 	BulkImportParams params;
 
-	public RecordsImportValidator(String schemaType, ProgressionHandler progressionHandler, ImportDataProvider importDataProvider,
-			MetadataSchemaTypes types, ResolverCache resolverCache, ModelLayerCollectionExtensions extensions,
-			Language language, SkippedRecordsImport skippedRecordsImport, BulkImportParams params) {
+	public RecordsImportValidator(String schemaType, ProgressionHandler progressionHandler,
+								  ImportDataProvider importDataProvider,
+								  MetadataSchemaTypes types, ResolverCache resolverCache,
+								  ModelLayerCollectionExtensions extensions,
+								  Language language, SkippedRecordsImport skippedRecordsImport,
+								  BulkImportParams params) {
 		this.schemaType = schemaType;
 		this.importDataProvider = importDataProvider;
 		this.extensions = extensions;
@@ -113,7 +122,8 @@ public class RecordsImportValidator {
 		}
 	}
 
-	private void validate(ImportDataIterator importDataIterator, DecoratedValidationsErrors errors, AtomicBoolean fatalError) {
+	private void validate(ImportDataIterator importDataIterator, DecoratedValidationsErrors errors,
+						  AtomicBoolean fatalError) {
 		progressionHandler.beforeValidationOfSchema(schemaType);
 		int numberOfRecords = 0;
 		List<String> uniqueMetadatas = type.getAllMetadatas().onlyWithType(STRING).onlyUniques().toLocalCodesList();
@@ -150,13 +160,13 @@ public class RecordsImportValidator {
 				try {
 					validateValueUnicityOfUniqueMetadata(uniqueMetadatas, importData, decoratedErrors);
 
-
 					markUniqueValuesAsInFile(importAsLegacyId, uniqueMetadatas, importData);
 					MetadataSchema metadataSchema = type.getSchema(importData.getSchema());
 
 					validateFields(importData, metadataSchema, decoratedErrors);
 
-					boolean isUpdate = resolverCache.isRecordUpdate(schemaType, importData.getLegacyId(), importDataIterator.getOptions().isImportAsLegacyId());
+					boolean isUpdate = resolverCache.isRecordUpdate(schemaType, importData.getLegacyId(),
+							importDataIterator.getOptions().isImportAsLegacyId());
 
 					if (!isUpdate) {
 						validateMetadatasRequirement(importData, metadataSchema, decoratedErrors);
@@ -182,44 +192,61 @@ public class RecordsImportValidator {
 	}
 
 	private void validateAllReferencesResolved(ValidationErrors errors) {
-		for (MetadataSchemaType schemaType : resolverCache.getCachedSchemaTypes())
+		for (MetadataSchemaType schemaType : resolverCache.getCachedSchemaTypes()) {
 			for (Metadata uniqueValueMetadata : schemaType.getAllMetadatas().onlyUniques()) {
 				KeySetMap<String, String> unresolved = new KeySetMap<>(
 						resolverCache.getUnresolvableUniqueValues(schemaType.getCode(), uniqueValueMetadata.getLocalCode()));
 
 				if (!unresolved.isEmpty()) {
 					for (Map.Entry<String, Set<String>> entry : unresolved.getMapEntries()) {
+						String value = entry.getKey();
 						for (String usedBy : entry.getValue()) {
-							//TODO if re
 
-							String usedByMetadata = StringUtils.substringBefore(usedBy, ":");
-							String usedBySchemaTypeCode = StringUtils.substringBefore(usedByMetadata, "_");
-							MetadataSchemaType usedBySchemaType = types.getSchemaType(usedBySchemaTypeCode);
-							String usedBySchemaTypeLabel = usedBySchemaType.getLabel(language);
-							String usedById = StringUtils.substringAfter(usedBy, ":");
-							Map<String, Object> parameters = new HashMap<>();
-							parameters.put("legacyId", usedById);
-							parameters.put("metadata", uniqueValueMetadata.getLocalCode());
-							parameters.put("metadataLabel", uniqueValueMetadata.getLabel(language));
-							parameters.put("referencedSchemaType", schemaType.getCode());
-							parameters.put("referencedSchemaTypeLabel", schemaType.getLabel(language));
-							parameters.put("value", entry.getKey());
-							if (usedById != null) {
-								parameters.put("prefix", usedBySchemaTypeLabel + " " + usedById + " : ");
-							} else {
-								parameters.put("prefix", usedBySchemaType.getLabel(language) + " : ");
-							}
-							if (params.isWarningsForInvalidFacultativeMetadatas()) {
-								errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
-							} else if(User.SCHEMA_TYPE.equals(schemaType.getCode()) && params.isAllowingReferencesToNonExistingUsers()) {
-								errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
-							} else {
-								errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
-							}
+							addReferenceResolveError(errors, schemaType, uniqueValueMetadata, value, usedBy);
 						}
 					}
 				}
 			}
+		}
+	}
+
+	private void addReferenceResolveError(ValidationErrors errors, MetadataSchemaType schemaType,
+										  Metadata uniqueValueMetadata, String value, String usedBy) {
+		String usedByMetadata = StringUtils.substringBefore(usedBy, ":");
+		String usedBySchemaTypeCode = StringUtils.substringBefore(usedByMetadata, "_");
+		MetadataSchemaType usedBySchemaType = types.getSchemaType(usedBySchemaTypeCode);
+		String usedBySchemaTypeLabel = usedBySchemaType.getLabel(language);
+		String usedById = StringUtils.substringAfter(usedBy, ":");
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("legacyId", usedById);
+		parameters.put("metadata", uniqueValueMetadata.getLocalCode());
+		parameters.put("metadataLabel", uniqueValueMetadata.getLabel(language));
+		parameters.put("referencedSchemaType", schemaType.getCode());
+		parameters.put("referencedSchemaTypeLabel", schemaType.getLabel(language));
+		parameters.put("value", value);
+		if (usedById != null) {
+			parameters.put("prefix", usedBySchemaTypeLabel + " " + usedById + " : ");
+		} else {
+			parameters.put("prefix", usedBySchemaType.getLabel(language) + " : ");
+		}
+
+
+		//							List<String> schemaTypes = schemasManager.getSchemaTypes(metadata.getCollection()).getSchemaTypesSortedByDependency();
+		//							int schemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getSchemaTypeCode());
+		//							int targettingSchemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getReferencedSchemaType());
+
+		if (usedByMetadata.equals("zeSchemaType_default_secondaryReferenceToAnotherSchema")) {
+			return;
+		}
+
+		if (params.isWarningsForInvalidFacultativeMetadatas()) {
+			errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+		} else if (User.SCHEMA_TYPE.equals(schemaType.getCode()) && params
+				.isAllowingReferencesToNonExistingUsers()) {
+			errors.addWarning(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+		} else {
+			errors.add(RecordsImportServices.class, UNRESOLVED_VALUE, parameters);
+		}
 	}
 
 	private Map<String, Object> asMap(String key, Object value) {
@@ -229,7 +256,7 @@ public class RecordsImportValidator {
 	}
 
 	private void validateValueUnicityOfUniqueMetadata(List<String> uniqueMetadatas, ImportData importData,
-			ValidationErrors errors) {
+													  ValidationErrors errors) {
 		if (!resolverCache.isNewUniqueValue(type.getCode(), LEGACY_ID_LOCAL_CODE, importData.getLegacyId())) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put("value", importData.getLegacyId());
@@ -250,8 +277,9 @@ public class RecordsImportValidator {
 		}
 	}
 
-	private void markUniqueValuesAsInFile(boolean isImportedAsLegacyId, List<String> uniqueMetadatas, ImportData importData) {
-		if(isImportedAsLegacyId) {
+	private void markUniqueValuesAsInFile(boolean isImportedAsLegacyId, List<String> uniqueMetadatas,
+										  ImportData importData) {
+		if (isImportedAsLegacyId) {
 			resolverCache.markAsRecordInFile(type.getCode(), LEGACY_ID_LOCAL_CODE, importData.getLegacyId());
 		} else {
 			resolverCache.markAsRecordInFile(type.getCode(), Schemas.IDENTIFIER.getLocalCode(), importData.getLegacyId());
@@ -267,7 +295,7 @@ public class RecordsImportValidator {
 	}
 
 	private void validateMetadatasRequirement(ImportData importData, MetadataSchema metadataSchema,
-			ValidationErrors errors) {
+											  ValidationErrors errors) {
 		for (Metadata requiredMetadata : metadataSchema.getMetadatas().onlyAlwaysRequired().onlyNonSystemReserved()
 				.onlyManuals()) {
 
@@ -287,8 +315,19 @@ public class RecordsImportValidator {
 	private void validateFields(ImportData importData, MetadataSchema metadataSchema, ValidationErrors errors) {
 		for (Entry<String, Object> entry : importData.getFields().entrySet()) {
 			if (entry.getValue() != null) {
+				String key = entry.getKey();
 				try {
-					final Metadata metadata = metadataSchema.getMetadata(entry.getKey());
+
+					String[] splittedCode = key.split("_");
+					if (splittedCode.length == 2) {
+						key = splittedCode[0];
+					}
+
+					if (splittedCode.length == 4) {
+						key = splittedCode[0] + "_" + splittedCode[1] + "_" + splittedCode[2];
+					}
+
+					final Metadata metadata = metadataSchema.getMetadata(key);
 					validateMetadata(metadata, errors);
 					DecoratedValidationsErrors decoratedErrors = new DecoratedValidationsErrors(errors) {
 						@Override
@@ -311,7 +350,7 @@ public class RecordsImportValidator {
 
 				} catch (MetadataSchemasRuntimeException.NoSuchMetadata e) {
 					Map<String, Object> parameters = new HashMap<>();
-					parameters.put("metadata", entry.getKey());
+					parameters.put("metadata", key);
 					parameters.put("schema", metadataSchema.getCode());
 					parameters.put("schemaLabel", metadataSchema.getLabel(language));
 
@@ -331,7 +370,8 @@ public class RecordsImportValidator {
 		}
 	}
 
-	private void feedLegacyIdResolver(ImportData importData, Metadata metadata, String resolverStr, ValidationErrors errors) {
+	private void feedLegacyIdResolver(ImportData importData, Metadata metadata, String resolverStr,
+									  ValidationErrors errors) {
 		String schemaType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
 		Resolver resolver = Resolver.toResolver(resolverStr);
 		MetadataSchemaType type = types.getSchemaType(schemaType);
@@ -417,7 +457,7 @@ public class RecordsImportValidator {
 	}
 
 	private void validateValue(final int index, final String legacyId, final Metadata metadata, final Object value,
-			ValidationErrors errors) {
+							   ValidationErrors errors) {
 
 		DecoratedValidationsErrors decoratedErrors = new DecoratedValidationsErrors(errors) {
 			@Override

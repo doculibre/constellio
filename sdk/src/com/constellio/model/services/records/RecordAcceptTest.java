@@ -1,19 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.records.Record;
@@ -35,6 +21,19 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Test;
+
+import java.util.ArrayList;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static com.constellio.sdk.tests.TestUtils.mockManualMetadata;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RecordAcceptTest extends ConstellioTest {
 
@@ -95,7 +94,7 @@ public class RecordAcceptTest extends ConstellioTest {
 		MetadataSchema schema1 = setup.getTypes().getSchema("zeSchemaType_schema1");
 		MetadataSchema schema2 = setup.getTypes().getSchema("zeSchemaType_schema2");
 
-		Record record = new RecordImpl("zeSchemaType_schema1", zeCollection, "zeId");
+		Record record = new RecordImpl(schema1, "zeId");
 
 		record.set(schema1.get("meta2"), "23");
 		record.set(schema1.get("meta7"), asList("78", "89"));
@@ -162,7 +161,7 @@ public class RecordAcceptTest extends ConstellioTest {
 		Metadata inexistentMetadata1InSchema2 = mockManualMetadata("zeSchemaType_schema1_meta1", STRING);
 		Metadata inexistentMetadata3InSchema1 = mockManualMetadata("type_schema1_meta3", STRING);
 
-		Record record = new RecordImpl("zeSchemaType_schema1", zeCollection, "zeId");
+		Record record = new RecordImpl(schema1, "zeId");
 
 		record.set(schema1.get("meta1"), "12");
 		record.set(schema1.get("meta2"), "23");
@@ -262,7 +261,7 @@ public class RecordAcceptTest extends ConstellioTest {
 		MetadataSchema schema1 = setup.getTypes().getSchema("zeSchemaType_schema1");
 		MetadataSchema schema2 = setup.getTypes().getSchema("zeSchemaType_schema2");
 
-		Record record = new RecordImpl("zeSchemaType_schema1", zeCollection, "zeId");
+		Record record = new RecordImpl(schema1, "zeId");
 
 		record.set(schema1.get("meta1"), "A");
 		record.set(schema1.get("meta2"), "custom");

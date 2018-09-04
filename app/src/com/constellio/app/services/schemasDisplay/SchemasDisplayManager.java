@@ -1,18 +1,5 @@
 package com.constellio.app.services.schemasDisplay;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -40,6 +27,18 @@ import com.constellio.model.services.schemas.MetadataSchemasManagerListener;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManager;
 import com.constellio.model.utils.OneXMLConfigPerCollectionManagerListener;
 import com.constellio.model.utils.XMLConfigReader;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
 
 public class SchemasDisplayManager
 		implements OneXMLConfigPerCollectionManagerListener<SchemasDisplayManagerCache>, StatefulService {
@@ -59,7 +58,7 @@ public class SchemasDisplayManager
 	private MetadataSchemasManager metadataSchemasManager;
 
 	public SchemasDisplayManager(ConfigManager configManager, CollectionsListManager collectionsListManager,
-			MetadataSchemasManager metadataSchemasManager, ConstellioCacheManager cacheManager) {
+								 MetadataSchemasManager metadataSchemasManager, ConstellioCacheManager cacheManager) {
 		this.configManager = configManager;
 		this.collectionsListManager = collectionsListManager;
 		this.metadataSchemasManager = metadataSchemasManager;
@@ -330,7 +329,7 @@ public class SchemasDisplayManager
 		for (Metadata metadata : metadataSchemasManager.getSchemaTypes(collection).getSchemaType(schemaType).getAllMetadatas()) {
 			if ("id".equals(metadata.getLocalCode()) || "path".equals(metadata.getLocalCode()) || (
 					!metadata.getCode().toLowerCase().contains("entered")
-							&& !restrictedTypes
+					&& !restrictedTypes
 							.contains(metadata.getType()) && !metadata
 							.isSystemReserved())) {
 				transaction.getModifiedMetadatas().add(

@@ -71,7 +71,7 @@ public class RMEmailDocumentRecordExtension extends RecordExtension {
 	@Override
 	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		if (DocumentType.SCHEMA_TYPE.equals(event.getSchemaTypeCode())
-				&& DocumentType.EMAIL_DOCUMENT_TYPE.equals(event.getRecord().get(CODE))) {
+			&& DocumentType.EMAIL_DOCUMENT_TYPE.equals(event.getRecord().get(CODE))) {
 			return ExtensionBooleanResult.FALSE;
 		}
 		return super.isLogicallyDeletable(event);

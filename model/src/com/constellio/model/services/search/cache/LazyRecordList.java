@@ -1,12 +1,5 @@
 package com.constellio.model.services.search.cache;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -14,6 +7,13 @@ import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 
 public class LazyRecordList extends AbstractList<Record> {
 
@@ -32,7 +32,7 @@ public class LazyRecordList extends AbstractList<Record> {
 	private boolean serializeRecords;
 
 	LazyRecordList(int batchSize, SerializableSearchCache cache, ModelLayerFactory modelLayerFactory,
-			LogicalSearchQuery query, boolean serializeRecords) {
+				   LogicalSearchQuery query, boolean serializeRecords) {
 		this.batchSize = batchSize;
 		this.recordsCaches = modelLayerFactory.getRecordsCaches();
 		this.cache = cache;

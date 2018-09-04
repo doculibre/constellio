@@ -1,22 +1,21 @@
 package com.constellio.app.ui.framework.data.event.category;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.framework.data.AbstractDataProvider;
+import com.constellio.app.ui.framework.data.event.EventStatistics;
+import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
+import com.constellio.model.entities.records.wrappers.EventType;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.ui.framework.data.AbstractDataProvider;
-import com.constellio.app.ui.framework.data.event.EventStatistics;
-import com.constellio.app.ui.pages.events.EventsCategoryDataProvider;
-import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.EventType;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CurrentlyBorrowedDocumentsEventDataProvider extends AbstractDataProvider implements EventsCategoryDataProvider {
 
@@ -28,7 +27,7 @@ public class CurrentlyBorrowedDocumentsEventDataProvider extends AbstractDataPro
 	private ArrayList<String> eventsIds;
 
 	public CurrentlyBorrowedDocumentsEventDataProvider(ModelLayerFactory modelLayerFactory, String collection,
-			String currentUserName) {
+													   String currentUserName) {
 		this.collection = collection;
 		this.currentUserName = currentUserName;
 		init(modelLayerFactory);
@@ -70,7 +69,7 @@ public class CurrentlyBorrowedDocumentsEventDataProvider extends AbstractDataPro
 
 	@Override
 	public List<EventStatistics> getEvents() {
-		if (events == null){
+		if (events == null) {
 			ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 			init(constellioFactories.getModelLayerFactory());
 		}

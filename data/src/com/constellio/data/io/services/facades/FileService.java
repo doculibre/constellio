@@ -1,19 +1,18 @@
 package com.constellio.data.io.services.facades;
 
+import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
+import com.constellio.data.io.services.facades.FileServiceRuntimeException.CannotCreateTemporaryFolder;
+import com.constellio.data.io.services.facades.FileServiceRuntimeException.FileServiceRuntimeException_CannotReadFile;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
-
-import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
-import com.constellio.data.io.services.facades.FileServiceRuntimeException.CannotCreateTemporaryFolder;
-import com.constellio.data.io.services.facades.FileServiceRuntimeException.FileServiceRuntimeException_CannotReadFile;
 
 public class FileService {
 

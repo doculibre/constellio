@@ -16,7 +16,8 @@ public class RMDecommissioningTypeRequiredScript implements SystemConfigurationS
 		}
 	}
 
-	private void setContainerDecommissioningTypeRequirement(final boolean value, ModelLayerFactory modelLayerFactory, String collection) {
+	private void setContainerDecommissioningTypeRequirement(final boolean value, ModelLayerFactory modelLayerFactory,
+															String collection) {
 		modelLayerFactory.getMetadataSchemasManager().modify(collection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
@@ -39,7 +40,8 @@ public class RMDecommissioningTypeRequiredScript implements SystemConfigurationS
 	}
 
 	@Override
-	public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory, String collection) {
+	public void onValueChanged(Boolean previousValue, Boolean newValue, ModelLayerFactory modelLayerFactory,
+							   String collection) {
 		setContainerDecommissioningTypeRequirement(newValue, modelLayerFactory, collection);
 	}
 }

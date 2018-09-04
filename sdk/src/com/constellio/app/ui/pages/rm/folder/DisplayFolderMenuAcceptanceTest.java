@@ -1,5 +1,26 @@
 package com.constellio.app.ui.pages.rm.folder;
 
+import com.constellio.app.modules.rm.RMTestRecords;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.constants.RMRoles;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.tools.ButtonWebElement;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.UiTest;
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.junit.Before;
+import org.junit.Test;
+import org.openqa.selenium.By;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.CREATE_DOCUMENT;
 import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.CREATE_SUB_FOLDER;
 import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.DELETE;
@@ -10,28 +31,6 @@ import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceT
 import static com.constellio.app.ui.pages.rm.folder.DisplayFolderMenuAcceptanceTest.AddEditFolderAction.SHARE;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordServicesException;
-import org.junit.Before;
-import org.junit.Test;
-import org.openqa.selenium.By;
-
-import com.constellio.app.modules.rm.RMTestRecords;
-import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.ui.framework.components.ComponentState;
-import com.constellio.app.ui.tools.ButtonWebElement;
-import com.constellio.model.entities.security.Role;
-import com.constellio.model.services.records.RecordServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.UiTest;
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 
 @UiTest
 public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
@@ -55,7 +54,7 @@ public class DisplayFolderMenuAcceptanceTest extends ConstellioTest {
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
 		recordServices = getModelLayerFactory().newRecordServices();
-		recordServices.update(record(records.folder_A22).set(Schemas.LEGACY_ID,"legacyChouette"));
+		recordServices.update(record(records.folder_A22).set(Schemas.LEGACY_ID, "legacyChouette"));
 	}
 
 	@Test

@@ -10,35 +10,38 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.vaadin.ui.Field;
 
+import java.util.Locale;
+
 public class ContainerFieldFactory extends RMRecordFieldFactory {
 
 	private String containerRecordType;
 	private Double containerCapacity;
 	private AddEditContainerPresenter presenter;
 
-	public ContainerFieldFactory(String containerRecordType, Double containerCapacity, AddEditContainerPresenter presenter) {
+	public ContainerFieldFactory(String containerRecordType, Double containerCapacity,
+								 AddEditContainerPresenter presenter) {
 		this.containerRecordType = containerRecordType;
 		this.containerCapacity = containerCapacity;
 		this.presenter = presenter;
 	}
 
 	@Override
-	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
+	public Field<?> build(RecordVO recordVO, MetadataVO metadataVO, Locale locale) {
 		Field<?> field;
 		switch (metadataVO.getLocalCode()) {
 			case ContainerRecord.STORAGE_SPACE:
-				if(!presenter.isContainerWithMultipleStorageSpaces()) {
+				if (!presenter.isContainerWithMultipleStorageSpaces()) {
 					field = new ContainerStorageSpaceLookupField(containerRecordType, containerCapacity, presenter);
-					if(!presenter.getCurrentUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
+					if (!presenter.getCurrentUser().has(RMPermissionsTo.MANAGE_STORAGE_SPACES).globally()) {
 						field.setVisible(false);
 						field.setEnabled(false);
 					}
 				} else {
-					field = super.build(recordVO, metadataVO);
+					field = super.build(recordVO, metadataVO, locale);
 				}
 				break;
 			default:
-				field = super.build(recordVO, metadataVO);
+				field = super.build(recordVO, metadataVO, locale);
 		}
 
 		if (field instanceof CustomFolderField) {
@@ -48,7 +51,8 @@ public class ContainerFieldFactory extends RMRecordFieldFactory {
 		return field;
 	}
 
-	public ContainerStorageSpaceLookupField rebuildContainerStorageSpaceLookupField(RecordVO containerVo, AddEditContainerPresenter presenter) {
+	public ContainerStorageSpaceLookupField rebuildContainerStorageSpaceLookupField(RecordVO containerVo,
+																					AddEditContainerPresenter presenter) {
 		ContainerStorageSpaceLookupField field = new ContainerStorageSpaceLookupField(
 				(String) containerVo.get(ContainerRecord.TYPE), (Double) containerVo.get(ContainerRecord.CAPACITY), presenter);
 		postBuild(field, containerVo, containerVo.getMetadata(ContainerRecord.STORAGE_SPACE));

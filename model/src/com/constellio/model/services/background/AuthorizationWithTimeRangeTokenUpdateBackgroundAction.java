@@ -1,14 +1,5 @@
 package com.constellio.model.services.background;
 
-import static com.constellio.data.utils.TimeProvider.getLocalDate;
-import static com.constellio.model.entities.records.RecordUpdateOptions.validationExceptionSafeOptions;
-import static com.constellio.model.entities.records.TransactionRecordsReindexation.ALL;
-import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
@@ -20,6 +11,14 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static com.constellio.data.utils.TimeProvider.getLocalDate;
+import static com.constellio.model.entities.records.RecordUpdateOptions.validationExceptionSafeOptions;
+import static com.constellio.model.entities.records.TransactionRecordsReindexation.ALL;
+import static com.constellio.model.entities.schemas.Schemas.ALL_REFERENCES;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 
 public class AuthorizationWithTimeRangeTokenUpdateBackgroundAction implements Runnable {
 

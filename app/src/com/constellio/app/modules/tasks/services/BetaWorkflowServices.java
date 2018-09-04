@@ -1,27 +1,16 @@
 package com.constellio.app.modules.tasks.services;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-
-import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowInstance;
+import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.WorkflowInstanceStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedAddAtPosition;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServicesRuntimeException.WorkflowServicesRuntimeException_UnsupportedMove;
-import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskProgressionVO;
 import com.constellio.app.modules.tasks.ui.entities.BetaWorkflowTaskVO;
+import com.constellio.app.modules.tasks.ui.entities.TaskVO;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -38,6 +27,16 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class BetaWorkflowServices {
 	String collection;
@@ -95,7 +94,7 @@ public class BetaWorkflowServices {
 	}
 
 	private BetaWorkflowTaskProgressionVO getTaskProgression(BetaWorkflowInstance workflowInstance,
-			BetaWorkflowTaskVO workflowTaskVO) {
+															 BetaWorkflowTaskVO workflowTaskVO) {
 		Task instanceTask = tasks.wrapTask(searchServices.searchSingleResult(from(tasks.userTask.schemaType())
 				.where(tasks.userTask.betaWorkflowInstance()).isEqualTo(workflowInstance)
 				.andWhere(tasks.userTask.modelTask()).isEqualTo(workflowTaskVO.getId())
@@ -172,7 +171,7 @@ public class BetaWorkflowServices {
 	}
 
 	public List<BetaWorkflowTaskProgressionVO> getRootModelTaskProgressionsVOs(BetaWorkflowInstance workflowInstance,
-			SessionContext sessionContext) {
+																			   SessionContext sessionContext) {
 		BetaWorkflow workflow = tasks.getBetaWorkflow(workflowInstance.getWorkflow());
 		List<BetaWorkflowTaskProgressionVO> progressionVOs = new ArrayList<>();
 
@@ -184,7 +183,8 @@ public class BetaWorkflowServices {
 	}
 
 	public List<BetaWorkflowTaskProgressionVO> getChildModelTaskProgressions(BetaWorkflowInstance workflowInstance,
-			BetaWorkflowTaskVO workflowTaskVO, SessionContext sessionContext) {
+																			 BetaWorkflowTaskVO workflowTaskVO,
+																			 SessionContext sessionContext) {
 		List<BetaWorkflowTaskProgressionVO> progressionVOs = new ArrayList<>();
 
 		for (BetaWorkflowTaskVO child : getChildModelTasks(workflowTaskVO, sessionContext)) {
@@ -194,7 +194,8 @@ public class BetaWorkflowServices {
 		return progressionVOs;
 	}
 
-	public List<BetaWorkflowTaskVO> getChildModelTasks(BetaWorkflowTaskVO workflowTaskVO, SessionContext sessionContext) {
+	public List<BetaWorkflowTaskVO> getChildModelTasks(BetaWorkflowTaskVO workflowTaskVO,
+													   SessionContext sessionContext) {
 
 		if (workflowTaskVO.getDecision() == null) {
 			List<BetaWorkflowTaskVO> workflows = new ArrayList<>();
@@ -231,7 +232,8 @@ public class BetaWorkflowServices {
 		return canAddTaskIn(selectedTask, sessionContext) && getTaskVOAfter(selectedTask, sessionContext) == null;
 	}
 
-	public List<BetaWorkflowTaskVO> getAvailableWorkflowTaskVOForNewTask(String workflowId, SessionContext sessionContext) {
+	public List<BetaWorkflowTaskVO> getAvailableWorkflowTaskVOForNewTask(String workflowId,
+																		 SessionContext sessionContext) {
 		List<BetaWorkflowTaskVO> tasks = new ArrayList<>();
 
 		for (BetaWorkflowTask task : getWorkflowModelTasks(workflowId)) {
@@ -249,20 +251,24 @@ public class BetaWorkflowServices {
 
 	/**
 	 * Create a task, which will be the next task of the current task
+	 *
 	 * @param taskType TODO
 	 */
-	public BetaWorkflowTask createModelTaskAfter(BetaWorkflow workflow, BetaWorkflowTaskVO selectedTask, String taskType,
-			String title, SessionContext sessionContext) {
+	public BetaWorkflowTask createModelTaskAfter(BetaWorkflow workflow, BetaWorkflowTaskVO selectedTask,
+												 String taskType,
+												 String title, SessionContext sessionContext) {
 		return createDecisionModelTaskAfter(workflow, selectedTask, taskType, title, null, sessionContext);
 	}
 
 	/**
 	 * Create a task with a true/false decision, and create a task for each decisions
+	 *
 	 * @param taskType TODO
 	 */
-	public BetaWorkflowTask createDecisionModelTaskAfter(BetaWorkflow workflow, BetaWorkflowTaskVO selectedTask, String taskType,
-			String title,
-			List<String> decisions, SessionContext sessionContext) {
+	public BetaWorkflowTask createDecisionModelTaskAfter(BetaWorkflow workflow, BetaWorkflowTaskVO selectedTask,
+														 String taskType,
+														 String title,
+														 List<String> decisions, SessionContext sessionContext) {
 		BetaWorkflowTask newTask;
 		if (taskType != null) {
 			newTask = tasks.newWorkflowModelTaskWithType(workflow, taskType);
@@ -317,7 +323,7 @@ public class BetaWorkflowServices {
 	 * Create a task, which will be the next task of the current task
 	 */
 	public void moveAfter(BetaWorkflowTaskVO selectedWorkflowTaskVO, BetaWorkflowTaskVO moveAfterTask,
-			SessionContext sessionContext) {
+						  SessionContext sessionContext) {
 
 		BetaWorkflowTaskVO taskBeforeSelected = getTaskVOBefore(selectedWorkflowTaskVO, sessionContext);
 		BetaWorkflowTaskVO taskAfterSelected = getTaskVOAfter(selectedWorkflowTaskVO, sessionContext);
@@ -339,7 +345,7 @@ public class BetaWorkflowServices {
 	}
 
 	public void addAfter(BetaWorkflowTaskVO existingWorkflowTaskVO, BetaWorkflowTaskVO targetTask,
-			SessionContext sessionContext) {
+						 SessionContext sessionContext) {
 
 		//		WorkflowTaskVO taskBeforeSelected = getTaskVOBefore(selectedWorkflowTaskVO, sessionContext);
 		//		WorkflowTaskVO taskAfterSelected = getTaskVOAfter(selectedWorkflowTaskVO, sessionContext);
@@ -361,7 +367,7 @@ public class BetaWorkflowServices {
 	}
 
 	private void replaceRelationShip(Transaction transaction, BetaWorkflowTaskVO node,
-			BetaWorkflowTaskVO newNextNode) {
+									 BetaWorkflowTaskVO newNextNode) {
 
 		if (node == null) {
 			return;
@@ -397,7 +403,7 @@ public class BetaWorkflowServices {
 	}
 
 	private void addRelationShip(Transaction transaction, BetaWorkflowTaskVO selectNode,
-			BetaWorkflowTaskVO targetNode) {
+								 BetaWorkflowTaskVO targetNode) {
 
 		if (selectNode == null) {
 			return;

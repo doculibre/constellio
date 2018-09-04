@@ -1,7 +1,7 @@
 package com.constellio.data.dao.services.leaderElection;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.IgniteTest;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.Ignition;
@@ -10,8 +10,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.IgniteTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @IgniteTest
 public class IgniteLeaderElectionServiceImplAcceptanceTest extends ConstellioTest {

@@ -7,23 +7,23 @@ import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
 public abstract class BaseButton extends Button {
-	
+
 	private String textCaption;
-	
+
 	private int badgeCount;
-	
+
 	private boolean badgeVisible = false;
-	
+
 	private boolean badgeVisibleWhenZero = true;
-	
+
 	public BaseButton(String caption) {
 		this(caption, null);
 	}
-	
+
 	public BaseButton(String caption, Resource icon) {
 		this(caption, icon, false);
 	}
-	
+
 	public BaseButton(String caption, Resource icon, boolean iconOnly) {
 		setCaptionAsHtml(true);
 		setCaption(caption);
@@ -43,30 +43,30 @@ public abstract class BaseButton extends Button {
 	public int getBadgeCount() {
 		return badgeCount;
 	}
-	
+
 	public void setBadgeCount(int badgeCount) {
 		this.badgeCount = badgeCount;
 		adjustCaption();
 	}
-	
+
 	public boolean isBadgeVisible() {
 		return badgeVisible;
 	}
-	
+
 	public void setBadgeVisible(boolean badgeVisible) {
 		this.badgeVisible = badgeVisible;
 		adjustCaption();
 	}
-	
+
 	public boolean isBadgeVisibleWhenZero() {
 		return badgeVisibleWhenZero;
 	}
-	
+
 	public void setBadgeVisibleWhenZero(boolean badgeVisibleWhenZero) {
 		this.badgeVisibleWhenZero = badgeVisibleWhenZero;
 		adjustCaption();
 	}
-	
+
 	private void adjustCaption() {
 		if (badgeVisible && (badgeCount > 0 || badgeVisibleWhenZero)) {
 			super.setCaption("<span class=\"button-badge\" data-badge=\"" + badgeCount + "\">" + textCaption + "</span>");
@@ -74,7 +74,7 @@ public abstract class BaseButton extends Button {
 			super.setCaption(textCaption);
 		}
 	}
-	
+
 	@Override
 	public void setCaption(String caption) {
 		super.setCaption(caption);
@@ -88,5 +88,5 @@ public abstract class BaseButton extends Button {
 	}
 
 	protected abstract void buttonClick(ClickEvent event);
-	
+
 }

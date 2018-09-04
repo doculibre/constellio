@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.migrations;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -22,6 +16,12 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
 /**
  * Created by Charles Blanchette on 2017-03-22.
  */
@@ -33,7 +33,7 @@ public class RMMigrationTo7_2_0_1 implements MigrationScript {
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory) {
+						AppLayerFactory appLayerFactory) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		List<UniformSubdivision> uniformSubdivisions = rm
@@ -87,7 +87,7 @@ public class RMMigrationTo7_2_0_1 implements MigrationScript {
 	class SchemaAlterationFor7_2_0_1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_2_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -107,8 +107,9 @@ public class RMMigrationTo7_2_0_1 implements MigrationScript {
 
 	class SchemaAlterationFor7_2_0_1_step2 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor7_2_0_1_step2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+		protected SchemaAlterationFor7_2_0_1_step2(String collection,
+												   MigrationResourcesProvider migrationResourcesProvider,
+												   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

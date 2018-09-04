@@ -1,19 +1,5 @@
 package com.constellio.model.services.security;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.joda.time.LocalDate;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Authorization;
@@ -29,6 +15,19 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.LoadTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDate;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @LoadTest
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -422,14 +421,14 @@ public class AuthorizationsServicesConcurrencyAcceptTest extends ConstellioTest 
 	}
 
 	private Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
-			String grantedOnRecord) {
+														   String grantedOnRecord) {
 		String id = authorizationsServices.add(authorizationInCollection(zeCollection)
 				.forPrincipalsIds(grantedToPrincipals).on(grantedOnRecord).giving(roles));
 		return authorizationsServices.getAuthorization(zeCollection, id);
 	}
 
 	private void addAuthorizationForDates(List<String> roles, List<String> grantedToPrincipals, String grantedOnRecord,
-			LocalDate startDate, LocalDate endDate) {
+										  LocalDate startDate, LocalDate endDate) {
 		authorizationsServices.add(authorizationInCollection(zeCollection).forPrincipalsIds(grantedToPrincipals)
 				.on(grantedOnRecord).giving(roles).startingOn(startDate).endingOn(endDate));
 	}

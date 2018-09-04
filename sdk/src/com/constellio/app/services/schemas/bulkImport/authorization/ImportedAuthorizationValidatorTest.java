@@ -1,18 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
-import static com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidator.VALID_ROLES;
-import static java.util.Arrays.asList;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationPrincipal;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorization.ImportedAuthorizationTarget;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_AuthorizationIDMissing;
@@ -33,6 +20,18 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidator.VALID_ROLES;
+import static java.util.Arrays.asList;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ImportedAuthorizationValidatorTest extends ConstellioTest {
 	ImportedAuthorizationValidator validator;

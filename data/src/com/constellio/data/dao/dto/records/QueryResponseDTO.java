@@ -21,10 +21,12 @@ public class QueryResponseDTO {
 	private boolean correctlySpelt;
 	private List<String> spellCheckerSuggestions;
 
-	public QueryResponseDTO(List<RecordDTO> results, int qtime, long numFound, Map<String, List<FacetValue>> fieldFacetValues,
-			Map<String, Map<String, Object>> fieldsStatistics,
-			Map<String, Integer> queryFacetValues, Map<String, Map<String, List<String>>> highlights, boolean correctlySpelt,
-			List<String> spellCheckerSuggestions, List<MoreLikeThisDTO> moreLikeThisResults) {
+	public QueryResponseDTO(List<RecordDTO> results, int qtime, long numFound,
+							Map<String, List<FacetValue>> fieldFacetValues,
+							Map<String, Map<String, Object>> fieldsStatistics,
+							Map<String, Integer> queryFacetValues, Map<String, Map<String, List<String>>> highlights,
+							boolean correctlySpelt,
+							List<String> spellCheckerSuggestions, List<MoreLikeThisDTO> moreLikeThisResults) {
 		this.results = results;
 		this.qtime = qtime;
 		this.numFound = numFound;

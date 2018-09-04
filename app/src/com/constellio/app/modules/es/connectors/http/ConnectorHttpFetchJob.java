@@ -1,17 +1,5 @@
 package com.constellio.app.modules.es.connectors.http;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException.ConnectorHttpDocumentFetchException_CannotDownloadDocument;
@@ -21,6 +9,7 @@ import com.constellio.app.modules.es.connectors.http.fetcher.ConnectorUrlAccepto
 import com.constellio.app.modules.es.connectors.http.fetcher.HttpURLFetchingService;
 import com.constellio.app.modules.es.connectors.http.fetcher.URLFetchingServiceRuntimeException;
 import com.constellio.app.modules.es.connectors.http.fetcher.UrlAcceptor;
+import com.constellio.app.modules.es.connectors.http.robotstxt.RobotsTxtFactory;
 import com.constellio.app.modules.es.connectors.http.utils.HtmlPageParser;
 import com.constellio.app.modules.es.connectors.http.utils.HtmlPageParser.HtmlPageParserResults;
 import com.constellio.app.modules.es.connectors.spi.Connector;
@@ -43,9 +32,30 @@ import com.constellio.model.services.parser.FileParser;
 import com.constellio.model.services.parser.FileParserException;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static java.util.Arrays.asList;
 
 class ConnectorHttpFetchJob extends ConnectorJob {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectorHttpFetchJob.class);
+
+
+	public static final String PATH_TO_NOINDEX_HTML = "com/constellio/app/modules/es/connectors/http/noindex.html";
+	public static final String PROTOCOL = "file:";
+	public static final String PROTOCOL_SEP = "//";
 	private final ConnectorHttp connectorHttp;
 
 	private final ConnectorHttpContext context;
@@ -63,9 +73,11 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 	private final ESSchemasRecordsServices es;
 
 	private final int maxLevel;
+	private static final RobotsTxtFactory robotsTxtFactory = new RobotsTxtFactory();
 
-	public ConnectorHttpFetchJob(ConnectorHttp connector, ConnectorHttpInstance instance, List<ConnectorHttpDocument> documents,
-			ConnectorHttpContext context, ConnectorLogger connectorLogger) {
+	public ConnectorHttpFetchJob(ConnectorHttp connector, ConnectorHttpInstance instance,
+								 List<ConnectorHttpDocument> documents,
+								 ConnectorHttpContext context, ConnectorLogger connectorLogger) {
 		super(connector, "fetch");
 		this.connectorHttp = connector;
 		this.context = context;
@@ -77,6 +89,7 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 		fileParser = connectorHttp.getEs().getModelLayerFactory().newFileParser();
 		hashingService = connectorHttp.getEs().getModelLayerFactory().getIOServicesFactory().newHashingService(BASE64);
 		this.pageParser = new HtmlPageParser(urlAcceptor, fileParser, hashingService);
+		//robotsTxtFactory = new RobotsTxtFactory();
 	}
 
 	@Override
@@ -84,11 +97,22 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 		//FIXME Same instance of connector ?
 		try (HttpURLFetchingService fetchingService = connectorHttp.newFetchingService()) {
 			for (ConnectorHttpDocument httpDocument : documents) {
+				String url = httpDocument.getURL();
+
+				if (!robotsTxtFactory.isAuthorizedPath(url)) {
+					String path = getClass().getClassLoader().getResource(PATH_TO_NOINDEX_HTML).getPath();
+					if (StringUtils.startsWith(path, PROTOCOL)) {
+						url = path;
+					} else {
+						url = PROTOCOL + PROTOCOL_SEP + path;
+					}
+				}
+
 				Page page = null;
 				//FIXME
 				long beforeFetch = new Date().getTime();
 				try {
-					page = fetchingService.fetch(httpDocument.getURL());
+					page = fetchingService.fetch(url);
 					long afterFetch = new Date().getTime();
 					httpDocument.setDownloadTime((double) afterFetch - beforeFetch);
 
@@ -112,7 +136,17 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 	}
 
 	private void handleFetchException(ConnectorHttpDocument httpDocument, URLFetchingServiceRuntimeException e) {
-		e.printStackTrace();
+
+		if ("404".equals(e.getErrorCode())) {
+			LOGGER.info("Error 404, url '" + httpDocument.getUrl() + "' not found");
+
+		} else if ("500".equals(e.getErrorCode())) {
+			LOGGER.info("Error 500, internal server error on url '" + httpDocument.getUrl() + "'");
+
+		} else {
+			LOGGER.warn("Error fetching '" + httpDocument.getUrl() + "'", e);
+		}
+
 		httpDocument.setFetched(true);
 		httpDocument.setStatus(ConnectorDocumentStatus.ERROR);
 		if (!e.getErrorCode().equals(httpDocument.getErrorCode())) {
@@ -164,8 +198,14 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 					httpDocument.addStringProperty("charset", page.getWebResponse().getContentCharset());
 					httpDocument.setLanguage(parsedContent.getLanguage());
 					httpDocument.setParsedContent(parsedContent.getParsedContent());
+					httpDocument.setDescription(parsedContent.getDescription());
 
-					httpDocument.setTitle(extractFilename(httpDocument.getURL()));
+					String metadataTitle = parsedContent.getTitle();
+					if (StringUtils.isBlank(metadataTitle)) {
+						metadataTitle = extractFilename(httpDocument.getURL());
+					}
+
+					httpDocument.setTitle(metadataTitle);
 					httpDocument.setDigest(hashingService.getHashFromString(parsedContent.getParsedContent()));
 					httpDocument.setMimetype(parsedContent.getMimetypeWithoutCharset());
 
@@ -210,16 +250,22 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 		HtmlPageParserResults results = pageParser.parse(httpDocument.getURL(), (HtmlPage) page);
 
 		List<ConnectorDocument> savedDocuments = new ArrayList<>();
-		List<String> urls = new ArrayList<>(results.getLinkedUrls());
-		int linksLevel = httpDocument.getLevel() + 1;
-		if (linksLevel <= maxLevel)
-			for (String url : urls) {
-				if (context.isNewUrl(url)) {
-					context.markAsFetched(url);
+		List<String> urls = new ArrayList<>();
+		if (!results.isNoFollow()) {
+			urls.addAll(results.getLinkedUrls());
+			int linksLevel = httpDocument.getLevel() + 1;
+			if (linksLevel <= maxLevel) {
+				for (String url : urls) {
+					if (context.isNewUrl(url)) {
+						context.markAsFetched(url);
 
-					savedDocuments.add(connectorHttp.newUnfetchedURLDocument(url, linksLevel));
+						ConnectorHttpDocument document = connectorHttp.newUnfetchedURLDocument(url, linksLevel);
+						document.setInlinks(Arrays.asList(httpDocument.getUrl()));
+						savedDocuments.add(document);
+					}
 				}
 			}
+		}
 
 		ensureNotStopped();
 		setJobStep("Fetching " + httpDocument.getURL());
@@ -237,7 +283,8 @@ class ConnectorHttpFetchJob extends ConnectorJob {
 				.setParsedContent(results.getParsedContent())
 				.setDigest(results.getDigest())
 				.setLanguage(results.getLanguage())
-				//.setOutlinks(urls)
+				.setOutlinks(urls)
+				.setDescription(results.getDescription())
 				.setMimetype(results.getMimetype())
 				.addStringProperty("lastModified", page.getWebResponse().getResponseHeaderValue("Last-Modified"))
 				.addStringProperty("charset", page.getWebResponse().getContentCharset());

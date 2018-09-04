@@ -1,17 +1,16 @@
 package com.constellio.app.modules.es.connectors.http.fetcher;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-
+import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpInstance;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.ArrayList;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class ConnectorUrlAcceptorTest extends ConstellioTest {
 
@@ -41,7 +40,7 @@ public class ConnectorUrlAcceptorTest extends ConstellioTest {
 		assertThat(urlAcceptor.isAccepted("http://www.monsite1.com/zePage")).isTrue();
 		assertThat(urlAcceptor.isAccepted("https://www.monsite1.com/zePage")).isFalse();
 		assertThat(urlAcceptor.isAccepted("http://monsite1.com/zePage")).isFalse();
-		
+
 		assertThat(urlAcceptor.isAccepted("http://www.monsite2.com/index.html")).isTrue();
 		assertThat(urlAcceptor.isAccepted("http://www.monsite2.com/index.html?queryParam=value")).isTrue();
 		assertThat(urlAcceptor.isAccepted("https://www.monsite2.com/index.html")).isFalse();
@@ -67,7 +66,7 @@ public class ConnectorUrlAcceptorTest extends ConstellioTest {
 			throws Exception {
 
 		includePatterns = "http://www.monsite3.com/"
-				+ "\nhttp://www.monsite4.com/";
+						  + "\nhttp://www.monsite4.com/";
 		when(connector.getIncludePatterns()).thenReturn(includePatterns);
 
 		assertThatSeedsAreTrue();
@@ -78,7 +77,7 @@ public class ConnectorUrlAcceptorTest extends ConstellioTest {
 		assertThat(urlAcceptor.isAccepted("http://www.monsite4.com/zePage")).isTrue();
 		assertThat(urlAcceptor.isAccepted("http://monsite4.com/zePage")).isFalse();
 	}
-	
+
 	@Test
 	public void givenNullsWhenAcceptingUrlMatchingThenTrue()
 			throws Exception {
@@ -94,7 +93,7 @@ public class ConnectorUrlAcceptorTest extends ConstellioTest {
 			throws Exception {
 
 		includePatterns = "http://www.monsite3.com/"
-				+ "\nhttp://www.monsite4.com/";
+						  + "\nhttp://www.monsite4.com/";
 		when(connector.getIncludePatterns()).thenReturn(includePatterns);
 
 		assertThatSeedsAreTrue();
@@ -118,7 +117,7 @@ public class ConnectorUrlAcceptorTest extends ConstellioTest {
 			throws Exception {
 
 		excludePatterns = "http://www.monsite3.com/"
-				+ "\nhttp://www.monsite4.com/";
+						  + "\nhttp://www.monsite4.com/";
 		when(connector.getExcludePatterns()).thenReturn(excludePatterns);
 
 		assertThatSeedsAreTrue();
@@ -132,9 +131,9 @@ public class ConnectorUrlAcceptorTest extends ConstellioTest {
 			throws Exception {
 
 		includePatterns = "http://www.monsite3.com/"
-				+ "\nhttp://www.monsite4.com/";
+						  + "\nhttp://www.monsite4.com/";
 		excludePatterns = "http://www.monsite5.com/"
-				+ "\nhttp://www.monsite6.com/";
+						  + "\nhttp://www.monsite6.com/";
 		when(connector.getIncludePatterns()).thenReturn(includePatterns);
 		when(connector.getExcludePatterns()).thenReturn(excludePatterns);
 
@@ -142,7 +141,7 @@ public class ConnectorUrlAcceptorTest extends ConstellioTest {
 
 		assertThat(urlAcceptor.isAccepted("http://www.monsite3.com/zePage")).isTrue();
 		assertThat(urlAcceptor.isAccepted("http://www.monsite4.com/zePage")).isTrue();
-		
+
 		assertThat(urlAcceptor.isAccepted("http://www.monsite5.com/zePage")).isFalse();
 		assertThat(urlAcceptor.isAccepted("http://www.monsite6.com/zePage")).isFalse();
 	}
@@ -151,9 +150,9 @@ public class ConnectorUrlAcceptorTest extends ConstellioTest {
 	public void givenExcludeAndIncludeListWhenAcceptingUrlMatchingNothingThenFalse()
 			throws Exception {
 		includePatterns = "http://www.monsite3.com/"
-				+ "\nhttp://www.monsite4.com/";
+						  + "\nhttp://www.monsite4.com/";
 		excludePatterns = "http://www.monsite6.com/"
-				+ "\nhttp://www.monsite4.com/";
+						  + "\nhttp://www.monsite4.com/";
 		when(connector.getIncludePatterns()).thenReturn(includePatterns);
 		when(connector.getExcludePatterns()).thenReturn(excludePatterns);
 
@@ -168,9 +167,9 @@ public class ConnectorUrlAcceptorTest extends ConstellioTest {
 	public void givenExcludeAndIncludeListWhenAcceptingUrlMatchingBothThenFalse()
 			throws Exception {
 		includePatterns = "http://www.monsite3.com/"
-				+ "\nhttp://www.monsite4.com/" + "\nhttp://www.monsite5.com/";
+						  + "\nhttp://www.monsite4.com/" + "\nhttp://www.monsite5.com/";
 		excludePatterns = "http://www.monsite3.com/"
-				+ "\nhttp://www.monsite4.com/";
+						  + "\nhttp://www.monsite4.com/";
 		when(connector.getIncludePatterns()).thenReturn(includePatterns);
 		when(connector.getExcludePatterns()).thenReturn(excludePatterns);
 
@@ -181,7 +180,7 @@ public class ConnectorUrlAcceptorTest extends ConstellioTest {
 		assertThat(urlAcceptor.isAccepted("http://www.monsite5.com/zePage")).isTrue();
 		assertThat(urlAcceptor.isAccepted("http://www.monsite6.com/zePage")).isFalse();
 	}
-	
+
 	@Test
 	public void givenNoSeedWhenAcceptingUrlThenEvaluateWhite()
 			throws Exception {
@@ -189,7 +188,7 @@ public class ConnectorUrlAcceptorTest extends ConstellioTest {
 				"http://www.monsite1.com",
 				"http://www.monsite2.com/index.html"
 		));
-		
+
 		includePatterns = "http://www.monsite1.com/";
 		when(connector.getIncludePatterns()).thenReturn(includePatterns);
 
@@ -201,7 +200,7 @@ public class ConnectorUrlAcceptorTest extends ConstellioTest {
 	public void givenMalFormedUrlInIncludeListWhenAcceptingUrlThenFalse()
 			throws Exception {
 		includePatterns = "email@email.com" + "\n "
-				+ "\nhttp://www.monsite4.com/";
+						  + "\nhttp://www.monsite4.com/";
 		when(connector.getIncludePatterns()).thenReturn(includePatterns);
 		when(connector.getExcludePatterns()).thenReturn(excludePatterns);
 

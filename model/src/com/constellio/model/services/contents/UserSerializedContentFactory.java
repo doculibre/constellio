@@ -31,7 +31,7 @@ public class UserSerializedContentFactory extends ContentFactory {
 				User user = userServices.getUserInCollection(value, collection);
 				return user == null ? null : user.getId();
 			} catch (UserServicesRuntimeException e) {
-				if(isAllowingUserToNotExist) {
+				if (isAllowingUserToNotExist) {
 					return null;
 				} else {
 					throw e;

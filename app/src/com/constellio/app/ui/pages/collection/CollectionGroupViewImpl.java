@@ -1,11 +1,5 @@
 package com.constellio.app.ui.pages.collection;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AuthorizationsButton;
@@ -21,6 +15,11 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionGroupView {
 	public static final String GROUP_ROLES = Group.DEFAULT_SCHEMA + "_" + Group.ROLES;
@@ -95,10 +94,10 @@ public class CollectionGroupViewImpl extends BaseViewImpl implements CollectionG
 		@Override
 		public Component buildSingleValue(RecordVO recordVO, MetadataVO metadata, Object displayValue) {
 			switch (metadata.getCode()) {
-			case GROUP_ROLES:
-				return new Label(presenter.getRoleTitle((String) displayValue));
-			default:
-				return super.buildSingleValue(recordVO, metadata, displayValue);
+				case GROUP_ROLES:
+					return new Label(presenter.getRoleTitle((String) displayValue));
+				default:
+					return super.buildSingleValue(recordVO, metadata, displayValue);
 			}
 		}
 	}

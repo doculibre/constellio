@@ -1,18 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import com.constellio.app.ui.util.MessageUtils;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
@@ -24,7 +11,6 @@ import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
-import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -65,6 +51,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.wrappers.User;
@@ -96,6 +83,17 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
@@ -424,12 +422,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			//		actionMenuButtons.add(addSubFolderButton);
 
 			boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
-					&& ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
+											 && ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
 
 			actionMenuButtons.add(editFolderButton);
 
-			if(!isAFolderAndDestroyed)
-			{
+			if (!isAFolderAndDestroyed) {
 				actionMenuButtons.add(moveInFolderButton);
 			}
 			actionMenuButtons.add(deleteFolderButton);
@@ -497,7 +494,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						try {
 							presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
 							getWindow().close();
-						} catch (Exception e){
+						} catch (Exception e) {
 							showErrorMessage(MessageUtils.toMessage(e));
 						}
 					}
@@ -688,62 +685,63 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	@Override
 	public void selectTasksTab() {
 		if (!(tasksComponent instanceof Table)) {
-		Table table = new RecordVOTable(tasksDataProvider) {
-			@Override
-			protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
-				if(Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
-					return new StarredFieldImpl(recordVO.getId(), (List<String>)metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
+			Table table = new RecordVOTable(tasksDataProvider) {
+				@Override
+				protected Component buildMetadataComponent(MetadataValueVO metadataValue, RecordVO recordVO) {
+					if (Task.STARRED_BY_USERS.equals(metadataValue.getMetadata().getLocalCode())) {
+						return new StarredFieldImpl(recordVO.getId(), (List<String>) metadataValue.getValue(), getSessionContext().getCurrentUser().getId()) {
+							@Override
+							public void updateTaskStarred(boolean isStarred, String taskId) {
+								presenter.updateTaskStarred(isStarred, taskId, tasksDataProvider);
+							}
+						};
+					} else {
+						return super.buildMetadataComponent(metadataValue, recordVO);
+					}
+				}
+
+				@Override
+				protected TableColumnsManager newColumnsManager() {
+					return new RecordVOTableColumnsManager() {
 						@Override
-						public void updateTaskStarred(boolean isStarred, String taskId) {
-							presenter.updateTaskStarred(isStarred, taskId, tasksDataProvider);
+						protected String toColumnId(Object propertyId) {
+							if (propertyId instanceof MetadataVO) {
+								if (Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
+									setColumnHeader(propertyId, "");
+									setColumnWidth(propertyId, 60);
+								}
+							}
+							return super.toColumnId(propertyId);
 						}
 					};
-				} else {
-					return super.buildMetadataComponent(metadataValue, recordVO);
 				}
-			}
 
-			@Override
-			protected TableColumnsManager newColumnsManager() {
-				return new RecordVOTableColumnsManager() {
-					@Override
-					protected String toColumnId(Object propertyId) {
-						if(propertyId instanceof MetadataVO) {
-							if(Task.STARRED_BY_USERS.equals(((MetadataVO) propertyId).getLocalCode())) {
-								setColumnHeader(propertyId, "");
-								setColumnWidth(propertyId, 60);
-							}
+				@Override
+				public Collection<?> getSortableContainerPropertyIds() {
+					Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
+					Iterator<?> iterator = sortableContainerPropertyIds.iterator();
+					while (iterator.hasNext()) {
+						Object property = iterator.next();
+						if (property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
+							iterator.remove();
 						}
-						return super.toColumnId(propertyId);
 					}
-				};
-			}
-
-			@Override
-			public Collection<?> getSortableContainerPropertyIds() {
-				Collection<?> sortableContainerPropertyIds = super.getSortableContainerPropertyIds();
-				Iterator<?> iterator = sortableContainerPropertyIds.iterator();
-				while (iterator.hasNext()) {
-					Object property = iterator.next();
-					if(property != null && property instanceof MetadataVO && Task.STARRED_BY_USERS.equals(((MetadataVO) property).getLocalCode())) {
-						iterator.remove();
-					}
+					return sortableContainerPropertyIds;
 				}
-				return sortableContainerPropertyIds;
-			}
-		};
-		table.setSizeFull();
-		table.addItemClickListener(new ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				RecordVOItem item = (RecordVOItem) event.getItem();
-				RecordVO recordVO = item.getRecord();
-				presenter.taskClicked(recordVO);
-			}
-		});
-		table.setPageLength(Math.min(15, tasksDataProvider.size()));
-		tabSheet.replaceComponent(tasksComponent, table);
-		tasksComponent = table;}
+			};
+			table.setSizeFull();
+			table.addItemClickListener(new ItemClickListener() {
+				@Override
+				public void itemClick(ItemClickEvent event) {
+					RecordVOItem item = (RecordVOItem) event.getItem();
+					RecordVO recordVO = item.getRecord();
+					presenter.taskClicked(recordVO);
+				}
+			});
+			table.setPageLength(Math.min(15, tasksDataProvider.size()));
+			tabSheet.replaceComponent(tasksComponent, table);
+			tasksComponent = table;
+		}
 		tabSheet.setSelectedTab(tasksComponent);
 	}
 
@@ -871,7 +869,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	private Button buildBorrowButton() {
 		return new WindowButton($("DisplayFolderView.borrow"),
-				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "460px")) {
+				$("DisplayFolderView.borrow"), new WindowConfiguration(true, true, "50%", "500px")) {
 			@Override
 			protected Component buildWindowContent() {
 				final JodaDateField borrowDatefield = new JodaDateField();

@@ -36,30 +36,40 @@ public class EventByIdSearchPanel extends Panel {
 		addStyleName(ValoTheme.PANEL_BORDERLESS);
 	}
 
-	public String getIdValue(){
-		if(lookupField == null){
+	public String getIdValue() {
+		if (lookupField == null) {
 			return "";
 		}
 		return lookupField.getValue();
 	}
 
-	protected String getByIdFieldCaption(){
-		switch (eventCategory){
-		case EVENTS_BY_ADMINISTRATIVE_UNIT : return $("ListEventsView.byFilingSpace.textFieldCaption");
-		case EVENTS_BY_FOLDER: return $("ListEventsView.byFolder.textFieldCaption");
-		case EVENTS_BY_USER : return $("ListEventsView.byUser.textFieldCaption");
-		case EVENTS_BY_CONTAINER : return $("ListEventsView.byContainer.textFieldCaption");
-		default: return "";
+	protected String getByIdFieldCaption() {
+		switch (eventCategory) {
+			case EVENTS_BY_ADMINISTRATIVE_UNIT:
+				return $("ListEventsView.byFilingSpace.textFieldCaption");
+			case EVENTS_BY_FOLDER:
+				return $("ListEventsView.byFolder.textFieldCaption");
+			case EVENTS_BY_USER:
+				return $("ListEventsView.byUser.textFieldCaption");
+			case EVENTS_BY_CONTAINER:
+				return $("ListEventsView.byContainer.textFieldCaption");
+			default:
+				return "";
 		}
 	}
 
 	protected String getLookupSchemaTypeCode() {
-		switch(eventCategory){
-		case EVENTS_BY_USER: return User.SCHEMA_TYPE;
-		case EVENTS_BY_FOLDER: return Folder.SCHEMA_TYPE;
-		case EVENTS_BY_ADMINISTRATIVE_UNIT: return AdministrativeUnit.SCHEMA_TYPE;
-		case EVENTS_BY_CONTAINER: return ContainerRecord.SCHEMA_TYPE;
-		default : return null;
+		switch (eventCategory) {
+			case EVENTS_BY_USER:
+				return User.SCHEMA_TYPE;
+			case EVENTS_BY_FOLDER:
+				return Folder.SCHEMA_TYPE;
+			case EVENTS_BY_ADMINISTRATIVE_UNIT:
+				return AdministrativeUnit.SCHEMA_TYPE;
+			case EVENTS_BY_CONTAINER:
+				return ContainerRecord.SCHEMA_TYPE;
+			default:
+				return null;
 		}
 	}
 }

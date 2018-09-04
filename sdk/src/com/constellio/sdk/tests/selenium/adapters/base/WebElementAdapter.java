@@ -1,35 +1,34 @@
 /**
  * Constellio
  * Copyright (C) 2010 DocuLibre inc.
- *
+ * <p>
  * This program is free software: you can redistribute it and/or modifyTo
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * <p>
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * <p>
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package com.constellio.sdk.tests.selenium.adapters.base;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.constellio.sdk.tests.selenium.conditions.ConditionWithTimeout;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 
-import com.constellio.sdk.tests.selenium.conditions.ConditionWithTimeout;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-@SuppressWarnings({ "rawtypes", "unchecked" })
+@SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class WebElementAdapter<WE extends WebElement, WD extends WebDriverAdapter<WE>> implements WebElement {
 
 	private WebElementFinder<WebElement> adaptedElementFinder;
@@ -111,13 +110,13 @@ public abstract class WebElementAdapter<WE extends WebElement, WD extends WebDri
 		scrollIntoView();
 		getAdaptedElement().click();
 	}
-	
+
 	public void rightClick() {
-        WebElement webElement = getAdaptedSeleniumElement();
-        Actions oAction = new Actions(webDriver.getAdaptedDriver());
-        oAction.moveToElement(webElement);
-        oAction.contextClick(webElement).build().perform();
-    }
+		WebElement webElement = getAdaptedSeleniumElement();
+		Actions oAction = new Actions(webDriver.getAdaptedDriver());
+		oAction.moveToElement(webElement);
+		oAction.contextClick(webElement).build().perform();
+	}
 
 	@Deprecated
 	public void clickUsingJavascript() {

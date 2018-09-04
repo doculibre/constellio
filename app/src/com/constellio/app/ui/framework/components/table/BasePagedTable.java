@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.components.table;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import java.io.Serializable;
-import java.util.Map;
-
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
@@ -31,6 +25,12 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.io.Serializable;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class BasePagedTable<T extends Container> extends PagedTable {
 
@@ -256,6 +256,10 @@ public class BasePagedTable<T extends Container> extends PagedTable {
 
 	protected Property<?> loadContainerProperty(final Object itemId, final Object propertyId) {
 		return super.getContainerProperty(itemId, propertyId);
+	}
+
+	public T getContainer() {
+		return container;
 	}
 
 	@SuppressWarnings("deprecation")

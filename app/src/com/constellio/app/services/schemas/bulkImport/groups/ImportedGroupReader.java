@@ -1,10 +1,10 @@
 package com.constellio.app.services.schemas.bulkImport.groups;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jdom2.Document;
 import org.jdom2.Element;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ImportedGroupReader {
 

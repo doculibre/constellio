@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.ui.accept.decommissioning;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMConfigs.DecommissioningPhase;
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -14,6 +9,10 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class DecommissioningMainViewAcceptTest extends ConstellioTest {

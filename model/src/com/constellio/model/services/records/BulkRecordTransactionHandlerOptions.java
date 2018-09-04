@@ -36,7 +36,7 @@ public class BulkRecordTransactionHandlerOptions {
 	}
 
 	private BulkRecordTransactionHandlerOptions(int recordsPerBatch, int numberOfThreads, int queueSize,
-			boolean showProgressionInConsole) {
+												boolean showProgressionInConsole) {
 		this.recordsPerBatch = recordsPerBatch;
 		this.numberOfThreads = numberOfThreads;
 		this.queueSize = queueSize;

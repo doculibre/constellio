@@ -22,7 +22,7 @@ public class MetadataAccessRestriction implements Serializable {
 	}
 
 	public MetadataAccessRestriction(List<String> requiredReadRoles, List<String> requiredWriteRoles,
-			List<String> requiredModificationRoles, List<String> requiredDeleteRoles) {
+									 List<String> requiredModificationRoles, List<String> requiredDeleteRoles) {
 		this.requiredReadRoles = requiredReadRoles;
 		this.requiredWriteRoles = requiredWriteRoles;
 		this.requiredModificationRoles = requiredModificationRoles;
@@ -47,31 +47,36 @@ public class MetadataAccessRestriction implements Serializable {
 
 	public boolean isEmpty() {
 		return requiredReadRoles.isEmpty()
-				&& requiredWriteRoles.isEmpty()
-				&& requiredModificationRoles.isEmpty()
-				&& requiredDeleteRoles.isEmpty();
+			   && requiredWriteRoles.isEmpty()
+			   && requiredModificationRoles.isEmpty()
+			   && requiredDeleteRoles.isEmpty();
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (o == null || getClass() != o.getClass())
+		}
+		if (o == null || getClass() != o.getClass()) {
 			return false;
+		}
 
 		MetadataAccessRestriction that = (MetadataAccessRestriction) o;
 
-		if (requiredReadRoles != null ? !requiredReadRoles.equals(that.requiredReadRoles) : that.requiredReadRoles != null)
+		if (requiredReadRoles != null ? !requiredReadRoles.equals(that.requiredReadRoles) : that.requiredReadRoles != null) {
 			return false;
-		if (requiredWriteRoles != null ? !requiredWriteRoles.equals(that.requiredWriteRoles) : that.requiredWriteRoles != null)
+		}
+		if (requiredWriteRoles != null ? !requiredWriteRoles.equals(that.requiredWriteRoles) : that.requiredWriteRoles != null) {
 			return false;
+		}
 		if (requiredModificationRoles != null ?
-				!requiredModificationRoles.equals(that.requiredModificationRoles) :
-				that.requiredModificationRoles != null)
+			!requiredModificationRoles.equals(that.requiredModificationRoles) :
+			that.requiredModificationRoles != null) {
 			return false;
+		}
 		return requiredDeleteRoles != null ?
-				requiredDeleteRoles.equals(that.requiredDeleteRoles) :
-				that.requiredDeleteRoles == null;
+			   requiredDeleteRoles.equals(that.requiredDeleteRoles) :
+			   that.requiredDeleteRoles == null;
 
 	}
 

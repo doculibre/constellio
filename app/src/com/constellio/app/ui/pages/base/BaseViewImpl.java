@@ -1,17 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.pages.management.labels.ListLabelViewImpl.TYPE_TABLE;
-
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -24,6 +12,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrai
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
+import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.vaadin.event.UIEvents.PollEvent;
 import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.View;
@@ -42,6 +31,16 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.management.labels.ListLabelViewImpl.TYPE_TABLE;
 
 @SuppressWarnings("serial")
 public abstract class BaseViewImpl extends VerticalLayout implements View, BaseView, PollListener {
@@ -65,15 +64,21 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	private List<Button> actionMenuButtons;
 
 	private List<ViewEnterListener> viewEnterListeners = new ArrayList<>();
-	
+
 	private List<ActionMenuButtonsDecorator> actionMenuButtonsDecorators = new ArrayList<>();
 
 	public BaseViewImpl() {
+		this(ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory());
+	}
+
+	public BaseViewImpl(AppLayerFactory appLayerFactory) {
+		this(ConstellioUI.getCurrentSessionContext().getCurrentCollection(), appLayerFactory);
+	}
+
+	public BaseViewImpl(String collection, AppLayerFactory appLayerFactory) {
 		DecorateMainComponentAfterInitExtensionParams params = new DecorateMainComponentAfterInitExtensionParams(this);
-		AppLayerFactory appLayerFactory = ConstellioUI.getCurrent().getConstellioFactories().getAppLayerFactory();
 
 		appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewInstanciated(params);
-		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		if (collection != null) {
 			appLayerFactory.getExtensions().forCollection(collection).decorateMainComponentBeforeViewInstanciated(params);
 		}
@@ -94,7 +99,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			appLayerFactory.getExtensions().getSystemWideExtensions().decorateMainComponentBeforeViewAssembledOnViewEntered(params);
 			String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 			if (collection != null) {
-				((ConstellioUI)UI.getCurrent()).getHeader().setCurrentCollectionQuietly();
+				((ConstellioUI) UI.getCurrent()).getHeader().setCurrentCollectionQuietly();
 				appLayerFactory.getExtensions().forCollection(collection)
 						.decorateMainComponentBeforeViewAssembledOnViewEntered(params);
 			}
@@ -126,7 +131,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 			removeAllComponents();
 
-			if(isBreadcrumbsVisible()) {
+			if (isBreadcrumbsVisible()) {
 				breadcrumbTrail = buildBreadcrumbTrail();
 			}
 
@@ -134,7 +139,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			titleBackButtonLayout.setWidth("100%");
 
 			String title = getTitle();
-			if(isBreadcrumbsVisible()) {
+			if (isBreadcrumbsVisible()) {
 				if (breadcrumbTrail == null && title != null) {
 					breadcrumbTrail = new TitleBreadcrumbTrail(this, title);
 				} else if (title != null) {
@@ -201,20 +206,20 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 			}
 
 			afterViewAssembled(event);
-			
-//			StringBuffer js = new StringBuffer();
-//			js.append("setTimeout(function() {setInterval(function() {\r\n"); 
-//			js.append("try {");
-//			js.append("\r\n");
-//			js.append("var req = new XMLHttpRequest();"); 
-//			js.append("\r\n");
-//			js.append("req.open('GET', 'http://localhost:7070/constellio/agent/test', false);"); 
-//			js.append("\r\n");
-//			js.append("req.send();");
-//			js.append("\r\n");
-//			js.append("} catch (Exception) { window.location='http://localhost:7070/constellio/#!adminModule'; }"); 
-//			js.append("}, 10000);}, 1000);");
-//			if (true) com.vaadin.ui.JavaScript.eval(js.toString());
+
+			//			StringBuffer js = new StringBuffer();
+			//			js.append("setTimeout(function() {setInterval(function() {\r\n");
+			//			js.append("try {");
+			//			js.append("\r\n");
+			//			js.append("var req = new XMLHttpRequest();");
+			//			js.append("\r\n");
+			//			js.append("req.open('GET', 'http://localhost:7070/constellio/agent/test', false);");
+			//			js.append("\r\n");
+			//			js.append("req.send();");
+			//			js.append("\r\n");
+			//			js.append("} catch (Exception) { window.location='http://localhost:7070/constellio/#!adminModule'; }");
+			//			js.append("}, 10000);}, 1000);");
+			//			if (true) com.vaadin.ui.JavaScript.eval(js.toString());
 		} catch (Exception e) {
 			boolean exceptionHandled = false;
 			if (event != null) {
@@ -315,21 +320,31 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	protected Component buildActionMenu(ViewChangeEvent event) {
 		VerticalLayout actionMenuLayout;
 		actionMenuButtons = buildActionMenuButtons(event);
+
+		for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
+			actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
+		}
+
 		if (actionMenuButtons == null || actionMenuButtons.isEmpty()) {
 			actionMenuLayout = null;
 		} else {
 			actionMenuLayout = new VerticalLayout();
 			actionMenuLayout.setSizeUndefined();
-			
-			for (ActionMenuButtonsDecorator actionMenuButtonsDecorator : actionMenuButtonsDecorators) {
-				actionMenuButtonsDecorator.decorate(this, actionMenuButtons);
-			}
-			
+
+			int visibleButtons = 0;
 			for (Button actionMenuButton : actionMenuButtons) {
-				actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-				actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
-				actionMenuButton.addStyleName("action-menu-button");
-				actionMenuLayout.addComponent(actionMenuButton);
+				if (actionMenuButton.isVisible()) {
+					actionMenuButton.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+					actionMenuButton.removeStyleName(ValoTheme.BUTTON_LINK);
+					actionMenuButton.addStyleName("action-menu-button");
+					actionMenuLayout.addComponent(actionMenuButton);
+
+					visibleButtons++;
+				}
+			}
+
+			if (visibleButtons == 0) {
+				actionMenuLayout = null;
 			}
 		}
 
@@ -370,10 +385,10 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 
 	@Override
 	public void showClickableMessage(String message) {
-//		Notification notification = new Notification(message, Type.WARNING_MESSAGE);
-//		notification.setDelayMsec(-1);
-//		notification.setHtmlContentAllowed(true);
-//		notification.show(Page.getCurrent());
+		//		Notification notification = new Notification(message, Type.WARNING_MESSAGE);
+		//		notification.setDelayMsec(-1);
+		//		notification.setHtmlContentAllowed(true);
+		//		notification.show(Page.getCurrent());
 		ClickableNotification.show(ConstellioUI.getCurrent(), "", message);
 	}
 
@@ -402,15 +417,15 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	protected ClickListener getBackButtonClickListener() {
 		return null;
 	}
-	
+
 	public void addActionMenuButtonsDecorator(ActionMenuButtonsDecorator decorator) {
 		this.actionMenuButtonsDecorators.add(decorator);
 	}
-	
+
 	public List<ActionMenuButtonsDecorator> getActionMenuButtonsDecorators() {
 		return actionMenuButtonsDecorators;
 	}
-	
+
 	public void removeActionMenuButtonsDecorator(ActionMenuButtonsDecorator decorator) {
 		this.actionMenuButtonsDecorators.remove(decorator);
 	}
@@ -429,8 +444,10 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		returnLink.addClickListener(listener);
 		return returnLink;
 	}
-	protected Button createLink(String caption, final Button.ClickListener listener, String iconName, boolean hasAccess) {
-		if(!hasAccess) {
+
+	protected Button createLink(String caption, final Button.ClickListener listener, String iconName,
+								boolean hasAccess) {
+		if (!hasAccess) {
 			return null;
 		}
 		return createLink(caption, listener, iconName);
@@ -464,7 +481,13 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		}
 	}
 
-	protected boolean isBreadcrumbsVisible(){
+	protected boolean isBreadcrumbsVisible() {
 		return true;
 	}
+
+	@Override
+	public MainLayout getMainLayout() {
+		return ConstellioUI.getCurrent().getMainLayout();
+	}
+
 }

@@ -1,9 +1,9 @@
 package com.constellio.model.services.records.aggregations;
 
-import java.util.Set;
-
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
+
+import java.util.Set;
 
 public class SumMetadataAggregationHandler extends SolrStatMetadataAggregationHandler {
 

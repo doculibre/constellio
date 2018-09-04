@@ -1,11 +1,6 @@
 package com.constellio.app.modules.rm.ui.accept.decommissioning;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
-import org.openqa.selenium.By;
-
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -16,6 +11,10 @@ import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.app.ui.tools.RecordFormWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DecommissioningBuilderPage extends PageHelper {
 	protected DecommissioningBuilderPage(ConstellioWebDriver driver) {

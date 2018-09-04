@@ -1,41 +1,5 @@
 package com.constellio.app.api.cmis.accept;
 
-import static com.constellio.model.entities.security.Role.DELETE;
-import static com.constellio.model.entities.security.Role.READ;
-import static com.constellio.model.entities.security.Role.WRITE;
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
-import static com.constellio.sdk.tests.TestUtils.asSet;
-import static java.util.Arrays.asList;
-import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.ObjectId;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.client.runtime.ObjectIdImpl;
-import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.data.Ace;
-import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
-import org.assertj.core.api.ListAssert;
-import org.assertj.core.groups.Tuple;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -55,6 +19,37 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.DriverTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.chemistry.opencmis.client.api.Folder;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.PropertyIds;
+import org.apache.chemistry.opencmis.commons.data.Ace;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
+import org.assertj.core.api.ListAssert;
+import org.assertj.core.groups.Tuple;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.model.entities.security.Role.DELETE;
+import static com.constellio.model.entities.security.Role.READ;
+import static com.constellio.model.entities.security.Role.WRITE;
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
+import static com.constellio.sdk.tests.TestUtils.asSet;
+import static java.util.Arrays.asList;
+import static org.apache.chemistry.opencmis.commons.enums.AclPropagation.REPOSITORYDETERMINED;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
 
 @DriverTest
 public class CmisACLAcceptanceTest extends ConstellioTest {
@@ -507,7 +502,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		Folder cmisFolder2 = cmisFolder(zeCollectionRecords.folder2);
 		cmisFolder2.setAcl(asList(ace(admin, RWD)));
 		assertThatAcesOf(zeCollectionRecords.folder2).contains(tuple(true, RWD, admin));
-//		cmisFolder2.applyAcl(asList(ace(admin, RW)), asList(ace(admin, RWD)), REPOSITORYDETERMINED);
+		//		cmisFolder2.applyAcl(asList(ace(admin, RW)), asList(ace(admin, RWD)), REPOSITORYDETERMINED);
 		cmisFolder2.applyAcl(new ArrayList<Ace>(), asList(ace(admin, RWD)), REPOSITORYDETERMINED);
 		cmisFolder2.applyAcl(asList(ace(admin, RW)), new ArrayList<Ace>(), REPOSITORYDETERMINED);
 		assertThatAcesOf(zeCollectionRecords.folder2).contains(tuple(true, RW, admin));

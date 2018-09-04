@@ -1,14 +1,5 @@
 package com.constellio.app.ui.framework.components.breadcrumb.taxonomy;
 
-import static com.constellio.model.services.records.RecordUtils.parentPaths;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbTrail;
@@ -16,10 +7,19 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyPresentersService;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.commons.lang.StringUtils;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.records.RecordUtils.parentPaths;
 
 public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 
@@ -34,6 +34,7 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 	private transient TaxonomiesManager taxonomiesManager;
 
 	private transient SchemaPresenterUtils taxonomyPresenterUtils;
+
 
 	public TaxonomyBreadcrumbTrailPresenter(String taxonomyCode, String conceptId, BreadcrumbTrail breadcrumbTrail) {
 		this.taxonomyCode = taxonomyCode;
@@ -110,7 +111,7 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 
 		@Override
 		public String getLabel() {
-			return SchemaCaptionUtils.getCaptionForRecordId(conceptId);
+			return SchemaCaptionUtils.getCaptionForRecordId(conceptId, breadcrumbTrail.getSessionContext().getCurrentLocale());
 		}
 
 		@Override
@@ -133,7 +134,7 @@ public class TaxonomyBreadcrumbTrailPresenter implements Serializable {
 
 		@Override
 		public String getLabel() {
-			return taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode).getTitle();
+			return taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode).getTitle(Language.withCode(breadcrumbTrail.getSessionContext().getCurrentLocale().getLanguage()));
 		}
 
 		@Override

@@ -1,16 +1,15 @@
 package com.constellio.model.services.schemas.validators;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
+import org.joda.time.LocalDateTime;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MetadataValueTypeValidator implements Validator<Record> {
 
@@ -120,7 +119,8 @@ public class MetadataValueTypeValidator implements Validator<Record> {
 	}
 
 	//@formatter:off
-	private void addValidationErrors(Metadata metadata, Object value, ValidationErrors validationErrors, String metadataValueType) {
+	private void addValidationErrors(Metadata metadata, Object value, ValidationErrors validationErrors,
+									 String metadataValueType) {
 		Map<String, Object> parameters = createParameters(metadata, value, metadataValueType);
 		validationErrors.add(getClass(), INVALID_VALUE_FOR_METADATA, parameters);
 	}

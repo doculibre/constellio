@@ -1,5 +1,27 @@
 package com.constellio.app.api.cmis.builders.object;
 
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
+import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.chemistry.opencmis.commons.data.AllowableActions;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AllowableActionsImpl;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import static java.util.Arrays.asList;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_APPLY_ACL;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_CHECK_IN;
@@ -21,29 +43,6 @@ import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_MOVE_OBJECT
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_SET_CONTENT_STREAM;
 import static org.apache.chemistry.opencmis.commons.enums.Action.CAN_UPDATE_PROPERTIES;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.chemistry.opencmis.commons.data.AllowableActions;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AllowableActionsImpl;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.global.ConstellioCmisContextParameters;
-import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
-
 public class AllowableActionsBuilder {
 
 	private final ConstellioCollectionRepository repository;
@@ -59,7 +58,7 @@ public class AllowableActionsBuilder {
 	private ConstellioEIMConfigs configs;
 
 	public AllowableActionsBuilder(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context) {
+								   CallContext context) {
 		this.repository = repository;
 		this.appLayerFactory = appLayerFactory;
 		this.context = context;

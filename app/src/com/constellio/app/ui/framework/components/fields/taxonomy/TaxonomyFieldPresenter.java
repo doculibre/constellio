@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.taxonomy;
 
-import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.RecordVO;
@@ -19,6 +13,12 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import com.constellio.model.services.users.UserServices;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.services.factories.ConstellioFactories.getInstance;
 
 public class TaxonomyFieldPresenter implements Serializable {
 

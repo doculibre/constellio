@@ -1,20 +1,20 @@
 package com.constellio.model.entities.schemas;
 
+import com.constellio.data.dao.services.records.DataStore;
+import com.constellio.model.entities.CollectionInfo;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.validation.RecordValidator;
+import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.data.dao.services.records.DataStore;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.validation.RecordValidator;
-import com.constellio.sdk.tests.ConstellioTest;
 
 public class SchemasListsUnmodifiableTest extends ConstellioTest {
 
@@ -38,8 +38,9 @@ public class SchemasListsUnmodifiableTest extends ConstellioTest {
 	public void whenClearingMetadatasListInSchemaThenExceptionThrown() {
 		List<Metadata> metadatas = Arrays.asList(metadata1, metadata2);
 		Set<RecordValidator> validators = new HashSet<RecordValidator>();
-		MetadataSchema schema = new MetadataSchema("aCode", "aCode", "zeCollection", labels, metadatas, false, true, validators,
-				null, DataStore.RECORDS);
+		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
+		MetadataSchema schema = new MetadataSchema("aCode", "aCode", zeCollectionInfo, labels, metadatas, false, true, validators,
+				null, DataStore.RECORDS, true);
 
 		schema.getMetadatas().clear();
 	}
@@ -47,10 +48,11 @@ public class SchemasListsUnmodifiableTest extends ConstellioTest {
 	@Test(expected = UnsupportedOperationException.class)
 	public void whenClearingSchemasListInSchemaTypeThenExceptionThrown() {
 		List<MetadataSchema> schemas = Arrays.asList(schema1, schema2);
-		MetadataSchemaType schemaType = new MetadataSchemaType("aCode", null, "zeCollection", labels, schemas,
+		CollectionInfo zeCollectionInfo = new CollectionInfo(zeCollection, "fr", Arrays.asList("fr"));
+		MetadataSchemaType schemaType = new MetadataSchemaType("aCode", null, zeCollectionInfo, labels, schemas,
 				defaultSchema, false, true, true, false, "records");
 
-		schemaType.getSchemas().clear();
+		schemaType.getCustomSchemas().clear();
 	}
 
 	@Test(expected = UnsupportedOperationException.class)

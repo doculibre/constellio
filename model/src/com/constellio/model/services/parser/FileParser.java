@@ -1,23 +1,15 @@
 package com.constellio.model.services.parser;
 
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang.StringUtils.join;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.zip.DeflaterOutputStream;
-import java.util.zip.InflaterInputStream;
-
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.io.streamFactories.StreamFactory;
+import com.constellio.data.io.streamFactories.StreamFactoryWithFilename;
+import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
+import com.constellio.data.utils.KeyListMap;
+import com.constellio.model.entities.records.ParsedContent;
+import com.constellio.model.services.configs.SystemConfigurationsManager;
+import com.constellio.model.services.parser.FileParserException.FileParserException_CannotExtractStyles;
+import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
+import com.constellio.model.services.parser.FileParserException.FileParserException_FileSizeExceedLimitForParsing;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.hwpf.HWPFDocumentCore;
@@ -43,16 +35,23 @@ import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.sax.BodyContentHandler;
 
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.data.io.streamFactories.StreamFactory;
-import com.constellio.data.io.streamFactories.StreamFactoryWithFilename;
-import com.constellio.data.io.streamFactories.impl.CopyInputStreamFactory;
-import com.constellio.data.utils.KeyListMap;
-import com.constellio.model.entities.records.ParsedContent;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
-import com.constellio.model.services.parser.FileParserException.FileParserException_CannotExtractStyles;
-import com.constellio.model.services.parser.FileParserException.FileParserException_CannotParse;
-import com.constellio.model.services.parser.FileParserException.FileParserException_FileSizeExceedLimitForParsing;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.InflaterInputStream;
+
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.CONTENT_MAX_LENGTH_FOR_PARSING_IN_MEGAOCTETS;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
+import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.join;
 
 public class FileParser {
 
@@ -77,8 +76,9 @@ public class FileParser {
 			try {
 				byte[] buffer = new byte[8192];
 				int len;
-				while ((len = in.read(buffer)) > 0)
+				while ((len = in.read(buffer)) > 0) {
 					baos.write(buffer, 0, len);
+				}
 				return new String(baos.toByteArray(), "UTF-8");
 			} catch (IOException e) {
 				throw new AssertionError(e);
@@ -101,7 +101,7 @@ public class FileParser {
 	private SystemConfigurationsManager systemConfigurationsManager;
 
 	public FileParser(ForkParsers parsers, LanguageDetectionManager languageDetectionManager, IOServices ioServices,
-			SystemConfigurationsManager systemConfigurationsManager, boolean forkParserEnabled) {
+					  SystemConfigurationsManager systemConfigurationsManager, boolean forkParserEnabled) {
 		super();
 		this.parsers = parsers;
 		this.ioServices = ioServices;
@@ -192,7 +192,12 @@ public class FileParser {
 		} catch (Throwable t) {
 			throw new FileParserException_CannotExtractStyles(t, type);
 		}
-		return new ParsedContent(parsedContent, language, type, length, properties, styles);
+
+		ParsedContent content = new ParsedContent(parsedContent, language, type, length, properties, styles);
+		content.setDescription(metadata.get(Metadata.DESCRIPTION));
+		content.setTitle(metadata.get(Metadata.TITLE));
+
+		return content;
 
 	}
 
@@ -215,7 +220,7 @@ public class FileParser {
 	}
 
 	public ParsedContent parseWithoutBeautifying(StreamFactory<InputStream> inputStreamFactory, long length,
-			boolean detectLanguage)
+												 boolean detectLanguage)
 			throws FileParserException {
 
 		int contentMaxLengthForParsingInMegaoctets = systemConfigurationsManager
@@ -329,7 +334,7 @@ public class FileParser {
 	}
 
 	private void addCommentsTo(HashMap<String, Object> properties, Metadata metadata, String key, Property property,
-			String regex) {
+							   String regex) {
 		if (metadata.get(property) != null) {
 			String[] commentsListAfterSplit = metadata.get(property).split(regex);
 			properties.put(key, join(commentsListAfterSplit, " "));

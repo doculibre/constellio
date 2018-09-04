@@ -1,13 +1,5 @@
 package com.constellio.app.modules.es.connectors.http.utils;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.eclipse.jetty.server.Server;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.es.connectors.http.ConnectorHttpDocumentFetchException;
 import com.constellio.app.modules.es.connectors.http.fetcher.HttpURLFetchingService;
 import com.constellio.app.modules.es.connectors.http.fetcher.UrlAcceptor;
@@ -16,6 +8,13 @@ import com.constellio.data.utils.hashing.HashingService;
 import com.constellio.model.services.parser.FileParser;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.eclipse.jetty.server.Server;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HtmlPageParserAcceptTest extends ConstellioTest {
 

@@ -1,12 +1,5 @@
 package com.constellio.app.modules.es.migrations;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.app.modules.es.model.connectors.ConnectorDocumentStatus;
@@ -17,12 +10,22 @@ import com.constellio.app.modules.es.model.connectors.http.enums.FetchFrequency;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
 public class EnterpriseSearchMigrationHelper {
 
@@ -33,7 +36,7 @@ public class EnterpriseSearchMigrationHelper {
 	public final MigrationResourcesProvider resourcesProvider;
 
 	public EnterpriseSearchMigrationHelper(AppLayerFactory appLayerFactory, String collection,
-			MigrationResourcesProvider migrationResourcesProvider) {
+										   MigrationResourcesProvider migrationResourcesProvider) {
 		this.es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		this.resourcesProvider = migrationResourcesProvider;
 		this.appLayerFactory = appLayerFactory;
@@ -43,8 +46,9 @@ public class EnterpriseSearchMigrationHelper {
 
 	public ConnectorType newConnectorType(MetadataSchema schema, Class<?> connectorClass, String connectorTypeCode) {
 
-		String title = resourcesProvider.getDefaultLanguageString("init." + schema.getCode().replace("-", ".").replace("_", "."));
-		return es.newConnectorType().setCode(connectorTypeCode).setTitle(title).setLinkedSchema(schema.getCode())
+		Map<Language, String> titles = resourcesProvider
+				.getLanguagesString("init." + schema.getCode().replace("-", ".").replace("_", "."));
+		return es.newConnectorType().setCode(connectorTypeCode).setTitles(titles).setLinkedSchema(schema.getCode())
 				.setConnectorClassName(connectorClass.getName());
 	}
 
@@ -57,7 +61,7 @@ public class EnterpriseSearchMigrationHelper {
 		}
 
 		public MetadataSchemaTypeBuilder newConnectorDocumentSchemaType(String schemaType,
-				String connectorInstanceSchemaCode) {
+																		String connectorInstanceSchemaCode) {
 
 			MetadataSchemaBuilder connectorInstanceSchema = types.getSchema(connectorInstanceSchemaCode);
 			MetadataSchemaBuilder connectorTypeSchemaType = types.getDefaultSchema(ConnectorType.SCHEMA_TYPE);

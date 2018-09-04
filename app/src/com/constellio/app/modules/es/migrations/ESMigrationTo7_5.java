@@ -8,25 +8,27 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class ESMigrationTo7_5 extends MigrationHelper implements MigrationScript {
-    @Override
-    public String getVersion() {
-        return "7.5";
-    }
+	@Override
+	public String getVersion() {
+		return "7.5";
+	}
 
-    @Override
-    public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) throws Exception {
-        new SchemaAlterationFor7_5(collection, migrationResourcesProvider, appLayerFactory).migrate();
-    }
+	@Override
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory) throws Exception {
+		new SchemaAlterationFor7_5(collection, migrationResourcesProvider, appLayerFactory).migrate();
+	}
 
-    static class SchemaAlterationFor7_5 extends MetadataSchemasAlterationHelper {
+	static class SchemaAlterationFor7_5 extends MetadataSchemasAlterationHelper {
 
-        protected SchemaAlterationFor7_5(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory) {
-            super(collection, migrationResourcesProvider, appLayerFactory);
-        }
+		protected SchemaAlterationFor7_5(String collection, MigrationResourcesProvider migrationResourcesProvider,
+										 AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
 
-        @Override
-        protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 
-        }
-    }
+		}
+	}
 }

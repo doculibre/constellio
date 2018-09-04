@@ -1,10 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
-
-import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class DecomListValidation implements ModifiableStructure {
 	String userId;
@@ -62,11 +61,11 @@ public class DecomListValidation implements ModifiableStructure {
 	@Override
 	public String toString() {
 		return "DecomValidations {" +
-				"userId='" + userId + '\'' +
-				", requestDate=" + requestDate +
-				", validationDate=" + validationDate +
-				", dirty=" + dirty +
-				'}';
+			   "userId='" + userId + '\'' +
+			   ", requestDate=" + requestDate +
+			   ", validationDate=" + validationDate +
+			   ", dirty=" + dirty +
+			   '}';
 	}
 
 	@Override

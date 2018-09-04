@@ -10,7 +10,10 @@ import org.mockito.Mock;
 
 import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
 import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.OPEN_DATE;
-import static com.constellio.app.modules.rm.model.enums.FolderStatus.*;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DESTROYED;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 

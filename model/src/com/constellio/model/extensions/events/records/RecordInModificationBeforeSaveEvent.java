@@ -1,6 +1,7 @@
 package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordImpl;
@@ -13,14 +14,17 @@ public class RecordInModificationBeforeSaveEvent extends BaseConsumableEventImpl
 
 	Record record;
 
+	private User transactionUser;
+
 	boolean singleRecordTransaction;
 
 	ValidationErrors validationErrors;
 
-	public RecordInModificationBeforeSaveEvent(Record record,
-			MetadataList modifiedMetadatas, boolean singleRecordTransaction, ValidationErrors validationErrors) {
+	public RecordInModificationBeforeSaveEvent(Record record, MetadataList modifiedMetadatas, User transactionUser,
+											   boolean singleRecordTransaction, ValidationErrors validationErrors) {
 		this.record = record;
 		this.modifiedMetadatas = modifiedMetadatas;
+		this.transactionUser = transactionUser;
 		this.singleRecordTransaction = singleRecordTransaction;
 		this.validationErrors = validationErrors;
 	}
@@ -66,6 +70,10 @@ public class RecordInModificationBeforeSaveEvent extends BaseConsumableEventImpl
 
 	public String getSchemaTypeCode() {
 		return new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+	}
+
+	public User getTransactionUser() {
+		return transactionUser;
 	}
 
 	public static class UnModifiedMetadataRuntimeException extends RuntimeException {

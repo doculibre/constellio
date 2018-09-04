@@ -1,5 +1,25 @@
 package com.constellio.app.services.extensions.plugins;
 
+import com.constellio.app.entities.modules.InstallableModule;
+import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.navigation.NavigationConfig;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_BlankId;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_ExistingId;
+import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_NonAlphaNumeric;
+import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.configs.SystemConfiguration;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.SDKFoldersLocator;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.ID_MISMATCH;
 import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_EXISTING_ID;
 import static com.constellio.app.services.extensions.plugins.PluginActivationFailureCause.INVALID_ID_FORMAT;
@@ -21,27 +41,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.app.entities.modules.InstallableModule;
-import com.constellio.app.entities.modules.MigrationScript;
-import com.constellio.app.entities.navigation.NavigationConfig;
-import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_BlankId;
-import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_ExistingId;
-import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_NonAlphaNumeric;
-import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.SDKFoldersLocator;
 
 public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 	private ConstellioPluginManager pluginManager;
@@ -358,15 +357,15 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 		ConstellioPluginConfigurationManager pluginConfigManger = new ConstellioPluginConfigurationManager(getDataLayerFactory());
 		pluginConfigManger.installPlugin(info.getCode(), info.getTitle(), info.getVersion(), info.getRequiredConstellioVersion());
 		switch (info.getPluginStatus()) {
-		case ENABLED:
-			pluginConfigManger.markPluginAsEnabled(info.getCode());
-			break;
-		case DISABLED:
-			pluginConfigManger.markPluginAsDisabled(info.getCode());
-			break;
-		case INVALID:
-			pluginConfigManger.invalidateModule(info.getCode(), info.getPluginActivationFailureCause(), null);
-			break;
+			case ENABLED:
+				pluginConfigManger.markPluginAsEnabled(info.getCode());
+				break;
+			case DISABLED:
+				pluginConfigManger.markPluginAsDisabled(info.getCode());
+				break;
+			case INVALID:
+				pluginConfigManger.invalidateModule(info.getCode(), info.getPluginActivationFailureCause(), null);
+				break;
 		}
 	}
 

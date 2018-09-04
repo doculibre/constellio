@@ -3,7 +3,6 @@ package com.constellio.model.services.users;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.XmlGlobalGroup;
-
 import org.apache.commons.lang.StringUtils;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -20,7 +19,7 @@ public class GlobalGroupsReader {
 	private static final String CODE = "code";
 	private static final String NAME = "name";
 	public static final String STATUS = "status";
-    public static final String LOCALLY_CREATED = "locallyCreated";
+	public static final String LOCALLY_CREATED = "locallyCreated";
 	Document document;
 
 	public GlobalGroupsReader(Document document) {

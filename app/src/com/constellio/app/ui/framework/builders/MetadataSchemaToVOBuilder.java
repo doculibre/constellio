@@ -1,5 +1,19 @@
 package com.constellio.app.ui.framework.builders;
 
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.CollectionInfoVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.CollectionInfo;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,18 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.factories.ConstellioFactories;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.entities.MetadataSchemaVO;
-import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
-import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.Language;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
 
 @SuppressWarnings("serial")
 public class MetadataSchemaToVOBuilder implements Serializable {
@@ -45,9 +47,10 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 	}
 
 	public MetadataSchemaVO build(MetadataSchema schema, VIEW_MODE viewMode, List<String> metadataCodes,
-			SessionContext sessionContext, boolean addMetadataCodes) {
+								  SessionContext sessionContext, boolean addMetadataCodes) {
 		String code = schema.getCode();
 		String collection = schema.getCollection();
+		String localCode = schema.getLocalCode();
 
 		Map<Locale, String> labels = new HashMap<Locale, String>();
 		Language language = Language.withCode(sessionContext.getCurrentLocale().getLanguage());
@@ -116,30 +119,28 @@ public class MetadataSchemaToVOBuilder implements Serializable {
 		}
 
 		MetadataToVOBuilder metadataToVOBuilder = newMetadataToVOBuilder();
-		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, formMetadataCodes, displayMetadataCodes,
-				tableMetadataCodes, searchMetadataCodes, labels);
+		CollectionInfo collectionInfo = schema.getCollectionInfo();
+
+		CollectionInfoVO collectionInfoVO = new CollectionInfoVO(collectionInfo.getMainSystemLanguage(), collectionInfo.getCode(), collectionInfo.getCollectionLanguages(),
+				collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
+		MetadataSchemaVO schemaVO = new MetadataSchemaVO(code, collection, localCode, formMetadataCodes, displayMetadataCodes,
+				tableMetadataCodes, searchMetadataCodes, labels, collectionInfoVO);
 		for (Metadata metadata : schema.getMetadatas()) {
-			//			String metadataCode = metadata.getCode();
-			//			boolean systemReserved = metadata.isSystemReserved();
-			//			boolean ignored;
-			//			if (viewMode == VIEW_MODE.FORM) {
-			//				ignored = systemReserved;
-			//			} else if (!systemReserved) {
-			//				ignored = false;
-			//			} else {
-			//				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
-			//				ignored = !DISPLAYED_SYSTEM_RESERVED_METADATA_CODES.contains(metadataCodeWithoutPrefix);
-			//			}
-			//			if (!ignored && metadata.getEnabled()) {
-			metadataToVOBuilder.build(metadata, schemaVO, sessionContext);
-			//			}
+			if (viewMode == VIEW_MODE.FORM && metadata.isMultiLingual()) {
+				List<Locale> supportedLocales = schema.getCollectionInfo().getCollectionLocales();
+				for (Locale supportedLocale : supportedLocales) {
+					metadataToVOBuilder.build(metadata, supportedLocale, schemaVO, sessionContext);
+				}
+			} else {
+				metadataToVOBuilder.build(metadata, schemaVO, sessionContext);
+			}
 		}
 
 		return schemaVO;
 	}
 
 	public MetadataSchemaVO build(MetadataSchema schema, VIEW_MODE viewMode, List<String> metadataCodes,
-			SessionContext sessionContext) {
+								  SessionContext sessionContext) {
 		return build(schema, viewMode, metadataCodes, sessionContext, false);
 	}
 

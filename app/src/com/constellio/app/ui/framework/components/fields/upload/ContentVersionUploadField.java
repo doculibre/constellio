@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.upload;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.converters.TempFileUploadToContentVersionVOConverter;
@@ -14,6 +9,11 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ContentVersionUploadField extends BaseUploadField {
 
@@ -41,7 +41,8 @@ public class ContentVersionUploadField extends BaseUploadField {
 	@Override
 	protected Component newItemCaption(Object itemId) {
 		ContentVersionVO contentVersionVO = (ContentVersionVO) itemId;
-		return new ContentVersionCaption(contentVersionVO);
+		boolean majorVersionFieldVisible = isMajorVersionField(contentVersionVO);
+		return new ContentVersionCaption(contentVersionVO, majorVersionFieldVisible);
 	}
 
 	protected boolean isMajorVersionField(ContentVersionVO contentVersionVO) {
@@ -92,19 +93,19 @@ public class ContentVersionUploadField extends BaseUploadField {
 		}
 	}
 
-	class ContentVersionCaption extends VerticalLayout {
+	public static class ContentVersionCaption extends VerticalLayout {
 
 		private Component captionComponent;
 
 		private OptionGroup majorVersionField;
 
-		private ContentVersionCaption(ContentVersionVO contentVersionVO) {
+		public ContentVersionCaption(ContentVersionVO contentVersionVO, boolean majorVersionFieldVisible) {
 			setSpacing(true);
 
-			captionComponent = new DownloadContentVersionLink(contentVersionVO);
+			captionComponent = newCaptionComponent(contentVersionVO);
 
 			majorVersionField = new OptionGroup();
-			majorVersionField.setVisible(isMajorVersionField(contentVersionVO));
+			majorVersionField.setVisible(majorVersionFieldVisible);
 			majorVersionField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 			majorVersionField.addItem(true);
 			majorVersionField.addItem(false);
@@ -122,6 +123,10 @@ public class ContentVersionUploadField extends BaseUploadField {
 		private void setMajorVersionFieldVisible(boolean visible) {
 			majorVersionField.setVisible(visible);
 			majorVersionField.setRequired(visible);
+		}
+
+		protected Component newCaptionComponent(ContentVersionVO contentVersionVO) {
+			return new DownloadContentVersionLink(contentVersionVO);
 		}
 
 	}

@@ -1,15 +1,14 @@
 package com.constellio.model.services.emails;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
+import com.constellio.model.services.emails.EmailServicesRuntimeException.EmailServicesRuntimeException_CannotGetStore;
+import com.constellio.model.services.emails.EmailServicesRuntimeException.EmailServicesRuntimeException_MessagingException;
+import com.constellio.sdk.SDKPasswords;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Test;
 
 import javax.mail.Flags;
 import javax.mail.Folder;
@@ -21,17 +20,16 @@ import javax.mail.Store;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.search.FlagTerm;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
 
-import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.model.services.emails.EmailServicesRuntimeException.EmailServicesRuntimeException_CannotGetStore;
-import com.constellio.model.services.emails.EmailServicesRuntimeException.EmailServicesRuntimeException_MessagingException;
-import com.constellio.sdk.SDKPasswords;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InternetTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
 public class EmailServicesAcceptanceTest extends ConstellioTest {
 

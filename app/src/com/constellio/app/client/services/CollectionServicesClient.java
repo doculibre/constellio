@@ -1,12 +1,12 @@
 package com.constellio.app.client.services;
 
+import com.constellio.app.client.AdminServicesConstants;
+import com.constellio.app.client.entities.CollectionResource;
+
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-
-import com.constellio.app.client.AdminServicesConstants;
-import com.constellio.app.client.entities.CollectionResource;
 
 public class CollectionServicesClient {
 

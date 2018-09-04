@@ -1,9 +1,5 @@
 package com.constellio.app.ui.application;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.ui.pages.decommissioning.OrderDecommissioningListViewImpl;
 import com.constellio.app.modules.rm.ui.pages.systemCheck.SystemCheckViewImpl;
 import com.constellio.app.ui.pages.SIP.SIPProgressionViewImpl;
@@ -38,6 +34,7 @@ import com.constellio.app.ui.pages.management.Report.DisplayPrintableReportViewI
 import com.constellio.app.ui.pages.management.Report.ListPrintableReportViewImpl;
 import com.constellio.app.ui.pages.management.TemporaryRecord.ListTemporaryRecordViewImpl;
 import com.constellio.app.ui.pages.management.app.AppManagementView;
+import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAndRoleAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListContentAccessAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListContentRoleAuthorizationsViewImpl;
 import com.constellio.app.ui.pages.management.authorizations.ListPrincipalAccessAuthorizationsViewImpl;
@@ -97,18 +94,25 @@ import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
 import com.constellio.app.ui.pages.search.SearchBoostByMetadataViewImpl;
 import com.constellio.app.ui.pages.search.SearchBoostByQueryViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
+import com.constellio.app.ui.pages.search.SolrFeatureViewImpl;
 import com.constellio.app.ui.pages.search.savedSearch.SavedSearchViewImpl;
 import com.constellio.app.ui.pages.spellchecker.DeleteSpellCheckerExclusionsViewImpl;
 import com.constellio.app.ui.pages.statistic.StatisticsViewImpl;
+import com.constellio.app.ui.pages.summaryconfig.SummaryConfigViewImpl;
 import com.constellio.app.ui.pages.synonyms.DisplaySynonymsViewImpl;
 import com.constellio.app.ui.pages.synonyms.EditSynonymsViewImpl;
 import com.constellio.app.ui.pages.trash.TrashViewImpl;
+import com.constellio.app.ui.pages.unicitymetadataconf.FolderUniqueKeyConfiguratorViewImpl;
 import com.constellio.app.ui.pages.user.AddEditUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.DisplayUserCredentialViewImpl;
 import com.constellio.app.ui.pages.user.ListUsersCredentialsViewImpl;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.Navigator.ClassBasedViewProvider;
 import com.vaadin.navigator.ViewProvider;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NavigatorConfigurationService implements Serializable {
 	public static final String HOME = "";
@@ -138,6 +142,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_PRINCIPAL_ACCESS_AUTHORIZATIONS = "principalAccessAuthorizations";
 	public static final String LIST_OBJECT_ACCESS_AUTHORIZATIONS = "objectAccessAuthorizations";
 	public static final String LIST_OBJECT_ROLE_AUTHORIZATIONS = "objectRoleAuthorizations";
+	public static final String LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS = "objectAccessAndRoleAuthorizations";
 	public static final String SHARE_CONTENT = "shareContent";
 	public static final String ADMIN_MODULE = "adminModule";
 	public static final String TRASH = "trash";
@@ -177,6 +182,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String LIST_SAVED_SEARCHES = "listSavedSearches";
 	public static final String SEARCH_BOOST_BY_METADATAS = "searchBoostByMetadatas";
 	public static final String SEARCH_BOOST_BY_QUERYS = "searchBoostByQuery";
+	public static final String SOLR_FEATURES = "solrFeatures";
 	public static final String FORCED_REINDEX = "reindex";
 	public static final String LABEL_CONFIG = "labelConfig";
 	public static final String LABEL_AJOUT = "addLabel";
@@ -224,9 +230,11 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String STATISTICS = "statistics";
 	public static final String DELETE_EXCLUSION = "correctorExclusion";
 	public static final String THESAURUS_CONFIGURATION = "thesaurusConfiguration";
-    public static final String PROPERTIES_ANALYSER = "propertiesAnalyser";
+	public static final String PROPERTIES_ANALYSER = "propertiesAnalyser";
+	public static final String SUMMARY_CONFIGURATOR = "summaryconfig";
+	public static final String FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR = "FolderUniqueKeyMetadataConfigurator";
 
-    private List<ViewProvider> viewProviders = new ArrayList<>();
+	private List<ViewProvider> viewProviders = new ArrayList<>();
 
 	public NavigatorConfigurationService() {
 		viewProviders.add(new ClassBasedViewProvider(SIMPLE_SEARCH, SimpleSearchViewImpl.class));
@@ -263,6 +271,8 @@ public class NavigatorConfigurationService implements Serializable {
 				ListContentAccessAuthorizationsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(LIST_OBJECT_ROLE_AUTHORIZATIONS,
 				ListContentRoleAuthorizationsViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(LIST_OBJECT_ACCESS_AND_ROLE_AUTHORIZATIONS,
+				ListContentAccessAndRoleAuthorizationsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SHARE_CONTENT, ShareContentViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER_LIST, ListCollectionUserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(COLLECTION_USER, CollectionUserViewImpl.class));
@@ -319,6 +329,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(PROPERTIES_ANALYSER, PropertiesAnalyserViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_METADATAS, SearchBoostByMetadataViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SEARCH_BOOST_BY_QUERYS, SearchBoostByQueryViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SOLR_FEATURES, SolrFeatureViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(ORDER_DECOMMISSIONING_LIST_CONFIGURATION,
 				OrderDecommissioningListViewImpl.class));
 
@@ -352,6 +363,8 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(SIP_PROGRESSION, SIPProgressionViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(DELETE_EXCLUSION, DeleteSpellCheckerExclusionsViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(THESAURUS_CONFIGURATION, ThesaurusConfigurationViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(SUMMARY_CONFIGURATOR, SummaryConfigViewImpl.class));
+		viewProviders.add(new ClassBasedViewProvider(FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR, FolderUniqueKeyConfiguratorViewImpl.class));
 	}
 
 	public void configure(Navigator navigator) {

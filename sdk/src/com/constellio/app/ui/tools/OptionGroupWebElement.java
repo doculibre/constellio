@@ -1,11 +1,10 @@
 package com.constellio.app.ui.tools;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
 import org.openqa.selenium.By;
 
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class OptionGroupWebElement {
 

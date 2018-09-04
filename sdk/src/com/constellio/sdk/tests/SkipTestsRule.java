@@ -1,20 +1,5 @@
 package com.constellio.sdk.tests;
 
-import static com.constellio.sdk.tests.TestUtils.asList;
-
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.junit.internal.AssumptionViolatedException;
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
-
 import com.constellio.sdk.tests.annotations.CloudTest;
 import com.constellio.sdk.tests.annotations.DoNotRunOnIntegrationServer;
 import com.constellio.sdk.tests.annotations.DriverTest;
@@ -28,6 +13,20 @@ import com.constellio.sdk.tests.annotations.MainTestDefaultStart;
 import com.constellio.sdk.tests.annotations.PerformanceTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.annotations.UiTest;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.internal.AssumptionViolatedException;
+import org.junit.rules.TestRule;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
+
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
 
 public class SkipTestsRule implements TestRule {
 
@@ -63,24 +62,8 @@ public class SkipTestsRule implements TestRule {
 
 		RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
 		Map<String, String> systemProperties = bean.getSystemProperties();
-		//
-		//		for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
-		//
-		//			if (entry.getValue().toLowerCase().contains("ldap")) {
-		//				System.out.println(entry.getValue());
-		//			}
-		//		}
 
 		sunJavaCommand = systemProperties.get("sun.java.command");
-		//		String bootClasspath = bean.getBootClassPath();
-		//		String classpath = bean.getClassPath();
-		//		String libraryPath = bean.getLibraryPath();
-		//		List<String> inputArguments = bean.getInputArguments();
-		//		System.out.println(inputArguments);
-		//		System.out.println(systemProperties);
-		//		System.out.println(bootClasspath);
-		//		System.out.println(classpath);
-		//		System.out.println(libraryPath);
 		this.whiteList = new ArrayList<>();
 		this.blackList = new ArrayList<>();
 
@@ -126,6 +109,8 @@ public class SkipTestsRule implements TestRule {
 			Map<String, String> properties = sdkPropertiesLoader.getSDKProperties();
 			this.skipTestsWithGradle = !("false".equals(properties.get("skip.testsWithGradle")));
 
+		} else {
+			this.skipTestsWithGradle = false;
 		}
 	}
 
@@ -309,7 +294,7 @@ public class SkipTestsRule implements TestRule {
 
 		} else {
 			return currentTestClass.getName().equals(firstClassname)
-					&& currentTestName.equals(firstTestname);
+				   && currentTestName.equals(firstTestname);
 		}
 	}
 

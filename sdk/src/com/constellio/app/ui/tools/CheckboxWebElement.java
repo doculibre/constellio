@@ -1,8 +1,7 @@
 package com.constellio.app.ui.tools;
 
-import org.openqa.selenium.By;
-
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
 
 public class CheckboxWebElement {
 	private final ConstellioWebElement element;

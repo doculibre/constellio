@@ -1,18 +1,17 @@
 package com.constellio.app.ui.entities;
 
-import static java.util.Arrays.asList;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.model.entities.security.Role;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.joda.time.LocalDate;
 
-import com.constellio.model.entities.security.Role;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Arrays.asList;
 
 public class AuthorizationVO implements Serializable {
 	String authId;

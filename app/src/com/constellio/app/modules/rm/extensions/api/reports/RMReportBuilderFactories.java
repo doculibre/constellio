@@ -1,7 +1,11 @@
 package com.constellio.app.modules.rm.extensions.api.reports;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
-import com.constellio.app.modules.rm.reports.builders.administration.plan.*;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.AvailableSpaceReportParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.ConservationRulesReportParameters;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.UserReportParameters;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.ContainerRecordReportParameters;
 import com.constellio.app.modules.rm.reports.builders.decommissioning.DecommissioningListReportParameters;
 import com.constellio.app.modules.rm.reports.builders.search.stats.StatsReportParameters;

@@ -1,14 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import elemental.json.JsonArray;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.ui.components.userDocument.UserDocumentsWindow;
@@ -43,6 +34,13 @@ import com.vaadin.ui.SingleComponentContainer;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import elemental.json.JsonArray;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 /*
  * Dashboard MainView is a simple HorizontalLayout that wraps the menu on the
@@ -57,14 +55,14 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	private CssLayout contentFooterWrapperLayout;
 	private VerticalLayout contentFooterLayout;
 	private ConstellioHeaderImpl header;
-	private Component mainMenu;
+	private ConstellioMenuImpl mainMenu;
 	private SingleComponentContainer contentViewWrapper;
 	private DragAndDropWrapper dragAndDropWrapper;
 	private UserDocumentsWindow userDocumentsWindow;
 
 	public MainLayoutImpl(AppLayerFactory appLayerFactory) {
 		this.presenter = new MainLayoutPresenter(this);
-		
+
 		addStyleName("main-layout");
 
 		mainMenuContentFooterLayout = new I18NHorizontalLayout();
@@ -166,7 +164,7 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 		return new ConstellioHeaderImpl();
 	}
 
-	protected Component buildMainMenu() {
+	protected ConstellioMenuImpl buildMainMenu() {
 		ConstellioMenuImpl mainMenu = new ConstellioMenuImpl() {
 			@Override
 			protected List<ConstellioMenuButton> buildMainMenuButtons() {
@@ -242,7 +240,12 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 				item.activate(navigate());
 			}
 		});
-		return new ConstellioMenuButton(item.getViewGroup(), button);
+		return new ConstellioMenuButton(item.getViewGroup(), button) {
+			@Override
+			public String getBadge() {
+				return presenter.getBadge(item);
+			}
+		};
 	}
 
 	@Override
@@ -258,6 +261,11 @@ public class MainLayoutImpl extends VerticalLayout implements MainLayout {
 	@Override
 	public ConstellioHeaderImpl getHeader() {
 		return header;
+	}
+
+	@Override
+	public ConstellioMenu getMenu() {
+		return mainMenu;
 	}
 
 }

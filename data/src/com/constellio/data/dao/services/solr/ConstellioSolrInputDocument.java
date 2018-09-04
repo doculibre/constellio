@@ -1,11 +1,15 @@
 package com.constellio.data.dao.services.solr;
 
-import java.util.*;
-
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 
-import com.constellio.data.utils.ImpossibleRuntimeException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ConstellioSolrInputDocument extends SolrInputDocument {
 
@@ -123,7 +127,7 @@ public class ConstellioSolrInputDocument extends SolrInputDocument {
 		} else if (value != null && !expectedValueClass.isAssignableFrom(value.getClass())) {
 			throw new ImpossibleRuntimeException(
 					"value of field '" + fieldName + "' must be a " + expectedValueClass.getSimpleName() + " instead of a "
-							+ value.getClass().getSimpleName());
+					+ value.getClass().getSimpleName());
 		}
 
 	}

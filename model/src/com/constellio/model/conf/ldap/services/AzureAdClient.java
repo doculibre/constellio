@@ -1,20 +1,15 @@
 package com.constellio.model.conf.ldap.services;
 
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
+import com.constellio.model.conf.ldap.user.LDAPGroup;
+import com.constellio.model.conf.ldap.user.LDAPUser;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.microsoft.aad.adal4j.AuthenticationContext;
+import com.microsoft.aad.adal4j.AuthenticationResult;
+import com.microsoft.aad.adal4j.ClientCredential;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang3.StringUtils;
@@ -26,16 +21,24 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.services.LDAPServicesException.CouldNotConnectUserToLDAP;
-import com.constellio.model.conf.ldap.user.LDAPGroup;
-import com.constellio.model.conf.ldap.user.LDAPUser;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.microsoft.aad.adal4j.AuthenticationContext;
-import com.microsoft.aad.adal4j.AuthenticationResult;
-import com.microsoft.aad.adal4j.ClientCredential;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  */
@@ -390,7 +393,7 @@ public class AzureAdClient {
 	private LDAPUserSyncConfiguration ldapUserSyncConfiguration;
 
 	public AzureAdClient(final LDAPServerConfiguration ldapServerConfiguration,
-			final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+						 final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		this.ldapServerConfiguration = ldapServerConfiguration;
 		this.ldapUserSyncConfiguration = ldapUserSyncConfiguration;
 	}

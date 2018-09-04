@@ -1,7 +1,5 @@
 package com.constellio.app.ui.acceptation.permissions;
 
-import org.openqa.selenium.By;
-
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.pages.management.permissions.PermissionsManagementViewImpl;
@@ -11,6 +9,7 @@ import com.constellio.app.ui.tools.PageHelper;
 import com.constellio.app.ui.tools.RecordFormWebElement;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
 
 public class PermissionsManagementPage extends PageHelper {
 	protected PermissionsManagementPage(ConstellioWebDriver driver) {

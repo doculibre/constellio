@@ -1,14 +1,13 @@
 package com.constellio.app.ui.framework.components.fields;
 
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-
-import org.vaadin.openesignforms.ckeditor.CKEditorConfig;
-import org.vaadin.openesignforms.ckeditor.CKEditorTextField;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.data.Property;
+import org.vaadin.openesignforms.ckeditor.CKEditorConfig;
+import org.vaadin.openesignforms.ckeditor.CKEditorTextField;
+
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 public class BaseRichTextArea extends CKEditorTextField {
 
@@ -45,6 +44,7 @@ public class BaseRichTextArea extends CKEditorTextField {
 
 	private void init() {
 		setWidth("100%");
+		setHeight("600px");
 		setCaptionAsHtml(true);
 		addStyleName("base-rich-text");
 	}
@@ -66,8 +66,8 @@ public class BaseRichTextArea extends CKEditorTextField {
 		CKEditorConfig config = new CKEditorConfig();
 		config.addCustomToolbarLine(toolbarConfig);
 		if (isRightToLeft()) {
-//			config.addExtraConfig("contentsLangDirection",  "rtl");
-//			config.addExtraConfig("language", "fr");
+			//			config.addExtraConfig("contentsLangDirection",  "rtl");
+			//			config.addExtraConfig("language", "fr");
 		}
 		config.setWidth("100%");
 		return config;

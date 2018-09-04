@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.batchprocess;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.BatchProcessContainer;
 import com.constellio.app.ui.framework.data.BatchProcessDataProvider;
@@ -11,11 +9,13 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class ListBatchProcessesViewImpl extends BaseViewImpl implements ListBatchProcessesView {
-	
+
 	private BatchProcessDataProvider userBatchProcessDataProvider;
 	private BatchProcessDataProvider systemBatchProcessDataProvider;
-	
+
 	private ListBatchProcessesPresenter presenter;
 
 	public ListBatchProcessesViewImpl() {
@@ -38,24 +38,24 @@ public class ListBatchProcessesViewImpl extends BaseViewImpl implements ListBatc
 		mainLayout.addStyleName("batch-processes");
 		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
-		
+
 		if (systemBatchProcessDataProvider != null) {
 			BaseTable userBatchProcessTable = newTable(false, null);
 			BaseTable systemBatchProcessTable = newTable(true, null);
-			
+
 			TabSheet tabSheet = new TabSheet();
 			tabSheet.addTab(userBatchProcessTable, $("ListBatchProcessesView.userBatchProcesses"));
 			tabSheet.addTab(systemBatchProcessTable, $("ListBatchProcessesView.systemBatchProcesses"));
-			
+
 			mainLayout.addComponent(tabSheet);
 		} else {
 			BaseTable userBatchProcessTable = newTable(false, $("ListBatchProcessesView.userBatchProcesses"));
 			mainLayout.addComponent(userBatchProcessTable);
 		}
-		
+
 		return mainLayout;
 	}
-	
+
 	private BaseTable newTable(boolean systemBatchProcesses, String caption) {
 		BatchProcessContainer container;
 		BaseTable batchProcessTable;
@@ -81,7 +81,7 @@ public class ListBatchProcessesViewImpl extends BaseViewImpl implements ListBatc
 		batchProcessTable.setColumnHeader("report", $("ListBatchProcessesView.report"));
 
 		batchProcessTable.setWidth("98%");
-		
+
 		return batchProcessTable;
 	}
 

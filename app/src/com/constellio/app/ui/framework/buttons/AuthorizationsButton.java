@@ -1,9 +1,9 @@
 package com.constellio.app.ui.framework.buttons;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class AuthorizationsButton extends IconButton {
 	public static final Resource ICON_RESOURCE = new ThemeResource("images/commun/key.png");

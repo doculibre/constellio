@@ -1,5 +1,10 @@
 package com.constellio.data.events;
 
+import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_DataIsNotSerializable;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
+import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -11,13 +16,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.bind.DatatypeConverter;
-
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import com.constellio.data.events.EventBusManagerRuntimeException.EventBusManagerRuntimeException_DataIsNotSerializable;
 
 public class EventDataSerializer {
 
@@ -203,7 +201,9 @@ public class EventDataSerializer {
 		return data;
 	}
 
-	/** Write the object to a Base64 string. */
+	/**
+	 * Write the object to a Base64 string.
+	 */
 	private static String serializeToBase64(Serializable o)
 			throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

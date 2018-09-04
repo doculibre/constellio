@@ -24,6 +24,7 @@ local.properties
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 sdk.properties
+launcher.properties
 /sdk/src/com/constellio/DeveloperTestSuite.*
 rebel.xml
 rebel-remote.xml
@@ -59,6 +60,7 @@ benckmarks/
 /.idea
 .benchmarks.mv.db
 .DS_Store
+*/out
 
 /sdk/src/com/intelligid/DeveloperTestSuite.*
 /sdk/intelligid.log*

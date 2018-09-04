@@ -1,21 +1,20 @@
 package com.constellio.app.ui.pages.user;
 
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.net.URLEncoder;
-
-import org.junit.Before;
-import org.mockito.Mock;
-
 import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedFactories;
+import org.junit.Before;
+import org.mockito.Mock;
+
+import java.net.URLEncoder;
+
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ListUserCredentialsPresenterTest extends ConstellioTest {
 

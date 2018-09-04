@@ -9,7 +9,7 @@ public abstract class ActionWithTimeout<T> {
 
 	/**
 	 * This method will throw any exception that might have happened right away instead of waiting until the timeout is over.
-	 * 
+	 *
 	 * @param totalWaitInMS
 	 * @return
 	 * @throws Exception
@@ -30,7 +30,7 @@ public abstract class ActionWithTimeout<T> {
 
 	/**
 	 * This method will wait until after the timeout to throw any exception that could have occurred.
-	 * 
+	 *
 	 * @param totalWaitInMS
 	 * @return
 	 * @throws Exception

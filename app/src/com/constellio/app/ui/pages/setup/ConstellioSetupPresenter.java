@@ -1,18 +1,5 @@
 package com.constellio.app.ui.pages.setup;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
@@ -49,6 +36,18 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView> {
 
@@ -126,8 +125,9 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 		view.reloadForm();
 	}
 
-	public void saveRequested(List<String> languages, List<String> modules, String collectionTitle, String collectionCode,
-			String adminPassword, boolean demoData)
+	public void saveRequested(List<String> languages, List<String> modules, String collectionTitle,
+							  String collectionCode,
+							  String adminPassword, boolean demoData)
 			throws ConstellioSetupPresenterException {
 
 		if (!isValidCode(collectionCode)) {
@@ -259,7 +259,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 	private List<File> getTLogs(File tempFolder) {
 		File tlogsFolder = new File(new File(tempFolder, "content"), "tlogs");
-		return new ArrayList<>(FileUtils.listFiles(tlogsFolder, new String[] { "tlog" }, false));
+		return new ArrayList<>(FileUtils.listFiles(tlogsFolder, new String[]{"tlog"}, false));
 	}
 
 	private void revertState(IOServices ioServices, File settingsFolder, File contentsFolder) {

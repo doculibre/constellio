@@ -1,9 +1,9 @@
 package com.constellio.app.entities.schemasDisplay;
 
-import java.io.Serializable;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+
+import java.io.Serializable;
 
 public class MetadataDisplayConfig implements Serializable {
 
@@ -22,8 +22,8 @@ public class MetadataDisplayConfig implements Serializable {
 	private final boolean highlight;
 
 	public MetadataDisplayConfig(String collection, String metadataCode, boolean visibleInAdvancedSearch,
-			MetadataInputType inputType, boolean highlight, String metadataGroupCode,
-			MetadataDisplayType displayType) {
+								 MetadataInputType inputType, boolean highlight, String metadataGroupCode,
+								 MetadataDisplayType displayType) {
 		this.collection = collection;
 		this.metadataCode = metadataCode;
 		this.visibleInAdvancedSearch = visibleInAdvancedSearch;
@@ -98,25 +98,33 @@ public class MetadataDisplayConfig implements Serializable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (!(o instanceof MetadataDisplayConfig))
+		}
+		if (!(o instanceof MetadataDisplayConfig)) {
 			return false;
+		}
 
 		MetadataDisplayConfig that = (MetadataDisplayConfig) o;
 
-		if (visibleInAdvancedSearch != that.visibleInAdvancedSearch)
+		if (visibleInAdvancedSearch != that.visibleInAdvancedSearch) {
 			return false;
-		if (highlight != that.highlight)
+		}
+		if (highlight != that.highlight) {
 			return false;
-		if (metadataCode != null ? !metadataCode.equals(that.metadataCode) : that.metadataCode != null)
+		}
+		if (metadataCode != null ? !metadataCode.equals(that.metadataCode) : that.metadataCode != null) {
 			return false;
-		if (collection != null ? !collection.equals(that.collection) : that.collection != null)
+		}
+		if (collection != null ? !collection.equals(that.collection) : that.collection != null) {
 			return false;
-		if (inputType != that.inputType)
+		}
+		if (inputType != that.inputType) {
 			return false;
-		if (displayType != that.displayType)
+		}
+		if (displayType != that.displayType) {
 			return false;
+		}
 		return metadataGroupCode != null ? metadataGroupCode.equals(that.metadataGroupCode) : that.metadataGroupCode == null;
 	}
 

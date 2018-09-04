@@ -1,16 +1,19 @@
 package com.constellio.model.services.taxonomies;
 
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
 import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import com.constellio.model.entities.Taxonomy;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 public class TaxonomiesReader {
 
@@ -25,9 +28,11 @@ public class TaxonomiesReader {
 	private static final String ENABLES = "enables";
 	private static final String SCHEMA_TYPES = "schemaTypes";
 	private final Document document;
+	private final List<String> languageCollectionSupported;
 
-	public TaxonomiesReader(Document document) {
+	public TaxonomiesReader(Document document, List<String> languageCollectionSupported) {
 		this.document = document;
+		this.languageCollectionSupported = languageCollectionSupported;
 	}
 
 	public String readPrincipalCode() {
@@ -57,6 +62,28 @@ public class TaxonomiesReader {
 	private Taxonomy readTaxonomy(Element taxonomyElement) {
 		String code = taxonomyElement.getAttributeValue(CODE);
 		String title = taxonomyElement.getChildText(TITLE);
+
+		Map<Language, String> languageTitleMap = new HashMap();
+
+		List<Attribute> attributeList = taxonomyElement.getChild(TITLE).getAttributes();
+		int numberOfLang = 0;
+		if (attributeList.size() > 0) {
+			for (Attribute currentAttribute : attributeList) {
+				if (currentAttribute.getName().startsWith("title")) {
+					String languageCode = currentAttribute.getName().replace("title", "");
+					Language language = Language.withCode(languageCode);
+					languageTitleMap.put(language, currentAttribute.getValue());
+					numberOfLang++;
+				}
+			}
+		}
+		if (numberOfLang == 0) {
+			for (String languageCollection : languageCollectionSupported) {
+				Language language = Language.withCode(languageCollection);
+				languageTitleMap.put(language, title);
+			}
+		}
+
 		String collection = taxonomyElement.getChildText(COLLECTION);
 		List<String> userIds = toIdsList(taxonomyElement.getChildText(USER_IDS));
 		List<String> groupIds = toIdsList(taxonomyElement.getChildText(GROUP_IDS));
@@ -67,7 +94,9 @@ public class TaxonomiesReader {
 		for (Element schemaTypeElement : taxonomyElement.getChild(SCHEMA_TYPES).getChildren()) {
 			taxonomySchemaTypes.add(schemaTypeElement.getText());
 		}
-		return new Taxonomy(code, title, collection, visibleInHomePage,
+
+
+		return new Taxonomy(code, languageTitleMap, collection, visibleInHomePage,
 				userIds, groupIds, taxonomySchemaTypes, showParents);
 	}
 

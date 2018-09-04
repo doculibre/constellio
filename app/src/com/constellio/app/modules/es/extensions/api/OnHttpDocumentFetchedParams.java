@@ -4,24 +4,24 @@ import com.constellio.app.modules.es.model.connectors.http.ConnectorHttpDocument
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 public class OnHttpDocumentFetchedParams {
-    ConnectorHttpDocument connectorHttpDocument;
-    ModelLayerFactory modelLayerFactory;
+	ConnectorHttpDocument connectorHttpDocument;
+	ModelLayerFactory modelLayerFactory;
 
-    public ModelLayerFactory getModelLayerFactory() {
-        return modelLayerFactory;
-    }
+	public ModelLayerFactory getModelLayerFactory() {
+		return modelLayerFactory;
+	}
 
-    public OnHttpDocumentFetchedParams setModelLayerFactory(ModelLayerFactory modelLayerFactory) {
-        this.modelLayerFactory = modelLayerFactory;
-        return this;
-    }
+	public OnHttpDocumentFetchedParams setModelLayerFactory(ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
+		return this;
+	}
 
-    public ConnectorHttpDocument getConnectorHttpDocument() {
-        return connectorHttpDocument;
-    }
+	public ConnectorHttpDocument getConnectorHttpDocument() {
+		return connectorHttpDocument;
+	}
 
-    public OnHttpDocumentFetchedParams setConnectorHttpDocument(ConnectorHttpDocument connectorHttpDocument) {
-        this.connectorHttpDocument = connectorHttpDocument;
-        return this;
-    }
+	public OnHttpDocumentFetchedParams setConnectorHttpDocument(ConnectorHttpDocument connectorHttpDocument) {
+		this.connectorHttpDocument = connectorHttpDocument;
+		return this;
+	}
 }

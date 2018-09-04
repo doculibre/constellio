@@ -1,11 +1,19 @@
 package com.constellio.app.ui.pages.management.schemas.display.display;
 
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.app.ui.entities.FormMetadataVO;
+import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedNavigation;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
+import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,23 +22,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.constellio.sdk.tests.MockedNavigation;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.entities.FormMetadataVO;
-import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
-import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class DisplayConfigPresenterAcceptanceTest extends ConstellioTest {
 	TestsSchemasSetup setup = new TestsSchemasSetup(zeCollection);

@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
-import static com.constellio.app.ui.framework.components.BaseForm.CANCEL_BUTTON;
-import static com.constellio.app.ui.framework.components.BaseForm.SAVE_BUTTON;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.vaadin.ui.themes.ValoTheme.BUTTON_PRIMARY;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.framework.buttons.WindowButton;
@@ -27,8 +17,18 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.framework.components.BaseForm.BUTTONS_LAYOUT;
+import static com.constellio.app.ui.framework.components.BaseForm.CANCEL_BUTTON;
+import static com.constellio.app.ui.framework.components.BaseForm.SAVE_BUTTON;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.vaadin.ui.themes.ValoTheme.BUTTON_PRIMARY;
+
 public class ListPrincipalAccessAuthorizationsViewImpl extends ListAuthorizationsViewImpl implements
-																						  ListPrincipalAccessAuthorizationsView {
+		ListPrincipalAccessAuthorizationsView {
 
 	public ListPrincipalAccessAuthorizationsViewImpl() {
 		presenter = new ListPrincipalAccessAuthorizationsPresenter(this);

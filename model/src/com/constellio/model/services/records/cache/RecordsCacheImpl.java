@@ -1,28 +1,5 @@
 package com.constellio.model.services.records.cache;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
-import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
-import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
-import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
@@ -42,6 +19,28 @@ import com.constellio.model.services.search.query.logical.condition.DataStoreFil
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.search.query.logical.condition.SchemaFilters;
 import com.constellio.model.services.search.query.logical.condition.SchemaTypesFilters;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.model.services.records.cache.CacheInsertionStatus.ACCEPTED;
+import static com.constellio.model.services.records.cache.CacheInsertionStatus.REFUSED_OLD_VERSION;
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.hasNoUnsupportedFeatureOrFilter;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class RecordsCacheImpl implements RecordsCache {
 
@@ -283,8 +282,8 @@ public class RecordsCacheImpl implements RecordsCache {
 				schemaType = schemaTypesFilters.getSchemaTypes().size() == 1 ? schemaTypesFilters.getSchemaTypes().get(0) : null;
 			} else if (((SchemaTypesFilters) filters).getSchemaTypesCodes() != null) {
 				String schemaTypeCode = schemaTypesFilters.getSchemaTypesCodes().size() == 1 ?
-						schemaTypesFilters.getSchemaTypesCodes().get(0) :
-						null;
+										schemaTypesFilters.getSchemaTypesCodes().get(0) :
+										null;
 				if (schemaTypeCode != null) {
 					schemaType = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
 							.getSchemaType(schemaTypeCode);
@@ -365,9 +364,9 @@ public class RecordsCacheImpl implements RecordsCache {
 
 		if (Toggle.LOG_REQUEST_CACHE.isEnabled()) {
 			if (!insertedRecord.getSchemaCode().startsWith("event")
-					&& !doNotLog.contains(insertedRecord.getId() + "_" + insertedRecord.getVersion())) {
+				&& !doNotLog.contains(insertedRecord.getId() + "_" + insertedRecord.getVersion())) {
 				new Exception("inserting in central cache " + insertedRecord.getIdTitle() + " in version "
-						+ insertedRecord.getVersion()).printStackTrace();
+							  + insertedRecord.getVersion()).printStackTrace();
 			}
 		}
 		CacheConfig cacheConfig = getCacheConfigOf(insertedRecord.getSchemaCode());
@@ -449,7 +448,7 @@ public class RecordsCacheImpl implements RecordsCache {
 	}
 
 	private void insertRecordIntoAnAlreadyExistingVolatileCacheHolder(Record record, CacheConfig cacheConfig,
-			RecordHolder currentHolder) {
+																	  RecordHolder currentHolder) {
 		if (currentHolder.record == null) {
 			VolatileCache cache = volatileCaches.get(cacheConfig.getSchemaType());
 			cache.releaseFor(1);
@@ -531,11 +530,14 @@ public class RecordsCacheImpl implements RecordsCache {
 		recordByMetadataCache.put(cacheConfig.getSchemaType(), new RecordByMetadataCache(cacheConfig));
 
 		if (cacheConfig.isLoadedInitially()) {
-			LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
+
 			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(collection).getSchemaType(cacheConfig.getSchemaType());
-			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 10000 || asList(User.SCHEMA_TYPE,
-					Group.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE).contains(cacheConfig.getSchemaType())) {
+			long resultCount = searchServices.getResultsCount(from(schemaType).returnAll());
+			if (resultCount > 0 && (resultCount < 10000 || asList(User.SCHEMA_TYPE,
+					Group.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE).contains(cacheConfig.getSchemaType()))) {
+
+				LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
 				searchServices.getAllRecords(schemaType);
 			}
 		}
@@ -673,7 +675,7 @@ public class RecordsCacheImpl implements RecordsCache {
 
 			if (invalidationMethod == VolatileCacheInvalidationMethod.LRU) {
 				if (holder != null && holder.getCopy() != null && holder.getCopy().getTypeCode() != null
-						&& holder.getCopy().getTypeCode().equals("savedSearch")) {
+					&& holder.getCopy().getTypeCode().equals("savedSearch")) {
 					System.out.println("hit on savedSearch " + holder.getCopy().getId());
 				}
 

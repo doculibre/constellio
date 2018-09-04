@@ -1,20 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport.authorization;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.jdom2.Document;
-import org.jdom2.JDOMException;
-import org.jdom2.input.SAXBuilder;
-
 import com.constellio.app.services.schemas.bulkImport.BulkImportResults;
 import com.constellio.app.services.schemas.bulkImport.ImportError;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_AuthorizationIDMissing;
@@ -36,6 +21,20 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.jdom2.Document;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 
 public class AuthorizationImportServices {
 	private static final Logger LOGGER = LogManager.getLogger(AuthorizationImportServices.class);
@@ -66,7 +65,7 @@ public class AuthorizationImportServices {
 	}
 
 	private void bulkImport(Document document, BulkImportResults bulkImportResults, String collection,
-			ModelLayerFactory modelLayerFactory) {
+							ModelLayerFactory modelLayerFactory) {
 		try {
 			List<ImportedAuthorization> allImportedAuthorizations = new ImportedAuthorizationReader(
 					document).readAll();
@@ -80,7 +79,8 @@ public class AuthorizationImportServices {
 	}
 
 	private void addUpdateOrDeleteAuthorizations(List<ImportedAuthorization> authorizations, String collection,
-			ModelLayerFactory modelLayerFactory, BulkImportResults bulkImportResults) {
+												 ModelLayerFactory modelLayerFactory,
+												 BulkImportResults bulkImportResults) {
 		if (!authorizations.isEmpty()) {
 			AuthorizationsServices authorizationServices = modelLayerFactory.newAuthorizationsServices();
 			ImportedAuthorizationToAuthorizationBuilder builder = new ImportedAuthorizationToAuthorizationBuilder(collection,
@@ -98,10 +98,10 @@ public class AuthorizationImportServices {
 	}
 
 	void addUpdateOrDeleteAuthorization(ImportedAuthorization importedAuthorization,
-			ImportedAuthorizationToAuthorizationBuilder builder, String collection,
-			AuthorizationsServices authorizationServices) {
+										ImportedAuthorizationToAuthorizationBuilder builder, String collection,
+										AuthorizationsServices authorizationServices) {
 		if (StringUtils.isBlank(importedAuthorization.getAccess()) && (importedAuthorization.getRoles() == null
-				|| importedAuthorization.getRoles().isEmpty())) {
+																	   || importedAuthorization.getRoles().isEmpty())) {
 			deleteAuthorizationIfExists(authorizationServices, collection, importedAuthorization.getId());
 		} else {
 			try {
@@ -131,7 +131,8 @@ public class AuthorizationImportServices {
 
 	}
 
-	private void deleteAuthorizationIfExists(AuthorizationsServices authorizationServices, String collection, String id) {
+	private void deleteAuthorizationIfExists(AuthorizationsServices authorizationServices, String collection,
+											 String id) {
 		SolrAuthorizationDetails authorization = schemas
 				.getSolrAuthorizationDetailsWithLegacyId(id);// getAuthorizationIdByIdWithoutPrefix(collection, id);
 

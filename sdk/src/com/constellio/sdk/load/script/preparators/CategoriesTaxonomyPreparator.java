@@ -1,7 +1,5 @@
 package com.constellio.sdk.load.script.preparators;
 
-import static java.util.Arrays.asList;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -12,6 +10,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.sdk.load.script.utils.LinkableIdsList;
+
+import static java.util.Arrays.asList;
 
 public class CategoriesTaxonomyPreparator extends BaseTaxonomyPreparator {
 
@@ -25,7 +25,8 @@ public class CategoriesTaxonomyPreparator extends BaseTaxonomyPreparator {
 	}
 
 	@Override
-	protected RecordWrapper newConceptWithCodeAndParent(RMSchemasRecordsServices rm, String code, RecordWrapper parent) {
+	protected RecordWrapper newConceptWithCodeAndParent(RMSchemasRecordsServices rm, String code,
+														RecordWrapper parent) {
 
 		String title = "Category '" + code + "'";
 		return ids.attach(rm.newCategory().setCode(code).setTitle(title).setParent((Category) parent))

@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.base;
 
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -17,6 +15,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 
+import java.util.List;
+
 public abstract class SingleSchemaBasePresenter<T extends BaseView> extends BasePresenter<T> {
 
 	private SchemaPresenterUtils schemaPresenterUtils;
@@ -30,7 +30,7 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 	}
 
 	public SingleSchemaBasePresenter(T view, String schemaCode, ConstellioFactories constellioFactories,
-			SessionContext sessionContext) {
+									 SessionContext sessionContext) {
 		super(view, constellioFactories, sessionContext);
 		this.schemaPresenterUtils = new SchemaPresenterUtils(schemaCode, constellioFactories, sessionContext);
 	}
@@ -94,10 +94,17 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 	}
 
 	protected final void delete(Record record, String reason, boolean physically) {
+		delete(record, reason, physically, false);
+	}
+
+	protected final void delete(Record record, String reason, boolean physically, boolean throwException) {
 		try {
 			schemaPresenterUtils.delete(record, reason, physically);
 		} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord exception) {
 			view.showErrorMessage(MessageUtils.toMessage(exception));
+			if (throwException) {
+				throw exception;
+			}
 		}
 	}
 
@@ -129,7 +136,8 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 		return schemaPresenterUtils.toContent(recordVO, metadataVO, contentVersionVO);
 	}
 
-	protected Content toContent(RecordVO recordVO, MetadataVO metadataVO, ContentVersionVO contentVersionVO, boolean newMinorEmpty) {
+	protected Content toContent(RecordVO recordVO, MetadataVO metadataVO, ContentVersionVO contentVersionVO,
+								boolean newMinorEmpty) {
 		return schemaPresenterUtils.toContent(recordVO, metadataVO, contentVersionVO, newMinorEmpty);
 	}
 

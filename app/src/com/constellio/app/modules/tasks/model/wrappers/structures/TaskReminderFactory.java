@@ -6,14 +6,13 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.joda.time.LocalDate;
 
-import static com.constellio.model.entities.records.wrappers.structure.StructureFactoryUtils.newLocalDateJsonSerializerDeserializer;
-
 import java.io.IOException;
+
+import static com.constellio.model.entities.records.wrappers.structure.StructureFactoryUtils.newLocalDateJsonSerializerDeserializer;
 
 public class TaskReminderFactory implements StructureFactory {
 	transient private GsonBuilder gsonBuilder;

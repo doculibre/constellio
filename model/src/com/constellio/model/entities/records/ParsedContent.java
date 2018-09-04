@@ -1,14 +1,13 @@
 package com.constellio.model.entities.records;
 
+import com.constellio.model.entities.Language;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import com.constellio.model.entities.Language;
 
 public class ParsedContent {
 
@@ -23,8 +22,13 @@ public class ParsedContent {
 	private Map<String, List<String>> styles;
 	private long length;
 
-	public ParsedContent(String parsedContent, String language, String mimeType, long length, Map<String, Object> properties,
-			Map<String, List<String>> styles) {
+	private String description;
+
+	private String title;
+
+	public ParsedContent(String parsedContent, String language, String mimeType, long length,
+						 Map<String, Object> properties,
+						 Map<String, List<String>> styles) {
 		this.parsedContent = parsedContent;
 		this.language = language;
 		this.mimeType = mimeType;
@@ -104,5 +108,21 @@ public class ParsedContent {
 		} else {
 			return mimeType;
 		}
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
 	}
 }

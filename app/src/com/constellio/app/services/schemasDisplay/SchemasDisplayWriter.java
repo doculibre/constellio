@@ -1,5 +1,15 @@
 package com.constellio.app.services.schemasDisplay;
 
+import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
+import com.constellio.model.entities.Language;
+import org.apache.commons.lang.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -8,17 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
-import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
-import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
-import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
-import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
-import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
-import com.constellio.model.entities.Language;
 
 public class SchemasDisplayWriter {
 	private static final String ROOT = "display";
@@ -91,7 +90,7 @@ public class SchemasDisplayWriter {
 	}
 
 	private void removeElementFromParent(Element rootElement, String elementName, String attributeName,
-			String attributeValue) {
+										 String attributeValue) {
 		List<Element> elements = rootElement.getChildren(elementName);
 		for (Element element : elements) {
 			if (StringUtils.isNotBlank(attributeName)) {
@@ -107,7 +106,7 @@ public class SchemasDisplayWriter {
 	}
 
 	private Element getOrCreateElementFromParent(Element rootElement, String elementName, String attributeName,
-			String attributeValue) {
+												 String attributeValue) {
 		Element newElement = null;
 		List<Element> elements = rootElement.getChildren(elementName);
 		for (Element element : elements) {
@@ -131,7 +130,8 @@ public class SchemasDisplayWriter {
 		return newElement;
 	}
 
-	private Element createAndAddElement(Element rootElement, String elementName, String attributeName, String attributeValue) {
+	private Element createAndAddElement(Element rootElement, String elementName, String attributeName,
+										String attributeValue) {
 		Element newElement;
 		newElement = new Element(elementName);
 		if (StringUtils.isNotBlank(attributeName)) {
@@ -209,7 +209,7 @@ public class SchemasDisplayWriter {
 	}
 
 	private void process(SchemaDisplayConfig config, Element schemaDisplayConfigsElement, String metadataCodeName,
-			List<String> metadataCodes) {
+						 List<String> metadataCodes) {
 		Element metadataCodesElement = getOrCreateElementFromParent(schemaDisplayConfigsElement, metadataCodeName);
 
 		for (String metadataCode : metadataCodes) {

@@ -13,7 +13,7 @@ public class RegisteredAction {
 	ActionExecutor executor;
 
 	public RegisteredAction(String code, String parametersSchemaLocalCode,
-			ActionExecutor executor, Collection<String> supportedSchemaTypes) {
+							ActionExecutor executor, Collection<String> supportedSchemaTypes) {
 		this.code = code;
 		this.parametersSchemaLocalCode = parametersSchemaLocalCode;
 		this.executor = executor;

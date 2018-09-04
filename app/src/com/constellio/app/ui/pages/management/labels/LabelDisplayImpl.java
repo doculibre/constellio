@@ -5,7 +5,7 @@ import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 
 public class LabelDisplayImpl extends RecordDisplay {
-    public LabelDisplayImpl(RecordVO recordVO, MetadataDisplayFactory metadataDisplayFactory) {
-        super(recordVO, metadataDisplayFactory);
-    }
+	public LabelDisplayImpl(RecordVO recordVO, MetadataDisplayFactory metadataDisplayFactory) {
+		super(recordVO, metadataDisplayFactory);
+	}
 }

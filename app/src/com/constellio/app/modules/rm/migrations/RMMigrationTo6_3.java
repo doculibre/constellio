@@ -24,7 +24,8 @@ public class RMMigrationTo6_3 implements MigrationScript {
 
 	public static class SchemaAlterationsFor6_3 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor6_3(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor6_3(String collection, MigrationResourcesProvider provider,
+										  AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 

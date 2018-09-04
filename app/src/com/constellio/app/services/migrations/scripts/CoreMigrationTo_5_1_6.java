@@ -1,9 +1,5 @@
 package com.constellio.app.services.migrations.scripts;
 
-import static java.util.Arrays.asList;
-
-import java.util.Map;
-
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -16,6 +12,10 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+
+import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 public class CoreMigrationTo_5_1_6 implements MigrationScript {
 	@Override
@@ -33,7 +33,7 @@ public class CoreMigrationTo_5_1_6 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor5_1_6 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor5_1_6(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -50,7 +50,7 @@ public class CoreMigrationTo_5_1_6 implements MigrationScript {
 	}
 
 	private void setupDisplayConfig(String collection, AppLayerFactory appLayerFactory,
-			MigrationResourcesProvider migrationResourcesProvider) {
+									MigrationResourcesProvider migrationResourcesProvider) {
 
 		Language language = migrationResourcesProvider.getLanguage();
 

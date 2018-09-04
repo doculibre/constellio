@@ -1,18 +1,5 @@
 package com.constellio.app.modules.rm.model;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
-import com.constellio.app.modules.tasks.services.TasksSearchServices;
-import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
@@ -21,14 +8,25 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
+import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.modules.tasks.services.TasksSearchServices;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContainerAcceptanceTest extends ConstellioTest {
 	RMSchemasRecordsServices rm;
@@ -133,7 +131,8 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenContainerLogicallyDeletedThenOnlyUserWithDeletePermissionCanPhysicallyDelete() throws RecordServicesException {
+	public void givenContainerLogicallyDeletedThenOnlyUserWithDeletePermissionCanPhysicallyDelete()
+			throws RecordServicesException {
 		ContainerRecordType zeBoite = rm.newContainerRecordTypeWithId("zeBoite");
 		zeBoite.setTitle("Ze Boite");
 		zeBoite.setCode("BOITE");
@@ -156,7 +155,7 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 				.where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
-//		assertThat(users.adminIn(zeCollection).has(RMPermissionsTo.DELETE_CONTAINERS).onSomething()).isTrue();
+		//		assertThat(users.adminIn(zeCollection).has(RMPermissionsTo.DELETE_CONTAINERS).onSomething()).isTrue();
 		assertThat(searchServices.getResultsCount(logicallyDeletedQuery.filteredWithUserDelete(users.adminIn(zeCollection)))).isEqualTo(1);
 
 		assertThat(users.aliceIn(zeCollection).has(RMPermissionsTo.DELETE_CONTAINERS).onSomething()).isFalse();
@@ -195,7 +194,8 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test(expected = RecordServicesException.ValidationException.class)
-	public void givenContainerWithUniqueTitleThenThrowExceptionEvenIfDifferentCustomSchemas() throws RecordServicesException {
+	public void givenContainerWithUniqueTitleThenThrowExceptionEvenIfDifferentCustomSchemas()
+			throws RecordServicesException {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {

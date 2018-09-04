@@ -1,18 +1,5 @@
 package com.constellio.model.services.security.roles;
 
-import static com.constellio.sdk.tests.TestUtils.linkEventBus;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.fail;
-
-import java.util.List;
-
-import org.assertj.core.api.ListAssert;
-import org.assertj.core.groups.Tuple;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.services.collections.CollectionsManager;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManager;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -27,6 +14,18 @@ import com.constellio.model.services.security.roles.RolesManagerRuntimeException
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.assertj.core.api.ListAssert;
+import org.assertj.core.groups.Tuple;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.fail;
 
 public class RolesManagerAcceptanceTest extends ConstellioTest {
 

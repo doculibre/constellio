@@ -1,10 +1,9 @@
 package com.constellio.model.services.records.cache;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RecordsCachesRequestMemoryImpl extends RecordsCachesMemoryImpl {
 

@@ -30,9 +30,10 @@ public class LabelTemplateField implements Serializable {
 	private boolean displayEnumTitle;
 
 	public LabelTemplateField(String metadataCode, String referenceMetadataCode, int x, int y, int width, int height,
-			String fontName, float fontSize, boolean bold, boolean italic, int maxLength,
-			LabelTemplateFieldHorizontalAlignment horizontalAlignment,
-			LabelTemplateFieldVerticalAlignment verticalAlignment, String prefix, String suffix, String pattern) {
+							  String fontName, float fontSize, boolean bold, boolean italic, int maxLength,
+							  LabelTemplateFieldHorizontalAlignment horizontalAlignment,
+							  LabelTemplateFieldVerticalAlignment verticalAlignment, String prefix, String suffix,
+							  String pattern) {
 		this.metadataCode = metadataCode;
 		this.referenceMetadataCode = referenceMetadataCode;
 		this.x = x;
@@ -52,13 +53,15 @@ public class LabelTemplateField implements Serializable {
 	}
 
 	public LabelTemplateField(String metadataCode, String referenceMetadataCode, String referenceMetadataCode2,
-			String referenceMetadataCode3, int x, int y,
-			int width, int height,
-			String fontName, float fontSize, boolean bold, boolean italic, int maxLength,
-			LabelTemplateFieldHorizontalAlignment horizontalAlignment,
-			LabelTemplateFieldVerticalAlignment verticalAlignment, String prefix, String suffix, String pattern,
-			String concatenateMetadataCode, String concatenateReferenceMetadataCode, boolean uppercase, String separator,
-			boolean empty) {
+							  String referenceMetadataCode3, int x, int y,
+							  int width, int height,
+							  String fontName, float fontSize, boolean bold, boolean italic, int maxLength,
+							  LabelTemplateFieldHorizontalAlignment horizontalAlignment,
+							  LabelTemplateFieldVerticalAlignment verticalAlignment, String prefix, String suffix,
+							  String pattern,
+							  String concatenateMetadataCode, String concatenateReferenceMetadataCode,
+							  boolean uppercase, String separator,
+							  boolean empty) {
 		this.metadataCode = metadataCode;
 		this.referenceMetadataCode = referenceMetadataCode;
 		this.referenceMetadataCode2 = referenceMetadataCode2;

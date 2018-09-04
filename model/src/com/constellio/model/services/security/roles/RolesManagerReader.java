@@ -1,13 +1,12 @@
 package com.constellio.model.services.security.roles;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+import com.constellio.model.entities.security.Role;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
-import com.constellio.model.entities.security.Role;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class RolesManagerReader {
 

@@ -1,21 +1,10 @@
 package com.constellio.app.ui.pages.search;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.Locale;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.app.ui.entities.SearchBoostVO;
 import com.constellio.app.ui.framework.builders.SearchBoostToVOBuilder;
 import com.constellio.app.ui.framework.data.SearchBoostDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.schemas.MetadataListFilter;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.entities.SearchBoost;
@@ -23,6 +12,14 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.Locale;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by Patrick on 2015-11-09.
@@ -132,14 +129,8 @@ public class SearchBoostByMetadataPresenterAcceptTest extends ConstellioTest {
 	public void whenGetMetadatasThenGetAllMetadatasFromCollection()
 			throws Exception {
 
-		MetadataListFilter filterSearchable = new MetadataListFilter() {
-			@Override
-			public boolean isReturned(Metadata metadata) {
-				return metadata.isSearchable();
-			}
-		};
 		assertThat(presenter.getMetadatasSearchBoostVO()).hasSize(
-				metadataSchemasManager.getSchemaTypes(zeCollection).getAllMetadatas().only(filterSearchable).size());
+				presenter.getSearcheableMetadatas().size());
 		assertThat(presenter.getMetadatasSearchBoostVO()).extracting("key").doesNotHaveDuplicates();
 	}
 

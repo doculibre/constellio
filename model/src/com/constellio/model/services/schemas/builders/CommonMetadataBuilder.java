@@ -1,14 +1,5 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
-import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -32,6 +23,15 @@ import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator
 import com.constellio.model.services.schemas.calculators.TokensCalculator2;
 import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
 
 public class CommonMetadataBuilder {
 	public static final String ID = "id";
@@ -57,6 +57,7 @@ public class CommonMetadataBuilder {
 	public static final String CREATED_ON = "createdOn";
 	public static final String MODIFIED_ON = "modifiedOn";
 	public static final String TITLE = "title";
+	public static final String SUMMARY = "summary";
 	public static final String FOLLOWERS = "followers";
 	public static final String LEGACY_ID = "legacyIdentifier";
 	public static final String SEARCHABLE = "searchable";
@@ -221,7 +222,7 @@ public class CommonMetadataBuilder {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
 						.setMultivalue(true);
 				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+					&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 					metadataBuilder.defineDataEntry().asCalculated(TokensCalculator4.class);
 
 				} else {
@@ -461,7 +462,7 @@ public class CommonMetadataBuilder {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(SCHEMA_AUTOCOMPLETE_FIELD).setType(STRING)
-						.setMultivalue(true).setEssential(true)
+						.setMultivalue(true).setEssential(true).setMultiLingual(true)
 						.defineDataEntry().asCalculated(AutocompleteFieldCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
@@ -508,7 +509,7 @@ public class CommonMetadataBuilder {
 				//SolrAuthorizationDetails always exist, except for test migrating old savestates which we want to keep as long as possible
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(NON_TAXONOMY_AUTHORIZATIONS);
 				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-						&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+					&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
 
 					metadataBuilder.defineReferencesTo(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))
 							.setMultivalue(true).defineDataEntry().asCalculated(NonTaxonomyAuthorizationsCalculator.class);

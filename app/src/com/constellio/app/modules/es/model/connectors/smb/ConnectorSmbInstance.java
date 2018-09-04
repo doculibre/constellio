@@ -1,10 +1,10 @@
 package com.constellio.app.modules.es.model.connectors.smb;
 
-import java.util.List;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorInstance;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.List;
 
 public class ConnectorSmbInstance extends ConnectorInstance<ConnectorSmbInstance> {
 	public static final String SCHEMA_LOCAL_CODE = "smb";

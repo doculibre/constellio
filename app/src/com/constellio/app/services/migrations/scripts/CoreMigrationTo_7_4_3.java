@@ -24,7 +24,8 @@ public class CoreMigrationTo_7_4_3 implements MigrationScript {
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor7_4_3(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
@@ -41,7 +42,7 @@ public class CoreMigrationTo_7_4_3 implements MigrationScript {
 
 	private class CoreSchemaAlterationFor7_4_3 extends MetadataSchemasAlterationHelper {
 		public CoreSchemaAlterationFor7_4_3(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+											AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -49,9 +50,9 @@ public class CoreMigrationTo_7_4_3 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			for (MetadataBuilder metadata : typesBuilder.getAllCalculatedMetadatas()) {
 				if (metadata.getInheritance() == null
-						&& metadata.getDataEntry().getType().equals(DataEntryType.CALCULATED)
-						&& ((CalculatedDataEntry) metadata.getDataEntry())
-						.getCalculator() instanceof JEXLMetadataValueCalculator) {
+					&& metadata.getDataEntry().getType().equals(DataEntryType.CALCULATED)
+					&& ((CalculatedDataEntry) metadata.getDataEntry())
+							.getCalculator() instanceof JEXLMetadataValueCalculator) {
 					MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) metadata.getDataEntry()).getCalculator();
 					String currentScript = ((JEXLMetadataValueCalculator) calculator).getExpression();
 					metadata.defineDataEntry().asJexlScript("#STRICT:" + currentScript);

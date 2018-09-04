@@ -2,7 +2,6 @@ package com.constellio.app.modules.tasks.model.wrappers.structures;
 
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.schemas.ModifiableStructure;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;

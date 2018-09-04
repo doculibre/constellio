@@ -1,13 +1,12 @@
 package com.constellio.app.services.corrector;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
+import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CorrectorExcluderManagerAcceptanceTest extends ConstellioTest {
 

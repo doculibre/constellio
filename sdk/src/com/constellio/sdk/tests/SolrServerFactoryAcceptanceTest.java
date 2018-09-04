@@ -1,11 +1,5 @@
 package com.constellio.sdk.tests;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultServer;
 import com.constellio.data.io.concurrent.data.DataWithVersion;
@@ -13,6 +7,11 @@ import com.constellio.data.io.concurrent.data.TextView;
 import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.model.services.search.SynonymFeatureAcceptanceTest;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTest {
@@ -23,7 +22,7 @@ public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTes
 		for (BigVaultServer server : getConstellioFactories().getDataLayerFactory().getSolrServers().getServers()) {
 			AtomicFileSystem configFileSystem = server.getSolrServerFactory().getConfigFileSystem();
 			assertThat(configFileSystem.exists("/" + server.getName()) ||    //SolrCloud configuration
-					configFileSystem.exists("/" + server.getName() + "_configs")    //HttpSolr configuration
+					   configFileSystem.exists("/" + server.getName() + "_configs")    //HttpSolr configuration
 			).isTrue();
 		}
 	}
@@ -36,8 +35,9 @@ public class SolrServerFactoryAcceptanceTest extends SynonymFeatureAcceptanceTes
 
 		BigVaultServer aServer = getConstellioFactories().getDataLayerFactory().getSolrServers().getServers().iterator().next();
 		AtomicFileSystem solrFileSystem = aServer.getSolrFileSystem();
-		if (solrFileSystem.exists(testFilePath))
+		if (solrFileSystem.exists(testFilePath)) {
 			solrFileSystem.delete(testFilePath, null);
+		}
 
 		assertThat(solrFileSystem.exists(testFilePath)).isFalse();
 		solrFileSystem.writeData(testFilePath, new DataWithVersion(fileContent.getBytes(), null));

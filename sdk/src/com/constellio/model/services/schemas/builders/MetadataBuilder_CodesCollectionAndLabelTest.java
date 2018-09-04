@@ -1,10 +1,10 @@
 package com.constellio.model.services.schemas.builders;
 
+import org.junit.Test;
+
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Test;
 
 public class MetadataBuilder_CodesCollectionAndLabelTest extends MetadataBuilderTest {
 
@@ -50,7 +50,7 @@ public class MetadataBuilder_CodesCollectionAndLabelTest extends MetadataBuilder
 
 		build();
 
-		assertThat(metadataWithoutInheritance.getCollection()).isEqualTo(COLLECTION);
+		assertThat(metadataWithoutInheritance.getCollection()).isEqualTo(COLLECTION.getCode());
 	}
 
 	@Test
@@ -59,7 +59,7 @@ public class MetadataBuilder_CodesCollectionAndLabelTest extends MetadataBuilder
 
 		buildAndModify();
 
-		assertThat(metadataWithoutInheritanceBuilder.getCollection()).isEqualTo(COLLECTION);
+		assertThat(metadataWithoutInheritanceBuilder.getCollection()).isEqualTo(COLLECTION.getCode());
 	}
 
 	@Test
@@ -68,7 +68,7 @@ public class MetadataBuilder_CodesCollectionAndLabelTest extends MetadataBuilder
 
 		build();
 
-		assertThat(metadataWithInheritance.getCollection()).isEqualTo(COLLECTION);
+		assertThat(metadataWithInheritance.getCollection()).isEqualTo(COLLECTION.getCode());
 	}
 
 	@Test
@@ -77,7 +77,7 @@ public class MetadataBuilder_CodesCollectionAndLabelTest extends MetadataBuilder
 
 		buildAndModify();
 
-		assertThat(metadataWithoutInheritanceBuilder.getCollection()).isEqualTo(COLLECTION);
+		assertThat(metadataWithoutInheritanceBuilder.getCollection()).isEqualTo(COLLECTION.getCode());
 	}
 
 	@Test

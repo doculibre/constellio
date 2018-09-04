@@ -1,15 +1,15 @@
 package com.constellio.app.modules.rm.ui.components.copyRetentionRule.fields.retentionRule;
 
 public interface CopyRetentionRuleDependencyField {
-    String getFieldValue();
+	String getFieldValue();
 
-    void setFieldValue(String value);
+	void setFieldValue(String value);
 
-    void addValueChangeListener(RetentionValueChangeListener listener);
+	void addValueChangeListener(RetentionValueChangeListener listener);
 
-    interface RetentionValueChangeListener {
+	interface RetentionValueChangeListener {
 
-        void valueChanged(String newValue);
+		void valueChanged(String newValue);
 
-    }
+	}
 }

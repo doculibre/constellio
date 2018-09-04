@@ -1,16 +1,5 @@
 package com.constellio.model.services.records.populators;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
@@ -22,10 +11,23 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.ParsedContentProvider;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.FieldsPopulator;
 import com.constellio.model.services.records.RecordUtils;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static com.constellio.data.dao.services.bigVault.BigVaultRecordDao.DATE_SEARCH_FIELD;
 
@@ -41,13 +43,18 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 	ConstellioEIMConfigs systemConf;
 
+	ModelLayerExtensions extensions;
+
 	public SearchFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite,
-								 ParsedContentProvider parsedContentProvider, List<String> collectionLanguages, ConstellioEIMConfigs systemConf) {
+								 ParsedContentProvider parsedContentProvider, List<String> collectionLanguages,
+								 ConstellioEIMConfigs systemConf,
+								 ModelLayerExtensions extensions) {
 		super(types, fullRewrite);
 		//	this.languageDectionServices = languageDectionServices;
 		this.parsedContentProvider = parsedContentProvider;
 		this.collectionLanguages = collectionLanguages;
 		this.systemConf = systemConf;
+		this.extensions = extensions;
 	}
 
 	@Override
@@ -73,22 +80,27 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		return fields;
 	}
 
+	private String getSearchFieldFor(Metadata metadata) {
+		String copiedMetadataCodePrefix;
+		String dataStoreCode = metadata.getDataStoreCode();
+
+		if (dataStoreCode.endsWith("_txt")) {
+			copiedMetadataCodePrefix = dataStoreCode.replace("_txt", "_txt_");
+		} else {
+			copiedMetadataCodePrefix = dataStoreCode.replace("_t", "_t_").replace("_ss", "_txt_").replace("_s", "_t_");
+		}
+
+		return copiedMetadataCodePrefix;
+	}
+
 	@Override
-	public Map<String, Object> populateCopyfields(Metadata metadata, Object value) {
+	public Map<String, Object> populateCopyfields(Metadata metadata, Object value, Locale locale) {
 
 		if (metadata.isSearchable() && !"id".equals(metadata.getLocalCode())) {
 
-			String dataStoreCode = metadata.getDataStoreCode();
-			String copiedMetadataCodePrefix;
-			if (dataStoreCode.endsWith("_txt")) {
-				copiedMetadataCodePrefix = dataStoreCode.replace("_txt", "_txt_");
-			} else {
-				copiedMetadataCodePrefix = dataStoreCode.replace("_t", "_t_").replace("_ss", "_txt_").replace("_s", "_t_");
-			}
-
 			if (metadata.isMultivalue() && metadata.getType().isStringOrText()) {
 				List<String> values = asNotNullList(value);
-				return populateCopyFieldsOfMultivalueSearchableTextMetadata(values, copiedMetadataCodePrefix);
+				return populateCopyFieldsOfMultivalueSearchableTextMetadata(values, getSearchFieldFor(metadata), locale);
 
 			} else if (metadata.isMultivalue() && metadata.getType().equals(MetadataValueType.CONTENT)) {
 				List<Content> values = asNotNullList(value);
@@ -103,13 +115,13 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 				return populateCopyFieldsOfMultivalueSearchableNumberMetadata(values, metadata.getLocalCode());
 
 			} else if (!metadata.isMultivalue() && metadata.getType().isStringOrText()) {
-				return populateCopyFieldsOfSinglevalueSearchableTextMetadata((String) value, copiedMetadataCodePrefix);
+				return populateCopyFieldsOfSinglevalueSearchableTextMetadata((String) value, metadata, locale);
 
 			} else if (!metadata.isMultivalue() && metadata.getType().equals(MetadataValueType.DATE)) {
-				return populateCopyFieldsOfSinglevalueSearchableDateMetadata(value, copiedMetadataCodePrefix);
+				return populateCopyFieldsOfSinglevalueSearchableDateMetadata(value, getSearchFieldFor(metadata));
 
 			} else if (!metadata.isMultivalue() && metadata.getType().isIntegerOrFloatingPoint()) {
-				return populateCopyFieldsOfSinglevalueSearchableNumberMetadata("" + value, copiedMetadataCodePrefix);
+				return populateCopyFieldsOfSinglevalueSearchableNumberMetadata("" + value, getSearchFieldFor(metadata));
 
 			} else if (!metadata.isMultivalue() && metadata.getType().equals(MetadataValueType.CONTENT)) {
 				return populateCopyFieldsOfSinglevalueSearchableContentMetadata((Content) value, metadata.getLocalCode());
@@ -124,7 +136,8 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 	}
 
-	private void addFilenameAndParsedContent(ContentVersion currentVersion, KeyListMap<String, Object> keyListMap, String code) {
+	private void addFilenameAndParsedContent(ContentVersion currentVersion, KeyListMap<String, Object> keyListMap,
+											 String code) {
 		try {
 			ParsedContent parsedContent = parsedContentProvider.getParsedContentIfAlreadyParsed(currentVersion.getHash());
 
@@ -154,7 +167,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	}
 
 	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableContentMetadata(Content value,
-			String copiedMetadataCode) {
+																						 String copiedMetadataCode) {
 
 		KeyListMap<String, Object> keyListMap = new KeyListMap<>();
 		if (value != null) {
@@ -180,26 +193,21 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		}
 	}
 
-	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableTextMetadata(String value,
-			String copiedMetadataCodePrefix) {
+	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableTextMetadata(String value, Metadata metadata,
+																					  Locale locale) {
 
-		String valueLanguage = collectionLanguages.get(0);
+		SearchFieldPopulatorParams extensionParam = new SearchFieldPopulatorParams(metadata, value, locale);
+		Object finalValue = extensions.forCollection(metadata.getCollection()).populateSearchField(extensionParam);
 
 		Map<String, Object> copyfields = new HashMap<>();
-		for (String collectionLanguage : collectionLanguages) {
-			String fieldCode = copiedMetadataCodePrefix + collectionLanguage;
-			if (collectionLanguage.equals(valueLanguage) && value != null) {
-				copyfields.put(fieldCode, value);
-			} else {
-				copyfields.put(fieldCode, "");
-			}
-		}
+		String fieldCode = getSearchFieldFor(metadata) + locale.getLanguage();
+		copyfields.put(fieldCode, finalValue);
 
 		return copyfields;
 	}
 
 	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableNumberMetadata(String value,
-			String copiedMetadataCodePrefix) {
+																						String copiedMetadataCodePrefix) {
 
 		String prefix = copiedMetadataCodePrefix;
 		String valueLanguage = collectionLanguages.get(0);
@@ -225,7 +233,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	}
 
 	private Map<String, Object> populateCopyFieldsOfSinglevalueSearchableDateMetadata(Object value,
-			String copiedMetadataCodePrefix) {
+																					  String copiedMetadataCodePrefix) {
 		String dateFormat = systemConf.getDateFormat();
 
 		String fieldCode = copiedMetadataCodePrefix;
@@ -253,7 +261,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	}
 
 	private Map<String, Object> populateCopyFieldsOfMultivalueSearchableDateMetadata(List<String> values,
-			String copiedMetadataCodePrefix) {
+																					 String copiedMetadataCodePrefix) {
 		String dateFormat = systemConf.getDateFormat();
 
 		String prefix = copiedMetadataCodePrefix;
@@ -291,7 +299,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	}
 
 	private Map<String, Object> populateCopyFieldsOfMultivalueSearchableNumberMetadata(List<String> values,
-			String copiedMetadataCodePrefix) {
+																					   String copiedMetadataCodePrefix) {
 
 		String prefix = copiedMetadataCodePrefix;
 		String valueLanguage = collectionLanguages.get(0);
@@ -325,28 +333,21 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	}
 
 	private Map<String, Object> populateCopyFieldsOfMultivalueSearchableTextMetadata(List<String> values,
-			String copiedMetadataCodePrefix) {
-
+																					 String copiedMetadataCodePrefix,
+																					 Locale locale) {
+		String fieldCode = copiedMetadataCodePrefix + locale.getLanguage();
 		KeyListMap<String, Object> keyListMap = new KeyListMap<>();
 		for (String value : values) {
-			String language = collectionLanguages.get(0);
-			if (language != null && collectionLanguages.contains(language)) {
-				String fieldCode = copiedMetadataCodePrefix + language;
-				keyListMap.add(fieldCode, value);
-			}
+			keyListMap.add(fieldCode, value);
 		}
-
-		for (String collectionLanguage : collectionLanguages) {
-			String fieldCode = copiedMetadataCodePrefix + collectionLanguage;
-			if (!keyListMap.getNestedMap().containsKey(fieldCode)) {
-				keyListMap.add(fieldCode, "");
-			}
+		if (!keyListMap.getNestedMap().containsKey(fieldCode)) {
+			keyListMap.add(fieldCode, "");
 		}
 		return (Map) keyListMap.getNestedMap();
 	}
 
 	private Map<String, Object> populateCopyFieldsOfMultivalueSearchableContentMetadata(List<Content> values,
-			String copiedMetadataCode) {
+																						String copiedMetadataCode) {
 
 		KeyListMap<String, Object> keyListMap = new KeyListMap<>();
 		for (Content value : values) {

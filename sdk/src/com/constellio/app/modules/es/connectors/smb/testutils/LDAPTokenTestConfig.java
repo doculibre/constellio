@@ -1,27 +1,26 @@
 package com.constellio.app.modules.es.connectors.smb.testutils;
 
+import com.constellio.model.conf.ldap.LDAPDirectoryType;
+import com.constellio.model.conf.ldap.RegexFilter;
+import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
+import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
+import com.constellio.sdk.SDKPasswords;
+import org.joda.time.Duration;
+
 import java.util.Arrays;
 import java.util.List;
 
-import org.joda.time.Duration;
-
-import com.constellio.model.conf.ldap.LDAPDirectoryType;
-import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
-import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
-import com.constellio.model.conf.ldap.RegexFilter;
-import com.constellio.sdk.SDKPasswords;
-
 public class LDAPTokenTestConfig {
 
-	public static List<String> getUrls(){
+	public static List<String> getUrls() {
 		return Arrays.asList(new String[]{getLDAPDevServerUrl()});
 	}
 
-	public static String getLDAPDevServerUrl(){
+	public static String getLDAPDevServerUrl() {
 		return SDKPasswords.testLDAPServer();
 	}
 
-	public static List<String>getDomains() {
+	public static List<String> getDomains() {
 		return Arrays.asList(new String[]{"test.doculibre.ca"});
 	}
 
@@ -46,7 +45,7 @@ public class LDAPTokenTestConfig {
 	}
 
 	public static List<String> getUsersWithoutGroupsBaseContextList() {
-		return  Arrays.asList("CN=Users,DC=test,DC=doculibre,DC=ca");
+		return Arrays.asList("CN=Users,DC=test,DC=doculibre,DC=ca");
 	}
 
 	public static List<String> getUserFilterGroupsList() {
@@ -73,7 +72,8 @@ public class LDAPTokenTestConfig {
 		return new LDAPServerConfiguration(getUrls(), getDomains(), getDirectoryType(), false, true);
 	}
 
-	public static LDAPUserSyncConfiguration getLDAPUserSyncConfigurationWithSelectedCollections(List<String> selectedCollectionsCodes){
+	public static LDAPUserSyncConfiguration getLDAPUserSyncConfigurationWithSelectedCollections(
+			List<String> selectedCollectionsCodes) {
 		return new LDAPUserSyncConfiguration(getUser(),
 				getPassword(),
 				getUserFiler(),
@@ -87,7 +87,7 @@ public class LDAPTokenTestConfig {
 				selectedCollectionsCodes);
 	}
 
-	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration(){
+	public static LDAPUserSyncConfiguration getLDAPUserSyncConfiguration() {
 		return getLDAPUserSyncConfiguration(null);
 	}
 

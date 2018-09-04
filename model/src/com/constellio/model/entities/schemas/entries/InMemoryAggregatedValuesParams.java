@@ -1,17 +1,20 @@
 package com.constellio.model.entities.schemas.entries;
 
-import java.util.List;
-
 import com.constellio.model.entities.schemas.Metadata;
+
+import java.util.List;
 
 public abstract class InMemoryAggregatedValuesParams {
 	List<Object> values;
 
 	private Metadata aggregateMetadata;
 
-	public InMemoryAggregatedValuesParams(Metadata aggregateMetadata, List<Object> values) {
+	private String recordId;
+
+	public InMemoryAggregatedValuesParams(String recordId, Metadata aggregateMetadata, List<Object> values) {
 		this.values = values;
 		this.aggregateMetadata = aggregateMetadata;
+		this.recordId = recordId;
 	}
 
 	public <T> List<T> getValues() {
@@ -24,6 +27,10 @@ public abstract class InMemoryAggregatedValuesParams {
 
 	public Metadata getMetadata() {
 		return aggregateMetadata;
+	}
+
+	public String getRecordId() {
+		return recordId;
 	}
 
 	public AggregatedDataEntry getAggregatedDataEntry() {

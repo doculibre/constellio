@@ -1,5 +1,18 @@
 package com.constellio.model.services.collections;
 
+import com.constellio.data.dao.managers.StatefulService;
+import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.dao.managers.config.DocumentAlteration;
+import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
+import com.constellio.model.conf.ModelLayerConfiguration;
+import com.constellio.model.entities.CollectionInfo;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -7,16 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
-import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.managers.config.ConfigManager;
-import com.constellio.data.dao.managers.config.DocumentAlteration;
-import com.constellio.data.dao.managers.config.events.ConfigUpdatedEventListener;
-import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
+import static java.util.Arrays.asList;
 
 public class CollectionsListManager implements StatefulService, ConfigUpdatedEventListener {
 
@@ -28,12 +32,15 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 	List<String> collectionsExcludingSystem = new ArrayList<>();
 
 	//Language never change
-	Map<String, List<String>> languageCache = new HashMap<>();
+	private Map<String, CollectionInfo> collectionInfoCache = new HashMap<>();
 
 	List<CollectionsListManagerListener> listeners = new ArrayList<>();
 
-	public CollectionsListManager(ConfigManager configManager) {
-		this.configManager = configManager;
+	ModelLayerConfiguration modelLayerConfiguration;
+
+	public CollectionsListManager(ModelLayerFactory modelLayerFactory) {
+		this.modelLayerConfiguration = modelLayerFactory.getConfiguration();
+		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 	}
 
 	@Override
@@ -123,7 +130,8 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 		};
 	}
 
-	private DocumentAlteration addCollectionDocumentAlteration(final String collectionCode, final List<String> languages) {
+	private DocumentAlteration addCollectionDocumentAlteration(final String collectionCode,
+															   final List<String> languages) {
 		return new DocumentAlteration() {
 			@Override
 			public void alter(Document document) {
@@ -150,20 +158,52 @@ public class CollectionsListManager implements StatefulService, ConfigUpdatedEve
 
 	public List<String> getCollectionLanguages(String collection) {
 
-		List<String> collectionLanguage = languageCache.get(collection);
+		CollectionInfo collectionInfo = getCollectionInfo(collection);
 
-		if (collectionLanguage != null) {
-			return collectionLanguage;
+		if (collectionInfo != null) {
+			return collectionInfo.getCollectionLanguesCodes();
 		}
 
-		Document document = configManager.getXML(CONFIG_FILE_PATH).getDocument();
-		for (Element collectionElement : document.getRootElement().getChildren()) {
-			if (collection.equals(collectionElement.getName())) {
-				List<String> returnedLanguages = Arrays.asList(collectionElement.getAttributeValue("languages").split(","));
-				languageCache.put(collection, returnedLanguages);
-				return returnedLanguages;
+		throw new CollectionsListManagerRuntimeException_NoSuchCollection(collection);
+	}
+
+	public CollectionInfo getCollectionInfo(String collectionCode) {
+		CollectionInfo cachedInfo = collectionInfoCache.get(collectionCode);
+
+		if (cachedInfo == null) {
+			String mainDataLanguage = modelLayerConfiguration.getMainDataLanguage();
+
+			if (Collection.SYSTEM_COLLECTION.equals(collectionCode)) {
+				cachedInfo = new CollectionInfo(collectionCode, mainDataLanguage, asList(mainDataLanguage));
+
+			} else {
+
+				List<String> collectionLanguages = new ArrayList<>();
+				Document document = configManager.getXML(CONFIG_FILE_PATH).getDocument();
+				for (Element collectionElement : document.getRootElement().getChildren()) {
+					if (collectionCode.equals(collectionElement.getName())) {
+						collectionLanguages = Arrays.asList(collectionElement.getAttributeValue("languages").split(","));
+					}
+				}
+
+				cachedInfo = new CollectionInfo(collectionCode, mainDataLanguage, collectionLanguages);
+			}
+
+			synchronized (collectionInfoCache) {
+				collectionInfoCache.put(collectionCode, cachedInfo);
 			}
 		}
-		throw new CollectionsListManagerRuntimeException_NoSuchCollection(collection);
+
+		return cachedInfo;
+
+	}
+
+	public void registerPendingCollectionInfo(String code, String mainDataLanguage, List<String> languages) {
+		collectionInfoCache.put(code, new CollectionInfo(code, mainDataLanguage, languages));
+	}
+
+	public String getMainDataLanguage() {
+		return getCollectionInfo(Collection.SYSTEM_COLLECTION).getMainSystemLanguage().getCode();
+
 	}
 }

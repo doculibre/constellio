@@ -48,6 +48,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 
 	public void displayDocumentButtonClicked() {
 		contextMenu.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		updateSearchResultClicked();
 	}
 
 	public boolean openForRequested(String recordId) {
@@ -81,7 +82,7 @@ public class DocumentContextMenuPresenter extends DocumentActionsPresenterUtils<
 		return openForRequested(recordVO.getId());
 	}
 
-	public boolean hasMetadataReport(){
+	public boolean hasMetadataReport() {
 		return !ReportGeneratorUtils.getPrintableReportTemplate(presenterUtils.appLayerFactory(), presenterUtils.getCollection(), getDocumentVO().getSchema().getCode(), PrintableReportListPossibleType.DOCUMENT).isEmpty();
 	}
 

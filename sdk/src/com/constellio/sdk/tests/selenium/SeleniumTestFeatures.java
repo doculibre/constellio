@@ -1,15 +1,16 @@
 package com.constellio.sdk.tests.selenium;
 
-import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.Date;
-import java.util.Map;
-
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-
+import com.constellio.app.client.services.AdminServicesSession;
+import com.constellio.app.start.ApplicationStarter;
+import com.constellio.client.cmis.client.CmisSessionBuilder;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.sdk.SDKPasswords;
+import com.constellio.sdk.tests.ConstellioTestSession;
+import com.constellio.sdk.tests.FactoriesTestFeatures;
+import com.constellio.sdk.tests.SkipTestsRule;
+import com.constellio.sdk.tests.ZeUltimateFirefoxDriver;
+import com.constellio.sdk.tests.ZeUltimateFirefoxProfile;
+import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
@@ -28,17 +29,14 @@ import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
-import com.constellio.app.client.services.AdminServicesSession;
-import com.constellio.app.start.ApplicationStarter;
-import com.constellio.client.cmis.client.CmisSessionBuilder;
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.sdk.SDKPasswords;
-import com.constellio.sdk.tests.ConstellioTestSession;
-import com.constellio.sdk.tests.FactoriesTestFeatures;
-import com.constellio.sdk.tests.SkipTestsRule;
-import com.constellio.sdk.tests.ZeUltimateFirefoxDriver;
-import com.constellio.sdk.tests.ZeUltimateFirefoxProfile;
-import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import java.io.File;
+import java.util.Date;
+import java.util.Map;
+
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class SeleniumTestFeatures {
 
@@ -101,7 +99,7 @@ public class SeleniumTestFeatures {
 	}
 
 	public void beforeTest(Map<String, String> theSdkProperties, FactoriesTestFeatures factoriesTestFeatures,
-			SkipTestsRule skipTestsRule) {
+						   SkipTestsRule skipTestsRule) {
 		this.sdkProperties = theSdkProperties;
 		this.factoriesTestFeatures = factoriesTestFeatures;
 		this.skipTestsRule = skipTestsRule;

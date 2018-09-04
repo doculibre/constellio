@@ -1,17 +1,16 @@
 package com.constellio.model.entities.security.global;
 
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import org.joda.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.joda.time.LocalDateTime;
-
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.RecordWrapper;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 
 public class SolrUserCredential extends RecordWrapper implements UserCredential {
 	public static final String SCHEMA_TYPE = "userCredential";
@@ -37,6 +36,7 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	public static final String JOB_TITLE = "jobTitle";
 	public static final String ADDRESS = "address";
 	public static final String AGENT_STATUS = "agentStatus";
+	public static final String HAS_AGREED_TO_PRIVACY_POLICY = "hasAgreedToPrivacyPolicy";
 
 	public SolrUserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -366,4 +366,12 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 		return set(AGENT_STATUS, agentStatus);
 	}
 
+	public boolean hasAgreedToPrivacyPolicy() {
+		return Boolean.TRUE.equals(get(HAS_AGREED_TO_PRIVACY_POLICY));
+	}
+
+	public UserCredential withAgreedPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy) {
+		set(HAS_AGREED_TO_PRIVACY_POLICY, hasAgreedToPrivacyPolicy);
+		return this;
+	}
 }

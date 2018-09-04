@@ -7,7 +7,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import java.io.Serializable;
 
 public interface DecommissioningListFolderTableExtension extends Serializable {
-	
+
 	String getPreviousId(FolderDetailVO detail);
 
 	String getPreviousIdOrNull(FolderDetailVO detail);

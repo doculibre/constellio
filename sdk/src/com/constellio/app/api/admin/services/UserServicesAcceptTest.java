@@ -1,13 +1,5 @@
 package com.constellio.app.api.admin.services;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Before;
-
 import com.constellio.app.client.entities.GlobalGroupResource;
 import com.constellio.app.client.entities.UserResource;
 import com.constellio.app.client.services.AdminServicesSession;
@@ -20,6 +12,13 @@ import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class UserServicesAcceptTest extends ConstellioTest {
 

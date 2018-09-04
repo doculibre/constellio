@@ -1,12 +1,5 @@
 package com.constellio.app.ui.framework.data;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
@@ -17,6 +10,13 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 @SuppressWarnings("serial")
 public class MetadataVODataProvider implements Serializable {
 	transient MetadataSchemasManager schemasManager;
@@ -26,7 +26,7 @@ public class MetadataVODataProvider implements Serializable {
 	String collection;
 
 	public MetadataVODataProvider(MetadataToVOBuilder voBuilder, ModelLayerFactory modelLayerFactory, String collection,
-			String code) {
+								  String code) {
 		this.voBuilder = voBuilder;
 		this.collection = collection;
 		this.schemaCode = code;
@@ -58,7 +58,7 @@ public class MetadataVODataProvider implements Serializable {
 	}
 
 	public int size() {
-		return metadataVOs.size();
+		return metadataVOs != null ? metadataVOs.size() : 0;
 	}
 
 	public List<Integer> list() {

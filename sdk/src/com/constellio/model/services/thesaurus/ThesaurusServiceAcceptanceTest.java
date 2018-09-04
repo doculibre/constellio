@@ -1,8 +1,7 @@
 package com.constellio.model.services.thesaurus;
 
-import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.services.thesaurus.util.SkosUtil;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.services.logging.SearchEventServices;
@@ -11,14 +10,18 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.model.services.thesaurus.ThesaurusServiceAcceptanceTestUtils.getStringPermissiveCases;
 import static java.util.Arrays.asList;
@@ -34,17 +37,16 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 	private static final List<String> AVAILABLE_LOCALES = asList(DEFAULT_LOCALE.getLanguage());
 	private final String COLLECTION = zeCollection;
 
-
 	@Before
 	public void setUp()
 			throws Exception {
 		FoldersLocator foldersLocator = new FoldersLocator();
 		String skosDestination = foldersLocator.getPluginsSDKProject()
-				.getAbsoluteFile() + "\\sdk-resources" + "\\SKOS destination.xml";
+										 .getAbsoluteFile() + File.separator + "sdk-resources" + File.separator + "SKOS destination.xml";
 		File file = new File(skosDestination);
 		Assume.assumeTrue(file.exists());
 
-		if(thesaurusService==null) { // prevent parsing each time (time consuming task)
+		if (thesaurusService == null) { // prevent parsing each time (time consuming task)
 			thesaurusService = ThesaurusServiceBuilder.getThesaurus(new FileInputStream(file));
 		}
 	}
@@ -60,7 +62,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
 		Set<String> searchValues = getStringPermissiveCases("déclaration de revenus".substring(1));
 
-		for(String searchValue : searchValues) {
+		for (String searchValue : searchValues) {
 
 			Set<SkosConcept> concepts = thesaurusService.getPrefLabelsThatContains(searchValue, DEFAULT_LOCALE);
 
@@ -78,20 +80,20 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		}
 
 		String[] domainsAsArray = {"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=6817",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11380",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11130",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=12589",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=4682",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=7506",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=4627",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=6155",
-				"http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11950"};
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11380",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11130",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=12589",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=4682",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=7506",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=4627",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=6155",
+								   "http://www.thesaurus.gouv.qc.ca/tag/terme.do?id=11950"};
 
-		for(int i = 0; i< domainsAsArray.length; i++) {
+		for (int i = 0; i < domainsAsArray.length; i++) {
 			boolean isFound = false;
 
-			for(SkosConcept rootSkosConcept : domainFound) {
-				if(rootSkosConcept.getRdfAbout().equalsIgnoreCase(domainsAsArray[i])) {
+			for (SkosConcept rootSkosConcept : domainFound) {
+				if (rootSkosConcept.getRdfAbout().equalsIgnoreCase(domainsAsArray[i])) {
 					isFound = true;
 					break;
 				}
@@ -113,7 +115,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
 		Set<String> searchValues = getStringPermissiveCases("déclaration de revenus");
 
-		for(String searchValue : searchValues) {
+		for (String searchValue : searchValues) {
 
 			Set<SkosConcept> concepts = thesaurusService.getPrefLabelsThatEqualsOrSpecify(searchValue, DEFAULT_LOCALE);
 
@@ -129,7 +131,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
 		Set<String> searchValues = getStringPermissiveCases("carte");
 
-		for(String searchValue : searchValues) {
+		for (String searchValue : searchValues) {
 
 			Set<SkosConcept> concepts = thesaurusService.getPrefLabelsThatEqualsOrSpecify(searchValue, DEFAULT_LOCALE);
 
@@ -147,7 +149,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
 		Set<String> searchValues = getStringPermissiveCases("rapport d'impôt".substring(1));
 
-		for(String searchValue : searchValues) {
+		for (String searchValue : searchValues) {
 
 			Set<SkosConcept> concepts = thesaurusService.getAltLabelsThatContains(searchValue, DEFAULT_LOCALE);
 
@@ -163,7 +165,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
 		Set<String> searchValues = getStringPermissiveCases("rapport d'impôt");
 
-		for(String searchValue : searchValues) {
+		for (String searchValue : searchValues) {
 
 			Set<SkosConcept> concepts = thesaurusService.getAltLabelsThatEquals(searchValue, DEFAULT_LOCALE);
 
@@ -179,7 +181,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
 		Set<String> searchValues = getStringPermissiveCases("rapport d'impôt".substring(1));
 
-		for(String searchValue : searchValues) {
+		for (String searchValue : searchValues) {
 
 			Set<SkosConcept> concepts = thesaurusService.getAltLabelsThatEquals(searchValue, DEFAULT_LOCALE);
 
@@ -213,7 +215,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
 		Set<String> searchValues = getStringPermissiveCases("carte");
 
-		for(String searchValue : searchValues) {
+		for (String searchValue : searchValues) {
 			ResponseSkosConcept concepts = thesaurusService.getSkosConcepts(searchValue, AVAILABLE_LOCALES);
 			assertThat(concepts.disambiguations.get(DEFAULT_LOCALE)).containsOnly("Carte (lieu)", "Carte (identification)");
 		}
@@ -225,7 +227,7 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
 		Set<String> searchValues = getStringPermissiveCases("rapport d'impôt");
 
-		for(String searchValue : searchValues) {
+		for (String searchValue : searchValues) {
 			ResponseSkosConcept concepts = thesaurusService.getSkosConcepts(searchValue, AVAILABLE_LOCALES);
 			assertThat(concepts.disambiguations.get(DEFAULT_LOCALE)).isEmpty();
 			assertThat(concepts.suggestions.get(DEFAULT_LOCALE)).containsOnly("Déclaration de revenus");
@@ -238,10 +240,12 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 
 		Set<String> searchValues = getStringPermissiveCases("Déclaration de revenus");
 
-		for(String searchValue : searchValues) {
+		for (String searchValue : searchValues) {
 			ResponseSkosConcept concepts = thesaurusService.getSkosConcepts(searchValue, AVAILABLE_LOCALES);
 			assertThat(concepts.disambiguations.get(DEFAULT_LOCALE)).isEmpty();
-			assertThat(concepts.suggestions.get(DEFAULT_LOCALE)).containsOnly("Relevé", "Déclaration de pourboires", "Formulaire", "Avis de cotisation", "Impôt sur le revenu", "Impôt", "Revenu");
+			assertThat(concepts.suggestions.get(DEFAULT_LOCALE))
+					.containsOnly("Relevé", "Déclaration de pourboires", "Formulaire", "Avis de cotisation",
+							"Impôt sur le revenu", "Impôt", "Revenu");
 		}
 	}
 
@@ -249,10 +253,10 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 	public void whenGetSkosConceptsWithSpecificationDesambiguationAndExclusionsThenExcludedTermsNotFound()
 			throws Exception {
 
-		thesaurusService.setDeniedTerms(asList("Carte (identification)","Carte routière"));
+		thesaurusService.setDeniedTerms(asList("Carte (identification)", "Carte routière"));
 		Set<String> searchValues = getStringPermissiveCases("carte");
 
-		for(String searchValue : searchValues) {
+		for (String searchValue : searchValues) {
 			ResponseSkosConcept concepts = thesaurusService.getSkosConcepts(searchValue, AVAILABLE_LOCALES);
 			assertThat(concepts.disambiguations.get(DEFAULT_LOCALE)).containsOnly("Carte (lieu)");
 			assertThat(concepts.suggestions.get(DEFAULT_LOCALE)).doesNotContain("Carte routière");
@@ -278,7 +282,8 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(COLLECTION, getModelLayerFactory());
 		Transaction transaction = new Transaction();
-		transaction.setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION); // changes transatction limit from 1 000 to 100 000
+		transaction.setOptimisticLockingResolution(
+				OptimisticLockingResolution.EXCEPTION); // changes transatction limit from 1 000 to 100 000
 
 		// makes transaction
 		for (Map.Entry searchValueWithOccurence : searchValuesWithOccurences.entrySet()) {
@@ -290,9 +295,10 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 			int numFound = 1;
 
 			// searches for number of times indicated
-			for(int i = 0; i <searchOccurence; i++) {
+			for (int i = 0; i < searchOccurence; i++) {
 				SearchEvent searchEvent = schemasRecordsServices.newSearchEvent();
 				searchEvent.setQuery(StringUtils.stripAccents(searchValue.toLowerCase())).setNumFound(numFound);
+				searchEvent.setOriginalQuery(StringUtils.stripAccents(searchValue.toLowerCase()));
 				transaction.add(searchEvent);
 			}
 		}
@@ -302,22 +308,26 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		thesaurusService.setSearchEventServices(new SearchEventServices(COLLECTION, getModelLayerFactory()));
 		Set<String> searchValues = getStringPermissiveCases("searchTermNotInThesaurus");
 
-		for(String searchValue : searchValues) {
-			List<String> suggestions = thesaurusService.suggestSimpleSearch(searchValue, DEFAULT_LOCALE);
-			assertThat(suggestions).containsExactly("searchtermnotinthesaurusautocomplete1", "searchtermnotinthesaurusautocomplete2", "searchtermnotinthesaurusautocomplete3", "searchtermnotinthesaurusautocomplete4", "searchtermnotinthesaurusautocomplete6");
+		for (String searchValue : searchValues) {
+			List<String> suggestions = thesaurusService.suggestSimpleSearch(searchValue, DEFAULT_LOCALE, 3, 5);
+			assertThat(suggestions)
+					.containsExactly("Searchtermnotinthesaurusautocomplete1", "Searchtermnotinthesaurusautocomplete2",
+							"Searchtermnotinthesaurusautocomplete3", "Searchtermnotinthesaurusautocomplete4",
+							"Searchtermnotinthesaurusautocomplete6");
 		}
 	}
 
 	@Test
 	public void givenSkosConceptMatchThesaurusLabel() {
 		List<String> matchedThesaurusLabelId = thesaurusService.matchThesaurusLabels("lalal " +
-				"\n " +
-				"\n ASSURANCE-EMPloi gouvernement " +
-				"\nASSURANCE-EMPloi RESTAURATEUR ASSURANCE-HOSPITALISATION hgfhgfhgf dgdfgfdg " +
-				"\ngfdgdfghfhf d'adoption PARENTAL INSURANCE + RESSOURCES DOCUMENTAIRES RESTAURATEUR " +
-				"\ngouvernement gouvernement " +
-				"\n  RESTAURATEUR", new Locale("fr"));
-		assertThat(matchedThesaurusLabelId).containsOnly("11133", "11133", "11134", "11134", "1094", "1094", "1095", "11117", "6156", "6156", "6156");
+																					 "\n " +
+																					 "\n ASSURANCE-EMPloi gouvernement " +
+																					 "\nASSURANCE-EMPloi RESTAURATEUR ASSURANCE-HOSPITALISATION hgfhgfhgf dgdfgfdg " +
+																					 "\ngfdgdfghfhf d'adoption PARENTAL INSURANCE + RESSOURCES DOCUMENTAIRES RESTAURATEUR " +
+																					 "\ngouvernement gouvernement " +
+																					 "\n  RESTAURATEUR", new Locale("fr"));
+		assertThat(matchedThesaurusLabelId)
+				.containsOnly("11133", "11133", "11134", "11134", "1094", "1094", "1095", "11117", "6156", "6156", "6156");
 	}
 
 	@Test
@@ -325,12 +335,12 @@ public class ThesaurusServiceAcceptanceTest extends ConstellioTest {
 		thesaurusService.setDeniedTerms(asList("gouvernement"));
 
 		List<String> matchedThesaurusLabelId = thesaurusService.matchThesaurusLabels("lalal " +
-				"\n " +
-				"\n ASSURANCE-EMPloi gouvernement " +
-				"\nASSURANCE-EMPloi RESTAURATEUR ASSURANCE-HOSPITALISATION hgfhgfhgf dgdfgfdg " +
-				"\ngfdgdfghfhf d'adoption PARENTAL INSURANCE + RESSOURCES DOCUMENTAIRES RESTAURATEUR " +
-				"\ngouvernement gouvernement " +
-				"\n  RESTAURATEUR", new Locale("fr"));
+																					 "\n " +
+																					 "\n ASSURANCE-EMPloi gouvernement " +
+																					 "\nASSURANCE-EMPloi RESTAURATEUR ASSURANCE-HOSPITALISATION hgfhgfhgf dgdfgfdg " +
+																					 "\ngfdgdfghfhf d'adoption PARENTAL INSURANCE + RESSOURCES DOCUMENTAIRES RESTAURATEUR " +
+																					 "\ngouvernement gouvernement " +
+																					 "\n  RESTAURATEUR", new Locale("fr"));
 		assertThat(matchedThesaurusLabelId).containsOnly("11133", "11133", "11134", "11134", "1094", "1094", "1095", "11117");
 	}
 }

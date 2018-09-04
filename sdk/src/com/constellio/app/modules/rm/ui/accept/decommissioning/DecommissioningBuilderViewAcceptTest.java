@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.ui.accept.decommissioning;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl.DecommissioningButton;
@@ -12,6 +7,10 @@ import com.constellio.app.ui.tools.ButtonWebElement;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @UiTest
 public class DecommissioningBuilderViewAcceptTest extends ConstellioTest {

@@ -58,7 +58,8 @@ public class FoldersCertificateReportModel {
 		this.destructionDate = destructionDate;
 	}
 
-	public void setDecommissioningListAdministrativeUnitCodeAndTitle(String decommissioningListAdministrativeUnitCodeAndTitle) {
+	public void setDecommissioningListAdministrativeUnitCodeAndTitle(
+			String decommissioningListAdministrativeUnitCodeAndTitle) {
 		this.decommissioningListAdministrativeUnitCodeAndTitle = decommissioningListAdministrativeUnitCodeAndTitle;
 	}
 
@@ -104,7 +105,7 @@ public class FoldersCertificateReportModel {
 		}
 
 		public FoldersCertificateReportModel_Folder(String id, String title, String folder, String retentionRuleCode,
-				String principalCopyRetentionRule) {
+													String principalCopyRetentionRule) {
 			this.id = id;
 			this.title = title;
 			this.folder = folder;

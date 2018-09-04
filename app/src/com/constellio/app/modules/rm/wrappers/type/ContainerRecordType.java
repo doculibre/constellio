@@ -1,8 +1,11 @@
 package com.constellio.app.modules.rm.wrappers.type;
 
-import com.constellio.model.entities.records.wrappers.ValueListItem;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.ValueListItem;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.Map;
 
 public class ContainerRecordType extends ValueListItem implements SchemaLinkingType {
 	public static final String SCHEMA_TYPE = "ddvContainerRecordType";
@@ -10,13 +13,18 @@ public class ContainerRecordType extends ValueListItem implements SchemaLinkingT
 	public static final String LINKED_SCHEMA = "linkedSchema";
 
 	public ContainerRecordType(Record record,
-			MetadataSchemaTypes types) {
+							   MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 
 	public ContainerRecordType setTitle(String title) {
 		super.setTitle(title);
 		return this;
+	}
+
+	@Override
+	public ContainerRecordType setTitles(Map<Language, String> titles) {
+		return (ContainerRecordType) super.setTitles(titles);
 	}
 
 	public ContainerRecordType setCode(String code) {

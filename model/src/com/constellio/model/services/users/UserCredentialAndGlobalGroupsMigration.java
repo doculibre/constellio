@@ -1,18 +1,5 @@
 package com.constellio.model.services.users;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.users.XmlUserCredentialsManager.USER_CREDENTIALS_CONFIG;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
@@ -38,6 +25,18 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.SearchServicesRuntimeException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.users.XmlUserCredentialsManager.USER_CREDENTIALS_CONFIG;
 
 public class UserCredentialAndGlobalGroupsMigration {
 
@@ -118,7 +117,8 @@ public class UserCredentialAndGlobalGroupsMigration {
 		return existingGroups;
 	}
 
-	private Map<String, SolrUserCredential> getExistingUsers(List<String> validUsernames, List<String> invalidUsernames) {
+	private Map<String, SolrUserCredential> getExistingUsers(List<String> validUsernames,
+															 List<String> invalidUsernames) {
 		Map<String, SolrUserCredential> existingUsers = new HashMap<>();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(schemasRecordsServices.credentialSchemaType()).returnAll());
 		Iterator<Record> usersIterator = searchServices.recordsIterator(query, 1000);
@@ -290,7 +290,7 @@ public class UserCredentialAndGlobalGroupsMigration {
 	}
 
 	private SolrUserCredential toSolrUserCredential(UserCredential userCredential,
-			Map<String, SolrUserCredential> existingUsers) {
+													Map<String, SolrUserCredential> existingUsers) {
 		String correctedUsername = UserUtils.cleanUsername(userCredential.getUsername());
 		SolrUserCredential newUserCredential = existingUsers.get(correctedUsername);
 

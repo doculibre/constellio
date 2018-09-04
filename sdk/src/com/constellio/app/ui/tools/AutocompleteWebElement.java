@@ -1,15 +1,14 @@
 package com.constellio.app.ui.tools;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
-
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebElement;
+import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AutocompleteWebElement {
 	private final String SUGGEST_POPUP = BaseComboBox.COMBO_BOX_STYLE;

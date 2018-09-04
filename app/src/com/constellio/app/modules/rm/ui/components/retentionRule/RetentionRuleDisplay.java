@@ -6,11 +6,14 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 
+import java.util.Locale;
+
 public class RetentionRuleDisplay extends RecordDisplay {
-	
-	public RetentionRuleDisplay(RetentionRuleDisplayPresenter presenter, RetentionRuleVO retentionRuleVO) {
-		super(retentionRuleVO, new RetentionRuleDisplayFactory(presenter));
-		
+
+	public RetentionRuleDisplay(RetentionRuleDisplayPresenter presenter, RetentionRuleVO retentionRuleVO,
+								Locale locale) {
+		super(retentionRuleVO, new RetentionRuleDisplayFactory(presenter, locale));
+
 		addStyleName("retention-rule-display");
 		mainLayout.setWidth("100%");
 	}
@@ -41,5 +44,5 @@ public class RetentionRuleDisplay extends RecordDisplay {
 	protected boolean isCaptionAndDisplayComponentWidthUndefined() {
 		return true;
 	}
-	
+
 }

@@ -1,5 +1,10 @@
 package com.constellio.data.dao.dto.records;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.solr.common.params.SolrParams;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -8,11 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.solr.common.params.SolrParams;
 
 public class TransactionDTO {
 	private String transactionId;
@@ -32,20 +32,23 @@ public class TransactionDTO {
 	}
 
 	public TransactionDTO(String transactionId, RecordsFlushing recordsFlushing, List<RecordDTO> newRecords,
-			List<RecordDeltaDTO> modifiedRecords) {
+						  List<RecordDeltaDTO> modifiedRecords) {
 		this(transactionId, recordsFlushing, newRecords, modifiedRecords, Collections.<RecordDTO>emptyList(),
 				Collections.<SolrParams>emptyList());
 	}
 
 	public TransactionDTO(String transactionId, RecordsFlushing recordsFlushing, List<RecordDTO> newRecords,
-			List<RecordDeltaDTO> modifiedRecords, List<RecordDTO> deletedRecords, List<SolrParams> deletedByQueries) {
+						  List<RecordDeltaDTO> modifiedRecords, List<RecordDTO> deletedRecords,
+						  List<SolrParams> deletedByQueries) {
 		this(transactionId, recordsFlushing, newRecords, modifiedRecords, deletedRecords, deletedByQueries,
 				Collections.<String>emptySet(), false, false);
 	}
 
 	public TransactionDTO(String transactionId, RecordsFlushing recordsFlushing, List<RecordDTO> newRecords,
-			List<RecordDeltaDTO> modifiedRecords, List<RecordDTO> deletedRecords, List<SolrParams> deletedByQueries,
-			Set<String> markedForReindexing, boolean skippingReferenceToLogicallyDeletedValidation, boolean fullRewrite) {
+						  List<RecordDeltaDTO> modifiedRecords, List<RecordDTO> deletedRecords,
+						  List<SolrParams> deletedByQueries,
+						  Set<String> markedForReindexing, boolean skippingReferenceToLogicallyDeletedValidation,
+						  boolean fullRewrite) {
 		this.transactionId = transactionId;
 		this.recordsFlushing = recordsFlushing;
 		this.newRecords = Collections.unmodifiableList(newRecords);

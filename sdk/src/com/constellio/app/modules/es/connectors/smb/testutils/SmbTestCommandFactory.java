@@ -1,13 +1,12 @@
 package com.constellio.app.modules.es.connectors.smb.testutils;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.net.MalformedURLException;
-
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileOutputStream;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
 
 public class SmbTestCommandFactory {
 	public static enum SmbTestCommandType {
@@ -22,18 +21,18 @@ public class SmbTestCommandFactory {
 
 	public SmbTestCommand get(SmbTestCommandType commandType, String url, String content) {
 		switch (commandType) {
-		case CREATE_FILE:
-			return new CreateFileCommand(url, content);
-		case CREATE_FOLDER:
-			return new CreateFolderCommand(url);
-		case DELETE:
-			return new DeleteFileCommand(url);
-		case UPDATE_FILE:
-			return new UpdateFileCommand(url, content);
-		case POPULATE_MINIMAL_SHARE:
-			return new PopulateMinimalShareCommand(url);
-		case CLEAN_SHARE:
-			return new CleanShareCommand(url);
+			case CREATE_FILE:
+				return new CreateFileCommand(url, content);
+			case CREATE_FOLDER:
+				return new CreateFolderCommand(url);
+			case DELETE:
+				return new DeleteFileCommand(url);
+			case UPDATE_FILE:
+				return new UpdateFileCommand(url, content);
+			case POPULATE_MINIMAL_SHARE:
+				return new PopulateMinimalShareCommand(url);
+			case CLEAN_SHARE:
+				return new CleanShareCommand(url);
 		}
 		return null;
 	}
@@ -66,10 +65,10 @@ public class SmbTestCommandFactory {
 		sfos.close();
 		//smbFile.createNewFile();
 
-//		OutputStreamWriter osw = new OutputStreamWriter(smbFile.getOutputStream());
-//		osw.write(content);
-//		osw.flush();
-//		osw.close();
+		//		OutputStreamWriter osw = new OutputStreamWriter(smbFile.getOutputStream());
+		//		osw.write(content);
+		//		osw.flush();
+		//		osw.close();
 	}
 
 	public class CreateFolderCommand implements SmbTestCommand {

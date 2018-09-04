@@ -1,10 +1,9 @@
 package com.constellio.app.modules.es.model.connectors.structures;
 
+import com.constellio.model.entities.schemas.ModifiableStructure;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-
-import com.constellio.model.entities.schemas.ModifiableStructure;
 
 public class TraversalSchedule implements ModifiableStructure {
 	int weekDay;
@@ -64,11 +63,11 @@ public class TraversalSchedule implements ModifiableStructure {
 	@Override
 	public String toString() {
 		return "TraversalSchedule {" +
-				"weekDay='" + weekDay + '\'' +
-				", startTime=" + startTime +
-				", endTime=" + endTime +
-				", dirty=" + dirty +
-				'}';
+			   "weekDay='" + weekDay + '\'' +
+			   ", startTime=" + startTime +
+			   ", endTime=" + endTime +
+			   ", dirty=" + dirty +
+			   '}';
 	}
 
 	@Override

@@ -7,7 +7,11 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.model.calculators.container.ContainerRecordLocalizationCalculator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.*;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.Printable;
+import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -61,21 +65,21 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 		SchemasDisplayManager displayManager = factory.getMetadataSchemasDisplayManager();
 		SchemaTypesDisplayTransactionBuilder transaction = displayManager.newTransactionBuilderFor(collection);
 
-        transaction.add(displayManager.getSchema(collection, PrintableLabel.DEFAULT_SCHEMA)
-                .withNewTableMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.TITLE)
-                .withRemovedDisplayMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
-                .withRemovedFormMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
-        );
-        displayManager.execute(transaction.build());
-        createDefaultLabel(collection, factory, provider);
-    }
+		transaction.add(displayManager.getSchema(collection, PrintableLabel.DEFAULT_SCHEMA)
+				.withNewTableMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.TITLE)
+				.withRemovedDisplayMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
+				.withRemovedFormMetadatas(PrintableLabel.DEFAULT_SCHEMA + "_" + PrintableLabel.ISDELETABLE)
+		);
+		displayManager.execute(transaction.build());
+		createDefaultLabel(collection, factory, provider);
+	}
 
-    private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
-        Role rgdRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
-        List<String> newRgdPermissions = new ArrayList<>();
-        newRgdPermissions.add(CorePermissions.MANAGE_LABELS);
-        modelLayerFactory.getRolesManager().updateRole(rgdRole.withNewPermissions(newRgdPermissions));
-    }
+	private void givenNewPermissionsToRGDandADMRoles(String collection, ModelLayerFactory modelLayerFactory) {
+		Role rgdRole = modelLayerFactory.getRolesManager().getRole(collection, RMRoles.RGD);
+		List<String> newRgdPermissions = new ArrayList<>();
+		newRgdPermissions.add(CorePermissions.MANAGE_LABELS);
+		modelLayerFactory.getRolesManager().updateRole(rgdRole.withNewPermissions(newRgdPermissions));
+	}
 
 	public void createDefaultLabel(String collection, AppLayerFactory factory, MigrationResourcesProvider provider)
 			throws Exception {
@@ -107,8 +111,8 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 
 			if (type.equals(Folder.SCHEMA_TYPE)) {
 				titre += provider.getDefaultLanguageString("Migration.typeSchemaDossier") + " " + (fi.getName().contains("_D_") ?
-						provider.getDefaultLanguageString("Migration.typeAveryDroite") :
-						provider.getDefaultLanguageString("Migration.typeAveryGauche"));
+																								   provider.getDefaultLanguageString("Migration.typeAveryDroite") :
+																								   provider.getDefaultLanguageString("Migration.typeAveryGauche"));
 			} else {
 				titre += provider.getDefaultLanguageString("Migration.typeSchemaConteneur");
 			}
@@ -122,10 +126,10 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 				ContentVersionDataSummary upload = contentManager
 						.upload(fileInputStream, etiquetteName + " " + format + " " + type).getContentVersionDataSummary();
 
-			record.set(typeBuilder.getMetadata(Report.TITLE), titre);
-			record.set(typeBuilder.getMetadata(Printable.JASPERFILE),
-					contentManager.createSystemContent(etiquetteName + "-" + format + "-" + type + extension, upload));
-			trans.add(record);
+				record.set(typeBuilder.getMetadata(Report.TITLE), titre);
+				record.set(typeBuilder.getMetadata(Printable.JASPERFILE),
+						contentManager.createSystemContent(etiquetteName + "-" + format + "-" + type + extension, upload));
+				trans.add(record);
 			} finally {
 				fileInputStream.close();
 			}
@@ -149,7 +153,8 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 
 	public static class SchemaAlterationsFor6_7 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationsFor6_7(String collection, MigrationResourcesProvider provider, AppLayerFactory factory) {
+		protected SchemaAlterationsFor6_7(String collection, MigrationResourcesProvider provider,
+										  AppLayerFactory factory) {
 			super(collection, provider, factory);
 		}
 

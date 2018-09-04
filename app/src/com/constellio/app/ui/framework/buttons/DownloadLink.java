@@ -9,7 +9,7 @@ import com.vaadin.ui.Link;
 import com.vaadin.ui.themes.ValoTheme;
 
 public class DownloadLink extends Link {
-	
+
 	public static final String STYLE_NAME = "download-link";
 
 	protected Resource downloadedResource;
@@ -51,6 +51,7 @@ public class DownloadLink extends Link {
 						// Content-Disposition: attachment generally forces download
 						stream.setParameter("Content-Disposition",
 								"attachment; filename=\"" + stream.getFileName() + "\"");
+						stream.setParameter("Cache-Control", "no-cache");
 					}
 					return stream;
 				}

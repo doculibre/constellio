@@ -1,13 +1,20 @@
 package com.constellio.app.api.cmis.requests.navigation;
 
-import static com.constellio.model.services.search.StatusFilter.ACTIVES;
-import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
-
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.binding.utils.CmisUtils;
+import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
 import org.apache.chemistry.opencmis.commons.enums.Action;
@@ -19,20 +26,13 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.binding.utils.CmisUtils;
-import com.constellio.app.api.cmis.binding.utils.ContentCmisDocument;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.records.Content;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
-import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.model.services.search.StatusFilter.ACTIVES;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 
 public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList> {
 
@@ -46,8 +46,9 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 	private final ObjectInfoHandler objectInfo;
 
 	public GetChildrenRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context, String folderId, String filter, Boolean includeAllowableActions, Boolean includePathSegment,
-			BigInteger maxItems, BigInteger skipCount, ObjectInfoHandler objectInfo) {
+							  CallContext context, String folderId, String filter, Boolean includeAllowableActions,
+							  Boolean includePathSegment,
+							  BigInteger maxItems, BigInteger skipCount, ObjectInfoHandler objectInfo) {
 		super(context, repository, appLayerFactory);
 		this.folderId = folderId;
 		if (filter != null) {
@@ -78,7 +79,7 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 		if (collection.equals(folderId)) {
 			List<Taxonomy> taxonomies = taxonomiesManager.getEnabledTaxonomies(collection);
 			for (Taxonomy taxonomy : taxonomies) {
-				ObjectData object = newTaxonomyObjectBuilder().build(taxonomy, objectInfo);
+				ObjectData object = newTaxonomyObjectBuilder().build(taxonomy, objectInfo, Language.withCode(modelLayerFactory.getCollectionsListManager().getMainDataLanguage()));
 				children.getObjects().add(new ObjectInFolderDataImpl(object));
 			}
 		} else if (folderId.startsWith("taxo_")) {

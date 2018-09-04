@@ -1,22 +1,21 @@
 package com.constellio.model.entities.search.logical.criterion;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-
-import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.search.query.logical.criteria.IsNotContainingElementsCriterion;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
+import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 public class IsNotContainingElementsCriterionTest extends ConstellioTest {
 
@@ -102,7 +101,7 @@ public class IsNotContainingElementsCriterionTest extends ConstellioTest {
 		assertThat(criterion.getSolrQuery(dateMetadata))
 				.isEqualTo(
 						"(*:* -(dateTimeMetadata:\"" + date + "Z\" AND dateTimeMetadata:\""
-								+ date2 + "Z\"))");
+						+ date2 + "Z\"))");
 	}
 
 	@Test

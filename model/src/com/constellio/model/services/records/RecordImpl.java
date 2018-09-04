@@ -1,27 +1,12 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
+import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.EnumWithSmallCode;
+import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordRuntimeException;
 import com.constellio.model.entities.records.RecordRuntimeException.InvalidMetadata;
@@ -46,6 +31,28 @@ import com.constellio.model.services.records.RecordImplRuntimeException.RecordIm
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.PREFERRING;
+import static com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval.STRICT;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableList;
 
 public class RecordImpl implements Record {
 
@@ -64,36 +71,32 @@ public class RecordImpl implements Record {
 	private Map<String, Object> structuredValues;
 	private boolean fullyLoaded;
 	private boolean unmodifiable;
+	private CollectionInfo collectionInfo;
 
-	public RecordImpl(String schemaCode, String collection, String id) {
-		if (schemaCode == null) {
-			throw new IllegalArgumentException("Require schema code");
+	public RecordImpl(MetadataSchema schema, String id) {
+		if (schema == null) {
+			throw new IllegalArgumentException("Require schema");
 		}
-		if (collection == null) {
-			throw new IllegalArgumentException("Require collection code");
-		}
-		this.collection = collection;
+		this.collection = schema.getCollection();
 
 		this.id = id;
-		this.schemaCode = schemaCode;
+		this.schemaCode = schema.getCode();
 		this.schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 		this.version = -1;
 		this.recordDTO = null;
 		this.fullyLoaded = true;
+		this.collectionInfo = schema.getCollectionInfo();
 	}
 
-	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues) {
-		this(recordDTO, true);
+	private RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, Map<String, Object> eagerTransientValues,
+					   boolean fullyLoaded) {
+		this(recordDTO, collectionInfo, fullyLoaded);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 	}
 
-	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues, boolean fullyLoaded) {
-		this(recordDTO, fullyLoaded);
-		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
-	}
-
-	public RecordImpl(RecordDTO recordDTO, Map<String, Object> eagerTransientValues, boolean fullyLoaded, boolean unmodifiable) {
-		this(recordDTO, fullyLoaded);
+	private RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, Map<String, Object> eagerTransientValues,
+					   boolean fullyLoaded, boolean unmodifiable) {
+		this(recordDTO, collectionInfo, fullyLoaded);
 		this.eagerTransientValues = new HashMap<>(eagerTransientValues);
 		this.unmodifiable = unmodifiable;
 		if (unmodifiable) {
@@ -101,11 +104,19 @@ public class RecordImpl implements Record {
 		}
 	}
 
-	public RecordImpl(RecordDTO recordDTO) {
-		this(recordDTO, true);
+	public RecordImpl(MetadataSchema schema, RecordDTO recordDTO) {
+		this(schema, recordDTO, true);
 	}
 
-	public RecordImpl(RecordDTO recordDTO, boolean fullyLoaded) {
+	public RecordImpl(MetadataSchema schema, RecordDTO recordDTO, boolean fullyLoaded) {
+		this(recordDTO, schema.getCollectionInfo(), fullyLoaded);
+	}
+
+	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo) {
+		this(recordDTO, collectionInfo, true);
+	}
+
+	public RecordImpl(RecordDTO recordDTO, CollectionInfo collectionInfo, boolean fullyLoaded) {
 		this.fullyLoaded = fullyLoaded;
 		this.id = recordDTO.getId();
 		this.version = recordDTO.getVersion();
@@ -117,6 +128,7 @@ public class RecordImpl implements Record {
 
 		this.recordDTO = recordDTO;
 		this.schemaTypeCode = schemaCode == null ? null : SchemaUtils.getSchemaTypeCode(schemaCode);
+		this.collectionInfo = collectionInfo;
 	}
 
 	public boolean isFullyLoaded() {
@@ -124,6 +136,10 @@ public class RecordImpl implements Record {
 	}
 
 	public Record updateAutomaticValue(Metadata metadata, Object value) {
+		return updateAutomaticValue(metadata, value, collectionInfo.getMainSystemLocale());
+	}
+
+	public Record updateAutomaticValue(Metadata metadata, Object value, Locale locale) {
 
 		get(metadata);
 		Object convertedRecord;
@@ -138,15 +154,24 @@ public class RecordImpl implements Record {
 		}
 
 		if (value instanceof List) {
-			return setModifiedValue(metadata, Collections.unmodifiableList((List<?>) convertedRecord));
+			return setModifiedValue(metadata, locale.getLanguage(), unmodifiableList((List<?>) convertedRecord));
 		} else {
-			return setModifiedValue(metadata, convertedRecord);
+			return setModifiedValue(metadata, locale.getLanguage(), convertedRecord);
 		}
 
 	}
 
 	@Override
 	public Record set(Metadata metadata, Object value) {
+		return set(metadata, collectionInfo.getMainSystemLanguage().getCode(), value);
+	}
+
+	@Override
+	public Record set(Metadata metadata, Locale locale, Object value) {
+		return set(metadata, locale == null ? collectionInfo.getMainSystemLanguage().getCode() : locale.getLanguage(), value);
+	}
+
+	private Record set(Metadata metadata, String language, Object value) {
 		ensureModifiable();
 		if ("".equals(value)) {
 			value = null;
@@ -197,7 +222,7 @@ public class RecordImpl implements Record {
 		//			}
 		//		}
 
-		return setModifiedValue(metadata, convertedRecord);
+		return setModifiedValue(metadata, language, convertedRecord);
 	}
 
 	private void validateMetadata(Metadata metadata) {
@@ -211,7 +236,7 @@ public class RecordImpl implements Record {
 		if (code.startsWith("global_default")) {
 			return;
 		}
-		if (!code.startsWith(schemaCode)) {
+		if (!code.startsWith(schemaCode) && !code.startsWith(schemaTypeCode + "_default")) {
 			throw new InvalidMetadata(code);
 		}
 		if (metadata.getDataEntry().getType() != MANUAL && metadata.getDataEntry().getType() != SEQUENCE) {
@@ -222,7 +247,7 @@ public class RecordImpl implements Record {
 		}
 	}
 
-	private Record setModifiedValue(Metadata metadata, Object value) {
+	private Record setModifiedValue(Metadata metadata, String language, Object value) {
 		validateSetArguments(metadata, value);
 
 		Map<String, Object> map = modifiedValues;
@@ -234,7 +259,13 @@ public class RecordImpl implements Record {
 		}
 
 		Object correctedValue = correctValue(value);
-		String codeAndType = metadata.getDataStoreCode();
+		String codeAndType;
+
+		if (language == null || collectionInfo.getMainSystemLanguage().getCode().equals(language)) {
+			codeAndType = metadata.getDataStoreCode();
+		} else {
+			codeAndType = metadata.getSecondaryLanguageDataStoreCode(language);
+		}
 		if (structuredValues != null && structuredValues.containsKey(codeAndType)) {
 			if (!structuredValues.get(codeAndType).equals(correctedValue)) {
 				map.put(codeAndType, correctedValue);
@@ -288,7 +319,24 @@ public class RecordImpl implements Record {
 
 	@Override
 	@SuppressWarnings("unchecked")
+	public <T> T get(Metadata metadata, Locale locale) {
+		return get(metadata, locale == null ? collectionInfo.getMainSystemLocale().getLanguage() : locale.getLanguage(),
+				PREFERRING);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T get(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		return get(metadata, locale == null ? collectionInfo.getMainSystemLanguage().getCode() : locale.getLanguage(), mode);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
 	public <T> T get(Metadata metadata) {
+		return get(metadata, collectionInfo.getMainSystemLanguage().getCode(), STRICT);
+	}
+
+	private <T> T get(Metadata metadata, String language, LocalisedRecordMetadataRetrieval mode) {
 		if (metadata == null) {
 			throw new RecordRuntimeException.RequiredMetadataArgument();
 		}
@@ -296,7 +344,13 @@ public class RecordImpl implements Record {
 			return (T) id;
 		}
 
-		String codeAndType = metadata.getDataStoreCode();
+		String codeAndType;
+
+		if (collectionInfo.getMainSystemLanguage().getCode().equals(language) || language == null) {
+			codeAndType = metadata.getDataStoreCode();
+		} else {
+			codeAndType = metadata.getSecondaryLanguageDataStoreCode(language);
+		}
 
 		T returnedValue;
 		if (metadata.getTransiency() == MetadataTransiency.TRANSIENT_LAZY) {
@@ -309,28 +363,52 @@ public class RecordImpl implements Record {
 			returnedValue = (T) modifiedValues.get(codeAndType);
 
 		} else if (recordDTO != null) {
-			returnedValue = (T) getConvertedValue(recordDTO.getFields().get(codeAndType), metadata);
+			Object value = recordDTO.getFields().get(codeAndType);
+
+			returnedValue = (T) getConvertedValue(value, metadata);
 
 		} else {
 			returnedValue = null;
 		}
 
+		String mainDataLanguage = collectionInfo.getMainSystemLanguage().getCode();
+		if (mode == PREFERRING && LangUtils.isNullOrEmptyCollection(returnedValue) && !language.equals(mainDataLanguage)) {
+			returnedValue = get(metadata, mainDataLanguage, STRICT);
+		}
+
 		if (metadata.getEnumClass() != null && returnedValue != null) {
 			if (metadata.isMultivalue()) {
-				returnedValue = (T) EnumWithSmallCodeUtils.toEnumList(metadata.getEnumClass(), (List<String>) returnedValue);
+				List<Object> converted = new ArrayList<>();
+
+				for (Object item : (List) returnedValue) {
+					converted.add((T) convertEnumValue(metadata, item));
+				}
+				returnedValue = (T) converted;
 			} else {
-				returnedValue = (T) EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), (String) returnedValue);
+				returnedValue = convertEnumValue(metadata, returnedValue);
 			}
 		}
 
 		if (metadata.isMultivalue()) {
 			if (returnedValue == null) {
-				returnedValue = (T) Collections.unmodifiableList(Collections.emptyList());
+				returnedValue = (T) unmodifiableList(Collections.emptyList());
 			} else {
-				returnedValue = (T) Collections.unmodifiableList((List<? extends T>) returnedValue);
+				returnedValue = (T) unmodifiableList((List<? extends T>) returnedValue);
 			}
 		}
 
+		return returnedValue;
+	}
+
+	private <T> T convertEnumValue(Metadata metadata, T returnedValue) {
+		if (returnedValue instanceof String) {
+			returnedValue = (T) EnumWithSmallCodeUtils.toEnum(metadata.getEnumClass(), (String) returnedValue);
+		} else if (returnedValue instanceof EnumWithSmallCode) {
+			returnedValue = returnedValue;
+		} else {
+			throw new ImpossibleRuntimeException(
+					"Unsupported value of type '" + returnedValue.getClass().getName() + "' in enum metadata");
+		}
 		return returnedValue;
 	}
 
@@ -439,6 +517,20 @@ public class RecordImpl implements Record {
 		}
 	}
 
+	@Override
+	public <T> List<T> getList(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		Object value = get(metadata, locale, mode);
+		if (value == null) {
+			return Collections.emptyList();
+		} else {
+			if (metadata.isMultivalue()) {
+				return (List<T>) value;
+			} else {
+				throw new CannotGetListForSingleValue(metadata.getLocalCode());
+			}
+		}
+	}
+
 	public <T> List<T> getValues(Metadata metadata) {
 		Object value = get(metadata);
 		if (value == null) {
@@ -448,6 +540,20 @@ public class RecordImpl implements Record {
 				return (List<T>) value;
 			} else {
 				List<T> values = Collections.singletonList((T) value);
+				return values;
+			}
+		}
+	}
+
+	public <T> List<T> getValues(Metadata metadata, Locale locale, LocalisedRecordMetadataRetrieval mode) {
+		Object value = get(metadata, locale, mode);
+		if (value == null) {
+			return Collections.emptyList();
+		} else {
+			if (metadata.isMultivalue()) {
+				return (List<T>) value;
+			} else {
+				List<T> values = asList((T) value);
 				return values;
 			}
 		}
@@ -687,41 +793,41 @@ public class RecordImpl implements Record {
 		return id;
 	}
 
-	//	@Override
-	//	public int hashCode() {
-	//		return HashCodeBuilder.reflectionHashCode(this, "recordDTO");
-	//	}
-	//
-	//	@Override
-	//	public boolean equals(Object obj) {
-	//		return EqualsBuilder.reflectionEquals(this, obj, "recordDTO");
-	//	}
-
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
+		if (this == o) {
 			return true;
-		if (!(o instanceof RecordImpl))
+		}
+		if (!(o instanceof RecordImpl)) {
 			return false;
+		}
 
 		RecordImpl record = (RecordImpl) o;
 
-		if (version != record.version)
+		if (version != record.version) {
 			return false;
-		if (disconnected != record.disconnected)
+		}
+		if (disconnected != record.disconnected) {
 			return false;
-		if (fullyLoaded != record.fullyLoaded)
+		}
+		if (fullyLoaded != record.fullyLoaded) {
 			return false;
-		if (modifiedValues != null ? !modifiedValues.equals(record.modifiedValues) : record.modifiedValues != null)
+		}
+		if (modifiedValues != null ? !modifiedValues.equals(record.modifiedValues) : record.modifiedValues != null) {
 			return false;
-		if (schemaCode != null ? !schemaCode.equals(record.schemaCode) : record.schemaCode != null)
+		}
+		if (schemaCode != null ? !schemaCode.equals(record.schemaCode) : record.schemaCode != null) {
 			return false;
-		if (collection != null ? !collection.equals(record.collection) : record.collection != null)
+		}
+		if (collection != null ? !collection.equals(record.collection) : record.collection != null) {
 			return false;
-		if (!id.equals(record.id))
+		}
+		if (!id.equals(record.id)) {
 			return false;
-		if (structuredValues != null ? !structuredValues.equals(record.structuredValues) : record.structuredValues != null)
+		}
+		if (structuredValues != null ? !structuredValues.equals(record.structuredValues) : record.structuredValues != null) {
 			return false;
+		}
 
 		return true;
 	}
@@ -757,8 +863,8 @@ public class RecordImpl implements Record {
 		for (Entry<String, Object> entry : modifiedValues.entrySet()) {
 			String key = entry.getKey();
 			boolean specialField = key.equals("schema_s") || key.equals("id") || key.equals("_version_")
-					|| key.equals("autocomplete_ss") || key.equals("collection_s")
-					|| key.equals("modifiedOn_dt") || key.equals("createdOn_dt") || key.equals("modifiedById_s");
+								   || key.equals("autocomplete_ss") || key.equals("collection_s")
+								   || key.equals("modifiedOn_dt") || key.equals("createdOn_dt") || key.equals("modifiedById_s");
 
 			if (!specialField) {
 				String metadataCode = new SchemaUtils().getLocalCodeFromDataStoreCode(key);
@@ -767,15 +873,15 @@ public class RecordImpl implements Record {
 					Object modifiedValue = entry.getValue();
 					Object currentValue = otherVersionRecordDTO.getFields().get(entry.getKey());
 					if (LangUtils.areNullableEqual(currentValue, modifiedValue)
-							|| (currentValue == null && isEmptyList(modifiedValue))
-							|| (modifiedValue == null && isEmptyList(currentValue))) {
+						|| (currentValue == null && isEmptyList(modifiedValue))
+						|| (modifiedValue == null && isEmptyList(currentValue))) {
 						//Both transactions made the same change on that field
 						removedKeys.add(entry.getKey());
 					} else {
 
 						if (!(LangUtils.areNullableEqual(currentValue, initialValue)
-								|| (currentValue == null && isEmptyList(initialValue))
-								|| (initialValue == null && isEmptyList(currentValue)))) {
+							  || (currentValue == null && isEmptyList(initialValue))
+							  || (initialValue == null && isEmptyList(currentValue)))) {
 							throw new RecordRuntimeException.CannotMerge(schema.getCode(), id, key, currentValue, initialValue);
 						}
 					}
@@ -816,7 +922,7 @@ public class RecordImpl implements Record {
 
 	private boolean isCreationOrModificationInfo(String key) {
 		return Schemas.MODIFIED_BY.getDataStoreCode().equals(key) || Schemas.MODIFIED_ON.getDataStoreCode().equals(key)
-				|| Schemas.CREATED_BY.getDataStoreCode().equals(key) || Schemas.CREATED_ON.getDataStoreCode().equals(key);
+			   || Schemas.CREATED_BY.getDataStoreCode().equals(key) || Schemas.CREATED_ON.getDataStoreCode().equals(key);
 	}
 
 	private Object correctValue(Object value) {
@@ -846,6 +952,11 @@ public class RecordImpl implements Record {
 	@Override
 	public String getCollection() {
 		return collection;
+	}
+
+	@Override
+	public CollectionInfo getCollectionInfo() {
+		return collectionInfo;
 	}
 
 	@Override
@@ -886,7 +997,7 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO, eagerTransientValues, fullyLoaded);
+		return new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, fullyLoaded);
 	}
 
 	@Override
@@ -894,7 +1005,7 @@ public class RecordImpl implements Record {
 		if (recordDTO == null) {
 			throw new RecordImplException_UnsupportedOperationOnUnsavedRecord("getCopyOfOriginalRecord", id);
 		}
-		return new RecordImpl(recordDTO, eagerTransientValues, fullyLoaded, true);
+		return new RecordImpl(recordDTO, collectionInfo, eagerTransientValues, fullyLoaded, true);
 	}
 
 	@Override
@@ -906,6 +1017,9 @@ public class RecordImpl implements Record {
 		Set<String> metadatasDataStoreCodes = new HashSet<>();
 		for (Metadata metadata : metadatas) {
 			metadatasDataStoreCodes.add(metadata.getDataStoreCode());
+			for (String collectionLanguageCode : collectionInfo.getSecondaryCollectionLanguesCodes()) {
+				metadatasDataStoreCodes.add(metadata.getSecondaryLanguageDataStoreCode(collectionLanguageCode));
+			}
 		}
 
 		Map<String, Object> newEagerTransientValues = new HashMap<>();
@@ -915,7 +1029,8 @@ public class RecordImpl implements Record {
 			}
 		}
 
-		return new RecordImpl(recordDTO.createCopyOnlyKeeping(metadatasDataStoreCodes), newEagerTransientValues, false);
+		return new RecordImpl(recordDTO.createCopyOnlyKeeping(metadatasDataStoreCodes), collectionInfo, newEagerTransientValues,
+				false);
 	}
 
 	@Override
@@ -1064,8 +1179,9 @@ public class RecordImpl implements Record {
 			if (value2 == null) {
 				return false;
 			} else {
-				if (value1 instanceof List)
+				if (value1 instanceof List) {
 					;
+				}
 
 			}
 

@@ -9,7 +9,7 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 
 public class TaskBreadcrumbTrail extends TitleBreadcrumbTrail {
-	
+
 	private TaskBreadcrumbTrailPresenter presenter;
 
 	public TaskBreadcrumbTrail(String recordId, BaseView view) {

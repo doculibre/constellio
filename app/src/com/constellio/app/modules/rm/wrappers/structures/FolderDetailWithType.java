@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import java.io.Serializable;
-
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
+
+import java.io.Serializable;
 
 public class FolderDetailWithType implements Serializable {
 	private final DecomListFolderDetail detail;
@@ -11,7 +11,7 @@ public class FolderDetailWithType implements Serializable {
 	private final DecommissioningListType listType;
 
 	public FolderDetailWithType(DecomListFolderDetail detail, FolderMediaType type,
-			DecommissioningListType listType) {
+								DecommissioningListType listType) {
 		this.detail = detail;
 		this.type = type;
 		this.listType = listType;
@@ -31,18 +31,18 @@ public class FolderDetailWithType implements Serializable {
 
 	public FolderDecommissioningType getDecommissioningType() {
 		switch (listType) {
-		case FOLDERS_TO_CLOSE:
-			return FolderDecommissioningType.CLOSURE;
-		case FOLDERS_TO_TRANSFER:
-			return FolderDecommissioningType.TRANSFER;
-		case FOLDERS_TO_DEPOSIT:
-			return (detail.isReversedSort()) ?
-					FolderDecommissioningType.DESTROYAL :
-					FolderDecommissioningType.DEPOSIT;
-		case FOLDERS_TO_DESTROY:
-			return (detail.isReversedSort()) ?
-					FolderDecommissioningType.DEPOSIT :
-					FolderDecommissioningType.DESTROYAL;
+			case FOLDERS_TO_CLOSE:
+				return FolderDecommissioningType.CLOSURE;
+			case FOLDERS_TO_TRANSFER:
+				return FolderDecommissioningType.TRANSFER;
+			case FOLDERS_TO_DEPOSIT:
+				return (detail.isReversedSort()) ?
+					   FolderDecommissioningType.DESTROYAL :
+					   FolderDecommissioningType.DEPOSIT;
+			case FOLDERS_TO_DESTROY:
+				return (detail.isReversedSort()) ?
+					   FolderDecommissioningType.DEPOSIT :
+					   FolderDecommissioningType.DESTROYAL;
 		}
 		return null;
 	}

@@ -5,11 +5,11 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import java.util.List;
 
 public interface CopyRetentionRuleField {
-    void setOptions(List<CopyRetentionRule> options);
+	void setOptions(List<CopyRetentionRule> options);
 
-    String getFieldValue();
+	String getFieldValue();
 
-    void setFieldValue(Object string);
+	void setFieldValue(Object string);
 
-    void setVisible(boolean b);
+	void setVisible(boolean b);
 }

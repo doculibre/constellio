@@ -1,8 +1,9 @@
 package com.constellio.app.api.cmis.requests.object;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_InvalidArgumentNoObjectIdsProvided;
+import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
+import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
+import com.constellio.app.services.factories.AppLayerFactory;
 import org.apache.chemistry.opencmis.commons.data.BulkUpdateObjectIdAndChangeToken;
 import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
@@ -14,10 +15,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.api.cmis.CmisExceptions.CmisExceptions_InvalidArgumentNoObjectIdsProvided;
-import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
-import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
-import com.constellio.app.services.factories.AppLayerFactory;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BulkUpdatePropertiesRequest extends CmisCollectionRequest<List<BulkUpdateObjectIdAndChangeToken>> {
 
@@ -28,8 +27,9 @@ public class BulkUpdatePropertiesRequest extends CmisCollectionRequest<List<Bulk
 	private final ObjectInfoHandler objectInfos;
 
 	public BulkUpdatePropertiesRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			UpdatePropertiesRequest updatePropertiesRequest, CallContext context,
-			List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken, Properties properties, ObjectInfoHandler objectInfos) {
+									   UpdatePropertiesRequest updatePropertiesRequest, CallContext context,
+									   List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken,
+									   Properties properties, ObjectInfoHandler objectInfos) {
 		super(context, repository, appLayerFactory);
 		this.updatePropertiesRequest = updatePropertiesRequest;
 		this.objectIdAndChangeToken = objectIdAndChangeToken;

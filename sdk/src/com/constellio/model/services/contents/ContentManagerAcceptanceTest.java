@@ -1,31 +1,5 @@
 package com.constellio.model.services.contents;
 
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.ICAP_SCAN_ACTIVATED;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.ICAP_SERVER_URL;
-import static java.util.Arrays.asList;
-import static org.apache.commons.io.IOUtils.readLines;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.contents.FileSystemContentDaoExternalResourcesExtension;
 import com.constellio.data.io.streamFactories.StreamFactory;
@@ -41,7 +15,6 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
-import com.constellio.sdk.tests.annotations.InternetTest;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -55,12 +28,18 @@ import java.io.InputStream;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.ICAP_SCAN_ACTIVATED;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.ICAP_SERVER_URL;
 import static java.util.Arrays.asList;
+import static org.apache.commons.io.IOUtils.readLines;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ContentManagerAcceptanceTest extends ConstellioTest {
 

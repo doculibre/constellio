@@ -1,15 +1,15 @@
 package com.constellio.app.modules.es.connectors.http.fetcher;
 
+import com.constellio.app.modules.es.connectors.http.fetcher.config.FetcherConfig;
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.WebClient;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
-
-import com.constellio.app.modules.es.connectors.http.fetcher.config.FetcherConfig;
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.Page;
-import com.gargoylesoftware.htmlunit.WebClient;
 
 public class FetchTask implements Callable<FetchedDoc> {
 

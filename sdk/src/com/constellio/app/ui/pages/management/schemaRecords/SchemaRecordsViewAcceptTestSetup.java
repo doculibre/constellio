@@ -1,8 +1,5 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Metadata;
@@ -14,6 +11,9 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SchemaRecordsViewAcceptTestSetup extends SchemasSetup {
 

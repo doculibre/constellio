@@ -14,9 +14,9 @@ public class CalculatorParametersValidatingDependencies extends CalculatorParame
 	MetadataValueCalculator calculator;
 
 	public CalculatorParametersValidatingDependencies(CalculatorParameters parameters,
-			MetadataValueCalculator calculator) {
+													  MetadataValueCalculator calculator) {
 		super(parameters.values, parameters.getId(), parameters.getLegacyId(), parameters.getSchemaType(),
-				parameters.getCollection(), false);
+				parameters.getCollection(), false, parameters.getMetadata());
 		this.parameters = parameters;
 		this.calculator = calculator;
 	}

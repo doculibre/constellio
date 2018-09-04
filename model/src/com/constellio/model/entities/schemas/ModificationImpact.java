@@ -1,11 +1,10 @@
 package com.constellio.model.entities.schemas;
 
-import java.util.List;
-
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import java.util.List;
 
 public class ModificationImpact {
 
@@ -16,7 +15,8 @@ public class ModificationImpact {
 	final String transactionTitle;
 
 	public ModificationImpact(MetadataSchemaType impactedSchemaType, List<Metadata> metadataToReindex,
-			LogicalSearchCondition logicalSearchCondition, int potentialImpactsCount, String transactionTitle) {
+							  LogicalSearchCondition logicalSearchCondition, int potentialImpactsCount,
+							  String transactionTitle) {
 		this.impactedSchemaType = impactedSchemaType;
 		this.metadataToReindex = metadataToReindex;
 		this.logicalSearchCondition = logicalSearchCondition;
@@ -61,10 +61,10 @@ public class ModificationImpact {
 	@Override
 	public String toString() {
 		return "ModificationImpact{" +
-				"impactedSchemaType=" + impactedSchemaType +
-				", metadataToReindex=" + metadataToReindex +
-				", logicalSearchCondition=" + logicalSearchCondition +
-				", potentialImpactsCount=" + potentialImpactsCount +
-				'}';
+			   "impactedSchemaType=" + impactedSchemaType +
+			   ", metadataToReindex=" + metadataToReindex +
+			   ", logicalSearchCondition=" + logicalSearchCondition +
+			   ", potentialImpactsCount=" + potentialImpactsCount +
+			   '}';
 	}
 }

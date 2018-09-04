@@ -33,157 +33,157 @@ import org.apache.commons.lang3.StringUtils;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabelView> {
-    private MetadataSchemaToVOBuilder schemaVOBuilder;
-    private transient RMConfigs rmConfigs;
-    private transient RMSchemasRecordsServices rmSchemasRecordsServices;
-    private transient BorrowingServices borrowingServices;
-    private transient MetadataSchemasManager metadataSchemasManager;
-    private transient RecordServices recordServices;
-    private transient ModelLayerCollectionExtensions extensions;
-    protected RecordVO container;
-    private RecordVODataProvider folderDataProvider, containerDataProvider;
+	private MetadataSchemaToVOBuilder schemaVOBuilder;
+	private transient RMConfigs rmConfigs;
+	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
+	private transient BorrowingServices borrowingServices;
+	private transient MetadataSchemasManager metadataSchemasManager;
+	private transient RecordServices recordServices;
+	private transient ModelLayerCollectionExtensions extensions;
+	protected RecordVO container;
+	private RecordVODataProvider folderDataProvider, containerDataProvider;
 
 
-    public AddEditLabelPresenter(AddEditLabelView view) {
-        super(view);
-        initTransientObjects();
-    }
+	public AddEditLabelPresenter(AddEditLabelView view) {
+		super(view);
+		initTransientObjects();
+	}
 
-    public RecordVO getRecordVO(String id, RecordVO.VIEW_MODE mode) {
-        LogicalSearchCondition condition = from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME)).where(Schemas.IDENTIFIER).isEqualTo(id);
-        Record r = searchServices().searchSingleResult(condition);
-        RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-        return voBuilder.build(r, mode, view.getSessionContext());
-    }
+	public RecordVO getRecordVO(String id, RecordVO.VIEW_MODE mode) {
+		LogicalSearchCondition condition = from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME)).where(Schemas.IDENTIFIER).isEqualTo(id);
+		Record r = searchServices().searchSingleResult(condition);
+		RecordToVOBuilder voBuilder = new RecordToVOBuilder();
+		return voBuilder.build(r, mode, view.getSessionContext());
+	}
 
-    private void initTransientObjects() {
-        schemaVOBuilder = new MetadataSchemaToVOBuilder();
-        rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
-        borrowingServices = new BorrowingServices(collection, modelLayerFactory);
-        metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-        recordServices = modelLayerFactory.newRecordServices();
-        extensions = modelLayerFactory.getExtensions().forCollection(collection);
-        rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-    }
+	private void initTransientObjects() {
+		schemaVOBuilder = new MetadataSchemaToVOBuilder();
+		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
+		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
+		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		recordServices = modelLayerFactory.newRecordServices();
+		extensions = modelLayerFactory.getExtensions().forCollection(collection);
+		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+	}
 
-    @Override
-    protected boolean hasPageAccess(String params, User user) {
-        return user.has(CorePermissions.MANAGE_LABELS).globally();
-    }
+	@Override
+	protected boolean hasPageAccess(String params, User user) {
+		return user.has(CorePermissions.MANAGE_LABELS).globally();
+	}
 
-    public RecordVODataProvider getLabelFolderDataProvider() {
-        if(folderDataProvider == null) {
-            final MetadataSchemaVO labelSchemaVo = schemaVOBuilder
-                    .build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-            folderDataProvider = new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-                @Override
-                protected LogicalSearchQuery getQuery() {
-                    MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
-                    return new LogicalSearchQuery(
-                            from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
-                                    .where(schema.getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(Folder.SCHEMA_TYPE));
-                }
-            };
-        }
-       return folderDataProvider;
-    }
+	public RecordVODataProvider getLabelFolderDataProvider() {
+		if (folderDataProvider == null) {
+			final MetadataSchemaVO labelSchemaVo = schemaVOBuilder
+					.build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+			folderDataProvider = new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+				@Override
+				protected LogicalSearchQuery getQuery() {
+					MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
+					return new LogicalSearchQuery(
+							from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
+									.where(schema.getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(Folder.SCHEMA_TYPE));
+				}
+			};
+		}
+		return folderDataProvider;
+	}
 
-    public RecordVODataProvider getLabelContainerDataProvider() {
-        if(containerDataProvider == null) {
-            final MetadataSchemaVO labelSchemaVo = schemaVOBuilder
-                    .build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-            containerDataProvider =  new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-                @Override
-                protected LogicalSearchQuery getQuery() {
-                    MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
-                    return new LogicalSearchQuery(
-                            from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
-                                    .where(schema.getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(ContainerRecord.SCHEMA_TYPE));
-                }
-            };
-        }
-        return containerDataProvider;
-    }
+	public RecordVODataProvider getLabelContainerDataProvider() {
+		if (containerDataProvider == null) {
+			final MetadataSchemaVO labelSchemaVo = schemaVOBuilder
+					.build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+			containerDataProvider = new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+				@Override
+				protected LogicalSearchQuery getQuery() {
+					MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
+					return new LogicalSearchQuery(
+							from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
+									.where(schema.getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(ContainerRecord.SCHEMA_TYPE));
+				}
+			};
+		}
+		return containerDataProvider;
+	}
 
-    public void addLabelButtonClicked() {
-        view.navigate().to().addLabel();
-    }
+	public void addLabelButtonClicked() {
+		view.navigate().to().addLabel();
+	}
 
-    public void saveButtonClicked(RecordVO rvo) throws Exception {
-        RecordServices rs = appLayerFactory.getModelLayerFactory().newRecordServices();
-        SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
-        Record record = utils.toRecord(rvo);
-        record.set(metadataSchemasManager.getSchemaTypes(collection).getMetadata(PrintableLabel.SCHEMA_NAME + "_" + PrintableLabel.ISDELETABLE), true);
-        Transaction trans = new Transaction();
-        trans.update(record);
-        rs.execute(trans);
-        view.navigate().to().previousView();
-    }
+	public void saveButtonClicked(RecordVO rvo) throws Exception {
+		RecordServices rs = appLayerFactory.getModelLayerFactory().newRecordServices();
+		SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
+		Record record = utils.toRecord(rvo);
+		record.set(metadataSchemasManager.getSchemaTypes(collection).getMetadata(PrintableLabel.SCHEMA_NAME + "_" + PrintableLabel.ISDELETABLE), true);
+		Transaction trans = new Transaction();
+		trans.update(record);
+		rs.execute(trans);
+		view.navigate().to().previousView();
+	}
 
-    public void cancelButtonClicked() {
-        view.navigate().to().previousView();
-    }
+	public void cancelButtonClicked() {
+		view.navigate().to().previousView();
+	}
 
-    public void customFieldValueChanged(CustomDocumentField<?> field) {
+	public void customFieldValueChanged(CustomDocumentField<?> field) {
 
-    }
+	}
 
-    @Override
-    protected Record newRecord() {
-        super.setSchemaCode(PrintableLabel.SCHEMA_NAME);
-        Record record = super.newRecord();
-        PrintableLabel report = rmSchemasRecordsServices.wrapPrintableLabel(record);
-        return record;
-    }
+	@Override
+	protected Record newRecord() {
+		super.setSchemaCode(PrintableLabel.SCHEMA_NAME);
+		Record record = super.newRecord();
+		PrintableLabel report = rmSchemasRecordsServices.wrapPrintableLabel(record);
+		return record;
+	}
 
-    public SchemaTypeVODataProvider getDataProvider() {
-        return new SchemaTypeVODataProvider(new MetadataSchemaTypeToVOBuilder(), appLayerFactory, collection);
-    }
+	public SchemaTypeVODataProvider getDataProvider() {
+		return new SchemaTypeVODataProvider(new MetadataSchemaTypeToVOBuilder(), appLayerFactory, collection);
+	}
 
-    public void editButtonClicked(RecordVO record, String schema) {
-        view.navigate().to().editLabel(record.getId());
-    }
+	public void editButtonClicked(RecordVO record, String schema) {
+		view.navigate().to().editLabel(record.getId());
+	}
 
-    public RecordVO getRecordsWithIndex(String schema, String itemId) {
-        RecordVODataProvider dataProvider = schema.equals(Folder.SCHEMA_TYPE) ? this.getLabelFolderDataProvider() : this.getLabelContainerDataProvider();
-        RecordVO records = dataProvider.getRecordVO(Integer.parseInt(itemId));
-        return records;
-    }
+	public RecordVO getRecordsWithIndex(String schema, String itemId) {
+		RecordVODataProvider dataProvider = schema.equals(Folder.SCHEMA_TYPE) ? this.getLabelFolderDataProvider() : this.getLabelContainerDataProvider();
+		RecordVO records = dataProvider.getRecordVO(Integer.parseInt(itemId));
+		return records;
+	}
 
-    public void displayButtonClicked(RecordVO record, String schema) {
-        view.navigate().to().viewLabel(record.getId());
-    }
+	public void displayButtonClicked(RecordVO record, String schema) {
+		view.navigate().to().viewLabel(record.getId());
+	}
 
-    public void typeSelected(String type) {
-        String newSchemaCode = getLinkedSchemaCodeOf(type);
-        if (container.getSchema().getCode().equals(newSchemaCode)) {
-            return;
-        }
-//        setSchemaCode(newSchemaCode);
-//        container = copyMetadataToSchema(view.getUpdatedContainer(), newSchemaCode);
-//        container.set(ContainerRecord.TYPE, type);
-//        view.reloadWithContainer(container);
-    }
+	public void typeSelected(String type) {
+		String newSchemaCode = getLinkedSchemaCodeOf(type);
+		if (container.getSchema().getCode().equals(newSchemaCode)) {
+			return;
+		}
+		//        setSchemaCode(newSchemaCode);
+		//        container = copyMetadataToSchema(view.getUpdatedContainer(), newSchemaCode);
+		//        container.set(ContainerRecord.TYPE, type);
+		//        view.reloadWithContainer(container);
+	}
 
-    private String getLinkedSchemaCodeOf(String id) {
-        String linkedSchemaCode;
-        ContainerRecordType type = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory).getContainerRecordType(id);
-        if (type == null || StringUtils.isBlank(type.getLinkedSchema())) {
-            linkedSchemaCode = ContainerRecord.DEFAULT_SCHEMA;
-        } else {
-            linkedSchemaCode = type.getLinkedSchema();
-        }
-        return linkedSchemaCode;
-    }
+	private String getLinkedSchemaCodeOf(String id) {
+		String linkedSchemaCode;
+		ContainerRecordType type = new RMSchemasRecordsServices(view.getCollection(), appLayerFactory).getContainerRecordType(id);
+		if (type == null || StringUtils.isBlank(type.getLinkedSchema())) {
+			linkedSchemaCode = ContainerRecord.DEFAULT_SCHEMA;
+		} else {
+			linkedSchemaCode = type.getLinkedSchema();
+		}
+		return linkedSchemaCode;
+	}
 
-    public void removeRecord(String itemId, String schema) {
-        SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
-        Record record = utils.toRecord(this.getRecordsWithIndex(schema, itemId));
-        delete(record);
-        view.navigate().to().manageLabels();
-    }
+	public void removeRecord(String itemId, String schema) {
+		SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
+		Record record = utils.toRecord(this.getRecordsWithIndex(schema, itemId));
+		delete(record);
+		view.navigate().to().manageLabels();
+	}
 
-    public void backButtonClicked() {
-        view.navigate().to().previousView();
-    }
+	public void backButtonClicked() {
+		view.navigate().to().previousView();
+	}
 }

@@ -1,10 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.*;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.table.BasePagedTable;
 import com.constellio.app.ui.framework.components.table.TablePropertyCache.CellKey;
@@ -22,6 +17,16 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class SearchResultDetailedTable extends BasePagedTable<SearchResultContainer> implements SearchResultTable {
 	public static final String TABLE_STYLE = "search-result-table";

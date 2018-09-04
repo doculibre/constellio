@@ -1,18 +1,5 @@
 package com.constellio.model.services.factories;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-
-import java.io.IOException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.model.services.thesaurus.ThesaurusManager;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import com.constellio.data.conf.CacheType;
 import com.constellio.data.dao.managers.StatefullServiceDecorator;
 import com.constellio.data.dao.managers.config.ConfigManager;
@@ -64,6 +51,7 @@ import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.SynonymsConfigurationsManager;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -78,6 +66,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesBasedOnHierarchyTokensImpl;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
+import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.trash.TrashQueueManager;
 import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.SolrGlobalGroupsManager;
@@ -86,6 +75,17 @@ import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
 
 public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactoryImpl.class);
@@ -128,6 +128,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
 	private final RecordMigrationsManager recordMigrationsManager;
 	private final SearchConfigurationsManager searchConfigurationsManager;
+	private final SynonymsConfigurationsManager synonymsConfigurationsManager;
 
 	private ThesaurusManager thesaurusManager;
 
@@ -135,9 +136,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
-			ModelLayerConfiguration modelLayerConfiguration, StatefullServiceDecorator statefullServiceDecorator,
-			Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
-			Factory<ModelLayerFactory> modelLayerFactoryFactory) {
+								 ModelLayerConfiguration modelLayerConfiguration,
+								 StatefullServiceDecorator statefullServiceDecorator,
+								 Delayed<ConstellioModulesManager> modulesManagerDelayed, String instanceName,
+								 Factory<ModelLayerFactory> modelLayerFactoryFactory) {
 
 		super(dataLayerFactory, statefullServiceDecorator, instanceName);
 
@@ -172,7 +174,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
-		this.collectionsListManager = add(new CollectionsListManager(configManager));
+		this.collectionsListManager = add(new CollectionsListManager(this));
 
 		this.batchProcessesManager = add(new BatchProcessesManager(this));
 		this.taxonomiesManager = add(
@@ -220,7 +222,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		taxonomiesSearchServicesCache = new EventBusTaxonomiesSearchServicesCache(new MemoryTaxonomiesSearchServicesCache(),
 				dataLayerFactory.getEventBusManager());
-		this.searchConfigurationsManager = new SearchConfigurationsManager(dataLayerFactory, this);
+		this.searchConfigurationsManager = add(new SearchConfigurationsManager(configManager, collectionsListManager, cacheManager));
+		this.synonymsConfigurationsManager = add(new SynonymsConfigurationsManager(configManager, collectionsListManager, cacheManager));
 
 	}
 
@@ -245,7 +248,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	}
 
 	public synchronized ThesaurusManager getThesaurusManager() {
-		if(thesaurusManager == null) {
+		if (thesaurusManager == null) {
 			thesaurusManager = add(new ThesaurusManager(this));
 		}
 		return thesaurusManager;
@@ -473,6 +476,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	@Override
 	public SearchConfigurationsManager getSearchConfigurationsManager() {
 		return searchConfigurationsManager;
+	}
+
+	@Override
+	public SynonymsConfigurationsManager getSynonymsConfigurationsManager() {
+		return synonymsConfigurationsManager;
 	}
 
 	@Override

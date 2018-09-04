@@ -13,45 +13,45 @@ import static java.util.Arrays.asList;
 
 public class StorageSpaceLinearSizeCalculator implements MetadataValueCalculator<Double> {
 
-    LocalDependency<Double> enteredLinearSizeParam = LocalDependency.toANumber(StorageSpace.LINEAR_SIZE_ENTERED);
+	LocalDependency<Double> enteredLinearSizeParam = LocalDependency.toANumber(StorageSpace.LINEAR_SIZE_ENTERED);
 
-    LocalDependency<Double> linearSizeSumParam = LocalDependency.toANumber(StorageSpace.LINEAR_SIZE_SUM);
+	LocalDependency<Double> linearSizeSumParam = LocalDependency.toANumber(StorageSpace.LINEAR_SIZE_SUM);
 
-    LocalDependency<Double> childLinearSizeSumParam = LocalDependency.toANumber(StorageSpace.CHILD_LINEAR_SIZE_SUM);
+	LocalDependency<Double> childLinearSizeSumParam = LocalDependency.toANumber(StorageSpace.CHILD_LINEAR_SIZE_SUM);
 
-    LocalDependency<Double> numberOfChildSizeSumParam = LocalDependency.toANumber(StorageSpace.NUMBER_OF_CHILD);
+	LocalDependency<Double> numberOfChildSizeSumParam = LocalDependency.toANumber(StorageSpace.NUMBER_OF_CHILD);
 
-    @Override
-    public Double calculate(CalculatorParameters parameters) {
-        Double enteredLinearSizeParam = parameters.get(this.enteredLinearSizeParam);
-        Double enteredLinearSizeSumParam = parameters.get(this.linearSizeSumParam);
-        Double enteredChildLinearSizeSumParam = parameters.get(this.childLinearSizeSumParam);
-        Double enteredNumberOfChildSizeSumParam = parameters.get(this.numberOfChildSizeSumParam);
+	@Override
+	public Double calculate(CalculatorParameters parameters) {
+		Double enteredLinearSizeParam = parameters.get(this.enteredLinearSizeParam);
+		Double enteredLinearSizeSumParam = parameters.get(this.linearSizeSumParam);
+		Double enteredChildLinearSizeSumParam = parameters.get(this.childLinearSizeSumParam);
+		Double enteredNumberOfChildSizeSumParam = parameters.get(this.numberOfChildSizeSumParam);
 
-        if (enteredNumberOfChildSizeSumParam != null && enteredNumberOfChildSizeSumParam > 0) {
-            return enteredChildLinearSizeSumParam;
-        } else {
-            return enteredLinearSizeParam != null ? enteredLinearSizeParam : enteredLinearSizeSumParam;
-        }
-    }
+		if (enteredNumberOfChildSizeSumParam != null && enteredNumberOfChildSizeSumParam > 0) {
+			return enteredChildLinearSizeSumParam;
+		} else {
+			return enteredLinearSizeParam != null ? enteredLinearSizeParam : enteredLinearSizeSumParam;
+		}
+	}
 
-    @Override
-    public Double getDefaultValue() {
-        return null;
-    }
+	@Override
+	public Double getDefaultValue() {
+		return null;
+	}
 
-    @Override
-    public MetadataValueType getReturnType() {
-        return MetadataValueType.NUMBER;
-    }
+	@Override
+	public MetadataValueType getReturnType() {
+		return MetadataValueType.NUMBER;
+	}
 
-    @Override
-    public boolean isMultiValue() {
-        return false;
-    }
+	@Override
+	public boolean isMultiValue() {
+		return false;
+	}
 
-    @Override
-    public List<? extends Dependency> getDependencies() {
-        return asList(enteredLinearSizeParam, linearSizeSumParam, childLinearSizeSumParam, numberOfChildSizeSumParam);
-    }
+	@Override
+	public List<? extends Dependency> getDependencies() {
+		return asList(enteredLinearSizeParam, linearSizeSumParam, childLinearSizeSumParam, numberOfChildSizeSumParam);
+	}
 }

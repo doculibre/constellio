@@ -1,8 +1,5 @@
 package com.constellio.sdk.tests;
 
-import java.io.File;
-import java.util.Map;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
@@ -16,6 +13,9 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.sdk.tests.SolrSDKToolsServices.VaultSnapshot;
 
+import java.io.File;
+import java.util.Map;
+
 public class AfterTestValidationsTestFeature {
 
 	private boolean disabledInCurrentTest;
@@ -27,22 +27,23 @@ public class AfterTestValidationsTestFeature {
 
 	private String reindexationMessage =
 			"\n\nModifications occured during a reindexation after the test " +
-					"triggered by the parameter validateDataIntegrity=true in sdk.properties"
-					+ "\nThat means the vault was in a corrupted state or the reindexation broke something.";
+			"triggered by the parameter validateDataIntegrity=true in sdk.properties"
+			+ "\nThat means the vault was in a corrupted state or the reindexation broke something.";
 
 	private String tLogReplayMessage =
 			"\n\nModifications occured during the replay of the transaction log after the test " +
-					"triggered by the parameter validateTransactionLog=true in sdk.properties"
-					+ "\nThat means the vault was in a corrupted state or the replay broke something.";
+			"triggered by the parameter validateTransactionLog=true in sdk.properties"
+			+ "\nThat means the vault was in a corrupted state or the replay broke something.";
 
 	private String rollbackReplayMessage =
 			"\n\nModifications occured during a test that could not be rollbacked after the test, " +
-					"triggered by the parameter checkRollback=true in sdk.properties.";
+			"triggered by the parameter checkRollback=true in sdk.properties.";
 	private VaultSnapshot snapshotBeforeReplay;
 
 	public AfterTestValidationsTestFeature(FileSystemTestFeatures fileSystemTestFeatures,
-			final BatchProcessTestFeature batchProcessTestFeature,
-			final FactoriesTestFeatures factoriesTestFeatures, Map<String, String> sdkProperties) {
+										   final BatchProcessTestFeature batchProcessTestFeature,
+										   final FactoriesTestFeatures factoriesTestFeatures,
+										   Map<String, String> sdkProperties) {
 		this.factoriesTestFeatures = factoriesTestFeatures;
 		this.batchProcessTestFeature = batchProcessTestFeature;
 		this.sdkProperties = sdkProperties;
@@ -94,7 +95,8 @@ public class AfterTestValidationsTestFeature {
 		return null;
 	}
 
-	private void checkRecovery(SolrSDKToolsServices tools, TransactionLogRecoveryManager transactionLogRecoveryManager) {
+	private void checkRecovery(SolrSDKToolsServices tools,
+							   TransactionLogRecoveryManager transactionLogRecoveryManager) {
 		if (snapshotBeforeReplay != null) {
 			transactionLogRecoveryManager.rollback(null);
 			VaultSnapshot currentSnapShot = tools.snapshot();

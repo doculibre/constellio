@@ -1,17 +1,15 @@
 package com.constellio.data.io.concurrent.filesystem;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.data.io.concurrent.data.DataWithVersion;
 import com.constellio.data.io.concurrent.exception.AtomicIOException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Create a file system that is limited to a sub path in another file system.
  *
  * @author Majid Laali
- *
  */
 public class ChildAtomicFileSystem implements AtomicFileSystem {
 	private AtomicFileSystem toBeDecorated;
@@ -27,18 +25,21 @@ public class ChildAtomicFileSystem implements AtomicFileSystem {
 		/*if (!basePath.startsWith("/"))
 			throw new IllegalArgumentException("The path should start with '/' but it does not: " + basePath);*/
 
-		if (basePath.endsWith("//"))
+		if (basePath.endsWith("//")) {
 			throw new IllegalArgumentException("The path should not end with '//' but it does: " + basePath);
+		}
 
-		if (basePath.endsWith("/"))
+		if (basePath.endsWith("/")) {
 			basePath.substring(0, basePath.length() - 1);
+		}
 
 		this.basePath = basePath;
 		if (!toBeDecorated.exists(basePath)) {
-			if (forceCreate)
+			if (forceCreate) {
 				toBeDecorated.mkdirs(basePath);
-			else
+			} else {
 				throw new AtomicIOException("The base folder does not exist: " + basePath);
+			}
 		}
 	}
 

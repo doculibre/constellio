@@ -1,20 +1,5 @@
 package com.constellio.app.ui.acceptation.components;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.when;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -61,6 +46,20 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.when;
 
 @InDevelopmentTest
 @UiTest
@@ -344,7 +343,7 @@ public class RecordContainerAcceptanceTest extends ConstellioTest {
 		}
 
 		private Container newAllRecordsContainer(MetadataSchema schema, final DummyViewPresenter tablePresenter,
-				String buttonsLabel) {
+												 String buttonsLabel) {
 			Container recordsContainer = new RecordVOLazyContainer(getAllRecordsDataProvider(schema));
 			final ButtonsContainer<?> buttonsContainer = new ButtonsContainer(recordsContainer, buttonsLabel);
 

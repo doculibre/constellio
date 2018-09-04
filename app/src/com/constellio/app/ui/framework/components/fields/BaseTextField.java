@@ -1,21 +1,20 @@
 package com.constellio.app.ui.framework.components.fields;
 
-import java.util.UUID;
-
-import org.apache.commons.lang.StringUtils;
-
 import com.constellio.model.utils.MaskUtils;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.data.Property;
 import com.vaadin.ui.TextField;
+import org.apache.commons.lang.StringUtils;
 
-@JavaScript({ "theme://jquery/jquery-2.1.4.min.js", "theme://inputmask/jquery.inputmask.bundle.js" })
+import java.util.UUID;
+
+@JavaScript({"theme://jquery/jquery-2.1.4.min.js", "theme://inputmask/jquery.inputmask.bundle.js"})
 public class BaseTextField extends TextField {
-	
+
 	private String inputMask;
-	
+
 	private boolean maskSet = false;
-	
+
 	public BaseTextField() {
 		super();
 		init();
@@ -51,7 +50,7 @@ public class BaseTextField extends TextField {
 		newValue = StringUtils.trim(newValue);
 		super.setValue(newValue);
 	}
-	
+
 	public String getInputMask() {
 		return inputMask;
 	}
@@ -76,7 +75,7 @@ public class BaseTextField extends TextField {
 			js.append("$(document).ready(function() {");
 			js.append(" $(\"#" + id + "\").inputmask(\"" + inputMask + "\"); ");
 			js.append("})");
-			
+
 			com.vaadin.ui.JavaScript.eval(js.toString());
 			maskSet = true;
 		}

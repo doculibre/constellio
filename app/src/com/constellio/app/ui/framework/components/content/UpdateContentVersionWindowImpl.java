@@ -15,37 +15,45 @@ import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
-import com.vaadin.ui.*;
+import com.vaadin.ui.DragAndDropWrapper;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.UI;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class UpdateContentVersionWindowImpl extends BaseWindow implements UpdateContentVersionWindow, DropHandler {
-	
+
 	private boolean checkingIn;
-	
+
 	private String nullValue = new String();
-	
+
 	private ContentVersionVO newVersionVO;
-	
+
 	private Object majorVersion;
-	
+
 	private Property<ContentVersionVO> contentVersionProperty = new NestedMethodProperty<ContentVersionVO>(this, "contentVersion");
-	
+
 	private Property<Object> majorVersionProperty = new NestedMethodProperty<Object>(this, "majorVersion");
 
 	private VerticalLayout mainLayout;
-	
+
 	private BaseForm<RecordVO> uploadForm;
-	
+
 	private Label errorLabel;
-	
+
 	private ContentVersionUploadField uploadField;
-	
+
 	private OptionGroup majorVersionField;
-	
+
 	private UpdateContentVersionPresenter presenter;
 
 	public boolean isCancel() {
@@ -62,18 +70,18 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		setModal(true);
 		setWidth("70%");
 		setZIndex(null);
-		
+
 		mainLayout = new VerticalLayout();
 		mainLayout.setSpacing(true);
 		mainLayout.setWidth("100%");
-		
-		String title = $("UpdateContentVersionWindow.newVersionTitle"); 
+
+		String title = $("UpdateContentVersionWindow.newVersionTitle");
 		setCaption(title);
-		
+
 		errorLabel = new Label();
 		errorLabel.addStyleName("error-label");
 		errorLabel.setVisible(false);
-		
+
 		uploadField = new ContentVersionUploadField(false, false, isEditView) {
 			@Override
 			protected boolean isMajorVersionField(ContentVersionVO contentVersionVO) {
@@ -91,13 +99,13 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 				}
 			}
 		});
-		
+
 		majorVersionField = new OptionGroup();
 		majorVersionField.addStyleName(ValoTheme.OPTIONGROUP_HORIZONTAL);
 		majorVersionField.setCaption($("UpdateContentVersionWindow.version"));
 		majorVersionField.setRequired(true);
 		majorVersionField.setImmediate(true);
-		
+
 		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
 		fieldsAndPropertyIds.add(new FieldAndPropertyId(uploadField, "contentVersion"));
 		fieldsAndPropertyIds.add(new FieldAndPropertyId(majorVersionField, "majorVersion"));
@@ -164,14 +172,14 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		}
 
 		uploadForm.setSizeFull();
-		
+
 		mainLayout.addComponents(errorLabel, uploadForm);
 
 		DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(mainLayout);
 		dragAndDropWrapper.setSizeFull();
 		setContent(dragAndDropWrapper);
 		dragAndDropWrapper.setDropHandler(uploadField);
-		
+
 		presenter = new UpdateContentVersionPresenter(this, records);
 	}
 
@@ -209,7 +217,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 	}
 
 	@Override
-	public void showErrorMessage(String key, Object...args) {
+	public void showErrorMessage(String key, Object... args) {
 		errorLabel.setVisible(true);
 		errorLabel.setValue($(key, args));
 	}
@@ -224,7 +232,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		uploadField.setVisible(visible);
 		uploadField.setVisible(visible);
 	}
-	
+
 	@Override
 	public void setUploadFieldVisible(boolean visible) {
 		uploadField.setVisible(visible);
@@ -252,7 +260,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 		majorVersionField.setItemCaption(true, $("UpdateContentVersionWindow.options.majorVersion"));
 		majorVersionField.setItemCaption(false, $("UpdateContentVersionWindow.options.minorVersion"));
 	}
-	
+
 	public void open(boolean checkingIn) {
 		this.checkingIn = checkingIn;
 		String updatedTitle;
@@ -261,7 +269,7 @@ public class UpdateContentVersionWindowImpl extends BaseWindow implements Update
 			updatedTitle = $("UpdateContentVersionWindow.checkInTitle");
 		} else {
 			setHeight("300px");
-			updatedTitle = $("UpdateContentVersionWindow.newVersionTitle"); 
+			updatedTitle = $("UpdateContentVersionWindow.newVersionTitle");
 		}
 		setCaption(updatedTitle);
 		UI.getCurrent().addWindow(this);

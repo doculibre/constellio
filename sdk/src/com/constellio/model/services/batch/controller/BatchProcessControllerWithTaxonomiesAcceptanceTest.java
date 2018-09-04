@@ -1,19 +1,5 @@
 package com.constellio.model.services.batch.controller;
 
-import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.constellio.model.services.records.reindexing.ReindexationMode;
-import com.constellio.model.services.records.reindexing.ReindexingServices;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.utils.ConsoleLogger;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -24,6 +10,7 @@ import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions.LogicallyDeleteTaxonomyRecordsBehavior;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
@@ -44,6 +31,17 @@ import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocuments
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.Taxonomy2DefaultSchema;
 import com.constellio.sdk.tests.setups.TwoTaxonomiesContainingFolderAndDocumentsSetup.TaxonomyRecords;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends ConstellioTest {
 
@@ -186,7 +184,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		System.out.println(">> " + getTotalReindexedFolders());
 		printRecordsNotReindexed();
 		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
-//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+		//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 		assertThat(getTotalReindexedFolders()).isEqualTo(nbFolders);
 	}
 
@@ -213,7 +211,7 @@ public class BatchProcessControllerWithTaxonomiesAcceptanceTest extends Constell
 		category.set(taxonomy1SecondSchema.parentOfType1(), newParent);
 		recordServices.updateAsync(category);
 		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
-//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+		//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		waitForBatchProcess();
 	}

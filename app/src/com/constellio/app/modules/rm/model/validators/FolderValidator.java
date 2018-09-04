@@ -1,11 +1,5 @@
 package com.constellio.app.modules.rm.model.validators;
 
-import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
-import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -14,6 +8,12 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.model.entities.schemas.validation.RecordValidator;
 import com.constellio.model.services.records.RecordValidatorParams;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.modules.rm.model.enums.CopyType.PRINCIPAL;
+import static com.constellio.app.modules.rm.model.enums.CopyType.SECONDARY;
 
 public class FolderValidator implements RecordValidator {
 
@@ -67,7 +67,7 @@ public class FolderValidator implements RecordValidator {
 			}
 		}
 		if (folder.getCloseDateEntered() != null && folder.getOpeningDate() != null
-				&& folder.getOpeningDate().compareTo(folder.getCloseDateEntered()) > 0) {
+			&& folder.getOpeningDate().compareTo(folder.getCloseDateEntered()) > 0) {
 			Map<String, Object> parameters = new HashMap<>();
 			parameters.put(OPENING_DATE, folder.getOpeningDate());
 			parameters.put(CLOSING_DATE, folder.getCloseDate());
@@ -91,12 +91,12 @@ public class FolderValidator implements RecordValidator {
 				parameters.put(RULE_CODE, retentionRule.getCode());
 
 				if (copyRetentionRule != null && copyRetentionRule.getCopyType() == PRINCIPAL
-						&& folder.getCopyStatus() == SECONDARY) {
+					&& folder.getCopyStatus() == SECONDARY) {
 
 					params.getValidationErrors()
 							.add(FolderValidator.class, COPY_RETENTION_RULE_COPY_TYPE_MUST_BE_SECONDARY, parameters);
 				} else if (copyRetentionRule != null && copyRetentionRule.getCopyType() == SECONDARY
-						&& folder.getCopyStatus() == PRINCIPAL) {
+						   && folder.getCopyStatus() == PRINCIPAL) {
 					params.getValidationErrors()
 							.add(FolderValidator.class, COPY_RETENTION_RULE_COPY_TYPE_MUST_BE_PRINCIPAL, parameters);
 

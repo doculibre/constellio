@@ -1,8 +1,14 @@
 package com.constellio.app.api.cmis.builders.objectType;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.definitions.MutableDocumentTypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.MutableFolderTypeDefinition;
@@ -15,15 +21,8 @@ import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.constellio.app.extensions.api.cmis.params.IsSchemaTypeSupportedParams;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CollectionRepositoryTypesDefinitionBuilder {
 
@@ -38,8 +37,9 @@ public class CollectionRepositoryTypesDefinitionBuilder {
 	TypeDefinitionFactory typeDefinitionFactory;
 	TaxonomiesManager taxonomiesManager;
 
-	public CollectionRepositoryTypesDefinitionBuilder(MetadataSchemaTypes types, TypeDefinitionFactory typeDefinitionFactory,
-			AppLayerFactory appLayerFactory) {
+	public CollectionRepositoryTypesDefinitionBuilder(MetadataSchemaTypes types,
+													  TypeDefinitionFactory typeDefinitionFactory,
+													  AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
 		this.taxonomiesManager = appLayerFactory.getModelLayerFactory().getTaxonomiesManager();
 		this.types = types;
@@ -84,8 +84,8 @@ public class CollectionRepositoryTypesDefinitionBuilder {
 			boolean isPrincipalTaxonomy = taxonomy != null && taxonomy.hasSameCode(principalTaxonomy);
 
 			boolean supported = schemaType.getCode().equals(Collection.SCHEMA_TYPE)
-					|| appLayerFactory.getExtensions().forCollection(schemaType.getCollection())
-					.isSchemaTypeSupported(new IsSchemaTypeSupportedParams(schemaType), taxonomy != null);
+								|| appLayerFactory.getExtensions().forCollection(schemaType.getCollection())
+										.isSchemaTypeSupported(new IsSchemaTypeSupportedParams(schemaType), taxonomy != null);
 			if (supported) {
 				for (MetadataSchema metadataSchema : schemaType.getAllSchemas()) {
 

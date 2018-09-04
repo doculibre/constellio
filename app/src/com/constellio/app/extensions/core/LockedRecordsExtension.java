@@ -1,7 +1,5 @@
 package com.constellio.app.extensions.core;
 
-import static com.constellio.data.utils.LangUtils.isEqual;
-
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -11,6 +9,8 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
+
+import static com.constellio.data.utils.LangUtils.isEqual;
 
 /**
  * Created by Charles Blanchette on 2017-03-30.
@@ -48,10 +48,10 @@ public class LockedRecordsExtension extends RecordExtension {
 		if (collectionExtensions.lockedRecords.contains(event.getSchemaTypeCode())) {
 			Record record = event.getRecord();
 			MetadataSchema schema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(record);
-			if(schema.hasMetadataWithCode(Schemas.CODE.getLocalCode()) &&
-					collectionExtensions.lockedRecords.get(event.getSchemaTypeCode()).contains(record.get(Schemas.CODE))) {
+			if (schema.hasMetadataWithCode(Schemas.CODE.getLocalCode()) &&
+				collectionExtensions.lockedRecords.get(event.getSchemaTypeCode()).contains(record.get(Schemas.CODE))) {
 				return ExtensionBooleanResult.FALSE;
-			} else if(collectionExtensions.lockedRecords.get(event.getSchemaTypeCode()).contains(record.getId())) {
+			} else if (collectionExtensions.lockedRecords.get(event.getSchemaTypeCode()).contains(record.getId())) {
 				return ExtensionBooleanResult.FALSE;
 			}
 		}

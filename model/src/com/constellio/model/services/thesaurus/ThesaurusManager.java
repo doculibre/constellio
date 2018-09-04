@@ -1,17 +1,12 @@
 package com.constellio.model.services.thesaurus;
 
-import java.io.InputStream;
-import java.util.List;
-
-import org.apache.tika.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.managers.StatefulService;
-import com.constellio.data.dao.services.cache.ConstellioCache;
 import com.constellio.data.dao.services.cache.ConstellioCacheManager;
-import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.dao.services.contents.ContentDaoException;
+import com.constellio.data.events.Event;
+import com.constellio.data.events.EventBus;
+import com.constellio.data.events.EventBusEventsExecutionStrategy;
+import com.constellio.data.events.EventBusListener;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -24,23 +19,40 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.thesaurus.exception.ThesaurusInvalidFileFormat;
+import org.apache.tika.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class ThesaurusManager implements StatefulService {
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+public class ThesaurusManager implements StatefulService, EventBusListener {
+
+	private static final String INVALIDATE_THESAURUS_CACHE = "invalidate";
 	final String FILE_INPUT_STREAM_NAME = "ThesaurusManager.ThesaurusFile";
 	private CollectionsListManager collectionsListManager;
 	private SearchServices searchServices;
 	private RecordServices recordServices;
 
-	private ConstellioCache cache;
+	private Map<String, ThesaurusService> cache;
+	private EventBus eventBus;
 	private ModelLayerFactory modelLayerFactory;
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThesaurusManager.class);
 
 	public ThesaurusManager(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 
+		this.eventBus = modelLayerFactory.getDataLayerFactory().getEventBusManager()
+				.createEventBus("thesaurusManager", EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
+
+		this.eventBus.register(this);
+
 		ConstellioCacheManager recordsCacheManager = this.modelLayerFactory.getDataLayerFactory().getRecordsCacheManager();
-		cache = recordsCacheManager.getCache("parsedThesaurus"); // this is a map!
+		cache = new HashMap<>();
 
 		collectionsListManager = this.modelLayerFactory.getCollectionsListManager();
 		searchServices = this.modelLayerFactory.newSearchServices();
@@ -49,6 +61,7 @@ public class ThesaurusManager implements StatefulService {
 
 	/**
 	 * Gets Thesaurus in non persistent memory for a given collection.
+	 *
 	 * @param collection
 	 * @return
 	 */
@@ -58,17 +71,29 @@ public class ThesaurusManager implements StatefulService {
 
 	/**
 	 * Sets Thesaurus in non persistent memory for a given collection.
+	 *
 	 * @param
 	 */
 	public void set(InputStream inputStream, String collection)
 			throws ThesaurusInvalidFileFormat {
-		ThesaurusService thesaurusService = getThesaurusService(inputStream);
-		thesaurusService.setSearchEventServices(new SearchEventServices(collection, modelLayerFactory));
-		cache.put(collection, thesaurusService, InsertionReason.WAS_MODIFIED);
+
+		byte[] thesaurusBytes;
+		try {
+			thesaurusBytes = IOUtils.toByteArray(inputStream);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("bytes", thesaurusBytes);
+		parameters.put("collection", collection);
+
+		eventBus.send(INVALIDATE_THESAURUS_CACHE, parameters);
 	}
 
 	/**
 	 * Saves Thesaurus to persistent memory.
+	 *
 	 * @return true if success
 	 */
 	public boolean save() {
@@ -94,7 +119,7 @@ public class ThesaurusManager implements StatefulService {
 						LOGGER.info("ThesaurusService initialized for collection : " + collection);
 						thesaurusService.setDeniedTerms(thesaurusConfig.getDenidedWords());
 						thesaurusService.setSearchEventServices(new SearchEventServices(collection, modelLayerFactory));
-						cache.put(collection, thesaurusService, InsertionReason.WAS_OBTAINED);
+						cache.put(collection, thesaurusService);
 					}
 				}
 			}
@@ -110,7 +135,7 @@ public class ThesaurusManager implements StatefulService {
 		try {
 			thesaurusFile = modelLayerFactory.getContentManager().getContentDao()
 					.getContentInputStream(thesaurusConfig.getContent().getCurrentVersion().getHash(), FILE_INPUT_STREAM_NAME);
-		} catch (ContentDaoException.ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
+		} catch (NullPointerException | ContentDaoException.ContentDaoException_NoSuchContent contentDaoException_noSuchContent) {
 			// La voute ne contient pas le fichier.
 			thesaurusFile = IOUtils.toInputStream("");
 			thesaurusConfig.setContent(null);
@@ -154,5 +179,20 @@ public class ThesaurusManager implements StatefulService {
 	@Override
 	public void close() {
 		// nothing to close (no threads to kill)
+	}
+
+	@Override
+	public void onEventReceived(Event event) {
+		switch (event.getType()) {
+			case INVALIDATE_THESAURUS_CACHE:
+
+				String collection = event.getData("collection");
+				byte[] thesaurusBytes = event.getData("bytes");
+
+				ThesaurusService thesaurusService = getThesaurusService(new ByteArrayInputStream(thesaurusBytes));
+				thesaurusService.setSearchEventServices(new SearchEventServices(collection, modelLayerFactory));
+				cache.put(collection, thesaurusService);
+				break;
+		}
 	}
 }

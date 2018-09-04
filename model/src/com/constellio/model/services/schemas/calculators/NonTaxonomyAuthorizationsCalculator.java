@@ -1,9 +1,5 @@
 package com.constellio.model.services.schemas.calculators;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.ReferenceListMetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.AllAuthorizationsTargettingRecordDependencyValue;
@@ -15,6 +11,10 @@ import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class NonTaxonomyAuthorizationsCalculator extends ReferenceListMetadataValueCalculator {
 
@@ -53,7 +53,7 @@ public class NonTaxonomyAuthorizationsCalculator extends ReferenceListMetadataVa
 			if (!detached) {
 				for (String auth : hierarchyDependencyValues.getInheritedNonTaxonomyAuthorizations()) {
 					if (!allRemovedAuths.contains(auth)
-							&& !authorizations.isInheritedAuthorizationsOverridenByMetadatasProvidingSecurity()) {
+						&& !authorizations.isInheritedAuthorizationsOverridenByMetadatasProvidingSecurity()) {
 						returnedIds.add(auth);
 					}
 				}

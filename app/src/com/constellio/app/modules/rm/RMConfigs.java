@@ -74,6 +74,7 @@ public class RMConfigs {
 			FOLDER_ADMINISTRATIVE_UNIT_ENTERED_AUTOMATICALLY,
 			CHECK_OUT_DOCUMENT_AFTER_CREATION,
 			LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS,
+			ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE,
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
 			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS;
 
@@ -90,6 +91,9 @@ public class RMConfigs {
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER, MAJOR_VERSION_FOR_NEW_FILE;
+
+	// advanced
+	public static final SystemConfiguration SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG;
 
 	static {
 		//SystemConfigurationGroup beta = new SystemConfigurationGroup(ID, "beta");
@@ -290,6 +294,13 @@ public class RMConfigs {
 
 		add(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM = decommissioning
 				.createBooleanFalseByDefault("copyRulesAlwaysVisibleInAddForm"));
+
+		add(ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE = decommissioning
+				.createBooleanFalseByDefault("allowTransferDateFieldWhenCopyRuleHasNoSemiActiveState"));
+
+		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
+		add(SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG =
+				advanced.createBooleanFalseByDefault("showFolderUnicityAndFolderSummaryConfig").whichIsHidden());
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -540,6 +551,10 @@ public class RMConfigs {
 
 	public boolean isCopyRulesAlwaysVisibleInAddForm() {
 		return manager.getValue(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM);
+	}
+
+	public boolean isAllowTransferDateFieldWhenCopyRuleHasNoSemiActiveState() {
+		return manager.getValue(ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE);
 	}
 
 	public boolean isDecommissioningTypeRequiredInContainers() {

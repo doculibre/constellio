@@ -1,9 +1,5 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.List;
-
 import com.constellio.app.modules.rm.reports.model.search.UnsupportedReportException;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
@@ -21,8 +17,12 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class ReportSelector extends HorizontalLayout {
-	
+
 	private final NewReportPresenter presenter;
 	private AbstractSelect selector;
 	private final Button button;
@@ -71,7 +71,7 @@ public class ReportSelector extends HorizontalLayout {
 			comboBox.addValidator(new Validator() {
 				@Override
 				public void validate(Object value) throws InvalidValueException {
-					if(value == null) {
+					if (value == null) {
 						throw new InvalidValueException($("ReportTabButton.invalidReportType"));
 					}
 				}
@@ -88,8 +88,9 @@ public class ReportSelector extends HorizontalLayout {
 				if (factory == null) {
 					return new Label($("ReportViewer.noReportFactoryAvailable"));
 				} else {
-					return new ReportViewer(factory.getReportBuilder(presenter.getReportParameters(getSelectedReport())),
-							factory.getFilename(presenter.getReportParameters(getSelectedReport())));
+					Object reportParameters = presenter.getReportParameters(getSelectedReport());
+					return new ReportViewer(factory.getReportBuilder(reportParameters),
+							factory.getFilename(reportParameters));
 				}
 			}
 

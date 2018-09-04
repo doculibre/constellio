@@ -14,7 +14,8 @@ public class RMMigrationTo7_7 extends MigrationHelper implements MigrationScript
 	}
 
 	@Override
-	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider, AppLayerFactory appLayerFactory)
+	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new RMMigrationTo7_7.SchemaAlterationFor7_7(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
@@ -22,7 +23,7 @@ public class RMMigrationTo7_7 extends MigrationHelper implements MigrationScript
 	class SchemaAlterationFor7_7 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor7_7(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
+										 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

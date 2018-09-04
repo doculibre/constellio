@@ -1,7 +1,5 @@
 package com.constellio.model.extensions;
 
-import java.util.List;
-
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
 import com.constellio.data.frameworks.extensions.ExtensionUtils.BooleanCaller;
@@ -19,6 +17,8 @@ import com.constellio.model.extensions.events.recordsCache.CacheQueryMissParams;
 import com.constellio.model.extensions.events.recordsCache.CacheQueryPutParams;
 import com.constellio.model.extensions.params.CanAuthenticateUsingPasswordFileIfLDAPFailedParams;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySignature;
+
+import java.util.List;
 
 public class ModelLayerSystemExtensions {
 

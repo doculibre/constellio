@@ -1,11 +1,5 @@
 package com.constellio.app.ui.framework.data.event.category;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.data.AbstractDataProvider;
@@ -15,6 +9,12 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class CurrentlyBorrowedFoldersEventDataProvider extends AbstractDataProvider implements EventsCategoryDataProvider {
 
@@ -26,7 +26,7 @@ public class CurrentlyBorrowedFoldersEventDataProvider extends AbstractDataProvi
 	private ArrayList<String> eventsIds;
 
 	public CurrentlyBorrowedFoldersEventDataProvider(ModelLayerFactory modelLayerFactory, String collection,
-			String currentUserName) {
+													 String currentUserName) {
 		this.collection = collection;
 		this.currentUserName = currentUserName;
 		init(modelLayerFactory);

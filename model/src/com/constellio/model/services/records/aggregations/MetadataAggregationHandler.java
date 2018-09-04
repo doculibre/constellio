@@ -1,10 +1,10 @@
 package com.constellio.model.services.records.aggregations;
 
-import java.util.List;
-
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
+
+import java.util.List;
 
 public interface MetadataAggregationHandler {
 

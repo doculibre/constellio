@@ -1,23 +1,11 @@
 package com.constellio.model.services.records.reindexing;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
 import com.constellio.data.dao.services.records.RecordDao;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -39,6 +27,18 @@ import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.setups.Users;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest extends ConstellioTest {
@@ -219,7 +219,10 @@ public class ReindexingServicesOneSchemaWithMultipleSelfReferencesAcceptanceTest
 	// ---------------------------------------------------
 
 	private void givenPrincipalTaxonomyWithZeSchema() {
-		Taxonomy taxonomy = new Taxonomy("taxo", "ze taxo", zeCollection, zeSchema.typeCode());
+		Map<Language, String> labelTitle1 = new HashMap<>();
+		labelTitle1.put(Language.French, "ze taxo");
+
+		Taxonomy taxonomy = new Taxonomy("taxo", labelTitle1, zeCollection, zeSchema.typeCode());
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		getModelLayerFactory().getTaxonomiesManager().addTaxonomy(taxonomy, metadataSchemasManager);
 		getModelLayerFactory().getTaxonomiesManager().setPrincipalTaxonomy(taxonomy, metadataSchemasManager);

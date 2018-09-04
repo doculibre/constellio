@@ -1,13 +1,13 @@
 package com.constellio.model.services.security;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.Validator;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RoleValidator implements Validator<Role> {
 	public static final String INVALID_CODE = "invalidCode";

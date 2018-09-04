@@ -1,20 +1,7 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.InitializedMetadataValueCalculator;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
@@ -39,7 +26,22 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
+import com.constellio.model.utils.DependencyUtils.MultiMapDependencyResults;
+import com.constellio.model.utils.DependencyUtilsParams;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class MetadataSchemaTypesBuilder {
 
@@ -49,20 +51,21 @@ public class MetadataSchemaTypesBuilder {
 	private static final String DEFAULT = "default";
 	private int version;
 	private final List<MetadataSchemaTypeBuilder> schemaTypes = new ArrayList<>();
-	private final String collection;
+	private final CollectionInfo collectionInfo;
 	private ClassProvider classProvider;
 	private List<Language> languages = new ArrayList<>();
 
-	private MetadataSchemaTypesBuilder(String collection, int version, ClassProvider classProvider, List<Language> languages) {
+	private MetadataSchemaTypesBuilder(CollectionInfo collectionInfo, int version, ClassProvider classProvider,
+									   List<Language> languages) {
 		super();
-		this.collection = collection;
+		this.collectionInfo = collectionInfo;
 		this.version = version;
 		this.classProvider = classProvider;
 		this.languages = Collections.unmodifiableList(languages);
 	}
 
 	public static MetadataSchemaTypesBuilder modify(MetadataSchemaTypes types, ClassProvider classProvider) {
-		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollection(), types.getVersion(),
+		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaTypesBuilder(types.getCollectionInfo(), types.getVersion(),
 				classProvider, types.getLanguages());
 		for (MetadataSchemaType type : types.getSchemaTypes()) {
 			typesBuilder.schemaTypes.add(MetadataSchemaTypeBuilder.modifySchemaType(type, classProvider));
@@ -70,15 +73,16 @@ public class MetadataSchemaTypesBuilder {
 		return typesBuilder;
 	}
 
-	public static MetadataSchemaTypesBuilder createWithVersion(String collection, int version, ClassProvider classProvider,
-			List<Language> languages) {
-		return new MetadataSchemaTypesBuilder(collection, version, classProvider, languages);
+	public static MetadataSchemaTypesBuilder createWithVersion(CollectionInfo collectionInfo, int version,
+															   ClassProvider classProvider,
+															   List<Language> languages) {
+		return new MetadataSchemaTypesBuilder(collectionInfo, version, classProvider, languages);
 	}
 
 	public MetadataSchemaTypes build(DataStoreTypesFactory typesFactory, ModelLayerFactory modelLayerFactory) {
 
-		List<String> dependencies = validateNoCyclicDependenciesBetweenSchemas();
 		validateAutomaticMetadatas();
+		List<String> dependencies = validateNoCyclicDependenciesBetweenSchemas();
 
 		List<MetadataSchemaType> buildedSchemaTypes = new ArrayList<>();
 		for (MetadataSchemaTypeBuilder schemaType : schemaTypes) {
@@ -99,12 +103,12 @@ public class MetadataSchemaTypesBuilder {
 
 		Collections.sort(buildedSchemaTypes, SchemaComparators.SCHEMA_TYPE_COMPARATOR_BY_ASC_CODE);
 
-		MetadataSchemaTypes tempTypes = new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies,
+		MetadataSchemaTypes tempTypes = new MetadataSchemaTypes(collectionInfo, version + 1, buildedSchemaTypes, dependencies,
 				referenceDefaultValues, languages, MetadataNetwork.EMPTY());
 
 		for (MetadataSchemaType type : tempTypes.getSchemaTypes()) {
 			for (MetadataSchema schema : type.getAllSchemas()) {
-				for (Metadata metadata : schema.getMetadatas().onlyCalculated().onlyWithoutInheritance()) {
+				for (Metadata metadata : schema.getMetadatas().onlyCalculated()) {
 					MetadataValueCalculator<?> calculator = ((CalculatedDataEntry) metadata.getDataEntry())
 							.getCalculator();
 					if (calculator instanceof InitializedMetadataValueCalculator) {
@@ -113,7 +117,7 @@ public class MetadataSchemaTypesBuilder {
 				}
 			}
 		}
-		MetadataSchemaTypes types = new MetadataSchemaTypes(collection, version + 1, buildedSchemaTypes, dependencies,
+		MetadataSchemaTypes types = new MetadataSchemaTypes(collectionInfo, version + 1, buildedSchemaTypes, dependencies,
 				referenceDefaultValues, languages, MetadataNetworkBuilder.buildFrom(buildedSchemaTypes));
 
 		return types;
@@ -129,7 +133,7 @@ public class MetadataSchemaTypesBuilder {
 			throw new MetadataSchemaTypesBuilderRuntimeException.SchemaTypeExistent(code);
 		}
 
-		typeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(collection, code, this, initialize);
+		typeBuilder = MetadataSchemaTypeBuilder.createNewSchemaType(collectionInfo, code, this, initialize);
 
 		schemaTypes.add(typeBuilder);
 		return typeBuilder;
@@ -269,24 +273,42 @@ public class MetadataSchemaTypesBuilder {
 	}
 
 	List<String> validateNoCyclicDependenciesBetweenSchemas() {
-		Map<String, Set<String>> typesDependencies = new HashMap<>();
+		Map<String, Set<String>> primaryTypesDependencies = new HashMap<>();
+		Map<String, Set<String>> secondaryTypesDependencies = new HashMap<>();
 		for (MetadataSchemaTypeBuilder metadataSchemaType : schemaTypes) {
-			Set<String> types = new HashSet<>();
+			Set<String> primaryTypes = new HashSet<>();
+			Set<String> secondaryTypes = new HashSet<>();
 			for (MetadataBuilder metadata : metadataSchemaType.getAllMetadatas()) {
+
 				if (metadata.getType() == REFERENCE) {
 					if (metadata.allowedReferencesBuilder == null) {
 						throw new MetadataSchemaTypesBuilderRuntimeException.NoAllowedReferences(metadata.getCode());
 					}
-					types.add(metadata.allowedReferencesBuilder.getSchemaType());
+				}
+
+				if (metadata.getType() == REFERENCE && (metadata.isDependencyOfAutomaticMetadata() || metadata
+						.isChildOfRelationship() || metadata.isTaxonomyRelationship())) {
+
+					primaryTypes.add(metadata.allowedReferencesBuilder.getSchemaType());
 					for (String schema : metadata.allowedReferencesBuilder.getSchemas()) {
-						types.add(newSchemaUtils().getSchemaTypeCode(schema));
+						primaryTypes.add(newSchemaUtils().getSchemaTypeCode(schema));
+					}
+				}
+
+				if (metadata.getType() == REFERENCE) {
+					secondaryTypes.add(metadata.allowedReferencesBuilder.getSchemaType());
+					for (String schema : metadata.allowedReferencesBuilder.getSchemas()) {
+						secondaryTypes.add(newSchemaUtils().getSchemaTypeCode(schema));
 					}
 				}
 			}
-			typesDependencies.put(metadataSchemaType.getCode(), types);
+			primaryTypesDependencies.put(metadataSchemaType.getCode(), primaryTypes);
+			secondaryTypesDependencies.put(metadataSchemaType.getCode(), secondaryTypes);
 		}
 		try {
-			return newDependencyUtils().sortByDependency(typesDependencies);
+			MultiMapDependencyResults<String> results = newDependencyUtils().sortTwoLevelOfDependencies(
+					primaryTypesDependencies, secondaryTypesDependencies, new DependencyUtilsParams());
+			return results.getSortedElements();
 		} catch (DependencyUtilsRuntimeException.CyclicDependency e) {
 			throw new MetadataSchemaTypesBuilderRuntimeException.CyclicDependenciesInSchemas(e);
 		}
@@ -340,6 +362,10 @@ public class MetadataSchemaTypesBuilder {
 			MetadataBuilder referenceMetadata = getMetadata(referenceMetadataCode);
 			String copiedMetadataCode = copiedDataEntry.getCopiedMetadata();
 			MetadataBuilder copiedMetadata = getMetadata(copiedMetadataCode);
+
+			referenceMetadata.markAsDependencyOfAutomaticMetadata();
+			copiedMetadata.markAsDependencyOfAutomaticMetadata();
+
 			validateCopiedMetadataMultiValues(metadataBuilder, referenceMetadataCode, referenceMetadata, copiedMetadataCode,
 					copiedMetadata);
 			validateCopiedMetadataType(metadataBuilder, copiedMetadata);
@@ -363,6 +389,7 @@ public class MetadataSchemaTypesBuilder {
 							metadataBuilder.getCode(), metadataBuilder.getType(), valueTypeMetadataCalculated);
 				}
 
+				metadataBuilder.markAsDependencyOfAutomaticMetadata();
 				try {
 					validateDependenciesTypes(metadataBuilder, dependencies);
 				} catch (MetadataSchemaBuilderRuntimeException.NoSuchMetadata e) {
@@ -373,7 +400,8 @@ public class MetadataSchemaTypesBuilder {
 		}
 	}
 
-	private void validateCalculatedMultivalue(MetadataBuilder metadataBuilder, CalculatedDataEntry calculatedDataEntry) {
+	private void validateCalculatedMultivalue(MetadataBuilder metadataBuilder,
+											  CalculatedDataEntry calculatedDataEntry) {
 		if (metadataBuilder.isMultivalue() && !calculatedDataEntry.getCalculator().isMultiValue()) {
 			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateASingleValueInAMultiValueMetadata(
 					metadataBuilder.getCode(), calculatedDataEntry.getCalculator().getClass().getName());
@@ -400,6 +428,7 @@ public class MetadataSchemaTypesBuilder {
 
 		if (!((LocalDependency) dependency).isMetadataCreatedLater()) {
 			MetadataBuilder dependencyMetadataBuilder = getMetadata(schemaCompleteCode + "_" + dependency.getLocalMetadataCode());
+			dependencyMetadataBuilder.markAsDependencyOfAutomaticMetadata();
 			if (dependencyMetadataBuilder.getType() != localDependency.getReturnType()) {
 				throw new MetadataSchemaTypesBuilderRuntimeException.CalculatorDependencyHasInvalidValueType(
 						calculatedMetadataBuilder.getCode(), dependencyMetadataBuilder.getCode(),
@@ -418,17 +447,19 @@ public class MetadataSchemaTypesBuilder {
 		if (!((ReferenceDependency) dependency).isMetadataCreatedLater()) {
 			MetadataBuilder dependencyRefMetadataBuilder = getMetadata(
 					schemaCompleteCode + "_" + dependency.getLocalMetadataCode());
+			dependencyRefMetadataBuilder.markAsDependencyOfAutomaticMetadata();
 			if (dependencyRefMetadataBuilder.getAllowedReferencesBuider() != null) {
 				String dependencyMetaCompleteCode = dependencyRefMetadataBuilder.getAllowedReferencesBuider()
 						.getMetadataCompleteCode(referenceDependency.getDependentMetadataCode());
 				MetadataBuilder dependencyMetadata;
 				try {
 					dependencyMetadata = getMetadata(dependencyMetaCompleteCode);
+					dependencyMetadata.markAsDependencyOfAutomaticMetadata();
 				} catch (MetadataSchemaBuilderRuntimeException e) {
 					throw new MetadataSchemaTypesBuilderRuntimeException.InvalidDependencyMetadata(dependencyMetaCompleteCode, e);
 				}
 				if (dependencyMetadata.getType() != referenceDependency.getReturnType()
-						|| dependencyRefMetadataBuilder.getType() != MetadataValueType.REFERENCE) {
+					|| dependencyRefMetadataBuilder.getType() != MetadataValueType.REFERENCE) {
 					throw new MetadataSchemaTypesBuilderRuntimeException.CalculatorDependencyHasInvalidValueType(
 							calculatedMetadataBuilder.getCode(), dependencyMetadata.getCode(), dependencyMetadata.getType(),
 							referenceDependency.getReturnType());
@@ -454,7 +485,9 @@ public class MetadataSchemaTypesBuilder {
 	}
 
 	private void validateCopiedMetadataMultiValues(MetadataBuilder metadataBuilder, String referenceMetadataCode,
-			MetadataBuilder referenceMetadata, String copiedMetadataCode, MetadataBuilder copiedMetadata) {
+												   MetadataBuilder referenceMetadata, String copiedMetadataCode,
+												   MetadataBuilder copiedMetadata) {
+
 		if (!metadataBuilder.isMultivalue() && (referenceMetadata.isMultivalue() || copiedMetadata.isMultivalue())) {
 			throw new MetadataSchemaTypesBuilderRuntimeException.CannotCopyMultiValueInSingleValueMetadata(
 					metadataBuilder.getCode(), referenceMetadataCode, copiedMetadataCode);
@@ -476,7 +509,7 @@ public class MetadataSchemaTypesBuilder {
 	}
 
 	public String getCollection() {
-		return collection;
+		return collectionInfo.getCode();
 	}
 
 	public void deleteSchemaType(MetadataSchemaType type, SearchServices searchServices) {

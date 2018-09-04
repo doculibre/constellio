@@ -7,13 +7,13 @@ import com.vaadin.ui.TextArea;
  */
 public class TaskReasonFieldImpl extends TextArea implements TaskReasonField {
 
-    @Override
-    public String getFieldValue() {
-        return getValue();
-    }
+	@Override
+	public String getFieldValue() {
+		return getValue();
+	}
 
-    @Override
-    public void setFieldValue(Object value) {
-        setValue((String) value);
-    }
+	@Override
+	public void setFieldValue(Object value) {
+		setValue((String) value);
+	}
 }

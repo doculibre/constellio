@@ -1,13 +1,11 @@
 package com.constellio.model.services.batch.xml.list;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+import com.constellio.model.entities.batchprocess.BatchProcess;
+import com.constellio.model.entities.batchprocess.BatchProcessAction;
+import com.constellio.model.entities.batchprocess.RecordBatchProcess;
+import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
+import com.constellio.model.utils.ParametrizedInstanceUtils;
+import com.constellio.sdk.tests.ConstellioTest;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.joda.time.LocalDateTime;
@@ -15,12 +13,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.model.entities.batchprocess.BatchProcess;
-import com.constellio.model.entities.batchprocess.BatchProcessAction;
-import com.constellio.model.entities.batchprocess.RecordBatchProcess;
-import com.constellio.model.services.batch.actions.ReindexMetadatasBatchProcessAction;
-import com.constellio.model.utils.ParametrizedInstanceUtils;
-import com.constellio.sdk.tests.ConstellioTest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class BatchProcessListReaderTest extends ConstellioTest {
 

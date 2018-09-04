@@ -1,6 +1,11 @@
 package com.constellio.data.io;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.annotations.SlowTest;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.InputStream;
@@ -9,13 +14,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.constellio.data.io.services.facades.IOServices;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.SlowTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SlowTest
 public class ConversionManagerAcceptTest extends ConstellioTest {

@@ -1,9 +1,8 @@
 package com.constellio.model.services.parser;
 
+import com.constellio.data.dao.managers.StatefulService;
 import org.apache.tika.fork.ForkParser;
 import org.apache.tika.parser.AutoDetectParser;
-
-import com.constellio.data.dao.managers.StatefulService;
 
 public class ForkParsers implements StatefulService {
 

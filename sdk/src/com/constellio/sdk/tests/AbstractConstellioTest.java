@@ -1,59 +1,11 @@
 package com.constellio.sdk.tests;
 
-import static com.constellio.data.conf.HashingEncoding.BASE64;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
-import static com.constellio.sdk.tests.ConstellioTest.getInstance;
-import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
-import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameContentOfUnzippedSaveState;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.ByteArrayInputStream;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryPoolMXBean;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.ws.rs.client.WebTarget;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.solr.client.solrj.SolrClient;
-import org.joda.time.Duration;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.Description;
-
 import com.carrotsearch.junitbenchmarks.BenchmarkOptionsSystemProperties;
 import com.constellio.app.client.services.AdminServicesSession;
 import com.constellio.app.conf.PropertiesAppLayerConfiguration.InMemoryAppLayerConfiguration;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.modules.es.ConstellioESModule;
+import com.constellio.app.modules.restapi.ConstellioRestApiModule;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
@@ -88,6 +40,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.TimeProvider.DefaultTimeProvider;
 import com.constellio.data.utils.dev.Toggle.AvailableToggle;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -109,8 +62,58 @@ import com.constellio.sdk.tests.schemas.SchemaTestFeatures;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
 import com.constellio.sdk.tests.setups.TestsSpeedStats;
 import com.constellio.sdk.tests.setups.Users;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.solr.client.solrj.SolrClient;
+import org.joda.time.Duration;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
+
+import static com.constellio.data.conf.HashingEncoding.BASE64;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInExceptEvents;
+import static com.constellio.sdk.tests.ConstellioTest.getInstance;
+import static com.constellio.sdk.tests.SDKConstellioFactoriesInstanceProvider.DEFAULT_NAME;
+import static com.constellio.sdk.tests.SaveStateFeatureAcceptTest.verifySameContentOfUnzippedSaveState;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 public abstract class AbstractConstellioTest implements FailureDetectionTestWatcherListener {
 
@@ -123,8 +126,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	public static SDKPropertiesLoader sdkPropertiesLoader = new SDKPropertiesLoader();
 	private final static Logger log = LoggerFactory.getLogger(AbstractConstellioTest.class);
 	//	private static boolean batchProcessControllerStarted = false;
-	private static String[] notUnitTestSuffix = new String[] { "AcceptanceTest", "IntegrationTest", "RealTest", "LoadTest",
-			"StressTest", "PerformanceTest", "AcceptTest" };
+	private static String[] notUnitTestSuffix = new String[]{"AcceptanceTest", "IntegrationTest", "RealTest", "LoadTest",
+															 "StressTest", "PerformanceTest", "AcceptTest"};
 	private static Map<String, Long> previousMemoryUsage = new HashMap<>();
 	// CHECKSTYLE:OFF
 	// Junit requires this field to be public
@@ -136,6 +139,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	protected Map<String, String> sdkProperties = new HashMap<>();
 
+	protected CollectionInfo zeCollectionInfo = new CollectionInfo("zeCollection", "fr", asList("fr"));
 	protected String zeCollection = "zeCollection";
 	protected String businessCollection = "LaCollectionDeRida";
 	protected String admin = "admin";
@@ -243,7 +247,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	private static void ensureNotUnitTest() {
 		if (isUnitTestStatic()) {
 			String message = "Unit tests '" + TestClassFinder.getTestClassName()
-					+ "' cannot use filesystem, rename this test to AcceptanceTest or IntegrationTest or RealTest";
+							 + "' cannot use filesystem, rename this test to AcceptanceTest or IntegrationTest or RealTest";
 			throw new RuntimeException(message);
 		}
 	}
@@ -792,7 +796,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected ModulesAndMigrationsTestFeatures givenCollectionInVersion(String collection, List<String> languages,
-			String version) {
+																		String version) {
 		ensureNotUnitTest();
 		getAppLayerFactory().getCollectionsManager().createCollectionInVersion(collection, languages, version);
 		return new ModulesAndMigrationsTestFeatures(getCurrentTestSession().getFactoriesTestFeatures(), collection);
@@ -812,7 +816,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	protected ModulesAndMigrationsTestFeatures givenCollectionWithTitle(String collection, List<String> languages,
-			String collectionTitle) {
+																		String collectionTitle) {
 		ModulesAndMigrationsTestFeatures features = givenCollection(collection, languages);
 
 		Record collectionRecord = getModelLayerFactory().newRecordServices().getDocumentById(collection);
@@ -929,8 +933,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		}
 
 		System.out.println("= = = = = = = = = = = = = = = = = = = = = = =\n" + "" +
-				"Segment '" + comment + "' took " + (new Date().getTime() - time) + "ms\n" +
-				"= = = = = = = = = = = = = = = = = = = = = = =\n");
+						   "Segment '" + comment + "' took " + (new Date().getTime() - time) + "ms\n" +
+						   "= = = = = = = = = = = = = = = = = = = = = = =\n");
 
 		time = new Date().getTime();
 	}
@@ -1221,7 +1225,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 			stateFolder.mkdirs();
 			for (CollectionPreparator preparator : preparators) {
-				ModulesAndMigrationsTestFeatures modulesAndMigrationsTestFeatures = givenCollection(preparator.collection);
+				ModulesAndMigrationsTestFeatures modulesAndMigrationsTestFeatures = givenCollection(preparator.collection,
+						preparator.languages);
 				modulesAndMigrationsTestFeatures.withMockedAvailableModules(false);
 				if (preparator.modules.contains(ConstellioRMModule.ID)) {
 					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withConstellioRMModule();
@@ -1234,6 +1239,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 				}
 				if (preparator.modules.contains(ConstellioRobotsModule.ID)) {
 					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withRobotsModule();
+				}
+				if (preparator.modules.contains(ConstellioRestApiModule.ID)) {
+					modulesAndMigrationsTestFeatures = modulesAndMigrationsTestFeatures.withConstellioRestApiModule();
 				}
 
 				ModelLayerFactory modelLayerFactory = getModelLayerFactory();
@@ -1298,6 +1306,8 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		if (taskName == null) {
 			taskName = "Collections preparation similar to '" + getClass().getSimpleName() + "#" + getTestName() + "'";
 			preparationNames.put(preparators.hashCode(), taskName);
+		} else {
+			log.info("Using turbo cache : " + taskName);
 		}
 		stats.add(this, getTestName(), taskName, end - start);
 		getCurrentTestSession().getAfterTestValidationsTestFeature().startRollbackNow();
@@ -1323,8 +1333,17 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 		List<Class<? extends InstallableModule>> plugins = new ArrayList<>();
 
+		List<String> languages = new ArrayList<>();
+
 		public CollectionPreparator(String collection) {
 			this.collection = collection;
+			languages.add("fr");
+			languages.add("en");
+		}
+
+		public CollectionPreparator withLanguages(List<String> languages) {
+			this.languages = languages;
+			return this;
 		}
 
 		public CollectionPreparator withConstellioRMModule() {
@@ -1347,6 +1366,12 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 		public CollectionPreparator withRobotsModule() {
 			modules.add(ConstellioRobotsModule.ID);
+			Collections.sort(modules);
+			return this;
+		}
+
+		public CollectionPreparator withConstellioRestApiModule() {
+			modules.add(ConstellioRestApiModule.ID);
 			Collections.sort(modules);
 			return this;
 		}
@@ -1414,6 +1439,9 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 			CollectionPreparator that = (CollectionPreparator) o;
 
+			if (languages != that.languages) {
+				return false;
+			}
 			if (allTestUsers != that.allTestUsers) {
 				return false;
 			}
@@ -1461,6 +1489,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 			result = 31 * result + collection.hashCode();
 			result = 31 * result + modules.hashCode();
 			result = 31 * result + plugins.hashCode();
+			result = 31 * result + (languages == null ? 0 : languages.hashCode());
 			return result;
 		}
 	}
@@ -1569,16 +1598,18 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 		if (!AtomicFileSystemUtils.sync(defaultConfiguration, serverFileSystem)) {
 			server.reload();
 			log.info(String.format("Reloading the <%s> server", server.getName()));
-		} else
+		} else {
 			log.info(String.format("No reloading for the <%s> server", server.getName()));
+		}
 
 	}
 
 	private String getServerConfigurations(String coreName) {
 		File configFld = new File(new FoldersLocator().getSolrHomeConfFolder(), "configsets");
 		for (File configFile : configFld.listFiles()) {
-			if (configFile.getName().startsWith(coreName))
+			if (configFile.getName().startsWith(coreName)) {
 				return new File(configFile, "conf").getAbsolutePath();
+			}
 		}
 		return null;
 	}
@@ -1589,5 +1620,18 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	public void setFailMessage(String failMessage) {
 		this.failMessage = failMessage;
+	}
+
+	public double getSolrVersion() {
+		Response response = ClientBuilder.newClient()
+				.target(sdkProperties.get("dao.records.http.url").concat("admin/info/system?wt=json"))
+				.request().get();
+		String json = response.readEntity(String.class);
+
+		int start = json.indexOf("solr-spec-version");
+		int end = json.indexOf(",", start);
+		String version = json.substring(start + "solr-spec-version".length() + 2, end);
+		String[] parts = version.trim().replace("\"", "").split(Pattern.quote("."));
+		return Double.valueOf(parts[0] + "." + parts[1]);
 	}
 }

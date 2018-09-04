@@ -12,7 +12,7 @@ public class ProfileVO implements Serializable {
 	String firstName;
 	String lastName;
 	String email;
-    String personalEmails;
+	String personalEmails;
 	String phone;
 	String password;
 	String confirmPassword;
@@ -27,16 +27,19 @@ public class ProfileVO implements Serializable {
 	String fax;
 	String address;
 	boolean agentManuallyDisabled;
+	boolean hideNotActive;
 
-	public ProfileVO(ContentVersionVO image, String username, String firstName, String lastName, String email, String personalEmails,
-			String phone, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy,
-			String password, String confirmPassword, String oldPassword, boolean agentManuallyDisabled) {
+	public ProfileVO(ContentVersionVO image, String username, String firstName, String lastName, String email,
+					 String personalEmails,
+					 String phone, String startTab, DefaultTabInFolderDisplay defaultTabInFolderDisplay,
+					 String defaultTaxonomy,
+					 String password, String confirmPassword, String oldPassword, boolean agentManuallyDisabled) {
 		this.image = image;
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
-        this.personalEmails = personalEmails;
+		this.personalEmails = personalEmails;
 		this.phone = phone;
 		this.startTab = startTab;
 		this.defaultTabInFolderDisplay = defaultTabInFolderDisplay;
@@ -47,16 +50,19 @@ public class ProfileVO implements Serializable {
 		this.agentManuallyDisabled = agentManuallyDisabled;
 		this.defaultAdministrativeUnit = null;
 		this.defaultPageLength = null;
+		this.hideNotActive = false;
 	}
 
-	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails, String phone, String startTab,
-			DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, String password, String confirmPassword,
-			String oldPassword, boolean agentManuallyDisabled) {
+	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails,
+					 String phone, String startTab,
+					 DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, String password,
+					 String confirmPassword,
+					 String oldPassword, boolean agentManuallyDisabled) {
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.email = email;
-        this.personalEmails = personalEmails;
+		this.personalEmails = personalEmails;
 		this.phone = phone;
 		this.startTab = startTab;
 		this.defaultTabInFolderDisplay = defaultTabInFolderDisplay;
@@ -67,11 +73,15 @@ public class ProfileVO implements Serializable {
 		this.agentManuallyDisabled = agentManuallyDisabled;
 		this.defaultAdministrativeUnit = null;
 		this.defaultPageLength = null;
+		this.hideNotActive = false;
 	}
 
-	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails, String phone, String fax, String jobTitle, String address, String startTab,
-					 DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy, SearchPageLength defaultPageLength, String password, String confirmPassword,
-					 String oldPassword, boolean agentManuallyDisabled, String defaultAdministrativeUnit) {
+	public ProfileVO(String username, String firstName, String lastName, String email, String personalEmails,
+					 String phone, String fax, String jobTitle, String address, String startTab,
+					 DefaultTabInFolderDisplay defaultTabInFolderDisplay, String defaultTaxonomy,
+					 SearchPageLength defaultPageLength, String password, String confirmPassword,
+					 String oldPassword, boolean agentManuallyDisabled, boolean hideNotActive,
+					 String defaultAdministrativeUnit) {
 		this.username = username;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -90,6 +100,7 @@ public class ProfileVO implements Serializable {
 		this.agentManuallyDisabled = agentManuallyDisabled;
 		this.defaultAdministrativeUnit = defaultAdministrativeUnit;
 		this.defaultPageLength = defaultPageLength;
+		this.hideNotActive = hideNotActive;
 	}
 
 	public String getUsername() {
@@ -124,13 +135,13 @@ public class ProfileVO implements Serializable {
 		this.email = email;
 	}
 
-    public String getPersonalEmails() {
-        return personalEmails;
-    }
+	public String getPersonalEmails() {
+		return personalEmails;
+	}
 
-    public void setPersonalEmails(String personalEmails) {
-        this.personalEmails = personalEmails;
-    }
+	public void setPersonalEmails(String personalEmails) {
+		this.personalEmails = personalEmails;
+	}
 
 	public String getPhone() {
 		return phone;
@@ -250,5 +261,13 @@ public class ProfileVO implements Serializable {
 
 	public void setDefaultPageLength(SearchPageLength defaultPageLength) {
 		this.defaultPageLength = defaultPageLength;
+	}
+
+	public boolean isHideNotActive() {
+		return hideNotActive;
+	}
+
+	public void setHideNotActive(boolean hideNotActive) {
+		this.hideNotActive = hideNotActive;
 	}
 }

@@ -1,20 +1,21 @@
 package com.constellio.app.ui.framework.builders;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 
@@ -23,12 +24,19 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 		return new MetadataToVOBuilder() {
 			@Override
 			protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode, MetadataValueType type,
-					String collection, MetadataSchemaVO schemaVO, boolean required, boolean multivalue,
-					boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
-					Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
-					MetadataInputType metadataInputType,
-					MetadataDisplayType metadataDisplayType, AllowedReferences allowedReferences, boolean enabled,
-					StructureFactory structureFactory, String metadataGroup, Object defaultValue, String inputMask, Set<String> customAttributes) {
+											   String collection, MetadataSchemaVO schemaVO, boolean required,
+											   boolean multivalue,
+											   boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
+											   Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
+											   String schemaTypeCode,
+											   MetadataInputType metadataInputType,
+											   MetadataDisplayType metadataDisplayType,
+											   AllowedReferences allowedReferences, boolean enabled,
+											   StructureFactory structureFactory, String metadataGroup,
+											   Object defaultValue, String inputMask, Set<String> customAttributes,
+											   boolean isMultiLingual, Locale locale,
+											   Map<String, Object> customParameters,
+											   CollectionInfoVO collectionInfoVO) {
 				MetadataVO metadataVO;
 				String modifiedOnCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(Schemas.MODIFIED_ON.getCode());
 				String metadataCodeWithoutPrefix = MetadataVO.getCodeWithoutPrefix(metadataCode);
@@ -43,14 +51,14 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									metadataDisplayType, allowedReferences,
-									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes);
+									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO);
 				} else {
 					metadataVO = super
 							.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									metadataDisplayType, allowedReferences,
-									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes);
+									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO);
 				}
 				return metadataVO;
 			}

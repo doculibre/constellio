@@ -1,22 +1,5 @@
 package com.constellio.model.services.records.extractions;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.METADATA_POPULATE_PRIORITY;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.REMOVE_EXTENSION_FROM_RECORD_TITLE;
-import static com.constellio.model.services.migrations.ConstellioEIMConfigs.TITLE_METADATA_POPULATE_PRIORITY;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -34,6 +17,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
@@ -58,6 +42,23 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatasAdapter;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang.SerializationUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.METADATA_POPULATE_PRIORITY;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.REMOVE_EXTENSION_FROM_RECORD_TITLE;
+import static com.constellio.model.services.migrations.ConstellioEIMConfigs.TITLE_METADATA_POPULATE_PRIORITY;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecord;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
 
 public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 
@@ -80,6 +81,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 	private static final boolean andTitleIsNotFileName = false;
 
 	RMSchemasRecordsServices rm;
+	MetadataSchemaTypes types;
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
 
@@ -1238,6 +1240,30 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		;
 	}
 
+	@Test
+	public void givenAOriginalRecordWithAContentAndPopulatedValuesAndARecordWithAContentThenValuesWillBeOverwritten() {
+		Record originalRecord = recordServices.newRecordWithSchema(types.getDefaultSchema(Document.SCHEMA_TYPE));
+		originalRecord.set(rm.document.content(), createContent(documentWithStylesAndProperties1));
+		originalRecord.set(rm.document.company(), "customCompany");
+		services.populate(originalRecord);
+
+		assertThatRecord(originalRecord)
+				.hasMetadataValue(rm.document.author(), "author1")
+				.hasMetadataValue(rm.document.keywords(), asList("zeKeyword1", "anotherKeyword1"))
+				.hasMetadataValue(rm.document.company(), "customCompany")
+				.hasMetadataValue(rm.document.subject(), "subject1");
+
+		Record record = (Record) SerializationUtils.clone(originalRecord);
+		record.set(rm.document.content(), createContent(documentWithStylesAndProperties2));
+		services.populate(record, originalRecord);
+
+		assertThatRecord(record)
+				.hasMetadataValue(rm.document.author(), "author2")
+				.hasMetadataValue(rm.document.keywords(), asList("zeKeyword2", "anotherKeyword2"))
+				.hasMetadataValue(rm.document.company(), "customCompany")
+				.hasMetadataValue(rm.document.subject(), "subject2");
+	}
+
 	// ---------------------------------------------------------------------
 
 	private void validateThatARecordWithAContentWithRegexAndNoPropertiesAndNoStylesWillPopulateUsingRegex() {
@@ -1346,6 +1372,7 @@ public class RecordPopulateServicesAcceptTest extends ConstellioTest {
 		admin = users.adminIn(zeCollection);
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		services = getModelLayerFactory().newRecordPopulateServices();
 		recordServices = getModelLayerFactory().newRecordServices();
 		contentManager = getModelLayerFactory().getContentManager();

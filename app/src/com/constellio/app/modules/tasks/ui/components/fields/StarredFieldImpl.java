@@ -1,7 +1,6 @@
 package com.constellio.app.modules.tasks.ui.components.fields;
 
 
-import com.constellio.app.modules.tasks.ui.components.TaskTable;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.themes.ValoTheme;
@@ -14,7 +13,7 @@ public class StarredFieldImpl extends Button {
 	public StarredFieldImpl(final String taskId, List<String> value, String currentUser) {
 		super();
 		this.setStyleName(ValoTheme.BUTTON_BORDERLESS);
-		if(value != null && value.contains(currentUser)) {
+		if (value != null && value.contains(currentUser)) {
 			isStarred = true;
 		} else {
 			isStarred = false;
@@ -32,7 +31,7 @@ public class StarredFieldImpl extends Button {
 	}
 
 	public void updateIcon() {
-		if(isStarred) {
+		if (isStarred) {
 			setIcon(FontAwesome.STAR);
 		} else {
 			setIcon(FontAwesome.STAR_O);

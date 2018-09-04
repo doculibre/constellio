@@ -1,9 +1,5 @@
 package com.constellio.app.modules.tasks.ui.components.fields;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.Date;
-
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -23,28 +19,32 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 
+import java.util.Date;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class TaskReminderFieldImpl extends CustomField<TaskReminderVO> implements TaskReminderField {
-	
+
 	private TaskReminderVO taskReminderVO;
-	
+
 	private BeanItem<TaskReminderVO> taskReminderItem;
-	
+
 	private FieldGroup fieldGroup;
-	
+
 	@PropertyId("fixedDate")
 	private JodaDateField fixedDateField;
-	
+
 	@PropertyId("relativeDateMetadataCode")
 	private ComboBox relativeDateMetadataCodeField;
 
 	@PropertyId("numberOfDaysToRelativeDate")
 	private TextField numberOfDaysToRelativeDateField;
-	
+
 	private Label numberOfDaysToRelativeDateLabel;
-	
+
 	@PropertyId("beforeRelativeDate")
 	private ComboBox beforeRelativeDateField;
-	
+
 	@Override
 	protected Component initContent() {
 		if (taskReminderVO == null) {
@@ -52,12 +52,12 @@ public class TaskReminderFieldImpl extends CustomField<TaskReminderVO> implement
 		}
 		taskReminderItem = new BeanItem<>(taskReminderVO);
 		fieldGroup = new FieldGroup(taskReminderItem);
-		
+
 		setPropertyDataSource(new AbstractProperty<TaskReminderVO>() {
 			@Override
 			public TaskReminderVO getValue() {
-				boolean submittedValueValid = taskReminderVO.getFixedDate() != null || taskReminderVO.getRelativeDateMetadataCode() != null; 
-				return  submittedValueValid ? taskReminderVO : null;
+				boolean submittedValueValid = taskReminderVO.getFixedDate() != null || taskReminderVO.getRelativeDateMetadataCode() != null;
+				return submittedValueValid ? taskReminderVO : null;
 			}
 
 			@Override
@@ -81,7 +81,7 @@ public class TaskReminderFieldImpl extends CustomField<TaskReminderVO> implement
 		mainLayout.setWidth("99%");
 		mainLayout.setHeightUndefined();
 		mainLayout.setSpacing(true);
-		
+
 		fixedDateField = new JodaDateField();
 		fixedDateField.setCaption($("TaskReminderField.fixedDate"));
 		fixedDateField.addValueChangeListener(new ValueChangeListener() {
@@ -94,11 +94,11 @@ public class TaskReminderFieldImpl extends CustomField<TaskReminderVO> implement
 				}
 			}
 		});
-		
+
 		HorizontalLayout relativeDateLayout = new HorizontalLayout();
 		relativeDateLayout.setCaption($("TaskReminderField.relativeDateMetadataCode"));
 		relativeDateLayout.setSpacing(true);
-		
+
 		relativeDateMetadataCodeField = new BaseComboBox();
 		relativeDateMetadataCodeField.addItem(Task.START_DATE);
 		relativeDateMetadataCodeField.addItem(Task.DUE_DATE);
@@ -116,18 +116,18 @@ public class TaskReminderFieldImpl extends CustomField<TaskReminderVO> implement
 		numberOfDaysToRelativeDateField = new TextField();
 		numberOfDaysToRelativeDateField.setWidth(3, Unit.EM);
 		numberOfDaysToRelativeDateField.setConverter(Integer.class);
-		
+
 		numberOfDaysToRelativeDateLabel = new Label($("TaskReminderField.numberOfDaysToRelativeDate"));
-		
+
 		beforeRelativeDateField = new BaseComboBox();
 		beforeRelativeDateField.addItem(Boolean.TRUE);
 		beforeRelativeDateField.addItem(Boolean.FALSE);
 		beforeRelativeDateField.setItemCaption(Boolean.TRUE, $("TaskReminderField.beforeRelativeDate"));
 		beforeRelativeDateField.setItemCaption(Boolean.FALSE, $("TaskReminderField.afterRelativeDate"));
-		
+
 		mainLayout.addComponents(fixedDateField, relativeDateLayout);
 		relativeDateLayout.addComponents(numberOfDaysToRelativeDateField, numberOfDaysToRelativeDateLabel, beforeRelativeDateField, relativeDateMetadataCodeField);
-		
+
 		fieldGroup.bindMemberFields(this);
 
 		return mainLayout;
@@ -137,13 +137,13 @@ public class TaskReminderFieldImpl extends CustomField<TaskReminderVO> implement
 	public Class<? extends TaskReminderVO> getType() {
 		return TaskReminderVO.class;
 	}
-	
+
 	private boolean isInvalidFieldValue() {
 		boolean invalidFieldValue;
-		
+
 		Date fixedDateValue = fixedDateField.getValue();
 		String relativeDateMetadataCodeValue = (String) relativeDateMetadataCodeField.getValue();
-		
+
 		if (fixedDateValue == null && relativeDateMetadataCodeValue == null) {
 			invalidFieldValue = true;
 		} else if (fixedDateValue != null && relativeDateMetadataCodeValue != null) {
@@ -164,7 +164,7 @@ public class TaskReminderFieldImpl extends CustomField<TaskReminderVO> implement
 				throw new InvalidValueException(e.getMessage());
 			}
 			super.commit();
-		} 
+		}
 	}
-	
+
 }

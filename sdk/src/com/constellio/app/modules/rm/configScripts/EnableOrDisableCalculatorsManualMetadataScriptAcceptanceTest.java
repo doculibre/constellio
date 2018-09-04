@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.configScripts;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.AllowModificationOfArchivisticStatusAndExpectedDatesChoice;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -12,6 +7,10 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EnableOrDisableCalculatorsManualMetadataScriptAcceptanceTest extends ConstellioTest {
 

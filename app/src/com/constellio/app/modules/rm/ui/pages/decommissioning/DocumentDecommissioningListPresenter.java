@@ -6,6 +6,8 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningSecurityService;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningServiceException.DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -22,7 +24,12 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -90,9 +97,18 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 	}
 
 	public void processButtonClicked() {
-		decommissioningService().decommission(decommissioningList(), getCurrentUser());
-		view.showMessage($("DecommissioningListView.processed"));
-		view.navigate().to(RMViews.class).displayDocumentDecommissioningList(recordId);
+
+		try {
+			decommissioningService().decommission(decommissioningList(), getCurrentUser());
+			view.showMessage($("DecommissioningListView.processed"));
+			view.navigate().to(RMViews.class).displayDocumentDecommissioningList(recordId);
+		} catch (DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission e) {
+			view.showMessage($("DecommissioningListView.tooMuchOptimisticLocking"));
+
+		} catch (DecommissioningServiceException e) {
+			view.showMessage($(e));
+		}
+
 	}
 
 	public boolean isDocumentsCertificateButtonVisible() {
@@ -169,13 +185,13 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 	}
 
 	public void addDocumentsButtonClicked() {
-		if(calculateSearchType() != null) {
+		if (calculateSearchType() != null) {
 			view.navigate().to(RMViews.class).editDecommissioningListBuilder(recordId, calculateSearchType().toString());
 		}
 	}
 
 	public SearchType calculateSearchType() {
-		if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
+		if (decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.ACTIVE)) {
 			switch (decommissioningList().getDecommissioningListType()) {
 				case FOLDERS_TO_DEPOSIT:
 					return SearchType.activeToDeposit;
@@ -190,7 +206,7 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 				case DOCUMENTS_TO_TRANSFER:
 					return SearchType.documentTransfer;
 			}
-		} else if(decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
+		} else if (decommissioningList().getOriginArchivisticStatus().equals(OriginStatus.SEMI_ACTIVE)) {
 			switch (decommissioningList().getDecommissioningListType()) {
 				case FOLDERS_TO_DEPOSIT:
 					return SearchType.semiActiveToDeposit;
@@ -207,8 +223,8 @@ public class DocumentDecommissioningListPresenter extends SingleSchemaBasePresen
 
 	public void removeDocumentsButtonClicked(HashMap<Integer, Boolean> selected) {
 		Set<String> idsToRemove = new HashSet<>();
-		for(Map.Entry<Integer, Boolean> entry: selected.entrySet()) {
-			if(Boolean.TRUE.equals(entry.getValue())) {
+		for (Map.Entry<Integer, Boolean> entry : selected.entrySet()) {
+			if (Boolean.TRUE.equals(entry.getValue())) {
 				RecordVO recordVO = getDocuments().getRecordVO(entry.getKey());
 				idsToRemove.add(recordVO.getId());
 			}

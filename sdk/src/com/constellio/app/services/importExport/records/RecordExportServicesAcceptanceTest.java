@@ -1,29 +1,5 @@
 package com.constellio.app.services.importExport.records;
 
-import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.api.Condition;
-import org.assertj.core.groups.Tuple;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.DemoTestRecords;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
@@ -92,6 +68,29 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.Condition;
+import org.assertj.core.groups.Tuple;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.IN_PROGRESS;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.returnAll;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.fail;
 
 public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
@@ -633,62 +632,21 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		RMSchemasRecordsServices rmAnotherCollection = new RMSchemasRecordsServices("anotherCollection", getAppLayerFactory());
 
-		assertThatRecords(rmAnotherCollection.searchEvents(ALL)).extractingMetadatas("legacyIdentifier", "title")
-				.containsOnly(tuple("00000000436", "Abeille"),
-						tuple("00000000437", null), tuple("00000000438", null),
-						tuple("00000000439", null), tuple("00000000440", "Belette"),
-						tuple("00000000441", "Bob 'Elvis' Gratton"), tuple("00000000442", "Chuck Norris"),
-						tuple("00000000443", "Bob 'Elvis' Gratton"), tuple("00000000444", "Chuck Norris"),
-						tuple("00000000445", "Gandalf Leblanc"), tuple("00000000447", "group1"),
-						tuple("00000000449", "group2"), tuple("00000000450", "Aigle"),
-						tuple("00000000452", null), tuple("00000000454", null),
-						tuple("00000000456", null), tuple("00000000457", "Aigle"),
-						tuple("00000000458", "30_C_01"), tuple("00000000459", "Aigle"),
-						tuple("00000000460", "Alouette"), tuple("00000000461", null),
-						tuple("00000000462", null), tuple("00000000463", null));
+		assertThatRecords(rmAnotherCollection.searchEvents(ALL)).extractingMetadatas("username", "title")
+				.containsOnly(tuple("charles", "Abeille"),
+						tuple("charles", null), tuple("charles", null),
+						tuple("charles", null), tuple("charles", "Belette"),
+						tuple("charles", "Bob 'Elvis' Gratton"), tuple("charles", "Chuck Norris"),
+						tuple("charles", "Bob 'Elvis' Gratton"), tuple("charles", "Chuck Norris"),
+						tuple("charles", "Gandalf Leblanc"), tuple("charles", "group1"),
+						tuple("charles", "group2"), tuple("charles", "Aigle"),
+						tuple("bob", null), tuple("dakota", null),
+						tuple("bob", null), tuple("bob", "Aigle"),
+						tuple("bob", "30_C_01"), tuple("bob", "Aigle"),
+						tuple("charles", "Alouette"), tuple("admin", null),
+						tuple("charles", null), tuple("charles", null));
 	}
 
-	// TODO Ne fonctionne pas dans le moment.
-	//@Test
-	public void whenExportingAndImportingEventInSameSystem()
-			throws Exception {
-		prepareSystem(
-				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
-						.withRMTest(records).withEvents(),
-				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
-
-		RMSchemasRecordsServices rmZeCollection = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-
-		List<Event> event = rmZeCollection.searchEvents(returnAll());
-
-		RecordExportOptions recordExportOptions = options.setExportedSchemaTypes(asList(
-				Event.SCHEMA_TYPE)).setForSameSystem(true);
-
-		File file = exportToZip(recordExportOptions);
-
-		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-
-		recordServices.logicallyDelete(event.get(0).getWrappedRecord(), records.getAdmin());
-		recordServices.physicallyDelete(event.get(0).getWrappedRecord(), records.getAdmin());
-
-		recordServices.update(event.get(1).setTitle("Test Title").getWrappedRecord(), records.getAdmin());
-
-		importFromZip(file, zeCollection);
-
-		assertThatRecords(rmZeCollection.searchEvents(ALL)).extractingMetadatas("id", "title")
-				.containsOnly(tuple("00000000436", "Abeille"),
-						tuple("00000000437", null), tuple("00000000438", null),
-						tuple("00000000439", null), tuple("00000000440", "Belette"),
-						tuple("00000000441", "Bob 'Elvis' Gratton"), tuple("00000000442", "Chuck Norris"),
-						tuple("00000000443", "Bob 'Elvis' Gratton"), tuple("00000000444", "Chuck Norris"),
-						tuple("00000000445", "Gandalf Leblanc"), tuple("00000000447", "group1"),
-						tuple("00000000449", "group2"), tuple("00000000450", "Aigle"),
-						tuple("00000000452", null), tuple("00000000454", null),
-						tuple("00000000456", null), tuple("00000000457", "Aigle"),
-						tuple("00000000458", "30_C_01"), tuple("00000000459", "Aigle"),
-						tuple("00000000460", "Alouette"), tuple("00000000461", null),
-						tuple("00000000462", null), tuple("00000000463", null));
-	}
 
 	@Test
 	public void whenExportingAndImportingFolder()
@@ -861,7 +819,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
-		LocalDateTime zeDateTime = new LocalDateTime(2000,1,1,1,1);
+		LocalDateTime zeDateTime = new LocalDateTime(2000, 1, 1, 1, 1);
 		documentFromZeCollection.setCreatedOn(zeDateTime);
 		documentFromZeCollection.setModifiedOn(zeDateTime.plusSeconds(1));
 		documentFromZeCollection.setFormCreatedOn(zeDateTime.plusSeconds(2));

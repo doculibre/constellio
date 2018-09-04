@@ -1,27 +1,30 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.constellio.app.modules.rm.services.ValueListServices;
+import com.constellio.app.ui.entities.TaxonomyVO;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.MockedFactories;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import com.constellio.app.modules.rm.services.ValueListServices;
-import com.constellio.app.ui.application.CoreViews;
-import com.constellio.app.ui.entities.TaxonomyVO;
-import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.FakeSessionContext;
-import com.constellio.sdk.tests.MockedFactories;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 
@@ -34,8 +37,10 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 	List<String> userIds;
 	List<String> groupIds;
 	AddEditTaxonomyPresenter presenter;
-	String newTaxonomyTitle;
+	Map<Language, String> newTaxonomyTitle;
 	MockedFactories mockedFactories = new MockedFactories();
+	@Mock
+	CollectionsListManager collectionsListManager;
 
 	@Before
 	public void setUp()
@@ -49,7 +54,16 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 
 		when(mockedFactories.getModelLayerFactory().getTaxonomiesManager()).thenReturn(taxonomiesManager);
 
-		newTaxonomyTitle = "taxonomy 1";
+		List<String> languages = new ArrayList<>();
+		languages.add("en");
+		languages.add("fr");
+
+		when(mockedFactories.getModelLayerFactory().getCollectionsListManager()).thenReturn(collectionsListManager);
+		when(collectionsListManager.getCollectionLanguages(anyString())).thenReturn(languages);
+
+		newTaxonomyTitle = new HashMap<>();
+		newTaxonomyTitle.put(Language.French, "taxonomy 1");
+
 		userIds = new ArrayList<>();
 		userIds.add("chuck");
 		userIds.add("bob");
@@ -59,7 +73,8 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 		groupIds.add("legends");
 		taxonomyVO = new TaxonomyVO("taxo1", newTaxonomyTitle, new ArrayList<String>(), zeCollection, userIds, groupIds, true);
 
-		when(taxonomy1.getTitle()).thenReturn(newTaxonomyTitle);
+
+		when(taxonomy1.getTitle()).thenReturn(taxonomyVO.getTitleMap());
 
 		presenter = spy(new AddEditTaxonomyPresenter(view));
 
@@ -71,9 +86,9 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 
 		doReturn(valueListServices).when(presenter).valueListServices();
 
-		presenter.saveButtonClicked(taxonomyVO);
+		presenter.saveButtonClicked(taxonomyVO, true);
 
-		verify(valueListServices).createTaxonomy(taxonomyVO.getTitle(), taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(), true);
+		verify(valueListServices).createTaxonomy(taxonomyVO.getTitleMap(), taxonomyVO.getUserIds(), taxonomyVO.getGroupIds(), true, true);
 		verify(view.navigate().to()).listTaxonomies();
 	}
 
@@ -81,14 +96,14 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 	public void givenActionEditWhenSaveButtonClickedThenEditIt()
 			throws Exception {
 		doReturn(taxonomy1).when(presenter).fetchTaxonomy(taxonomyVO.getCode());
-		doReturn(taxonomy2).when(taxonomy1).withTitle(taxonomyVO.getTitle());
+		doReturn(taxonomy2).when(taxonomy1).withTitle(taxonomyVO.getTitleMap());
 		doReturn(taxonomy3).when(taxonomy2).withUserIds(taxonomyVO.getUserIds());
 		doReturn(taxonomy4).when(taxonomy3).withGroupIds(taxonomyVO.getGroupIds());
 		doReturn(taxonomy5).when(taxonomy4).withVisibleInHomeFlag(taxonomyVO.isVisibleInHomePage());
 		doReturn(valueListServices).when(presenter).valueListServices();
 		when(presenter.isActionEdit()).thenReturn(true);
 
-		presenter.saveButtonClicked(taxonomyVO);
+		presenter.saveButtonClicked(taxonomyVO, true);
 
 		verify(presenter).fetchTaxonomy(taxonomyVO.getCode());
 		verify(taxonomiesManager).editTaxonomy(taxonomy5);
@@ -104,10 +119,10 @@ public class AddEditTaxonomyPresenterTest extends ConstellioTest {
 		doReturn(valueListServices).when(presenter).valueListServices();
 		doReturn(existentTaxonomies).when(valueListServices).getTaxonomies();
 
-		presenter.saveButtonClicked(taxonomyVO);
+		presenter.saveButtonClicked(taxonomyVO, false);
 
-		verify(valueListServices, never()).createTaxonomy(taxonomyVO.getTitle(), taxonomyVO.getUserIds(),
-				taxonomyVO.getGroupIds(), true);
+		verify(valueListServices, never()).createTaxonomy(taxonomyVO.getTitleMap(), taxonomyVO.getUserIds(),
+				taxonomyVO.getGroupIds(), true, true);
 	}
 
 	@Test

@@ -1,22 +1,5 @@
 package com.constellio.app.services.records;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.Language.withCode;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.extensions.AppLayerExtensions;
 import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -31,6 +14,22 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.Language.withCode;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
+import static java.util.Arrays.asList;
 
 public class AvailableSequencesServices {
 
@@ -94,7 +93,8 @@ public class AvailableSequencesServices {
 	}
 
 	private void getAvailableSequenceFromMetadata(Record record, MetadataSchemaTypes types,
-			Map<Metadata, Set<String>> typesWithSequenceFeedingRecord, Metadata metadata, SequenceDataEntry dataEntry) {
+												  Map<Metadata, Set<String>> typesWithSequenceFeedingRecord,
+												  Metadata metadata, SequenceDataEntry dataEntry) {
 		Metadata metadataProvidingReference;
 		Metadata metadataProvidingSequenceCode;
 		MetadataSchema schema = types.getSchema(metadata.getSchemaCode());
@@ -126,7 +126,7 @@ public class AvailableSequencesServices {
 	}
 
 	private Map<Language, String> getAvailableSequenceLabelForTypes(MetadataSchemaTypes types,
-			Set<String> typesWithSequenceFeedingRecord) {
+																	Set<String> typesWithSequenceFeedingRecord) {
 		Map<Language, String> labels = new HashMap<>();
 		for (Language language : types.getLanguages()) {
 			StringBuilder stringBuilder = new StringBuilder();

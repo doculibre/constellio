@@ -1,7 +1,5 @@
 package com.constellio.app.ui.pages.management.schemaRecords;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.OverridingMetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordForm;
@@ -9,6 +7,8 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Component;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public class AddEditSchemaRecordViewImpl extends BaseViewImpl implements AddEditSchemaRecordView {
@@ -21,10 +21,12 @@ public class AddEditSchemaRecordViewImpl extends BaseViewImpl implements AddEdit
 
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
-		String[] splitParams = event.getParameters().split("/");
-		presenter.forSchema(splitParams[0]);
-		String id = splitParams.length == 2 ? splitParams[1] : null;
-		recordVO = presenter.getRecordVO(id);
+		presenter.forParams(event.getParameters());
+	}
+
+	@Override
+	public void setRecordVO(RecordVO recordVO) {
+		this.recordVO = recordVO;
 	}
 
 	@Override

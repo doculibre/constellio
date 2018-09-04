@@ -4,5 +4,5 @@ import java.io.File;
 import java.io.IOException;
 
 public interface ExtensionConverter {
-    File convert(File input) throws IOException;
+	File convert(File input) throws IOException;
 }

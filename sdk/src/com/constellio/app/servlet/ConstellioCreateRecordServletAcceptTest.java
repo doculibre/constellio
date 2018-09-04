@@ -1,25 +1,5 @@
 package com.constellio.app.servlet;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-
-import com.gargoylesoftware.htmlunit.*;
-
-import org.joda.time.LocalDate;
-import org.jsoup.Jsoup;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -31,6 +11,27 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.HttpMethod;
+import com.gargoylesoftware.htmlunit.Page;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.WebRequest;
+import org.joda.time.LocalDate;
+import org.jsoup.Jsoup;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class ConstellioCreateRecordServletAcceptTest extends ConstellioTest {
 
@@ -211,7 +212,7 @@ public class ConstellioCreateRecordServletAcceptTest extends ConstellioTest {
 	}
 
 	private String callCreateFolders(String serviceKey, String token, String collection, HttpMethod httpMethod,
-			Map<String, Object>... otherParamsArray)
+									 Map<String, Object>... otherParamsArray)
 			throws IOException, InterruptedException {
 		StringBuilder url = new StringBuilder("http://localhost:7070/constellio/createRecord?schema=folder_default");
 		StringBuilder body = new StringBuilder("<Folders>");

@@ -1,17 +1,16 @@
 package com.constellio.app.modules.es.services.mapping;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
 
 public class ConnectorFieldFactory implements StructureFactory {
 
@@ -21,16 +20,16 @@ public class ConnectorFieldFactory implements StructureFactory {
 	public ConnectorFieldFactory() {
 		initTransient();
 	}
-	
+
 	private void initTransient() {
 		gsonBuilder = new GsonBuilder();
 		gson = gsonBuilder.create();
 	}
 
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        initTransient();
-    }
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		initTransient();
+	}
 
 	@Override
 	public String toString(ModifiableStructure structure) {

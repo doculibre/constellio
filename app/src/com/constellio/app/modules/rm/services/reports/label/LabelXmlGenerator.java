@@ -1,23 +1,7 @@
 package com.constellio.app.modules.rm.services.reports.label;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
 import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
+import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.services.reports.AbstractXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.AbstractXmlGeneratorParameters;
@@ -37,6 +21,24 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.commons.lang.StringUtils;
+import org.jdom2.CDATA;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 /**
  * Class that creates the XML for the labels.
@@ -68,22 +70,24 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 
 	private String type;
 
-	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory) {
-		super(appLayerFactory, collection);
+	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale) {
+		super(appLayerFactory, collection, locale);
 		this.collection = collection;
 		this.factory = appLayerFactory;
 		this.recordServices = factory.getModelLayerFactory().newRecordServices();
 		this.metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
 	}
 
-	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Record... recordElements) {
-		this(collection, appLayerFactory);
+	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale,
+							 Record... recordElements) {
+		this(collection, appLayerFactory, locale);
 		this.setElements(recordElements);
 	}
 
-	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, int startingPosition, int numberOfCopies,
-			Record... recordElements) {
-		this(collection, appLayerFactory, recordElements);
+	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale, int startingPosition,
+							 int numberOfCopies,
+							 Record... recordElements) {
+		this(collection, appLayerFactory, locale, recordElements);
 		this.startingPosition = startingPosition;
 		this.numberOfCopies = numberOfCopies;
 	}
@@ -173,6 +177,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 
 	/**
 	 * Method that will fill the empty tags to make sure JasperSoft correctly read them.
+	 *
 	 * @param originalElements element to check if empty
 	 * @return
 	 */
@@ -249,7 +254,11 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 		}
 
 		Element metadataXmlElement = new Element(escapeForXmlTag(getLabelOfMetadata(metadata)));
-		String data = formatData(getToStringOrNull(recordElement.get(metadata)), metadata);
+		boolean isRichTextInputType = displayManager.getMetadata(getCollection(), metadata.getCode()).getInputType() == MetadataInputType.RICHTEXT;
+		String data = getToStringOrNull(recordElement.get(metadata, getLocale()));
+		if (!isRichTextInputType) {
+			data = formatData(data, metadata);
+		}
 		if (metadata.isMultivalue()) {
 			StringBuilder valueBuilder = new StringBuilder();
 			List<Object> objects = recordElement.getList(metadata);
@@ -266,14 +275,19 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 		if (metadata.getLocalCode().toLowerCase().contains("path")) {
 			data = this.getPath(recordElement);
 		}
-		metadataXmlElement.setText(data);
+
+		if (data != null && isRichTextInputType) {
+			metadataXmlElement.setContent(new CDATA(data));
+		} else {
+			metadataXmlElement.setText(data);
+		}
 		return Collections.singletonList(metadataXmlElement);
 	}
 
 	List<Element> createMetadataTagFromMetadataOfTypeReference(Metadata metadata, Record recordElement) {
 		List<String> listOfIdsReferencedByMetadata = metadata.isMultivalue() ?
-				recordElement.<String>getList(metadata) :
-				Collections.singletonList(recordElement.<String>get(metadata));
+													 recordElement.<String>getList(metadata) :
+													 Collections.singletonList(recordElement.<String>get(metadata));
 		List<Record> listOfRecordReferencedByMetadata = recordServices
 				.getRecordsById(this.collection, listOfIdsReferencedByMetadata);
 		List<Element> listOfMetadataTags = new ArrayList<>();
@@ -285,7 +299,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 			if (titleBuilder.length() > 0) {
 				titleBuilder.append(", ");
 			}
-			titleBuilder.append((String) recordReferenced.get(Schemas.TITLE));
+			titleBuilder.append((String) recordReferenced.get(Schemas.TITLE, getLocale()));
 
 			if (codeBuilder.length() > 0) {
 				codeBuilder.append(", ");
@@ -295,16 +309,16 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 			if (AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) || Category.SCHEMA_TYPE
 					.equals(recordReferenced.getTypeCode())) {
 				Metadata parentMetadata = AdministrativeUnit.SCHEMA_TYPE.equals(recordReferenced.getTypeCode()) ?
-						metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema()
-								.get(AdministrativeUnit.PARENT) :
-						metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
+										  metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema()
+												  .get(AdministrativeUnit.PARENT) :
+										  metadataSchemasManager.getSchemaTypeOf(recordReferenced).getDefaultSchema().get(Category.PARENT);
 				String parentMetadataId = recordReferenced.get(parentMetadata);
 				if (parentMetadataId != null) {
 					Record parentRecord = recordServices.getDocumentById(parentMetadataId);
 					if (titleParentBuilder.length() > 0) {
 						titleParentBuilder.append(", ");
 					}
-					titleParentBuilder.append((String) parentRecord.get(Schemas.TITLE));
+					titleParentBuilder.append((String) parentRecord.get(Schemas.TITLE, getLocale()));
 
 					if (codeParentBuilder.length() > 0) {
 						codeParentBuilder.append(", ");
@@ -374,8 +388,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 	}
 
 	/**
-	 * @deprecated
-	 * use toString()
+	 * @deprecated use toString()
 	 */
 	private String converteInstanceToString(Object metadataValue) {
 		if (metadataValue instanceof List) {

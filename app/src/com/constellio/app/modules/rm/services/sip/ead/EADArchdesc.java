@@ -8,30 +8,30 @@ import java.util.Map;
 public class EADArchdesc {
 
 	// DID
-	
+
 	private String didUnitid;
-	
+
 	private String didUnittitle;
-	
-	private Map<String, String> didUnitDates = new LinkedHashMap<String, String>(); 
-	 
+
+	private Map<String, String> didUnitDates = new LinkedHashMap<String, String>();
+
 	private List<String> didLangmaterials = new ArrayList<String>();
-	
+
 	private List<String> didAbstracts = new ArrayList<String>();
-	
+
 	private String didOriginationCorpname;
-	
+
 	private List<String> didNotePs = new ArrayList<String>();
-	
-	
+
+
 	private List<String> fileplanPs = new ArrayList<String>();
-	
+
 	private List<String> altformavailPs = new ArrayList<String>();
-	
+
 	private List<List<String>> relatedmaterialLists = new ArrayList<List<String>>();
-	
+
 	private List<String> controlAccessSubjects = new ArrayList<String>();
-	
+
 	private String accessRestrictLegalStatus;
 
 	public String getDidUnitid() {
@@ -129,5 +129,5 @@ public class EADArchdesc {
 	public void setAccessRestrictLegalStatus(String accessRestrictLegalStatus) {
 		this.accessRestrictLegalStatus = accessRestrictLegalStatus;
 	}
-	
+
 }

@@ -1,17 +1,8 @@
 package com.constellio.app.ui.framework.builders;
 
-import static com.constellio.model.entities.Language.withLocale;
-import static java.util.Arrays.asList;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -22,6 +13,15 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.security.roles.RolesManager;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.util.SchemaCaptionUtils.getCaptionForRecord;
+import static com.constellio.model.entities.Language.withLocale;
+import static java.util.Arrays.asList;
 
 public class AuthorizationToVOBuilder implements Serializable {
 	transient ModelLayerFactory modelLayerFactory;
@@ -45,7 +45,7 @@ public class AuthorizationToVOBuilder implements Serializable {
 	}
 
 	public AuthorizationVO build(Authorization authorization, Metadata receivedFromMetadata, Record receivedFromValue,
-			SessionContext sessionContext) {
+								 SessionContext sessionContext) {
 		List<String> principals = authorization.getGrantedToPrincipals();
 		List<String> records = asList(authorization.getGrantedOnRecord());
 		List<String> roles = authorization.getDetail().getRoles();
@@ -78,7 +78,7 @@ public class AuthorizationToVOBuilder implements Serializable {
 				if (userRecord != null && principals.contains(userRecord.getId())) {
 					User user = schemas.wrapUser(userRecord);
 					//if (user.getStatus() == UserCredentialStatus.ACTIVE) {
-						users.add(userRecord.getId());
+					users.add(userRecord.getId());
 					//}
 				}
 			}
@@ -86,17 +86,17 @@ public class AuthorizationToVOBuilder implements Serializable {
 				if (groupRecord != null && principals.contains(groupRecord.getId())) {
 					Group group = schemas.wrapGroup(groupRecord);
 					//if (schemas.isGroupActive(group)) {
-						groups.add(groupRecord.getId());
+					groups.add(groupRecord.getId());
 					//}
 				}
 			}
 		}
 
 		String metadataLabel = receivedFromMetadata == null ? null :
-				receivedFromMetadata.getLabel(withLocale(sessionContext.getCurrentLocale()));
+							   receivedFromMetadata.getLabel(withLocale(sessionContext.getCurrentLocale()));
 
-		String recordCaption = receivedFromValue == null ? null :
-				SchemaCaptionUtils.getCaptionForRecord(receivedFromValue);
+		String recordCaption = receivedFromValue == null ? null : getCaptionForRecord(receivedFromValue,
+				sessionContext.getCurrentLocale());
 
 		AuthorizationVO authorizationVO = new AuthorizationVO(users, groups, records, accessRoles, userRoles, userRolesTitles,
 				authorization.getDetail().getId(), authorization.getDetail().getStartDate(),

@@ -1,11 +1,11 @@
 package com.constellio.app.modules.es.model.connectors.http;
 
-import java.util.Arrays;
-import java.util.List;
-
 import com.constellio.app.modules.es.model.connectors.ConnectorDocument;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class ConnectorHttpDocument extends ConnectorDocument<ConnectorHttpDocument> {
 
@@ -42,6 +42,7 @@ public class ConnectorHttpDocument extends ConnectorDocument<ConnectorHttpDocume
 	public static final String CONTENT_TYPE = "contentType";
 	public static final String DOWNLOAD_TIME = "downloadTime";
 	public static final String LANGUAGE = "language";
+	public static final String DESCRIPTION = "description";
 
 	public ConnectorHttpDocument(Record record, MetadataSchemaTypes types) {
 		super(record, types, "connectorHttpDocument");
@@ -170,6 +171,15 @@ public class ConnectorHttpDocument extends ConnectorDocument<ConnectorHttpDocume
 
 	public ConnectorHttpDocument setContentType(String digest) {
 		set(CONTENT_TYPE, digest);
+		return this;
+	}
+
+	public String getDescription() {
+		return get(DESCRIPTION);
+	}
+
+	public ConnectorHttpDocument setDescription(String description) {
+		set(DESCRIPTION, description);
 		return this;
 	}
 }

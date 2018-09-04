@@ -1,60 +1,5 @@
 package com.constellio.model.services.schemas;
 
-import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
-import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
-import static com.constellio.model.entities.schemas.Schemas.TITLE;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.AGGREGATED;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.COPIED;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
-import static com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder.create;
-import static com.constellio.sdk.tests.TestUtils.asList;
-import static com.constellio.sdk.tests.TestUtils.getElementsClasses;
-import static com.constellio.sdk.tests.TestUtils.onlyElementsOfClass;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50CharactersInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsThirdSchemaType;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirementInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultValue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabel;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabelInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasNoDefaultRequirement;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasNoDefaultRequirementInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasStructureFactory;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsChildOfRelationship;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabledInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabledInCustomSchema;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsProvidingSecurity;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsTaxonomyRelationship;
-import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUndeletable;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.verify;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import org.mockito.Mock;
-
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.managers.config.ConfigManager;
 import com.constellio.data.dao.services.DataStoreTypesFactory;
@@ -67,6 +12,7 @@ import com.constellio.model.entities.calculators.InitializedMetadataValueCalcula
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
+import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -119,6 +65,63 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeCustomSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import org.mockito.Mock;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import static com.constellio.model.entities.schemas.MetadataValueType.CONTENT;
+import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.AGGREGATED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.CALCULATED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.COPIED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUENCE;
+import static com.constellio.model.services.schemas.builders.MetadataPopulateConfigsBuilder.create;
+import static com.constellio.sdk.tests.TestUtils.asList;
+import static com.constellio.sdk.tests.TestUtils.getElementsClasses;
+import static com.constellio.sdk.tests.TestUtils.onlyElementsOfClass;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ANOTHER_SCHEMA_TYPE_CODE;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZE_SCHEMA_TYPE_CODE;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50Characters;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.limitedTo50CharactersInCustomSchema;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsAnotherDefaultSchema;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichAllowsThirdSchemaType;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirement;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultRequirementInCustomSchema;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasDefaultValue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMask;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabel;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabelInCustomSchema;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasNoDefaultRequirement;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasNoDefaultRequirementInCustomSchema;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasStructureFactory;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsChildOfRelationship;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabledInCustomSchema;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabled;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEnabledInCustomSchema;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsProvidingSecurity;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSchemaAutocomplete;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsTaxonomyRelationship;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUndeletable;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.verify;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @SlowTest
@@ -479,6 +482,26 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenHavingCustomParameterValueInTemporaryRecordEmployeThenIsSavedWithValue() {
+		final Map<String, Object> customParameter = new HashMap();
+
+		customParameter.put("key", "value");
+
+		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaTypeBuilder temporaryFolderSchemaType = types.getSchemaType(TemporaryRecord.SCHEMA_TYPE);
+				temporaryFolderSchemaType.createCustomSchema("employe").getMetadata("title").setCustomParameter(customParameter);
+			}
+		});
+
+		Map<String, Object> customParameterFromMetadata = schemasManager.getSchemaTypes(zeCollection).getSchemaType(TemporaryRecord.SCHEMA_TYPE).getSchema("employe").getMetadata("title").getCustomParameter();
+
+		assertThat(customParameterFromMetadata.get("key")).isEqualTo("value");
+		assertThat(customParameterFromMetadata.size()).isEqualTo(1);
+	}
+
+	@Test
 	public void whenSavingSchemaSingleMetadatThenFlagConserved()
 			throws Exception {
 		defineSchemasManager().using(defaultSchema.andCustomSchema().withAStringMetadata());
@@ -567,6 +590,22 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsSchemaAutocomplete));
 
 		assertThat(zeSchema.stringMetadata().isSchemaAutocomplete()).isTrue();
+	}
+
+	@Test
+	public void whenSavingSchemaMultilingualMetadataThenUndeletableFlagConserved()
+			throws Exception {
+		defineSchemasManager().using(defaultSchema.withAStringMetadata(whichIsMultilingual));
+
+		assertThat(zeSchema.stringMetadata().isMultiLingual()).isTrue();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(defaultSchema.zeDefaultSchemaCode()).get("stringMetadata").setMultiLingual(false);
+			}
+		});
+		assertThat(zeSchema.stringMetadata().isMultiLingual()).isFalse();
 	}
 
 	@Test
@@ -1809,7 +1848,7 @@ public class MetadataSchemasManagerAcceptanceTest extends ConstellioTest {
 
 		@Override
 		public Object[] getInstanceParameters() {
-			return new Object[] { parameter1, parameter2 };
+			return new Object[]{parameter1, parameter2};
 		}
 	}
 }

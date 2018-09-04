@@ -1,12 +1,8 @@
 package com.constellio.app.modules.rm.ui.components.document.fields;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRule;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.vaadin.data.Property;
 import com.vaadin.ui.CheckBox;
@@ -15,12 +11,20 @@ import com.vaadin.ui.CustomField;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class DocumentCopyRuleFieldImpl extends CustomField<String> implements DocumentCopyRuleField {
 	private Table table;
 	private List<CopyRetentionRule> rules;
+	private Locale locale;
 
 	public DocumentCopyRuleFieldImpl(List<CopyRetentionRuleInRule> rules) {
 		this.rules = toCopyRetentionRules(rules);
+		this.locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 	}
 
 	@Override
@@ -104,16 +108,16 @@ public class DocumentCopyRuleFieldImpl extends CustomField<String> implements Do
 			}
 			CopyRetentionRule rule = (CopyRetentionRule) itemId;
 			switch ((String) columnId) {
-			case SELECTOR:
-				return generateSelectorCell(rule);
-			case NUMBER:
-				return generateNumberCell(rule);
-			case TITLE:
-				return generateTitleCell(rule);
-			case TYPE:
-				return generateTypeCell(rule);
-			case RULE:
-				return generateRuleCell(rule);
+				case SELECTOR:
+					return generateSelectorCell(rule);
+				case NUMBER:
+					return generateNumberCell(rule);
+				case TITLE:
+					return generateTitleCell(rule);
+				case TYPE:
+					return generateTypeCell(rule);
+				case RULE:
+					return generateRuleCell(rule);
 			}
 			return null;
 		}

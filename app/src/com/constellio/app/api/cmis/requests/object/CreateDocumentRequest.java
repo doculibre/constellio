@@ -1,19 +1,5 @@
 package com.constellio.app.api.cmis.requests.object;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.data.PropertyData;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.enums.VersioningState;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.api.cmis.ConstellioCmisException;
 import com.constellio.app.api.cmis.ConstellioCmisException.ConstellioCmisException_UnsupportedVersioningState;
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
@@ -29,6 +15,19 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.records.RecordServicesException;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.data.PropertyData;
+import org.apache.chemistry.opencmis.commons.enums.Action;
+import org.apache.chemistry.opencmis.commons.enums.VersioningState;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocument> {
 
@@ -39,8 +38,9 @@ public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocu
 	private final VersioningState versioningState;
 
 	public CreateDocumentRequest(ConstellioCollectionRepository repository, AppLayerFactory appLayerFactory,
-			CallContext context, Properties properties, String folderId, ContentStream contentStream,
-			VersioningState versioningState) {
+								 CallContext context, Properties properties, String folderId,
+								 ContentStream contentStream,
+								 VersioningState versioningState) {
 		super(context, repository, appLayerFactory);
 		this.properties = properties;
 		this.folderId = folderId;
@@ -98,7 +98,7 @@ public class CreateDocumentRequest extends CmisCollectionRequest<ContentCmisDocu
 			throw new RuntimeException(e);
 		}
 
-//		CreateDocumentParams params = new CreateDocumentParams(user, record);
+		//		CreateDocumentParams params = new CreateDocumentParams(user, record);
 		//		appLayerFactory.getExtensions().forCollection(collection).onCreateCMISDocument(params);
 
 		return ContentCmisDocument.createForVersionSeenBy(content, record, metadata.getLocalCode(), user);
