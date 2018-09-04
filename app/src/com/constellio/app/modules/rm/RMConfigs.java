@@ -1,5 +1,10 @@
 package com.constellio.app.modules.rm;
 
+import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableCalculatorsManualMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableContainerMultiValueMetadataScript;
 import com.constellio.app.modules.rm.configScripts.EnableOrDisableStorageSpaceTitleCalculatorScript;
@@ -15,11 +20,6 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.modules.rm.ConstellioRMModule.ID;
 
 public class RMConfigs {
 
@@ -91,6 +91,9 @@ public class RMConfigs {
 
 	// other
 	public static final SystemConfiguration OPEN_HOLDER, MAJOR_VERSION_FOR_NEW_FILE;
+
+	// advanced
+	public static final SystemConfiguration SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG;
 
 	static {
 		//SystemConfigurationGroup beta = new SystemConfigurationGroup(ID, "beta");
@@ -294,6 +297,10 @@ public class RMConfigs {
 
 		add(ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE = decommissioning
 				.createBooleanFalseByDefault("allowTransferDateFieldWhenCopyRuleHasNoSemiActiveState"));
+
+		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
+		add(SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG =
+				advanced.createBooleanFalseByDefault("showFolderUnicityAndFolderSummaryConfig").whichIsHidden());
 	}
 
 	static void add(SystemConfiguration configuration) {
