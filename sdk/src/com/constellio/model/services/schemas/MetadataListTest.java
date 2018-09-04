@@ -373,6 +373,25 @@ public class MetadataListTest extends ConstellioTest {
 	}
 
 	@Test
+	public void whenFilterOnTypesThenOK()
+			throws Exception {
+
+		when(metadata1.getType()).thenReturn(MetadataValueType.NUMBER);
+		when(metadata2.getType()).thenReturn(MetadataValueType.BOOLEAN);
+		when(metadata3.getType()).thenReturn(MetadataValueType.BOOLEAN);
+		when(USRmetadata4.getType()).thenReturn(MetadataValueType.STRING);
+
+		metadataList.addAll(metadatas1);
+		metadataList.addAll(metadatas2);
+
+		assertThat(metadataList.onlyWithType(MetadataValueType.BOOLEAN, MetadataValueType.STRING))
+				.containsOnly(metadata2, metadata3, USRmetadata4);
+
+		assertThat(metadataList.excludingValueTypes(MetadataValueType.BOOLEAN, MetadataValueType.STRING))
+				.containsOnly(metadata1);
+	}
+
+	@Test
 	public void whenFilterNonParentReferencesThenReturnTwo()
 			throws Exception {
 

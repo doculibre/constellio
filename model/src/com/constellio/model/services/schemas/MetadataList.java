@@ -7,7 +7,6 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -18,6 +17,7 @@ import java.util.ListIterator;
 import java.util.Map;
 
 import static com.constellio.data.utils.LangUtils.compareStrings;
+import static java.util.Arrays.asList;
 
 public class MetadataList implements List<Metadata>, Serializable {
 
@@ -33,7 +33,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 
 	public MetadataList(Metadata... metadatas) {
 		super();
-		addAll(Arrays.asList(metadatas));
+		addAll(asList(metadatas));
 	}
 
 	public MetadataList(Collection<? extends Metadata> collection) {
@@ -623,4 +623,14 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
+	public MetadataList excludingValueTypes(MetadataValueType... types) {
+		List<Metadata> filteredMetadatasList = new ArrayList<>();
+		List<MetadataValueType> excludedTypes = asList(types);
+		for (Metadata metadata : nestedList) {
+			if (!excludedTypes.contains(metadata.getType())) {
+				filteredMetadatasList.add(metadata);
+			}
+		}
+		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
 }
