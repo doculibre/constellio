@@ -2,6 +2,7 @@ package com.constellio.app.ui.i18n;
 
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
@@ -111,7 +112,11 @@ public class i18n {
 		}
 
 		if (message == null) {
-			message = key;
+			if (Toggle.RETURN_EMPTY_VALUE_WHEN_KEY_IS_MISSING.isEnabled()) {
+				message = "";
+			} else {
+				message = key;
+			}
 		}
 
 		return message;
