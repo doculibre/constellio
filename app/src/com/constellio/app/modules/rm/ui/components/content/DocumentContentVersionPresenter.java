@@ -136,9 +136,13 @@ public class DocumentContentVersionPresenter implements Serializable {
 	}
 
 	public void displayDocumentLinkClicked() {
-		window.closeWindow();
 		String documentId = documentVO.getId();
-		window.navigate().to(RMViews.class).displayDocument(documentId);
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
+			window.displayInWindow();
+		} else {
+			window.closeWindow();
+			window.navigate().to(RMViews.class).displayDocument(documentId);
+		}
 		updateSearchResultClicked();
 	}
 

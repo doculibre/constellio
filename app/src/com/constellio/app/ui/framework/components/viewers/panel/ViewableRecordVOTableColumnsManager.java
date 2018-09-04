@@ -22,6 +22,12 @@ public class ViewableRecordVOTableColumnsManager extends RecordVOTableColumnsMan
 			table.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		} else {
 			super.manage(table, tableId);
+//			if (visibleColumns.contains(SearchResultContainer.THUMBNAIL_PROPERTY)) {
+//				table.setColumnCollapsed(SearchResultContainer.THUMBNAIL_PROPERTY, false);
+//			}	
+//			if (visibleColumns.contains(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID)) {
+//				table.setColumnCollapsed(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, false);
+//			}
 			table.setVisibleColumns(visibleColumns.toArray(new Object[0]));
 			table.setColumnHeaderMode(ColumnHeaderMode.EXPLICIT_DEFAULTS_ID);
 		}

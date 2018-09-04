@@ -26,6 +26,7 @@ import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
@@ -75,6 +76,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private DocumentToVOBuilder voBuilder;
 	private boolean addView;
 	private boolean addViewWithCopy;
+	private String id;
 	protected DocumentVO documentVO;
 	private String userDocumentId;
 	private SchemaPresenterUtils userDocumentPresenterUtils;
@@ -83,11 +85,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private boolean newFileAtStart;
 	ConstellioEIMConfigs eimConfigs;
 
-	public AddEditDocumentPresenter(AddEditDocumentView view) {
+	public AddEditDocumentPresenter(AddEditDocumentView view, RecordVO recordVO) {
 		super(view, Document.DEFAULT_SCHEMA);
 		initTransientObjects();
 		eimConfigs = modelLayerFactory.getSystemConfigs();
-
+		this.id = recordVO != null ? recordVO.getId() : null;
 	}
 
 	@Override
@@ -111,13 +113,24 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	}
 
 	public void forParams(String params) {
-		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
-		String id = paramsMap.get("id");
-		String idCopy = paramsMap.get("idCopy");
-		String parentId = paramsMap.get("parentId");
-		userDocumentId = paramsMap.get("userDocumentId");
-		newFile = false;
-		newFileAtStart = "true".equals(paramsMap.get("newFile"));
+		String idCopy;
+		String parentId;
+		
+		if (params != null) {
+			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
+			id = paramsMap.get("id");
+			idCopy = paramsMap.get("idCopy");
+			parentId = paramsMap.get("parentId");
+			userDocumentId = paramsMap.get("userDocumentId");
+			newFile = false;
+			newFileAtStart = "true".equals(paramsMap.get("newFile"));
+		} else {
+			idCopy = null;
+			parentId = null;
+			userDocumentId = null;
+			newFile = false;
+			newFileAtStart = false;
+		}
 
 		Document document;
 		if (StringUtils.isNotBlank(id)) {
@@ -285,7 +298,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	}
 
 	public void cancelButtonClicked() {
-		if (userDocumentId != null) {
+		if (view.isInWindow()) {
+			view.closeAllWindows();
+		} else if (userDocumentId != null) {
 			view.navigate().to(RMViews.class).listUserDocuments();
 		} else if (addView) {
 			String parentId = documentVO.getFolder();
@@ -377,7 +392,12 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			User userDocumentUser = userServices.getUserInCollection(currentUser.getUsername(), userDocumentCollection);
 			userDocumentPresenterUtils.delete(userDocumentRecord, null, userDocumentUser);
 		}
-		view.navigate().to(RMViews.class).displayDocument(record.getId());
+		
+		if (view.isInWindow()) {
+			view.closeAllWindows();
+		} else {
+			view.navigate().to(RMViews.class).displayDocument(record.getId());
+		}
 		if (newFile && rmConfigs.areDocumentCheckedOutAfterCreation()) {
 			String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent());
 			if (agentURL != null) {
@@ -771,9 +791,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 		DocumentCopyRuleField copyRuleField = getCopyRuleField();
 		if (copyRuleField != null) {
-			copyRuleField.setVisible(
-					areDocumentRetentionRulesEnabled() && documentVO.getList(Document.APPLICABLE_COPY_RULES).size() > 1);
-			copyRuleField.setFieldChoices(documentVO.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES));
+			boolean copyRuleFieldVisible = areDocumentRetentionRulesEnabled() && documentVO.getList(Document.APPLICABLE_COPY_RULES).size() > 1; 
+			copyRuleField.setVisible(copyRuleFieldVisible);
+			if (copyRuleFieldVisible) {
+				copyRuleField.setFieldChoices(documentVO.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES));
+			}
 		}
 	}
 

@@ -9,6 +9,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.utils.ReportGeneratorUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
@@ -47,8 +48,21 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 	}
 
 	public void displayDocumentButtonClicked() {
-		menuBar.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled() && menuBar.isInViewer()) {
+			menuBar.displayInWindow();
+		} else {
+			menuBar.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		}
 		updateSearchResultClicked();
+	}
+
+	@Override
+	public void editDocumentButtonClicked() {
+		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled() && menuBar.isInViewer()) {
+			menuBar.editInWindow();
+		} else {
+			super.editDocumentButtonClicked();
+		}
 	}
 
 	public boolean openForRequested(String recordId) {

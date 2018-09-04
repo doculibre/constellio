@@ -23,6 +23,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrai
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.vaadin.event.UIEvents.PollEvent;
 import com.vaadin.event.UIEvents.PollListener;
@@ -243,6 +244,8 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 				}
 			}
 			if (!exceptionHandled) {
+				e.printStackTrace();
+				LOGGER.error("Error when entering view", e);
 				throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
 			}
 		}
@@ -503,6 +506,11 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		table.setColumnExpandRatio("caption", 1);
 		table.addStyleName(TYPE_TABLE);
 		return table;
+	}
+
+	@Override
+	public boolean isInWindow() {
+		return ComponentTreeUtils.findParent(this, Window.class) != null;
 	}
 
 	@Override

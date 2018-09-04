@@ -2,9 +2,12 @@ package com.constellio.app.modules.rm.ui.components.content;
 
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.content.UpdatableContentVersionPresenter;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.FileIconUtils;
+import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.server.Resource;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
@@ -30,11 +33,13 @@ public class ConstellioAgentLink extends HorizontalLayout {
 	public ConstellioAgentLink(final String agentURL, final RecordVO recordVO, final ContentVersionVO contentVersionVO,
 							   String caption, boolean downloadLink, UpdatableContentVersionPresenter presenter) {
 		addStyleName("agent-link");
-		AgentLink agentLink = new AgentLink(agentURL, contentVersionVO, caption);
+		final AgentLink agentLink = new AgentLink(agentURL, contentVersionVO, caption);
 		agentLink.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
-				new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
+				if (!Toggle.SEARCH_RESULTS_VIEWER.isEnabled() || ComponentTreeUtils.findParent(agentLink, SearchResultDisplay.class) == null) {
+					new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
+				}
 			}
 		});
 		addComponent(agentLink);

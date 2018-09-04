@@ -112,6 +112,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryFacetFilters;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
+import com.constellio.model.services.search.query.logical.ScoreLogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
 import org.apache.commons.lang3.StringUtils;
@@ -344,9 +345,21 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 		query.filteredWithUser(getCurrentUser());
 		query.filteredByStatus(StatusFilter.ACTIVES);
-		// Folder, Document, Title
-		query.sortDesc(Schemas.SCHEMA).sortAsc(Schemas.TITLE);
-		return query;
+		// Folder, Document
+		query.sortDesc(Schemas.SCHEMA);
+		
+		if (sortCriterion == null) {
+			if (new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isAddingSecondarySortWhenSortingByScore()) {
+				return sortOrder == SortOrder.ASCENDING ?
+					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(true)).sortAsc(Schemas.IDENTIFIER) :
+					   query.sortFirstOn(new ScoreLogicalSearchQuerySort(false)).sortDesc(Schemas.IDENTIFIER);
+			} else {
+				return query;
+			}
+		}
+
+		Metadata metadata = getMetadata(sortCriterion);
+		return sortOrder == SortOrder.ASCENDING ? query.sortAsc(metadata) : query.sortDesc(metadata);
 	}
 
 	private LogicalSearchQuery getTasksQuery() {

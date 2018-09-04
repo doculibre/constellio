@@ -27,6 +27,8 @@ import com.vaadin.ui.MenuBar;
 
 public class ViewableRecordVOTable extends RecordVOTable {
 	
+	private int uncompressedPageLength;
+	
 	private boolean compressed;
 
 	public ViewableRecordVOTable(ContainerAdapter<ViewableRecordVOContainer> dataSource) {
@@ -64,6 +66,13 @@ public class ViewableRecordVOTable extends RecordVOTable {
 			testContainer.setCompressed(compressed);
 			
 			manageColumns(getTableId());
+			
+			if (compressed) {
+				uncompressedPageLength = getPageLength();
+				setPageLength(25);
+			} else {
+				setPageLength(uncompressedPageLength);
+			}
 		}
 	}
 

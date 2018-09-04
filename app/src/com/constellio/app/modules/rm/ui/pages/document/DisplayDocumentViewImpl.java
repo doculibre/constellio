@@ -44,6 +44,7 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
 import com.constellio.app.ui.framework.components.table.ContentVersionVOTable;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
@@ -56,6 +57,7 @@ import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.dev.Toggle;
 import com.vaadin.event.ItemClickEvent;
@@ -83,23 +85,8 @@ import com.vaadin.ui.Upload.Receiver;
 import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
@@ -202,6 +189,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
+		addStyleName("display-document-view");
+		
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 
@@ -217,6 +206,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		tabSheet = new TabSheet();
 
 		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory(), Toggle.SEARCH_RESULTS_VIEWER.isEnabled());
+		recordDisplay.setSizeFull();
+		
 		versionTable = new ContentVersionVOTable("DocumentVersions", presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
 			@Override
 			protected boolean isSelectionColumn() {
@@ -270,7 +261,26 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		});
 
-		mainLayout.addComponents(borrowedLabel, contentViewer, tabSheet);
+		Component contentMetadataComponent;
+		if (contentViewerInitiallyVisible) {
+
+			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
+			splitPanel.setFirstComponent(contentViewer);
+			splitPanel.setSecondComponent(tabSheet);
+			splitPanel.setSecondComponentWidth(700, Unit.PIXELS);
+			contentMetadataComponent = splitPanel;
+			
+//			tabSheet.setWidth("700px");
+//			I18NHorizontalLayout contentMetadataLayout = new I18NHorizontalLayout();
+//			contentMetadataLayout.setSizeFull();
+//			contentMetadataLayout.setSpacing(true);
+//			contentMetadataLayout.addComponents(tabSheet);
+//			contentMetadataLayout.addComponents(contentViewer, tabSheet);
+//			contentMetadataLayout.setExpandRatio(contentViewer, 1);
+		} else {
+			contentMetadataComponent = tabSheet;
+		}
+		mainLayout.addComponents(borrowedLabel, contentMetadataComponent);
 
 		for (TabSheetDecorator tabSheetDecorator : tabSheetDecorators) {
 			tabSheetDecorator.decorate(this, tabSheet);
@@ -965,6 +975,19 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	protected boolean isActionMenuBar() {
 		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+	}
+
+	@Override
+	protected boolean isFullWidthIfActionMenuAbsent() {
+		return Toggle.SEARCH_RESULTS_VIEWER.isEnabled();
+	}
+
+	@Override
+	public void editInWindow() {
+		Window window = ComponentTreeUtils.findParent(this, Window.class);
+		AddEditDocumentViewImpl editView = new AddEditDocumentViewImpl(documentVO);
+		editView.enter(null);
+		window.setContent(editView);
 	}
 
 	private class StartWorkflowButton extends WindowButton {

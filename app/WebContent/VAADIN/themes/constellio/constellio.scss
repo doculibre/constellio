@@ -779,16 +779,16 @@ $popup-view-z-index: 3;
 				max-height: 30px;
 				vertical-align: center;
 			}
-			
+		
+			.action-menu-wrapper {
+				
+			}
+		
 			.action-menu {
 		        position: absolute;
 		        top: $header-height;
 		        right: 20px;
 		        margin-top: 70px;
-
-			    width: 225px;
-			    border: 1px solid #3a434d;
-			    border-radius: 4px;
 	
 				.v-button {
 					padding-left: 8px;
@@ -821,11 +821,25 @@ $popup-view-z-index: 3;
 				    background-color: #414B56;
 			    }
 		    }
+
+			.v-caption-action-menu-bar {
+				display: none;
+			}
+
+		    .action-menu-bar {
+		    	position: absolute;
+		    	top: -40px;
+		    	right: 30px;
+			}
 				
 			.action-menu-wrapper {
 				overflow: auto;
 	            padding-right: 260px;
 	            padding-left: 10px;
+	            
+			    width: 225px;
+			    border: 1px solid #3a434d;
+			    border-radius: 4px;
 	
 				.back-button {
 					position: fixed;
@@ -1392,8 +1406,36 @@ $popup-view-z-index: 3;
 	  		} 	
 	  	
 	  		.folder-content-table.viewable-record-table-compressed {
+	  			
+	  			.v-table-body {
+	  				border: none;
+	  			
+		  			.v-table-cell-content {
+		  				border: none;
+		  			}
+	  			}
+	  			
 	  			.search-result-record {
-	  				padding-right: 210px;
+	  				padding-right: 45px;
+
+					.search-result-title {
+						padding-top: 8px;
+						font-size: 18px;
+						text-align: left;
+						font-weight: bold;
+					}
+					
+					.document-search-result-title {
+						padding-top: 10px;
+					}
+
+					.search-result-metadata {
+						font-size: 14px;
+
+						.metadata-caption {
+							font-weight: bold;
+						}
+					}
 	  			} 
 	  		}
 	  	
@@ -1657,11 +1699,16 @@ $popup-view-z-index: 3;
 							}
 
 							.search-result-table {
+	  			
+					  			.v-table-body {
+					  				border: none;
+					  			}
 
 								.v-table-table {
 									// box-shadow: none;
 
 									.v-table-cell-content {
+							  			border: none;
 										vertical-align: top;
 
 										.v-checkbox {
@@ -1721,6 +1768,21 @@ $popup-view-z-index: 3;
 								.search-result-elevation:hover, .search-result-exclusion:hover {
 									text-decoration: none;
 								}
+							}
+						
+							.viewable-record-table-compressed {
+	  			
+					  			.search-result-elevation-buttons {
+					  				border: none;
+								    margin-left: 285px;
+								    margin-top: -12px;
+								    margin-bottom: -12px;
+					  				
+					  				.v-button-caption {
+					  					display: none;
+					  				}
+					  			}	
+								
 							}
 					    }
 
@@ -2664,6 +2726,16 @@ $popup-view-z-index: 3;
 				}
 	
 		    }
+
+			.v-caption-action-menu-bar {
+				display: none;
+			}
+
+		    .action-menu-bar {
+		    	position: absolute;
+		    	top: -40px;
+		    	right: 30px;
+			}
 				
 			.action-menu-wrapper {
 	            padding-right: 10px;

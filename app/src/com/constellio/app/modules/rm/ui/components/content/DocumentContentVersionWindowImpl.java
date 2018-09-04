@@ -8,7 +8,9 @@ import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
@@ -23,6 +25,8 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+
+import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 
 public class DocumentContentVersionWindowImpl extends VerticalLayout implements DocumentContentVersionWindow {
 
@@ -160,5 +164,25 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 	@Override
 	public Navigation navigate() {
 		return ConstellioUI.getCurrent().navigate();
+	}
+	
+	private BaseWindow newWindow() {
+		BaseWindow window = new BaseWindow();
+		window.setHeight("95%");
+		window.setWidth("95%");
+		window.setResizable(true);
+		window.setModal(false);
+		window.center();
+		return window;
+	}
+
+	@Override
+	public void displayInWindow() {
+		closeWindow();
+		DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, false);
+		Window window =  newWindow();
+		view.enter(null);
+		window.setContent(view);
+		ConstellioUI.getCurrent().addWindow(window);
 	}
 }

@@ -13050,9 +13050,6 @@ div.v-layout.v-horizontal.v-widget {
 	top: 63px;
 	right: 20px;
 	margin-top: 70px;
-	width: 225px;
-	border: 1px solid #3a434d;
-	border-radius: 4px;
 }
 
 .constellio .v-window .popupContent .action-menu .v-button {
@@ -13084,10 +13081,23 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #414B56;
 }
 
+.constellio .v-window .popupContent .v-caption-action-menu-bar {
+	display: none;
+}
+
+.constellio .v-window .popupContent .action-menu-bar {
+	position: absolute;
+	top: -40px;
+	right: 30px;
+}
+
 .constellio .v-window .popupContent .action-menu-wrapper {
 	overflow: auto;
 	padding-right: 260px;
 	padding-left: 10px;
+	width: 225px;
+	border: 1px solid #3a434d;
+	border-radius: 4px;
 }
 
 .constellio .v-window .popupContent .action-menu-wrapper .back-button {
@@ -13568,8 +13578,35 @@ div.v-layout.v-horizontal.v-widget {
 	position: absolute;
 }
 
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .v-table-body {
+	border: none;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .v-table-body .v-table-cell-content {
+	border: none;
+}
+
 .constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .search-result-record {
-	padding-right: 210px;
+	padding-right: 45px;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .search-result-record .search-result-title {
+	padding-top: 8px;
+	font-size: 18px;
+	text-align: left;
+	font-weight: bold;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .search-result-record .document-search-result-title {
+	padding-top: 10px;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .search-result-record .search-result-metadata {
+	font-size: 14px;
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .search-result-record .search-result-metadata .metadata-caption {
+	font-weight: bold;
 }
 
 .constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-uncompressed .search-result-table .v-table-table .v-table-cell-content {
@@ -13774,7 +13811,12 @@ div.v-layout.v-horizontal.v-widget {
 	background-color: #fff;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-body {
+	border: none;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-table .v-table-cell-content {
+	border: none;
 	vertical-align: top;
 }
 
@@ -13831,6 +13873,17 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-elevation:hover, .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-exclusion:hover {
 	text-decoration: none;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table-compressed .search-result-elevation-buttons {
+	border: none;
+	margin-left: 285px;
+	margin-top: -12px;
+	margin-bottom: -12px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table-compressed .search-result-elevation-buttons .v-button-caption {
+	display: none;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .facet-box {
@@ -14717,6 +14770,16 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .popupContent .action-menu .v-button {
 	text-align: right;
+}
+
+.constellio .right-to-left .popupContent .v-caption-action-menu-bar {
+	display: none;
+}
+
+.constellio .right-to-left .popupContent .action-menu-bar {
+	position: absolute;
+	top: -40px;
+	right: 30px;
 }
 
 .constellio .right-to-left .popupContent .action-menu-wrapper {

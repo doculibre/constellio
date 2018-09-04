@@ -1,6 +1,17 @@
 package com.constellio.app.modules.rm.ui.components.menuBar;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
+import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -12,17 +23,20 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton.DialogMode;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.menuBar.ConfirmDialogMenuBarItemCommand;
+import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTablePanel;
 import com.constellio.app.ui.framework.containers.RefreshableContainer;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.View;
@@ -34,14 +48,6 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar {
 
@@ -468,6 +474,57 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 			if (container instanceof RefreshableContainer) {
 				((RefreshableContainer) container).refresh();
 			}
+		}
+	}
+
+	@Override
+	public boolean isInViewer() {
+		return ComponentTreeUtils.findParent(this, ViewableRecordTablePanel.class) != null;
+	}
+	
+	private BaseWindow newWindow() {
+		BaseWindow window = new BaseWindow();
+		window.setHeight("95%");
+		window.setWidth("95%");
+		window.setResizable(true);
+		window.setModal(false);
+		window.center();
+		return window;
+	}
+
+	@Override
+	public void displayInWindow() {
+		DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(recordVO, false);
+		Window window =  ComponentTreeUtils.findParent(this, Window.class);
+		boolean newWindow;
+		if (window == null) {
+			newWindow = true;
+			window = newWindow();
+		} else {
+			newWindow = false;
+		}
+		view.enter(null);
+		window.setContent(view);
+		if (newWindow) {
+			ConstellioUI.getCurrent().addWindow(window);
+		}
+	}
+
+	@Override
+	public void editInWindow() {
+		AddEditDocumentViewImpl view = new AddEditDocumentViewImpl(recordVO);
+		Window window =  ComponentTreeUtils.findParent(this, Window.class);
+		boolean newWindow;
+		if (window == null) {
+			newWindow = true;
+			window = newWindow();
+		} else {
+			newWindow = false;
+		}
+		view.enter(null);
+		window.setContent(view);
+		if (newWindow) {
+			ConstellioUI.getCurrent().addWindow(window);
 		}
 	}
 

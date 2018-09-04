@@ -275,7 +275,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void editDocumentButtonClicked() {
-		presenterUtils.editDocumentButtonClicked();
+		if (view.isInWindow()) {
+			view.editInWindow();
+		} else {
+			presenterUtils.editDocumentButtonClicked();
+		}
 	}
 
 	public void deleteDocumentButtonClicked() {
