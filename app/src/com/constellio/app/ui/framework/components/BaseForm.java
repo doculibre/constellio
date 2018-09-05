@@ -1,5 +1,21 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.MessageUtils;
@@ -31,21 +47,6 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class BaseForm<T> extends CustomComponent {
@@ -373,21 +374,23 @@ public abstract class BaseForm<T> extends CustomComponent {
 			for (Field<?> field : fieldGroup.getFields()) {
 				if (!field.isValid() && field.isRequired() && isEmptyValue(field.getValue())) {
 					field.setRequiredError($("requiredField"));
-					if (missingRequiredFields.length() != 0) {
-						missingRequiredFields.append("<br/>");
-					}
-					missingRequiredFields.append($("requiredFieldWithName", "\"" + field.getCaption() + "\""));
+					addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + field.getCaption() + "\""));
 					if (firstFieldWithError == null) {
 						firstFieldWithError = field;
 					}
-				} else if (!field.isValid()) {
-					if (missingRequiredFields.length() != 0) {
-						missingRequiredFields.append("<br/>");
-					}
-					missingRequiredFields.append($("invalidFieldWithName", "\"" + field.getCaption() + "\""));
-
-					if (firstFieldWithError == null) {
-						firstFieldWithError = field;
+				} else {
+					try {
+						field.validate();
+					} catch (Validator.EmptyValueException e) {
+						addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + e.getMessage() + "\""));
+						if (firstFieldWithError == null) {
+							firstFieldWithError = field;
+						}
+					} catch (Validator.InvalidValueException e) {
+						addErrorMessage(missingRequiredFields, $("invalidFieldWithName", "\"" + e.getMessage() + "\""));
+						if (firstFieldWithError == null) {
+							firstFieldWithError = field;
+						}
 					}
 				}
 			}
@@ -396,6 +399,13 @@ public abstract class BaseForm<T> extends CustomComponent {
 				showErrorMessage(missingRequiredFields.toString());
 			}
 		}
+	}
+
+	private void addErrorMessage(StringBuilder missingRequiredFields, String message) {
+		if (missingRequiredFields.length() != 0) {
+			missingRequiredFields.append("<br/>");
+		}
+		missingRequiredFields.append(message);
 	}
 
 	private boolean isEmptyValue(Object value) {
