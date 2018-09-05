@@ -3,6 +3,7 @@ package com.constellio.model.services.records;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.calculators.dependencies.AllPrincipalsAuthsDependencyValue;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 
 import java.util.HashMap;
@@ -16,6 +17,12 @@ public class TransactionExecutionContext {
 	AllPrincipalsAuthsDependencyValue allPrincipalsAuthsDependencyValue;
 
 	Map<String, KeyListMap<String, Record>> metadatasInvertedAggregatedValuesMap = new HashMap<>();
+
+	Transaction transaction;
+
+	public TransactionExecutionContext(Transaction transaction) {
+		this.transaction = transaction;
+	}
 
 	public AllPrincipalsAuthsDependencyValue getAllPrincipalsAuthsDependencyValue() {
 		return allPrincipalsAuthsDependencyValue;
@@ -35,5 +42,9 @@ public class TransactionExecutionContext {
 			List<SolrAuthorizationDetails> allAuthorizationDetails) {
 		this.allAuthorizationDetails = allAuthorizationDetails;
 		return this;
+	}
+
+	public Transaction getTransaction() {
+		return transaction;
 	}
 }

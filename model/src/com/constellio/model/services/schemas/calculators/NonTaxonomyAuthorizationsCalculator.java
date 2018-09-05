@@ -2,14 +2,15 @@ package com.constellio.model.services.schemas.calculators;
 
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.ReferenceListMetadataValueCalculator;
-import com.constellio.model.entities.calculators.dependencies.AllAuthorizationsTargettingRecordDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.entities.security.SecurityModel;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 import java.util.ArrayList;
@@ -23,38 +24,43 @@ public class NonTaxonomyAuthorizationsCalculator extends ReferenceListMetadataVa
 
 	SpecialDependency<HierarchyDependencyValue> hierarchyDependencyValuesParam = SpecialDependencies.HIERARCHY;
 
-	SpecialDependency<AllAuthorizationsTargettingRecordDependencyValue> authorizationsParam = SpecialDependencies.AURHORIZATIONS_TARGETTING_RECORD;
+	SpecialDependency<SecurityModel> securityModelSpecialDependency = SpecialDependencies.SECURITY_MODEL;
 
 	LocalDependency<Boolean> isDetachedParams = LocalDependency.toABoolean(Schemas.IS_DETACHED_AUTHORIZATIONS.getLocalCode());
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		AllAuthorizationsTargettingRecordDependencyValue authorizations = parameters.get(authorizationsParam);
+		SecurityModel securityModel = parameters.get(securityModelSpecialDependency);
 		List<String> allRemovedAuths = parameters.get(allRemovedAuthsParam);
 		HierarchyDependencyValue hierarchyDependencyValues = parameters.get(hierarchyDependencyValuesParam);
 		boolean detached = Boolean.TRUE.equals(parameters.get(isDetachedParams));
 
 		List<String> returnedIds = new ArrayList<>();
-
+		if (hierarchyDependencyValues != null) {
+			List<String> attachedAncestors = hierarchyDependencyValues.getAttachedAncestors();
+			System.out.println(attachedAncestors);
+		}
 		if (!parameters.isPrincipalTaxonomyConcept()) {
 
-			for (AuthorizationDetails auth : authorizations.getAuthorizationDetailsOnRecord()) {
-				if (auth.isActiveAuthorization()) {
-					returnedIds.add(auth.getId());
+			for (SecurityModelAuthorization auth : securityModel.getAuthorizationsOnTarget(parameters.getId())) {
+				SolrAuthorizationDetails authorizationDetails = (SolrAuthorizationDetails) auth.getDetails();
+				if (authorizationDetails.isActiveAuthorization()) {
+					returnedIds.add(authorizationDetails.getId());
 				}
 			}
 
-			for (AuthorizationDetails auth : authorizations.getAuthorizationDetailsOnMetadatasProvidingSecurity()) {
-				if (auth.isActiveAuthorization()) {
-					returnedIds.add(auth.getId());
-				}
-			}
+			//			for (AuthorizationDetails auth : authorizations.getAuthorizationDetailsOnMetadatasProvidingSecurity()) {
+			//				if (auth.isActiveAuthorization()) {
+			//					returnedIds.add(auth.getId());
+			//				}
+			//			}
+			//
 
-			if (!detached) {
-				for (String auth : hierarchyDependencyValues.getInheritedNonTaxonomyAuthorizations()) {
-					if (!allRemovedAuths.contains(auth)
-						&& !authorizations.isInheritedAuthorizationsOverridenByMetadatasProvidingSecurity()) {
-						returnedIds.add(auth);
+			if (!detached && hierarchyDependencyValues != null) {
+				for (String inheritedNonTaxonomyAuthId : hierarchyDependencyValues.getInheritedNonTaxonomyAuthorizations()) {
+					//hierarchyDependencyValue.getRemovedAuthorizationIds().contains(inheritedNonTaxonomyAuthId)
+					if (!allRemovedAuths.contains(inheritedNonTaxonomyAuthId)) {
+						returnedIds.add(inheritedNonTaxonomyAuthId);
 					}
 				}
 			}
@@ -66,6 +72,7 @@ public class NonTaxonomyAuthorizationsCalculator extends ReferenceListMetadataVa
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return Arrays.asList(authorizationsParam, allRemovedAuthsParam, hierarchyDependencyValuesParam, isDetachedParams);
+		return Arrays
+				.asList(securityModelSpecialDependency, allRemovedAuthsParam, hierarchyDependencyValuesParam, isDetachedParams);
 	}
 }

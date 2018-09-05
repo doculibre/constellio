@@ -37,6 +37,7 @@ import java.util.Map;
 
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends ConstellioTest {
@@ -153,7 +154,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 				.getMetadata(taxonomy1FirstSchema.code() + "_taxo1FirstSchemaMetaWithTaxoDependency");
 
 		when(recordProvider.getRecord(records.taxo1_firstTypeItem1.getId())).thenReturn(records.taxo1_firstTypeItem1);
-		TransactionExecutionContext context = new TransactionExecutionContext();
+		TransactionExecutionContext context = new TransactionExecutionContext(mock(Transaction.class));
 		services.calculateValueInRecord(context, (RecordImpl) rootFolderWithTaxonomy, calculatedMetadata,
 				recordProvider, schemas.getTypes(), new Transaction(options));
 

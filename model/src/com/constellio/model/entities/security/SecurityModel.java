@@ -4,5 +4,7 @@ import java.util.List;
 
 public interface SecurityModel {
 
-	List<SecurityModelAuthorization> getAuthorizationsOnTarget(String id);
+	List<SecurityModelAuthorization> getAuthorizationsOnTarget(String targetId);
+
+	SecurityModelAuthorization getAuthorizationWithId(String authId);
 }

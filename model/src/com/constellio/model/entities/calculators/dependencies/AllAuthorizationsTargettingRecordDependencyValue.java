@@ -12,7 +12,8 @@ public class AllAuthorizationsTargettingRecordDependencyValue {
 
 	private boolean inheritedAuthorizationsOverridenByMetadatasProvidingSecurity;
 
-	private AllAuthorizationsTargettingRecordDependencyValue(List<AuthorizationDetails> authorizationDetailsOnRecord,
+	private AllAuthorizationsTargettingRecordDependencyValue(
+			List<AuthorizationDetails> authorizationDetailsOnRecord,
 			List<AuthorizationDetails> authorizationDetailsOnMetadatasProvidingSecurity,
 			boolean inheritedAuthorizationsOverridenByMetadatasProvidingSecurity) {
 		this.authorizationDetailsOnRecord = authorizationDetailsOnRecord;
