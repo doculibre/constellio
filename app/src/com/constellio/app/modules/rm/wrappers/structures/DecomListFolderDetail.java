@@ -1,13 +1,14 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.model.entities.schemas.ModifiableStructure;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.model.entities.schemas.ModifiableStructure;
+
 public class DecomListFolderDetail implements ModifiableStructure {
 	String folderId;
-	boolean folderExcluded;
+	FolderDetailStatus folderDetailStatus = FolderDetailStatus.SELECTED;
 	String containerRecordId;
 	boolean reversedSort;
 	Double folderLinearSize;
@@ -36,17 +37,21 @@ public class DecomListFolderDetail implements ModifiableStructure {
 		return this;
 	}
 
-	public boolean isFolderIncluded() {
-		return !folderExcluded;
+	public FolderDetailStatus getFolderDetailStatus() {
+		return folderDetailStatus;
 	}
 
-	public boolean isFolderExcluded() {
-		return folderExcluded;
+	public void setFolderDetailStatus(FolderDetailStatus folderDetailStatus) {
+		this.folderDetailStatus = folderDetailStatus;
 	}
 
 	public DecomListFolderDetail setFolderExcluded(boolean folderExcluded) {
 		dirty = true;
-		this.folderExcluded = folderExcluded;
+		if (folderExcluded) {
+			this.folderDetailStatus = FolderDetailStatus.EXCLUDED;
+		} else {
+			this.folderDetailStatus = FolderDetailStatus.INCLUDED;
+		}
 		return this;
 	}
 
@@ -99,7 +104,7 @@ public class DecomListFolderDetail implements ModifiableStructure {
 	public String toString() {
 		return "DecommissioningListFolderDetail{" +
 			   "folderId='" + folderId + '\'' +
-			   ", folderIncluded=" + !folderExcluded +
+				", folderStatus" + folderDetailStatus.getDescription() +
 			   ", containerRecordId='" + containerRecordId + '\'' +
 			   ", reversedSort=" + reversedSort +
 			   ", dirty=" + dirty +

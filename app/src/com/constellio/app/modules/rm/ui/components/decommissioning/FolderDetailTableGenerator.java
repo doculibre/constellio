@@ -1,5 +1,10 @@
 package com.constellio.app.modules.rm.ui.components.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleReferenceDisplay;
@@ -7,6 +12,7 @@ import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListPresenter;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.ui.framework.components.display.EnumWithSmallCodeDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
@@ -22,11 +28,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnGenerator;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class FolderDetailTableGenerator implements ColumnGenerator {
 	public static final String CHECKBOX = "checkbox";
@@ -279,7 +280,12 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 
 	private Component buildValidationColumn(final FolderDetailVO detail) {
 		final BooleanOptionGroup included = new BooleanOptionGroup();
-		included.setValue(detail.isFolderIncluded());
+		if (FolderDetailStatus.INCLUDED.equals(detail.getFolderDetailStatus())) {
+			included.setValue(true);
+		}
+		if (FolderDetailStatus.EXCLUDED.equals(detail.getFolderDetailStatus())) {
+			included.setValue(false);
+		}
 		included.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {

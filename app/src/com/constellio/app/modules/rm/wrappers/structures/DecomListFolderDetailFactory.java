@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
+import java.util.StringTokenizer;
+
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
-
-import java.util.StringTokenizer;
 
 public class DecomListFolderDetailFactory implements StructureFactory {
 	private static final String NULL = "~null~";
@@ -14,7 +14,19 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 
 		DecomListFolderDetail decomListFolderDetail = new DecomListFolderDetail();
 		decomListFolderDetail.setFolderId(readString(stringTokenizer));
-		decomListFolderDetail.folderExcluded = Boolean.valueOf(readString(stringTokenizer));
+		String folderDetailStatus = readString(stringTokenizer);
+		switch (folderDetailStatus) {
+		case "excluded":
+			decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.EXCLUDED);
+			break;
+		case "included":
+			decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.INCLUDED);
+			break;
+		case "selected":
+			decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.SELECTED);
+			break;
+		}
+
 		// Skip deprecated fields validationUserId, validationUserName and ValidationDate
 		readString(stringTokenizer);
 		readString(stringTokenizer);
@@ -37,7 +49,7 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 		DecomListFolderDetail decomListFolderDetail = (DecomListFolderDetail) structure;
 		StringBuilder stringBuilder = new StringBuilder();
 		writeString(stringBuilder, decomListFolderDetail.getFolderId());
-		writeString(stringBuilder, String.valueOf(decomListFolderDetail.isFolderExcluded()));
+		writeString(stringBuilder, decomListFolderDetail.getFolderDetailStatus().getDescription());
 		// Skip deprecated fields validationUserId, validationUserName and ValidationDate
 		writeString(stringBuilder, null);
 		writeString(stringBuilder, null);

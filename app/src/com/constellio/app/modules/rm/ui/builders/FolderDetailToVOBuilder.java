@@ -21,7 +21,7 @@ public class FolderDetailToVOBuilder {
 		FolderDetailVO folderDetailVO = new FolderDetailVO();
 		folderDetailVO.setFolderId(detail.getFolderId());
 		folderDetailVO.setFolderLegacyId(folder.getLegacyId());
-		folderDetailVO.setFolderIncluded(detail.isFolderIncluded());
+		folderDetailVO.setFolderDetailStatus(detail.getFolderDetailStatus());
 		folderDetailVO.setContainerRecordId(detail.getContainerRecordId());
 		folderDetailVO.setMediumType(detailWithType.getType());
 		folderDetailVO.setRetentionRuleId(folder.getRetentionRule());

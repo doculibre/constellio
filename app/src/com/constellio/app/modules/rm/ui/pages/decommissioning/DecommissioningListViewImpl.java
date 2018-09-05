@@ -149,8 +149,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			processableFolderComponent = new VerticalLayout(processableFolders);
 			processableFolderComponent.setVisible(false);
 		} else {
-			List<FolderDetailVO> selectedFolders = presenter.getPackageableFolders();
-			selectedFolders.addAll(presenter.getProcessableFolders());
+			List<FolderDetailVO> selectedFolders = presenter.getSelectedFolders();
 			selectedFoldersComponent = buildSelectedFoldersComponent(selectedFolders);
 			selectedFoldersComponent.setVisible(!selectedFolders.isEmpty());
 
