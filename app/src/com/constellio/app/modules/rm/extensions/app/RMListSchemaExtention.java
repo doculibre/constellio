@@ -29,7 +29,7 @@ public class RMListSchemaExtention extends ListSchemaExtention {
 				.getAppLayerFactory().getModelLayerFactory()
 				.getSystemConfigurationsManager();
 
-		if (systemConfigurationsManager.getValue(RMConfigs.SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG)) {
+		if ((Boolean) systemConfigurationsManager.getValue(RMConfigs.SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG)) {
 			if (listSchemaExtraCommandParams.getSchemaVO().getCode().startsWith(Folder.SCHEMA_TYPE)) {
 				listSchemaExtraCommandReturnParams.add(new ListSchemaExtraCommandReturnParams(new MenuBar.Command() {
 					@Override
