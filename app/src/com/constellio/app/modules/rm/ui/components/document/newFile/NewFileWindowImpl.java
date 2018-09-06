@@ -1,5 +1,10 @@
 package com.constellio.app.modules.rm.ui.components.document.newFile;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
@@ -22,11 +27,6 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 
@@ -59,7 +59,7 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 	public NewFileWindowImpl(boolean isViewOnly) {
 		setModal(true);
 		setWidth("70%");
-		setHeight("340px");
+		setHeight("360px");
 		setZIndex(null);
 
 		mainLayout = new VerticalLayout();

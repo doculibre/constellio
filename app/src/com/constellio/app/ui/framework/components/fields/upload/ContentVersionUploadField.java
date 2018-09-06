@@ -1,19 +1,20 @@
 package com.constellio.app.ui.framework.components.fields.upload;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.framework.components.content.DownloadContentVersionLink;
 import com.constellio.app.ui.framework.components.converters.TempFileUploadToContentVersionVOConverter;
+import com.vaadin.data.Validator.EmptyValueException;
 import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.data.util.NestedMethodProperty;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ContentVersionUploadField extends BaseUploadField {
 
@@ -89,7 +90,7 @@ public class ContentVersionUploadField extends BaseUploadField {
 
 	private void validate(ContentVersionVO contentVersionVO) throws InvalidValueException {
 		if (isMajorVersionField(contentVersionVO) && contentVersionVO.getHash() == null && contentVersionVO.isMajorVersion() == null) {
-			throw new InvalidValueException($("ContentVersionUploadField.majorVersion"));
+			throw new EmptyValueException($("ContentVersionUploadField.majorVersion"));
 		}
 	}
 
