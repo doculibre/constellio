@@ -1,19 +1,16 @@
 package com.constellio.app.modules.rm.migrations;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.io.IOUtils;
-
-import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManagerException;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.io.IOUtils;
 
-public class RMMigrationTo8_1_1 implements MigrationScript {
+import java.io.IOException;
+import java.io.InputStream;
+
+public class RMMigrationTo8_1_0_1 implements MigrationScript {
 	private String collection;
 
 	private MigrationResourcesProvider migrationResourcesProvider;
@@ -22,18 +19,17 @@ public class RMMigrationTo8_1_1 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "8.1.1";
+		return "8.1.0.1";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
-			AppLayerFactory appLayerFactory)
+						AppLayerFactory appLayerFactory)
 			throws Exception {
 		this.collection = collection;
 		this.migrationResourcesProvider = migrationResourcesProvider;
 		this.appLayerFactory = appLayerFactory;
 
-		new SchemaAlterationFor8_1_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		reloadEmailTemplates();
 
 	}
@@ -87,23 +83,6 @@ public class RMMigrationTo8_1_1 implements MigrationScript {
 			throw new RuntimeException(e);
 		} finally {
 			IOUtils.closeQuietly(templateInputStream);
-		}
-	}
-
-	class SchemaAlterationFor8_1_1 extends MetadataSchemasAlterationHelper {
-
-		protected SchemaAlterationFor8_1_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-				AppLayerFactory appLayerFactory) {
-			super(collection, migrationResourcesProvider, appLayerFactory);
-		}
-
-		public String getVersion() {
-			return "8.1.1";
-		}
-
-		@Override
-		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-
 		}
 	}
 }
