@@ -13,9 +13,12 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class RMMigrationTo8_1_0_2 extends MigrationHelper implements MigrationScript {
+
+	private static final String FOLDER_DECOMMISSIONING_DATE = "decommissioningDate";
+
 	@Override
 	public String getVersion() {
-		return "8.1.0.1";
+		return "8.1.0.2";
 	}
 
 	@Override
@@ -27,13 +30,18 @@ public class RMMigrationTo8_1_0_2 extends MigrationHelper implements MigrationSc
 	class SchemaAlterationFor8_1_0_2 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor8_1_0_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-											 AppLayerFactory appLayerFactory) {
+										 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaBuilder folderSchema = types().getSchema(Folder.DEFAULT_SCHEMA);
+
+			if (folderSchema.hasMetadata(FOLDER_DECOMMISSIONING_DATE)) {
+				folderSchema.get(FOLDER_DECOMMISSIONING_DATE).setEssential(false).setEnabled(false)
+						.defineDataEntry().asManual();
+			}
 
 			folderSchema.get(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).defineDataEntry()
 					.asCalculated(FolderCopyRulesExpectedTransferDatesCalculator2.class);

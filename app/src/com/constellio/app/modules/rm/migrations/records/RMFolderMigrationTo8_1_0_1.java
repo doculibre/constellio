@@ -31,7 +31,8 @@ public class RMFolderMigrationTo8_1_0_1 extends RecordMigrationScript {
 	@Override
 	public void migrate(Record record) {
 		try {
-			if (record.getSchemaCode().equals(Folder.DEFAULT_SCHEMA)) {
+			if (record.getSchemaCode().equals(Folder.DEFAULT_SCHEMA) &&
+				metadataSchemasManager.getSchemaOf(record).hasMetadataWithCode(FOLDER_DECOMMISSIONING_DATE)) {
 				Folder folder = rm.wrapFolder(record);
 				folder.set(FOLDER_DECOMMISSIONING_DATE, null);
 			}
