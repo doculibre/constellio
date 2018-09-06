@@ -109,11 +109,16 @@ public class TransactionSecurityModel implements SecurityModel {
 						//						newAuths.put(id, wrapNewAuthUsingModifiedUsersAndGroups(
 						//								solrAuthorizationDetails, modifiedUsers, modifiedGroups));
 						returnedAuths.add(wrapNewAuthUsingModifiedUsersAndGroups(
-								nestedSecurityModel.groupAuthorizationsInheritance, solrAuthorizationDetails, modifiedUsers, modifiedGroups));
+								nestedSecurityModel.groupAuthorizationsInheritance,
+								nestedSecurityModel.principalTaxonomy,
+								solrAuthorizationDetails,
+								modifiedUsers,
+								modifiedGroups));
 					} else {
 
 						SecurityModelAuthorization newVersion = wrapExistingAuthUsingModifiedUsersAndGroups(
 								nestedSecurityModel.groupAuthorizationsInheritance,
+								nestedSecurityModel.principalTaxonomy,
 								solrAuthorizationDetails,
 								nestedSecurityModel.getUsers(),
 								nestedSecurityModel.getGroups(),
@@ -133,6 +138,7 @@ public class TransactionSecurityModel implements SecurityModel {
 			if (!ajustedAuths.contains(returnedAuth.getDetails().getId())) {
 				SecurityModelAuthorization newVersion = wrapExistingAuthUsingModifiedUsersAndGroups(
 						nestedSecurityModel.groupAuthorizationsInheritance,
+						nestedSecurityModel.principalTaxonomy,
 						returnedAuth.getDetails(),
 						nestedSecurityModel.getUsers(),
 						nestedSecurityModel.getGroups(),
@@ -193,6 +199,7 @@ public class TransactionSecurityModel implements SecurityModel {
 				if (nestedAuthorizationDetails == null) {
 					return wrapNewAuthUsingModifiedUsersAndGroups(
 							nestedSecurityModel.groupAuthorizationsInheritance,
+							nestedSecurityModel.principalTaxonomy,
 							solrAuthorizationDetails,
 							modifiedUsers,
 							modifiedGroups);
@@ -200,6 +207,7 @@ public class TransactionSecurityModel implements SecurityModel {
 				} else {
 					return wrapExistingAuthUsingModifiedUsersAndGroups(
 							nestedSecurityModel.groupAuthorizationsInheritance,
+							nestedSecurityModel.principalTaxonomy,
 							solrAuthorizationDetails,
 							nestedSecurityModel.getUsers(),
 							nestedSecurityModel.getGroups(),
@@ -211,11 +219,24 @@ public class TransactionSecurityModel implements SecurityModel {
 		}
 		return wrapExistingAuthUsingModifiedUsersAndGroups(
 				nestedSecurityModel.groupAuthorizationsInheritance,
+				nestedSecurityModel.principalTaxonomy,
 				nestedAuthorizationDetails,
 				nestedSecurityModel.getUsers(),
 				nestedSecurityModel.getGroups(),
 				modifiedUsers,
 				modifiedGroups);
+	}
+
+	@Override
+	public List<Group> getGroupsInheritingAuthorizationsFrom(Group group) {
+		//TODO Handle group inheritance modifications in transaction
+		return nestedSecurityModel.getGroupsInheritingAuthorizationsFrom(group);
+	}
+
+	@Override
+	public boolean isGroupActive(Group group) {
+		//TODO Handle group inheritance modifications in transaction
+		return nestedSecurityModel.isGroupActive(group);
 	}
 
 }

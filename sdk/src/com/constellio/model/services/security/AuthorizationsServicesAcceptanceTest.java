@@ -3153,7 +3153,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void whenARecordReceiveNonOverridingAuthFromMetadataProvidingSecurityThenAllApplied()
 			throws Exception {
 
@@ -3196,7 +3196,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void whenARecordReceiveOverridingAuthFromMetadataProvidingSecurityThenOnlySpecificAuthsAreApplied()
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3238,7 +3238,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void givenARecordWithMultipleOverridingAuthsFromMetadataProvidingSecurityThenRecoverInheritedAuthsWhenTheLastOneIsRemoved()
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3283,7 +3283,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void givenRecordProvidingSecurityHasItsAuthsModifiedThenChangesAlwaysAppliedToSecurizedRecords()
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3348,7 +3348,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void givenARecordHasOverridingAuthFromMetadataProvidingSecurityWhenAuthIsRemovedOnChildThenNoMoreAppliedButDoesNotRecoverParentInheritedAuths()
 			throws Exception {
 
@@ -3368,7 +3368,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4_1).usersWithWriteAccess().contains(bob, chuck);
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void givenARecordReceivingNonOVerridingAuthsFromMetadataProvidingSecurityIsDetachedThenReceivedAuthsAreNotDuplicatedAndRecord()
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3395,7 +3395,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void givenARecordReceivingOverridingAuthsFromMetadataProvidingIsDetachedThenInheritedAndReceivedByMetadataAuthsAreNotDuplicated()
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3421,7 +3421,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void givenARecordReceivingMetadataAuthsFromMetadataProvidingIsDetachedThenInheritedAndReceivedByMetadataAuthsAreNotDuplicated()
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3448,7 +3448,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void givenARecordWithParentReceivingOverridingAuthsFromMetadataProvidingIsDetachedThenEverythingDuplicated()
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3475,7 +3475,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4_1).detachedAuthorizationFlag().isTrue();
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void givenARecordWithParentReceivingMetadataAuthsFromMetadataProvidingIsDetachedThenEverythingIsDuplicated()
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3503,7 +3503,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4_1).detachedAuthorizationFlag().isTrue();
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void givenARecordWithGrandParentReceivingOverridingAuthsFromMetadataProvidingIsDetachedThenEverythingDuplicated()
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3530,7 +3530,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4_2_DOC1).detachedAuthorizationFlag().isTrue();
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void givenARecordWithGrandParentReceivingMetadataAuthsFromMetadataProvidingIsDetachedThenEverythingIsDuplicated()
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -3558,7 +3558,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		verifyRecord(FOLDER4_2_DOC1).detachedAuthorizationFlag().isTrue();
 	}
 
-	//TODO  METADATA OVERRIDING @Test
+	@Test
 	public void givenARecordReceivingMetadataAuthsFromMetadataProvidingHasStartAndEndDateThenOnlyAppliedDuringInterval()
 			throws Exception {
 

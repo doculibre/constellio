@@ -7,6 +7,8 @@ import com.constellio.model.entities.calculators.dependencies.HierarchyDependenc
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
@@ -66,24 +68,20 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 			typeSmallCode = parameters.getSchemaType().getCode();
 		}
 		for (SecurityModelAuthorization authorization : authorizations) {
-			for (String access : authorization.getDetails().getRoles()) {
-				for (String principalId : authorization.getPrincipalIds()) {
-					if (Role.READ.equals(access)) {
-						tokens.add("r_" + principalId);
-						tokens.add("r" + typeSmallCode + "_" + principalId);
+			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptAuth()) {
+				for (String access : authorization.getDetails().getRoles()) {
+					for (User user : authorization.getUsers()) {
+						addPrincipalTokens(tokens, typeSmallCode, access, user.getId());
+					}
 
-					} else if (Role.WRITE.equals(access)) {
-						tokens.add("r_" + principalId);
-						tokens.add("w_" + principalId);//TODO Check to remove this token
-						tokens.add("r" + typeSmallCode + "_" + principalId);//TODO Check to remove this token
-						tokens.add("w" + typeSmallCode + "_" + principalId);
+					for (Group group : authorization.getGroups()) {
+						if (securityModel.isGroupActive(group)) {
+							addPrincipalTokens(tokens, typeSmallCode, access, group.getId());
 
-					} else if (Role.DELETE.equals(access)) {
-						tokens.add("r_" + principalId);
-						tokens.add("r" + typeSmallCode + "_" + principalId);
-
-					} else {
-						tokens.add(access + "_" + principalId);
+							for (Group aGroup : securityModel.getGroupsInheritingAuthorizationsFrom(group)) {
+								addPrincipalTokens(tokens, typeSmallCode, access, aGroup.getId());
+							}
+						}
 					}
 				}
 			}
@@ -94,6 +92,26 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		List<String> tokensList = new ArrayList<>(tokens);
 		Collections.sort(tokensList);
 		return tokensList;
+	}
+
+	protected void addPrincipalTokens(Set<String> tokens, String typeSmallCode, String access, String principalId) {
+		if (Role.READ.equals(access)) {
+			tokens.add("r_" + principalId);
+			tokens.add("r" + typeSmallCode + "_" + principalId);
+
+		} else if (Role.WRITE.equals(access)) {
+			tokens.add("r_" + principalId);
+			tokens.add("w_" + principalId);//TODO Check to remove this token
+			tokens.add("r" + typeSmallCode + "_" + principalId);//TODO Check to remove this token
+			tokens.add("w" + typeSmallCode + "_" + principalId);
+
+		} else if (Role.DELETE.equals(access)) {
+			tokens.add("r_" + principalId);
+			tokens.add("r" + typeSmallCode + "_" + principalId);
+
+		} else {
+			tokens.add(access + "_" + principalId);
+		}
 	}
 
 	@Override

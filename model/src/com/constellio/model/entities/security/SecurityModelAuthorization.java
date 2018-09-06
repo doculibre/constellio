@@ -1,5 +1,6 @@
 package com.constellio.model.entities.security;
 
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -21,11 +22,14 @@ public class SecurityModelAuthorization {
 
 	GroupAuthorizationsInheritance groupAuthorizationsInheritance;
 
+	boolean conceptAuth;
+
 	private SecurityModelAuthorization(GroupAuthorizationsInheritance groupAuthorizationsInheritance) {
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
 	}
 
 	public SecurityModelAuthorization(AuthorizationDetails details,
+									  boolean conceptAuth,
 									  GroupAuthorizationsInheritance groupAuthorizationsInheritance) {
 		this.details = details;
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
@@ -51,9 +55,7 @@ public class SecurityModelAuthorization {
 			principalIds.add(group.getId());
 		}
 
-		if (groupAuthorizationsInheritance == GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD) {
-
-		} else {
+		if (groupAuthorizationsInheritance != GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD) {
 			for (Group group : groups) {
 				for (String ancestor : group.getAncestors()) {
 					if (!principalIds.contains(ancestor)) {
@@ -96,8 +98,13 @@ public class SecurityModelAuthorization {
 		}
 	}
 
+	public boolean isConceptAuth() {
+		return conceptAuth;
+	}
+
 	public static SecurityModelAuthorization wrapNewAuthUsingModifiedUsersAndGroups(
 			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
+			Taxonomy principalTaxonomy,
 			AuthorizationDetails details,
 			List<User> modifiedUsersInTransaction,
 			List<Group> modifiedGroupsInTransaction) {
@@ -105,6 +112,8 @@ public class SecurityModelAuthorization {
 		SecurityModelAuthorization auth = new SecurityModelAuthorization(groupAuthorizationsInheritance);
 		auth.users = new ArrayList<>();
 		auth.groups = new ArrayList<>();
+		auth.conceptAuth = principalTaxonomy != null
+						   && principalTaxonomy.getSchemaTypes().contains(details.getTargetSchemaType());
 		for (User user : modifiedUsersInTransaction) {
 			if (user.getUserAuthorizations().contains(details.getId())) {
 				auth.users.add(user);
@@ -123,6 +132,7 @@ public class SecurityModelAuthorization {
 
 	public static SecurityModelAuthorization wrapExistingAuthUsingModifiedUsersAndGroups(
 			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
+			Taxonomy principalTaxonomy,
 			AuthorizationDetails details,
 			List<User> existingUsers,
 			List<Group> existingGroups,
@@ -132,6 +142,8 @@ public class SecurityModelAuthorization {
 		SecurityModelAuthorization auth = new SecurityModelAuthorization(groupAuthorizationsInheritance);
 		auth.users = new ArrayList<>();
 		auth.groups = new ArrayList<>();
+		auth.conceptAuth = principalTaxonomy != null
+						   && principalTaxonomy.getSchemaTypes().contains(details.getTargetSchemaType());
 
 		Set<String> modifiedPrincipals = new HashSet<>();
 		for (User user : modifiedUsersInTransaction) {
@@ -176,6 +188,7 @@ public class SecurityModelAuthorization {
 		auth.users = new ArrayList<>(cloned.users);
 		auth.groups = new ArrayList<>(cloned.groups);
 		auth.details = cloned.details;
+		auth.conceptAuth = cloned.conceptAuth;
 
 		for (User user : modifiedUsersInTransaction) {
 			if (user.getUserAuthorizations().contains(auth.details.getId())) {

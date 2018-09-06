@@ -1,6 +1,7 @@
 package com.constellio.model.entities.security;
 
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
@@ -28,20 +29,27 @@ public class SingletonSecurityModel implements SecurityModel {
 	List<AuthorizationDetails> authorizationDetails;
 	List<User> users;
 	List<Group> groups;
+	List<String> disabledGroupCodes;
+	Taxonomy principalTaxonomy;
 
 	public static SingletonSecurityModel EMPTY = new SingletonSecurityModel(Collections.<AuthorizationDetails>emptyList(),
-			Collections.<User>emptyList(), Collections.<Group>emptyList(), FROM_PARENT_TO_CHILD);
+			Collections.<User>emptyList(), Collections.<Group>emptyList(), FROM_PARENT_TO_CHILD, new ArrayList<String>(), null);
 
 	public SingletonSecurityModel(List<AuthorizationDetails> authorizationDetails, List<User> users,
 								  final List<Group> groups,
-								  GroupAuthorizationsInheritance groupAuthorizationsInheritance) {
+								  GroupAuthorizationsInheritance groupAuthorizationsInheritance,
+								  List<String> disabledGroupCodes, Taxonomy principalTaxonomy) {
 		this.authorizationDetails = authorizationDetails;
 		this.users = users;
 		this.groups = groups;
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
+		this.disabledGroupCodes = disabledGroupCodes;
+		this.principalTaxonomy = principalTaxonomy;
 
 		for (AuthorizationDetails authorizationDetail : authorizationDetails) {
-			SecurityModelAuthorization securityModelAuthorization = new SecurityModelAuthorization(authorizationDetail, groupAuthorizationsInheritance);
+			boolean conceptAuth = principalTaxonomy != null && principalTaxonomy.getSchemaTypes().contains(authorizationDetail.getTargetSchemaType());
+			SecurityModelAuthorization securityModelAuthorization = new SecurityModelAuthorization(
+					authorizationDetail, conceptAuth, groupAuthorizationsInheritance);
 			authorizations.add(securityModelAuthorization);
 			authorizationsById.put(authorizationDetail.getId(), securityModelAuthorization);
 			authorizationsByTargets.add(authorizationDetail.getTarget(), securityModelAuthorization);
@@ -96,6 +104,44 @@ public class SingletonSecurityModel implements SecurityModel {
 
 	public List<Group> getGroups() {
 		return groups;
+	}
+
+	public List<Group> getGroupsInheritingAuthorizationsFrom(Group group) {
+
+		if (groupAuthorizationsInheritance == GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD) {
+			return getGroupHierarchy(group);
+
+		} else {
+			List<Group> returnedGroups = new ArrayList<>();
+			for (Group aGroup : groups) {
+				if (group.getAncestors().contains(aGroup.getId())) {
+					returnedGroups.add(aGroup);
+				}
+			}
+			return returnedGroups;
+		}
+
+	}
+
+	@Override
+	public boolean isGroupActive(Group group) {
+		return !disabledGroupCodes.contains(group.getCode());
+	}
+
+	private List<Group> getGroupHierarchy(Group group) {
+		List<Group> groupsHierarchy = new ArrayList<>();
+
+		for (Group aGroup : groups) {
+			if (aGroup.getParent() != null && aGroup.getParent().equals(group.getId())) {
+				if (!disabledGroupCodes.contains(aGroup.getCode())) {
+					groupsHierarchy.add(aGroup);
+					groupsHierarchy.addAll(getGroupHierarchy(aGroup));
+				}
+			}
+		}
+
+		return groupsHierarchy;
+
 	}
 
 	public GroupAuthorizationsInheritance getGroupAuthorizationsInheritance() {

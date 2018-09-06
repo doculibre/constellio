@@ -19,6 +19,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
@@ -41,6 +42,9 @@ import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.entities.security.TransactionSecurityModel;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
@@ -445,6 +449,21 @@ public class RecordAutomaticMetadataServices {
 		List<Group> groups = new ArrayList<>();
 		List<User> users = new ArrayList<>();
 		List<AuthorizationDetails> authorizationDetails = new ArrayList<>();
+		List<String> disabledGroups = new ArrayList<>();
+
+
+		RecordsCache systemCollectionCache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
+		SchemasRecordsServices systemCollectionSchemasRecordServices = new SchemasRecordsServices(
+				Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		if (systemCollectionCache.isConfigured(SolrGlobalGroup.SCHEMA_TYPE)) {
+			for (Record record : searchServices.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
+					.getSchemaType(SolrGlobalGroup.SCHEMA_TYPE))) {
+				GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
+				if (record != null && GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus())) {
+					disabledGroups.add(globalGroup.getCode());
+				}
+			}
+		}
 
 		for (Record record : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
 			if (record != null) {
@@ -474,7 +493,10 @@ public class RecordAutomaticMetadataServices {
 		GroupAuthorizationsInheritance groupInheritanceMode =
 				systemConfigurationsManager.getValue(ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE);
 
-		return new SingletonSecurityModel(authorizationDetails, users, groups, groupInheritanceMode);
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(types.getCollection());
+
+		return new SingletonSecurityModel(authorizationDetails, users, groups, groupInheritanceMode, disabledGroups,
+				principalTaxonomy);
 	}
 
 
