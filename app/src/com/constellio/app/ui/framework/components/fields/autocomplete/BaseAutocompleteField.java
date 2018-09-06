@@ -1,13 +1,5 @@
 package com.constellio.app.ui.framework.components.fields.autocomplete;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.io.Serializable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.vaadin.data.Item;
@@ -18,13 +10,19 @@ import com.vaadin.data.util.converter.Converter;
 import com.vaadin.data.util.filter.UnsupportedFilterException;
 import com.vaadin.shared.ui.combobox.FilteringMode;
 
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 /**
  * Adapted from https://vaadin.com/forum#!/thread/897171/9060502
  *
+ * @param <T> Type of the selected object
  * @author Vincent
- *
- * @param <T>
- *            Type of the selected object
  */
 public class BaseAutocompleteField<T> extends BaseComboBox {
 
@@ -75,20 +73,20 @@ public class BaseAutocompleteField<T> extends BaseComboBox {
 	public void changeVariables(Object source, Map<String, Object> variables) {
 		String newFilter;
 		String filterstring = null;
-	    if ((newFilter = (String) variables.get("filter")) != null) {
-	        // this is a filter request
-	        filterstring = newFilter;
-	        if (filterstring != null) {
-	            filterstring = filterstring.toLowerCase(getLocale());
-	        }
-	        updateItems(filterstring);
-	    }
+		if ((newFilter = (String) variables.get("filter")) != null) {
+			// this is a filter request
+			filterstring = newFilter;
+			if (filterstring != null) {
+				filterstring = filterstring.toLowerCase(getLocale());
+			}
+			updateItems(filterstring);
+		}
 		super.changeVariables(source, variables);
 	}
 
 	private int subStringSize = prefixSize;
 	private String querySubString;
-	
+
 	private void updateItems(String newFilterString) {
 		if (newFilterString == null) {
 			removeAllItems();
@@ -112,12 +110,12 @@ public class BaseAutocompleteField<T> extends BaseComboBox {
 		List<T> dataList = suggestionsProvider.suggest(text);
 
 		// add the results to the container
-//		int i = 0;
+		//		int i = 0;
 		Iterator<T> iterDataList = dataList.iterator();
 		while (iterDataList.hasNext()) {
 			T suggestion = iterDataList.next();
 			addSuggestion(suggestion);
-//			i++;
+			//			i++;
 		}// end while iter has next
 
 	}// end queryDataBase method
@@ -192,9 +190,9 @@ public class BaseAutocompleteField<T> extends BaseComboBox {
 		}
 		return caption;
 	}
-	
+
 	protected void suggestionRequested(String text) {
-		
+
 	}
 
 	public interface AutocompleteSuggestionsProvider<T> extends Serializable {
@@ -235,8 +233,8 @@ public class BaseAutocompleteField<T> extends BaseComboBox {
 			if (filter != null) {
 				super.addContainerFilter(filter);
 			}
-		} 
+		}
 
-	} 
+	}
 
 }
