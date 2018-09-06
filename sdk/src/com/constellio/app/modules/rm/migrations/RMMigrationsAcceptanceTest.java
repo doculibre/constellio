@@ -339,6 +339,8 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		}
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		givenConfig(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, false);
 	}
 
 	protected static File getStatesFolder(boolean old) {

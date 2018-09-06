@@ -611,7 +611,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		for (Record record : transaction.getRecords()) {
 			if (record.get(Schemas.MIGRATION_DATA_VERSION) == null) {
 				if (record.isSaved()) {
-					record.set(Schemas.MIGRATION_DATA_VERSION, 0);
+					record.set(Schemas.MIGRATION_DATA_VERSION, 0.0);
 				} else {
 					record.set(Schemas.MIGRATION_DATA_VERSION, modelLayerFactory.getRecordMigrationsManager()
 							.getCurrentDataVersion(record.getCollection(), record.getTypeCode()));
