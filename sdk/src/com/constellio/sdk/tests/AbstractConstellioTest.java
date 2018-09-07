@@ -80,7 +80,9 @@ import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.File;
@@ -100,6 +102,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
@@ -1602,7 +1605,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	}
 
 	private String getServerConfigurations(String coreName) {
-		File configFld = new File(new FoldersLocator().getSolrHomeConfFolder(), "configsets");
+		File configFld = new File(new FoldersLocator().getSolrHomeConfFolder(getSolrVersion()), "configsets");
 		for (File configFile : configFld.listFiles()) {
 			if (configFile.getName().startsWith(coreName)) {
 				return new File(configFile, "conf").getAbsolutePath();
@@ -1617,5 +1620,18 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 
 	public void setFailMessage(String failMessage) {
 		this.failMessage = failMessage;
+	}
+
+	public double getSolrVersion() {
+		Response response = ClientBuilder.newClient()
+				.target(sdkProperties.get("dao.records.http.url").concat("admin/info/system?wt=json"))
+				.request().get();
+		String json = response.readEntity(String.class);
+
+		int start = json.indexOf("solr-spec-version");
+		int end = json.indexOf(",", start);
+		String version = json.substring(start + "solr-spec-version".length() + 2, end);
+		String[] parts = version.trim().replace("\"", "").split(Pattern.quote("."));
+		return Double.valueOf(parts[0] + "." + parts[1]);
 	}
 }
