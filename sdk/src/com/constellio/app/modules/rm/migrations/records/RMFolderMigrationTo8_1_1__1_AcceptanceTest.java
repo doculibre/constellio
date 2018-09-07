@@ -12,7 +12,7 @@ import java.io.File;
 import static com.constellio.model.services.records.reindexing.ReindexationMode.RECALCULATE_AND_REWRITE;
 import static junit.framework.TestCase.fail;
 
-public class RMFolderMigrationTo8_1_0_1_AcceptanceTest extends ConstellioTest {
+public class RMFolderMigrationTo8_1_1__1_AcceptanceTest extends ConstellioTest {
 
 	private static final String DECOMMISSIONING_DATE = "decommissioningDate";
 

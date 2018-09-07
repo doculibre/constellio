@@ -12,24 +12,24 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class RMMigrationTo8_1_0_2 extends MigrationHelper implements MigrationScript {
+public class RMMigrationTo8_1_1_1 extends MigrationHelper implements MigrationScript {
 
 	private static final String FOLDER_DECOMMISSIONING_DATE = "decommissioningDate";
 
 	@Override
 	public String getVersion() {
-		return "8.1.0.2";
+		return "8.1.1.1";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory) throws Exception {
-		new RMMigrationTo8_1_0_2.SchemaAlterationFor8_1_0_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new RMMigrationTo8_1_1_1.SchemaAlterationFor8_1_1_1(collection, migrationResourcesProvider, appLayerFactory).migrate();
 	}
 
-	class SchemaAlterationFor8_1_0_2 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor8_1_1_1 extends MetadataSchemasAlterationHelper {
 
-		protected SchemaAlterationFor8_1_0_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
+		protected SchemaAlterationFor8_1_1_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
 										 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
