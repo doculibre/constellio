@@ -1,15 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.decommissioning.ContainerDetailTableGenerator;
 import com.constellio.app.modules.rm.ui.components.decommissioning.DecomApprobationRequestWindowButton;
@@ -34,6 +24,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
+import com.constellio.app.ui.framework.buttons.SelectDeselectAllButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -60,6 +51,15 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningListViewImpl extends BaseViewImpl implements DecommissioningListView {
 	public static final String PROCESS = "process";
@@ -769,6 +769,48 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		return tableGenerator;
 	}
 
+
+	protected Button buildSelectAllButton(final int size) {
+		String selectAllCaption;
+		String deselectAllCaption;
+		selectAllCaption = "Sélectionner les dossiers";
+		deselectAllCaption = "Déselectionner les dossiers";
+		SelectDeselectAllButton selectDeselectAllButton = new SelectDeselectAllButton(selectAllCaption, deselectAllCaption) {
+			@Override
+			protected void onSelectAll(ClickEvent event) {
+				selectAllFolders(size);
+			}
+
+			@Override
+			protected void onDeselectAll(ClickEvent event) {
+				deselectAllFolders(size);
+			}
+
+			@Override
+			protected void buttonClickCallBack(boolean selectAllMode) {
+
+			}
+		};
+		selectDeselectAllButton.addStyleName(ValoTheme.BUTTON_LINK);
+
+		return selectDeselectAllButton;
+	}
+
+	private void deselectAllFolders(int size) {
+
+	}
+
+	private void selectAllFolders(int size) {
+		//		Collection<?> itemIds = selectedFolders.getItemIds();
+		//
+		//		for (Object itemId : itemIds) {
+		//			Object checkBoxProperty = selectedFolders.getContainerProperty(itemId, CHECKBOX);
+		//			if (checkBoxProperty != null) {
+		//				(((CheckBox) checkBoxProperty)).setValue(true);
+		//			}
+		//		}
+	}
+
 	private DefaultItemSorter buildItemSorter() {
 		if (presenter.getFolderDetailTableExtension() != null) {
 			return new DefaultItemSorter() {
@@ -866,8 +908,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		header.addStyleName(ValoTheme.LABEL_H2);
 
 		selectedFolders = buildFolderTable(folders, false);
-
-		VerticalLayout layout = new VerticalLayout(header, selectedFolders, buildOrderExcludedFoldersButton());
+		VerticalLayout layout = new VerticalLayout(buildSelectAllButton(folders.size()), header, selectedFolders);
 		layout.setSpacing(true);
 
 		return layout;
