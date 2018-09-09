@@ -64,6 +64,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 	RecordsCaches recordsCaches;
 	RecordsCaches otherInstanceRecordsCaches;
 	RecordsCache zeCollectionRecordsCache;
+	RecordsCache otherInstanceZeCollectionRecordsCache;
 	RecordsCache anotherCollectionRecordsCache;
 
 	UserServices userServices;
@@ -108,6 +109,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		anotherCollectionRecordsCache = getModelLayerFactory().getRecordsCaches().getCache(anotherCollection);
 
 		otherInstanceRecordsCaches = otherModelLayerFactory.getRecordsCaches();
+		otherInstanceZeCollectionRecordsCache = otherModelLayerFactory.getRecordsCaches().getCache(zeCollection);
 
 		for (ModelLayerFactory aModelLayerFactory : asList(getModelLayerFactory(), otherModelLayerFactory)) {
 			RecordsCache collection1Cache = aModelLayerFactory.getRecordsCaches().getCache(zeCollection);
@@ -844,6 +846,71 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		assertThat(recordServices.getDocumentById(record1.getId()).getVersion())
 				.isNotEqualTo(record1.getVersion()).isEqualTo(modifiedRecord1.getVersion());
+	}
+
+	@Test
+	public void givenRecordsModifiedThenCachedSearchResultsAreInvalidated()
+			throws Exception {
+
+		Transaction tx = new Transaction();
+		tx.add(permanentRecord1 = newRecordOf("p1", zeCollectionSchemaWithPermanentCache).withTitle("1"));
+		tx.add(permanentRecord2 = newRecordOf("p2", zeCollectionSchemaWithPermanentCache).withTitle("2"));
+		tx.add(permanentRecord3 = newRecordOf("p3", zeCollectionSchemaWithPermanentCache).withTitle("3"));
+		recordServices.execute(tx);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(zeCollectionSchemaWithPermanentCache.type()).returnAll()).sortAsc(TITLE);
+
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+
+		recordServices.update(permanentRecord2.set(TITLE, "4"));
+
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "3", "4");
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "3", "4");
+
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "3", "4");
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "3", "4");
+
+	}
+
+	@Test
+	public void givenRecordsAddedThenCachedSearchResultsAreInvalidated()
+			throws Exception {
+
+
+		Transaction tx = new Transaction();
+		tx.add(permanentRecord1 = newRecordOf("p1", zeCollectionSchemaWithPermanentCache).withTitle("1"));
+		tx.add(permanentRecord2 = newRecordOf("p2", zeCollectionSchemaWithPermanentCache).withTitle("2"));
+		tx.add(permanentRecord3 = newRecordOf("p3", zeCollectionSchemaWithPermanentCache).withTitle("3"));
+		recordServices.execute(tx);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(zeCollectionSchemaWithPermanentCache.type()).returnAll()).sortAsc(TITLE);
+
+		assertThat(zeCollectionRecordsCache.getQueryResults(query)).isNull();
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+
+		assertThat(zeCollectionRecordsCache.getQueryResults(query)).isNotNull();
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+
+		assertThat(otherInstanceZeCollectionRecordsCache.getQueryResults(query)).isNull();
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+
+		assertThat(otherInstanceZeCollectionRecordsCache.getQueryResults(query)).isNotNull();
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+
+		recordServices.update(newRecordOf("p4", zeCollectionSchemaWithPermanentCache).withTitle("4"));
+
+		assertThat(zeCollectionRecordsCache.getQueryResults(query)).isNull();
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3", "4");
+		assertThat(zeCollectionRecordsCache.getQueryResults(query)).isNotNull();
+
+		assertThat(otherInstanceZeCollectionRecordsCache.getQueryResults(query)).isNull();
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3", "4");
+		assertThat(otherInstanceZeCollectionRecordsCache.getQueryResults(query)).isNotNull();
+
 	}
 
 	//-----------------------------------------------------------------
