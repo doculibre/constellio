@@ -441,11 +441,22 @@ public class LDAPServicesImpl implements LDAPServices {
 			throw new CouldNotConnectUserToLDAP();
 		}
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
-		LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
-				user, password,
-				ldapServerConfiguration.getFollowReferences(), activeDirectory);
-		if (ctx == null) {
-			throw new CouldNotConnectUserToLDAP();
+		LdapContext ctx = null;
+		try {
+			ctx = connectToLDAP(ldapServerConfiguration.getDomains(), ldapServerConfiguration.getUrls(),
+					user, password,
+					ldapServerConfiguration.getFollowReferences(), activeDirectory);
+			if (ctx == null) {
+				throw new CouldNotConnectUserToLDAP();
+			}
+		} finally {
+			if (ctx != null) {
+				try {
+					ctx.close();
+				} catch (NamingException e) {
+					LOGGER.warn("Naming exception", e);
+				}
+			}
 		}
 	}
 
@@ -457,14 +468,25 @@ public class LDAPServicesImpl implements LDAPServices {
 		boolean activeDirectory = ldapServerConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
 		List<String> urls = ldapServerConfiguration.getUrls();
 		for(String url: urls) {
-			LdapContext ctx = connectToLDAP(ldapServerConfiguration.getDomains(), url,
+			LdapContext ctx = null;
+			try {
+				ctx = connectToLDAP(ldapServerConfiguration.getDomains(), url,
 					ldapUserSyncConfiguration.getUser(), ldapUserSyncConfiguration.getPassword(),
 					ldapServerConfiguration.getFollowReferences(), activeDirectory);
-			if (ctx != null) {
-				Set<LDAPGroup> groups = getGroupsUsingFilter(ctx, ldapUserSyncConfiguration.getGroupBaseContextList(),
-						ldapUserSyncConfiguration.getGroupFilter());
-				for (LDAPGroup group : groups) {
-					returnGroups.add(group.getSimpleName());
+				if (ctx != null) {
+					Set<LDAPGroup> groups = getGroupsUsingFilter(ctx, ldapUserSyncConfiguration.getGroupBaseContextList(),
+							ldapUserSyncConfiguration.getGroupFilter());
+					for (LDAPGroup group : groups) {
+						returnGroups.add(group.getSimpleName());
+					}
+				}
+			} finally {
+				if (ctx != null) {
+					try {
+						ctx.close();
+					} catch (NamingException e) {
+						LOGGER.warn("Naming exception", e);
+					}
 				}
 			}
 		}
@@ -477,42 +499,48 @@ public class LDAPServicesImpl implements LDAPServices {
 			LDAPUserSyncConfiguration userSyncConfiguration, String url) {
 
 		boolean activeDirectory = serverConfiguration.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
-		LdapContext ldapContext = connectToLDAP(serverConfiguration.getDomains(), url, userSyncConfiguration.getUser(),
-						userSyncConfiguration.getPassword(), serverConfiguration.getFollowReferences(), activeDirectory);
-
-        //
-        final Set<LDAPUser> ldapUsers = new HashSet<>();
-        final Set<LDAPGroup> ldapGroups = new HashSet<>();
-
-        // Get accepted groups list using groups search base and groups regex search filter
-        final Set<LDAPGroup> acceptedGroups = getGroupsUsingFilter(ldapContext, userSyncConfiguration.getGroupBaseContextList(), userSyncConfiguration.getGroupFilter());
-        ldapGroups.addAll(acceptedGroups);
-
-        // Get accepted users list using users search base, user groups filter and users regex search filter
-        final List<LDAPUser> acceptedUsers = getAcceptedUsersNotLinkedToGroups(ldapContext, serverConfiguration, userSyncConfiguration);
-        ldapUsers.addAll(acceptedUsers);
-
-        // Add groups of accepted users to accepted groups list
-		Set<LDAPGroup> groupsFromUsers = getGroupsFromUser(acceptedUsers);
-        ldapGroups.addAll(groupsFromUsers);
-
-        //
-        if (userSyncConfiguration.isMembershipAutomaticDerivationActivated()) {
-            //
-            final Set<LDAPUser> acceptedUsersDerivedFromAcceptedGroups = getAcceptedUsersFromGroups(acceptedGroups, ldapContext, serverConfiguration, userSyncConfiguration);
-            ldapUsers.addAll(acceptedUsersDerivedFromAcceptedGroups);
-
-            // Add groups of derived accepted users to accepted groups list
-            ldapGroups.addAll(getGroupsFromUser(acceptedUsersDerivedFromAcceptedGroups));
-        }
-
-        //
+		LdapContext ldapContext = null;
 		try {
-			ldapContext.close();
-		} catch (NamingException e) {
-			e.printStackTrace();
+			ldapContext = connectToLDAP(serverConfiguration.getDomains(), url, userSyncConfiguration.getUser(),
+					userSyncConfiguration.getPassword(), serverConfiguration.getFollowReferences(), activeDirectory);
+
+			//
+			final Set<LDAPUser> ldapUsers = new HashSet<>();
+			final Set<LDAPGroup> ldapGroups = new HashSet<>();
+
+			// Get accepted groups list using groups search base and groups regex search filter
+			final Set<LDAPGroup> acceptedGroups = getGroupsUsingFilter(ldapContext, userSyncConfiguration.getGroupBaseContextList(), userSyncConfiguration.getGroupFilter());
+			ldapGroups.addAll(acceptedGroups);
+
+			// Get accepted users list using users search base, user groups filter and users regex search filter
+			final List<LDAPUser> acceptedUsers = getAcceptedUsersNotLinkedToGroups(ldapContext, serverConfiguration, userSyncConfiguration);
+			ldapUsers.addAll(acceptedUsers);
+
+			// Add groups of accepted users to accepted groups list
+			Set<LDAPGroup> groupsFromUsers = getGroupsFromUser(acceptedUsers);
+			ldapGroups.addAll(groupsFromUsers);
+
+			//
+			if (userSyncConfiguration.isMembershipAutomaticDerivationActivated()) {
+				//
+				final Set<LDAPUser> acceptedUsersDerivedFromAcceptedGroups = getAcceptedUsersFromGroups(acceptedGroups, ldapContext, serverConfiguration, userSyncConfiguration);
+				ldapUsers.addAll(acceptedUsersDerivedFromAcceptedGroups);
+
+				// Add groups of derived accepted users to accepted groups list
+				ldapGroups.addAll(getGroupsFromUser(acceptedUsersDerivedFromAcceptedGroups));
+			}
+
+			return new LDAPUsersAndGroups(ldapUsers, ldapGroups);
+
+		} finally {
+			if (ldapContext != null) {
+				try {
+					ldapContext.close();
+				} catch (NamingException e) {
+					LOGGER.warn("Naming exception", e);
+				}
+			}
 		}
-		return new LDAPUsersAndGroups(ldapUsers, ldapGroups);
 	}
 
 	@Override

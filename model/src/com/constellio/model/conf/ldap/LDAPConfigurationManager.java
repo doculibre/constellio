@@ -9,6 +9,8 @@ import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.joda.time.Duration;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
@@ -28,7 +30,12 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.sync.LDAPFastBind;
 import com.constellio.model.services.users.sync.RuntimeNamingException;
 
+import javax.naming.NamingException;
+import javax.naming.ldap.LdapContext;
+
 public class LDAPConfigurationManager implements StatefulService {
+	private static final Logger LOGGER = LogManager.getLogger(LDAPConfigurationManager.class);
+
 	private static final String CACHE_KEY = "configs";
 	private static final String LDAP_CONFIGS = "ldapConfigs.properties";
 	public static final long MIN_DURATION = 1000 * 60 * 10;//10mns
@@ -263,8 +270,19 @@ public class LDAPConfigurationManager implements StatefulService {
 		}
 		LDAPServicesImpl ldapServices = new LDAPServicesImpl();
 		for (String url : configs.getUrls()) {
-			ldapServices.connectToLDAP(configs.getDomains(), url, ldapUserSyncConfiguration.getUser(),
-					ldapUserSyncConfiguration.getPassword(), configs.getFollowReferences(), activeDirectory);
+			LdapContext ctx = null;
+			try {
+				ctx = ldapServices.connectToLDAP(configs.getDomains(), url, ldapUserSyncConfiguration.getUser(),
+						ldapUserSyncConfiguration.getPassword(), configs.getFollowReferences(), activeDirectory);
+			}  finally {
+				if (ctx != null) {
+					try {
+						ctx.close();
+					} catch (NamingException e) {
+						LOGGER.warn("Naming exception", e);
+					}
+				}
+			}
 		}
 	}
 
