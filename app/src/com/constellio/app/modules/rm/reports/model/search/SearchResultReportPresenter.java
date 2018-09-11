@@ -23,6 +23,8 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,6 +37,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 public class SearchResultReportPresenter {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SearchResultReportPresenter.class);
 	static int LIMIT = 10000;
 	static int BATCH_SIZE = 100;
 	private final List<String> selectedRecords;
@@ -227,7 +230,7 @@ public class SearchResultReportPresenter {
 				}
 			}
 			if (!found) {
-				throw new InExistingReportedMetadataRuntimeException(reportedMetadata, schemaTypeCode);
+				LOGGER.warn("Could not find reported metadata: " + reportedMetadata.getMetadataLocaleCode());
 			}
 		}
 
