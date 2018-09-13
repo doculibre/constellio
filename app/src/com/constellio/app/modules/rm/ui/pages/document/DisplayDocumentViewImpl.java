@@ -24,6 +24,7 @@ import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -510,7 +511,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		actionMenuButtons.add(copyContentButton);
 
-		reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.DOCUMENT, getDocumentVO());
+		reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), presenter.getApplayerFactory(),
+				getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				setRecordVoList(getDocumentVO());
+				super.buttonClick(event);
+			}
+		};
 
 		if (presenter.hasContent()) {
 			renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),

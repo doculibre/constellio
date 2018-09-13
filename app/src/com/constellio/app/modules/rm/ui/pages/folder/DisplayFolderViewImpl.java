@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderFie
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
@@ -32,6 +33,7 @@ import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -411,9 +413,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			};
 
-			reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
-					$("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(),
-					PrintableReportListPossibleType.FOLDER, getRecord());
+			reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), presenter.getApplayerFactory(),
+					getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					setRecordVoList(recordVO);
+					super.buttonClick(event);
+				}
+			};
 
 			startWorkflowButton = new StartWorkflowButton();
 			startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
