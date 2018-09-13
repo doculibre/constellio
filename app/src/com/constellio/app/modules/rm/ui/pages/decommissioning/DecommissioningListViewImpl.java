@@ -44,6 +44,7 @@ import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.HorizontalLayout;
@@ -55,10 +56,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.modules.rm.ui.components.decommissioning.FolderDetailTableGenerator.CHECKBOX;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DecommissioningListViewImpl extends BaseViewImpl implements DecommissioningListView {
@@ -653,7 +656,9 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		packageableFolders = buildFolderTable(folders, presenter.shouldAllowContainerEditing());
 
-		VerticalLayout layout = new VerticalLayout(header, controls, packageableFolders, buildOrderPackageableFoldersButton());
+		HorizontalLayout horizontalLayout = new HorizontalLayout(buildOrderPackageableFoldersButton(), buildExcludeButton(folders));
+		horizontalLayout.setSpacing(true);
+		VerticalLayout layout = new VerticalLayout(header, buildSelectAllButton(packageableFolders), controls, packageableFolders, horizontalLayout);
 		layout.setSpacing(true);
 
 		return layout;
@@ -723,13 +728,15 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		removeFromTheBox.setEnabled(presenter.canCurrentUserManageContainers());
 		removeFromTheBox.setVisible(presenter.canCurrentUserManageContainers() && presenter.shouldAllowContainerEditing() && !packageableFolders.isEmpty());
 
+		HorizontalLayout horizontalLayout = new HorizontalLayout(buildOrderProcessableFoldersButton(), buildExcludeButton(folders));
+		horizontalLayout.setSpacing(true);
 		VerticalLayout layout = new VerticalLayout(header);
 
 		if (!presenter.isInValidation() && !presenter.isInApprobation()) {
 			layout.addComponent(removeFromTheBox);
 		}
 
-		layout.addComponents(processableFolders, buildOrderProcessableFoldersButton());
+		layout.addComponents(buildSelectAllButton(processableFolders), processableFolders, horizontalLayout);
 
 		layout.setSpacing(true);
 
@@ -742,7 +749,8 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		excludedFolders = buildFolderTable(folders, false);
 
-		VerticalLayout layout = new VerticalLayout(header, excludedFolders, buildOrderExcludedFoldersButton());
+		HorizontalLayout horizontalLayout = new HorizontalLayout(buildOrderExcludedFoldersButton(), buildIncludeButton(folders));
+		VerticalLayout layout = new VerticalLayout(header, buildSelectAllButton(excludedFolders), excludedFolders, horizontalLayout);
 		layout.setSpacing(true);
 
 		return layout;
@@ -763,27 +771,26 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 				.displayingCategory(presenter.shouldDisplayCategoryInDetails())
 				.displayingSort(presenter.shouldDisplaySort())
 				.displayingValidation(presenter.shouldDisplayValidation())
-				.displayingOrderNumber(true)
-				.attachTo(table);
+				.displayingOrderNumber(true).attachTo(table);
 		tableGenerator.setPageLength(Math.min(25, container.size()));
 		return tableGenerator;
 	}
 
 
-	protected Button buildSelectAllButton(final int size) {
+	protected Button buildSelectAllButton(final BaseTable foldersTable) {
 		String selectAllCaption;
 		String deselectAllCaption;
-		selectAllCaption = "Sélectionner les dossiers";
-		deselectAllCaption = "Déselectionner les dossiers";
+		selectAllCaption = "Sélectionner tout les dossiers";
+		deselectAllCaption = "Déselectionner tout les dossiers";
 		SelectDeselectAllButton selectDeselectAllButton = new SelectDeselectAllButton(selectAllCaption, deselectAllCaption) {
 			@Override
 			protected void onSelectAll(ClickEvent event) {
-				selectAllFolders(size);
+				selectAllFolders(foldersTable);
 			}
 
 			@Override
 			protected void onDeselectAll(ClickEvent event) {
-				deselectAllFolders(size);
+				deselectAllFolders(foldersTable);
 			}
 
 			@Override
@@ -796,19 +803,26 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		return selectDeselectAllButton;
 	}
 
-	private void deselectAllFolders(int size) {
-
+	private void deselectAllFolders(BaseTable foldersTable) {
+		Collection<?> itemIds = foldersTable.getItemIds();
+		for (Object itemId : itemIds) {
+			FolderDetailTableGenerator folderDetailTableGenerator = (FolderDetailTableGenerator) foldersTable.getColumnGenerator(CHECKBOX);
+			Component checkBoxProperty = folderDetailTableGenerator.getCheckBox((FolderDetailVO) itemId);
+			if (checkBoxProperty != null) {
+				(((CheckBox) checkBoxProperty)).setValue(false);
+			}
+		}
 	}
 
-	private void selectAllFolders(int size) {
-		//		Collection<?> itemIds = selectedFolders.getItemIds();
-		//
-		//		for (Object itemId : itemIds) {
-		//			Object checkBoxProperty = selectedFolders.getContainerProperty(itemId, CHECKBOX);
-		//			if (checkBoxProperty != null) {
-		//				(((CheckBox) checkBoxProperty)).setValue(true);
-		//			}
-		//		}
+	private void selectAllFolders(BaseTable foldersTable) {
+		Collection<?> itemIds = foldersTable.getItemIds();
+		for (Object itemId : itemIds) {
+			FolderDetailTableGenerator folderDetailTableGenerator = (FolderDetailTableGenerator) foldersTable.getColumnGenerator(CHECKBOX);
+			Component checkBoxProperty = folderDetailTableGenerator.getCheckBox((FolderDetailVO) itemId);
+			if (checkBoxProperty != null) {
+				(((CheckBox) checkBoxProperty)).setValue(true);
+			}
+		}
 	}
 
 	private DefaultItemSorter buildItemSorter() {
@@ -904,14 +918,46 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Component buildSelectedFoldersComponent(List<FolderDetailVO> folders) {
-		Label header = new Label("Dossiers sélectionnés ");
+		Label header = new Label("Dossiers sélectionnés");
 		header.addStyleName(ValoTheme.LABEL_H2);
 
 		selectedFolders = buildFolderTable(folders, false);
-		VerticalLayout layout = new VerticalLayout(buildSelectAllButton(folders.size()), header, selectedFolders);
+		HorizontalLayout includeExcludeButtons = new HorizontalLayout(buildIncludeButton(folders), buildExcludeButton(folders));
+		includeExcludeButtons.setSpacing(true);
+		VerticalLayout layout = new VerticalLayout(header, buildSelectAllButton(selectedFolders), selectedFolders, includeExcludeButtons);
 		layout.setSpacing(true);
 
 		return layout;
+	}
+
+	private Component buildExcludeButton(final List<FolderDetailVO> folders) {
+		Button excludeButton = new LinkButton("Exclure les dossiers selectionnés") {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				for (FolderDetailVO folder : folders) {
+					if (folder.isSelected()) {
+						presenter.setValidationStatus(folder, false);
+					}
+				}
+			}
+		};
+		return excludeButton;
+	}
+
+	private Component buildIncludeButton(final List<FolderDetailVO> folders) {
+		Button includeButton = new LinkButton("Inclure les dossiers selectionnés") {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				for (FolderDetailVO folder : folders) {
+					if (folder.isSelected()) {
+						presenter.removeFromContainer(folder);
+						presenter.setValidationStatus(folder, true);
+					}
+				}
+			}
+
+		};
+		return includeButton;
 	}
 
 	public ComboBox buildContainerSelector() {

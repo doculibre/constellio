@@ -1,10 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.decommissioning;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.constellio.app.modules.rm.extensions.api.DecommissioningListFolderTableExtension;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleReferenceDisplay;
@@ -29,6 +24,13 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnGenerator;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class FolderDetailTableGenerator implements ColumnGenerator {
 	public static final String CHECKBOX = "checkbox";
 	public static final String FOLDER_ID = "folderId";
@@ -52,6 +54,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 	private boolean displaySort;
 	private boolean displayValidation;
 	private boolean displayOrderNumber;
+	private Map<FolderDetailVO, Component> checkBoxMap;
 
 	public FolderDetailTableGenerator(DecommissioningListPresenter presenter, DecommissioningListViewImpl view,
 									  boolean packageable) {
@@ -62,6 +65,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		displayCategory = true;
 		displaySort = false;
 		displayValidation = false;
+		checkBoxMap = new HashMap<>();
 	}
 
 	public FolderDetailTableGenerator withExtension(DecommissioningListFolderTableExtension extension) {
@@ -174,7 +178,6 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		} else {
 			table.sort(new String[]{CATEGORY_CODE}, new boolean[]{true});
 		}
-
 		return table;
 	}
 
@@ -224,7 +227,12 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 				detail.setSelected(checkBox.getValue());
 			}
 		});
+		checkBoxMap.put(detail, checkBox);
 		return checkBox;
+	}
+
+	public Component getCheckBox(FolderDetailVO folderDetailVO) {
+		return checkBoxMap.get(folderDetailVO);
 	}
 
 	private Component buildSort(FolderDetailVO detail) {
