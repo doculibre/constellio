@@ -143,6 +143,9 @@ public class RecordDeleteServices {
 		transaction.getRecordUpdateOptions().setSkippingReferenceToLogicallyDeletedValidation(true);
 
 		for (Record hierarchyRecord : getAllRecordsInHierarchy(record, SortOrder.ASCENDING)) {
+			if (Boolean.FALSE.equals(hierarchyRecord.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS))) {
+				continue;
+			}
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, null);
 			if (!transaction.isContainingUpdatedRecord(hierarchyRecord)) {
