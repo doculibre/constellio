@@ -1,10 +1,5 @@
 package com.constellio.model.services.records.cache;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-import static com.constellio.data.dao.services.records.DataStore.RECORDS;
-
-import java.util.List;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
@@ -28,6 +23,11 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+
+import java.util.List;
+
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.data.dao.services.records.DataStore.RECORDS;
 
 public class CachedRecordServices extends BaseRecordServices implements RecordServices {
 
@@ -182,6 +182,12 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	public List<Record> toRecords(
 			List<RecordDTO> recordDTOs, boolean fullyLoaded) {
 		return recordServices.toRecords(recordDTOs, fullyLoaded);
+	}
+
+	@Override
+	public void executeInBatch(Transaction transaction)
+			throws RecordServicesException {
+		recordServices.executeInBatch(transaction);
 	}
 
 	@Override

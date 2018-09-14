@@ -1,7 +1,5 @@
 package com.constellio.model.services.records;
 
-import java.util.List;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
@@ -19,6 +17,8 @@ import com.constellio.model.services.schemas.ModificationImpactCalculatorRespons
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
+import java.util.List;
+
 public interface RecordServices {
 
 	void add(Record record)
@@ -34,6 +34,9 @@ public interface RecordServices {
 			throws RecordServicesException;
 
 	List<BatchProcess> executeHandlingImpactsAsync(Transaction transaction)
+			throws RecordServicesException;
+
+	void executeInBatch(Transaction transaction)
 			throws RecordServicesException;
 
 	void execute(Transaction transaction)

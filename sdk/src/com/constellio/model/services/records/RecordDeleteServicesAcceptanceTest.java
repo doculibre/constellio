@@ -1,14 +1,5 @@
 package com.constellio.model.services.records;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.util.Set;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.ValueListServices;
@@ -28,6 +19,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
+import com.constellio.model.services.records.utils.SortOrder;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
@@ -37,6 +29,15 @@ import com.constellio.model.services.trash.TrashServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
@@ -230,5 +231,19 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		deleteService
 				.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
 						new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+	}
+
+	@Test
+	public void givenRecordInHierarchyWhenGetAllRecordsInHierarchySortOrderAscendingThenRecordsSortedAscending() {
+		List<Record> orderedRecords =
+				deleteService.getAllRecordsInHierarchy(records.getFolder_A02().getWrappedRecord(), SortOrder.ASCENDING);
+		assertThat(orderedRecords.get(0)).isEqualTo(records.getFolder_A02().getWrappedRecord());
+	}
+
+	@Test
+	public void givenRecordInHierarchyWhenGetAllRecordsInHierarchySortOrderDescendingThenRecordsSortedDescending() {
+		List<Record> orderedRecords =
+				deleteService.getAllRecordsInHierarchy(records.getFolder_A02().getWrappedRecord(), SortOrder.DESCENDING);
+		assertThat(orderedRecords.get(orderedRecords.size() - 1)).isEqualTo(records.getFolder_A02().getWrappedRecord());
 	}
 }
