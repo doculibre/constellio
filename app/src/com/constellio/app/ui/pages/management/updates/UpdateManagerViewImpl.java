@@ -39,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -107,7 +108,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		});
 		buttons.add(standardUpdate);
 
-		alternateUpdate = new Button($("UpdateManagerViewImpl." + presenter.getAlternateUpdateName()));
+		alternateUpdate = new Button($("UpdateManagerViewImpl.manual" + presenter.getAlternateUpdateName()));
 		alternateUpdate.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -345,6 +346,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	public void closeProgressPopup() {
 		uploadWaitWindow.close();
 	}
+
+
 
 	private Component buildUpToDateUpdateLayout() {
 		Label message = new Label($("UpdateManagerViewImpl.upToDate"));

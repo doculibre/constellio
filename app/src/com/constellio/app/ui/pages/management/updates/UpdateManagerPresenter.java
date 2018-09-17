@@ -99,13 +99,15 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		try {
 			appLayerFactory.newApplicationService().getWarFromServer(progressInfo);
 			appLayerFactory.newApplicationService().update(progressInfo);
-			view.showRestartRequiredPanel();
+			//view.showRestartRequiredPanel();
+			view.navigate().to().displaySystemInfos();
 		} catch (CannotConnectToServer cc) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.connection"));
 		} catch (AppManagementServiceException ase) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.file"));
 		} finally {
 			view.closeProgressPopup();
+
 		}
 	}
 

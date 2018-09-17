@@ -430,7 +430,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 		this.actionMenuButtonsDecorators.remove(decorator);
 	}
 
-	protected abstract Component buildMainComponent(ViewChangeEvent event);
+	protected abstract Component buildMainComponent(ViewChangeEvent event) throws IOException, InterruptedException;
 
 	public List<Button> getActionMenuButtons() {
 		return actionMenuButtons;
