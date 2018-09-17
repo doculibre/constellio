@@ -48,6 +48,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManagerView, DropHandler {
 
 	private final UpdateManagerPresenter presenter;
+
 	private UploadWaitWindow uploadWaitWindow;
 	private VerticalLayout layout;
 	private Component panel;
@@ -58,6 +59,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 
 	public UpdateManagerViewImpl() {
 		presenter = new UpdateManagerPresenter(this);
+
 	}
 
 	@Override
@@ -131,14 +133,17 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	}
 
 	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {
+	protected Component buildMainComponent(ViewChangeEvent event) throws IOException, InterruptedException {
 		layout = new VerticalLayout(buildInfoItem($("UpdateManagerViewImpl.version"), presenter.getCurrentVersion()));
 		layout.setSpacing(true);
 		layout.setWidth("100%");
+		layout.addComponents(
+				buildInfoItem("Version de Kernel Linux", presenter.getLinuxVersion()));
 
 		LicenseInfo info = presenter.getLicenseInfo();
 		if (info != null) {
 			layout.addComponents(
+
 					buildInfoItem($("UpdateManagerViewImpl.clientName"), info.getClientName()),
 					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), info.getExpirationDate()));
 		}

@@ -13,12 +13,12 @@ public class LinuxOperation {
 	}
 
 
-	String getOperationBehavior() {
+	public String getOperationBehavior() {
 
 		return Behavior;
 
 	}
-	String getOperationCommand() {
+	public String getOperationCommand() {
 
 		return Command;
 

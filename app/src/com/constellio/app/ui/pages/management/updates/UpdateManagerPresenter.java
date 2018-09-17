@@ -21,6 +21,8 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
+
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -32,14 +34,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+
 import static com.constellio.app.services.migrations.VersionsComparator.isFirstVersionBeforeSecond;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.management.updates.UpdateNotRecommendedReason.BATCH_PROCESS_IN_PROGRESS;
 import static java.util.Arrays.asList;
 
 public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
+	SystemInfosService service = new SystemInfosService();
+
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateManagerPresenter.class);
+
 
 	public UpdateManagerPresenter(UpdateManagerView view) {
 		super(view);
@@ -99,8 +105,8 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		try {
 			appLayerFactory.newApplicationService().getWarFromServer(progressInfo);
 			appLayerFactory.newApplicationService().update(progressInfo);
-			//view.showRestartRequiredPanel();
-			view.navigate().to().displaySystemInfos();
+			view.showRestartRequiredPanel();
+
 		} catch (CannotConnectToServer cc) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.connection"));
 		} catch (AppManagementServiceException ase) {
@@ -243,6 +249,16 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			}
 		}
 		return version;
+	}
+
+
+
+
+
+	public String getLinuxVersion() throws IOException, InterruptedException {
+		String commande="uname -r";
+		LinuxOperation operation= new LinuxOperation(commande,service.executCommand(commande));
+		return service.executCommand(commande);
 	}
 
 	@Override

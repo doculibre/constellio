@@ -1,11 +1,15 @@
 package com.constellio.app.ui.pages.management.updates;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
+
+import org.apache.commons.lang3.SystemUtils;
 
 public class SystemInfosService {
 	String Behavior;
@@ -137,17 +141,16 @@ public class SystemInfosService {
 		}
 		return versionNumber;
 	}
-	public String executeCommand(String commande) throws IOException, InterruptedException {
+	public String executCommand(String commande) throws IOException, InterruptedException {
+
+
 		StringBuilder eb = new StringBuilder();
+
 		try
 		{
-			Runtime rt = Runtime.getRuntime();
-			Process proc = rt.exec(commande);
 
-
-			InputStream stderr = proc.getErrorStream();
-			InputStreamReader esr = new InputStreamReader(stderr);
-			BufferedReader errorReader = new BufferedReader(esr);
+			Process proc = Runtime.getRuntime().exec(commande);
+			BufferedReader errorReader  = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
 
 			String line = null;
 
@@ -160,6 +163,17 @@ public class SystemInfosService {
 			System.out.println("Message d'erreur:"+t.getMessage());
 		}
 		return eb.toString();
+}
+	Process executerCommande(String command)
+			throws IOException {
+		if (SystemUtils.IS_OS_WINDOWS) {
+			String editedCommand = "cmd.exe /c " + command.replace(";", " &");
+
+			return Runtime.getRuntime().exec(editedCommand);
+		} else {
+			String[] arguments = new String[]{"/bin/sh", "-c", command};
+			return Runtime.getRuntime().exec(arguments);
+		}
 	}
 
 
