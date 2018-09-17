@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.constellio.data.utils.dev.Toggle;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1370,8 +1371,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public void flush() {
 		try {
 			recordDao.flush();
-			eventsDao.flush();
+			if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled())  {
+				eventsDao.flush();
+			}
 			notificationsDao.flush();
+
 		} catch (RecordDaoRuntimeException_RecordsFlushingFailed e) {
 			throw new RecordServicesRuntimeException_RecordsFlushingFailed(e);
 		}
