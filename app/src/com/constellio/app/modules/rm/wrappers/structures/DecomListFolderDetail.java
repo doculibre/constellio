@@ -1,10 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.model.entities.schemas.ModifiableStructure;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class DecomListFolderDetail implements ModifiableStructure {
 	String folderId;
@@ -104,7 +103,7 @@ public class DecomListFolderDetail implements ModifiableStructure {
 	public String toString() {
 		return "DecommissioningListFolderDetail{" +
 			   "folderId='" + folderId + '\'' +
-				", folderStatus" + folderDetailStatus.getDescription() +
+			   ", folderStatus" + folderDetailStatus.getDescription() +
 			   ", containerRecordId='" + containerRecordId + '\'' +
 			   ", reversedSort=" + reversedSort +
 			   ", dirty=" + dirty +

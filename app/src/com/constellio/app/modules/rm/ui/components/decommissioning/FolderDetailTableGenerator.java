@@ -26,8 +26,10 @@ import com.vaadin.ui.Table.ColumnGenerator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -55,6 +57,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 	private boolean displayValidation;
 	private boolean displayOrderNumber;
 	private Map<FolderDetailVO, Component> checkBoxMap;
+	private Set<FolderDetailVO> selected;
 
 	public FolderDetailTableGenerator(DecommissioningListPresenter presenter, DecommissioningListViewImpl view,
 									  boolean packageable) {
@@ -66,6 +69,7 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		displaySort = false;
 		displayValidation = false;
 		checkBoxMap = new HashMap<>();
+		selected = new HashSet<>();
 	}
 
 	public FolderDetailTableGenerator withExtension(DecommissioningListFolderTableExtension extension) {
@@ -225,6 +229,12 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				detail.setSelected(checkBox.getValue());
+				if (checkBox.getValue()) {
+					selected.add(detail);
+				} else {
+					selected.remove(detail);
+				}
+				view.refreshButtons(selected.size(), detail);
 			}
 		});
 		checkBoxMap.put(detail, checkBox);

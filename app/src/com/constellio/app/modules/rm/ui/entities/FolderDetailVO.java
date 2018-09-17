@@ -1,15 +1,16 @@
 package com.constellio.app.modules.rm.ui.entities;
 
-import java.io.Serializable;
-
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
+
+import java.io.Serializable;
 
 public class FolderDetailVO implements Serializable {
 	private String folderId;
 	private String folderLegacyId;
 	private String previousId;
 	private FolderDetailStatus folderDetailStatus;
+	private FolderComponent folderComponent;
 	private String containerRecordId;
 	private FolderMediaType mediumType;
 	private String retentionRuleId;
@@ -123,5 +124,13 @@ public class FolderDetailVO implements Serializable {
 	public FolderDetailVO setPreviousId(String previousId) {
 		this.previousId = previousId;
 		return this;
+	}
+
+	public FolderComponent getFolderComponent() {
+		return folderComponent;
+	}
+
+	public void setFolderComponent(FolderComponent folderComponent) {
+		this.folderComponent = folderComponent;
 	}
 }

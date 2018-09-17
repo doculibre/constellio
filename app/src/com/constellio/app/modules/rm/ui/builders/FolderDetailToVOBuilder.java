@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.builders;
 
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.ui.entities.FolderComponent;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
@@ -14,7 +15,7 @@ public class FolderDetailToVOBuilder {
 		this.rmRecordServices = rmRecordServices;
 	}
 
-	public FolderDetailVO build(FolderDetailWithType detailWithType) {
+	public FolderDetailVO build(FolderDetailWithType detailWithType, FolderComponent folderComponent) {
 		DecomListFolderDetail detail = detailWithType.getDetail();
 		Folder folder = rmRecordServices.getFolder(detail.getFolderId());
 
@@ -32,6 +33,7 @@ public class FolderDetailToVOBuilder {
 		folderDetailVO.setReversedSort(detail.isReversedSort());
 		folderDetailVO.setSelected(false);
 		folderDetailVO.setLinearSize(detailWithType.getDetail().getFolderLinearSize());
+		folderDetailVO.setFolderComponent(folderComponent);
 
 		return folderDetailVO;
 	}

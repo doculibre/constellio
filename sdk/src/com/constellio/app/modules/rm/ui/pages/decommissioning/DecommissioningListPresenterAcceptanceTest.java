@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
+import com.constellio.app.modules.rm.ui.entities.FolderComponent;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -141,13 +142,13 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 		foldersWithSize.put(records.folder_A04, 30D);
 
 		FolderDetailToVOBuilder folderBuilder = new FolderDetailToVOBuilder(rm);
-		FolderDetailVO folder1 = folderBuilder.build(decommissioningList.getFolderDetailWithType(records.folder_A01));
+		FolderDetailVO folder1 = folderBuilder.build(decommissioningList.getFolderDetailWithType(records.folder_A01), FolderComponent.PACKAGEABLE_FOLDER_COMPONENT);
 		folder1.setLinearSize(40D);
-		FolderDetailVO folder2 = folderBuilder.build(decommissioningList.getFolderDetailWithType(records.folder_A02));
+		FolderDetailVO folder2 = folderBuilder.build(decommissioningList.getFolderDetailWithType(records.folder_A02), FolderComponent.PACKAGEABLE_FOLDER_COMPONENT);
 		folder2.setLinearSize(50D);
-		FolderDetailVO folder3 = folderBuilder.build(decommissioningList.getFolderDetailWithType(records.folder_A03));
+		FolderDetailVO folder3 = folderBuilder.build(decommissioningList.getFolderDetailWithType(records.folder_A03), FolderComponent.PACKAGEABLE_FOLDER_COMPONENT);
 		folder3.setLinearSize(70D);
-		FolderDetailVO folder4 = folderBuilder.build(decommissioningList.getFolderDetailWithType(records.folder_A04));
+		FolderDetailVO folder4 = folderBuilder.build(decommissioningList.getFolderDetailWithType(records.folder_A04), FolderComponent.PACKAGEABLE_FOLDER_COMPONENT);
 		folder4.setLinearSize(30D);
 		doReturn(folder1).when(view).getPackageableFolder(records.folder_A01);
 		doReturn(folder2).when(view).getPackageableFolder(records.folder_A02);

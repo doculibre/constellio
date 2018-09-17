@@ -83,13 +83,18 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	private Component validationComponent;
 	private BaseTable validations;
 	private Component foldersToValidateComponent;
+	private Component foldersToValidateComponentExcludeButton;
 	private BaseTable foldersToValidate;
+	private Component packageableFolderComponentExcludeButton;
 	private Component packageableFolderComponent;
 	private BaseTable packageableFolders;
+	private Component processableFolderComponentExcludeButton;
 	private Component processableFolderComponent;
 	private BaseTable processableFolders;
+	private Component excludedFolderComponentIncludeButton;
 	private Component excludedFolderComponent;
 	private BaseTable excludedFolders;
+	private HorizontalLayout selectedFoldersComponentIncludeExcludeButtons;
 	private Component selectedFoldersComponent;
 	private BaseTable selectedFolders;
 	private Component containerComponent;
@@ -140,6 +145,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		validationComponent.setVisible(!validations.isEmpty());
 
 		if (presenter.isValidationRequestedForCurrentUser()) {
+			List<FolderDetailVO> selectedFolders = presenter.getSelectedFolders();
+			selectedFoldersComponent = buildSelectedFoldersComponent(selectedFolders);
+			selectedFoldersComponent.setVisible(!selectedFolders.isEmpty());
+
 			List<FolderDetailVO> foldersToValidate = presenter.getFoldersToValidate();
 			foldersToValidateComponent = buildFoldersToValidateComponent(foldersToValidate);
 			foldersToValidateComponent.setVisible(!foldersToValidate.isEmpty());
@@ -656,7 +665,9 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		packageableFolders = buildFolderTable(folders, presenter.shouldAllowContainerEditing());
 
-		HorizontalLayout horizontalLayout = new HorizontalLayout(buildOrderPackageableFoldersButton(), buildExcludeButton(folders));
+		packageableFolderComponentExcludeButton = buildExcludeButton(folders);
+		packageableFolderComponentExcludeButton.setEnabled(false);
+		HorizontalLayout horizontalLayout = new HorizontalLayout(buildOrderPackageableFoldersButton(), packageableFolderComponentExcludeButton);
 		horizontalLayout.setSpacing(true);
 		VerticalLayout layout = new VerticalLayout(header, buildSelectAllButton(packageableFolders), controls, packageableFolders, horizontalLayout);
 		layout.setSpacing(true);
@@ -669,8 +680,11 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		header.addStyleName(ValoTheme.LABEL_H2);
 
 		foldersToValidate = buildFolderTable(folders, true);
-
-		VerticalLayout layout = new VerticalLayout(header, foldersToValidate, buildOrderFoldersToValidateButton());
+		foldersToValidateComponentExcludeButton = buildExcludeButton(folders);
+		foldersToValidateComponentExcludeButton.setEnabled(false);
+		HorizontalLayout horizontalLayout = new HorizontalLayout(buildOrderFoldersToValidateButton(), foldersToValidateComponentExcludeButton);
+		horizontalLayout.setSpacing(true);
+		VerticalLayout layout = new VerticalLayout(header, buildSelectAllButton(foldersToValidate), foldersToValidate, horizontalLayout);
 		layout.setSpacing(true);
 
 		return layout;
@@ -728,7 +742,9 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		removeFromTheBox.setEnabled(presenter.canCurrentUserManageContainers());
 		removeFromTheBox.setVisible(presenter.canCurrentUserManageContainers() && presenter.shouldAllowContainerEditing() && !packageableFolders.isEmpty());
 
-		HorizontalLayout horizontalLayout = new HorizontalLayout(buildOrderProcessableFoldersButton(), buildExcludeButton(folders));
+		processableFolderComponentExcludeButton = buildExcludeButton(folders);
+		processableFolderComponentExcludeButton.setEnabled(false);
+		HorizontalLayout horizontalLayout = new HorizontalLayout(buildOrderProcessableFoldersButton(), processableFolderComponentExcludeButton);
 		horizontalLayout.setSpacing(true);
 		VerticalLayout layout = new VerticalLayout(header);
 
@@ -748,8 +764,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		header.addStyleName(ValoTheme.LABEL_H2);
 
 		excludedFolders = buildFolderTable(folders, false);
-
-		HorizontalLayout horizontalLayout = new HorizontalLayout(buildOrderExcludedFoldersButton(), buildIncludeButton(folders));
+		excludedFolderComponentIncludeButton = buildIncludeButton(folders);
+		excludedFolderComponentIncludeButton.setEnabled(false);
+		HorizontalLayout horizontalLayout = new HorizontalLayout(buildOrderExcludedFoldersButton(), excludedFolderComponentIncludeButton);
+		horizontalLayout.setSpacing(true);
 		VerticalLayout layout = new VerticalLayout(header, buildSelectAllButton(excludedFolders), excludedFolders, horizontalLayout);
 		layout.setSpacing(true);
 
@@ -922,9 +940,10 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 		header.addStyleName(ValoTheme.LABEL_H2);
 
 		selectedFolders = buildFolderTable(folders, false);
-		HorizontalLayout includeExcludeButtons = new HorizontalLayout(buildIncludeButton(folders), buildExcludeButton(folders));
-		includeExcludeButtons.setSpacing(true);
-		VerticalLayout layout = new VerticalLayout(header, buildSelectAllButton(selectedFolders), selectedFolders, includeExcludeButtons);
+		selectedFoldersComponentIncludeExcludeButtons = new HorizontalLayout(buildIncludeButton(folders), buildExcludeButton(folders));
+		selectedFoldersComponentIncludeExcludeButtons.setSpacing(true);
+		selectedFoldersComponentIncludeExcludeButtons.setEnabled(false);
+		VerticalLayout layout = new VerticalLayout(header, buildSelectAllButton(selectedFolders), selectedFolders, selectedFoldersComponentIncludeExcludeButtons);
 		layout.setSpacing(true);
 
 		return layout;
@@ -1052,4 +1071,26 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 			addContainerToComponent(newContainerDetail, containerTable, containerComponent);
 		}
 	}
+
+	public void refreshButtons(int size, FolderDetailVO detail) {
+		boolean enabled = size > 0;
+		switch (detail.getFolderComponent()) {
+			case EXCLUDED_FOLDER_COMPONENT:
+				excludedFolderComponentIncludeButton.setEnabled(enabled);
+				break;
+			case PROCESSABLE_FOLDER_COMPONENT:
+				processableFolderComponentExcludeButton.setEnabled(enabled);
+				break;
+			case PACKAGEABLE_FOLDER_COMPONENT:
+				packageableFolderComponentExcludeButton.setEnabled(enabled);
+				break;
+			case SELECTED_FOLDERS_COMPONENT:
+				selectedFoldersComponentIncludeExcludeButtons.setEnabled(enabled);
+				break;
+			case FOLDERS_TO_VALIDATE_COMPONENT:
+				foldersToValidateComponentExcludeButton.setEnabled(enabled);
+				break;
+		}
+	}
+
 }
