@@ -144,26 +144,34 @@ public class SystemInfosService {
 	public String executCommand(String commande) throws IOException, InterruptedException {
 
 
+
+		StringBuilder sb = new StringBuilder();
 		StringBuilder eb = new StringBuilder();
 
-		try
-		{
+		int exitVal = 10000;
 
-			Process proc = Runtime.getRuntime().exec(commande);
-			BufferedReader errorReader  = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+		Runtime rt = Runtime.getRuntime();
+		Process proc = executerCommande(commande);
 
-			String line = null;
 
-			while ( (line = errorReader.readLine()) != null) {
-				eb.append(line);
-			}
+		InputStream stderr = proc.getInputStream();
+		InputStreamReader esr = new InputStreamReader(stderr);
+		BufferedReader errorReader = new BufferedReader(esr);
 
-		} catch (Throwable t)
-		{
-			System.out.println("Message d'erreur:"+t.getMessage());
+		String line;
+
+		while ( (line = errorReader.readLine()) != null) {
+			eb.append(line);
+			System.out.println("tester boucle");
 		}
+
+
+
+		exitVal = proc.waitFor();
+
 		return eb.toString();
-}
+
+	}
 	Process executerCommande(String command)
 			throws IOException {
 		if (SystemUtils.IS_OS_WINDOWS) {
