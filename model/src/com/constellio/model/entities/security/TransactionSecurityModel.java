@@ -1,5 +1,7 @@
 package com.constellio.model.entities.security;
 
+import com.constellio.data.utils.Provider;
+import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -8,6 +10,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.security.roles.Roles;
 
 import java.util.ArrayList;
@@ -31,6 +34,7 @@ public class TransactionSecurityModel implements SecurityModel {
 
 	List<User> modifiedUsers;
 	List<Group> modifiedGroups;
+	final RecordProvider recordProvider;
 
 	public TransactionSecurityModel(MetadataSchemaTypes types, Roles roles, SingletonSecurityModel nestedSecurityModel,
 									Transaction transaction) {
@@ -38,6 +42,7 @@ public class TransactionSecurityModel implements SecurityModel {
 		this.transaction = transaction;
 		this.roles = roles;
 		this.types = types;
+		this.recordProvider = new RecordProvider(null, nestedSecurityModel.recordProvider, null, transaction);
 
 		this.modifiedUsers = new ArrayList<>();
 		this.modifiedGroups = new ArrayList<>();
@@ -237,6 +242,20 @@ public class TransactionSecurityModel implements SecurityModel {
 	public boolean isGroupActive(Group group) {
 		//TODO Handle group inheritance modifications in transaction
 		return nestedSecurityModel.isGroupActive(group);
+	}
+
+	@Override
+	public List<SecurityModelAuthorization> getAuthorizationDetailsOnMetadatasProvidingSecurity(
+			String id, DynamicDependencyValues metadatasProvidingSecurity) {
+
+		return SecurityModelUtils.getAuthorizationDetailsOnMetadatasProvidingSecurity(
+				metadatasProvidingSecurity, recordProvider, this, new Provider<String, SecurityModelAuthorization>() {
+					@Override
+					public SecurityModelAuthorization get(String authId) {
+						return getAuthorizationWithId(authId);
+					}
+				});
+
 	}
 
 }

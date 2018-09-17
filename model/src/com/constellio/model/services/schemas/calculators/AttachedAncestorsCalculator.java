@@ -15,15 +15,15 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.DETACHED_AUTHORIZATIONS;
+import static com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator.hasOverridingAuth;
 import static java.util.Arrays.asList;
 
 public class AttachedAncestorsCalculator implements MetadataValueCalculator<List<String>> {
 
 	SpecialDependency<HierarchyDependencyValue> taxonomiesParam = SpecialDependencies.HIERARCHY;
 	LocalDependency<Boolean> isDetachedAuthsParams = LocalDependency.toABoolean(DETACHED_AUTHORIZATIONS);
-	//SpecialDependency<AllAuthorizationsTargettingRecordDependencyValue> authorizationsParam = SpecialDependencies.AURHORIZATIONS_TARGETTING_RECORD;
 	SpecialDependency<SecurityModel> securityModelDependency = SpecialDependencies.SECURITY_MODEL;
-
+	MetadatasProvidingSecurityDynamicDependency metadatasProvidingSecurityParams = new MetadatasProvidingSecurityDynamicDependency();
 
 	@Override
 
@@ -37,8 +37,8 @@ public class AttachedAncestorsCalculator implements MetadataValueCalculator<List
 		if (hasSecurity) {
 			if (hierarchyDependencyValue != null
 				&& !isDetachedAuths
-				//TODO Replace using new security model && !authorizations.isInheritedAuthorizationsOverridenByMetadatasProvidingSecurity()
-			) {
+				&& !hasOverridingAuth(securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(
+					parameters.getId(), parameters.get(metadatasProvidingSecurityParams)))) {
 				ancestors.addAll(hierarchyDependencyValue.getAttachedAncestors());
 			}
 			ancestors.add(parameters.getId());
@@ -64,6 +64,6 @@ public class AttachedAncestorsCalculator implements MetadataValueCalculator<List
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return asList(taxonomiesParam, isDetachedAuthsParams, securityModelDependency);
+		return asList(taxonomiesParam, isDetachedAuthsParams, securityModelDependency, metadatasProvidingSecurityParams);
 	}
 }

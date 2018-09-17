@@ -1,12 +1,15 @@
 package com.constellio.model.entities.security;
 
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.services.records.RecordProvider;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,20 +34,23 @@ public class SingletonSecurityModel implements SecurityModel {
 	List<Group> groups;
 	List<String> disabledGroupCodes;
 	Taxonomy principalTaxonomy;
+	RecordProvider recordProvider;
 
 	public static SingletonSecurityModel EMPTY = new SingletonSecurityModel(Collections.<AuthorizationDetails>emptyList(),
-			Collections.<User>emptyList(), Collections.<Group>emptyList(), FROM_PARENT_TO_CHILD, new ArrayList<String>(), null);
+			Collections.<User>emptyList(), Collections.<Group>emptyList(), FROM_PARENT_TO_CHILD, new ArrayList<String>(), null, null);
 
 	public SingletonSecurityModel(List<AuthorizationDetails> authorizationDetails, List<User> users,
 								  final List<Group> groups,
 								  GroupAuthorizationsInheritance groupAuthorizationsInheritance,
-								  List<String> disabledGroupCodes, Taxonomy principalTaxonomy) {
+								  List<String> disabledGroupCodes, Taxonomy principalTaxonomy,
+								  RecordProvider recordProvider) {
 		this.authorizationDetails = authorizationDetails;
 		this.users = users;
 		this.groups = groups;
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
 		this.disabledGroupCodes = disabledGroupCodes;
 		this.principalTaxonomy = principalTaxonomy;
+		this.recordProvider = recordProvider;
 
 		for (AuthorizationDetails authorizationDetail : authorizationDetails) {
 			boolean conceptAuth = principalTaxonomy != null && principalTaxonomy.getSchemaTypes().contains(authorizationDetail.getTargetSchemaType());
@@ -128,6 +134,20 @@ public class SingletonSecurityModel implements SecurityModel {
 		return !disabledGroupCodes.contains(group.getCode());
 	}
 
+	@Override
+	public List<SecurityModelAuthorization> getAuthorizationDetailsOnMetadatasProvidingSecurity(
+			String id, DynamicDependencyValues metadatasProvidingSecurity) {
+
+		return SecurityModelUtils.getAuthorizationDetailsOnMetadatasProvidingSecurity(
+				metadatasProvidingSecurity, recordProvider, this, new Provider<String, SecurityModelAuthorization>() {
+					@Override
+					public SecurityModelAuthorization get(String authId) {
+						return getAuthorizationWithId(authId);
+					}
+				});
+
+	}
+
 	private List<Group> getGroupHierarchy(Group group) {
 		List<Group> groupsHierarchy = new ArrayList<>();
 
@@ -143,6 +163,7 @@ public class SingletonSecurityModel implements SecurityModel {
 		return groupsHierarchy;
 
 	}
+
 
 	public GroupAuthorizationsInheritance getGroupAuthorizationsInheritance() {
 		return groupAuthorizationsInheritance;

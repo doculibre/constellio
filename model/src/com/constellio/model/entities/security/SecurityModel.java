@@ -1,5 +1,6 @@
 package com.constellio.model.entities.security;
 
+import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.records.wrappers.Group;
 
 import java.util.List;
@@ -13,4 +14,7 @@ public interface SecurityModel {
 	List<Group> getGroupsInheritingAuthorizationsFrom(Group group);
 
 	boolean isGroupActive(Group group);
+
+	List<SecurityModelAuthorization> getAuthorizationDetailsOnMetadatasProvidingSecurity(
+			String id, DynamicDependencyValues metadatasProvidingSecurity);
 }

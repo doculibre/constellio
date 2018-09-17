@@ -30,6 +30,8 @@ public interface AuthorizationDetails extends Serializable {
 
 	boolean isActiveAuthorization();
 
+	boolean isOverrideInherited();
+
 	String getTarget();
 
 	String getTargetSchemaType();

@@ -141,6 +141,11 @@ public class XMLAuthorizationDetails implements AuthorizationDetails {
 	}
 
 	@Override
+	public boolean isOverrideInherited() {
+		return false;
+	}
+
+	@Override
 	public String getTarget() {
 		return null;
 	}

@@ -26,6 +26,7 @@ import static com.constellio.model.services.schemas.builders.CommonMetadataBuild
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.LOGICALLY_DELETED;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.MANUAL_TOKENS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.VISIBLE_IN_TREES;
+import static com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator.hasOverridingAuth;
 
 public class TokensCalculator4 implements MetadataValueCalculator<List<String>> {
 
@@ -43,6 +44,8 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 	LocalDependency<Boolean> isDetachedParams = LocalDependency.toABoolean(Schemas.IS_DETACHED_AUTHORIZATIONS.getLocalCode());
 
+	MetadatasProvidingSecurityDynamicDependency metadatasProvidingSecurityParams = new MetadatasProvidingSecurityDynamicDependency();
+
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
 		Set<String> tokens = new HashSet<>();
@@ -54,7 +57,12 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 		List<String> allRemovedAuths = parameters.get(allRemovedAuthsParam);
 
-		if (!detached) {
+		List<SecurityModelAuthorization> metadataAuths = securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(
+				parameters.getId(), parameters.get(metadatasProvidingSecurityParams));
+
+		authorizations.addAll(metadataAuths);
+
+		if (!detached && !hasOverridingAuth(metadataAuths)) {
 			for (String inheritedNonTaxonomyAuthId : hierarchyDependencyValue.getInheritedNonTaxonomyAuthorizations()) {
 				//hierarchyDependencyValue.getRemovedAuthorizationIds().contains(inheritedNonTaxonomyAuthId)
 				if (!allRemovedAuths.contains(inheritedNonTaxonomyAuthId)) {
@@ -62,6 +70,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 				}
 			}
 		}
+
 
 		String typeSmallCode = parameters.getSchemaType().getSmallCode();
 		if (typeSmallCode == null) {
@@ -132,6 +141,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 	@Override
 	public List<? extends Dependency> getDependencies() {
 		return Arrays.asList(securityModelSpecialDependency, manualTokensParam, logicallyDeletedParam,
-				visibleInTreesParam, hierarchyDependencyValuesParam, allRemovedAuthsParam, isDetachedParams);
+				visibleInTreesParam, hierarchyDependencyValuesParam, allRemovedAuthsParam, isDetachedParams,
+				metadatasProvidingSecurityParams);
 	}
 }
