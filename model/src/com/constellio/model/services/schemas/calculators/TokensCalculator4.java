@@ -26,7 +26,8 @@ import static com.constellio.model.services.schemas.builders.CommonMetadataBuild
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.LOGICALLY_DELETED;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.MANUAL_TOKENS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.VISIBLE_IN_TREES;
-import static com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator.hasOverridingAuth;
+import static com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator.hasActiveOverridingAuth;
+import static java.lang.Boolean.TRUE;
 
 public class TokensCalculator4 implements MetadataValueCalculator<List<String>> {
 
@@ -48,30 +49,41 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		Set<String> tokens = new HashSet<>();
 		SecurityModel securityModel = parameters.get(securityModelSpecialDependency);
-		List<String> manualTokens = parameters.get(manualTokensParam);
+		List<SecurityModelAuthorization> authorizations = calculateAppliedAuthorizations(parameters, securityModel);
+		return buildTokens(parameters, securityModel, authorizations);
+	}
+
+	private List<SecurityModelAuthorization> calculateAppliedAuthorizations(CalculatorParameters parameters,
+																			SecurityModel securityModel) {
 		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(hierarchyDependencyValuesParam);
-		List<SecurityModelAuthorization> authorizations = new ArrayList<>(securityModel.getAuthorizationsOnTarget(parameters.getId()));
-		boolean detached = Boolean.TRUE.equals(parameters.get(isDetachedParams));
+		List<SecurityModelAuthorization> authorizations = new ArrayList<>(
+				securityModel.getAuthorizationsOnTarget(parameters.getId()));
+		boolean detached = TRUE.equals(parameters.get(isDetachedParams));
 
 		List<String> allRemovedAuths = parameters.get(allRemovedAuthsParam);
 
-		List<SecurityModelAuthorization> metadataAuths = securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(
-				parameters.getId(), parameters.get(metadatasProvidingSecurityParams));
+		List<SecurityModelAuthorization> authsFromMetadatas = securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(
+				parameters.get(metadatasProvidingSecurityParams));
 
-		authorizations.addAll(metadataAuths);
+		authorizations.addAll(authsFromMetadatas);
 
-		if (!detached && !hasOverridingAuth(metadataAuths)) {
+		if (!detached && !hasActiveOverridingAuth(authsFromMetadatas)) {
 			for (String inheritedNonTaxonomyAuthId : hierarchyDependencyValue.getInheritedNonTaxonomyAuthorizations()) {
-				//hierarchyDependencyValue.getRemovedAuthorizationIds().contains(inheritedNonTaxonomyAuthId)
 				if (!allRemovedAuths.contains(inheritedNonTaxonomyAuthId)) {
 					authorizations.add(securityModel.getAuthorizationWithId(inheritedNonTaxonomyAuthId));
 				}
 			}
 		}
+		return authorizations;
+	}
 
+	private List<String> buildTokens(CalculatorParameters parameters, SecurityModel securityModel,
+									 List<SecurityModelAuthorization> authorizations) {
 
+		List<String> manualTokens = parameters.get(manualTokensParam);
+
+		Set<String> tokens = new HashSet<>();
 		String typeSmallCode = parameters.getSchemaType().getSmallCode();
 		if (typeSmallCode == null) {
 			typeSmallCode = parameters.getSchemaType().getCode();
@@ -103,7 +115,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		return tokensList;
 	}
 
-	protected void addPrincipalTokens(Set<String> tokens, String typeSmallCode, String access, String principalId) {
+	private void addPrincipalTokens(Set<String> tokens, String typeSmallCode, String access, String principalId) {
 		if (Role.READ.equals(access)) {
 			tokens.add("r_" + principalId);
 			tokens.add("r" + typeSmallCode + "_" + principalId);

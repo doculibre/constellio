@@ -15,7 +15,7 @@ import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.DETACHED_AUTHORIZATIONS;
-import static com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator.hasOverridingAuth;
+import static com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator.hasActiveOverridingAuth;
 import static java.util.Arrays.asList;
 
 public class AttachedAncestorsCalculator implements MetadataValueCalculator<List<String>> {
@@ -37,8 +37,8 @@ public class AttachedAncestorsCalculator implements MetadataValueCalculator<List
 		if (hasSecurity) {
 			if (hierarchyDependencyValue != null
 				&& !isDetachedAuths
-				&& !hasOverridingAuth(securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(
-					parameters.getId(), parameters.get(metadatasProvidingSecurityParams)))) {
+				&& !hasActiveOverridingAuth(securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(
+					parameters.get(metadatasProvidingSecurityParams)))) {
 				ancestors.addAll(hierarchyDependencyValue.getAttachedAncestors());
 			}
 			ancestors.add(parameters.getId());

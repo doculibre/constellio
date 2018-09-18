@@ -136,7 +136,7 @@ public class SingletonSecurityModel implements SecurityModel {
 
 	@Override
 	public List<SecurityModelAuthorization> getAuthorizationDetailsOnMetadatasProvidingSecurity(
-			String id, DynamicDependencyValues metadatasProvidingSecurity) {
+			DynamicDependencyValues metadatasProvidingSecurity) {
 
 		return SecurityModelUtils.getAuthorizationDetailsOnMetadatasProvidingSecurity(
 				metadatasProvidingSecurity, recordProvider, this, new Provider<String, SecurityModelAuthorization>() {

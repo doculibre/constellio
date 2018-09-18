@@ -14,15 +14,19 @@ import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.Arrays.asList;
 
+/**
+ * This calculator is used to feed a list of authorizations that are placed directly on records in a taxonomy.
+ * Since a modification to the auth requires the indexing of the records, the metadata is used to calculate impacts
+ */
 public class NonTaxonomyAuthorizationsCalculator extends ReferenceListMetadataValueCalculator {
 
 
-	LocalDependency<List<String>> allRemovedAuthsParam = LocalDependency
-			.toAStringList(CommonMetadataBuilder.ALL_REMOVED_AUTHS);
+	LocalDependency<List<String>> allRemovedAuthsParam = LocalDependency.toAStringList(CommonMetadataBuilder.ALL_REMOVED_AUTHS);
 
 	SpecialDependency<HierarchyDependencyValue> hierarchyDependencyValuesParam = SpecialDependencies.HIERARCHY;
 
@@ -34,52 +38,52 @@ public class NonTaxonomyAuthorizationsCalculator extends ReferenceListMetadataVa
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
+
+		if (parameters.isPrincipalTaxonomyConcept()) {
+			return Collections.emptyList();
+		}
+
 		SecurityModel securityModel = parameters.get(securityModelSpecialDependency);
 		List<String> allRemovedAuths = parameters.get(allRemovedAuthsParam);
 		HierarchyDependencyValue hierarchyDependencyValues = parameters.get(hierarchyDependencyValuesParam);
 		boolean detached = Boolean.TRUE.equals(parameters.get(isDetachedParams));
 
 		List<String> returnedIds = new ArrayList<>();
-		if (!parameters.isPrincipalTaxonomyConcept()) {
 
-			for (SecurityModelAuthorization auth : securityModel.getAuthorizationsOnTarget(parameters.getId())) {
-				SolrAuthorizationDetails authorizationDetails = (SolrAuthorizationDetails) auth.getDetails();
-				if (authorizationDetails.isActiveAuthorization()) {
-					returnedIds.add(authorizationDetails.getId());
+		addActiveAuthorizations(returnedIds, securityModel.getAuthorizationsOnTarget(parameters.getId()));
+
+		List<SecurityModelAuthorization> metadataAuths = securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(
+				parameters.get(metadatasProvidingSecurityParams));
+
+		addActiveAuthorizations(returnedIds, metadataAuths);
+
+		if (!detached && hierarchyDependencyValues != null && !hasActiveOverridingAuth(metadataAuths)) {
+			for (String inheritedNonTaxonomyAuthId : hierarchyDependencyValues.getInheritedNonTaxonomyAuthorizations()) {
+				if (!allRemovedAuths.contains(inheritedNonTaxonomyAuthId)) {
+					returnedIds.add(inheritedNonTaxonomyAuthId);
 				}
 			}
-
-			List<SecurityModelAuthorization> metadataAuths = securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(
-					parameters.getId(), parameters.get(metadatasProvidingSecurityParams));
-
-			for (SecurityModelAuthorization auth : metadataAuths) {
-				SolrAuthorizationDetails authorizationDetails = (SolrAuthorizationDetails) auth.getDetails();
-				if (authorizationDetails.isActiveAuthorization()) {
-					returnedIds.add(authorizationDetails.getId());
-				}
-			}
-
-
-			if (!detached && hierarchyDependencyValues != null && !hasOverridingAuth(metadataAuths)) {
-				for (String inheritedNonTaxonomyAuthId : hierarchyDependencyValues.getInheritedNonTaxonomyAuthorizations()) {
-					if (!allRemovedAuths.contains(inheritedNonTaxonomyAuthId)) {
-						returnedIds.add(inheritedNonTaxonomyAuthId);
-					}
-				}
-			}
-
 		}
-
 		return returnedIds;
 	}
 
-	public static boolean hasOverridingAuth(List<SecurityModelAuthorization> authorizations) {
+	protected void addActiveAuthorizations(List<String> returnedIds,
+										   List<SecurityModelAuthorization> metadataAuths) {
+		for (SecurityModelAuthorization auth : metadataAuths) {
+			SolrAuthorizationDetails authorizationDetails = (SolrAuthorizationDetails) auth.getDetails();
+			if (authorizationDetails.isActiveAuthorization()) {
+				returnedIds.add(authorizationDetails.getId());
+			}
+		}
+	}
+
+
+	public static boolean hasActiveOverridingAuth(List<SecurityModelAuthorization> authorizations) {
 		for (SecurityModelAuthorization auth : authorizations) {
 			if (auth.getDetails().isActiveAuthorization() && auth.getDetails().isOverrideInherited()) {
 				return true;
 			}
 		}
-
 		return false;
 	}
 

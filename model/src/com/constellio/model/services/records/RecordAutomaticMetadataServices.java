@@ -86,7 +86,7 @@ public class RecordAutomaticMetadataServices {
 	private final SearchServices searchServices;
 	private final ModelLayerFactory modelLayerFactory;
 
-	RecordAutomaticMetadataServices(ModelLayerFactory modelLayerFactory) {
+	public RecordAutomaticMetadataServices(ModelLayerFactory modelLayerFactory) {
 		super();
 		this.modelLayerLogger = modelLayerFactory.getModelLayerLogger();
 		this.schemasManager = modelLayerFactory.getMetadataSchemasManager();
@@ -96,8 +96,8 @@ public class RecordAutomaticMetadataServices {
 		this.modelLayerFactory = modelLayerFactory;
 	}
 
-	void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
-								  TransactionRecordsReindexation reindexation, Transaction transaction) {
+	public void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
+										 TransactionRecordsReindexation reindexation, Transaction transaction) {
 		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
@@ -107,7 +107,7 @@ public class RecordAutomaticMetadataServices {
 
 	}
 
-	void loadTransientEagerMetadatas(RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
+	public void loadTransientEagerMetadatas(RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
 		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
@@ -118,7 +118,7 @@ public class RecordAutomaticMetadataServices {
 
 	}
 
-	void loadTransientLazyMetadatas(RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
+	public void loadTransientLazyMetadatas(RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
 		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
@@ -183,6 +183,7 @@ public class RecordAutomaticMetadataServices {
 		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
 		Metadata referenceMetadata = types.getMetadata(aggregatedDataEntry.getReferenceMetadata());
+		MetadataSchemaType schemaType = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(referenceMetadata));
 
 		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
 		if (agregationType != null) {
@@ -283,12 +284,11 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
-	private void calculateValueInRecord(TransactionExecutionContext context, RecordImpl record,
-										Metadata metadataWithCalculatedDataEntry,
-										RecordProvider recordProvider, MetadataSchemaTypes types,
-										Transaction transaction,
-										Locale locale,
-										LocalisedRecordMetadataRetrieval mode) {
+	void calculateValueInRecord(TransactionExecutionContext context, RecordImpl record,
+								Metadata metadataWithCalculatedDataEntry,
+								RecordProvider recordProvider, MetadataSchemaTypes types, Transaction transaction,
+								Locale locale,
+								LocalisedRecordMetadataRetrieval mode) {
 		MetadataValueCalculator<?> calculator = getCalculatorFrom(metadataWithCalculatedDataEntry);
 		Map<Dependency, Object> values = new HashMap<>();
 		boolean requiredValuesDefined = addValuesFromDependencies(context, record, metadataWithCalculatedDataEntry,
@@ -318,7 +318,6 @@ public class RecordAutomaticMetadataServices {
 									  Map<Dependency, Object> values, MetadataSchemaTypes types,
 									  Transaction transaction, Locale locale,
 									  LocalisedRecordMetadataRetrieval mode) {
-
 		for (Dependency dependency : calculator.getDependencies()) {
 			if (dependency instanceof LocalDependency<?>) {
 				if (!addValueForLocalDependency(record, values, dependency, locale, mode)) {
@@ -390,9 +389,14 @@ public class RecordAutomaticMetadataServices {
 	void addValuesFromSpecialDependencies(TransactionExecutionContext context, RecordImpl record,
 										  RecordProvider recordProvider,
 										  Map<Dependency, Object> values, Dependency dependency) {
-
 		if (SpecialDependencies.HIERARCHY.equals(dependency)) {
 			addValueForTaxonomyDependency(record, recordProvider, values, dependency);
+
+			//		} else if (SpecialDependencies.ALL_PRINCIPALS.equals(dependency)) {
+			//			values.put(dependency, newPrincipalsAuthorizations(context, record, recordProvider));
+			//
+			//		} else if (SpecialDependencies.AURHORIZATIONS_TARGETTING_RECORD.equals(dependency)) {
+			//			values.put(dependency, toAuthorizationsTargettingRecord(context, record, recordProvider));
 
 		} else if (SpecialDependencies.SECURITY_MODEL.equals(dependency)) {
 			values.put(dependency, toSecurityModel(context, record, recordProvider));
@@ -514,11 +518,172 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
-	void addValueForTaxonomyDependency(RecordImpl record, RecordProvider recordProvider,
-									   Map<Dependency, Object> values,
-									   Dependency dependency) {
+	//	AllPrincipalsAuthsDependencyValue newPrincipalsAuthorizations(TransactionExecutionContext context,
+	//																  RecordImpl calculatedRecord,
+	//																  RecordProvider recordProvider) {
+	//
+	//		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
+	//		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
+	//
+	//		if (type.hasSecurity()) {
+	//
+	//			AllPrincipalsAuthsDependencyValue allPrincipalsAuthsDependencyValue = context.getAllPrincipalsAuthsDependencyValue();
+	//			if (allPrincipalsAuthsDependencyValue == null) {
+	//
+	//				List<String> disabledGroups = new ArrayList<>();
+	//				List<Group> groups = new ArrayList<>();
+	//				List<User> users = new ArrayList<>();
+	//				Set<String> usersInTransaction = new HashSet<>();
+	//				Set<String> groupsInTransaction = new HashSet<>();
+	//
+	//				RolesManager rolesManager = modelLayerFactory.getRolesManager();
+	//				Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
+	//
+	//				RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection());
+	//				if (recordProvider.transaction != null
+	//					//&& recordProvider.transaction.isContainingAnySchemaTypeRecord(User.SCHEMA_TYPE, Group.SCHEMA_TYPE)
+	//					&& recordsCache.isConfigured(User.SCHEMA_TYPE)
+	//					&& recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
+	//					for (Record transactionRecord : recordProvider.transaction.getRecords()) {
+	//						if (User.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
+	//							User user = User.wrapNullable(transactionRecord, types, roles);
+	//							usersInTransaction.add(user.getId());
+	//							users.add(user);
+	//						}
+	//
+	//						if (Group.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
+	//							Group group = Group.wrapNullable(transactionRecord, types);
+	//							groupsInTransaction.add(group.getId());
+	//							groups.add(group);
+	//						}
+	//					}
+	//
+	//				}
+	//
+	//				if (recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
+	//					for (Record record : searchServices
+	//							.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
+	//						if (record != null) {
+	//							if (!groupsInTransaction.contains(record.getId())) {
+	//								groups.add(Group.wrapNullable(record, types));
+	//							}
+	//						} else {
+	//							LOGGER.warn("Null record returned while getting all groups");
+	//						}
+	//					}
+	//
+	//					for (Record record : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(User.SCHEMA_TYPE))) {
+	//						if (record != null) {
+	//							if (!usersInTransaction.contains(record.getId())) {
+	//								users.add(User.wrapNullable(record, types, roles));
+	//							}
+	//						} else {
+	//							LOGGER.warn("Null record returned while getting all users");
+	//						}
+	//					}
+	//				}
+	//
+	//				RecordsCache systemCollectionCache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
+	//				SchemasRecordsServices systemCollectionSchemasRecordServices = new SchemasRecordsServices(
+	//						Collection.SYSTEM_COLLECTION, modelLayerFactory);
+	//				if (systemCollectionCache.isConfigured(SolrGlobalGroup.SCHEMA_TYPE)) {
+	//					for (Record record : searchServices
+	//							.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
+	//									.getSchemaType(SolrGlobalGroup.SCHEMA_TYPE))) {
+	//						GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
+	//						if (record != null && GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus())) {
+	//							disabledGroups.add(globalGroup.getCode());
+	//						}
+	//					}
+	//				}
+	//
+	//				allPrincipalsAuthsDependencyValue = new AllPrincipalsAuthsDependencyValue(groups, users, disabledGroups);
+	//				context.setAllPrincipalsAuthsDependencyValue(allPrincipalsAuthsDependencyValue);
+	//			}
+	//			return allPrincipalsAuthsDependencyValue;
+	//
+	//		} else {
+	//			return new AllPrincipalsAuthsDependencyValue(new ArrayList<Group>(), new ArrayList<User>(), new ArrayList<String>());
+	//		}
+	//
+	//	}
+	//
+	//	AllAuthorizationsTargettingRecordDependencyValue toAuthorizationsTargettingRecord(
+	//			TransactionExecutionContext context,
+	//			RecordImpl calculatedRecord,
+	//			RecordProvider recordProvider) {
+	//
+	//		Set<String> authsInTransaction = new HashSet<>();
+	//		boolean overridedByMetadataProvidingSecurity = false;
+	//		List<AuthorizationDetails> authsReceivedFromMetadatasProvidingSecurity = new ArrayList<>();
+	//		List<AuthorizationDetails> returnedAuthorizationDetails = new ArrayList<>();
+	//
+	//		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
+	//		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
+	//		MetadataSchema schema = type.getSchema(calculatedRecord.getSchemaCode());
+	//
+	//		if (type.hasSecurity() && modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection())
+	//				.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+	//
+	//			List<SolrAuthorizationDetails> authorizationDetails = context.getAllAuthorizationDetails();
+	//			if (authorizationDetails == null) {
+	//				authorizationDetails = new ArrayList<>();
+	//				if (recordProvider.transaction != null) {
+	//					for (Record transactionRecord : recordProvider.transaction.getRecords()) {
+	//						if (SolrAuthorizationDetails.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
+	//							SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(transactionRecord, types);
+	//							authsInTransaction.add(authorizationDetail.getId());
+	//							if (LangUtils.isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
+	//								authorizationDetails.add(authorizationDetail);
+	//							}
+	//						}
+	//					}
+	//				}
+	//
+	//				for (Record record : searchServices
+	//						.getAllRecordsInUnmodifiableState(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))) {
+	//					if (record != null) {
+	//						SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
+	//						if (!authsInTransaction.contains(authorizationDetail.getId())
+	//							&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
+	//							authorizationDetails.add(authorizationDetail);
+	//						}
+	//					} else {
+	//						LOGGER.warn("Null record returned while getting all authorizations");
+	//					}
+	//				}
+	//				context.setAllAuthorizationDetails(authorizationDetails);
+	//			}
+	//
+	//			Set<String> referencesProvidingSecurity = new HashSet<>();
+	//			for (Metadata metadata : schema.getMetadatas()) {
+	//				if (metadata.isRelationshipProvidingSecurity()) {
+	//					referencesProvidingSecurity.addAll(calculatedRecord.<String>getValues(metadata));
+	//				}
+	//			}
+	//
+	//			for (SolrAuthorizationDetails authorizationDetail : authorizationDetails) {
+	//				if (calculatedRecord.getId().equals(authorizationDetail.getTarget())) {
+	//					returnedAuthorizationDetails.add(authorizationDetail);
+	//				}
+	//
+	//				if (referencesProvidingSecurity.contains(authorizationDetail.getTarget())) {
+	//					authsReceivedFromMetadatasProvidingSecurity.add(authorizationDetail);
+	//					overridedByMetadataProvidingSecurity |=
+	//							authorizationDetail.isOverrideInherited() && authorizationDetail.isActiveAuthorization();
+	//				}
+	//			}
+	//
+	//		}
+	//		return new AllAuthorizationsTargettingRecordDependencyValue(returnedAuthorizationDetails,
+	//				authsReceivedFromMetadatasProvidingSecurity, overridedByMetadataProvidingSecurity);
+	//	}
 
-		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(record.getSchemaCode());
+	boolean addValueForTaxonomyDependency(RecordImpl record, RecordProvider recordProvider,
+										  Map<Dependency, Object> values,
+										  Dependency dependency) {
+
+		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		Taxonomy taxonomy = taxonomiesManager.getTaxonomyFor(record.getCollection(), schemaTypeCode);
 
 		List<String> paths = new ArrayList<>();
@@ -569,6 +734,7 @@ public class RecordAutomaticMetadataServices {
 		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, removedAuthorizations,
 				inheritedNonTaxonomyAuthorizations, attachedAncestors);
 		values.put(dependency, value);
+		return true;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -577,7 +743,7 @@ public class RecordAutomaticMetadataServices {
 										   ReferenceDependency<?> referenceDependency, Metadata referenceMetadata,
 										   RecordUpdateOptions options,
 										   Locale locale, LocalisedRecordMetadataRetrieval mode) {
-		List<String> referencesValues = record.getList(referenceMetadata, locale, mode);
+		List<String> referencesValues = record.<String>getList(referenceMetadata, locale, mode);
 		List<Record> referencedRecords = new ArrayList<>();
 		for (String referenceValue : referencesValues) {
 			if (referenceValue != null) {
@@ -627,7 +793,7 @@ public class RecordAutomaticMetadataServices {
 											ReferenceDependency<?> dependency, Metadata referenceMetadata,
 											RecordUpdateOptions options,
 											Locale locale, LocalisedRecordMetadataRetrieval mode) {
-		String referenceValue = record.get(referenceMetadata, locale, mode);
+		String referenceValue = (String) record.get(referenceMetadata, locale, mode);
 		Record referencedRecord;
 		if (dependency.isRequired() && referenceValue == null) {
 			return false;
@@ -731,10 +897,10 @@ public class RecordAutomaticMetadataServices {
 		record.updateAutomaticValue(metadataWithCopyDataEntry, copiedValue);
 	}
 
-	private void copyReferenceValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry,
-											RecordProvider recordProvider,
-											Metadata copiedMetadata, List<String> referencedRecordIds,
-											Metadata referenceMetadata, RecordUpdateOptions options) {
+	void copyReferenceValueInRecord(RecordImpl record, Metadata metadataWithCopyDataEntry,
+									RecordProvider recordProvider,
+									Metadata copiedMetadata, List<String> referencedRecordIds,
+									Metadata referenceMetadata, RecordUpdateOptions options) {
 		List<Object> values = new ArrayList<>();
 		for (String referencedRecordId : referencedRecordIds) {
 			if (referencedRecordId != null) {
@@ -764,7 +930,7 @@ public class RecordAutomaticMetadataServices {
 		record.updateAutomaticValue(metadataWithCopyDataEntry, values);
 	}
 
-	List<Metadata> sortMetadatasUsingLocalDependencies(
+	public List<Metadata> sortMetadatasUsingLocalDependencies(
 			Map<Metadata, Set<String>> metadatasWithLocalCodeDependencies) {
 		List<Metadata> sortedMetadatas = new ArrayList<>();
 		Map<Metadata, Set<String>> metadatas = copyInModifiableMap(metadatasWithLocalCodeDependencies);
@@ -786,7 +952,7 @@ public class RecordAutomaticMetadataServices {
 			Map<Metadata, Set<String>> metadatasWithLocalCodeDependencies) {
 		Map<Metadata, Set<String>> metadatas = new HashMap<>();
 		for (Map.Entry<Metadata, Set<String>> entry : metadatasWithLocalCodeDependencies.entrySet()) {
-			metadatas.put(entry.getKey(), new HashSet<>(entry.getValue()));
+			metadatas.put(entry.getKey(), new HashSet<String>(entry.getValue()));
 		}
 		return metadatas;
 	}

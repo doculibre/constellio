@@ -16,5 +16,5 @@ public interface SecurityModel {
 	boolean isGroupActive(Group group);
 
 	List<SecurityModelAuthorization> getAuthorizationDetailsOnMetadatasProvidingSecurity(
-			String id, DynamicDependencyValues metadatasProvidingSecurity);
+			DynamicDependencyValues metadatasProvidingSecurity);
 }
