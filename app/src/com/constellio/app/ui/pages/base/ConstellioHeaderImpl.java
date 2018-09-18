@@ -424,14 +424,6 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			selectionButton.setEnabled(delayedSelectionButtonEnabled);
 		}
 
-		selectionButton.addCloseListener(new CloseListener() {
-			@Override
-			public void windowClose(CloseEvent e) {
-				Navigator navigator = ConstellioUI.getCurrent().getNavigator();
-				navigator.navigateTo(navigator.getState());
-			}
-		});
-
 		return selectionButton;
 	}
 
