@@ -674,7 +674,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void duplicateStructureButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
 		if (isDuplicateFolderPossible(getCurrentUser(), folder)) {
-			navigate().to(RMViews.class).duplicateFolder(folder.getId(), true);
+			try {
+				decommissioningService().validateDuplicateStructure(folder, getCurrentUser(), false);
+				navigate().to(RMViews.class).duplicateFolder(folder.getId(), true);
+			} catch (RecordServicesException.ValidationException e) {
+				view.showErrorMessage($(e.getErrors()));
+			} catch (Exception e) {
+				view.showErrorMessage(e.getMessage());
+			}
 		}
 		if (!popup) {
 			view.closeAllWindows();

@@ -873,6 +873,13 @@ public class DecommissioningService {
 		return duplicatedFolder;
 	}
 
+	public void validateDuplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication)
+			throws RecordServicesException {
+		Transaction transaction = new Transaction();
+		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
+		recordServices.validateTransaction(transaction);
+	}
+
 	public Folder duplicateStructureAndDocuments(Folder folder, User currentUser, boolean forceTitleDuplication) {
 
 		Transaction transaction = new Transaction();
