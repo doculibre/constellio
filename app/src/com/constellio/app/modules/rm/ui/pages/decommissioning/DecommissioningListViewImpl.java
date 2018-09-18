@@ -796,11 +796,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 
 	protected Button buildSelectAllButton(final BaseTable foldersTable) {
-		String selectAllCaption;
-		String deselectAllCaption;
-		selectAllCaption = "Sélectionner tout les dossiers";
-		deselectAllCaption = "Déselectionner tout les dossiers";
-		SelectDeselectAllButton selectDeselectAllButton = new SelectDeselectAllButton(selectAllCaption, deselectAllCaption) {
+		SelectDeselectAllButton selectDeselectAllButton = new SelectDeselectAllButton($("DecommissioningListView.selectAllFolders"), $("DecommissioningListView.deselectAllFolders")) {
 			@Override
 			protected void onSelectAll(ClickEvent event) {
 				selectAllFolders(foldersTable);
@@ -950,7 +946,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Component buildExcludeButton(final List<FolderDetailVO> folders) {
-		Button excludeButton = new LinkButton("Exclure les dossiers selectionnés") {
+		Button excludeButton = new LinkButton($("DecommissioningListView.excludeButton")) {
 			@Override
 			public void buttonClick(ClickEvent event) {
 				for (FolderDetailVO folder : folders) {
@@ -964,7 +960,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Component buildIncludeButton(final List<FolderDetailVO> folders) {
-		Button includeButton = new LinkButton("Inclure les dossiers selectionnés") {
+		Button includeButton = new LinkButton($("DecommissioningListView.includeButton")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {
 				for (FolderDetailVO folder : folders) {
