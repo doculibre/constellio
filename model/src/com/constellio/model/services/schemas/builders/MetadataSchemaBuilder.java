@@ -1,5 +1,20 @@
 package com.constellio.model.services.schemas.builders;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
@@ -34,20 +49,6 @@ import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsRuntimeException;
 import com.constellio.model.utils.Lazy;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class MetadataSchemaBuilder {
 
@@ -79,7 +80,22 @@ public class MetadataSchemaBuilder {
 
 	private boolean active = true;
 
+	private boolean fillEmptyLabelWithCode = true;
+
 	MetadataSchemaBuilder() {
+	}
+
+	public static Logger getLOGGER() {
+		return LOGGER;
+	}
+
+	public boolean isFillEmptyLabelWithCode() {
+		return fillEmptyLabelWithCode;
+	}
+
+	public MetadataSchemaBuilder setFillEmptyLabelWithCode(boolean fillEmptyLabelWithCode) {
+		this.fillEmptyLabelWithCode = fillEmptyLabelWithCode;
+		return this;
 	}
 
 	static MetadataSchemaBuilder modifySchema(MetadataSchema schema, MetadataSchemaTypeBuilder schemaType) {
@@ -311,6 +327,7 @@ public class MetadataSchemaBuilder {
 		if (metadataBuilder == null) {
 			throw new MetadataSchemaBuilderRuntimeException.NoSuchMetadata(codeOrLocalCode);
 		} else {
+			metadataBuilder.setFillEmptyLabelWithCode(fillEmptyLabelWithCode);
 			return metadataBuilder;
 		}
 	}

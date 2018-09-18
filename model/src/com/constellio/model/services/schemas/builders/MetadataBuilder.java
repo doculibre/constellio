@@ -1,5 +1,20 @@
 package com.constellio.model.services.schemas.builders;
 
+import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -29,20 +44,6 @@ import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeExce
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 
 public class MetadataBuilder {
 
@@ -89,6 +90,8 @@ public class MetadataBuilder {
 	private MetadataSchemaBuilder schemaBuilder;
 	private boolean dependencyOfAutomaticMetadata;
 	private Map<String, Object> customParameter;
+	private boolean fillEmptyLabelWithCode = true;
+
 
 	MetadataBuilder(MetadataSchemaBuilder schemaBuilder) {
 		this.schemaBuilder = schemaBuilder;
@@ -110,6 +113,15 @@ public class MetadataBuilder {
 		copy.setCode(codeSchema + "_" + copy.getLocalCode());
 
 		return copy;
+	}
+
+	public boolean isFillEmptyLabelWithCode() {
+		return fillEmptyLabelWithCode;
+	}
+
+	public MetadataBuilder setFillEmptyLabelWithCode(boolean fillEmptyLabelWithCode) {
+		this.fillEmptyLabelWithCode = fillEmptyLabelWithCode;
+		return this;
 	}
 
 	public Map<String, Object> getCustomParameter() {
@@ -927,7 +939,7 @@ public class MetadataBuilder {
 		if (builder.code == null) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "code");
 		}
-		if (builder.getLabels() == null || builder.getLabels().isEmpty()) {
+		if ((builder.getLabels() == null || builder.getLabels().isEmpty()) && fillEmptyLabelWithCode) {
 			//FIXME
 			builder.addLabel(Language.French, builder.getCode());
 			//			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
