@@ -196,12 +196,12 @@ public class TransactionSecurityModel implements SecurityModel {
 	@Override
 	public SecurityModelAuthorization getAuthorizationWithId(String authId) {
 
-		AuthorizationDetails nestedAuthorizationDetails = nestedSecurityModel.getAuthorizationWithId(authId).details;
+		SecurityModelAuthorization nestedAuthorization = nestedSecurityModel.getAuthorizationWithId(authId);
 
 		for (Record record : transaction.getRecords()) {
 			if (record.getId().equals(authId)) {
 				AuthorizationDetails solrAuthorizationDetails = SolrAuthorizationDetails.wrapNullable(record, types);
-				if (nestedAuthorizationDetails == null) {
+				if (nestedAuthorization == null) {
 					return wrapNewAuthUsingModifiedUsersAndGroups(
 							nestedSecurityModel.groupAuthorizationsInheritance,
 							nestedSecurityModel.principalTaxonomy,
@@ -222,14 +222,18 @@ public class TransactionSecurityModel implements SecurityModel {
 				}
 			}
 		}
-		return wrapExistingAuthUsingModifiedUsersAndGroups(
-				nestedSecurityModel.groupAuthorizationsInheritance,
-				nestedSecurityModel.principalTaxonomy,
-				nestedAuthorizationDetails,
-				nestedSecurityModel.getUsers(),
-				nestedSecurityModel.getGroups(),
-				modifiedUsers,
-				modifiedGroups);
+		if (nestedAuthorization == null) {
+			return null;
+		} else {
+			return wrapExistingAuthUsingModifiedUsersAndGroups(
+					nestedSecurityModel.groupAuthorizationsInheritance,
+					nestedSecurityModel.principalTaxonomy,
+					nestedAuthorization.getDetails(),
+					nestedSecurityModel.getUsers(),
+					nestedSecurityModel.getGroups(),
+					modifiedUsers,
+					modifiedGroups);
+		}
 	}
 
 	@Override

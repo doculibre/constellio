@@ -71,7 +71,10 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		if (!detached && !hasActiveOverridingAuth(authsFromMetadatas)) {
 			for (String inheritedNonTaxonomyAuthId : hierarchyDependencyValue.getInheritedNonTaxonomyAuthorizations()) {
 				if (!allRemovedAuths.contains(inheritedNonTaxonomyAuthId)) {
-					authorizations.add(securityModel.getAuthorizationWithId(inheritedNonTaxonomyAuthId));
+					SecurityModelAuthorization auth = securityModel.getAuthorizationWithId(inheritedNonTaxonomyAuthId);
+					if (auth != null) {
+						authorizations.add(auth);
+					}
 				}
 			}
 		}
