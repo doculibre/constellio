@@ -273,7 +273,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 				final String typeCode = typeCodeField.getValue();
 				if (textAreaValue != null) {
 					final List<String> ids = Arrays.asList(textAreaValue.split(","));
-					presenter.exportWithoutContentsXMLButtonClicked(SAME_COLLECTION.equals(collectionOptions.getValue()), typeCode, ids);
+					presenter.exportWithoutContentsXMLButtonClicked(false, typeCode, ids);
 				}
 			}
 		};
