@@ -34,6 +34,7 @@ public class TransactionSecurityModel implements SecurityModel {
 
 	List<User> modifiedUsers;
 	List<Group> modifiedGroups;
+	List<AuthorizationDetails> modifiedAuths;
 	final RecordProvider recordProvider;
 
 	public TransactionSecurityModel(MetadataSchemaTypes types, Roles roles, SingletonSecurityModel nestedSecurityModel,
@@ -45,6 +46,7 @@ public class TransactionSecurityModel implements SecurityModel {
 		this.recordProvider = new RecordProvider(null, nestedSecurityModel.recordProvider, null, transaction);
 
 		this.modifiedUsers = new ArrayList<>();
+		this.modifiedAuths = new ArrayList<>();
 		this.modifiedGroups = new ArrayList<>();
 
 
@@ -63,6 +65,11 @@ public class TransactionSecurityModel implements SecurityModel {
 					modifiedGroups.add(group);
 				}
 			}
+
+			if (SolrAuthorizationDetails.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				SolrAuthorizationDetails auth = SolrAuthorizationDetails.wrapNullable(record, types);
+				modifiedAuths.add(auth);
+			}
 		}
 
 	}
@@ -72,10 +79,9 @@ public class TransactionSecurityModel implements SecurityModel {
 
 		final List<SecurityModelAuthorization> nestedSecurityModelAuths = nestedSecurityModel.getAuthorizationsOnTarget(id);
 		final List<SecurityModelAuthorization> returnedAuths = new ArrayList<>(nestedSecurityModelAuths);
-		final Map<String, Integer> indexMap = new HashMap<>();
 
-		for (int i = 0; i < nestedSecurityModelAuths.size(); i++) {
-			indexMap.put(nestedSecurityModelAuths.get(i).details.getId(), i);
+		if (modifiedAuths.isEmpty() && modifiedUsers.isEmpty() && modifiedGroups.isEmpty()) {
+			return returnedAuths;
 		}
 
 		//		Provider<String, SecurityModelAuthorization> modifiableAuthProvider = new Provider<String, SecurityModelAuthorization>() {
@@ -103,16 +109,22 @@ public class TransactionSecurityModel implements SecurityModel {
 		//		};
 
 		Set<String> ajustedAuths = new HashSet<>();
-
+		Map<String, Integer> indexMap = null;
 		for (Record record : transaction.getRecords()) {
 			if (SolrAuthorizationDetails.SCHEMA_TYPE.equals(record.getTypeCode())) {
 				SolrAuthorizationDetails solrAuthorizationDetails = SolrAuthorizationDetails.wrapNullable(record, types);
 				if (id.equals(solrAuthorizationDetails.getTarget())) {
+
+					if (indexMap == null) {
+						indexMap = new HashMap<>();
+						for (int i = 0; i < nestedSecurityModelAuths.size(); i++) {
+							indexMap.put(nestedSecurityModelAuths.get(i).details.getId(), i);
+						}
+					}
+
 					Integer index = indexMap.get(solrAuthorizationDetails.getId());
 					ajustedAuths.add(id);
 					if (index == null) {
-						//						newAuths.put(id, wrapNewAuthUsingModifiedUsersAndGroups(
-						//								solrAuthorizationDetails, modifiedUsers, modifiedGroups));
 						returnedAuths.add(wrapNewAuthUsingModifiedUsersAndGroups(
 								nestedSecurityModel.groupAuthorizationsInheritance,
 								nestedSecurityModel.principalTaxonomy,

@@ -59,6 +59,8 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 		}));
 
 		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
+				tuple("group_default_ancestors", "group_default_parent", 0),
+				tuple("group_default_ancestors", "group_default_ancestors", 0),
 				tuple("anotherSchemaType_default_stringValuesUnion", "zeSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_stringValuesUnion", "anotherSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_stringValuesUnion", "anotherSchemaType_default_stringValuesUnion", 1),
@@ -145,6 +147,8 @@ public class RecordServicesAgregatedUnionMetadatasAcceptTest extends ConstellioT
 		Metadata thirdSchema_stringValuesUnion = thirdSchema.metadata("stringValuesUnion");
 
 		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
+				tuple("group_default_ancestors", "group_default_parent", 0),
+				tuple("group_default_ancestors", "group_default_ancestors", 0),
 				tuple("anotherSchemaType_default_stringValuesUnion", "zeSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_stringValuesUnion", "anotherSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_stringValuesUnion", "anotherSchemaType_default_stringValuesUnion", 1),

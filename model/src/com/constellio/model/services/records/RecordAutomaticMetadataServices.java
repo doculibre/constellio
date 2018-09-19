@@ -424,14 +424,13 @@ public class RecordAutomaticMetadataServices {
 			RolesManager rolesManager = modelLayerFactory.getRolesManager();
 			Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
 
-			//TODO Put in singleton
-			SecurityModel singletonSecurityModel = buildTransactionSecurityModel(context.getTransaction(), roles, types, recordProvider);
+			TransactionSecurityModel securityModel = context.getTransactionSecurityModel();
 
-			//			if (recordProvider.transaction != null) {
-			//				return new TransactionSecurityModel(types, roles, singletonSecurityModel, recordProvider.transaction);
-			//
-			//			} else {
-			return singletonSecurityModel;
+			if (securityModel == null) {
+				securityModel = buildTransactionSecurityModel(context.getTransaction(), roles, types, recordProvider);
+				context.setTransactionSecurityModel(securityModel);
+			}
+			return securityModel;
 			//			}
 		} else {
 			return SingletonSecurityModel.EMPTY;
@@ -439,8 +438,11 @@ public class RecordAutomaticMetadataServices {
 
 	}
 
-	private SecurityModel buildTransactionSecurityModel(Transaction tx, Roles roles, MetadataSchemaTypes types,
-														RecordProvider recordProvider) {
+	private TransactionSecurityModel buildTransactionSecurityModel(Transaction tx, Roles roles,
+																   MetadataSchemaTypes types,
+																   RecordProvider recordProvider) {
+
+		//TODO Put in singleton
 		SingletonSecurityModel nestedSecurityModel = buildSingletonSecurityModel(roles, types, recordProvider);
 		return new TransactionSecurityModel(types, roles, nestedSecurityModel, tx);
 	}
