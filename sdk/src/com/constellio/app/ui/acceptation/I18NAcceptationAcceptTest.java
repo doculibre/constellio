@@ -188,7 +188,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 		}
 	}
 
-	//@Test
+	@Test
 	public void ensureArabicAndFrenchLanguageFilesHaveSameKeys()
 			throws Exception {
 		ListComparisonResults<String> results = CompareI18nKeys.compare(Language.Arabic);
