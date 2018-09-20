@@ -1,5 +1,28 @@
 package com.constellio.model.services.records;
 
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
+import static com.constellio.model.services.records.RecordUtils.invalidateTaxonomiesCache;
+import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.utils.MaskUtils.format;
+import static java.util.Arrays.asList;
+import static net.jcores.CoreKeeper.$;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.constellio.data.utils.dev.Toggle;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
@@ -1434,8 +1457,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public void flush() {
 		try {
 			recordDao.flush();
-			eventsDao.flush();
+			if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled())  {
+				eventsDao.flush();
+			}
 			notificationsDao.flush();
+
 		} catch (RecordDaoRuntimeException_RecordsFlushingFailed e) {
 			throw new RecordServicesRuntimeException_RecordsFlushingFailed(e);
 		}
