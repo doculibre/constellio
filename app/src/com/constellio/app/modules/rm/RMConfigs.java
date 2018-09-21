@@ -76,7 +76,8 @@ public class RMConfigs {
 			LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS,
 			ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE,
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
-			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS;
+			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
+			SPACE_QUOTA_FOR_USER_DOCUMENTS;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -291,6 +292,8 @@ public class RMConfigs {
 						.withDefaultValue(CompleteDatesWhenAddingFolderWithManualStatusChoice.DISABLED));
 
 		add(LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS = others.createBooleanFalseByDefault("logFolderDocumentAccessWithCMIS"));
+
+		add(SPACE_QUOTA_FOR_USER_DOCUMENTS = others.createInteger("spaceQuotaForUserDocuments").withDefaultValue(100));
 
 		add(COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM = decommissioning
 				.createBooleanFalseByDefault("copyRulesAlwaysVisibleInAddForm"));
@@ -560,4 +563,9 @@ public class RMConfigs {
 	public boolean isDecommissioningTypeRequiredInContainers() {
 		return manager.getValue(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS);
 	}
+
+	public int getSpaceQuotaForUserDocuments() {
+		return manager.getValue(SPACE_QUOTA_FOR_USER_DOCUMENTS);
+	}
+
 }
