@@ -17,23 +17,10 @@ public class SystemInfosService {
 	int versionNumber;
 
 
-	public void DisplayVersionLinux(LinuxOperation versionLinux) {
-		String SubVersion1 = StringUtils.substringAfter(versionLinux.getOperationBehavior(), "-");
-		String SubVersion2 = StringUtils.substringBefore(SubVersion1, ".el7");
-		versionNumber = CompareVersion(SubVersion2, "862.3.2");
 
+	public Boolean compareVersionLinux(LinuxOperation versionLinux) {
 
-		if (versionNumber == 0) {
-			System.out.println("\033[31;1m" + "Version du Kernel Linux............" + versionLinux.getOperationBehavior());
-			System.out.println("\u001B[30m");
-		} else {
-			System.out.println("Version du Kernel Linux............" + versionLinux.getOperationBehavior());
-		}
-	}
-	public Boolean getVersionLinux(LinuxOperation versionLinux) {
-		String SubVersion1 = StringUtils.substringAfter(versionLinux.getOperationBehavior(), "-");
-		String SubVersion2 = StringUtils.substringBefore(SubVersion1, ".el7");
-		versionNumber = CompareVersion(SubVersion2, "862.3.2");
+		versionNumber = CompareVersion(getVersionLinux(versionLinux), "862.3.2");
 
 
 		if (versionNumber == 0) {
@@ -42,6 +29,42 @@ public class SystemInfosService {
 			return false;
 		}
 	}
+	public String getVersionLinux(LinuxOperation versionLinux) {
+		String SubVersion1 = StringUtils.substringAfter(versionLinux.getOperationBehavior(), "-");
+		String SubVersion2 = StringUtils.substringBefore(SubVersion1, ".el7");
+		return SubVersion2;
+	}
+
+	public int getRepo(LinuxOperation versionLinux) {
+		int number = Integer.valueOf(versionLinux.getOperationBehavior());
+		return number;
+	}
+
+	public int getUserConstellioPID(LinuxOperation userConstellio) {
+		String SubResult1 = StringUtils.substringAfter(userConstellio.getOperationBehavior(), "PID:");
+		String SubResult2= StringUtils.substringAfter(SubResult1, ",");
+
+		return Integer.valueOf(SubResult2);
+	}
+	public String getUserConstellio(LinuxOperation userConstellio) {
+		String result = userConstellio.getOperationBehavior();
+
+		return result;
+	}
+	public int getUserSolrPID(LinuxOperation userConstellio) {
+		String SubResult1 = StringUtils.substringAfter(userConstellio.getOperationBehavior(), "process ");
+		String SubResult2= StringUtils.substringAfter(SubResult1, "running");
+
+		return Integer.valueOf(SubResult2);
+	}
+	public String getUserSolr(LinuxOperation userConstellio) {
+		String result = userConstellio.getOperationBehavior();
+
+		return result;
+	}
+
+
+
 
 	public void DisplayVersionSolr(String Version) {
 
@@ -57,25 +80,6 @@ public class SystemInfosService {
 	}
 
 
-	public void ErrourMessage(LinuxOperation versionLinux) {
-		int number = Integer.valueOf(versionLinux.getOperationBehavior());
-		if (number == 0) {
-			System.out.println("\033[31;1m" + "Vous n'avez pas de licence pour la mise à niveau automatique de votre Constellio.");
-			System.out.println("\u001B[30m");
-		}
-	}
-
-
-	public void DisplayUserConstellio(LinuxOperation userConstellio) {
-		String user = userConstellio.getOperationBehavior();
-
-		if (!user.equals("root")) {
-			System.out.println("\033[31;1m" + "Utilisateur exécutant Constellio............" + user);
-			System.out.println("\u001B[30m");
-		} else {
-			System.out.println("Utilisateur exécutant Constellio............" + user);
-		}
-	}
 
 	public void DisplayUserSolr(LinuxOperation userConstellio) {
 		String user = userConstellio.getOperationBehavior();
@@ -162,7 +166,6 @@ public class SystemInfosService {
 
 		while ( (line = errorReader.readLine()) != null) {
 			eb.append(line);
-			System.out.println("tester boucle");
 		}
 
 

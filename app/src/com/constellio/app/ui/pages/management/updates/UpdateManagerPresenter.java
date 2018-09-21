@@ -252,13 +252,73 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 
-
-
+	//SystemInfosPresenter
 
 	public String getLinuxVersion() throws IOException, InterruptedException {
-		String commande="uname -r";
-		LinuxOperation operation= new LinuxOperation(commande,service.executCommand(commande));
-		return service.executCommand(commande);
+		try{
+			SystemInfosService service = new SystemInfosService();
+			String commande="uname -r";
+			LinuxOperation operation= new LinuxOperation(commande,service.executCommand(commande));
+			return service.getVersionLinux(operation);
+		}catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+
+
+	public Boolean evaluateLinuxVersion() throws IOException, InterruptedException {
+		try{
+			String commande="uname -r";
+			SystemInfosService service = new SystemInfosService();
+			LinuxOperation operation= new LinuxOperation(commande,service.executCommand(commande));
+
+			return service.compareVersionLinux(operation);
+		}catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public int getRepoPresence() throws IOException, InterruptedException {
+		try{
+			SystemInfosService service = new SystemInfosService();
+			String commande="yum repolist 2>&1 | grep -c \"constellio_constellio-updates\"";
+			LinuxOperation operation= new LinuxOperation(commande,service.executCommand(commande));
+			return service.getRepo(operation);
+		}catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+	public String getConstellioUser() throws IOException, InterruptedException {
+		try{
+			SystemInfosService service = new SystemInfosService();
+			String commandePID=" /opt/constellio/startup status";
+			LinuxOperation operationPID= new LinuxOperation(commandePID,service.executCommand(commandePID));
+			int pid = service.getUserConstellioPID(operationPID);
+			String commandeUSErConstellio=" ps -u -p "+pid+" | cut -d \" \" -f 1 ";
+			LinuxOperation operationUSER= new LinuxOperation(commandeUSErConstellio,service.executCommand(commandeUSErConstellio));
+			return StringUtils.substringAfter(service.getUserConstellio(operationUSER),"USER");
+
+		}catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+	public String getSolrUser() throws IOException, InterruptedException {
+		try{
+			SystemInfosService service = new SystemInfosService();
+			String commandePID="/opt/solr-current/bin/solr status";
+			LinuxOperation operationPID= new LinuxOperation(commandePID,service.executCommand(commandePID));
+			int pid = service.getUserSolrPID(operationPID);
+			String commandeUSErSolr=" ps -u -p "+pid+" | cut -d \" \" -f 1";
+			LinuxOperation operationUSER= new LinuxOperation(commandeUSErSolr,service.executCommand(commandeUSErSolr));
+			return StringUtils.substringAfter(service.getUserConstellio(operationUSER),"USER");
+
+		}catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
 	}
 
 	@Override

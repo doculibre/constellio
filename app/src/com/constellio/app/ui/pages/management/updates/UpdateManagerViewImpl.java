@@ -12,6 +12,8 @@ import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.LocalDateLabel;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.ComponentTreeUtils;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptAll;
@@ -44,10 +46,12 @@ import java.io.OutputStream;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static org.eclipse.jetty.webapp.MetaDataComplete.True;
 
 public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManagerView, DropHandler {
 
-	private final UpdateManagerPresenter presenter;
+	private UpdateManagerPresenter presenter;
+
 
 	private UploadWaitWindow uploadWaitWindow;
 	private VerticalLayout layout;
@@ -56,6 +60,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	private Button standardUpdate;
 	private Button alternateUpdate;
 	private ConfirmDialogButton reindex;
+	FoldersLocator locator = new FoldersLocator();
 
 	public UpdateManagerViewImpl() {
 		presenter = new UpdateManagerPresenter(this);
@@ -134,22 +139,14 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) throws IOException, InterruptedException {
-		layout = new VerticalLayout(buildInfoItem($("UpdateManagerViewImpl.version"), presenter.getCurrentVersion()));
+
+		layout = new VerticalLayout(buildInfoItem("", ""));
 		layout.setSpacing(true);
 		layout.setWidth("100%");
-		layout.addComponents(
-				buildInfoItem("Version de Kernel Linux", presenter.getLinuxVersion()));
 
-		LicenseInfo info = presenter.getLicenseInfo();
-		if (info != null) {
-			layout.addComponents(
 
-					buildInfoItem($("UpdateManagerViewImpl.clientName"), info.getClientName()),
-					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), info.getExpirationDate()));
-		}
-
-		WindowButton allocatedMemoryButton = buildAllocatedMemoryButton();
-		layout.addComponent(allocatedMemoryButton);
+		//WindowButton allocatedMemoryButton = buildAllocatedMemoryButton();
+		//layout.addComponent(allocatedMemoryButton);
 
 		Component messagePanel = buildMessagePanel();
 		layout.addComponent(messagePanel);
@@ -158,6 +155,76 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		layout.setSpacing(true);
 
 		showStandardUpdatePanel();
+		final String allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
+		layout.addComponents(
+				buildInfoItem("Version courante de Constellio.....", presenter.getCurrentVersion()));
+		LicenseInfo info = presenter.getLicenseInfo();
+		if (info != null) {
+			layout.addComponents(
+
+					buildInfoItem($("UpdateManagerViewImpl.clientName"), "............." + info.getClientName()),
+					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), "......" + info.getExpirationDate()));
+		} else {
+			layout.addComponents(
+					buildInfoItem($("UpdateManagerViewImpl.clientName"), "......" + "Non disponible"),
+					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), "......" + "Non disponible"));
+		}
+
+		if (allocatedMemoryForConstellio != null) {
+			layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), "......" + allocatedMemoryForConstellio));
+		} else {
+			layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), "......" + "Non disponible"));
+
+		}
+		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
+			layout.addComponents(buildInfoItem("Version du Kernel Linux............", "Non disponible"));
+
+		} else {
+			if (presenter.evaluateLinuxVersion().equals(True)) {
+				layout.addComponents(buildInfoItem("Version du Kernel ............", "<p style=\"color:red\">" + presenter.getLinuxVersion()+"</p>"));
+			} else {
+				layout.addComponents(buildInfoItem("Version du Kernel ............", presenter.getLinuxVersion()));
+			}
+		}
+		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
+			layout.addComponents(buildInfoItem("Repo privé installé............", "Non disponible"));
+
+		} else {
+			if (presenter.getRepoPresence() == 0) {
+				layout.addComponents(buildInfoItem("Repo privé installé ............", "<span style=\"color:red\">" + "Non"+"</span>"));
+			} else {
+				layout.addComponents(buildInfoItem("Repo privé installé ............", "Oui"));
+			}
+		}
+
+		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
+			layout.addComponents(buildInfoItem("Utilisateur exécutant Solr.........", "Non disponible"));
+
+		} else {
+			if (presenter.getSolrUser() == "root") {
+				layout.addComponents(buildInfoItem("Utilisateur exécutant Solr.........", "<span style=\"color:red\">" + presenter.getSolrUser()+"</span>"));
+			} else {
+				layout.addComponents(buildInfoItem("Utilisateur exécutant Solr.........", presenter.getSolrUser()));
+			}
+		}
+		/*
+		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
+			layout.addComponents(buildInfoItem("Utilisateur exécutant Constellio...", "Non disponible"));
+
+		} else {
+			if (presenter.getConstellioUser() == "root") {
+				layout.addComponents(buildInfoItem("Utilisateur exécutant Constellio...", "\033[31;1m" + presenter.getConstellioUser()));
+			} else {
+				layout.addComponents(buildInfoItem("Utilisateur exécutant Constellio...", presenter.getConstellioUser()));
+			}
+		}*/
+
+
+		layout.addComponents(
+				buildInfoItem("Liste des packages installés.......", ""),
+				buildInfoItem("Version Java du wrapper............", ""),
+				buildInfoItem("Version Java de Linux..............", ""),
+				buildInfoItem("Version de Solr....................", ""));
 
 		return layout;
 	}
@@ -166,6 +233,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		final String totalSystemMemory = SystemAnalysisUtils.getTotalSystemMemory();
 		final String allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
 		final String allocatedMemoryForSolr = SystemAnalysisUtils.getAllocatedMemoryForSolr();
+
 		Double percentageOfAllocatedMemory = SystemAnalysisUtils.getPercentageOfAllocatedMemory(totalSystemMemory, allocatedMemoryForConstellio, allocatedMemoryForSolr);
 
 		WindowButton allocatedMemoryButton = new WindowButton("", $("UpdateManagerViewImpl.allocatedMemoryButtonCaption")) {
@@ -351,7 +419,6 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	public void closeProgressPopup() {
 		uploadWaitWindow.close();
 	}
-
 
 
 	private Component buildUpToDateUpdateLayout() {
