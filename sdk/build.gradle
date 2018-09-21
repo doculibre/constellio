@@ -1,4 +1,4 @@
-apply plugin: 'org.sonarqube'
+//apply plugin: 'org.sonarqube'
 
 dependencies {
     testCompile project(":constellio:data")
@@ -33,24 +33,61 @@ dependencies {
     compile project(":constellio:model")
     compile project(":constellio:app")
 
-    compile "com.cybozu.labs:langdetect:1.1-20120112"
-    compile "org.apache.chemistry.opencmis:chemistry-opencmis-client-bindings:1.1.0"
-    compile "org.apache.chemistry.opencmis:chemistry-opencmis-client-impl:1.1.0"
-    compile "junit:junit:4.11"
-    compile "org.mockito:mockito-all:1.10.8"
-    compile "org.assertj:assertj-core:1.6.0"
-    compile "com.github.detro.ghostdriver:phantomjsdriver:1.1.0"
-    compile "javax.servlet:javax.servlet-api:3.1.0"
-    compile "javax.servlet.jsp:jsp-api:2.2"
-    compile "org.apache.zookeeper:zookeeper:3.4.6"
-    compile "org.joda:joda-convert:1.8.1"
-    compile "javax.validation:validation-api:1.1.0.Final"
-    compile "org.jodconverter:jodconverter-core:4.2.0"
-    compile "com.google.code.findbugs:jsr305:3.0.0"
+    testCompile 'org.apache.chemistry.opencmis:chemistry-opencmis-client-impl:1.1.0'
+    testCompile 'junit:junit:4.11'
+    testCompile 'org.mockito:mockito-all:1.10.8'
+    testCompile 'org.assertj:assertj-core:1.6.0'
+    testCompile 'com.github.detro.ghostdriver:phantomjsdriver:1.1.0'
+    testCompile 'javax.servlet:javax.servlet-api:3.1.0'
+    testCompile 'org.apache.zookeeper:zookeeper:3.4.6'
+    testCompile 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
+    testCompile 'com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.5'
+    testCompile 'com.google.guava:guava:20.0'
+    testCompile 'com.vaadin.external.gwt:gwt-dev:2.7.0.vaadin7'
+    testCompile 'com.vaadin.external.gwt:gwt-user:2.7.0.vaadin4'
+    testCompile 'com.vaadin:vaadin-server:7.7.5'
+    testCompile 'com.vaadin:vaadin-shared:7.7.5'
+    testCompile 'commons-codec:commons-codec:1.10'
+    testCompile 'commons-collections:commons-collections:3.2.2'
+    testCompile 'commons-lang:commons-lang:2.6'
+    testCompile 'javax.mail:mail:1.4.7'
+    testCompile 'javax.servlet:servlet-api:2.5'
+    testCompile 'javax.ws.rs:javax.ws.rs-api:2.1'
+    testCompile 'javax.xml.bind:jaxb-api:2.3.0'
+    testCompile 'javax.xml.stream:stax-api:1.0-2'
+    testCompile 'joda-time:joda-time:2.7'
+    testCompile 'log4j:log4j:1.2.17'
+    testCompile 'net.sourceforge.cssparser:cssparser:0.9.18'
+    testCompile 'net.sourceforge.htmlunit:htmlunit:2.19'
+    testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'
+    testCompile 'org.apache.chemistry.opencmis:chemistry-opencmis-client-api:1.1.0'
+    testCompile 'org.apache.chemistry.opencmis:chemistry-opencmis-commons-api:1.1.0'
+    testCompile 'org.apache.chemistry.opencmis:chemistry-opencmis-commons-impl:1.1.0'
+    testCompile 'org.apache.hadoop:hadoop-common:2.7.2'
+    testCompile 'org.apache.httpcomponents:httpclient:4.5.4'
+    testCompile 'org.eclipse.jetty.orbit:javax.mail.glassfish:1.4.1.v201005082020'
+    testCompile 'org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016'
+    testCompile 'org.eclipse.jetty:jetty-server:9.3.14.v20161028'
+    testCompile 'org.eclipse.jetty:jetty-servlet:9.3.14.v20161028'
+    testCompile 'org.jdom:jdom2:2.0.4'
+    testCompile 'org.jetbrains:annotations:13.0'
+    testCompile 'org.jsoup:jsoup:1.8.3'
+    testCompile 'org.mortbay.jetty:servlet-api-2.5:6.1.9'
+    testCompile 'org.quartz-scheduler:quartz:2.2.0'
+    testCompile 'org.samba.jcifs:jcifs_gcm:322'
+    testCompile 'org.seleniumhq.selenium:selenium-api:2.39.0'
+    testCompile 'org.seleniumhq.selenium:selenium-firefox-driver:2.39.0'
+    testCompile 'org.seleniumhq.selenium:selenium-java:2.39.0'
+    testCompile 'org.seleniumhq.selenium:selenium-remote-driver:2.39.0'
+    testCompile 'org.seleniumhq.selenium:selenium-support:2.39.0'
+    testCompile 'org.vaadin.addon:confirmdialog:2.1.2'
+    testCompile 'stax:stax-api:1.0.1'
+    testCompile "com.squareup:javapoet:1.7.0"
+    testCompile "com.carrotsearch:junit-benchmarks:0.7.2"
+    testCompile "org.glassfish.jersey.core:jersey-client:2.26"
 }
 
 configurations {
-    compile.exclude group: "org.ow2.asm:asm:asm-debug-all-5.0.1"
 }
 
 eclipse {
@@ -84,6 +121,7 @@ artifacts {
     testArtifacts jarTest
 }
 
+/*
 project.tasks["sonarqube"].dependsOn "build"
 
 sonarqube {
@@ -99,6 +137,7 @@ sonarqube {
         property "sonar.projectBaseDir", project(":constellio").projectDir.getAbsolutePath()
     }
 }
+
 
 sourceSets {
     sonar {
@@ -116,4 +155,5 @@ task buildSonarSourceset() {
         }
     }
 }
+*/
 
