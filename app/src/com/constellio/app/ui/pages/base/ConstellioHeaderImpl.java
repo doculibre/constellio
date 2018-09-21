@@ -31,9 +31,7 @@ import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.SessionContext.SelectedRecordIdsChangeListener;
-import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
-import com.constellio.app.ui.pages.search.AdvancedSearchView;
-import com.constellio.app.ui.pages.search.SimpleSearchView;
+import com.constellio.app.ui.pages.search.*;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.Language;
@@ -46,6 +44,7 @@ import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.MouseEvents;
 import com.vaadin.navigator.Navigator;
+import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
@@ -423,6 +422,18 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		if (delayedSelectionButtonEnabled != null) {
 			selectionButton.setEnabled(delayedSelectionButtonEnabled);
 		}
+
+		selectionButton.addCloseListener(new CloseListener() {
+			@Override
+			public void windowClose(CloseEvent e) {
+				//Move to an extension if more cases are to be added
+				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				if(currentView != null && !(currentView instanceof SearchView)) {
+					Navigator navigator = ConstellioUI.getCurrent().getNavigator();
+					navigator.navigateTo(navigator.getState());
+				}
+			}
+		});
 
 		return selectionButton;
 	}
