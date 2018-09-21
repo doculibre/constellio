@@ -20,6 +20,8 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Locale;
 
+import org.jsoup.Jsoup;
+
 public class SearchResultReportWriter implements ReportWriter {
 	private static final WritableFont.FontName FONT = WritableFont.TIMES;
 	private static final int FONT_SIZE = 10;
@@ -112,7 +114,12 @@ public class SearchResultReportWriter implements ReportWriter {
 
 	private void addString(WritableSheet sheet, WritableCellFormat font, int column, int row, String s)
 			throws WriteException {
-		Label label = new Label(column, row, s, font);
+		String htmlStripped = "";
+		if(s != null) {
+			htmlStripped = Jsoup.parse(s).text();
+			htmlStripped = Jsoup.parse(htmlStripped).text();
+		}
+		Label label = new Label(column, row, htmlStripped, font);
 		sheet.addCell(label);
 	}
 

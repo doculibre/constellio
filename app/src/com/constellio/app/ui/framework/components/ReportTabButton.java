@@ -158,6 +158,9 @@ public class ReportTabButton extends WindowButton {
 			if (newReportPresenter.getSupportedReports().isEmpty()) {
 				buttonPresenter.setNeedToRemoveExcelTab(true);
 			}
+			else {
+				buttonPresenter.setNeedToRemoveExcelTab(false);
+			}
 			verticalLayout.addComponent(new ReportSelector(newReportPresenter));
 		} catch (UnsupportedReportException unsupportedReport) {
 			showErrorMessage($("ReportTabButton.noExcelReport"));
