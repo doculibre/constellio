@@ -21,7 +21,7 @@ public class RMMigrationTo8_1_1 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "8.1.0.1";
+		return "8.1.1";
 	}
 
 	@Override
