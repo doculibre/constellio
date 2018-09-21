@@ -410,6 +410,10 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 				usedSpace = contentVersionVO.getLength() + usedSpace;
 			}
 		}
+		double availableSpace = getSpaceQuota() - convertToMegaByte(usedSpace);
+		if (availableSpace < 0) {
+			throw new NegativeAvailableSpaceException();
+		}
 		return getSpaceQuota() - convertToMegaByte(usedSpace);
 	}
 
