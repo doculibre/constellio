@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Locale;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.safety.Whitelist;
 
 public class SearchResultReportWriter implements ReportWriter {
 	private static final WritableFont.FontName FONT = WritableFont.TIMES;
@@ -112,12 +115,14 @@ public class SearchResultReportWriter implements ReportWriter {
 		}
 	}
 
-	private void addString(WritableSheet sheet, WritableCellFormat font, int column, int row, String s)
+	private void addString(WritableSheet sheet, WritableCellFormat font, int column, int row, String rawText)
 			throws WriteException {
 		String htmlStripped = "";
-		if(s != null) {
-			htmlStripped = Jsoup.parse(s).text();
-			htmlStripped = Jsoup.parse(htmlStripped).text();
+		if(rawText != null) {
+			StringBuilder sb = new StringBuilder();
+			final Document.OutputSettings outputSettings = new Document.OutputSettings().prettyPrint(false);
+			String textWithFixedAccents = Jsoup.clean(rawText, "", Whitelist.none(), outputSettings);
+			htmlStripped = Jsoup.clean(textWithFixedAccents, "", Whitelist.none(), outputSettings);
 		}
 		Label label = new Label(column, row, htmlStripped, font);
 		sheet.addCell(label);
