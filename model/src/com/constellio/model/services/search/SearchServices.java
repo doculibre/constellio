@@ -779,13 +779,13 @@ public class SearchServices {
 		for (MetadataSchemaType schemaType : searchedSchemaTypes) {
 			for (Metadata metadata : schemaType.getAllMetadatas()) {
 				if (metadata.isSearchable()) {
-					if (metadata.hasSameCode(Schemas.LEGACY_ID)) {
+					if (metadata.hasSameCode(Schemas.LEGACY_ID) && fields.add(Schemas.LEGACY_ID.getDataStoreCode())) {
 						sb.append(Schemas.LEGACY_ID.getDataStoreCode());
 						sb.append("^20 ");
 					} else {
 						String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? language : mainDataLanguage)
 								.getDataStoreCode();
-						if (!fields.contains(analyzedField)) {
+						if (fields.add(analyzedField)) {
 							sb.append(analyzedField + " ");
 						}
 					}
