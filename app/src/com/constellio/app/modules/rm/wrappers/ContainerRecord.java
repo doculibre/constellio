@@ -50,6 +50,7 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String FIRST_TRANSFER_REPORT_DATE = "firstTransferReportDate";
 	public static final String FIRST_DEPOSIT_REPORT_DATE = "firstDepositReportDate";
 	public static final String DOCUMENT_RESPONSIBLE = "documentResponsible";
+	public static final String FAVORITES_LIST = "favoriteList";
 
 	public ContainerRecord(Record record,
 						   MetadataSchemaTypes types) {
@@ -407,5 +408,14 @@ public class ContainerRecord extends RecordWrapper {
 
 	public static ContainerRecord wrap(Record record, MetadataSchemaTypes types) {
 		return record == null ? null : new ContainerRecord(record, types);
+	}
+
+	public List<String> getFavoritesList() {
+		return getList(FAVORITES_LIST);
+	}
+
+	public ContainerRecord setFavoritesList(List<String> favoritesList) {
+		set(FAVORITES_LIST, favoritesList);
+		return this;
 	}
 }

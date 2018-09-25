@@ -98,6 +98,8 @@ public class Folder extends RMObject {
 
 	public static final String TIME_RANGE = "timerange";
 
+	public static final String FAVORITES_LIST = "favoriteList";
+
 	//public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
 	//public static final String CALENDAR_YEAR = "calendarYear";
 	//TO DELETE
@@ -836,5 +838,15 @@ public class Folder extends RMObject {
 	public static Folder wrap(Record record, MetadataSchemaTypes types) {
 		return record == null ? null : new Folder(record, types);
 	}
+
+	public List<String> getFavoritesList() {
+		return getList(FAVORITES_LIST);
+	}
+
+	public Folder setFavoritesList(List<String> favoritesList) {
+		set(FAVORITES_LIST, favoritesList);
+		return this;
+	}
+
 }
 

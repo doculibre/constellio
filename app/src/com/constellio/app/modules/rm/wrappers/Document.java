@@ -61,6 +61,7 @@ public class Document extends RMObject {
 	public static final String ESSENTIAL = "essential";
 	public static final String CONFIDENTIAL = "confidential";
 	public static final String MIME_TYPE = "mimetype";
+	public static final String FAVORITES_LIST = "favoriteList";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {
@@ -351,5 +352,14 @@ public class Document extends RMObject {
 
 	public String getContentCheckedOutBy() {
 		return get(CONTENT_CHECKED_OUT_BY);
+	}
+
+	public List<String> getFavoritesList() {
+		return getList(FAVORITES_LIST);
+	}
+
+	public Document setFavoritesList(List<String> favoritesList) {
+		set(FAVORITES_LIST, favoritesList);
+		return this;
 	}
 }
