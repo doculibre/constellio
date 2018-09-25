@@ -225,6 +225,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"),"......" + presenter.getConstellioUser()));
 			}
 		}
+
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
 			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"),"......" +
 																								   "Non disponible" ));
