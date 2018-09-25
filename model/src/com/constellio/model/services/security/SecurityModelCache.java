@@ -49,8 +49,7 @@ public class SecurityModelCache implements EventBusListener {
 
 	private void invalidateIfLoaded(String collection) {
 		if (models.containsKey(collection)) {
-			//eventBus.send(INVALIDATE_EVENT_TYPE, collection);
-			models.remove(collection);
+			eventBus.send(INVALIDATE_EVENT_TYPE, collection);
 		}
 	}
 

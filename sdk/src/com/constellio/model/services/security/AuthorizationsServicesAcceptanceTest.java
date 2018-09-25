@@ -6,12 +6,16 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
+import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.search.SearchServices;
@@ -21,6 +25,7 @@ import com.constellio.model.services.security.AuthorizationsServicesRuntimeExcep
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
+import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import org.assertj.core.api.Condition;
 import org.joda.time.LocalDate;
@@ -3960,17 +3965,67 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void givenDistributedSystemWhenAuthIsCreatedModifiedOrDeletedThenCachedSecurityModelIsInvalidated()
+	public void whenCacheIsInvalidatedThenInvalidatedOnAllInstances()
 			throws Exception {
 
 		SecurityModelCache instance1Cache = getModelLayerFactory().getSecurityModelCache();
 		auth1 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		SecurityModelCache instance2Cache = getModelLayerFactory("other-instance").getSecurityModelCache();
-		creatingAFolderOnBothInstance();
 
+		assertThat(instance1Cache.getCached(zeCollection)).isNull();
+		assertThat(instance2Cache.getCached(zeCollection)).isNull();
+
+		createAFolderOnInstance1();
 		assertThat(instance1Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
 		assertThat(instance2Cache.getCached(zeCollection)).isNull();
 
+		createAFolderOnInstance2();
+		assertThat(instance1Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
+		assertThat(instance2Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
+
+
+		//An auth is created, both caches are removed
+		auth2 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		assertThat(instance1Cache.getCached(zeCollection)).isNull();
+		assertThat(instance2Cache.getCached(zeCollection)).isNull();
+
+	}
+
+	private void createAFolderOnBothInstance() {
+		createAFolderOnInstance1();
+		createAFolderOnInstance2();
+	}
+
+	private void createAFolderOnInstance1() {
+
+		Record record = new TestRecord(setup.folderSchema);
+		record.set(setup.folderSchema.title(), aString());
+		record.set(setup.folderSchema.parent(), FOLDER4);
+		try {
+			getModelLayerFactory().newRecordServices().add(record);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+
+		recordServices.physicallyDeleteNoMatterTheStatus(record, User.GOD, new RecordPhysicalDeleteOptions());
+
+	}
+
+	private void createAFolderOnInstance2() {
+
+		MetadataSchema schema = getModelLayerFactory("other-instance").getMetadataSchemasManager()
+				.getSchemaTypes(zeCollection).getSchema("folder_default");
+		RecordServices recordServices = getModelLayerFactory("other-instance").newRecordServices();
+		Record record = new TestRecord(schema);
+		record.set(schema.getMetadata("title"), aString());
+		record.set(schema.getMetadata("parent"), FOLDER4);
+		try {
+			recordServices.add(record);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+
+		recordServices.physicallyDeleteNoMatterTheStatus(record, User.GOD, new RecordPhysicalDeleteOptions());
 	}
 
 	private Condition<? super SingletonSecurityModel> containingAuthWithId(final String id) {
