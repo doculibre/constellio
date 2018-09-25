@@ -36,11 +36,15 @@ import com.vaadin.ui.Upload.Receiver;
 import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ChameleonTheme;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import javax.swing.*;
+import javax.swing.text.Style;
+import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
@@ -157,7 +161,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		showStandardUpdatePanel();
 		final String allocatedMemoryForConstellio = SystemAnalysisUtils.getAllocatedMemoryForConstellio();
 		layout.addComponents(
-				buildInfoItem("Version courante de Constellio.....", presenter.getCurrentVersion()));
+				buildInfoItem($("UpdateManagerViewImpl.currentVersionofConstellio"), "............." + presenter.getCurrentVersion()));
 		LicenseInfo info = presenter.getLicenseInfo();
 		if (info != null) {
 			layout.addComponents(
@@ -166,65 +170,97 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), "......" + info.getExpirationDate()));
 		} else {
 			layout.addComponents(
-					buildInfoItem($("UpdateManagerViewImpl.clientName"), "......" + "Non disponible"),
-					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), "......" + "Non disponible"));
+					buildInfoItemRed($("UpdateManagerViewImpl.clientName"), "......" + "Non disponible"),
+					buildInfoItemRed($("UpdateManagerViewImpl.expirationDate"), "......" + "Non disponible"));
 		}
 
 		if (allocatedMemoryForConstellio != null) {
 			layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), "......" + allocatedMemoryForConstellio));
 		} else {
-			layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), "......" + "Non disponible"));
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), "......" + "Non disponible"));
 
 		}
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
-			layout.addComponents(buildInfoItem("Version du Kernel Linux............", "Non disponible"));
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"),"......" + "Non disponible"
+ ));
 
 		} else {
 			if (presenter.evaluateLinuxVersion().equals(True)) {
-				layout.addComponents(buildInfoItem("Version du Kernel ............", "<p style=\"color:red\">" + presenter.getLinuxVersion()+"</p>"));
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"),"......" + presenter.getLinuxVersion()));
 			} else {
-				layout.addComponents(buildInfoItem("Version du Kernel ............", presenter.getLinuxVersion()));
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.versionofKernel"),"......" + presenter.getLinuxVersion()));
 			}
 		}
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
-			layout.addComponents(buildInfoItem("Repo privé installé............", "Non disponible"));
+
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"),"......" + "Non disponible"));
+
 
 		} else {
 			if (presenter.getRepoPresence() == 0) {
-				layout.addComponents(buildInfoItem("Repo privé installé ............", "<span style=\"color:red\">" + "Non"+"</span>"));
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"),"......" + "Non"));
 			} else {
-				layout.addComponents(buildInfoItem("Repo privé installé ............", "Oui"));
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.privatedirectoryinstalled"),"......" + "Oui"));
 			}
 		}
 
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
-			layout.addComponents(buildInfoItem("Utilisateur exécutant Solr.........", "Non disponible"));
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"),"......" + "Non disponible"));
 
 		} else {
 			if (presenter.getSolrUser() == "root") {
-				layout.addComponents(buildInfoItem("Utilisateur exécutant Solr.........", "<span style=\"color:red\">" + presenter.getSolrUser()+"</span>"));
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.UserrunningSolr"),"......" + presenter.getSolrUser()));
 			} else {
-				layout.addComponents(buildInfoItem("Utilisateur exécutant Solr.........", presenter.getSolrUser()));
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"),"......" + presenter.getSolrUser()));
 			}
 		}
-		/*
+
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
-			layout.addComponents(buildInfoItem("Utilisateur exécutant Constellio...", "Non disponible"));
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"),"......" + "Non disponible"));
 
 		} else {
 			if (presenter.getConstellioUser() == "root") {
-				layout.addComponents(buildInfoItem("Utilisateur exécutant Constellio...", "\033[31;1m" + presenter.getConstellioUser()));
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.UserrunningConstellio"),"......" +   presenter.getConstellioUser()));
 			} else {
-				layout.addComponents(buildInfoItem("Utilisateur exécutant Constellio...", presenter.getConstellioUser()));
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"),"......" + presenter.getConstellioUser()));
 			}
-		}*/
+		}
+		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"),"......" +
+																								   "Non disponible" ));
+
+		} else {
+			if (presenter.evaluateJavaVersion().equals(True)) {
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"),"......" + presenter.getJavaVersion()));
+			} else {
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.javaversionoflinux"),"......" + presenter.getJavaVersion()));
+			}
+		}
+		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionofwrapper"),"......" +
+																								"Non disponible" ));
+
+		} else {
+			if (presenter.evaluateJavaVersion().equals(True)) {
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionofwrapper"),"......" + presenter.getJavaVersion()));
+			} else {
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.javaversionofwrapper"),"......" + presenter.getJavaVersion()));
+			}
+		}
+		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"),"......" +
+																								  "Non disponible" ));
+
+		} else {
+			if (presenter.evaluateSolrVersion().equals(True)) {
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"),"......" + presenter.getSolrVersion()));
+			} else {
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.versionofSolr"),"......" + presenter.getSolrVersion()));
+			}
+		}
 
 
-		layout.addComponents(
-				buildInfoItem("Liste des packages installés.......", ""),
-				buildInfoItem("Version Java du wrapper............", ""),
-				buildInfoItem("Version Java de Linux..............", ""),
-				buildInfoItem("Version de Solr....................", ""));
+
 
 		return layout;
 	}
@@ -355,6 +391,21 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		captionLabel.addStyleName(ValoTheme.LABEL_BOLD);
 
 		Label valueLabel = value instanceof LocalDate ? new LocalDateLabel((LocalDate) value) : new Label(value.toString());
+
+		HorizontalLayout layout = new HorizontalLayout(captionLabel, valueLabel);
+		layout.setSpacing(true);
+
+		return layout;
+	}
+	private Component buildInfoItemRed(String caption, Object value) {
+		Label captionLabel = new Label("<p style=\"color:blackU\">"+caption+"</p>",ContentMode.HTML);
+		captionLabel.addStyleName(ValoTheme.LABEL_BOLD);
+
+		Label valueLabel = value instanceof LocalDate ? new LocalDateLabel((LocalDate) value) : new Label("<p style=\"color:red\">"+value.toString()+"</p>",ContentMode.HTML);
+
+
+
+
 
 		HorizontalLayout layout = new HorizontalLayout(captionLabel, valueLabel);
 		layout.setSpacing(true);

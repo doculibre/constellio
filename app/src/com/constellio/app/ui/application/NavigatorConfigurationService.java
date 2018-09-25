@@ -86,7 +86,6 @@ import com.constellio.app.ui.pages.management.taxonomy.ListTaxonomyViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementSearchViewImpl;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementViewImpl;
 import com.constellio.app.ui.pages.management.thesaurus.ThesaurusConfigurationViewImpl;
-import com.constellio.app.ui.pages.management.updates.SystemInfosView;
 import com.constellio.app.ui.pages.management.updates.UpdateManagerViewImpl;
 import com.constellio.app.ui.pages.management.valueDomains.ListValueDomainRecordsViewImpl;
 import com.constellio.app.ui.pages.management.valueDomains.ListValueDomainViewImpl;
@@ -367,7 +366,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(THESAURUS_CONFIGURATION, ThesaurusConfigurationViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SUMMARY_CONFIGURATOR, SummaryConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR, FolderUniqueKeyConfiguratorViewImpl.class));
-		viewProviders.add(new ClassBasedViewProvider(DISPLAY_INFOS, SystemInfosView.class));
+
 	}
 
 	public void configure(Navigator navigator) {

@@ -278,6 +278,23 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			throw new RuntimeException(e);
 		}
 	}
+	public Boolean evaluateJavaVersion() throws IOException, InterruptedException {
+		try{
+			String commande="java -version";
+			SystemInfosService service = new SystemInfosService();
+			LinuxOperation operation= new LinuxOperation(commande,service.executCommand(commande));
+
+			return service.compareVersionJava(operation);
+		}catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	public Boolean evaluateSolrVersion() throws IOException, InterruptedException {
+
+
+			return service.compareVersionSolr(service.getSolrVersion());
+
+	}
 
 	public int getRepoPresence() throws IOException, InterruptedException {
 		try{
@@ -308,7 +325,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public String getSolrUser() throws IOException, InterruptedException {
 		try{
 			SystemInfosService service = new SystemInfosService();
-			String commandePID="/opt/solr-current/bin/solr status";
+			String commandePID="/opt/solr/bin/solr status | cut -d \" \" -f 3";
 			LinuxOperation operationPID= new LinuxOperation(commandePID,service.executCommand(commandePID));
 			int pid = service.getUserSolrPID(operationPID);
 			String commandeUSErSolr=" ps -u -p "+pid+" | cut -d \" \" -f 1";
@@ -320,6 +337,25 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 		}
 
 	}
+	public String getJavaVersion() throws IOException, InterruptedException {
+		try{
+			SystemInfosService service = new SystemInfosService();
+			String commandeVersion="java -version";
+			LinuxOperation operationVersion= new LinuxOperation(commandeVersion,service.executCommand(commandeVersion));
+			return service.getJavaVersion(operationVersion);
+
+		}catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+	public String getSolrVersion() throws IOException, InterruptedException {
+
+			return service.getSolrVersion();
+
+
+	}
+
 
 	@Override
 	protected boolean hasPageAccess(String params, final User user) {

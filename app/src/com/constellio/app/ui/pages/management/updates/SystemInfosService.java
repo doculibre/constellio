@@ -1,5 +1,8 @@
 package com.constellio.app.ui.pages.management.updates;
 
+import com.constellio.data.dao.services.bigVault.BigVaultRecordDao;
+import com.constellio.data.dao.services.factories.DataLayerFactory;
+import com.constellio.data.dao.services.records.RecordDao;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -10,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.solr.client.solrj.SolrClient;
 
 public class SystemInfosService {
 	String Behavior;
@@ -29,9 +33,36 @@ public class SystemInfosService {
 			return false;
 		}
 	}
+	public Boolean compareVersionJava(LinuxOperation versionLinux) {
+
+			versionNumber = CompareVersion(getVersionJava(versionLinux), "1.11.0");
+
+
+			if (versionNumber == 0) {
+				return true;
+			} else {
+				return false;
+			}
+	}
+	public Boolean compareVersionSolr(String Version) {
+
+		versionNumber = CompareVersion(getSolrVersion(), "1.7.0");
+
+
+		if (versionNumber == 0) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 	public String getVersionLinux(LinuxOperation versionLinux) {
 		String SubVersion1 = StringUtils.substringAfter(versionLinux.getOperationBehavior(), "-");
 		String SubVersion2 = StringUtils.substringBefore(SubVersion1, ".el7");
+		return SubVersion2;
+	}
+	public String getVersionJava(LinuxOperation versionLinux) {
+		String SubVersion1 = StringUtils.substringBefore(versionLinux.getOperationBehavior(), "_131\"");
+		String SubVersion2 = StringUtils.substringAfter(SubVersion1, "version \"");
 		return SubVersion2;
 	}
 
@@ -42,7 +73,7 @@ public class SystemInfosService {
 
 	public int getUserConstellioPID(LinuxOperation userConstellio) {
 		String SubResult1 = StringUtils.substringAfter(userConstellio.getOperationBehavior(), "PID:");
-		String SubResult2= StringUtils.substringAfter(SubResult1, ",");
+		String SubResult2= StringUtils.substringBefore(SubResult1, ",");
 
 		return Integer.valueOf(SubResult2);
 	}
@@ -52,8 +83,8 @@ public class SystemInfosService {
 		return result;
 	}
 	public int getUserSolrPID(LinuxOperation userConstellio) {
-		String SubResult1 = StringUtils.substringAfter(userConstellio.getOperationBehavior(), "process ");
-		String SubResult2= StringUtils.substringAfter(SubResult1, "running");
+		String SubResult1 = StringUtils.substringAfter(userConstellio.getOperationBehavior(), "Solr ");
+		String SubResult2= StringUtils.substringBefore(SubResult1, "{");
 
 		return Integer.valueOf(SubResult2);
 	}
@@ -62,68 +93,19 @@ public class SystemInfosService {
 
 		return result;
 	}
+	public String getJavaVersion(LinuxOperation userConstellio) {
+		String result = userConstellio.getOperationBehavior();
 
-
-
-
-	public void DisplayVersionSolr(String Version) {
-
-		versionNumber = CompareVersion(Version, "7.0.0");
-
-
-		if (versionNumber == 1) {
-			System.out.println("\033[31;1m" + "Version du Solr............" + Version);
-			System.out.println("\u001B[30m");
-		} else {
-			System.out.println("Version du Solr............" + Version);
-		}
-	}
-
-
-
-	public void DisplayUserSolr(LinuxOperation userConstellio) {
-		String user = userConstellio.getOperationBehavior();
-
-		if (!user.equals("root")) {
-			System.out.println("\033[31;1m" + "Utilisateur exécutant Solr............" + user);
-			System.out.println("\u001B[30m");
-		} else {
-			System.out.println("Utilisateur exécutant Solr............" + user);
-		}
-	}
-	public void DisplayVersionJava(LinuxOperation versionLinux) {
-
-		String SubVersion1 = StringUtils.substringBefore(versionLinux.getOperationBehavior(), "_");
-		versionNumber = CompareVersion(SubVersion1, "1.11.0");
-
-
-		if (versionNumber == 1) {
-			System.out.println("\033[31;1m" + "Version Java de linux............" + versionLinux.getOperationBehavior());
-			System.out.println("\u001B[30m");
-		} else {
-			System.out.println("Version Java de linux............" + versionLinux.getOperationBehavior());
-		}
-	}
-	public String DisplayVersionWrapper() {
-		String result=null;
-		String process;
-		try {
-
-			// getRuntime: Returns the runtime object associated with the current Java application.
-			// exec: Executes the specified string command in a separate process.
-			Process p = Runtime.getRuntime().exec("java -version");
-			BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			while ((process = input.readLine()) != null) {
-				 // <-- Print all Process here line
-				// by line
-				result=result+process;
-			}
-			input.close();
-		} catch (Exception err) {
-			err.printStackTrace();
-		}
 		return result;
 	}
+	public String getSolrVersion() {
+		DataLayerFactory dataLayerFactory= DataLayerFactory.getLastCreatedInstance();
+
+
+		String result= dataLayerFactory.newRecordDao().getBigVaultServer().getVersion();
+		return result;
+	}
+
 
 	public int CompareVersion(String SubVersion, String versionCompare) {
 
