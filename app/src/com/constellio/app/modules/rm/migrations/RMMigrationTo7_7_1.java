@@ -31,9 +31,7 @@ public class RMMigrationTo7_7_1 extends MigrationHelper implements MigrationScri
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			if (!typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE).hasSchema(DocumentListPDF.SCHEMA)) {
-				typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE).createCustomSchema(DocumentListPDF.SCHEMA);
-			}
+			typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE).createCustomSchema(DocumentListPDF.SCHEMA);
 		}
 	}
 }

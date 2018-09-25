@@ -23,7 +23,6 @@ import com.constellio.data.utils.HashMapBuilder;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.EnumWithSmallCode;
-import com.constellio.model.entities.calculators.JEXLMetadataValueCalculator;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
@@ -36,6 +35,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.ModifiableStructure;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
@@ -697,7 +697,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 				.addModifiers(Modifier.PUBLIC)
 				.returns(void.class);
 
-		main.addStatement("$T rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();", RolesManager.class);
+		main.addStatement("RolesManager rolesManager = appLayerFactory.getModelLayerFactory().getRolesManager();");
 		for (Role role : rolesManager.getAllRoles(collection)) {
 
 			boolean roleWithSameCode = false;
@@ -706,8 +706,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 			}
 
 			if (!roleWithSameCode) {
-				main.addStatement("rolesManager.addRole(new $T(collection, $S, resourcesProvider.getValuesOfAllLanguagesWithSeparator($S, \" / \"), $L))", Role.class, role.getCode(),
-						"init.roles." + role.getCode(),
+				main.addStatement("rolesManager.addRole(new $T(collection, $S, $S, $L))", Role.class, role.getCode(),
+						role.getTitle(),
 						asListLitteral(role.getOperationPermissions()));
 			} else {
 				main.addStatement("rolesManager.updateRole(rolesManager.getRole(collection, $S).withNewPermissions($L))",
@@ -985,18 +985,10 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 						}
 						if (metadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 							CalculatedDataEntry dataEntry = (CalculatedDataEntry) metadata.getDataEntry();
-							if (dataEntry.getCalculator() instanceof JEXLMetadataValueCalculator) {
-								main.addStatement("$L.get($S).defineDataEntry().asCalculated(new $T($S))",
-										variableOf(schema),
-										metadata.getLocalCode(),
-										dataEntry.getCalculator().getClass(),
-										((JEXLMetadataValueCalculator) dataEntry.getCalculator()).getExpression());
-							} else {
-								main.addStatement("$L.get($S).defineDataEntry().asCalculated($T.class)",
-										variableOf(schema),
-										metadata.getLocalCode(),
-										dataEntry.getCalculator().getClass());
-							}
+							main.addStatement("$L.get($S).defineDataEntry().asCalculated($T.class)",
+									variableOf(schema),
+									metadata.getLocalCode(),
+									dataEntry.getCalculator().getClass());
 						}
 						if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED) {
 							AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
@@ -1332,7 +1324,7 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 					asListLitteral(metadata.getPopulateConfigs().getProperties()));
 		}
 
-		if (metadata.getType() == MetadataValueType.REFERENCE /*&& !Schemas.isGlobalMetadata(metadata.getLocalCode()) */) {
+		if (metadata.getType() == MetadataValueType.REFERENCE && !Schemas.isGlobalMetadata(metadata.getLocalCode())) {
 			MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
 			if (metadata.getAllowedReferences().getAllowedSchemas().isEmpty()) {
 				String referencedType = metadata.getAllowedReferences().getAllowedSchemaType();
