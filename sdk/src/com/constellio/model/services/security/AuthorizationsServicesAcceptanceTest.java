@@ -8,6 +8,7 @@ import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -21,6 +22,7 @@ import com.constellio.model.services.security.AuthorizationsServicesRuntimeExcep
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.assertj.core.api.Condition;
 import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
@@ -3954,6 +3956,32 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER4, FOLDER2)) {
 			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).doesNotContain(charles);
 		}
+
+	}
+
+	@Test
+	public void givenDistributedSystemWhenAuthIsCreatedModifiedOrDeletedThenCachedSecurityModelIsInvalidated()
+			throws Exception {
+
+		SecurityModelCache instance1Cache = getModelLayerFactory().getSecurityModelCache();
+		auth1 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		SecurityModelCache instance2Cache = getModelLayerFactory("other-instance").getSecurityModelCache();
+		creatingAFolderOnBothInstance();
+
+		assertThat(instance1Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
+		assertThat(instance2Cache.getCached(zeCollection)).isNull();
+
+	}
+
+	private Condition<? super SingletonSecurityModel> containingAuthWithId(final String id) {
+		return new Condition<SingletonSecurityModel>() {
+			@Override
+			public boolean matches(SingletonSecurityModel value) {
+				assertThat(value).describedAs("Cached security model").isNotNull();
+				assertThat(value.getAuthorizationWithId(id)).describedAs("Authorization with id '" + id + "'").isNotNull();
+				return true;
+			}
+		};
 
 	}
 

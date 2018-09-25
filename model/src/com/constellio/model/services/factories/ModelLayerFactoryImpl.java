@@ -54,6 +54,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.SynonymsConfigurationsManager;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.security.SecurityModelCache;
 import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.authentification.CombinedAuthenticationService;
@@ -124,6 +125,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final ModelLayerLogger modelLayerLogger;
 	private EncryptionServices encryptionServices;
 	private final Factory<ModelLayerFactory> modelLayerFactoryFactory;
+	private final SecurityModelCache securityModelCache;
 
 	private final ModelLayerBackgroundThreadsManager modelLayerBackgroundThreadsManager;
 	private final RecordMigrationsManager recordMigrationsManager;
@@ -164,6 +166,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.modelLayerConfiguration = modelLayerConfiguration;
 
 		this.foldersLocator = foldersLocator;
+
+		this.securityModelCache = new SecurityModelCache(this);
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
 		ConstellioCacheManager cacheManager = dataLayerFactory.getSettingsCacheManager();
@@ -252,6 +256,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 			thesaurusManager = add(new ThesaurusManager(this));
 		}
 		return thesaurusManager;
+	}
+
+	@Override
+	public SecurityModelCache getSecurityModelCache() {
+		return securityModelCache;
 	}
 
 	public RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches) {

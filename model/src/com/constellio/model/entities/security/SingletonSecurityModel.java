@@ -35,15 +35,19 @@ public class SingletonSecurityModel implements SecurityModel {
 	List<String> disabledGroupCodes;
 	Taxonomy principalTaxonomy;
 	RecordProvider recordProvider;
+	String collection;
 
-	public static SingletonSecurityModel EMPTY = new SingletonSecurityModel(Collections.<AuthorizationDetails>emptyList(),
-			Collections.<User>emptyList(), Collections.<Group>emptyList(), FROM_PARENT_TO_CHILD, new ArrayList<String>(), null, null);
+	public static SingletonSecurityModel empty(String collection) {
+
+		return new SingletonSecurityModel(Collections.<AuthorizationDetails>emptyList(),
+				Collections.<User>emptyList(), Collections.<Group>emptyList(), FROM_PARENT_TO_CHILD, new ArrayList<String>(), null, null, collection);
+	}
 
 	public SingletonSecurityModel(List<AuthorizationDetails> authorizationDetails, List<User> users,
 								  final List<Group> groups,
 								  GroupAuthorizationsInheritance groupAuthorizationsInheritance,
 								  List<String> disabledGroupCodes, Taxonomy principalTaxonomy,
-								  RecordProvider recordProvider) {
+								  RecordProvider recordProvider, String collection) {
 		this.authorizationDetails = authorizationDetails;
 		this.users = users;
 		this.groups = groups;
@@ -51,6 +55,7 @@ public class SingletonSecurityModel implements SecurityModel {
 		this.disabledGroupCodes = disabledGroupCodes;
 		this.principalTaxonomy = principalTaxonomy;
 		this.recordProvider = recordProvider;
+		this.collection = collection;
 
 		for (AuthorizationDetails authorizationDetail : authorizationDetails) {
 			boolean conceptAuth = principalTaxonomy != null && principalTaxonomy.getSchemaTypes().contains(authorizationDetail.getTargetSchemaType());
@@ -65,24 +70,6 @@ public class SingletonSecurityModel implements SecurityModel {
 			for (String authId : group.<String>getList(Schemas.AUTHORIZATIONS)) {
 				SecurityModelAuthorization securityModelAuthorization = authorizationsById.get(authId);
 				securityModelAuthorization.addGroup(group);
-
-				//				Provider<String, Group> groupProvider = new Provider<String, Group>() {
-				//					@Override
-				//					public Group get(String input) {
-				//						for (Group group : groups) {
-				//							if (group.getId().equals(input)) {
-				//								return group;
-				//							}
-				//						}
-				//						return null;
-				//					}
-				//				};
-				//
-				//				if (groupAuthorizationsInheritance == GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD) {
-				//					for (String aParentGroup : retrieveAllParentGroupIds(group, groupProvider)) {
-				//						securityModelAuthorization.addInheritingGroup(aParentGroup);
-				//					}
-				//				}
 			}
 		}
 
@@ -92,6 +79,10 @@ public class SingletonSecurityModel implements SecurityModel {
 				securityModelAuthorization.addUser(user);
 			}
 		}
+	}
+
+	public String getCollection() {
+		return collection;
 	}
 
 	@Override

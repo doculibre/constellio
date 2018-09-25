@@ -46,15 +46,22 @@ public class ModelLayerCollectionExtensions {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ModelLayerCollectionExtensions.class);
 
+	ModelLayerSystemExtensions systemExtensions;
+
 	//------------ Extension points -----------
 
 	public VaultBehaviorsList<RecordImportExtension> recordImportExtensions = new VaultBehaviorsList<>();
 
-	public VaultBehaviorsList<RecordExtension> recordExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<RecordExtension> recordExtensions;
 
 	public VaultBehaviorsList<SchemaExtension> schemaExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<BatchProcessingSpecialCaseExtension> batchProcessingSpecialCaseExtensions = new VaultBehaviorsList<>();
+
+	public ModelLayerCollectionExtensions(ModelLayerSystemExtensions systemExtensions) {
+		this.systemExtensions = systemExtensions;
+		this.recordExtensions = new VaultBehaviorsList<>(systemExtensions.recordExtensions);
+	}
 
 	//----------------- Callers ---------------
 
@@ -89,6 +96,23 @@ public class ModelLayerCollectionExtensions {
 	}
 
 	public void callTransactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event,
+												   RecordUpdateOptions options) {
+		for (RecordExtension extension : recordExtensions) {
+			try {
+				extension.transactionExecutionBeforeSave(event);
+
+			} catch (RuntimeException e) {
+				if (options.isCatchExtensionsExceptions()) {
+					LOGGER.warn("Exception while calling extension of class '" + extension.getClass().getName()
+								+ "' on transaction ", e);
+				} else {
+					throw e;
+				}
+			}
+		}
+	}
+
+	public void callTransactionExecuted(TransactionExecutionBeforeSaveEvent event,
 												   RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
 			try {

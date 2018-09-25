@@ -55,6 +55,7 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.SecurityModelCache;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -427,13 +428,14 @@ public class RecordAutomaticMetadataServices {
 			TransactionSecurityModel securityModel = context.getTransactionSecurityModel();
 
 			if (securityModel == null) {
+
 				securityModel = buildTransactionSecurityModel(context.getTransaction(), roles, types, recordProvider);
 				context.setTransactionSecurityModel(securityModel);
 			}
 			return securityModel;
 			//			}
 		} else {
-			return SingletonSecurityModel.EMPTY;
+			return SingletonSecurityModel.empty(context.getTransaction().getCollection());
 		}
 
 	}
@@ -442,13 +444,26 @@ public class RecordAutomaticMetadataServices {
 																   MetadataSchemaTypes types,
 																   RecordProvider recordProvider) {
 
-		//TODO Put in singleton
-		SingletonSecurityModel nestedSecurityModel = buildSingletonSecurityModel(roles, types, recordProvider);
-		return new TransactionSecurityModel(types, roles, nestedSecurityModel, tx);
+		SecurityModelCache cache = modelLayerFactory.getSecurityModelCache();
+		SingletonSecurityModel model = cache.getCached(tx.getCollection());
+
+		if (model == null) {
+
+			synchronized (SingletonSecurityModel.class) {
+
+				model = cache.getCached(tx.getCollection());
+				if (model == null) {
+					//TODO Put in singleton
+					model = buildSingletonSecurityModel(roles, types, recordProvider, tx.getCollection());
+					cache.insert(model);
+				}
+			}
+		}
+		return new TransactionSecurityModel(types, roles, model, tx);
 	}
 
 	private SingletonSecurityModel buildSingletonSecurityModel(Roles roles, MetadataSchemaTypes types,
-															   RecordProvider recordProvider) {
+															   RecordProvider recordProvider, String collection) {
 
 		List<Group> groups = new ArrayList<>();
 		List<User> users = new ArrayList<>();
@@ -500,7 +515,7 @@ public class RecordAutomaticMetadataServices {
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(types.getCollection());
 
 		return new SingletonSecurityModel(authorizationDetails, users, groups, groupInheritanceMode, disabledGroups,
-				principalTaxonomy, recordProvider);
+				principalTaxonomy, recordProvider, collection);
 	}
 
 

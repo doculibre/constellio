@@ -1,6 +1,7 @@
 package com.constellio.model.services.security;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
@@ -21,6 +22,7 @@ import com.constellio.model.entities.security.global.AuthorizationModificationRe
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordDeleteServices;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -68,6 +70,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -171,16 +174,20 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				if (testWithRequestCache) {
 					ConstellioFactories.getInstance().onRequestStarted();
 				}
-				recordServices = getModelLayerFactory().newRecordServices();
-				taxonomiesManager = getModelLayerFactory().getTaxonomiesManager();
-				searchServices = getModelLayerFactory().newSearchServices();
-				services = getModelLayerFactory().newAuthorizationsServices();
-				schemasManager = getModelLayerFactory().getMetadataSchemasManager();
-				roleManager = getModelLayerFactory().getRolesManager();
-				collectionsListManager = getModelLayerFactory().getCollectionsListManager();
-				userServices = getModelLayerFactory().newUserServices();
-				schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
-				users.setUp(getModelLayerFactory().newUserServices());
+
+				ModelLayerFactory modelLayerFactory = getModelLayerFactory();
+				recordServices = modelLayerFactory.newRecordServices();
+				taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+				searchServices = modelLayerFactory.newSearchServices();
+				services = modelLayerFactory.newAuthorizationsServices();
+				schemasManager = modelLayerFactory.getMetadataSchemasManager();
+				roleManager = modelLayerFactory.getRolesManager();
+				collectionsListManager = modelLayerFactory.getCollectionsListManager();
+				userServices = modelLayerFactory.newUserServices();
+				schemas = new SchemasRecordsServices(zeCollection, modelLayerFactory);
+				users.setUp(modelLayerFactory.newUserServices());
+
+				linkEventBus(modelLayerFactory, getModelLayerFactory("other-instance"));
 			}
 
 			@Override
@@ -376,62 +383,105 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		public ListAssert<String> usersWithReadAccess() {
 
-			Record record = get(recordId);
-			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
+			List<String> validatedValue = validateSameValueWhenDistributed(new Provider<ModelLayerFactory, List<String>>() {
+				@Override
+				public List<String> get(ModelLayerFactory modelLayerFactory) {
+					Record record = modelLayerFactory.newRecordServices().getDocumentById(recordId);
 
-			List<String> usersWithReadAccess = new ArrayList<>();
-			for (User user : allUsers) {
-				if (hasReadAccess(user, record)) {
-					usersWithReadAccess.add(user.getUsername());
+					List<User> allUsers = modelLayerFactory.newUserServices().getAllUsersInCollection(zeCollection);
+
+					List<String> usersWithReadAccess = new ArrayList<>();
+					for (User user : allUsers) {
+						if (hasReadAccess(user, record)) {
+							usersWithReadAccess.add(user.getUsername());
+						}
+					}
+
+					return usersWithReadAccess;
 				}
-			}
+			});
 
-			return assertThat(usersWithReadAccess).describedAs("read access on record '" + recordId + "'");
+
+			return assertThat(validatedValue).describedAs("read access on record '" + recordId + "'");
+		}
+
+		private <T> T validateSameValueWhenDistributed(Provider<ModelLayerFactory, T> provider) {
+
+			T value1 = provider.get(getModelLayerFactory());
+			T value2 = provider.get(getModelLayerFactory("other-instance"));
+
+			assertThat(value1).isEqualTo(value2);
+
+			return value1;
 		}
 
 		public ListAssert<String> usersWithWriteAccess() {
 
-			Record record = get(recordId);
-			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
+			List<String> validatedValue = validateSameValueWhenDistributed(new Provider<ModelLayerFactory, List<String>>() {
+				@Override
+				public List<String> get(ModelLayerFactory modelLayerFactory) {
+					Record record = modelLayerFactory.newRecordServices().getDocumentById(recordId);
+					List<User> allUsers = modelLayerFactory.newUserServices().getAllUsersInCollection(zeCollection);
 
-			List<String> usersWithWriteAccess = new ArrayList<>();
-			for (User user : allUsers) {
-				if (hasWriteAccess(user, record)) {
-					usersWithWriteAccess.add(user.getUsername());
+					List<String> usersWithWriteAccess = new ArrayList<>();
+					for (User user : allUsers) {
+						if (hasWriteAccess(user, record)) {
+							usersWithWriteAccess.add(user.getUsername());
+						}
+					}
+
+					return usersWithWriteAccess;
 				}
-			}
+			});
 
-			return assertThat(usersWithWriteAccess).describedAs("write access on record '" + recordId + "'");
+
+			return assertThat(validatedValue).describedAs("write access on record '" + recordId + "'");
 		}
 
 		public ListAssert<String> usersWithDeleteAccess() {
 
-			Record record = get(recordId);
-			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
+			List<String> validatedValue = validateSameValueWhenDistributed(new Provider<ModelLayerFactory, List<String>>() {
+				@Override
+				public List<String> get(ModelLayerFactory modelLayerFactory) {
+					Record record = modelLayerFactory.newRecordServices().getDocumentById(recordId);
+					List<User> allUsers = modelLayerFactory.newUserServices().getAllUsersInCollection(zeCollection);
 
-			List<String> usersWithDeleteAccess = new ArrayList<>();
-			for (User user : allUsers) {
-				if (hasDeleteAccess(user, record)) {
-					usersWithDeleteAccess.add(user.getUsername());
+					List<String> usersWithDeleteAccess = new ArrayList<>();
+					for (User user : allUsers) {
+						if (hasDeleteAccess(user, record)) {
+							usersWithDeleteAccess.add(user.getUsername());
+						}
+					}
+
+					return usersWithDeleteAccess;
 				}
-			}
+			});
 
-			return assertThat(usersWithDeleteAccess).describedAs("delete access on record '" + recordId + "'");
+
+			return assertThat(validatedValue).describedAs("delete access on record '" + recordId + "'");
 		}
 
-		public ListAssert<String> usersWithPermission(String permission) {
+		public ListAssert<String> usersWithPermission(final String permission) {
 
-			Record record = get(recordId);
-			List<User> allUsers = userServices.getAllUsersInCollection(zeCollection);
+			List<String> validatedValue = validateSameValueWhenDistributed(new Provider<ModelLayerFactory, List<String>>() {
+				@Override
+				public List<String> get(ModelLayerFactory modelLayerFactory) {
+					Record record = modelLayerFactory.newRecordServices().getDocumentById(recordId);
+					List<User> allUsers = modelLayerFactory.newUserServices().getAllUsersInCollection(zeCollection);
 
-			List<String> usersWithPermission = new ArrayList<>();
-			for (User user : allUsers) {
-				if (hasPermissionOn(user, record, permission)) {
-					usersWithPermission.add(user.getUsername());
+					List<String> usersWithPermission = new ArrayList<>();
+					for (User user : allUsers) {
+						if (hasPermissionOn(user, record, permission)) {
+							usersWithPermission.add(user.getUsername());
+						}
+					}
+
+					return usersWithPermission;
 				}
-			}
+			});
 
-			return assertThat(usersWithPermission).describedAs("delete access on record '" + recordId + "'");
+
+			return assertThat(validatedValue).describedAs("delete access on record '" + recordId + "'");
 		}
 
 		public BooleanAssert detachedAuthorizationFlag() {
@@ -442,6 +492,8 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	protected boolean hasReadAccess(User user, Record record) {
+		ModelLayerFactory modelLayerFactory = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory();
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
 		boolean hasAccessUsingWrapperMethod = user.hasReadAccess().on(record);
 
 		boolean hasAccessUsingSearchTokens = searchServices.hasResults(new LogicalSearchQuery().filteredWithUser(user)
