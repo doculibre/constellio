@@ -100,13 +100,17 @@ subprojects {
 ext {
     // Open the 2 Git repository
     gitConstellio = org.ajoberstar.grgit.Grgit.open(dir: project(":constellio").projectDir)
-    gitPlugins = org.ajoberstar.grgit.Grgit.open(dir: project(":constellio-plugins").projectDir)
-
     revisionConstellio = gitConstellio.head().abbreviatedId
-    revisionPlugins = gitConstellio.head().abbreviatedId
-    branchConstellio = gitConstellio.branch.current()
-    branchPlugins = gitPlugins.branch.current()
+    branchConstellio = gitConstellio.branch.current().fullName
 
+    if (findProject(":constellio-plugins") != null) {
+        gitPlugins = org.ajoberstar.grgit.Grgit.open(dir: project(":constellio-plugins").projectDir)
+        branchPlugins = gitPlugins.branch.current().fullName
+        revisionPlugins = gitConstellio.head().abbreviatedId
+    } else {
+        branchPlugins = ""
+        revisionPlugins = ""
+    }
 }
 
 war {
@@ -117,8 +121,8 @@ war {
                     "Implementation-Timestamp": new Date(),
                     "Implementation-Revision-Constellio": revisionConstellio,
                     "Implementation-Revision-Plugins": revisionPlugins,
-                    "Implementation-Branch-Constellio": branchConstellio.fullName,
-                    "Implementation-Branch-Plugins": branchPlugins.fullName)
+                    "Implementation-Branch-Constellio": branchConstellio,
+                    "Implementation-Branch-Plugins": branchPlugins)
         }
     }
 
