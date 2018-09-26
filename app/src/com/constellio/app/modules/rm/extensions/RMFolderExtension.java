@@ -11,6 +11,7 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
@@ -21,7 +22,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.constellio.app.modules.rm.model.enums.CompleteDatesWhenAddingFolderWithManualStatusChoice.ENABLED;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RMFolderExtension extends RecordExtension {
 	private final RMSchemasRecordsServices rmSchema;
@@ -94,6 +95,12 @@ public class RMFolderExtension extends RecordExtension {
 			Folder folder = rmSchema.wrapFolder(event.getRecord());
 			deleteRootFolderMetadatasIfSubFolder(folder);
 		}
+	}
+
+	private void deleteDeletedFavoritesIds(Folder folder) {
+		List<String> favoritesList = folder.getFavoritesList();
+		Metadata favoritesListMetadata = rmSchema.cart.schemaType().getMetadata("id");
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmSchema.cart.schemaType()).where(favoritesListMetadata).isContainingText(""));
 	}
 
 	private void completeMissingActualDates(Folder folder) {
@@ -197,7 +204,7 @@ public class RMFolderExtension extends RecordExtension {
 
 	private List<String> getUserAdminUnits(User user) {
 		List<String> returnList = new ArrayList<>();
-		LogicalSearchCondition condition = LogicalSearchQueryOperators.from(this.rmSchema.administrativeUnit.schema())
+		LogicalSearchCondition condition = from(this.rmSchema.administrativeUnit.schema())
 				.returnAll();
 		List<Record> results = this.searchServices.search(new LogicalSearchQuery(condition).filteredWithUserWrite(user)
 				.setReturnedMetadatas(ReturnedMetadatasFilter.idVersionSchema()));

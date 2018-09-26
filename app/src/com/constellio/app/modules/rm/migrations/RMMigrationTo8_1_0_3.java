@@ -5,6 +5,8 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.KeySetMap;
@@ -58,8 +60,8 @@ public class RMMigrationTo8_1_0_3 implements MigrationScript {
 			}
 
 			modifyRecords(rm.folder.schemaType(), Folder.FAVORITES_LIST);
-			modifyRecords(rm.document.schemaType(), Folder.FAVORITES_LIST);
-			modifyRecords(rm.containerRecord.schemaType(), Folder.FAVORITES_LIST);
+			modifyRecords(rm.document.schemaType(), Document.FAVORITES_LIST);
+			modifyRecords(rm.containerRecord.schemaType(), ContainerRecord.FAVORITES_LIST);
 
 		}
 
