@@ -12,6 +12,7 @@ import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Arrays.asList;
 
 public class UserAuthorizationsUtils {
 
@@ -54,6 +56,36 @@ public class UserAuthorizationsUtils {
 		}
 
 		return false;
+	}
+
+	public static boolean containsNoNegativeUserGroupTokens(User user, Record record, String role) {
+
+		List<String> negativeTokensToCheck = Collections.emptyList();
+
+		if (READ.equals(role)) {
+			negativeTokensToCheck = Collections.singletonList("nr_");
+
+		} else if (WRITE.equals(role)) {
+			negativeTokensToCheck = asList("nr_", "nw_");
+
+		} else if (DELETE.equals(role)) {
+			negativeTokensToCheck = asList("nr_", "nd_");
+		}
+
+		List<String> tokens = record.getList(TOKENS);
+
+		for (String negativeTokenToCheck : negativeTokensToCheck) {
+			if (tokens.contains(negativeTokenToCheck + user.getId())) {
+				return false;
+			}
+
+			for (String aGroup : user.getUserGroups()) {
+				if (tokens.contains(negativeTokenToCheck + aGroup) && user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	public static boolean containsAUserToken(User user, Record record) {

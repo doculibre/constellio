@@ -86,29 +86,61 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 		List<String> manualTokens = parameters.get(manualTokensParam);
 
-		Set<String> tokens = new HashSet<>();
+
 		String typeSmallCode = parameters.getSchemaType().getSmallCode();
 		if (typeSmallCode == null) {
 			typeSmallCode = parameters.getSchemaType().getCode();
 		}
+
+		Set<String> negativeTokens = new HashSet<>();
+
 		for (SecurityModelAuthorization authorization : authorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptAuth()) {
+			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptAuth()
+				&& authorization.getDetails().isNegative()) {
 				for (String access : authorization.getDetails().getRoles()) {
 					for (User user : authorization.getUsers()) {
-						addPrincipalTokens(tokens, typeSmallCode, access, user.getId());
+						addPrincipalNegativeTokens(negativeTokens, typeSmallCode, access, user.getId());
 					}
 
 					for (Group group : authorization.getGroups()) {
 						if (securityModel.isGroupActive(group)) {
-							addPrincipalTokens(tokens, typeSmallCode, access, group.getId());
+							addPrincipalNegativeTokens(negativeTokens, typeSmallCode, access, group.getId());
 
 							for (Group aGroup : securityModel.getGroupsInheritingAuthorizationsFrom(group)) {
-								addPrincipalTokens(tokens, typeSmallCode, access, aGroup.getId());
+								addPrincipalNegativeTokens(negativeTokens, typeSmallCode, access, aGroup.getId());
 							}
 						}
 					}
 				}
 			}
+		}
+
+		Set<String> positiveTokens = new HashSet<>();
+		for (SecurityModelAuthorization authorization : authorizations) {
+			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptAuth()
+				&& !authorization.getDetails().isNegative()) {
+				for (String access : authorization.getDetails().getRoles()) {
+					for (User user : authorization.getUsers()) {
+						addPrincipalPositiveTokens(positiveTokens, negativeTokens, typeSmallCode, access, user.getId());
+					}
+
+					for (Group group : authorization.getGroups()) {
+						if (securityModel.isGroupActive(group)) {
+							addPrincipalPositiveTokens(positiveTokens, negativeTokens, typeSmallCode, access, group.getId());
+
+							for (Group aGroup : securityModel.getGroupsInheritingAuthorizationsFrom(group)) {
+								addPrincipalPositiveTokens(positiveTokens, negativeTokens, typeSmallCode, access, aGroup.getId());
+							}
+						}
+					}
+				}
+			}
+		}
+
+		Set<String> tokens = new HashSet<>();
+		tokens.addAll(positiveTokens);
+		for (String negativeToken : negativeTokens) {
+			tokens.add("n" + negativeToken);
 		}
 
 		tokens.addAll(manualTokens);
@@ -118,23 +150,63 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		return tokensList;
 	}
 
-	private void addPrincipalTokens(Set<String> tokens, String typeSmallCode, String access, String principalId) {
+	private void addPrincipalPositiveTokens(Set<String> positiveTokens, Set<String> negativeTokens,
+											String typeSmallCode, String access, String principalId) {
+
 		if (Role.READ.equals(access)) {
-			tokens.add("r_" + principalId);
-			tokens.add("r" + typeSmallCode + "_" + principalId);
+			String readOnRecordsOfAnyTypeToken = "r_" + principalId;
+			String readOnRecordsOfRecordTypeToken = "r" + typeSmallCode + "_" + principalId;
+
+			if (!negativeTokens.contains(readOnRecordsOfAnyTypeToken)) {
+				positiveTokens.add(readOnRecordsOfAnyTypeToken);
+				positiveTokens.add(readOnRecordsOfRecordTypeToken);
+			}
 
 		} else if (Role.WRITE.equals(access)) {
-			tokens.add("r_" + principalId);
-			tokens.add("w_" + principalId);//TODO Check to remove this token
-			tokens.add("r" + typeSmallCode + "_" + principalId);//TODO Check to remove this token
-			tokens.add("w" + typeSmallCode + "_" + principalId);
+			String readOnRecordsOfAnyTypeToken = "r_" + principalId;
+			String readOnRecordsOfRecordTypeToken = "r" + typeSmallCode + "_" + principalId; //TODO Check to remove this token
+			if (!negativeTokens.contains(readOnRecordsOfAnyTypeToken)) {
+				positiveTokens.add(readOnRecordsOfAnyTypeToken);
+				positiveTokens.add(readOnRecordsOfRecordTypeToken);
+			}
+
+			String writeOnRecordsOfAnyTypeToken = "w_" + principalId; //TODO Check to remove this token
+			String writeOnRecordsOfRecordTypeToken = "w" + typeSmallCode + "_" + principalId;
+			if (!negativeTokens.contains(writeOnRecordsOfAnyTypeToken)) {
+				positiveTokens.add(writeOnRecordsOfAnyTypeToken);
+				positiveTokens.add(writeOnRecordsOfRecordTypeToken);
+			}
 
 		} else if (Role.DELETE.equals(access)) {
-			tokens.add("r_" + principalId);
-			tokens.add("r" + typeSmallCode + "_" + principalId);
+			String readOnRecordsOfAnyTypeToken = "r_" + principalId;
+			String readOnRecordsOfRecordTypeToken = "r" + typeSmallCode + "_" + principalId;
+
+			if (!negativeTokens.contains(readOnRecordsOfAnyTypeToken)) {
+				positiveTokens.add(readOnRecordsOfAnyTypeToken);
+				positiveTokens.add(readOnRecordsOfRecordTypeToken);
+			}
 
 		} else {
-			tokens.add(access + "_" + principalId);
+			positiveTokens.add(access + "_" + principalId);
+		}
+	}
+
+	private void addPrincipalNegativeTokens(Set<String> negativeTokens, String typeSmallCode, String access,
+											String principalId) {
+
+		if (Role.READ.equals(access)) {
+			negativeTokens.add("r_" + principalId);
+			negativeTokens.add("w_" + principalId);//TODO Check to remove this token
+			negativeTokens.add("d_" + principalId);
+		} else if (Role.WRITE.equals(access)) {
+			negativeTokens.add("w_" + principalId);//TODO Check to remove this token
+
+
+		} else if (Role.DELETE.equals(access)) {
+			negativeTokens.add("d_" + principalId);//TODO Check to remove this token
+
+		} else {
+			negativeTokens.add(access + "_" + principalId);
 		}
 	}
 
