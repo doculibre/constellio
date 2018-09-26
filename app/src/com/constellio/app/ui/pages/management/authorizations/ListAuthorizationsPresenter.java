@@ -196,6 +196,10 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		return new ConstellioEIMConfigs(modelLayerFactory).isNegativeAuthorizationEnabled();
 	}
 
+	public boolean hasManageSecurityPermission() {
+		return getCurrentUser().has(CorePermissions.MANAGE_SECURITY).globally();
+	}
+
 	private static class AuthorizationReceivedFromMetadata {
 		Authorization authorization;
 		Metadata metadata;
