@@ -35,7 +35,7 @@ import com.constellio.model.services.records.RecordServicesException.ValidationE
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord;
-import com.constellio.model.services.records.preparation.RecordsToReindexResolver;
+import com.constellio.model.services.records.preparation.RecordsLinksResolver;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -363,7 +363,7 @@ public class RecordDeleteServices {
 
 			Set<String> ids = new HashSet<>();
 			for (Record aRecord : records) {
-				ids.addAll(new RecordsToReindexResolver(types).findRecordsToReindexFromRecord(aRecord, true));
+				ids.addAll(new RecordsLinksResolver(types).findRecordsToReindexFromRecord(aRecord, true));
 			}
 
 			deleteContents(records);
