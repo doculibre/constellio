@@ -63,6 +63,7 @@ import java.util.Map.Entry;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
+import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 
@@ -566,16 +567,20 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		view.reloadForm();
 	}
 
-	public MetadataVO getDefaultValueMetadataVO(FormMetadataVO formMetadataVO) {
+	public MetadataVO getDefaultValueMetadataVO(FormMetadataVO formMetadataVO, boolean editMode) {
 
 		try {
 			MetadataInputType inputType = formMetadataVO.getInput();
 			MetadataDisplayType displayType = formMetadataVO.getDisplayType();
+			Class<? extends Enum<?>> enumClass = null;
 			if (formMetadataVO.getValueType() == REFERENCE) {
 				inputType = MetadataInputType.LOOKUP;
 			}
 			if (!inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
 				displayType = MetadataDisplayType.VERTICAL;
+			}
+			if(formMetadataVO.getValueType() == ENUM && editMode) {
+				enumClass = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(formMetadataVO.getCode()).getEnumClass();
 			}
 
 			CollectionInfo collectionInfo = defaultSchema().getCollectionInfo();
@@ -584,7 +589,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getCode(), formMetadataVO.getValueType(), collection,
 					formMetadataVO.getSchema(), formMetadataVO.isRequired(), formMetadataVO.isMultivalue(), false,
-					new HashMap<Locale, String>(), null, new String[]{}, formMetadataVO.getReference(), inputType, displayType,
+					new HashMap<Locale, String>(), enumClass, new String[]{}, formMetadataVO.getReference(), inputType, displayType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
 					formMetadataVO.getDefaultValue(), false, formMetadataVO.getCustomAttributes(),
 					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO);
