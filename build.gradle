@@ -1,6 +1,7 @@
 plugins {
     id "fi.jasoft.plugin.vaadin" version '1.1.11' apply false
     id "org.sonarqube" version "2.2" apply false
+    id "org.ajoberstar.grgit" version "2.3.0"
 }
 
 apply plugin: 'war'
@@ -96,9 +97,30 @@ subprojects {
     }
 }
 
+ext {
+    // Open the 2 Git repository
+    gitConstellio = org.ajoberstar.grgit.Grgit.open(dir: project(":constellio").projectDir)
+    gitPlugins = org.ajoberstar.grgit.Grgit.open(dir: project(":constellio-plugins").projectDir)
+
+    revisionConstellio = gitConstellio.head().abbreviatedId
+    revisionPlugins = gitConstellio.head().abbreviatedId
+    branchConstellio = gitConstellio.branch.current()
+    branchPlugins = gitPlugins.branch.current()
+
+}
+
 war {
-    baseName = "constellio"
-    version = project.VERSION
+    doFirst {
+        manifest {
+            attributes("Implementation-Title": project.name,
+                    "Implementation-Version": project.VERSION,
+                    "Implementation-Timestamp": new Date(),
+                    "Implementation-Revision-Constellio": revisionConstellio,
+                    "Implementation-Revision-Plugins": revisionPlugins,
+                    "Implementation-Branch-Constellio": branchConstellio.fullName,
+                    "Implementation-Branch-Plugins": branchPlugins.fullName)
+        }
+    }
 
     webInf {
         from("resources_i18n/") {
