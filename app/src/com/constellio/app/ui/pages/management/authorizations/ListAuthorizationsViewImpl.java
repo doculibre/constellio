@@ -1,23 +1,12 @@
 package com.constellio.app.ui.pages.management.authorizations;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import com.constellio.app.ui.framework.components.converters.TaxonomyRecordIdToContextCaptionConverter;
-import com.vaadin.ui.*;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.converters.GroupIdToCaptionConverter;
@@ -40,9 +29,16 @@ import com.vaadin.data.Container;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnGenerator;
+import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
@@ -53,10 +49,13 @@ import java.util.List;
 import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements ListAuthorizationsView {
 	public static final String INHERITED_AUTHORIZATIONS = "authorizations-inherited";
 	public static final String AUTHORIZATIONS = "authorizations";
+	private static final String ENABLE = $("AuthorizationsView.enable");
+	private static final String DISABLE = $("AuthorizationsView.disable");
 
 	public enum AuthorizationSource {
 		INHERITED, OWN, INHERITED_FROM_METADATA
@@ -248,7 +247,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		Table table = new BaseTable(getClass().getName(), tableCaption, container);
 		table.setPageLength(container.size());
 		table.addStyleName(source == AuthorizationSource.OWN ? AUTHORIZATIONS : INHERITED_AUTHORIZATIONS);
-		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeAccessField(), getSessionContext().getCurrentLocale()).attachTo(table);
+		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeAccessField(), getSessionContext().getCurrentLocale()).attachTo(table, presenter.isNegativeAuthorizationConfigEnabledAndRecordIsNotATaxonomy());
 		return table;
 	}
 
@@ -303,7 +302,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	public abstract class AddAuthorizationButton extends WindowButton {
 		@PropertyId("accessRoles") protected ListOptionGroup accessRoles;
 		@PropertyId("userRoles") protected ListOptionGroup userRoles;
-		@PropertyId("negative") protected CheckBox negative;
+		@PropertyId("negative") protected ComboBox negative;
 		@PropertyId("startDate") protected JodaDateField startDate;
 		@PropertyId("endDate") protected JodaDateField endDate;
 
@@ -346,11 +345,13 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		}
 
 		protected void buildNegativeAuthorizationField(){
-			negative = new CheckBox();
+			negative = new ComboBox();
 			negative.setCaption($("AuthorizationsView.negativeAuthotization"));
-			negative.setEnabled(presenter.isNegativeAuthorizationConfigEnabled());
-			negative.setVisible(presenter.isNegativeAuthorizationConfigEnabled());
+			negative.setEnabled(presenter.hasManageSecurityPermission());
+			negative.setVisible(presenter.isNegativeAuthorizationConfigEnabledAndRecordIsNotATaxonomy());
+			negative.setRequired(presenter.hasManageSecurityPermission());
 			negative.setId("negative");
+			negative.addItems(asList(ENABLE, DISABLE));
 		}
 
 		protected void buildDateFields() {
@@ -417,6 +418,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		public static final String ACCESS = "access";
 		public static final String USER_ROLES = "userRoles";
 		public static final String START_DATE = "startDate";
+		public static final String POSITIVE_OR_NEGATIVE = "positiveOrNegative";
 		public static final String END_DATE = "endDate";
 		public static final String RECEIVED_FROM_METADATA_LABEL = "receivedFromMetadataLabel";
 		public static final String RECEIVED_FROM_RECORD_CAPTION = "receivedFromRecordCaption";
@@ -441,8 +443,10 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			converter = new JodaDateToStringConverter();
 		}
 
-		public void attachTo(Table table) {
+		public void attachTo(Table table, boolean negativeAuthorizationConfigEnabled) {
 			String primary;
+			List<String> columnIds = new ArrayList<>();
+
 			if (mode == DisplayMode.CONTENT) {
 				table.addGeneratedColumn(CONTENT, this);
 				table.setColumnHeader(CONTENT, $("AuthorizationsView.content"));
@@ -453,15 +457,21 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				primary = PRINCIPALS;
 			}
 			table.setColumnExpandRatio(primary, 1);
+			columnIds.addAll(asList(primary, START_DATE, END_DATE));
 
 			if (seeAccessField) {
 				table.addGeneratedColumn(ACCESS, this);
 				table.setColumnHeader(ACCESS, $("AuthorizationsView.access"));
+				columnIds.add(ACCESS);
+				if (negativeAuthorizationConfigEnabled) {
+					columnIds.add(POSITIVE_OR_NEGATIVE);
+				}
 			}
 
 			if (seeRolesField) {
 				table.addGeneratedColumn(USER_ROLES, this);
 				table.setColumnHeader(USER_ROLES, $("AuthorizationsView.userRoles"));
+				columnIds.add(USER_ROLES);
 			}
 
 			if (seeMetadataField) {
@@ -472,6 +482,9 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				table.setColumnHeader(RECEIVED_FROM_RECORD_CAPTION, $("AuthorizationsView.receivedFromRecord"));
 			}
 
+			table.addGeneratedColumn(POSITIVE_OR_NEGATIVE, this);
+			table.setColumnHeader(POSITIVE_OR_NEGATIVE, $("AuthorizationsView.positiveOrNegative"));
+
 			table.addGeneratedColumn(START_DATE, this);
 			table.setColumnHeader(START_DATE, $("AuthorizationsView.startDate"));
 
@@ -481,36 +494,12 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			if (source == AuthorizationSource.OWN) {
 				table.setColumnHeader(BUTTONS, "");
 				table.setColumnWidth(BUTTONS, 80);
-				if (seeRolesField && seeAccessField) {
-					table.setVisibleColumns(primary, ACCESS, USER_ROLES, START_DATE, END_DATE, BUTTONS);
-				} else if (!seeRolesField && seeAccessField) {
-					table.setVisibleColumns(primary, ACCESS, START_DATE, END_DATE, BUTTONS);
-				} else if (seeRolesField && !seeAccessField) {
-					table.setVisibleColumns(primary, USER_ROLES, START_DATE, END_DATE, BUTTONS);
-				}
+				columnIds.add(BUTTONS);
 			} else if (source == AuthorizationSource.INHERITED_FROM_METADATA) {
-				if (seeRolesField && seeAccessField) {
-					table.setVisibleColumns(primary, ACCESS, RECEIVED_FROM_RECORD_CAPTION,
-							USER_ROLES, START_DATE, END_DATE);
-				} else if (!seeRolesField && seeAccessField) {
-					table.setVisibleColumns(primary, ACCESS, RECEIVED_FROM_RECORD_CAPTION,
-							START_DATE, END_DATE);
-				} else if (seeRolesField && !seeAccessField) {
-					table.setVisibleColumns(primary, USER_ROLES, RECEIVED_FROM_RECORD_CAPTION,
-							START_DATE, END_DATE);
-				}
-
-			} else if (source == AuthorizationSource.INHERITED) {
-				if (seeRolesField && seeAccessField) {
-					table.setVisibleColumns(primary, ACCESS, USER_ROLES, START_DATE, END_DATE);
-				} else if (!seeRolesField && seeAccessField) {
-					table.setVisibleColumns(primary, ACCESS, START_DATE, END_DATE);
-				} else if (seeRolesField && !seeAccessField) {
-					table.setVisibleColumns(primary, USER_ROLES, START_DATE, END_DATE);
-				}
-
+				columnIds.add(RECEIVED_FROM_RECORD_CAPTION);
 			}
 
+			table.setVisibleColumns(columnIds.toArray());
 			table.setWidth("100%");
 		}
 
@@ -534,10 +523,32 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 					return authorization.getReceivedFromMetadataLabel();
 				case RECEIVED_FROM_RECORD_CAPTION:
 					return authorization.getReceivedFromRecordCaption();
+				case POSITIVE_OR_NEGATIVE:
+					return buildNegativeAuthorizationsColumn(authorization);
 				default:
 					LocalDate date = (LocalDate) source.getItem(itemId).getItemProperty(columnId).getValue();
 					return converter.convertToPresentation(
 							date, String.class, ConstellioUI.getCurrentSessionContext().getCurrentLocale());
+			}
+		}
+
+		private Object buildNegativeAuthorizationsColumn(AuthorizationVO authorization) {
+			if (DISABLE.equals(authorization.getNegative())) {
+				IconButton minusIcon = new IconButton(new ThemeResource("images/commun/minus.png"), "") {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+					}
+				};
+				minusIcon.setDescription($("AuthorizationsView.negativeIconMessage"));
+				return minusIcon;
+			} else {
+				IconButton plusIcon = new IconButton(new ThemeResource("images/commun/plus.png"), "") {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+					}
+				};
+				plusIcon.setIcon(new ThemeResource("images/commun/plus.png"));
+				return plusIcon;
 			}
 		}
 
