@@ -1014,6 +1014,11 @@ public class MetadataBuilder {
 		return accessRestrictionBuilder;
 	}
 
+	public MetadataBuilder setAccessRestrictionBuilder(MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder) {
+		accessRestrictionBuilder = metadataAccessRestrictionBuilder;
+		return this;
+	}
+
 	public MetadataBuilder defineStructureFactory(Class<? extends StructureFactory> structureFactory) {
 		this.structureFactoryClass = structureFactory;
 		if (this.type == null) {

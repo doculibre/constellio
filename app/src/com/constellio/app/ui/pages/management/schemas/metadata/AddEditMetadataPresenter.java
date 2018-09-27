@@ -1,5 +1,21 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.commons.lang.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -13,6 +29,7 @@ import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
@@ -26,6 +43,7 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataAttribute;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -33,9 +51,11 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataCannotBeDisabled;
 import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeException.EssentialMetadataInSummaryCannotBeDisabled;
@@ -47,21 +67,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.UI;
-import org.apache.commons.lang.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
 
@@ -107,6 +112,17 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 		return found;
 	}
+
+	public List<RoleVO> getAllCollectionRole() {
+
+			List<RoleVO> result = new ArrayList<>();
+			for (Role role : modelLayerFactory.getRolesManager().getAllRoles(view.getCollection())) {
+				result.add(new RoleVO(role.getCode(), role.getTitle(), role.getOperationPermissions()));
+			}
+			return result;
+	}
+
+
 
 	public FormMetadataVO getParentFormMetadataVO() {
 		return getFormMetadataVO().getInheritance();
@@ -216,8 +232,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		boolean isSaveButtonClicked = false;
 		MetadataBuilder builderDefaultSchema;
 		final MetadataBuilder builder;
+		final MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
+
+
 		if (!editMode) {
 			builder = types.getSchema(schemaCode).create("USR" + formMetadataVO.getLocalcode());
+			final MetadataAccessRestrictionBuilder originalMetadataAccessRestrictionBuilder = builder.defineAccessRestrictions();
 
 			builder.setMultivalue(formMetadataVO.isMultivalue());
 			builder.setType(formMetadataVO.getValueType());
@@ -227,6 +247,17 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
 			builder.setUniqueValue(formMetadataVO.isUniqueValue());
 			builder.setMultiLingual(formMetadataVO.isMultiLingual());
+
+			if(formMetadataVO.getReadAccessRoles() != null) {
+				MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(new ArrayList<String>(), originalMetadataAccessRestrictionBuilder.getRequiredWriteRoles(),
+						originalMetadataAccessRestrictionBuilder.getRequiredModificationRoles(), originalMetadataAccessRestrictionBuilder.getRequiredDeleteRoles());
+				for (String role : formMetadataVO.getReadAccessRoles()) {
+					metadataAccessRestriction.getRequiredReadRoles().add(role);
+				}
+				metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
+				builder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
+			}
+
 
 			if (formMetadataVO.getValueType().equals(REFERENCE)) {
 				MetadataSchemaTypeBuilder refBuilder = types.getSchemaType(formMetadataVO.getReference());
@@ -242,13 +273,23 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			saveButtonClicked(formMetadataVO, editMode, schemaCode, schemasManager, types, code, false, builder);
 		} else {
 			builder = types.getSchema(schemaCode).get(formMetadataVO.getCode());
-
 			code = formMetadataVO.getCode();
 			if (!isInherited(code)) {
+				final MetadataAccessRestrictionBuilder originalMetadataAccessRestrictionBuilder = builder.defineAccessRestrictions();
 				builder.setCustomAttributes(formMetadataVO.getCustomAttributes());
 				final boolean reindexRequired = builder.isSortable() != formMetadataVO.isSortable() ||
 												builder.isSearchable() != formMetadataVO.isSearchable();
 				builder.setSchemaAutocomplete(formMetadataVO.isAutocomplete());
+
+				if(formMetadataVO.getReadAccessRoles() != null) {
+					MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(new ArrayList<String>(), originalMetadataAccessRestrictionBuilder.getRequiredWriteRoles(),
+							originalMetadataAccessRestrictionBuilder.getRequiredModificationRoles(), originalMetadataAccessRestrictionBuilder.getRequiredDeleteRoles());
+					for (String role : formMetadataVO.getReadAccessRoles()) {
+						metadataAccessRestriction.getRequiredReadRoles().add(role);
+					}
+					metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
+					builder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
+				}
 
 				if (reindexRequired) {
 					String confirmDialogMessage = formMetadataVO.getValueType() == REFERENCE ?
@@ -283,10 +324,6 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 						schemasManager, types, code, false, builder);
 			}
 		}
-	}
-
-	private void showConfirmDialogForReindexation(String title, String message) {
-
 	}
 
 	private void saveButtonClicked(FormMetadataVO formMetadataVO, boolean editMode, String schemaCode,
@@ -580,9 +617,13 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 					new HashMap<Locale, String>(), null, new String[]{}, formMetadataVO.getReference(), inputType, displayType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
 					formMetadataVO.getDefaultValue(), false, formMetadataVO.getCustomAttributes(),
-					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), formMetadataVO.getSchema().getCollectionInfoVO());
+					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), formMetadataVO.getSchema() != null ? formMetadataVO.getSchema().getCollectionInfoVO() : null);
 			return metadataVO;
 		} catch (Exception ex) {
+
+
+
+
 			return null;
 		}
 	}
@@ -594,5 +635,18 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public boolean isMetadataSystemReserved() {
 		return !metadataCode.isEmpty() && getMetadata(metadataCode).isSystemReserved();
+	}
+
+	public List<String> getMetadataReadRole() {
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+
+		if (types != null) {
+			Metadata metadata = types.getMetadata(metadataCode);
+				if(metadata.getAccessRestrictions() != null) {
+					return metadata.getAccessRestrictions().getRequiredReadRoles();
+				}
+			}
+
+		return new ArrayList<>();
 	}
 }
