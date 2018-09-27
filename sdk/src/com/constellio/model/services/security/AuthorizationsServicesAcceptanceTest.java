@@ -3614,13 +3614,15 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	//TODO Negative!
 	@Test
-	public void givenUserHasGlobalAccessOrNoAccessThenNegativeAuthorizationsDoesNotAffectTheirAccesses() {
+	public void givenUserHasGlobalAccessOrNoAccessThenNegativeAuthorizationsDoesNotAffectTheirAccesses()
+			throws Exception {
 
-		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingNegativeReadWriteAccess());
-		auth2 = add(authorizationForUser(chuckNorris).on(FOLDER1).givingNegativeReadWriteAccess());
+		recordServices.update(users.aliceIn(zeCollection).setCollectionReadAccess(true));
+		auth1 = add(authorizationForUser(alice).on(FOLDER4).givingNegativeReadWriteAccess());
+		auth2 = add(authorizationForUser(chuck).on(FOLDER1).givingNegativeReadWriteAccess());
 		auth3 = add(authorizationForGroups(legends).on(FOLDER2).givingNegativeReadWriteDeleteAccess());
 
-		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER2, TAXO1_CATEGORY2, FOLDER1_DOC1, FOLDER2_2, FOLDER3)) {
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER2, TAXO1_CATEGORY2, FOLDER1_DOC1, FOLDER2_2, FOLDER4)) {
 			verifyRecord.usersWithReadAccess().containsOnly(alice, chuck);
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
 			verifyRecord.usersWithDeleteAccess().containsOnly(chuck);
@@ -3631,12 +3633,12 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void givenUserHasNoAccessesWhenReceivingNegativeAuthorizationsThenStillHasNoAccesses() {
 
-		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingNegativeReadWriteAccess());
+		auth1 = add(authorizationForUser(bob).on(FOLDER3).givingNegativeReadWriteAccess());
 		auth2 = add(authorizationForUser(bob).on(FOLDER1).givingNegativeReadWriteAccess());
 		auth3 = add(authorizationForUser(bob).on(FOLDER2).givingNegativeReadDeleteAccess());
 
-		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER2, TAXO1_CATEGORY2, FOLDER1_DOC1, FOLDER2_2, FOLDER3)) {
-			verifyRecord.usersWithReadAccess().containsOnly(alice, chuck);
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER2, FOLDER1_DOC1, FOLDER2_2, FOLDER3)) {
+			verifyRecord.usersWithReadAccess().containsOnly(chuck);
 			verifyRecord.usersWithWriteAccess().containsOnly(chuck);
 			verifyRecord.usersWithDeleteAccess().containsOnly(chuck);
 		}
@@ -3648,16 +3650,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		recordServices.update(users.aliceIn(zeCollection).setCollectionReadAccess(true));
 
-		getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(true);
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
 		auth1 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadWriteDeleteAccess());
 		auth2 = add(authorizationForGroup(heroes).on(FOLDER1).givingReadWriteDeleteAccess());
 		auth3 = add(authorizationForGroup(heroes).on(FOLDER2).givingReadWriteDeleteAccess());
 
 		auth4 = add(authorizationForUser(charles).on(FOLDER2).givingNegativeReadWriteAccess());
 		auth5 = add(authorizationForUser(charles).on(FOLDER3).givingNegativeDeleteAccess());
-		auth5 = add(authorizationForUser(charles).on(FOLDER4).givingNegativeWriteAccess());
+		auth6 = add(authorizationForUser(charles).on(FOLDER4).givingNegativeWriteAccess());
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER1_DOC1)) {
 			verifyRecord.usersWithReadAccess().containsOnly(dakota, gandalf, charles, alice, chuck, robin);
@@ -3677,31 +3676,51 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithDeleteAccess().containsOnly(dakota, gandalf, chuck, robin);
 		}
 
-		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1)) {
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2)) {
 			verifyRecord.usersWithReadAccess().containsOnly(dakota, gandalf, alice, chuck, robin, charles);
 			verifyRecord.usersWithWriteAccess().containsOnly(dakota, gandalf, chuck, robin);
 			verifyRecord.usersWithDeleteAccess().containsOnly(dakota, gandalf, chuck, robin, charles);
 		}
 
+		modify(authorizationOnRecord(auth6, FOLDER4_1).removingItOnRecord());
+
+		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_2)) {
+			verifyRecord.usersWithReadAccess().containsOnly(dakota, gandalf, alice, chuck, robin, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(dakota, gandalf, chuck, robin);
+			verifyRecord.usersWithDeleteAccess().containsOnly(dakota, gandalf, chuck, robin, charles);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER4_1, FOLDER4_1_DOC1)) {
+			verifyRecord.usersWithReadAccess().containsOnly(dakota, gandalf, alice, chuck, robin, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(dakota, gandalf, chuck, robin, charles);
+			verifyRecord.usersWithDeleteAccess().containsOnly(dakota, gandalf, chuck, robin, charles);
+		}
+
+		modify(authorizationOnRecord(auth5, FOLDER3).removingItOnRecord());
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER3_DOC1)) {
+			verifyRecord.usersWithReadAccess().containsOnly(dakota, gandalf, alice, chuck, robin, charles);
+			verifyRecord.usersWithWriteAccess().containsOnly(dakota, gandalf, chuck, robin, charles);
+			verifyRecord.usersWithDeleteAccess().containsOnly(dakota, gandalf, chuck, robin, charles);
+		}
 	}
 
 	@Test
 	public void givenUserIsInheritingNegativeAccessesFromItsGroupThenPositiveAuthorizationsDoesNotCounterTheNegativeAccesses() {
 
-		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingNegativeReadWriteAccess());
-		auth2 = add(authorizationForUser(heroes).on(FOLDER2).givingNegativeReadDeleteAccess());
+		auth1 = add(authorizationForGroup(heroes).on(FOLDER3).givingNegativeReadWriteAccess());
+		auth2 = add(authorizationForGroup(heroes).on(FOLDER2).givingNegativeReadDeleteAccess());
 
 		auth3 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		auth4 = add(authorizationForUser(charles).on(FOLDER1).givingReadWriteAccess());
 		auth5 = add(authorizationForUser(charles).on(FOLDER2_1).givingReadDeleteAccess());
 
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER1_DOC1, FOLDER4)) {
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1, FOLDER4)) {
 			verifyRecord.usersWithReadAccess().contains(charles);
 			verifyRecord.usersWithWriteAccess().contains(charles);
-			verifyRecord.usersWithDeleteAccess().contains(charles);
+			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
 		}
 
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER3, FOLDER2, FOLDER2_1)) {
+		for (RecordVerifier verifyRecord : $(FOLDER3, FOLDER2, FOLDER2_1)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(charles);
 			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
 			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
@@ -3711,21 +3730,21 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void givenUserIsInheritingNegativeAndPositiveAccessesFromItsGroupThenNegativeAlwaysWins() {
 
-		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingNegativeReadWriteAccess());
-		auth2 = add(authorizationForUser(heroes).on(FOLDER2).givingNegativeReadDeleteAccess());
-		auth3 = add(authorizationForUser(heroes).on(FOLDER1).givingNegativeReadDeleteAccess());
+		auth1 = add(authorizationForGroup(heroes).on(FOLDER3).givingNegativeReadWriteAccess());
+		auth2 = add(authorizationForGroup(heroes).on(FOLDER2).givingNegativeReadDeleteAccess());
+		auth3 = add(authorizationForGroup(heroes).on(FOLDER1).givingNegativeReadDeleteAccess());
 
-		auth4 = add(authorizationForUser(legends).on(TAXO1_CATEGORY2).givingReadWriteAccess());
-		auth5 = add(authorizationForUser(legends).on(FOLDER1).givingReadWriteAccess());
-		auth6 = add(authorizationForUser(legends).on(FOLDER2_1).givingReadDeleteAccess());
+		auth4 = add(authorizationForGroup(legends).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth5 = add(authorizationForGroup(legends).on(FOLDER1).givingReadWriteAccess());
+		auth6 = add(authorizationForGroup(legends).on(FOLDER2_1).givingReadDeleteAccess());
 
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4)) {
+		for (RecordVerifier verifyRecord : $(FOLDER4)) {
 			verifyRecord.usersWithReadAccess().contains(gandalf);
 			verifyRecord.usersWithWriteAccess().contains(gandalf);
-			verifyRecord.usersWithDeleteAccess().contains(gandalf);
+			verifyRecord.usersWithDeleteAccess().doesNotContain(gandalf);
 		}
 
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1)) {
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(gandalf);
 			verifyRecord.usersWithWriteAccess().doesNotContain(gandalf);
 			verifyRecord.usersWithDeleteAccess().doesNotContain(gandalf);
@@ -3735,21 +3754,22 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void givenUserHasNegativeAndPositiveAccessesThenNegativeAlwaysWins() {
 
-		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingNegativeReadWriteAccess());
+		auth1 = add(authorizationForUser(charles).on(FOLDER3).givingNegativeReadWriteAccess());
 		auth2 = add(authorizationForUser(charles).on(FOLDER2).givingNegativeReadDeleteAccess());
 		auth3 = add(authorizationForUser(charles).on(FOLDER1).givingNegativeReadDeleteAccess());
 
-		auth4 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingReadWriteAccess());
-		auth5 = add(authorizationForUser(charles).on(FOLDER1).givingReadWriteAccess());
-		auth6 = add(authorizationForUser(charles).on(FOLDER2_1).givingReadDeleteAccess());
+		auth4 = add(authorizationForUser(charles).on(FOLDER3).givingReadWriteAccess());
+		auth5 = add(authorizationForUser(charles).on(FOLDER4).givingReadWriteAccess());
+		auth6 = add(authorizationForUser(charles).on(FOLDER1).givingReadWriteAccess());
+		auth7 = add(authorizationForUser(charles).on(FOLDER2_1).givingReadDeleteAccess());
 
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4)) {
+		for (RecordVerifier verifyRecord : $(FOLDER4)) {
 			verifyRecord.usersWithReadAccess().contains(charles);
 			verifyRecord.usersWithWriteAccess().contains(charles);
-			verifyRecord.usersWithDeleteAccess().contains(charles);
+			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
 		}
 
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1)) {
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(charles);
 			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
 			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
@@ -3759,7 +3779,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void givenUserHasNegativeAccessesFromTheRecordInheritanceThenDoesNotReceivePositiveAuthorizationsOnTheRecordItself() {
 
-		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegativeReadWriteAccess());
+		auth1 = add(authorizationForUser(charles).on(FOLDER3).givingNegativeReadWriteAccess());
 		auth2 = add(authorizationForUser(charles).on(FOLDER2).givingNegativeReadDeleteAccess());
 		auth3 = add(authorizationForUser(charles).on(FOLDER1).givingNegativeReadDeleteAccess());
 
@@ -3767,8 +3787,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth5 = add(authorizationForUser(charles).on(FOLDER1_DOC1).givingReadWriteAccess());
 		auth6 = add(authorizationForUser(charles).on(FOLDER2_1).givingReadDeleteAccess());
 
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1,
-				TAXO1_CATEGORY2, FOLDER4)) {
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1, FOLDER4)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(charles);
 			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
 			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
@@ -3777,8 +3796,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		detach(FOLDER1_DOC1);
 		detach(FOLDER2);
 
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1,
-				TAXO1_CATEGORY2, FOLDER4)) {
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1, FOLDER3, FOLDER2, FOLDER2_1, FOLDER4)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(charles);
 			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
 			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
@@ -3788,74 +3806,74 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void givenUserHasPositiveAccessesFromTheRecordInheritanceWhenReceivingNegativeAuthsOnTheRecordThenLooseAccess() {
 
-		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingReadDeleteAccess());
 		auth2 = add(authorizationForUser(charles).on(FOLDER2).givingReadDeleteAccess());
 		auth3 = add(authorizationForUser(charles).on(FOLDER1).givingReadDeleteAccess());
 
-		auth4 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingNegativeReadWriteAccess());
+		auth4 = add(authorizationForUser(charles).on(FOLDER3).givingNegativeReadWriteAccess());
 		auth5 = add(authorizationForUser(charles).on(FOLDER1_DOC1).givingNegativeReadWriteAccess());
 		auth6 = add(authorizationForUser(charles).on(FOLDER2_1).givingNegativeReadDeleteAccess());
 
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1_DOC1, FOLDER3, FOLDER2_1)) {
-			verifyRecord.usersWithReadAccess().contains(charles);
-			verifyRecord.usersWithWriteAccess().contains(charles);
-			verifyRecord.usersWithDeleteAccess().contains(charles);
-		}
-
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER4, FOLDER2)) {
+		for (RecordVerifier verifyRecord : $(FOLDER1_DOC1, FOLDER3, FOLDER2_1)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(charles);
 			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
 			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
+		}
+
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER4, FOLDER2)) {
+			verifyRecord.usersWithReadAccess().contains(charles);
+			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
+			verifyRecord.usersWithDeleteAccess().contains(charles);
 		}
 
 		detach(FOLDER1_DOC1);
 		detach(FOLDER2);
 
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2_1, FOLDER1_DOC1, FOLDER3, FOLDER2_1)) {
-			verifyRecord.usersWithReadAccess().contains(charles);
-			verifyRecord.usersWithWriteAccess().contains(charles);
-			verifyRecord.usersWithDeleteAccess().contains(charles);
-		}
-
-		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER1, FOLDER4, FOLDER2)) {
+		for (RecordVerifier verifyRecord : $(FOLDER1_DOC1, FOLDER3, FOLDER2_1)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(charles);
 			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
 			verifyRecord.usersWithDeleteAccess().doesNotContain(charles);
 		}
 
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER4, FOLDER2)) {
+			verifyRecord.usersWithReadAccess().contains(charles);
+			verifyRecord.usersWithWriteAccess().doesNotContain(charles);
+			verifyRecord.usersWithDeleteAccess().contains(charles);
+		}
+
 	}
 
-	@Test
+	//Unsupported negative autorisation @Test
 	public void givenUserHasGlobalAccessOrNoPermissionsThenNegativeAuthorizationsDoesNotAffectTheirPermissions() {
 
-		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
+		auth1 = add(authorizationForUser(alice).on(FOLDER3).givingNegative(ROLE1));
 		auth2 = add(authorizationForUser(chuckNorris).on(FOLDER1).givingNegative(ROLE1));
 		auth3 = add(authorizationForGroups(legends).on(FOLDER2).givingNegative(ROLE1));
 
-		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER2, TAXO1_CATEGORY2, FOLDER1_DOC1, FOLDER2_2, FOLDER3)) {
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER2, FOLDER1_DOC1, FOLDER2_2, FOLDER3)) {
 			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).containsOnly(alice, chuck);
 		}
 
 	}
 
-	@Test
+	//Unsupported negative autorisation @Test
 	public void givenUserHasNoPermissionsWhenReceivingNegativeAuthorizationsThenStillHasNoPermissions() {
 
-		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
+		auth1 = add(authorizationForUser(bob).on(FOLDER3).givingNegative(ROLE1));
 		auth2 = add(authorizationForUser(bob).on(FOLDER1).givingNegative(ROLE1));
 		auth3 = add(authorizationForUser(bob).on(FOLDER2).givingNegative(ROLE1));
 
-		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER2, TAXO1_CATEGORY2, FOLDER1_DOC1, FOLDER2_2, FOLDER3)) {
+		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER2, FOLDER1_DOC1, FOLDER2_2, FOLDER3)) {
 			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).containsOnly(alice, chuck);
 		}
 	}
 
-	@Test
+	//Unsupported negative autorisation @Test
 	public void givenUserIsInheritingPermissionsFromItsGroupThenNegativeAuthorizationsDoesRestrictTheirPermissions() {
 
-		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
-		auth2 = add(authorizationForUser(heroes).on(FOLDER1).givingNegative(ROLE1));
-		auth3 = add(authorizationForUser(heroes).on(FOLDER2).givingNegative(ROLE1));
+		auth1 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
+		auth2 = add(authorizationForGroup(heroes).on(FOLDER1).givingNegative(ROLE1));
+		auth3 = add(authorizationForGroup(heroes).on(FOLDER2).givingNegative(ROLE1));
 
 		auth4 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
 		auth5 = add(authorizationForUser(charles).on(FOLDER2).givingNegative(ROLE1));
@@ -3870,11 +3888,11 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	@Test
+	//Unsupported negative autorisation @Test
 	public void givenUserIsInheritingNegativePermissionsFromItsGroupThenPositiveAuthorizationsDoesNotCounterTheNegativePermissions() {
 
-		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
-		auth2 = add(authorizationForUser(heroes).on(FOLDER2).givingNegative(ROLE1));
+		auth1 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
+		auth2 = add(authorizationForGroup(heroes).on(FOLDER2).givingNegative(ROLE1));
 
 		auth3 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
 		auth4 = add(authorizationForUser(charles).on(FOLDER1).givingNegative(ROLE1));
@@ -3889,16 +3907,16 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//Unsupported negative autorisation @Test
 	public void givenUserIsInheritingNegativeAndPositivePermissionsFromItsGroupThenNegativeAlwaysWins() {
 
-		auth1 = add(authorizationForUser(heroes).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
-		auth2 = add(authorizationForUser(heroes).on(FOLDER2).givingNegative(ROLE1));
-		auth3 = add(authorizationForUser(heroes).on(FOLDER1).givingNegative(ROLE1));
+		auth1 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
+		auth2 = add(authorizationForGroup(heroes).on(FOLDER2).givingNegative(ROLE1));
+		auth3 = add(authorizationForGroup(heroes).on(FOLDER1).givingNegative(ROLE1));
 
-		auth4 = add(authorizationForUser(legends).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
-		auth5 = add(authorizationForUser(legends).on(FOLDER1).givingNegative(ROLE1));
-		auth6 = add(authorizationForUser(legends).on(FOLDER2_1).givingNegative(ROLE1));
+		auth4 = add(authorizationForGroup(legends).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
+		auth5 = add(authorizationForGroup(legends).on(FOLDER1).givingNegative(ROLE1));
+		auth6 = add(authorizationForGroup(legends).on(FOLDER2_1).givingNegative(ROLE1));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY2, FOLDER4)) {
 			verifyRecord.usersWithPermission(PERMISSION_OF_ROLE1).contains(gandalf);
@@ -3909,7 +3927,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//Unsupported negative autorisation @Test
 	public void givenUserHasNegativeAndPositivePermissionsThenNegativeAlwaysWins() {
 
 		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
@@ -3929,7 +3947,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//Unsupported negative autorisation @Test
 	public void givenUserHasNegativePermissionsFromTheRecordInheritanceThenDoesNotReceivePositiveAuthorizationsOnTheRecordItself() {
 
 		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
@@ -3954,7 +3972,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 	}
 
-	@Test
+	//Unsupported negative autorisation @Test
 	public void givenUserHasPositivePermissionsFromTheRecordInheritanceWhenReceivingNegativeAuthsOnTheRecordThenLoosePermissions() {
 
 		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
