@@ -29,9 +29,9 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 
 	@Before
 	public void setUp() throws Exception {
-		givenBackgroundThreadsEnabled();
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus());
+		givenBackgroundThreadsEnabled();
 
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
@@ -77,11 +77,11 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 	@Test
 	public void givenModifiedDocumentNumberThenIncrementFolderSum() throws Exception {
 		Document document = rm.getDocument("fakeDocument");
-		document.set(rm.document.metadata("number"), 5.0);
+		document.set(rm.document.metadata("number"), 15.0);
 		recordServices.update(document.getWrappedRecord());
 		waitForBatchProcess();
 
-		assertThat(rm.getDocument("fakeDocument").get(rm.document.metadata("number"))).isEqualTo(5.0);
+		assertThat(rm.getDocument("fakeDocument").get(rm.document.metadata("number"))).isEqualTo(15.0);
 		assertThat(rm.getFolder("fakeFolder").get(rm.folder.metadata("sum"))).isEqualTo(15.0);
 	}
 
@@ -101,7 +101,7 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 		waitForBatchProcess();
 
 		assertThat(rm.getDocument("fakeDocument").get(rm.document.metadata("number"))).isEqualTo(55.0);
-		assertThat(rm.getFolder("fakeFolder").get(rm.folder.metadata("sum"))).isEqualTo(65.0);
+		assertThat(rm.getFolder("fakeFolder").get(rm.folder.metadata("sum"))).isEqualTo(55.0);
 	}
 
 	@Test
@@ -120,10 +120,10 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 		waitForBatchProcess();
 
 		assertThat(rm.getDocument("fakeDocument").get(rm.document.metadata("number"))).isEqualTo(20.0);
-		assertThat(rm.getFolder("fakeFolder").get(rm.folder.metadata("sum"))).isEqualTo(30.0);
+		assertThat(rm.getFolder("fakeFolder").get(rm.folder.metadata("sum"))).isEqualTo(20.0);
 
 		assertThat(rm.getDocument("fakeDocument2").get(rm.document.metadata("number"))).isEqualTo(50.0);
-		assertThat(rm.getFolder("fakeFolder2").get(rm.folder.metadata("sum"))).isEqualTo(150.0);
+		assertThat(rm.getFolder("fakeFolder2").get(rm.folder.metadata("sum"))).isEqualTo(50.0);
 	}
 
 	@Test
@@ -139,7 +139,7 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 		Transaction transaction = new Transaction();
 
 		Document document2 = rm.getDocument("fakeDocument2");
-		document2.set(rm.document.metadata("number"), 50.0);
+		document2.set(rm.document.metadata("number"), 150.0);
 		transaction.add(document2);
 
 		document2b = rm.getDocument("fakeDocument2b");
@@ -149,9 +149,9 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 		recordServices.execute(transaction);
 		waitForBatchProcess();
 
-		assertThat(rm.getDocument("fakeDocument2").get(rm.document.metadata("number"))).isEqualTo(50.0);
+		assertThat(rm.getDocument("fakeDocument2").get(rm.document.metadata("number"))).isEqualTo(150.0);
 		assertThat(rm.getDocument("fakeDocument2b").get(rm.document.metadata("number"))).isEqualTo(30.0);
-		assertThat(rm.getFolder("fakeFolder2").get(rm.folder.metadata("sum"))).isEqualTo(185.0);
+		assertThat(rm.getFolder("fakeFolder2").get(rm.folder.metadata("sum"))).isEqualTo(180.0);
 	}
 
 	@Test
@@ -170,13 +170,13 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 
 		Transaction transaction = new Transaction();
 		document = rm.getDocument("fakeDocument");
-		document.set(rm.document.metadata("number"), 5.0);
+		document.set(rm.document.metadata("number"), 15.0);
 		transaction.add(document);
 
 		recordServices.execute(transaction);
 		waitForBatchProcess();
 
-		assertThat(rm.getDocument("fakeDocument").get(rm.document.metadata("number"))).isEqualTo(5.0);
+		assertThat(rm.getDocument("fakeDocument").get(rm.document.metadata("number"))).isEqualTo(15.0);
 		assertThat(rm.getFolder("fakeFolder").get(rm.folder.metadata("sum"))).isEqualTo(15.0);
 		assertThat(rm.getRMTask("fakeTask").get(taskSum)).isEqualTo(15.0);
 	}
@@ -231,7 +231,46 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 		assertThat(rm.getRMTask("fakeTask").get(taskSum)).isEqualTo(0.0);
 	}
 
-	private void createTaskSumMetadata() {
+	@Test
+	public void givenDocumentWithRemovedTaskReferenceThenDecreaseSum() throws Exception {
+		createTaskSumMetadata();
+
+		Task task = rm.getRMTask("fakeTask");
+
+		Document document = rm.getDocument("fakeDocument");
+		document.set(rm.document.metadata("task"), task);
+		recordServices.add(document);
+		waitForBatchProcess();
+
+		Metadata taskSum = task.getSchema().getMetadata("sum");
+		assertThat(rm.getRMTask("fakeTask").get(taskSum)).isEqualTo(10.0);
+
+		document.set(rm.document.metadata("task"), null);
+		recordServices.add(document);
+		waitForBatchProcess();
+
+		assertThat(rm.getRMTask("fakeTask").get(taskSum)).isEqualTo(0.0);
+	}
+
+	@Test
+	public void givenDeletedDocumentAndDeletedFolderThenNoException() throws Exception {
+		Document document = rm.getDocument("fakeDocument");
+		recordServices.logicallyDelete(document.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(document.getWrappedRecord(), User.GOD);
+		waitForBatchProcess();
+
+		Folder folder = rm.getFolder("fakeFolder");
+		recordServices.logicallyDelete(folder.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(folder.getWrappedRecord(), User.GOD);
+		waitForBatchProcess();
+
+		Folder folder2 = rm.getFolder("fakeFolder2");
+		recordServices.logicallyDelete(folder2.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(folder2.getWrappedRecord(), User.GOD);
+		waitForBatchProcess();
+	}
+
+	private void createTaskSumMetadata() throws Exception {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
@@ -245,6 +284,7 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 						types.getSchemaType("document").getDefaultSchema().getMetadata("number"));
 			}
 		});
+		waitForBatchProcess();
 	}
 
 }

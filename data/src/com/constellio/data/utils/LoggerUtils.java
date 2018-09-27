@@ -81,6 +81,13 @@ public class LoggerUtils {
 			log.append(recordDeltaDTO.getModifiedFields().get(modifiedField));
 			log.append("; ");
 		}
+		for (String incrementedField : recordDeltaDTO.getIncrementedFields().keySet()) {
+			log.append(incrementedField);
+			log.append(":");
+			log.append("=+");
+			log.append(recordDeltaDTO.getIncrementedFields().get(incrementedField));
+			log.append("; ");
+		}
 
 		return log.toString();
 	}

@@ -592,7 +592,9 @@ public class RecordDeleteServices {
 		} else {
 			LogicalSearchQuery query = new LogicalSearchQuery();
 			List<String> paths = record.getList(Schemas.PATH);
-			query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+			query.setCondition(fromAllSchemasIn(record.getCollection())
+					.where(Schemas.PATH).isStartingWithText(paths.get(0) + "/")
+					.orWhere(Schemas.PATH).isEqualTo(paths.get(0)));
 			return searchServices.search(query);
 		}
 	}
@@ -606,7 +608,9 @@ public class RecordDeleteServices {
 			List<String> paths = record.getList(Schemas.PATH);
 			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
 					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
-			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+			query.setCondition(from(taxonomySchemaTypes)
+					.where(Schemas.PATH).isStartingWithText(paths.get(0) + "/")
+					.orWhere(Schemas.PATH).isEqualTo(paths.get(0)));
 			return searchServices.search(query);
 		}
 	}
@@ -619,7 +623,9 @@ public class RecordDeleteServices {
 
 			List<String> paths = principalConcept.getList(Schemas.PATH);
 			LogicalSearchQuery query = new LogicalSearchQuery();
-			query.setCondition(from(schemaType).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+			query.setCondition(from(schemaType)
+					.where(Schemas.PATH).isStartingWithText(paths.get(0) + "/")
+					.orWhere(Schemas.PATH).isEqualTo(paths.get(0)));
 			records.addAll(searchServices.search(query));
 		}
 		return records;
