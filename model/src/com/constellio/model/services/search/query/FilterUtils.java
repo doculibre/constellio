@@ -73,23 +73,24 @@ public class FilterUtils {
 	public static String userWriteFilter(User user, SecurityTokenManager securityTokenManager) {
 		StringBuilder stringBuilder = new StringBuilder();
 
-		if (stringBuilder.length() > 0) {
-			stringBuilder.append(" AND ");
-		}
-		stringBuilder.append("-");
-		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-		stringBuilder.append(":nw_");
-		stringBuilder.append(user.getId());
+		if (!user.hasCollectionWriteAccess()) {
+			if (stringBuilder.length() > 0) {
+				stringBuilder.append(" AND ");
+			}
+			stringBuilder.append("-");
+			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+			stringBuilder.append(":nw_");
+			stringBuilder.append(user.getId());
 
-		for (String aGroup : user.getUserGroups()) {
-			if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-				stringBuilder.append(" AND -");
-				stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-				stringBuilder.append(":nw_");
-				stringBuilder.append(aGroup);
+			for (String aGroup : user.getUserGroups()) {
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+					stringBuilder.append(" AND -");
+					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+					stringBuilder.append(":nw_");
+					stringBuilder.append(aGroup);
+				}
 			}
 		}
-
 		stringBuilder.append("(");
 		addTokenA38(stringBuilder);
 		if (user.isActiveUser()) {
@@ -136,23 +137,26 @@ public class FilterUtils {
 		StringBuilder stringBuilder = new StringBuilder();
 		UserTokens tokens = securityTokenManager.getTokens(user);
 		addDenyTokens(stringBuilder, tokens.getAllowTokens(), 'r');
-		if (stringBuilder.length() > 0) {
-			stringBuilder.append(" AND ");
-		}
-		stringBuilder.append("-");
-		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-		stringBuilder.append(":nr_");
-		stringBuilder.append(user.getId());
+		if (!user.hasCollectionReadAccess() && !user.hasCollectionWriteAccess() && !user.hasCollectionDeleteAccess()) {
+			if (stringBuilder.length() > 0) {
+				stringBuilder.append(" AND ");
+			}
 
-		for (String aGroup : user.getUserGroups()) {
-			if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-				stringBuilder.append(" AND -");
-				stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-				stringBuilder.append(":nr_");
-				stringBuilder.append(aGroup);
+
+			stringBuilder.append("-");
+			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+			stringBuilder.append(":nr_");
+			stringBuilder.append(user.getId());
+
+			for (String aGroup : user.getUserGroups()) {
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+					stringBuilder.append(" AND -");
+					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+					stringBuilder.append(":nr_");
+					stringBuilder.append(aGroup);
+				}
 			}
 		}
-
 		boolean denyOrNegativeTokens = stringBuilder.length() > 0;
 
 		if (denyOrNegativeTokens) {
@@ -199,9 +203,10 @@ public class FilterUtils {
 			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
 			stringBuilder.append(":");
 			stringBuilder.append(Record.PUBLIC_TOKEN);
-			if (denyOrNegativeTokens) {
-				stringBuilder.append(")");
-			}
+
+		}
+		if (denyOrNegativeTokens) {
+			stringBuilder.append(")");
 		}
 		return stringBuilder.toString();
 	}
@@ -368,23 +373,25 @@ public class FilterUtils {
 
 	public static String userDeleteFilter(User user, SecurityTokenManager securityTokenManager) {
 		StringBuilder stringBuilder = new StringBuilder();
-		if (stringBuilder.length() > 0) {
-			stringBuilder.append(" AND ");
-		}
-		stringBuilder.append("-");
-		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-		stringBuilder.append(":nd_");
-		stringBuilder.append(user.getId());
 
-		for (String aGroup : user.getUserGroups()) {
-			if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-				stringBuilder.append(" AND -");
-				stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-				stringBuilder.append(":nd_");
-				stringBuilder.append(aGroup);
+		if (!user.hasCollectionDeleteAccess()) {
+			if (stringBuilder.length() > 0) {
+				stringBuilder.append(" AND ");
+			}
+			stringBuilder.append("-");
+			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+			stringBuilder.append(":nd_");
+			stringBuilder.append(user.getId());
+
+			for (String aGroup : user.getUserGroups()) {
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+					stringBuilder.append(" AND -");
+					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+					stringBuilder.append(":nd_");
+					stringBuilder.append(aGroup);
+				}
 			}
 		}
-
 		stringBuilder.append("(");
 		addTokenA38(stringBuilder);
 

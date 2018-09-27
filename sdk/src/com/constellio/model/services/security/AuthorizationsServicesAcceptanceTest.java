@@ -18,16 +18,23 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.FreeTextQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.annotations.SlowTest;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.assertj.core.api.Condition;
+import org.assertj.core.api.ListAssert;
 import org.joda.time.LocalDate;
 import org.junit.After;
 import org.junit.Before;
@@ -3612,7 +3619,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	}
 
-	//TODO Negative!
 	@Test
 	public void givenUserHasGlobalAccessOrNoAccessThenNegativeAuthorizationsDoesNotAffectTheirAccesses()
 			throws Exception {
@@ -3841,6 +3847,48 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithDeleteAccess().contains(charles);
 		}
 
+	}
+
+	@Test
+	public void givenUserHasPositiveAndNegativeAccessesInMultipleCollectionsWhenFederateSearchingThenOnlyReturnRecordsWithAccess() {
+
+		add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadDeleteAccess());
+		add(authorizationForUser(charles).on(FOLDER2).givingReadDeleteAccess());
+		add(authorizationForUser(charles).on(FOLDER1).givingReadDeleteAccess());
+
+		add(authorizationForGroup(heroes).on(FOLDER3).givingNegativeReadWriteAccess());
+		add(authorizationForGroup(legends).on(FOLDER1_DOC1).givingNegativeReadWriteAccess());
+		add(authorizationForUser(charles).on(FOLDER2_1).givingNegativeReadDeleteAccess());
+
+		add(authorizationForGroupInAnotherCollection(heroes).on(TAXO1_CATEGORY2).givingReadDeleteAccess());
+		add(authorizationForUserInAnotherCollection(charles).on(FOLDER2).givingReadDeleteAccess());
+		add(authorizationForUserInAnotherCollection(charles).on(FOLDER1).givingReadDeleteAccess());
+
+		add(authorizationForGroupInAnotherCollection(heroes).on(FOLDER3).givingNegativeReadWriteAccess());
+		add(authorizationForGroupsInAnotherCollection(legends).on(FOLDER1_DOC1).givingNegativeReadWriteAccess());
+		add(authorizationForUserInAnotherCollection(charles).on(FOLDER2_1).givingNegativeReadDeleteAccess());
+
+		assertThatAllFoldersVisibleBy(dakota).contains("todo");
+
+	}
+
+	private ListAssert<String> assertThatAllFoldersVisibleBy(String username) {
+		ModifiableSolrParams params = new ModifiableSolrParams();
+		params.set("q", "schema_s:folder_*");
+		params.set("fl", "id");
+		params.set("rows", "1000");
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+
+		FreeTextSearchServices freeTextSearchServices = new FreeTextSearchServices(getModelLayerFactory());
+		QueryResponse queryResponse = freeTextSearchServices.search(new FreeTextQuery(params).filteredByUser(userServices.getUserCredential(username)));
+
+		List<String> ids = new ArrayList<>();
+		for (SolrDocument document : queryResponse.getResults()) {
+			ids.add((String) document.getFieldValue("id"));
+		}
+
+		return assertThat(ids);
 	}
 
 	//Unsupported negative autorisation @Test

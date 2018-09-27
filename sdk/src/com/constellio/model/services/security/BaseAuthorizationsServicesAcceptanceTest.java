@@ -545,10 +545,27 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		return authorizationInCollection(zeCollection).forGroups(groupsArray);
 	}
 
+	protected AuthorizationAddRequest authorizationForGroupsInAnotherCollection(String... groups) {
+
+		Group[] groupsArray = new Group[groups.length];
+
+		for (int i = 0; i < groups.length; i++) {
+			groupsArray[i] = userServices.getGroupInCollection(groups[i], anotherCollection);
+		}
+
+		return authorizationInCollection(anotherCollection).forGroups(groupsArray);
+	}
+
 	protected AuthorizationAddRequest authorizationForUser(String username) {
 
 		User[] usersArray = new User[]{userServices.getUserInCollection(username, zeCollection)};
 		return authorizationInCollection(zeCollection).forUsers(usersArray);
+	}
+
+	protected AuthorizationAddRequest authorizationForUserInAnotherCollection(String username) {
+
+		User[] usersArray = new User[]{userServices.getUserInCollection(username, anotherCollection)};
+		return authorizationInCollection(anotherCollection).forUsers(usersArray);
 	}
 
 	protected AuthorizationAddRequest authorizationForPrincipals(String... principals) {
@@ -566,6 +583,12 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		Group[] groupsArray = new Group[]{userServices.getGroupInCollection(group, zeCollection)};
 		return authorizationInCollection(zeCollection).forGroups(groupsArray);
+	}
+
+	protected AuthorizationAddRequest authorizationForGroupInAnotherCollection(String group) {
+
+		Group[] groupsArray = new Group[]{userServices.getGroupInCollection(group, anotherCollection)};
+		return authorizationInCollection(anotherCollection).forGroups(groupsArray);
 	}
 
 	protected long fetchEventCount() {
@@ -1061,7 +1084,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	protected String add(AuthorizationAddRequest request) {
-		String id = services.add(request, users.dakotaLIndienIn(zeCollection));
+		String id = services.add(request, users.dakotaLIndienIn(request.getCollection()));
 		try {
 			waitForBatchProcess();
 		} catch (InterruptedException e) {
