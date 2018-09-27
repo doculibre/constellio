@@ -33,7 +33,7 @@ import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
-import com.vaadin.ui.CheckBox;
+import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
@@ -54,6 +54,8 @@ import static java.util.Arrays.asList;
 public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements ListAuthorizationsView {
 	public static final String INHERITED_AUTHORIZATIONS = "authorizations-inherited";
 	public static final String AUTHORIZATIONS = "authorizations";
+	private static final String ENABLE = $("AuthorizationsView.enable");
+	private static final String DISABLE = $("AuthorizationsView.disable");
 
 	public enum AuthorizationSource {
 		INHERITED, OWN, INHERITED_FROM_METADATA
@@ -245,7 +247,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		Table table = new BaseTable(getClass().getName(), tableCaption, container);
 		table.setPageLength(container.size());
 		table.addStyleName(source == AuthorizationSource.OWN ? AUTHORIZATIONS : INHERITED_AUTHORIZATIONS);
-		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeAccessField(), getSessionContext().getCurrentLocale()).attachTo(table, presenter.isNegativeAuthorizationConfigEnabled());
+		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeAccessField(), getSessionContext().getCurrentLocale()).attachTo(table, presenter.isNegativeAuthorizationConfigEnabledAndRecordIsNotATaxonomy());
 		return table;
 	}
 
@@ -300,7 +302,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 	public abstract class AddAuthorizationButton extends WindowButton {
 		@PropertyId("accessRoles") protected ListOptionGroup accessRoles;
 		@PropertyId("userRoles") protected ListOptionGroup userRoles;
-		@PropertyId("negative") protected CheckBox negative;
+		@PropertyId("negative") protected ComboBox negative;
 		@PropertyId("startDate") protected JodaDateField startDate;
 		@PropertyId("endDate") protected JodaDateField endDate;
 
@@ -343,11 +345,13 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		}
 
 		protected void buildNegativeAuthorizationField(){
-			negative = new CheckBox();
+			negative = new ComboBox();
 			negative.setCaption($("AuthorizationsView.negativeAuthotization"));
 			negative.setEnabled(presenter.hasManageSecurityPermission());
-			negative.setVisible(presenter.isNegativeAuthorizationConfigEnabled());
+			negative.setVisible(presenter.isNegativeAuthorizationConfigEnabledAndRecordIsNotATaxonomy());
+			negative.setRequired(presenter.hasManageSecurityPermission());
 			negative.setId("negative");
+			negative.addItems(asList(ENABLE, DISABLE));
 		}
 
 		protected void buildDateFields() {
@@ -459,6 +463,9 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				table.addGeneratedColumn(ACCESS, this);
 				table.setColumnHeader(ACCESS, $("AuthorizationsView.access"));
 				columnIds.add(ACCESS);
+				if (negativeAuthorizationConfigEnabled) {
+					columnIds.add(POSITIVE_OR_NEGATIVE);
+				}
 			}
 
 			if (seeRolesField) {
@@ -490,10 +497,6 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				columnIds.add(BUTTONS);
 			} else if (source == AuthorizationSource.INHERITED_FROM_METADATA) {
 				columnIds.add(RECEIVED_FROM_RECORD_CAPTION);
-			}
-
-			if (negativeAuthorizationConfigEnabled) {
-				columnIds.add(POSITIVE_OR_NEGATIVE);
 			}
 
 			table.setVisibleColumns(columnIds.toArray());
@@ -530,7 +533,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		}
 
 		private Object buildNegativeAuthorizationsColumn(AuthorizationVO authorization) {
-			if (authorization.isNegative()) {
+			if (DISABLE.equals(authorization.getNegative())) {
 				IconButton minusIcon = new IconButton(new ThemeResource("images/commun/minus.png"), "") {
 					@Override
 					protected void buttonClick(ClickEvent event) {

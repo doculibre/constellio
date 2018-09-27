@@ -20,13 +20,16 @@ import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 
 public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuthorizationsView> {
+	private static final String DISABLE = $("AuthorizationsView.disable");
 	private transient AuthorizationsServices authorizationsServices;
 	private transient List<Authorization> authorizations;
 	private transient List<AuthorizationReceivedFromMetadata> authorizationsReceivedFromMetadatas;
@@ -156,7 +159,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		return AuthorizationAddRequest.authorizationInCollection(collection).giving(roles)
 				.forPrincipalsIds(principals).on(authorizationVO.getRecord())
 				.startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate())
-				.andNegative(authorizationVO.isNegative());
+				.andNegative(DISABLE.equals(authorizationVO.getNegative()));
 	}
 
 	private AuthorizationModificationRequest toAuthorizationModificationRequest(AuthorizationVO authorizationVO) {
@@ -192,8 +195,10 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		return authorizations;
 	}
 
-	public boolean isNegativeAuthorizationConfigEnabled() {
-		return new ConstellioEIMConfigs(modelLayerFactory).isNegativeAuthorizationEnabled();
+	public boolean isNegativeAuthorizationConfigEnabledAndRecordIsNotATaxonomy() {
+		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+		Record record = presenterService().getRecord(recordId);
+		return new ConstellioEIMConfigs(modelLayerFactory).isNegativeAuthorizationEnabled() && taxonomiesManager.getTaxonomyOf(record) == null;
 	}
 
 	public boolean hasManageSecurityPermission() {
