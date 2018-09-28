@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.constants.RMRoles;
 import com.constellio.app.modules.rm.extensions.LabelSchemaRestrictionPageExtension;
 import com.constellio.app.modules.rm.extensions.RMCheckInAlertsRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMCleanAdministrativeUnitButtonExtension;
+import com.constellio.app.modules.rm.extensions.RMContainerRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMCreateDecommissioningListExtension;
 import com.constellio.app.modules.rm.extensions.RMDocumentExtension;
 import com.constellio.app.modules.rm.extensions.RMDownloadContentVersionLinkExtension;
@@ -147,6 +148,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Printable;
@@ -462,6 +464,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMEventRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMRecordCaptionExtension(collection, appLayerFactory));
+		extensions.recordExtensions.add(new RMContainerRecordExtension(collection, appLayerFactory));
 		extensions.schemaExtensions.add(new RMExcelReportSchemaExtension());
 		extensions.batchProcessingSpecialCaseExtensions
 				.add(new RMBatchProcessingSpecialCaseExtension(collection, appLayerFactory));
@@ -490,6 +493,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		}
 		if (!cache.isConfigured(Report.SCHEMA_TYPE)) {
 			cache.configureCache(CacheConfig.permanentCache(rm.report.schemaType()));
+		}
+
+		if (!cache.isConfigured(Cart.SCHEMA_TYPE)) {
+			cache.configureCache(CacheConfig.permanentCache(rm.cart.schemaType()));
 		}
 
 		if (cache.isConfigured(Category.SCHEMA_TYPE)) {

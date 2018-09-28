@@ -17,17 +17,25 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class RMDocumentExtension extends RecordExtension {
+	private final RMSchemasRecordsServices rmSchema;
+	private final SearchServices searchServices;
 
 	private static String OUTLOOK_MSG_MIMETYPE = "application/vnd.ms-outlook";
 
@@ -38,6 +46,8 @@ public class RMDocumentExtension extends RecordExtension {
 	public RMDocumentExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
+		rmSchema = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 	}
 
 	@Override
@@ -148,6 +158,15 @@ public class RMDocumentExtension extends RecordExtension {
 	}
 
 	@Override
+	public void recordInModificationBeforeValidationAndAutomaticValuesCalculation(
+			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
+			Document document = rmSchema.wrapDocument(event.getRecord());
+			deleteNonExistentFavoritesIds(document);
+		}
+	}
+
+	@Override
 	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
 				ConstellioFactories.getInstance().getAppLayerFactory());
@@ -175,6 +194,19 @@ public class RMDocumentExtension extends RecordExtension {
 			}
 		}
 		return super.isLogicallyDeletable(event);
+	}
+
+	private void deleteNonExistentFavoritesIds(Document document) {
+		List<String> oldFavoritesList = document.getFavoritesList();
+		List<String> removedIds = new ArrayList<>();
+		for (String cartId : oldFavoritesList) {
+			LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmSchema.cart.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(cartId));
+			if (searchServices.getResultsCount(logicalSearchQuery) == 0) {
+				removedIds.add(cartId);
+			}
+		}
+		List<String> newFavoritesList = ListUtils.subtract(oldFavoritesList, removedIds);
+		document.setFavoritesList(newFavoritesList);
 	}
 
 }

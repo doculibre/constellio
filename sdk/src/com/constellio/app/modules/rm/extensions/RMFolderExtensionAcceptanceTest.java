@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.model.entities.records.wrappers.User;
@@ -20,9 +21,15 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
+	private static final List<String> NON_EXISTING_CART_IDS = asList("01", "02");
+
 	Users users = new Users();
 	DecommissioningService service;
 	RMSchemasRecordsServices rm;
@@ -174,6 +181,54 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getRetentionRuleEntered()).isNull();
 		assertThat(folder.getCopyStatusEntered()).isNull();
 
+	}
+
+	@Test
+	public void whenModifyingFolderWithInexistentFavoritesIdsThenIdsAreDeleted() throws RecordServicesException {
+		Folder testFolder = getTestFolder().setFavoritesList(NON_EXISTING_CART_IDS);
+		saveAndReloadFolder(testFolder);
+
+		testFolder.setTitle("TestModifié");
+		recordServices.update(testFolder);
+
+		assertThat(testFolder.getFavoritesList()).isEmpty();
+	}
+
+	@Test
+	public void whenModifyingFolderWithSomeExistingFavoritesIdsThenNonExistingIdsAreDeleted()
+			throws RecordServicesException {
+		Cart cart = rm.newCart().setOwner(users.adminIn(zeCollection).getId());
+		recordServices.add(cart);
+		String existingId = cart.getId();
+		List<String> listWithOneExistingId = new ArrayList<>();
+		listWithOneExistingId.add(existingId);
+		listWithOneExistingId.addAll(NON_EXISTING_CART_IDS);
+
+		Folder testFolder = getTestFolder().setFavoritesList(listWithOneExistingId);
+		saveAndReloadFolder(testFolder);
+
+		testFolder.setTitle("TestModifié");
+		recordServices.update(testFolder);
+
+		assertThat(testFolder.getFavoritesList()).containsOnly(existingId);
+	}
+
+	@Test
+	public void whenModifyingFolderWithExistentFavoritesIdsThenFavoritesListStaysTheSame()
+			throws RecordServicesException {
+		Cart firstCart = rm.newCart().setOwner(users.adminIn(zeCollection).getId());
+		Cart secondCart = rm.newCart().setOwner(users.adminIn(zeCollection).getId());
+		recordServices.add(firstCart);
+		recordServices.add(secondCart);
+		List<String> listWithExistingIds = asList(firstCart.getId(), secondCart.getId());
+
+		Folder testFolder = getTestFolder().setFavoritesList(listWithExistingIds);
+		saveAndReloadFolder(testFolder);
+
+		testFolder.setTitle("TestModifié");
+		recordServices.update(testFolder);
+
+		assertThat(testFolder.getFavoritesList()).containsOnly(firstCart.getId(), secondCart.getId());
 	}
 
 	private void assertThatFolderIsPrincipalCopy(Folder folder) {

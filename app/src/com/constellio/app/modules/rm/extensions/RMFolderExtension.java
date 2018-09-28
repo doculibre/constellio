@@ -11,7 +11,7 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
@@ -27,6 +27,7 @@ import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServic
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -94,13 +95,21 @@ public class RMFolderExtension extends RecordExtension {
 		if (event.isSchemaType(Folder.SCHEMA_TYPE)) {
 			Folder folder = rmSchema.wrapFolder(event.getRecord());
 			deleteRootFolderMetadatasIfSubFolder(folder);
+			deleteNonExistentFavoritesIds(folder);
 		}
 	}
 
-	private void deleteDeletedFavoritesIds(Folder folder) {
-		List<String> favoritesList = folder.getFavoritesList();
-		Metadata favoritesListMetadata = rmSchema.cart.schemaType().getMetadata("id");
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmSchema.cart.schemaType()).where(favoritesListMetadata).isContainingText(""));
+	private void deleteNonExistentFavoritesIds(Folder folder) {
+		List<String> oldFavoritesList = folder.getFavoritesList();
+		List<String> removedIds = new ArrayList<>();
+		for (String cartId : oldFavoritesList) {
+			LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmSchema.cart.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(cartId));
+			if (searchServices.getResultsCount(logicalSearchQuery) == 0) {
+				removedIds.add(cartId);
+			}
+		}
+		List<String> newFavoritesList = ListUtils.subtract(oldFavoritesList, removedIds);
+		folder.setFavoritesList(newFavoritesList);
 	}
 
 	private void completeMissingActualDates(Folder folder) {
