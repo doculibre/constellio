@@ -170,8 +170,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@After
 	public void checkIfDakotaSeeAndCanDeleteEverythingInCollection2()
 			throws Exception {
-		getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(true);
-		if (otherCollectionRecords != null) {
+		if (otherCollectionRecords != null && taxonomiesManager.getPrincipalTaxonomy(anotherCollection) == null) {
 			List<String> foldersWithReadFound = findAllFoldersAndDocuments(users.dakotaIn(anotherCollection));
 			List<String> foldersWithWriteFound = findAllFoldersAndDocumentsWithWritePermission(users.dakotaIn(anotherCollection));
 			List<String> foldersWithDeleteFound = findAllFoldersAndDocumentsWithDeletePermission(
@@ -3850,31 +3849,45 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void givenUserHasPositiveAndNegativeAccessesInMultipleCollectionsWhenFederateSearchingThenOnlyReturnRecordsWithAccess() {
+	public void givenUserHasPositiveAndNegativeAccessesInMultipleCollectionsWhenFederateSearchingThenOnlyReturnRecordsWithAccess()
+			throws Exception {
+
+		for (String collection : asList(zeCollection, anotherCollection)) {
+			recordServices.update(users.dakotaLIndienIn(collection).setCollectionReadAccess(false));
+			recordServices.update(users.gandalfLeblancIn(collection).setCollectionReadAccess(false));
+			recordServices.update(users.charlesIn(collection).setCollectionReadAccess(false));
+		}
+		taxonomiesManager.setPrincipalTaxonomy(anothercollectionSetup.getTaxonomy2(), getModelLayerFactory().getMetadataSchemasManager());
 
 		add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadDeleteAccess());
-		add(authorizationForUser(charles).on(FOLDER2).givingReadDeleteAccess());
-		add(authorizationForUser(charles).on(FOLDER1).givingReadDeleteAccess());
+		add(authorizationForGroup(legends).on(FOLDER3).givingNegativeReadWriteAccess());
 
-		add(authorizationForGroup(heroes).on(FOLDER3).givingNegativeReadWriteAccess());
-		add(authorizationForGroup(legends).on(FOLDER1_DOC1).givingNegativeReadWriteAccess());
-		add(authorizationForUser(charles).on(FOLDER2_1).givingNegativeReadDeleteAccess());
+		add(authorizationForUser(charles).on(FOLDER3).givingNegativeReadWriteAccess());
 
-		add(authorizationForGroupInAnotherCollection(heroes).on(TAXO1_CATEGORY2).givingReadDeleteAccess());
-		add(authorizationForUserInAnotherCollection(charles).on(FOLDER2).givingReadDeleteAccess());
-		add(authorizationForUserInAnotherCollection(charles).on(FOLDER1).givingReadDeleteAccess());
+		add(authorizationForGroupInAnotherCollection(heroes).on(otherCollectionRecords.taxo2_station2_1()).givingReadWriteDeleteAccess());
+		add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder4()).givingReadWriteDeleteAccess());
 
-		add(authorizationForGroupInAnotherCollection(heroes).on(FOLDER3).givingNegativeReadWriteAccess());
-		add(authorizationForGroupsInAnotherCollection(legends).on(FOLDER1_DOC1).givingNegativeReadWriteAccess());
-		add(authorizationForUserInAnotherCollection(charles).on(FOLDER2_1).givingNegativeReadDeleteAccess());
+		add(authorizationForGroupInAnotherCollection(heroes).on(otherCollectionRecords.folder4_1()).givingNegativeReadWriteDeleteAccess());
+		add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder2_1()).givingNegativeReadWriteDeleteAccess());
 
-		assertThatAllFoldersVisibleBy(dakota).contains("todo");
+
+		assertThatAllFoldersVisibleBy(charles).containsOnly(
+				"folder4", "folder4_1", "folder4_2", "anotherCollection_folder2", "anotherCollection_folder2_2",
+				"anotherCollection_folder4", "anotherCollection_folder4_2", "anotherCollection_folder4_1");
+
+		assertThatAllFoldersVisibleBy(dakota).containsOnly(
+				"folder4", "folder4_1", "folder4_2", "folder3", "anotherCollection_folder2", "anotherCollection_folder2_2", "anotherCollection_folder2_1");
+
+		assertThatAllFoldersVisibleBy(gandalf).containsOnly(
+				"folder4", "folder4_1", "folder4_2", "anotherCollection_folder2", "anotherCollection_folder2_2", "anotherCollection_folder2_1");
 
 	}
 
+
 	private ListAssert<String> assertThatAllFoldersVisibleBy(String username) {
 		ModifiableSolrParams params = new ModifiableSolrParams();
-		params.set("q", "schema_s:folder_*");
+		params.set("fq", "schema_s:folder_*");
+		params.set("q", "*:*");
 		params.set("fl", "id");
 		params.set("rows", "1000");
 
@@ -3917,7 +3930,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	//Unsupported negative autorisation @Test
-	public void givenUserIsInheritingPermissionsFromItsGroupThenNegativeAuthorizationsDoesRestrictTheirPermissions() {
+	public void givenUserIsInheritingPermissionsFromItsGroupThenNegativeAuthorizationsDoesRestrictTheirPermissions
+	() {
 
 		auth1 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
 		auth2 = add(authorizationForGroup(heroes).on(FOLDER1).givingNegative(ROLE1));
@@ -3937,7 +3951,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	//Unsupported negative autorisation @Test
-	public void givenUserIsInheritingNegativePermissionsFromItsGroupThenPositiveAuthorizationsDoesNotCounterTheNegativePermissions() {
+	public void givenUserIsInheritingNegativePermissionsFromItsGroupThenPositiveAuthorizationsDoesNotCounterTheNegativePermissions
+	() {
 
 		auth1 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2_1).givingNegative(ROLE1));
 		auth2 = add(authorizationForGroup(heroes).on(FOLDER2).givingNegative(ROLE1));
@@ -3996,7 +4011,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	//Unsupported negative autorisation @Test
-	public void givenUserHasNegativePermissionsFromTheRecordInheritanceThenDoesNotReceivePositiveAuthorizationsOnTheRecordItself() {
+	public void givenUserHasNegativePermissionsFromTheRecordInheritanceThenDoesNotReceivePositiveAuthorizationsOnTheRecordItself
+	() {
 
 		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
 		auth2 = add(authorizationForUser(charles).on(FOLDER2).givingNegative(ROLE1));
@@ -4021,7 +4037,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	//Unsupported negative autorisation @Test
-	public void givenUserHasPositivePermissionsFromTheRecordInheritanceWhenReceivingNegativeAuthsOnTheRecordThenLoosePermissions() {
+	public void givenUserHasPositivePermissionsFromTheRecordInheritanceWhenReceivingNegativeAuthsOnTheRecordThenLoosePermissions
+	() {
 
 		auth1 = add(authorizationForUser(charles).on(TAXO1_CATEGORY2).givingNegative(ROLE1));
 		auth2 = add(authorizationForUser(charles).on(FOLDER2).givingNegative(ROLE1));
