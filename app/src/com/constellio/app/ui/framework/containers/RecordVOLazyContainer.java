@@ -165,27 +165,25 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 			ModelLayerFactory modelLayerFactory = null;
 			SessionContext sessionContext;
 			UserServices userServices;
-			MetadataSchemasManager metadataSchemasManager = null;
+			MetadataSchemasManager metadataSchemasManager;
 			MetadataSchemaTypes metadataTypes = null;
 			User user = null;
-			if(dataProviders.size() > 0) {
-				modelLayerFactory = dataProviders.get(0).getModelLayerFactory();
-				sessionContext = dataProviders.get(0).getSessionContext();
-				userServices = modelLayerFactory.newUserServices();
-				metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-				metadataTypes = metadataSchemasManager.getSchemaTypes(sessionContext.getCurrentCollection());
-				user = userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(),sessionContext.getCurrentCollection());
-			}
 
 			for (RecordVODataProvider dataProvider : dataProviders) {
-				dataProvider.getModelLayerFactory().newUserServices();
+				if(modelLayerFactory == null) {
+					modelLayerFactory = dataProviders.get(0).getModelLayerFactory();
+					sessionContext = dataProviders.get(0).getSessionContext();
+					userServices = modelLayerFactory.newUserServices();
+					metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+					metadataTypes = metadataSchemasManager.getSchemaTypes(sessionContext.getCurrentCollection());
+					user = userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(),
+							sessionContext.getCurrentCollection());
+				}
 				MetadataSchemaVO schema = dataProvider.getSchema();
 				List<MetadataVO> dataProviderTableMetadataVOs = schema.getTableMetadatas();
 
 				for(MetadataVO metadataVO : dataProviderTableMetadataVOs) {
-					if(user.hasGlobalAccessToMetadata(metadataTypes.getMetadata(metadataVO.getCode()))) {
 						tablePropertyMetadataVOs.add(metadataVO);
-					}
 				}
 
 
@@ -195,15 +193,13 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 
 					List<MetadataVO> dataProviderDisplayMetadataVOs = schema.getDisplayMetadatas();
 					for (MetadataVO metadataVO : dataProviderDisplayMetadataVOs) {
-						if (!dataProviderQueryMetadataVOs.contains(metadataVO)
-								&& user.hasGlobalAccessToMetadata(metadataTypes.getMetadata(metadataVO.getCode()))) {
+						if (!dataProviderQueryMetadataVOs.contains(metadataVO)) {
 							dataProviderQueryMetadataVOs.add(metadataVO);
 						}
 					}
 				}
 				for (MetadataVO metadataVO : dataProviderQueryMetadataVOs) {
-					if (!queryMetadataVOs.contains(metadataVO) &&
-							user.hasGlobalAccessToMetadata(metadataTypes.getMetadata(metadataVO.getCode()))) {
+					if (!queryMetadataVOs.contains(metadataVO)) {
 						if (dataProviderTableMetadataVOs.contains(metadataVO)) {
 							tablePropertyMetadataVOs.add(metadataVO);
 						} else {
@@ -226,7 +222,9 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 			propertyMetadataVOs.addAll(extraPropertyMetadataVOs);
 
 			for (MetadataVO metadataVO : propertyMetadataVOs) {
-				super.addProperty(metadataVO, metadataVO.getJavaType(), null, true, true);
+				if(user.hasGlobalAccessToMetadata(metadataTypes.getMetadata(metadataVO.getCode()))) {
+					super.addProperty(metadataVO, metadataVO.getJavaType(), null, true, true);
+				}
 			}
 		}
 	}
