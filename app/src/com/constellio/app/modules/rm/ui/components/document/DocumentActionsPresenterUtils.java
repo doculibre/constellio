@@ -927,15 +927,17 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 					presenterUtils.modelLayerFactory());
 			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 
-			searchEventServices.incrementClickCounter(searchEvent.getId());
+			if (searchEvent != null) {
+				searchEventServices.incrementClickCounter(searchEvent.getId());
 
-			String url = null;
-			try {
-				url = documentVO.get("url");
-			} catch (RecordVORuntimeException_NoSuchMetadata e) {
+				String url = null;
+				try {
+					url = documentVO.get("url");
+				} catch (RecordVORuntimeException_NoSuchMetadata e) {
+				}
+				String clicks = defaultIfBlank(url, documentVO.getId());
+				searchEventServices.updateClicks(searchEvent, clicks);
 			}
-			String clicks = defaultIfBlank(url, documentVO.getId());
-			searchEventServices.updateClicks(searchEvent, clicks);
 		}
 	}
 

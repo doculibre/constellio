@@ -65,7 +65,7 @@ public class ThesaurusManager implements StatefulService, EventBusListener {
 	 * @param collection
 	 * @return
 	 */
-	public ThesaurusService get(String collection) {
+	public  ThesaurusService get(String collection) {
 		return cache.get(collection);
 	}
 
