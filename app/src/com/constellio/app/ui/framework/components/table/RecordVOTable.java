@@ -313,6 +313,24 @@ public class RecordVOTable extends BaseTable {
 			}
 		}
 	}
+	
+	public void setExpandTitleColumn(boolean expand) {
+		if (schemaVOs != null && !schemaVOs.isEmpty()) {
+			MetadataVO titleMetadata = schemaVOs.get(0).getMetadata(Schemas.TITLE.getCode());
+			if (expand) {
+				setColumnExpandRatio(titleMetadata, 1);
+			} else {
+				setColumnExpandRatio(titleMetadata, 0);
+			}
+		}	
+	} 
+	
+	public void setTitleColumnWidth(int width) {
+		if (schemaVOs != null && !schemaVOs.isEmpty()) {
+			MetadataVO titleMetadata = schemaVOs.get(0).getMetadata(Schemas.TITLE.getCode());
+			setColumnWidth(titleMetadata, width);
+		}	
+	} 
 
 	protected RecordVO getRecordVO(Object itemId) {
 		RecordVOItem recordVOItem = (RecordVOItem) getItem(itemId);

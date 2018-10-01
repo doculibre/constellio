@@ -40,6 +40,7 @@ import com.jensjansson.pagedtable.PagedTableContainer;
 import com.vaadin.data.Container;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
@@ -133,7 +134,7 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 					table.addStyleName(compressedStyleName);
 				}
 				buttonsViewerMetadataLayout.setVisible(true);
-				actionsMenuBarTableLayout.setWidth("500px");
+				actionsMenuBarTableLayout.setWidth("650px");
 				setExpandRatio(actionsMenuBarTableLayout, 0);
 				setExpandRatio(buttonsViewerMetadataLayout, 1);
 			}
@@ -316,7 +317,8 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 	
 	private BaseWindow newWindow() {
 		BaseWindow window = new BaseWindow();
-		window.setHeight("95%");
+		window.addStyleName("viewable-record-window");
+		window.setHeight("99%");
 		window.setWidth("95%");
 		window.setResizable(true);
 		window.setModal(false);
@@ -340,7 +342,12 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 					DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(selectedRecordVO, false);
 					view.enter(null);
 					BaseWindow window = newWindow();
-					window.setContent(view);
+					view.addStyleName("viewable-record-window-content");
+					Panel panel = new Panel(view);
+					int browserWindowHeight = Page.getCurrent().getBrowserWindowHeight();
+					int panelHeight = browserWindowHeight - 50;
+					panel.setHeight(panelHeight + "px");
+					window.setContent(panel);
 					ConstellioUI.getCurrent().addWindow(window);
 				} else {
 					ReferenceDisplay referenceDisplay = new ReferenceDisplay(selectedRecordVO);

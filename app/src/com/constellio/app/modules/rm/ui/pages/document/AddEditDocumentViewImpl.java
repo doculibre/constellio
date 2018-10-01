@@ -106,7 +106,7 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 			@Override
 			public void reload() {
 				recordForm = newForm();
-				AddEditDocumentViewImpl.this.replaceComponent(this, recordForm);
+				mainLayout.replaceComponent(this, recordForm);
 			}
 
 			@Override

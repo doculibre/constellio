@@ -12830,6 +12830,27 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: auto;
 }
 
+.constellio .viewable-record-window {
+	width: 100%;
+}
+
+.constellio .viewable-record-window .main-component-wrapper {
+	overflow-y: auto;
+}
+
+.constellio .viewable-record-window .list-add-remove-comment {
+	width: 100%;
+}
+
+.constellio .viewable-record-window .list-add-remove-comment .v-slot-list-add-remove {
+	width: 100%;
+}
+
+.constellio .viewable-record-window .list-add-remove-comment .v-slot-list-add-remove .v-has-caption {
+	background-color: red;
+	width: 100%;
+}
+
 .constellio .autocomplete {
 	width: 100%;
 }
@@ -13086,6 +13107,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .v-window .popupContent .action-menu-bar {
+	z-index: 2000;
 	position: absolute;
 	top: -40px;
 	right: 30px;
@@ -13875,10 +13897,13 @@ div.v-layout.v-horizontal.v-widget {
 	text-decoration: none;
 }
 
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table-compressed .search-result-title {
+	margin-right: 80px;
+}
+
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table-compressed .search-result-elevation-buttons {
 	border: none;
-	margin-left: 285px;
-	margin-top: -12px;
+	margin-left: 415px;
 	margin-bottom: -12px;
 }
 

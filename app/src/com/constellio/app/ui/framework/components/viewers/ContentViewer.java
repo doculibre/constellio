@@ -7,6 +7,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.viewers.audio.AudioViewer;
 import com.constellio.app.ui.framework.components.viewers.document.DocumentViewer;
 import com.constellio.app.ui.framework.components.viewers.image.ImageViewer;
+import com.constellio.app.ui.framework.components.viewers.image.TiffImageViewer;
 import com.constellio.app.ui.framework.components.viewers.video.VideoViewer;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
@@ -27,6 +28,9 @@ public class ContentViewer extends CustomComponent {
 			if (Arrays.asList(ImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				ImageViewer imageViewer = new ImageViewer(recordVO, Document.CONTENT, contentVersionVO);
 				viewerComponent = imageViewer;
+			} else if (Arrays.asList(TiffImageViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
+				TiffImageViewer tiffImageViewer = new TiffImageViewer(recordVO, Document.CONTENT, contentVersionVO);
+				viewerComponent = tiffImageViewer;
 			} else if (Arrays.asList(AudioViewer.SUPPORTED_EXTENSIONS).contains(extension)) {
 				AudioViewer audioViewer = new AudioViewer(contentVersionVO);
 				viewerComponent = audioViewer;

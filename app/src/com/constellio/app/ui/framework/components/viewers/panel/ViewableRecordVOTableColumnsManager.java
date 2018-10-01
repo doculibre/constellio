@@ -20,6 +20,7 @@ public class ViewableRecordVOTableColumnsManager extends RecordVOTableColumnsMan
 			}
 			table.setVisibleColumns(visibleColumns.toArray(new Object[0]));
 			table.setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
+			viewableRecordVOTable.setTitleColumnWidth(366);
 		} else {
 			super.manage(table, tableId);
 //			if (visibleColumns.contains(SearchResultContainer.THUMBNAIL_PROPERTY)) {
@@ -30,6 +31,8 @@ public class ViewableRecordVOTableColumnsManager extends RecordVOTableColumnsMan
 //			}
 			table.setVisibleColumns(visibleColumns.toArray(new Object[0]));
 			table.setColumnHeaderMode(ColumnHeaderMode.EXPLICIT_DEFAULTS_ID);
+			viewableRecordVOTable.setTitleColumnWidth(-1);
+			viewableRecordVOTable.setExpandTitleColumn(true);
 		}
 	}
 

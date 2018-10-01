@@ -159,6 +159,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	}
 
 	public RecordVO getRecordVO(int index) {
+		RecordVO recordVO;
 		Record record = cache.get(index);
 		if (record == null) {
 			List<Record> recordList = doSearch();
@@ -169,9 +170,14 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 				record = null;
 			}
 		}
-		String schemaCode = record.getSchemaCode();
-		RecordToVOBuilder voBuilder = voBuilders.get(schemaCode);
-		return record != null ? voBuilder.build(record, VIEW_MODE.TABLE, getSchema(schemaCode), sessionContext) : null;
+		if (record != null) {
+			String schemaCode = record.getSchemaCode();
+			RecordToVOBuilder voBuilder = getVOBuilder(record);
+			recordVO = voBuilder.build(record, VIEW_MODE.TABLE, getSchema(schemaCode), sessionContext);
+		} else {
+			recordVO = null;
+		}
+		return recordVO;
 	}
 
 	public int size() {
@@ -208,11 +214,22 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		for (int i = startIndex; i < startIndex + numberOfItems && i < recordList.size(); i++) {
 			Record record = recordList.get(i);
 			MetadataSchemaVO schema = getSchema(record.getSchemaCode());
-			RecordToVOBuilder voBuilder = voBuilders.get(record.getSchemaCode());
+			RecordToVOBuilder voBuilder = getVOBuilder(record);
 			RecordVO recordVO = voBuilder.build(record, VIEW_MODE.TABLE, schema, sessionContext);
 			recordVOs.add(recordVO);
 		}
 		return recordVOs;
+	}
+	
+	private RecordToVOBuilder getVOBuilder(Record record) {
+		String schemaCode = record.getSchemaCode();
+		String typeCode = record.getTypeCode();
+		RecordToVOBuilder voBuilder = voBuilders.get(schemaCode);
+		if (voBuilder == null) {
+			String defaultSchemaCode = typeCode + "_default";
+			voBuilder = voBuilders.get(defaultSchemaCode);
+		}
+		return voBuilder;
 	}
 
 	public void sort(MetadataVO[] propertyId, boolean[] ascending) {

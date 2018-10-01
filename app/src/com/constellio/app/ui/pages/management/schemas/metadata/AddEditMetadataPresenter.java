@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
+import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
@@ -575,14 +576,21 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 				displayType = MetadataDisplayType.VERTICAL;
 			}
 
+			CollectionInfoVO collectionInfoVO;
+			if (formMetadataVO.getSchema() != null) {
+				collectionInfoVO = formMetadataVO.getSchema().getCollectionInfoVO();
+			} else {
+				collectionInfoVO = null;
+			}
 			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getCode(), formMetadataVO.getValueType(), collection,
 					formMetadataVO.getSchema(), formMetadataVO.isRequired(), formMetadataVO.isMultivalue(), false,
 					new HashMap<Locale, String>(), null, new String[]{}, formMetadataVO.getReference(), inputType, displayType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),
 					formMetadataVO.getDefaultValue(), false, formMetadataVO.getCustomAttributes(),
-					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), formMetadataVO.getSchema().getCollectionInfoVO());
+					formMetadataVO.isMultiLingual(), getCurrentLocale(), new HashMap<String, Object>(), collectionInfoVO);
 			return metadataVO;
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			return null;
 		}
 	}

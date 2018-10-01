@@ -547,6 +547,29 @@ $popup-view-z-index: 3;
     		}
     	}
     }
+   
+    .viewable-record-window {
+   		width: 100%;
+   		
+   		.main-component-wrapper {
+   			overflow-y: auto;
+   		}
+   		
+   		.list-add-remove-comment {
+   			width: 100%;
+   			
+   			.v-slot-list-add-remove {
+   				width: 100%;
+	   			.v-has-caption {
+	   				background-color: red;
+	   				width: 100%;
+	   			}
+   			}
+	   		
+	   		.record-comments-editor {
+	   		}
+   		}
+    }
 
     .autocomplete {
     	width:100%;
@@ -827,6 +850,7 @@ $popup-view-z-index: 3;
 			}
 
 		    .action-menu-bar {
+		    	z-index: 2000;
 		    	position: absolute;
 		    	top: -40px;
 		    	right: 30px;
@@ -1771,11 +1795,15 @@ $popup-view-z-index: 3;
 							}
 						
 							.viewable-record-table-compressed {
+								
+								.search-result-title {
+									margin-right: 80px;
+								}
 	  			
 					  			.search-result-elevation-buttons {
 					  				border: none;
-								    margin-left: 285px;
-								    margin-top: -12px;
+								    margin-left: 415px;
+								    // margin-top: -12px;
 								    margin-bottom: -12px;
 					  				
 					  				.v-button-caption {

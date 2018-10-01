@@ -40,7 +40,7 @@ public class ViewableRecordVOTable extends RecordVOTable {
 		return compressed;
 	}
 	
-	private ViewableRecordVOContainer getTestContainer() {
+	private ViewableRecordVOContainer getViewableRecordVOContainer() {
 		ViewableRecordVOContainer result = null;
 		ContainerAdapter<?> dataSource = (ContainerAdapter<?>) getContainerDataSource();
 		ContainerAdapter<?> currentAdapter = dataSource;
@@ -62,8 +62,8 @@ public class ViewableRecordVOTable extends RecordVOTable {
 		this.compressed = compressed;
 		
 		if (compressedChanged) {
-			ViewableRecordVOContainer testContainer = getTestContainer();
-			testContainer.setCompressed(compressed);
+			ViewableRecordVOContainer container = getViewableRecordVOContainer();
+			container.setCompressed(compressed);
 			
 			manageColumns(getTableId());
 			

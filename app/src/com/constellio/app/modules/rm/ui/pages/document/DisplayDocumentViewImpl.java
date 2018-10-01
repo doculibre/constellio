@@ -76,6 +76,7 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
@@ -240,7 +241,9 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		tasksComponent = new CustomComponent();
 		versionTable.setSizeFull();
 
-		tabSheet.addTab(recordDisplay, $("DisplayDocumentView.tabs.metadata"));
+		Panel recordDisplayPanel = new Panel(recordDisplay);
+		recordDisplayPanel.setSizeFull();
+		tabSheet.addTab(recordDisplayPanel, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
 		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
 

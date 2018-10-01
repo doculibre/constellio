@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsD
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.Field;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
@@ -60,7 +61,7 @@ public class RecordDisplay extends BaseDisplay {
 			Component displayComponent = metadataDisplayFactory.build(recordVO, metadataValue);
 			if (displayComponent != null) {
 				MetadataVO metadataVO = metadataValue.getMetadata();
-				String tabCaption = getTabCaption(metadataVO.isRequired());
+				String tabCaption = getTabCaption(metadataVO);
 				MetadataVO metadata = metadataValue.getMetadata();
 				String caption = metadata.getLabel(locale);
 				Label captionLabel = new Label(caption);
@@ -80,8 +81,8 @@ public class RecordDisplay extends BaseDisplay {
 		return captionsAndComponents;
 	}
 	
-	private static String getTabCaption(boolean required) {
-		return required ? $("RecordDisplay.requiredMetadata") : $("RecordDisplay.facultativeMetadata");
+	private static String getTabCaption(MetadataVO metadataVO) {
+		return metadataVO.getMetadataGroup();
 	}
 
 	public final RecordVO getRecordVO() {
@@ -112,13 +113,7 @@ public class RecordDisplay extends BaseDisplay {
 
 	@Override
 	protected void addTab(TabSheet tabSheet, Component tabComponent, String caption, Resource icon) {
-		boolean required = getTabCaption(true).equals(caption);
-		if (required) {
-			tabSheet.addTab(tabComponent, caption, icon, 0);
-			tabSheet.setSelectedTab(tabComponent);
-		} else {
-			super.addTab(tabSheet, tabComponent, caption, icon);
-		}
+		super.addTab(tabSheet, tabComponent, caption, icon);
 	}
 
 }

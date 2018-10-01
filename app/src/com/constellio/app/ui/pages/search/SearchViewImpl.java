@@ -355,7 +355,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 		};
 		facetsArea.addStyleName("search-result-facets");
-		facetsArea.setWidth("300px");
+		facetsArea.setWidth("250px");
 		facetsArea.setSpacing(true);
 
 		if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {

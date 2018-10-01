@@ -7,6 +7,7 @@ import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassified
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -29,5 +30,9 @@ public class TaxonomyPageExtension implements Serializable {
 
 	public ExtensionBooleanResult displayTaxonomy(User user, Taxonomy taxonomy) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+	
+	public String getSortMetadataCode(Taxonomy taxonomy) {
+		return Schemas.CODE.getLocalCode();
 	}
 }

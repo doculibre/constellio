@@ -338,6 +338,14 @@ public class AppLayerCollectionExtensions {
 		return fields;
 	}
 
+	public String getSortMetadataCode(Taxonomy taxonomy) {
+		String sortMetadataCode = null;
+		for (TaxonomyPageExtension extension : taxonomyAccessExtensions) {
+			sortMetadataCode = extension.getSortMetadataCode(taxonomy);
+		}
+		return sortMetadataCode;
+	}
+
 	public boolean hasPageAccess(boolean defaultValue, final Class<? extends BasePresenter> presenterClass,
 								 final String params,
 								 final User user) {

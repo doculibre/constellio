@@ -70,6 +70,7 @@ import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.event.ItemClickEvent;
@@ -762,7 +763,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			viewerPanel.setTable(tableAdapter.getTable());
 			splitPanel.setFirstComponent(viewerPanel);
 			splitPanel.setSecondComponent(facetsPanel);
-			splitPanel.setSecondComponentWidth(300, Unit.PIXELS);
+			splitPanel.setSecondComponentWidth(250, Unit.PIXELS);
 
 			tabSheet.replaceComponent(folderContentComponent, splitPanel);
 			folderContentComponent = splitPanel;

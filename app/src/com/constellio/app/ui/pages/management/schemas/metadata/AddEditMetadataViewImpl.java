@@ -7,6 +7,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.Language;
@@ -507,7 +508,11 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		}
 
 		if (defaultValueField == null) {
-			defaultValueField = new BaseTextField();
+			if (defaultValueMetadataVO.isMultivalue()) {
+				defaultValueField = new ListAddRemoveTextField();
+			} else {
+				defaultValueField = new BaseTextField();
+			}
 			defaultValueField.setEnabled(false);
 		}
 		defaultValueField.setCaption($("AddEditMetadataView.defaultValue"));
