@@ -67,6 +67,30 @@ public class TableColumnsManager implements Serializable {
 		currentUser = userServices.getUserInCollection(username, collection);
 	}
 
+	private void checkIfColumnExist(Collection propertyIdList, List<String> visibleColumnForUser) {
+		List<String> toRemove = new ArrayList<>();
+
+		for(String id : visibleColumnForUser) {
+			boolean found = false;
+
+			for(Object propertyId : propertyIdList) {
+				if(propertyId.toString().equals(visibleColumnForUser)) {
+					found = true;
+					break;
+				}
+			}
+
+			if(!found) {
+				toRemove.add(id);
+			}
+		}
+
+		for(String itemToRemove : toRemove) {
+			visibleColumnForUser.remove(itemToRemove);
+		}
+
+	}
+
 	public void manage(final Table table, final String tableId) {
 		table.setColumnCollapsingAllowed(true);
 		table.setColumnReorderingAllowed(true);
@@ -84,8 +108,11 @@ public class TableColumnsManager implements Serializable {
 
 		List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
 		Collection<?> propertyIds = table.getContainerPropertyIds();
+		checkIfColumnExist(propertyIds, visibleColumnIdsForUser);
+
 		for (Object propertyId : propertyIds) {
 			String columnId = toColumnId(propertyId);
+
 			boolean collapsed = !visibleColumnIdsForUser.contains(columnId);
 			if (!collapsed || table.isColumnCollapsible(columnId)) {
 				table.setColumnCollapsed(propertyId, collapsed);
