@@ -6,6 +6,7 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
+import com.constellio.app.utils.MetadataUtil;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
@@ -41,6 +42,9 @@ public class RecordDisplay extends BaseDisplay {
 
 		Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 		for (MetadataValueVO metadataValue : recordVO.getDisplayMetadataValues()) {
+			if(!MetadataUtil.isMetadataVOAccessbile(metadataValue.getMetadata(), recordVO.getExcludedMetadataCodeList())) {
+				continue;
+			}
 			Component displayComponent = metadataDisplayFactory.build(recordVO, metadataValue);
 			if (displayComponent != null) {
 				MetadataVO metadata = metadataValue.getMetadata();

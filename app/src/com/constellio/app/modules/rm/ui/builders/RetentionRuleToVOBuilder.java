@@ -74,7 +74,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	}
 
 	@Override
-	protected RetentionRuleVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode) {
+	protected RetentionRuleVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode, List<String> excludedMetdataCode) {
 		MetadataSchemaVO schema = metadataValueVOs.get(0).getMetadata().getSchema();
 
 		MetadataValueVO categoriesMetadataValueVO = new MetadataValueVO(getCategoriesMetadata(schema), getCategories(id));

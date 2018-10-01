@@ -13,8 +13,8 @@ import static com.constellio.model.entities.records.wrappers.UserDocument.USER_F
 
 public class UserDocumentVO extends RecordVO {
 
-	public UserDocumentVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
-		super(id, metadataValues, viewMode);
+	public UserDocumentVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode, List<String> excludedMetadataCode) {
+		super(id, metadataValues, viewMode, excludedMetadataCode);
 	}
 
 	public LocalDateTime getFormCreatedOn() {

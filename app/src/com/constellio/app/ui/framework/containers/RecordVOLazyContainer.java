@@ -8,7 +8,13 @@ import com.constellio.app.ui.framework.data.DataProvider.DataRefreshListener;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.RecordVOFilter;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.Item;
 import org.apache.commons.collections4.CollectionUtils;
 import org.vaadin.addons.lazyquerycontainer.LazyQueryContainer;
@@ -46,7 +52,7 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 	}
 
 	public RecordVOLazyContainer(List<RecordVODataProvider> dataProviders, int batchSize,
-								 boolean isOnlyTableMetadatasShown) {
+			boolean isOnlyTableMetadatasShown) {
 		super(new RecordVOLazyQueryDefinition(dataProviders, isOnlyTableMetadatasShown, batchSize),
 				new RecordVOLazyQueryFactory(dataProviders));
 		this.dataProviders = dataProviders;
@@ -156,22 +162,48 @@ public class RecordVOLazyContainer extends LazyQueryContainer implements Refresh
 			List<MetadataVO> tablePropertyMetadataVOs = new ArrayList<>();
 			List<MetadataVO> extraPropertyMetadataVOs = new ArrayList<>();
 			List<MetadataVO> queryMetadataVOs = new ArrayList<>();
+			ModelLayerFactory modelLayerFactory = null;
+			SessionContext sessionContext;
+			UserServices userServices;
+			MetadataSchemasManager metadataSchemasManager = null;
+			MetadataSchemaTypes metadataTypes = null;
+			User user = null;
+			if(dataProviders.size() > 0) {
+				modelLayerFactory = dataProviders.get(0).getModelLayerFactory();
+				sessionContext = dataProviders.get(0).getSessionContext();
+				userServices = modelLayerFactory.newUserServices();
+				metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+				metadataTypes = metadataSchemasManager.getSchemaTypes(sessionContext.getCurrentCollection());
+				user = userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(),sessionContext.getCurrentCollection());
+			}
 
 			for (RecordVODataProvider dataProvider : dataProviders) {
+				dataProvider.getModelLayerFactory().newUserServices();
 				MetadataSchemaVO schema = dataProvider.getSchema();
 				List<MetadataVO> dataProviderTableMetadataVOs = schema.getTableMetadatas();
-				tablePropertyMetadataVOs.addAll(dataProviderTableMetadataVOs);
+
+				for(MetadataVO metadataVO : dataProviderTableMetadataVOs) {
+					if(user.hasGlobalAccessToMetadata(metadataTypes.getMetadata(metadataVO.getCode()))) {
+						tablePropertyMetadataVOs.add(metadataVO);
+					}
+				}
+
+
+
 				List<MetadataVO> dataProviderQueryMetadataVOs = new ArrayList<>(dataProviderTableMetadataVOs);
 				if (!tableMetadatasOnly) {
+
 					List<MetadataVO> dataProviderDisplayMetadataVOs = schema.getDisplayMetadatas();
 					for (MetadataVO metadataVO : dataProviderDisplayMetadataVOs) {
-						if (!dataProviderQueryMetadataVOs.contains(metadataVO)) {
+						if (!dataProviderQueryMetadataVOs.contains(metadataVO)
+								&& user.hasGlobalAccessToMetadata(metadataTypes.getMetadata(metadataVO.getCode()))) {
 							dataProviderQueryMetadataVOs.add(metadataVO);
 						}
 					}
 				}
 				for (MetadataVO metadataVO : dataProviderQueryMetadataVOs) {
-					if (!queryMetadataVOs.contains(metadataVO)) {
+					if (!queryMetadataVOs.contains(metadataVO) &&
+							user.hasGlobalAccessToMetadata(metadataTypes.getMetadata(metadataVO.getCode()))) {
 						if (dataProviderTableMetadataVOs.contains(metadataVO)) {
 							tablePropertyMetadataVOs.add(metadataVO);
 						} else {
