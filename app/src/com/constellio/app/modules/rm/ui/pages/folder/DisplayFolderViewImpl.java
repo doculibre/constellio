@@ -43,6 +43,7 @@ import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.components.fields.upload.ContentVersionUploadField;
+import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.search.FacetsPanel;
 import com.constellio.app.ui.framework.components.splitpanel.CollapsibleHorizontalSplitPanel;
 import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
@@ -838,6 +839,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			tasksComponent = table;
 		}
 		tabSheet.setSelectedTab(tasksComponent);
+	}
+
+	@Override
+	protected String getActionMenuBarCaption() {
+		return $("DisplayFolderView.actionsMenuBar");
 	}
 
 	@Override

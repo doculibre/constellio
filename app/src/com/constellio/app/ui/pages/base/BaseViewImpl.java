@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -330,6 +331,10 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	protected String getTitle() {
 		return getClass().getSimpleName();
 	}
+	
+	protected String getActionMenuBarCaption() {
+		return null;
+	}
 
 	/**
 	 * Adapted from https://vaadin.com/forum#!/thread/8150555/8171634
@@ -348,14 +353,29 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
             result = null;
         } else {
             if (isActionMenuBar()) {
+            	String menuBarCaption = getActionMenuBarCaption();
+            	if (menuBarCaption == null) {
+            		menuBarCaption = "";
+            	}
+            	
                 MenuBar menuBar = new MenuBar();
                 menuBar.addStyleName("action-menu-bar");
                 menuBar.setAutoOpen(false);
-                menuBar.setIcon(FontAwesome.ELLIPSIS_H);
+                if (StringUtils.isNotBlank(menuBarCaption)) {
+                	menuBar.setIcon(null);
+                	menuBar.setCaption(menuBarCaption);
+                } else {
+                    menuBar.setIcon(FontAwesome.ELLIPSIS_H);
+                }
                 result = menuBar;
 
                 MenuItem rootItem = menuBar.addItem("", FontAwesome.BARS, null);
-                rootItem.setIcon(FontAwesome.ELLIPSIS_H);
+                if (StringUtils.isNotBlank(menuBarCaption)) {
+                	rootItem.setIcon(null);
+                	rootItem.setText(menuBarCaption);
+                } else {
+                	rootItem.setIcon(FontAwesome.ELLIPSIS_H);
+                }
 
                 for (final Button actionMenuButton : actionMenuButtons) {
                     Resource icon = actionMenuButton.getIcon();

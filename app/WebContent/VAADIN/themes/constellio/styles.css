@@ -13608,13 +13608,8 @@ div.v-layout.v-horizontal.v-widget {
 	border: none;
 }
 
-.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .search-result-record {
-	padding-right: 45px;
-}
-
 .constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .folder-content-table.viewable-record-table-compressed .search-result-record .search-result-title {
 	padding-top: 8px;
-	font-size: 18px;
 	text-align: left;
 	font-weight: bold;
 }
@@ -13852,7 +13847,6 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-title {
 	padding-top: 8px;
-	font-size: 18px;
 	text-align: left;
 	font-weight: bold;
 }
@@ -13898,13 +13892,12 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table-compressed .search-result-title {
-	margin-right: 80px;
+	width: 350px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table-compressed .search-result-elevation-buttons {
 	border: none;
-	margin-left: 415px;
-	margin-bottom: -12px;
+	margin-top: inherit;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .viewable-record-table-compressed .search-result-elevation-buttons .v-button-caption {

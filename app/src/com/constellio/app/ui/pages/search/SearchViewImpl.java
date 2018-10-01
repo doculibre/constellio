@@ -363,7 +363,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 
 			CollapsibleHorizontalSplitPanel body = new CollapsibleHorizontalSplitPanel("search-result-and-facets-container");
 			body.addStyleName("search-result-and-facets-container");
-			body.setSecondComponentWidth(300, Unit.PIXELS);
+			body.setSecondComponentWidth(250, Unit.PIXELS);
 			body.setFirstComponent(viewableSearchResultsPanel);
 			body.setSecondComponent(facetsArea);
 

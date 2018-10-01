@@ -420,12 +420,16 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 				} else {
 					contentViewer = null;
 				}
-				
+
+				int panelHeight = Page.getCurrent().getBrowserWindowHeight() - 200;
+				Panel recordDisplayPanel = new Panel(recordDisplay);
+				recordDisplayPanel.setWidth("100%");
+//				recordDisplayPanel.setHeight(panelHeight + "px");
 				if (contentViewer != null) {
-					mainLayout.addComponents(contentViewer, recordDisplay);
+					mainLayout.addComponents(contentViewer, recordDisplayPanel);
 					mainLayout.setExpandRatio(contentViewer, 1);
 				} else {
-					mainLayout.addComponent(recordDisplay);
+					mainLayout.addComponent(recordDisplayPanel);
 				}
 			}
 		}

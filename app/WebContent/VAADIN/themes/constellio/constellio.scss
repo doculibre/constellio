@@ -1440,11 +1440,11 @@ $popup-view-z-index: 3;
 	  			}
 	  			
 	  			.search-result-record {
-	  				padding-right: 45px;
+	  				// padding-right: 45px;
 
 					.search-result-title {
 						padding-top: 8px;
-						font-size: 18px;
+						// font-size: 18px;
 						text-align: left;
 						font-weight: bold;
 					}
@@ -1747,7 +1747,7 @@ $popup-view-z-index: 3;
 
 								.search-result-title {
 									padding-top: 8px;
-									font-size: 18px;
+									//font-size: 18px;
 									text-align: left;
 									font-weight: bold;
 								}
@@ -1797,20 +1797,17 @@ $popup-view-z-index: 3;
 							.viewable-record-table-compressed {
 								
 								.search-result-title {
-									margin-right: 80px;
+									width: 350px;
 								}
 	  			
 					  			.search-result-elevation-buttons {
 					  				border: none;
-								    margin-left: 415px;
-								    // margin-top: -12px;
-								    margin-bottom: -12px;
+					  				margin-top: inherit;
 					  				
 					  				.v-button-caption {
 					  					display: none;
 					  				}
 					  			}	
-								
 							}
 					    }
 
