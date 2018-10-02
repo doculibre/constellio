@@ -28,6 +28,8 @@ import org.jodconverter.office.OnlineOfficeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -154,7 +156,7 @@ public class ConversionManager implements StatefulService {
 			"odg", "otg", "sxd", "std", "bmp", "jpeg", "jpg", "pcx", "psd", "sgv",
 			"wmf", "dxf", "met", "pgm", "ras", "svm", "xbm", "emf", "pbm", "plt",
 			"sda", "tga", "xpm", "eps", "pcd", "png", "sdd", "gif",
-			"pct", "ppm", "sgf"
+			"pct", "ppm", "sgf", "tif", "tiff"
 	};
 
 	private static final Map<String, String> COPY_EXTENSIONS = new HashMap<>();
@@ -320,6 +322,15 @@ public class ConversionManager implements StatefulService {
 		} finally {
 			ioServices.deleteQuietly(input);
 		}
+	}
+
+	public File convertToJPEG(InputStream inputStream, String originalName, File workingFolder) throws Exception {
+		File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
+
+		BufferedImage bufferedImage = ImageIO.read(inputStream);
+		ImageIO.write(bufferedImage, "jpg", outputfile);
+
+		return outputfile;
 	}
 
 	@Override

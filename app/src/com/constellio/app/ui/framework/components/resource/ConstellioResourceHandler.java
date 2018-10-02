@@ -39,6 +39,10 @@ import java.util.UUID;
 
 public class ConstellioResourceHandler implements RequestHandler {
 
+	public enum ResourceType {
+		NORMAL, PREVIEW, THUMBNAIL, JPEG_CONVERSION;
+	}
+
 	private static final long serialVersionUID = 1L;
 	private static final String PATH = UUID.randomUUID().toString();
 
@@ -56,6 +60,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 			String version = paramsMap.get("version");
 			String preview = paramsMap.get("preview");
 			String thumbnail = paramsMap.get("thumbnail");
+			String jpegConversion = paramsMap.get("jpegConversion");
     		String filePath = paramsMap.get("file");
 			String hashParam = paramsMap.get("hash");
 			String filenameParam = paramsMap.get("z-filename");
@@ -104,7 +109,13 @@ public class ConstellioResourceHandler implements RequestHandler {
 			    				} else {
 			    					in = null;
 			    				}
-			    			} else {
+							} else if ("true".equals(jpegConversion)) {
+								if (contentManager.hasContentJpegConversion(hash)) {
+									in = contentManager.getContentJpegConversionInputStream(hash, getClass().getSimpleName() + ".handleRequest");
+								} else {
+									in = null;
+								}
+							} else {
 								in = contentManager.getContentInputStream(hash, getClass().getSimpleName() + ".handleRequest");
 							}
 						} else if (metadataValue instanceof String) {
@@ -148,29 +159,35 @@ public class ConstellioResourceHandler implements RequestHandler {
 	}
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename) {
-		return createResource(recordId, metadataCode, version, filename, false, false);
+		return createResource(recordId, metadataCode, version, filename, ResourceType.NORMAL);
 	}
 
 	public static Resource createPreviewResource(String recordId, String metadataCode, String version, String filename) {
-    	return createResource(recordId, metadataCode, version, filename, true, false);
+		return createResource(recordId, metadataCode, version, filename, ResourceType.PREVIEW);
     }
 
     public static Resource createThumbnailResource(String recordId, String metadataCode, String version, String filename) {
-    	return createResource(recordId, metadataCode, version, filename, false, true);
-    }
+		return createResource(recordId, metadataCode, version, filename, ResourceType.THUMBNAIL);
+	}
+
+	public static Resource createConvertedResource(String recordId, String metadataCode, String version,
+												   String filename) {
+		return createResource(recordId, metadataCode, version, filename, ResourceType.JPEG_CONVERSION);
+	}
 
     private static Resource createResource(String recordId, String metadataCode, String version, String filename,
-										  boolean preview, boolean thumbnail) {
-		return createResource(recordId, metadataCode, version, filename, preview, false, thumbnail);
+										   ResourceType resourceType) {
+		return createResource(recordId, metadataCode, version, filename, resourceType, false);
 	}
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
-										  boolean preview, boolean useBrowserCache, boolean thumbnail) {
+										  ResourceType resourceType, boolean useBrowserCache) {
 		Map<String, String> params = new LinkedHashMap<>();
 		params.put("recordId", recordId);
 		params.put("metadataCode", metadataCode);
-		params.put("preview", "" + preview);
-    	params.put("thumbnail", "" + thumbnail);
+		params.put("preview", "" + (resourceType == ResourceType.PREVIEW));
+		params.put("thumbnail", "" + (resourceType == ResourceType.THUMBNAIL));
+		params.put("jpegConversion", "" + (resourceType == ResourceType.JPEG_CONVERSION));
 		params.put("version", version);
 		params.put("z-filename", filename);
 		if (!useBrowserCache) {
@@ -197,43 +214,43 @@ public class ConstellioResourceHandler implements RequestHandler {
 	}
 
 	public static boolean hasContentPreview(String recordId, String metadataCode, String version) {
-		boolean contentPreview;
-		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
-		UserServices userServices = modelLayerFactory.newUserServices();
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		ContentManager contentManager = modelLayerFactory.getContentManager();
-		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-
-		VaadinSession vaadinSession = VaadinSession.getCurrent();
-		UserVO userVO = (UserVO) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_USER_ATTRIBUTE);
-		String collection = (String) vaadinSession.getSession().getAttribute(VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE);
-
-		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(collection);
-		User user = userServices.getUserInCollection(userVO.getUsername(), collection);
-		Record record = recordServices.getDocumentById(recordId);
-
-		if (user.hasReadAccess().on(record)) {
-			String schemaCode = record.getSchemaCode();
-			Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
-			Content content = (Content) record.get(metadata);
+		Content content = getContent(recordId, metadataCode);
+		if (content != null) {
 			ContentVersion contentVersion = content.getVersion(version);
-
 			String hash = contentVersion.getHash();
-			contentPreview = contentManager.hasContentPreview(hash);
-		} else {
-			contentPreview = false;
+			return ConstellioFactories.getInstance().getModelLayerFactory().getContentManager()
+					.hasContentPreview(hash);
 		}
-		return contentPreview;
+		return false;
 	}
 
     public static boolean hasContentThumbnail(String recordId, String metadataCode, String version) {
-    	boolean contentThumnail;
+		Content content = getContent(recordId, metadataCode);
+		if (content != null) {
+			ContentVersion contentVersion = content.getVersion(version);
+			String hash = contentVersion.getHash();
+			return ConstellioFactories.getInstance().getModelLayerFactory().getContentManager()
+					.hasContentThumbnail(hash);
+		}
+		return false;
+    }
+
+	public static boolean hasContentJpegConversion(String recordId, String metadataCode, String version) {
+		Content content = getContent(recordId, metadataCode);
+		if (content != null) {
+			ContentVersion contentVersion = content.getVersion(version);
+			String hash = contentVersion.getHash();
+			return ConstellioFactories.getInstance().getModelLayerFactory().getContentManager()
+					.hasContentJpegConversion(hash);
+		}
+		return false;
+	}
+
+	private static Content getContent(String recordId, String metadataCode) {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		UserServices userServices = modelLayerFactory.newUserServices();
 		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		ContentManager contentManager = modelLayerFactory.getContentManager();
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 
 		VaadinSession vaadinSession = VaadinSession.getCurrent();
@@ -247,15 +264,9 @@ public class ConstellioResourceHandler implements RequestHandler {
 		if (user.hasReadAccess().on(record)) {
 			String schemaCode = record.getSchemaCode();
 			Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
-			Content content = (Content) record.get(metadata);
-			ContentVersion contentVersion = content.getVersion(version);
-
-			String hash = contentVersion.getHash();
-			contentThumnail = contentManager.hasContentThumbnail(hash);
-		} else {
-			contentThumnail = false;
+			return record.get(metadata);
 		}
-		return contentThumnail;
-    }
+		return null;
+	}
 
 }

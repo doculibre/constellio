@@ -1,24 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtension;
-import com.constellio.app.modules.rm.migrations.*;
-import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo8_0_1_2;
-import com.constellio.model.entities.records.wrappers.*;
-import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
-import com.constellio.app.modules.rm.migrations.*;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
@@ -157,6 +138,8 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_0_3;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
+import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo8_0_1_2;
+import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo8_1_0_42;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
@@ -187,6 +170,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
@@ -332,6 +316,8 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		if (new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory()).isThumbnailGenerationEnabled()) {
 			scripts.add(new RMDocumentMigrationTo8_0_1_2(collection, appLayerFactory));
 		}
+
+		scripts.add(new RMDocumentMigrationTo8_1_0_42(collection, appLayerFactory));
 
 		return scripts;
 	}

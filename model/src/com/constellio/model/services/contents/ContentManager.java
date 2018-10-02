@@ -1,35 +1,6 @@
 package com.constellio.model.services.contents;
 
 import com.constellio.data.conf.HashingEncoding;
-import static com.constellio.data.utils.dev.Toggle.LOG_CONVERSION_FILENAME_AND_SIZE;
-import static com.constellio.model.entities.enums.ParsingBehavior.SYNC_PARSING_FOR_ALL_CONTENTS;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
-import static java.util.Arrays.asList;
-
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.constellio.model.services.contents.thumbnail.ThumbnailGenerator;
-import com.constellio.model.utils.MimeTypes;
-import org.apache.solr.common.params.ModifiableSolrParams;
-import org.joda.time.Duration;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
 import com.constellio.data.dao.dto.records.TransactionDTO;
@@ -79,6 +50,7 @@ import com.constellio.model.services.contents.ContentManagerRuntimeException.Con
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_CannotSaveContent;
 import com.constellio.model.services.contents.ContentManagerRuntimeException.ContentManagerRuntimeException_NoSuchContent;
 import com.constellio.model.services.contents.icap.IcapService;
+import com.constellio.model.services.contents.thumbnail.ThumbnailGenerator;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.parser.FileParser;
@@ -92,12 +64,15 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.utils.MimeTypes;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -117,8 +92,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromEveryTypesOfEveryCollection;
 import static java.util.Arrays.asList;
-
-import javax.imageio.ImageIO;
 
 public class ContentManager implements StatefulService {
 
@@ -396,6 +369,10 @@ public class ContentManager implements StatefulService {
 		return getContentDao().isDocumentExisting(hash + ".thumbnail");
 	}
 
+	public boolean hasContentJpegConversion(String hash) {
+		return getContentDao().isDocumentExisting(hash + ".jpegConversion");
+	}
+
 	public boolean doesFileExist(String hash) {
 		return getContentDao().isDocumentExisting(hash);
 	}
@@ -417,6 +394,14 @@ public class ContentManager implements StatefulService {
 			return getContentDao().getContentInputStream(hash + ".thumbnail", streamName);
 		} catch (ContentDaoException_NoSuchContent e) {
 			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoThumbnail(hash);
+		}
+	}
+
+	public InputStream getContentJpegConversionInputStream(String hash, String streamName) {
+		try {
+			return getContentDao().getContentInputStream(hash + ".jpegConversion", streamName);
+		} catch (ContentDaoException_NoSuchContent e) {
+			throw new ContentManagerRuntimeException.ContentManagerRuntimeException_ContentHasNoJpegConversion(hash);
 		}
 	}
 
@@ -807,14 +792,12 @@ public class ContentManager implements StatefulService {
 		String mimeType = content.getCurrentVersion().getMimetype();
 		ContentDao contentDao = getContentDao();
 
-		InputStream thumbnailSourceInputStream = null;
 		if (!contentDao.isDocumentExisting(hash + ".preview")) {
 			try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
 				if (LOG_CONVERSION_FILENAME_AND_SIZE.isEnabled()) {
 					LOGGER.info("Converting file " + filename + " : " + content.getCurrentVersion().getLength() / (1024 * 1024));
 				}
 				File pdfPreviewFile = conversionManager.convertToPDF(inputStream, filename, tempFolder);
-//				thumbnailSourceInputStream = new FileInputStream(pdfPreviewFile);
 				contentDao.moveFileToVault(pdfPreviewFile, hash + ".preview");
 			} catch (Throwable t) {
 				LOGGER.warn("Cannot generate preview for content '" + filename + "' with hash '" + hash + "'", t);
@@ -822,35 +805,50 @@ public class ContentManager implements StatefulService {
 			}
 		}
 
-		try {
-			boolean hasThumbnail = contentDao.isDocumentExisting(hash + ".thumbnail");
-			if (new ConstellioEIMConfigs(modelLayerFactory).isThumbnailGenerationEnabled() &&
-					!contentDao.isDocumentExisting(hash + ".thumbnail")) {
-				if (mimeType.startsWith("image/")) {
-					thumbnailSourceInputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION);
-				} else if (thumbnailSourceInputStream == null) {
-					thumbnailSourceInputStream = contentDao.getContentInputStream(hash + ".preview", READ_CONTENT_FOR_PREVIEW_CONVERSION);
-					mimeType = MimeTypes.MIME_APPLICATION_PDF;
-				} else {
-					mimeType = MimeTypes.MIME_APPLICATION_PDF;
-				}
-
-				BufferedImage thumbnailImage = thumbnailGenerator.generate(thumbnailSourceInputStream, mimeType);
-				String tempFilename = tempFolder + filename + "_thumbnail_" + ".png";
-				File thumbnailFile = new File(tempFilename);
-				ImageIO.write(thumbnailImage, "png", thumbnailFile);
-				contentDao.moveFileToVault(thumbnailFile, hash + ".thumbnail");
-
-				LOGGER.info("Generated a thumbnail for content '" + filename + "' with hash '" + hash + "'");
+		if (mimeType.equals(MimeTypes.MIME_IMAGE_TIFF) &&
+			!contentDao.isDocumentExisting(hash + ".jpegConversion")) {
+			try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
+				File convertedJPEGFile = conversionManager.convertToJPEG(inputStream, filename, tempFolder);
+				contentDao.moveFileToVault(convertedJPEGFile, hash + ".jpegConversion");
+				LOGGER.info("Generated a JPEG conversion for content '" + filename + "' with hash '" + hash + "'");
+			} catch (Throwable t) {
+				LOGGER.warn("Cannot generate JPEG conversion for content '" + filename + "' with hash '" + hash + "'", t);
+				return false;
 			}
-		} catch (Throwable t) {
-			LOGGER.warn("Cannot generate thumbnail for content '" + filename + "' with hash '" + hash + "'", t);
-			return false;
+		}
+
+		if (new ConstellioEIMConfigs(modelLayerFactory).isThumbnailGenerationEnabled() &&
+			!contentDao.isDocumentExisting(hash + ".thumbnail")) {
+			try {
+				generateThumbnail(contentDao, hash, mimeType, filename, tempFolder);
+				LOGGER.info("Generated a thumbnail for content '" + filename + "' with hash '" + hash + "'");
+			} catch (Throwable t) {
+				LOGGER.warn("Cannot generate thumbnail for content '" + filename + "' with hash '" + hash + "'", t);
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private void generateThumbnail(ContentDao contentDao, String hash, String mimeType, String filename,
+								   File tempFolder) throws Exception {
+		InputStream thumbnailSourceInputStream = null;
+		try {
+			if (mimeType.startsWith("image/")) {
+				thumbnailSourceInputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION);
+			} else {
+				thumbnailSourceInputStream = contentDao.getContentInputStream(hash + ".preview", READ_CONTENT_FOR_PREVIEW_CONVERSION);
+				mimeType = MimeTypes.MIME_APPLICATION_PDF;
+			}
+
+			BufferedImage thumbnailImage = thumbnailGenerator.generate(thumbnailSourceInputStream, mimeType);
+			String tempFilename = tempFolder + filename + "_thumbnail_" + ".png";
+			File thumbnailFile = new File(tempFilename);
+			ImageIO.write(thumbnailImage, "png", thumbnailFile);
+			contentDao.moveFileToVault(thumbnailFile, hash + ".thumbnail");
 		} finally {
 			ioServices.closeQuietly(thumbnailSourceInputStream);
 		}
-
-		return true;
 	}
 
 	public void handleRecordsMarkedForParsing() {
@@ -951,6 +949,7 @@ public class ContentManager implements StatefulService {
 					hashToDelete.add(hash + "__parsed");
 					hashToDelete.add(hash + ".preview");
 					hashToDelete.add(hash + ".thumbnail");
+					hashToDelete.add(hash + ".jpegConversion");
 				}
 				if (!hashToDelete.isEmpty()) {
 					getContentDao().delete(hashToDelete);

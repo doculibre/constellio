@@ -55,6 +55,13 @@ public class ContentManagerRuntimeException extends RuntimeException {
 		}
 	}
 
+	public static class ContentManagerRuntimeException_ContentHasNoJpegConversion extends ContentManagerRuntimeException {
+
+		public ContentManagerRuntimeException_ContentHasNoJpegConversion(String hash) {
+			super("Content '" + hash + "' has no jpeg conversion");
+		}
+	}
+
 	public static class ContentManagerRuntimeException_NoSuchContent extends ContentManagerRuntimeException {
 
 		String id;
