@@ -167,10 +167,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 
+	boolean checkIfDakotaSeeAndCanDeleteEverythingInCollection2 = true;
+
 	@After
 	public void checkIfDakotaSeeAndCanDeleteEverythingInCollection2()
 			throws Exception {
-		if (otherCollectionRecords != null && taxonomiesManager.getPrincipalTaxonomy(anotherCollection) == null) {
+		if (otherCollectionRecords != null && checkIfDakotaSeeAndCanDeleteEverythingInCollection2
+			&& taxonomiesManager.getPrincipalTaxonomy(anotherCollection) == null) {
 			List<String> foldersWithReadFound = findAllFoldersAndDocuments(users.dakotaIn(anotherCollection));
 			List<String> foldersWithWriteFound = findAllFoldersAndDocumentsWithWritePermission(users.dakotaIn(anotherCollection));
 			List<String> foldersWithDeleteFound = findAllFoldersAndDocumentsWithDeletePermission(
@@ -3851,13 +3854,16 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void givenUserHasPositiveAndNegativeAccessesInMultipleCollectionsWhenFederateSearchingThenOnlyReturnRecordsWithAccess()
 			throws Exception {
-
+		checkIfDakotaSeeAndCanDeleteEverythingInCollection2 = false;
 		for (String collection : asList(zeCollection, anotherCollection)) {
 			recordServices.update(users.dakotaLIndienIn(collection).setCollectionReadAccess(false));
 			recordServices.update(users.gandalfLeblancIn(collection).setCollectionReadAccess(false));
 			recordServices.update(users.charlesIn(collection).setCollectionReadAccess(false));
 		}
-		taxonomiesManager.setPrincipalTaxonomy(anothercollectionSetup.getTaxonomy2(), getModelLayerFactory().getMetadataSchemasManager());
+		if (anothercollectionSetup.getTaxonomy2() == null) {
+			anothercollectionSetup.setUp();
+		}
+		getModelLayerFactory().getTaxonomiesManager().setPrincipalTaxonomy(anothercollectionSetup.getTaxonomy2(), getModelLayerFactory().getMetadataSchemasManager());
 
 		add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadDeleteAccess());
 		add(authorizationForGroup(legends).on(FOLDER3).givingNegativeReadWriteAccess());

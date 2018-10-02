@@ -508,6 +508,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 	}
 
+
 	@Test
 	public void givenSpecialConditionWhenSelectingASecondaryConceptThenReturnRecordsBasedOnCondition()
 			throws Exception {
@@ -722,6 +723,109 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(noItemsWithChildren())
 				.has(solrQueryCounts(2, 1, 1))
 				.has(secondSolrQueryCounts(2, 1, 1));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(subFolder.getId())
+				.is(empty())
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
+
+	}
+
+	@Test
+	public void givenUserHavePositiveAuthorizationsOnASubFolderAndNegativeOnItsParentThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+		Folder subFolder = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
+		getModelLayerFactory().newRecordServices().add(subFolder);
+
+		givenUserHasReadAccessTo(subFolder.getId());
+		getModelLayerFactory().newAuthorizationsServices().detach(subFolder.getWrappedRecord());
+		givenUserHasNegativeReadAccessTo(records.getFolder_A20().getId());
+
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy()
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_Z))
+				.has(solrQueryCounts(2, 2, 2))
+				.has(secondSolrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z100))
+				.has(itemsWithChildren(records.categoryId_Z100))
+				.has(solrQueryCounts(3, 4, 4))
+				.has(secondSolrQueryCounts(1, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z100)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z120))
+				.has(itemsWithChildren(records.categoryId_Z120))
+				.has(solrQueryCounts(3, 2, 2))
+				.has(secondSolrQueryCounts(1, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z120)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.folder_A20))
+				.has(solrQueryCounts(3, 1, 1))
+				.has(secondSolrQueryCounts(2, 1, 1));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20)
+				.has(numFoundAndListSize(1))
+				.has(linkable(subFolder.getId()))
+				.has(noItemsWithChildren())
+				.has(solrQueryCounts(2, 1, 1))
+				.has(secondSolrQueryCounts(2, 1, 1));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(subFolder.getId())
+				.is(empty())
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
+
+	}
+
+	@Test
+	public void givenUserHaveNegativeAuthorizationsOnASubFolderAndPositiveAuthorizationOnItsParentThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+		Folder subFolder = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
+		getModelLayerFactory().newRecordServices().add(subFolder);
+
+		givenUserHasReadAccessTo(records.getFolder_A20().getId());
+		givenUserHasNegativeReadAccessTo(subFolder.getId());
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy()
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_Z))
+				.has(solrQueryCounts(2, 2, 2))
+				.has(secondSolrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z100))
+				.has(itemsWithChildren(records.categoryId_Z100))
+				.has(solrQueryCounts(3, 4, 4))
+				.has(secondSolrQueryCounts(1, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z100)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z120))
+				.has(itemsWithChildren(records.categoryId_Z120))
+				.has(solrQueryCounts(3, 2, 2))
+				.has(secondSolrQueryCounts(1, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z120)
+				.has(numFoundAndListSize(1))
+				.has(linkable(records.folder_A20))
+				.has(solrQueryCounts(3, 1, 1))
+				.has(secondSolrQueryCounts(2, 1, 1));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20)
+				.has(numFoundAndListSize(0))
+				.has(noItemsWithChildren())
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(subFolder.getId())
 				.is(empty())
@@ -3045,6 +3149,18 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 	private void givenUserHasReadAccessTo(String... ids) {
 		for (String id : ids) {
 			getModelLayerFactory().newAuthorizationsServices().add(authorizationForUsers(alice).on(id).givingReadAccess());
+		}
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
+	}
+
+	private void givenUserHasNegativeReadAccessTo(String... ids) {
+		for (String id : ids) {
+			getModelLayerFactory().newAuthorizationsServices().add(authorizationForUsers(alice).on(id).givingNegativeReadAccess());
 		}
 		try {
 			waitForBatchProcess();

@@ -1,6 +1,14 @@
 package com.constellio.model.services.taxonomies;
 
+import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.entities.records.Transaction;
 import org.apache.commons.io.FileUtils;
+import org.joda.time.LocalDate;
 
 import java.io.File;
 import java.util.List;
@@ -52,6 +60,32 @@ public class TaxonomiesTestsUtils {
 			}
 		}
 		return betterThanExpected;
+	}
+
+	public static void createFoldersWithNegativeAuths(AdministrativeUnit administrativeUnit, Category category)
+			throws Exception {
+
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(administrativeUnit.getCollection(), appLayerFactory);
+		Folder[] folders = new Folder[8];
+
+		Transaction tx = new Transaction();
+		for (int i = 0; i < folders.length; i++) {
+			folders[i] = rm.newFolder().setTitle("Folder " + i).setCategoryEntered(category).setAdministrativeUnitEntered(administrativeUnit)
+					.setRetentionRuleEntered(rm.getRetentionRule("ruleId_1")).setOpenDate(new LocalDate());
+			tx.add(folders[i]);
+		}
+
+		Folder folder1_1 = tx.add(createSubFolder(folders[i]), "Folder 1-1");
+
+
+		appLayerFactory.getModelLayerFactory().newRecordServices().execute(tx);
+	}
+
+	private static Folder createSubFolder(Folder parent, String title) {
+		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(parent.getCollection(), appLayerFactory);
+		return rm.newFolder().setParentFolder(parent).setTitle(title).setOpenDate(new LocalDate());
 	}
 
 	private static String toCommaSeparatedArgs(String str) {

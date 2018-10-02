@@ -29,7 +29,8 @@ public class FolderTokensOfHierarchyCalculator extends StringListMetadataValueCa
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		Set<String> allTokens = new HashSet<>();
+		Set<String> allPositiveTokens = new HashSet<>();
+		Set<String> allNegativeTokens = new HashSet<>();
 
 		List<String> tokens = parameters.get(tokensParam);
 		List<String> subFoldersHierarchyTokens = parameters.get(subFoldersParam);
@@ -42,17 +43,43 @@ public class FolderTokensOfHierarchyCalculator extends StringListMetadataValueCa
 		if (LangUtils.isFalseOrNull(logicallyDeleted)) {
 			if (tokens != null) {
 				for (String token : tokens) {
-					allTokens.add(prefix + token);
+					if (token.startsWith("n")) {
+						allNegativeTokens.add(prefix + token);
+					} else {
+						allPositiveTokens.add(prefix + token);
+					}
 				}
 			}
 			if (subFoldersHierarchyTokens != null) {
-				allTokens.addAll(subFoldersHierarchyTokens);
+				for (String token : subFoldersHierarchyTokens) {
+					if (token.startsWith("n")) {
+						//allNegativeTokens.add(token);
+					} else {
+						allPositiveTokens.add(token);
+					}
+				}
 			}
 			if (documentsHierarchyTokens != null) {
-				allTokens.addAll(documentsHierarchyTokens);
+				for (String token : documentsHierarchyTokens) {
+					if (token.startsWith("n")) {
+						//	allNegativeTokens.add(token);
+					} else {
+						allPositiveTokens.add(token);
+					}
+				}
 			}
 
 		}
+
+		Set<String> allTokens = new HashSet<>();
+		allTokens.addAll(allPositiveTokens);
+
+		for (String negativeToken : allNegativeTokens) {
+			if (!allTokens.contains(negativeToken.substring(1))) {
+				allTokens.add(negativeToken);
+			}
+		}
+
 		List<String> tokensList = new ArrayList<>(allTokens);
 		Collections.sort(tokensList);
 		return tokensList;

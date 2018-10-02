@@ -186,6 +186,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				schemas = new SchemasRecordsServices(zeCollection, modelLayerFactory);
 				users.setUp(modelLayerFactory.newUserServices());
 
+
 				linkEventBus(modelLayerFactory, getModelLayerFactory("other-instance"));
 			}
 
@@ -194,6 +195,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				setServices();
 				setup.refresh(schemasManager);
 				anothercollectionSetup.refresh(schemasManager);
+				anothercollectionSetup.loadTaxonomies(taxonomiesManager);
 
 				for (String collection : TestUtils.asList(zeCollection, anotherCollection)) {
 					RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
