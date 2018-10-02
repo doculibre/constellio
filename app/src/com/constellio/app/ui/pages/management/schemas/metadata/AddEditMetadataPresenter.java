@@ -66,6 +66,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.jgoodies.common.base.Strings;
 import com.vaadin.ui.UI;
 
 public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditMetadataView> {
@@ -249,11 +250,9 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			builder.setMultiLingual(formMetadataVO.isMultiLingual());
 
 			if(formMetadataVO.getReadAccessRoles() != null) {
-				MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(new ArrayList<String>(), originalMetadataAccessRestrictionBuilder.getRequiredWriteRoles(),
+				MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(formMetadataVO.getReadAccessRoles(), originalMetadataAccessRestrictionBuilder.getRequiredWriteRoles(),
 						originalMetadataAccessRestrictionBuilder.getRequiredModificationRoles(), originalMetadataAccessRestrictionBuilder.getRequiredDeleteRoles());
-				for (String role : formMetadataVO.getReadAccessRoles()) {
-					metadataAccessRestriction.getRequiredReadRoles().add(role);
-				}
+
 				metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
 				builder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
 			}
@@ -640,12 +639,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	public List<String> getMetadataReadRole() {
 		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 
-		if (types != null) {
+		if (types != null && Strings.isNotBlank(metadataCode)) {
 			Metadata metadata = types.getMetadata(metadataCode);
-				if(metadata.getAccessRestrictions() != null) {
-					return metadata.getAccessRestrictions().getRequiredReadRoles();
-				}
+			if(metadata.getAccessRestrictions() != null) {
+				return metadata.getAccessRestrictions().getRequiredReadRoles();
 			}
+		}
 
 		return new ArrayList<>();
 	}

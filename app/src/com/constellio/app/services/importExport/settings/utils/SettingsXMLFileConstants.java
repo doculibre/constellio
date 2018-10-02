@@ -68,5 +68,6 @@ public interface SettingsXMLFileConstants {
 	String POPULATE_CONFIGS_REGEX_VALUE = "value";
 	String POPULATE_CONFIGS_REGEX_TYPE = "type";
 	String RELATIONSHIP_PROVIDING_SECURITY = "relationshipProvidingSecurity";
+	String REQUIRED_READ_ROLES = "requiredReadRoles";
 
 }

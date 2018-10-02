@@ -13,12 +13,16 @@ import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWr
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.assertj.core.api.ListAssert;
@@ -221,7 +225,18 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRtest1");
+				MetadataSchemaBuilder metadataSchemaBuilder = types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRtest1");
+				MetadataBuilder metadataBuilder = metadataSchemaBuilder.getMetadata(Folder.TITLE);
+
+
+				final MetadataAccessRestrictionBuilder originalMetadataAccessRestrictionBuilder = metadataBuilder.defineAccessRestrictions();
+				final MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
+				MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(asList("RGI", "ADM"), originalMetadataAccessRestrictionBuilder.getRequiredWriteRoles(),
+						originalMetadataAccessRestrictionBuilder.getRequiredModificationRoles(), originalMetadataAccessRestrictionBuilder.getRequiredDeleteRoles());
+
+				metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
+				metadataBuilder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
+
 				types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRtest2");
 			}
 		});
