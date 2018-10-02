@@ -44,6 +44,7 @@ import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
 import com.constellio.app.modules.rm.extensions.app.RMListSchemaExtention;
 import com.constellio.app.modules.rm.extensions.app.RMRecordDisplayFactoryExtension;
 import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
+import com.constellio.app.modules.rm.extensions.app.RMRecordMediumTypeExtension;
 import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.EventImportExtension;
@@ -446,6 +447,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.recordExtensions.add(new RMCreateDecommissioningListExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMDocumentExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new SessionContextRecordExtension());
+		extensions.recordExtensions.add(new RMRecordMediumTypeExtension(collection, appLayerFactory));
 		extensions.recordImportExtensions.add(new RetentionRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new FolderRuleImportExtension(collection, modelLayerFactory));
 		extensions.recordImportExtensions.add(new EventImportExtension(collection, modelLayerFactory));
