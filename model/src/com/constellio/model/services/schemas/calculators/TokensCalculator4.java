@@ -50,15 +50,18 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
 		SecurityModel securityModel = parameters.get(securityModelSpecialDependency);
-		List<SecurityModelAuthorization> authorizations = calculateAppliedAuthorizations(parameters, securityModel);
-		return buildTokens(parameters, securityModel, authorizations);
+		List<SecurityModelAuthorization> authorizations = new ArrayList<>();
+		List<SecurityModelAuthorization> removedAuthorizations = new ArrayList<>();
+		calculateAppliedAuthorizations(parameters, securityModel, authorizations, removedAuthorizations);
+		return buildTokens(parameters, securityModel, authorizations, removedAuthorizations);
 	}
 
-	private List<SecurityModelAuthorization> calculateAppliedAuthorizations(CalculatorParameters parameters,
-																			SecurityModel securityModel) {
+	private void calculateAppliedAuthorizations(CalculatorParameters parameters,
+												SecurityModel securityModel,
+												List<SecurityModelAuthorization> authorizations,
+												List<SecurityModelAuthorization> removedAuthorizations) {
 		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(hierarchyDependencyValuesParam);
-		List<SecurityModelAuthorization> authorizations = new ArrayList<>(
-				securityModel.getAuthorizationsOnTarget(parameters.getId()));
+		authorizations.addAll(securityModel.getAuthorizationsOnTarget(parameters.getId()));
 		boolean detached = TRUE.equals(parameters.get(isDetachedParams));
 
 		List<String> allRemovedAuths = parameters.get(allRemovedAuthsParam);
@@ -70,19 +73,23 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 		if (!detached && !hasActiveOverridingAuth(authsFromMetadatas)) {
 			for (String inheritedNonTaxonomyAuthId : hierarchyDependencyValue.getInheritedNonTaxonomyAuthorizations()) {
+				SecurityModelAuthorization auth = securityModel.getAuthorizationWithId(inheritedNonTaxonomyAuthId);
 				if (!allRemovedAuths.contains(inheritedNonTaxonomyAuthId)) {
-					SecurityModelAuthorization auth = securityModel.getAuthorizationWithId(inheritedNonTaxonomyAuthId);
 					if (auth != null) {
 						authorizations.add(auth);
+					}
+				} else {
+					if (auth != null) {
+						removedAuthorizations.add(auth);
 					}
 				}
 			}
 		}
-		return authorizations;
 	}
 
 	private List<String> buildTokens(CalculatorParameters parameters, SecurityModel securityModel,
-									 List<SecurityModelAuthorization> authorizations) {
+									 List<SecurityModelAuthorization> authorizations,
+									 List<SecurityModelAuthorization> removedAuthorizations) {
 
 		List<String> manualTokens = parameters.get(manualTokensParam);
 
@@ -92,6 +99,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 			typeSmallCode = parameters.getSchemaType().getCode();
 		}
 
+		Set<String> removedNegativeTokens = new HashSet<>();
 		Set<String> negativeTokens = new HashSet<>();
 
 		for (SecurityModelAuthorization authorization : authorizations) {
@@ -108,6 +116,28 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 							for (Group aGroup : securityModel.getGroupsInheritingAuthorizationsFrom(group)) {
 								addPrincipalNegativeTokens(negativeTokens, typeSmallCode, access, aGroup.getId());
+							}
+						}
+					}
+				}
+			}
+		}
+
+
+		for (SecurityModelAuthorization authorization : removedAuthorizations) {
+			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptAuth()
+				&& authorization.getDetails().isNegative()) {
+				for (String access : authorization.getDetails().getRoles()) {
+					for (User user : authorization.getUsers()) {
+						addPrincipalNegativeTokens(removedNegativeTokens, typeSmallCode, access, user.getId());
+					}
+
+					for (Group group : authorization.getGroups()) {
+						if (securityModel.isGroupActive(group)) {
+							addPrincipalNegativeTokens(removedNegativeTokens, typeSmallCode, access, group.getId());
+
+							for (Group aGroup : securityModel.getGroupsInheritingAuthorizationsFrom(group)) {
+								addPrincipalNegativeTokens(removedNegativeTokens, typeSmallCode, access, aGroup.getId());
 							}
 						}
 					}
@@ -141,6 +171,10 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		tokens.addAll(positiveTokens);
 		for (String negativeToken : negativeTokens) {
 			tokens.add("n" + negativeToken);
+		}
+
+		for (String removedNegativeToken : removedNegativeTokens) {
+			tokens.add("-n" + removedNegativeToken);
 		}
 
 		tokens.addAll(manualTokens);

@@ -246,14 +246,14 @@ public class FilterUtils {
 				stringBuilder.append(" AND ");
 			}
 			stringBuilder.append("-");
-			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+			stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
 			stringBuilder.append(":nw_");
 			stringBuilder.append(user.getId());
 
 			for (String aGroup : user.getUserGroups()) {
 				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
 					stringBuilder.append(" AND -");
-					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
+					stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
 					stringBuilder.append(":nw_");
 					stringBuilder.append(aGroup);
 				}

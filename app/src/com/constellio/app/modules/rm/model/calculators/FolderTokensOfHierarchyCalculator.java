@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.LOGICALLY_DELETED;
+import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.REMOVED_AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.VISIBLE_IN_TREES;
 import static java.util.Arrays.asList;
@@ -21,6 +22,7 @@ import static java.util.Arrays.asList;
 public class FolderTokensOfHierarchyCalculator extends StringListMetadataValueCalculator {
 
 	LocalDependency<List<String>> tokensParam = LocalDependency.toAStringList(TOKENS);
+	LocalDependency<List<String>> removedAuthorizationsParam = LocalDependency.toAStringList(REMOVED_AUTHORIZATIONS);
 	LocalDependency<List<String>> subFoldersParam = LocalDependency.toAStringList(Folder.SUB_FOLDERS_TOKENS);
 	LocalDependency<List<String>> documentsParam = LocalDependency.toAStringList(Folder.DOCUMENTS_TOKENS);
 
@@ -36,6 +38,8 @@ public class FolderTokensOfHierarchyCalculator extends StringListMetadataValueCa
 		List<String> subFoldersHierarchyTokens = parameters.get(subFoldersParam);
 		List<String> documentsHierarchyTokens = parameters.get(documentsParam);
 
+		List<String> negativeTokensRemovedFurtherInHierarchy = new ArrayList<>();
+
 		Boolean logicallyDeleted = parameters.get(logicallyDeletedParam);
 		Boolean visibleInTrees = parameters.get(visibleInTreesParam);
 		String prefix = LangUtils.isTrueOrNull(visibleInTrees) ? "" : "z";
@@ -45,6 +49,7 @@ public class FolderTokensOfHierarchyCalculator extends StringListMetadataValueCa
 				for (String token : tokens) {
 					if (token.startsWith("n")) {
 						allNegativeTokens.add(prefix + token);
+
 					} else {
 						allPositiveTokens.add(prefix + token);
 					}
@@ -53,7 +58,13 @@ public class FolderTokensOfHierarchyCalculator extends StringListMetadataValueCa
 			if (subFoldersHierarchyTokens != null) {
 				for (String token : subFoldersHierarchyTokens) {
 					if (token.startsWith("n")) {
-						//allNegativeTokens.add(token);
+						//discarded
+
+					} else if (token.startsWith("-n")) {
+						negativeTokensRemovedFurtherInHierarchy.add(token);
+						allPositiveTokens.add(token.replace("-n", ""));
+						allPositiveTokens.add(token.replace("-n", "").replace("_", "f_"));
+
 					} else {
 						allPositiveTokens.add(token);
 					}
@@ -62,7 +73,13 @@ public class FolderTokensOfHierarchyCalculator extends StringListMetadataValueCa
 			if (documentsHierarchyTokens != null) {
 				for (String token : documentsHierarchyTokens) {
 					if (token.startsWith("n")) {
-						//	allNegativeTokens.add(token);
+						//discarded
+
+					} else if (token.startsWith("-n")) {
+						negativeTokensRemovedFurtherInHierarchy.add(token);
+						allPositiveTokens.add(token.replace("-n", ""));
+						allPositiveTokens.add(token.replace("-n", "").replace("_", "d_"));
+
 					} else {
 						allPositiveTokens.add(token);
 					}
@@ -75,7 +92,7 @@ public class FolderTokensOfHierarchyCalculator extends StringListMetadataValueCa
 		allTokens.addAll(allPositiveTokens);
 
 		for (String negativeToken : allNegativeTokens) {
-			if (!allTokens.contains(negativeToken.substring(1))) {
+			if (!negativeTokensRemovedFurtherInHierarchy.contains("-" + negativeToken)) {
 				allTokens.add(negativeToken);
 			}
 		}

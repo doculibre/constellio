@@ -53,6 +53,8 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
+import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.createFoldersAndDocumentsWithNegativeAuths;
+import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.createFoldersAndSubFoldersWithNegativeAuths;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -191,6 +193,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(secondCallQueryCounts(2, 4, 4));
 
 	}
+
 
 	@Test
 	public void whenAdminIsNavigatingATaxonomyWithVisibleRecordsThenSeesRecords()
@@ -1416,6 +1419,167 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 				.has(solrQueryCounts(0, 0, 0))
 				.has(secondCallQueryCounts(0, 0, 0));
 	}
+
+	@Test
+	public void givenUserHavePositiveAuthorizationsOnFoldersAndSubFoldersThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+
+		createFoldersAndSubFoldersWithNegativeAuths(records.getUnit20(), records.getCategory_X13());
+		waitForBatchProcess();
+
+		//		assertThatTokensOf("f11").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f1").isEmpty();
+		//
+		//		assertThatTokensOf("f21").containsOnly("nd_heroes", "nr_heroes", "nw_sidekicks", "nw_heroes", "nd_sidekicks", "nr_sidekicks");
+		//		assertThatTokensOf("f2").containsOnly("nd_heroes", "nr_heroes", "nw_sidekicks", "nw_heroes", "nd_sidekicks", "nr_sidekicks");
+		//
+		//		assertThatTokensOf("f31").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f32").containsOnly("nd_heroes", "nr_heroes", "nw_sidekicks", "nw_heroes", "nd_sidekicks", "nr_sidekicks");
+		//		assertThatTokensOf("f3").isEmpty();
+		//
+		//		assertThatTokensOf("f41").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks",
+		//				"nd_legends", "nr_legends", "nw_rumors", "nw_legends", "nd_rumors", "nr_rumors");
+		//		assertThatTokensOf("f4").isEmpty();
+
+		//		assertThatTokensOf("f51").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f5").isEmpty();
+		//
+		//		assertThatTokensOf("f61").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f62").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f6").isEmpty();
+		//
+		//		assertThatTokensOf("f71").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f72").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f7").isEmpty();
+
+		//		assertThatTokensOf("f81").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f8").isEmpty();
+
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), records.categoryId_X13)
+				.has(recordsInOrder("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"))
+				.has(recordsWithChildren("f1", "f2", "f3", "f5", "f6", "f7", "f8"));
+
+		//				.has(solrQueryCounts(3, 4, 4))
+		//				.has(secondSolrQueryCounts(1, 0, 0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f1").has(recordsInOrder("f11"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f2").has(recordsInOrder("f21"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f3").has(recordsInOrder("f31", "f32"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f4").has(recordsInOrder());
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f5").has(recordsInOrder("f51"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f6").has(recordsInOrder("f62"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f7").has(recordsInOrder("f72"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f8").has(recordsInOrder("f81"));
+
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), records.categoryId_X13)
+				.has(recordsInOrder("f1", "f3", "f4", "f5", "f6", "f7", "f8"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f1").has(recordsInOrder("f11"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f3").has(recordsInOrder("f31"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f4").has(recordsInOrder("f41"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f5").has(recordsInOrder("f51"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f6").has(recordsInOrder("f61", "f62"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f7").has(recordsInOrder("f71", "f72"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f8").has(recordsInOrder());
+
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), records.categoryId_X13)
+				.has(recordsInOrder("f1", "f3", "f4", "f5", "f6", "f7", "f8"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f1").has(recordsInOrder("f11"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f3").has(recordsInOrder("f31"));
+
+		//This is an accepted problem (f41 should not be returned)
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f4").has(recordsInOrder());
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f5").has(recordsInOrder("f51"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f6").has(recordsInOrder("f62"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f7").has(recordsInOrder("f72"));
+
+		//This is an accepted problem (f81 should not be returned)
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f8").has(recordsInOrder());
+
+	}
+
+	@Test
+	public void givenUserHavePositiveAuthorizationsOnFoldersAndDocumentsThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+
+		createFoldersAndDocumentsWithNegativeAuths(records.getUnit20(), records.getCategory_X13());
+		waitForBatchProcess();
+
+		//		assertThatTokensOf("f11").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f1").isEmpty();
+		//
+		//		assertThatTokensOf("f21").containsOnly("nd_heroes", "nr_heroes", "nw_sidekicks", "nw_heroes", "nd_sidekicks", "nr_sidekicks");
+		//		assertThatTokensOf("f2").containsOnly("nd_heroes", "nr_heroes", "nw_sidekicks", "nw_heroes", "nd_sidekicks", "nr_sidekicks");
+		//
+		//		assertThatTokensOf("f31").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f32").containsOnly("nd_heroes", "nr_heroes", "nw_sidekicks", "nw_heroes", "nd_sidekicks", "nr_sidekicks");
+		//		assertThatTokensOf("f3").isEmpty();
+		//
+		//		assertThatTokensOf("f41").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks",
+		//				"nd_legends", "nr_legends", "nw_rumors", "nw_legends", "nd_rumors", "nr_rumors");
+		//		assertThatTokensOf("f4").isEmpty();
+
+		//		assertThatTokensOf("f51").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f5").isEmpty();
+		//
+		//		assertThatTokensOf("f61").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f62").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f6").isEmpty();
+		//
+		//		assertThatTokensOf("f71").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f72").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f7").isEmpty();
+
+		//		assertThatTokensOf("f81").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f8").isEmpty();
+
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), records.categoryId_X13)
+				.has(recordsInOrder("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"))
+				.has(recordsWithChildren("f1", "f2", "f3", "f5", "f6", "f7", "f8"));
+
+		//				.has(solrQueryCounts(3, 4, 4))
+		//				.has(secondSolrQueryCounts(1, 0, 0));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f1").has(recordsInOrder("d11"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f2").has(recordsInOrder("d21"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f3").has(recordsInOrder("d31", "d32"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f4").has(recordsInOrder());
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f5").has(recordsInOrder("d51"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f6").has(recordsInOrder("d62"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f7").has(recordsInOrder("d72"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f8").has(recordsInOrder("d81"));
+
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), records.categoryId_X13)
+				.has(recordsInOrder("f1", "f3", "f4", "f5", "f6", "f7", "f8"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f1").has(recordsInOrder("d11"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f3").has(recordsInOrder("d31"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f4").has(recordsInOrder("d41"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f5").has(recordsInOrder("d51"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f6").has(recordsInOrder("d61", "d62"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f7").has(recordsInOrder("d71", "d72"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.charlesIn(zeCollection), "f8").has(recordsInOrder());
+
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), records.categoryId_X13)
+				.has(recordsInOrder("f1", "f3", "f4", "f5", "f6", "f7", "f8"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f1").has(recordsInOrder("d11"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f3").has(recordsInOrder("d31"));
+
+		//This is an accepted problem (f41 should not be returned)
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f4").has(recordsInOrder());
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f5").has(recordsInOrder("d51"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f6").has(recordsInOrder("d62"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f7").has(recordsInOrder("d72"));
+
+		//This is an accepted problem (f81 should not be returned)
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.gandalfIn(zeCollection), "f8").has(recordsInOrder());
+
+	}
+
 
 	private Folder newFolderInCategory(Category category, String title) {
 		return rm.newFolder().setCategoryEntered(category).setTitle(title).setOpenDate(new LocalDate())
