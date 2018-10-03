@@ -572,7 +572,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			if (formMetadataVO.getValueType() == REFERENCE) {
 				inputType = MetadataInputType.LOOKUP;
 			}
-			if (!inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
+			if (inputType == null ||
+				(!inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS))) {
 				displayType = MetadataDisplayType.VERTICAL;
 			}
 
