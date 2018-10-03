@@ -95,19 +95,4 @@ public class ListExcelReportPresenterAcceptanceTest extends ConstellioTest {
 		presenter.removeRecord(report.getId(), "folder");
 		assertThat(reportServices.getRecordById(report.getId())).isNull();
 	}
-
-	@Test
-	public void testGetRecordByIndex() {
-		String title = "test";
-		ReportServices reportServices = new ReportServices(getModelLayerFactory(), zeCollection);
-		Report report = rm.newReport();
-		report.setColumnsCount(1);
-		report.setLinesCount(2);
-		report.setTitle(title);
-		report.setSchemaTypeCode("folder");
-		reportServices.saveReport(records.getAdmin(), report);
-
-		RecordVO reportVO = presenter.getRecordsWithIndex("folder", "0");
-		assertThat(reportVO.getTitle()).isEqualTo(title);
-	}
 }
