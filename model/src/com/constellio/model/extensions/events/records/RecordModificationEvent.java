@@ -32,6 +32,8 @@ public class RecordModificationEvent implements RecordEvent {
 		return record;
 	}
 
+	public Record getOriginalRecord() { return originalRecord; }
+
 	public MetadataList getModifiedMetadatas() {
 		return modifiedMetadatas;
 	}

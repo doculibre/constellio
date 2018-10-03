@@ -33,7 +33,6 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 
 	private RMSchemasRecordsServices rm;
 	private RecordServices recordServices;
-	private SearchServices searchServices;
 
 	private MediumType digitalMediumType;
 
@@ -56,12 +55,11 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 		String schemaType = event.getSchemaTypeCode();
 		if (schemaType.equals(Folder.SCHEMA_TYPE)) {
 			if (event.hasModifiedMetadata(Folder.MEDIUM_TYPES) || event.hasModifiedMetadata(Folder.PARENT_FOLDER)) {
-				updateParentFolderMediumType(event.getRecord(), false);
+				updateParentFolderMediumType(event.getRecord(), event.getOriginalRecord());
 			}
 		} else if (schemaType.equals(Document.SCHEMA_TYPE)) {
-			if (isDigital(event.getRecord().getCopyOfOriginalRecord()) != isDigital(event.getRecord()) ||
-				event.hasModifiedMetadata(Document.FOLDER)) {
-				updateParentFolderMediumType(event.getRecord(), false);
+			if (event.hasModifiedMetadata(Document.CONTENT) || event.hasModifiedMetadata(Document.FOLDER)) {
+				updateParentFolderMediumType(event.getRecord(), event.getOriginalRecord());
 			}
 		}
 	}
@@ -70,7 +68,7 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 	public void recordLogicallyDeleted(RecordLogicalDeletionEvent event) {
 		String schemaType = event.getSchemaTypeCode();
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE)) {
-			updateParentFolderMediumType(event.getRecord(), false);
+			updateParentFolderMediumType(event.getRecord(), null);
 		}
 	}
 
@@ -78,7 +76,7 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 	public void recordRestored(RecordRestorationEvent event) {
 		String schemaType = event.getRecord().getSchemaCode();
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE)) {
-			updateParentFolderMediumType(event.getRecord(), false);
+			updateParentFolderMediumType(event.getRecord(), null);
 		}
 	}
 
@@ -86,24 +84,24 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 	public void recordCreated(RecordCreationEvent event) {
 		String schemaType = event.getSchemaTypeCode();
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE)) {
-			updateParentFolderMediumType(event.getRecord(), true);
+			updateParentFolderMediumType(event.getRecord(), null);
 		}
 	}
 
-	private void updateParentFolderMediumType(Record record, boolean isNew) {
+	private void updateParentFolderMediumType(Record record, Record originalRecord) {
 		try {
 			String parentFolderId = getParentFolder(record);
 			if (parentFolderId == null) {
 				return;
 			}
-			if (!isMediumTypeAdded(record, isNew)) {
-				Folder folder = rm.getFolder(parentFolderId).set(Schemas.MARKED_FOR_REINDEXING, true);
-				recordServices.update(folder.getWrappedRecord());
-			} else {
-				String mediumType = getAddedMediumType(record, isNew);
+			if (isMediumTypeAdded(record, originalRecord)) {
+				String mediumType = getAddedMediumType(record, originalRecord);
 				if (mediumType != null) {
 					addMediumTypeToParentFolder(parentFolderId, mediumType);
 				}
+			} else if (isMediumTypeRemoved(record, originalRecord)) {
+				Folder folder = rm.getFolder(parentFolderId).set(Schemas.MARKED_FOR_REINDEXING, true);
+				recordServices.update(folder.getWrappedRecord());
 			}
 		} catch (RecordServicesException e) {
 			log.error("Failed to update parent folder's medium type", e);
@@ -121,15 +119,21 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 		}
 	}
 
-	private boolean isMediumTypeAdded(Record record, boolean isNew) {
+	private boolean isMediumTypeAdded(Record record, Record originalRecord) {
 		return isFolder(record) ?
-			   getCurrentMediumTypes(record).size() > getOriginalMediumTypes(record, isNew).size() :
+			   getCurrentMediumTypes(record).size() > getOriginalMediumTypes(originalRecord).size() :
 			   isDigital(record);
 	}
 
-	private String getAddedMediumType(Record record, boolean isNew) {
+	private boolean isMediumTypeRemoved(Record record, Record originalRecord) {
+		return isFolder(record) ?
+			   getCurrentMediumTypes(record).size() < getOriginalMediumTypes(originalRecord).size() :
+			   isDigital(record);
+	}
+
+	private String getAddedMediumType(Record record, Record originalRecord) {
 		Set<String> mediumTypes = new HashSet<>(getCurrentMediumTypes(record));
-		mediumTypes.removeAll(getOriginalMediumTypes(record, isNew));
+		mediumTypes.removeAll(getOriginalMediumTypes(originalRecord));
 		if (!mediumTypes.isEmpty()) {
 			return mediumTypes.iterator().next();
 		} else {
@@ -142,13 +146,12 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 			   record.<String>get(rm.folder.parentFolder()) : record.<String>get(rm.document.folder());
 	}
 
-	private List<String> getOriginalMediumTypes(Record record, boolean isNew) {
-		if (isNew) {
+	private List<String> getOriginalMediumTypes(Record record) {
+		if (record == null) {
 			return Collections.emptyList();
 		}
 		return isFolder(record) ? record.getCopyOfOriginalRecord().<List<String>>get(rm.folder.mediumTypes()) :
-			   isDigital(record.getCopyOfOriginalRecord()) ?
-			   singletonList(digitalMediumType.getId()) : Collections.<String>emptyList();
+			   isDigital(record) ? singletonList(digitalMediumType.getId()) : Collections.<String>emptyList();
 	}
 
 	private List<String> getCurrentMediumTypes(Record record) {

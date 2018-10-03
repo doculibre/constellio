@@ -120,20 +120,71 @@ public class RMRecordMediumTypeExtensionAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenAnalogDocumentChangedToDigitalThenDigitalParentFolder() {
+	public void givenAnalogDocumentChangedToDigitalThenDigitalParentFolder() throws Exception {
+		Folder folder = newFolderWithId("parentFolder");
+		recordServices.add(folder);
 
+		recordServices.add(newAnalogDocumentWithId("analogDocument").setFolder(folder));
+
+		Document document = rm.getDocument("analogDocument");
+		document.setContent(content);
+		recordServices.update(document);
+
+		folder = rm.getFolder("parentFolder");
+		assertThat(folder.getMediumTypes()).containsOnly(digitalMediumType.getId());
+		assertThat(folder.getMediaType()).isEqualTo(FolderMediaType.ELECTRONIC);
 	}
 
-	public void givenDigitalDocumentChangedToAnalogThenAnalogParentFolder() {
+	@Test
+	public void givenDigitalDocumentChangedToAnalogThenUnknownParentFolder() throws Exception {
+		Folder folder = newFolderWithId("parentFolder");
+		recordServices.add(folder);
 
+		recordServices.add(newDigitalDocumentWithId("digitalDocument").setFolder(folder));
+
+		Document document = rm.getDocument("digitalDocument");
+		document.setContent(null);
+		recordServices.update(document);
+		waitForBatchProcess();
+
+		folder = rm.getFolder("parentFolder");
+		assertThat(folder.getMediumTypes()).isEmpty();
+		assertThat(folder.getMediaType()).isEqualTo(FolderMediaType.UNKNOWN);
 	}
 
-	public void givenAnalogDocumentAndAnalogDocumentChangedToDigitalThenMixedParentFolder() {
+	@Test
+	public void givenAnalogDocumentAndAnalogDocumentChangedToDigitalThenDigitalParentFolder() throws Exception {
+		Folder folder = newFolderWithId("parentFolder");
+		recordServices.add(folder);
 
+		recordServices.add(newAnalogDocumentWithId("analogDocument").setFolder(folder));
+		recordServices.add(newAnalogDocumentWithId("analogDocument1").setFolder(folder));
+
+		Document document = rm.getDocument("analogDocument");
+		document.setContent(content);
+		recordServices.update(document);
+
+		folder = rm.getFolder("parentFolder");
+		assertThat(folder.getMediumTypes()).containsOnly(digitalMediumType.getId());
+		assertThat(folder.getMediaType()).isEqualTo(FolderMediaType.ELECTRONIC);
 	}
 
-	public void givenDigitalDocumentAndDigitalDocumentChangedToAnalogThenMixedParentFolder() {
+	@Test
+	public void givenDigitalDocumentAndDigitalDocumentChangedToAnalogThenUnknownParentFolder() throws Exception {
+		Folder folder = newFolderWithId("parentFolder");
+		recordServices.add(folder);
 
+		recordServices.add(newDigitalDocumentWithId("digitalDocument").setFolder(folder));
+		recordServices.add(newDigitalDocumentWithId("digitalDocument1").setFolder(folder));
+
+		Document document = rm.getDocument("digitalDocument");
+		document.setContent(null);
+		recordServices.update(document);
+		waitForBatchProcess();
+
+		folder = rm.getFolder("parentFolder");
+		assertThat(folder.getMediumTypes()).isEmpty();
+		assertThat(folder.getMediaType()).isEqualTo(FolderMediaType.UNKNOWN);
 	}
 
 	public void givenDigitalDocumentDeletedThenParentFolderHasNoSupportTypes() {
