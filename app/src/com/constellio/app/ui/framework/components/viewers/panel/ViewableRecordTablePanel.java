@@ -44,7 +44,6 @@ import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
@@ -54,7 +53,7 @@ import com.vaadin.ui.Window.CloseListener;
 //@JavaScript({ "theme://jquery/jquery-2.1.4.min.js", "theme://scroll/fix-vertical-scroll.js" })
 public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 	
-	private VerticalLayout actionsMenuBarTableLayout;
+	private VerticalLayout tableLayout;
 	
 	private VerticalLayout buttonsViewerMetadataLayout;
 	
@@ -66,7 +65,9 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 	
 	private I18NHorizontalLayout buttonsLayout;
 	
-	private MenuBar actionsMenuBar;
+	private BaseButton previousButton;
+	
+	private BaseButton nextButton;
 	
 	private BaseButton closeViewerButton;
 	
@@ -77,6 +78,10 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 	private Integer rowSelected;
 	
 	private RecordVO selectedRecordVO;
+	
+	private Object previousItemId;
+	
+	private Object nextItemId;
 	
 	private List<TableCompressListener> tableCompressListeners = new ArrayList<>();
 
@@ -93,23 +98,28 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		
 		buildResultsTable();
 		buildViewerMetadataPanel();
-		buildActionsMenuBar();
+		buildPreviousButton();
+		buildNextButton();
 		buildDisplayButton();
 		buildOpenDocumentComponent();
 		buildCloseViewerButton();
 		
-		actionsMenuBarTableLayout = new VerticalLayout(actionsMenuBar);
+		tableLayout = new VerticalLayout();
 		if (tableComponent != null) {
-			actionsMenuBarTableLayout.addComponent(tableComponent);
+			tableLayout.addComponent(tableComponent);
 		} else {
-			actionsMenuBarTableLayout.addComponent(table);
+			tableLayout.addComponent(table);
 		}
 		
-		buttonsLayout = new I18NHorizontalLayout(displayButton, openDocumentComponent, closeViewerButton);
+		buttonsLayout = new I18NHorizontalLayout(previousButton, nextButton, displayButton, openDocumentComponent, closeViewerButton);
 		buttonsLayout.setWidth("100%");
+		buttonsLayout.setSpacing(true);
+		buttonsLayout.setComponentAlignment(previousButton, Alignment.TOP_LEFT);
+		buttonsLayout.setComponentAlignment(nextButton, Alignment.TOP_LEFT);
 		buttonsLayout.setComponentAlignment(displayButton, Alignment.TOP_LEFT);
 		buttonsLayout.setComponentAlignment(openDocumentComponent, Alignment.TOP_LEFT);
 		buttonsLayout.setComponentAlignment(closeViewerButton, Alignment.TOP_RIGHT);
+		buttonsLayout.setExpandRatio(displayButton, 1);
 		buttonsLayout.setExpandRatio(openDocumentComponent, 1);
 		
 		buttonsViewerMetadataLayout = new VerticalLayout(buttonsLayout, viewerMetadataPanel);
@@ -118,10 +128,9 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		buttonsViewerMetadataLayout.setHeight("100%");
 //		closeButtonViewerMetadataLayout.setWidthUndefined();
 		
-		actionsMenuBarTableLayout.setHeight("100%");
-		actionsMenuBarTableLayout.setComponentAlignment(actionsMenuBar, Alignment.TOP_RIGHT);
+		tableLayout.setHeight("100%");
 		
-		addComponents(actionsMenuBarTableLayout, buttonsViewerMetadataLayout);
+		addComponents(tableLayout, buttonsViewerMetadataLayout);
 		
 		adjustTableExpansion();
 	}
@@ -134,8 +143,8 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 					table.addStyleName(compressedStyleName);
 				}
 				buttonsViewerMetadataLayout.setVisible(true);
-				actionsMenuBarTableLayout.setWidth("650px");
-				setExpandRatio(actionsMenuBarTableLayout, 0);
+				tableLayout.setWidth("650px");
+				setExpandRatio(tableLayout, 0);
 				setExpandRatio(buttonsViewerMetadataLayout, 1);
 			}
 		} else {
@@ -144,8 +153,8 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 					table.removeStyleName(compressedStyleName);
 				}	
 				buttonsViewerMetadataLayout.setVisible(false);
-				actionsMenuBarTableLayout.setWidth("100%");
-				setExpandRatio(actionsMenuBarTableLayout, 1);
+				tableLayout.setWidth("100%");
+				setExpandRatio(tableLayout, 1);
 				setExpandRatio(buttonsViewerMetadataLayout, 0);
 			}
 		}
@@ -174,9 +183,13 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 //		});
 	}
 	
-	@SuppressWarnings("rawtypes")
 	void rowClicked(ItemClickEvent event) {
 		Object itemId = event.getItemId();
+		selectRecordVO(itemId, event);
+	}	
+
+	@SuppressWarnings("rawtypes")
+	void selectRecordVO(Object itemId, ItemClickEvent event) {	
 		Integer newRowSelected = (Integer) itemId;
 		
 		Boolean compressionChange;
@@ -196,35 +209,53 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 			if (container instanceof RecordVOLazyContainer) {
 				RecordVOLazyContainer recordVOLazyContainer = (RecordVOLazyContainer) container;
 				selectedRecordVO = recordVOLazyContainer.getRecordVO(rowSelected);
+				previousItemId = recordVOLazyContainer.prevItemId(itemId);
+				nextItemId = recordVOLazyContainer.nextItemId(itemId);
 			} else if (container instanceof SearchResultContainer) {
 				SearchResultContainer searchResultContainer = (SearchResultContainer) container;
 				selectedRecordVO = searchResultContainer.getRecordVO(rowSelected);
+				previousItemId = searchResultContainer.prevItemId(itemId);
+				nextItemId = searchResultContainer.nextItemId(itemId);
 			} else if (container instanceof SearchResultVOLazyContainer) {
 				SearchResultVOLazyContainer searchResultContainer = (SearchResultVOLazyContainer) container;
 				selectedRecordVO = searchResultContainer.getRecordVO(rowSelected);
+				previousItemId = searchResultContainer.prevItemId(itemId);
+				nextItemId = searchResultContainer.nextItemId(itemId);
 			} else if (container instanceof ViewableRecordVOContainer) {
-				ViewableRecordVOContainer testContainer = (ViewableRecordVOContainer) container;
-				selectedRecordVO = testContainer.getRecordVO(rowSelected);
+				ViewableRecordVOContainer viewableRecordVOContainer = (ViewableRecordVOContainer) container;
+				selectedRecordVO = viewableRecordVOContainer.getRecordVO(rowSelected);
+				previousItemId = viewableRecordVOContainer.prevItemId(itemId);
+				nextItemId = viewableRecordVOContainer.nextItemId(itemId);
 			} else if (container instanceof PagedTableContainer) {
 				PagedTableContainer pagedTableContainer = (PagedTableContainer) container;
 				Container nestedContainer = pagedTableContainer.getContainer();
 				if (nestedContainer instanceof RecordVOLazyContainer) {
 					RecordVOLazyContainer recordVOLazyContainer = (RecordVOLazyContainer) nestedContainer;
 					selectedRecordVO = recordVOLazyContainer.getRecordVO(rowSelected);
+					previousItemId = recordVOLazyContainer.prevItemId(itemId);
+					nextItemId = recordVOLazyContainer.nextItemId(itemId);
 				} else if (nestedContainer instanceof SearchResultContainer) {
 					SearchResultContainer searchResultContainer = (SearchResultContainer) nestedContainer;
 					selectedRecordVO = searchResultContainer.getRecordVO(rowSelected);
+					previousItemId = searchResultContainer.prevItemId(itemId);
+					nextItemId = searchResultContainer.nextItemId(itemId);
 				} else {
 					selectedRecordVO = null;
+					previousItemId = null;
+					nextItemId = null;
 				}	
 			} else {
 				selectedRecordVO = null;
+				previousItemId = null;
+				nextItemId = null;
 			}
+			previousButton.setEnabled(previousItemId != null);
+			nextButton.setEnabled(nextItemId != null);
 			
 			viewerMetadataPanel.setRecordVO(selectedRecordVO);
 			updateViewerActionButtons();
 			
-			if (compressionChange != null) {
+			if (compressionChange != null && event != null) {
 				TableCompressEvent tableCompressEvent = new TableCompressEvent(event, compressionChange);
 				for (TableCompressListener tableCompressListener : tableCompressListeners) {
 					tableCompressListener.tableCompressChange(tableCompressEvent);
@@ -303,16 +334,28 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		viewerMetadataPanel = new ViewerMetadataPanel();
 	}
 	
-	private void buildActionsMenuBar() {
-		actionsMenuBar = new MenuBar();
-		actionsMenuBar.addStyleName("viewable-record-table-panel-actions-menu");
-//		actionsMenuBar.addItem("Action 1", new Command() {
-//			@Override
-//			public void menuSelected(MenuItem selectedItem) {
-//				
-//			}
-//		});
-		actionsMenuBar.setVisible(false);
+	private void buildPreviousButton() {
+		previousButton = new IconButton(new ThemeResource("images/icons/actions/navigate_left.png"), $("ViewableRecordTablePanel.previous")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				if (previousItemId != null) {
+					selectRecordVO(previousItemId, null);
+				}
+			}
+		};
+		previousButton.setWidth("24px");
+	}
+	
+	private void buildNextButton() {
+		nextButton = new IconButton(new ThemeResource("images/icons/actions/navigate_right.png"), $("ViewableRecordTablePanel.next")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				if (nextItemId != null) {
+					selectRecordVO(nextItemId, null);
+				}
+			}
+		};
+		nextButton.setWidth("24px");
 	}
 	
 	private BaseWindow newWindow() {
@@ -343,11 +386,10 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 					view.enter(null);
 					BaseWindow window = newWindow();
 					view.addStyleName("viewable-record-window-content");
-					Panel panel = new Panel(view);
 					int browserWindowHeight = Page.getCurrent().getBrowserWindowHeight();
-					int panelHeight = browserWindowHeight - 50;
-					panel.setHeight(panelHeight + "px");
-					window.setContent(panel);
+					int viewHeight = browserWindowHeight - 50;
+					view.setHeight(viewHeight + "px");
+					window.setContent(view);
 					ConstellioUI.getCurrent().addWindow(window);
 				} else {
 					ReferenceDisplay referenceDisplay = new ReferenceDisplay(selectedRecordVO);
@@ -421,15 +463,11 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 					contentViewer = null;
 				}
 
-				int panelHeight = Page.getCurrent().getBrowserWindowHeight() - 200;
-				Panel recordDisplayPanel = new Panel(recordDisplay);
-				recordDisplayPanel.setWidth("100%");
-//				recordDisplayPanel.setHeight(panelHeight + "px");
 				if (contentViewer != null) {
-					mainLayout.addComponents(contentViewer, recordDisplayPanel);
+					mainLayout.addComponents(contentViewer, recordDisplay);
 					mainLayout.setExpandRatio(contentViewer, 1);
 				} else {
-					mainLayout.addComponent(recordDisplayPanel);
+					mainLayout.addComponent(recordDisplay);
 				}
 			}
 		}

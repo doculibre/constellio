@@ -3,22 +3,21 @@ package com.constellio.app.ui.framework.components;
 import static com.constellio.app.ui.i18n.i18n.$;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
+import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
-
-import java.io.Serializable;
-import java.util.List;
 
 @SuppressWarnings("serial")
 public class BaseDisplay extends CustomComponent {
@@ -31,9 +30,9 @@ public class BaseDisplay extends CustomComponent {
 
 	private VerticalLayout mainLayout;
 
-	private TabSheet tabSheet;
+	protected TabSheet tabSheet;
 
-	private Map<String, VerticalLayout> tabs = new HashMap<>();
+	private Map<String, Panel> tabs = new LinkedHashMap<>();
 
 	public BaseDisplay(List<CaptionAndComponent> captionsAndDisplayComponents) {
 		this(captionsAndDisplayComponents, false);
@@ -50,10 +49,10 @@ public class BaseDisplay extends CustomComponent {
 		mainLayout = newMainLayout();
 
 		if (isUseTabsheet()) {
-		int tabCaptionCount = 0;
-
-		for (CaptionAndComponent captionAndComponent :captionsAndDisplayComponents){
-String tabCaption = captionAndComponent.tabCaption;
+			int tabCaptionCount = 0;
+	
+			for (CaptionAndComponent captionAndComponent :captionsAndDisplayComponents){
+				String tabCaption = captionAndComponent.tabCaption;
 				if (StringUtils.isNotBlank(tabCaption)) {
 					tabCaptionCount++;
 					break;
@@ -67,7 +66,8 @@ String tabCaption = captionAndComponent.tabCaption;
 		if (useTabSheet) {
 			setCompositionRoot(tabSheet);
 		} else {
-		setCompositionRoot(mainLayout);}
+			setCompositionRoot(mainLayout);
+		}
 
 		setCaptionsAndComponents(captionsAndDisplayComponents);
 	}
@@ -104,13 +104,20 @@ String tabCaption = captionAndComponent.tabCaption;
 				tabCaption = $("BaseDisplay.defaultTab");
 			}
 			Resource tabIcon = getTabIcon(tabCaption);
-			layout = tabs.get(tabCaption);
-			if (layout == null) {
+			Panel panel = tabs.get(tabCaption);
+			if (panel == null) {
 				layout = new VerticalLayout();
+				layout.addStyleName("base-display-tab-layout");
 				layout.setWidth("100%");
-				tabs.put(tabCaption, layout);
 				layout.setSpacing(true);
-				addTab(tabSheet, layout, tabCaption, tabIcon);
+				panel = new Panel(layout);
+				panel.addStyleName("base-display-tab-panel");
+				panel.setWidth("100%");
+				panel.setHeight(Page.getCurrent().getBrowserWindowHeight() + "px");
+				tabs.put(tabCaption, panel);
+				addTab(tabSheet, panel, tabCaption, tabIcon);
+			} else {
+				layout = (VerticalLayout) panel.getContent();
 			}
 		} else {
 			layout = mainLayout;
@@ -143,9 +150,11 @@ String tabCaption = captionAndComponent.tabCaption;
 	protected boolean isCaptionAndDisplayComponentWidthUndefined() {
 		return false;
 	}
+	
 	protected boolean isUseTabsheet() {
 		return useTabSheet;
 	}
+	
 	public static class CaptionAndComponent implements Serializable {
 
 		public Label captionLabel;

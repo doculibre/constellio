@@ -1,5 +1,17 @@
 package com.constellio.app.services.schemasDisplay;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
@@ -11,16 +23,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.SchemaUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.jdom2.Document;
-import org.jdom2.Element;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 public class SchemasDisplayReader1 {
 	private static final String ROOT = "display";
@@ -117,7 +119,7 @@ public class SchemasDisplayReader1 {
 				boolean advancedSearch = new Boolean(child.getAttributeValue(ADVANCED_SEARCH));
 				String schemaType = child.getName();
 
-				Map<String, Map<Language, String>> metadataGroups = new HashMap<>();
+				Map<String, Map<Language, String>> metadataGroups = new LinkedHashMap<>();
 
 				for (Element metadataGroup : child.getChild(METADATA_GROUPS_LABELS).getChildren()) {
 					if (metadataGroup.getAttributeValue(METADATA_GROUP_CODE) == null) {

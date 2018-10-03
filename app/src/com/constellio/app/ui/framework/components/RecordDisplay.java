@@ -1,22 +1,30 @@
 package com.constellio.app.ui.framework.components;
 
-import static com.constellio.app.ui.i18n.i18n.$;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
+import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.Language;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.Field;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import com.vaadin.ui.TabSheet.Tab;
 
 @SuppressWarnings("serial")
 public class RecordDisplay extends BaseDisplay {
@@ -114,6 +122,64 @@ public class RecordDisplay extends BaseDisplay {
 	@Override
 	protected void addTab(TabSheet tabSheet, Component tabComponent, String caption, Resource icon) {
 		super.addTab(tabSheet, tabComponent, caption, icon);
+	}
+
+	@Override
+	public void attach() {
+		List<String> orderedTabCaptions = getOrderedTabCaptions(recordVO);
+		List<String> usedTabCaptions = new ArrayList<>();
+		for (String orderedTabCaption : orderedTabCaptions) {
+			boolean usedTab = false;
+			usedTabsLoop: for (int i = 0; i < tabSheet.getComponentCount(); i++) {
+				Tab tab = tabSheet.getTab(i);
+				String tabCaption = tab.getCaption();
+				if (tabCaption.equals(orderedTabCaption)) {
+					usedTab = true;
+					break usedTabsLoop;
+				}
+			}	
+			if (usedTab) {
+				usedTabCaptions.add(orderedTabCaption);
+			}
+		}
+		Map<Component, Integer> newTabOrders = new HashMap<>();
+		for (int i = 0; i < tabSheet.getComponentCount(); i++) {
+			Tab tab = tabSheet.getTab(i);
+			String tabCaption = tab.getCaption();
+			int tabOrder = usedTabCaptions.indexOf(tabCaption);
+			if (tabOrder >= 0) {
+				newTabOrders.put(tab.getComponent(), tabOrder);
+			}
+		}
+		for (Component tabComponent : newTabOrders.keySet()) {
+			Integer newPosition = newTabOrders.get(tabComponent);
+			Tab tab = tabSheet.getTab(tabComponent);
+			tabSheet.setTabPosition(tab, newPosition);
+		}
+		super.attach();
+	}
+	
+	private List<String> getOrderedTabCaptions(RecordVO recordVO) {
+		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+		Locale currentLocale = sessionContext.getCurrentLocale();
+		
+		MetadataSchemaVO schemaVO = recordVO.getSchema();
+		String collection = schemaVO.getCollection();
+		String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaVO.getCode());
+		List<String> orderedTabCaptions = new ArrayList<>();
+		SchemasDisplayManager displayManager = ConstellioFactories.getInstance().getAppLayerFactory().getMetadataSchemasDisplayManager();
+		SchemaTypeDisplayConfig typeConfig = displayManager.getType(collection, schemaTypeCode);
+		Map<String, Map<Language, String>> groups = typeConfig.getMetadataGroup();
+		for (String group : groups.keySet()) {
+			Map<Language, String> groupLabels = groups.get(group);
+			for (Language language : groupLabels.keySet()) {
+				if (language.getLocale().equals(currentLocale)) {
+					String tabCaption = groupLabels.get(language);
+					orderedTabCaptions.add(tabCaption);
+				}
+			}
+		}
+		return orderedTabCaptions;
 	}
 
 }

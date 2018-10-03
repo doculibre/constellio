@@ -655,7 +655,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			});
 
 			folderContentTable = new ViewableRecordVOTable(container);
-
 			folderContentTable.setSizeFull();
 			folderContentTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 			if (!Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {

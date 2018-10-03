@@ -11947,6 +11947,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/chm.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-chm .v-table-cell-wrapper {
@@ -11959,6 +11960,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/cpp.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-cpp .v-table-cell-wrapper {
@@ -11971,6 +11973,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/css.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-css .v-table-cell-wrapper {
@@ -11983,6 +11986,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/csv.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-csv .v-table-cell-wrapper {
@@ -11995,6 +11999,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/doc.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-doc .v-table-cell-wrapper {
@@ -12007,6 +12012,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/document.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-document .v-table-cell-wrapper {
@@ -12019,6 +12025,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/docx.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-docx .v-table-cell-wrapper {
@@ -12031,6 +12038,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/docm.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-docm .v-table-cell-wrapper {
@@ -12043,6 +12051,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/eml.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-eml .v-table-cell-wrapper {
@@ -12055,6 +12064,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/gif.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-gif .v-table-cell-wrapper {
@@ -12067,6 +12077,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/html.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-html .v-table-cell-wrapper {
@@ -12079,6 +12090,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/jpg.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-jpg .v-table-cell-wrapper {
@@ -12091,6 +12103,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/mhtml.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-mhtml .v-table-cell-wrapper {
@@ -12103,6 +12116,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/mid.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-mid .v-table-cell-wrapper {
@@ -12115,6 +12129,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/mov.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-mov .v-table-cell-wrapper {
@@ -12127,6 +12142,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/msg.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-msg .v-table-cell-wrapper {
@@ -12139,6 +12155,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/odb.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-odb .v-table-cell-wrapper {
@@ -12151,6 +12168,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/odf.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-odf .v-table-cell-wrapper {
@@ -12163,6 +12181,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/odg.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-odg .v-table-cell-wrapper {
@@ -12175,6 +12194,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/odp.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-odp .v-table-cell-wrapper {
@@ -12187,6 +12207,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/ods.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-ods .v-table-cell-wrapper {
@@ -12199,6 +12220,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/odt.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-odt .v-table-cell-wrapper {
@@ -12211,6 +12233,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/one.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-one .v-table-cell-wrapper {
@@ -12223,6 +12246,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/pcx.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-pcx .v-table-cell-wrapper {
@@ -12235,6 +12259,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/pdf.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-pdf .v-table-cell-wrapper {
@@ -12247,6 +12272,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/png.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-png .v-table-cell-wrapper {
@@ -12259,6 +12285,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/pot.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-pot .v-table-cell-wrapper {
@@ -12271,6 +12298,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/pps.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-pps .v-table-cell-wrapper {
@@ -12283,6 +12311,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/ppt.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-ppt .v-table-cell-wrapper {
@@ -12295,6 +12324,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/pptx.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-pptx .v-table-cell-wrapper {
@@ -12307,6 +12337,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/pub.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-pub .v-table-cell-wrapper {
@@ -12319,6 +12350,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/reg.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-reg .v-table-cell-wrapper {
@@ -12331,6 +12363,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/text.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-text .v-table-cell-wrapper {
@@ -12343,6 +12376,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/tif.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-tif .v-table-cell-wrapper {
@@ -12355,6 +12389,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/tiff.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-tiff .v-table-cell-wrapper {
@@ -12367,6 +12402,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/unknown.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-unknown .v-table-cell-wrapper {
@@ -12379,6 +12415,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/vsd.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-vsd .v-table-cell-wrapper {
@@ -12391,6 +12428,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/vsl.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-vsl .v-table-cell-wrapper {
@@ -12403,6 +12441,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/vst.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-vst .v-table-cell-wrapper {
@@ -12415,6 +12454,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/wav.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-wav .v-table-cell-wrapper {
@@ -12427,6 +12467,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/wbk.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-wbk .v-table-cell-wrapper {
@@ -12439,6 +12480,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/wri.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-wri .v-table-cell-wrapper {
@@ -12451,6 +12493,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/xls.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-xls .v-table-cell-wrapper {
@@ -12463,6 +12506,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/xlsx.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-xlsx .v-table-cell-wrapper {
@@ -12475,6 +12519,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/xlsm.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-xlsm .v-table-cell-wrapper {
@@ -12487,6 +12532,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/xlt.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-xlt .v-table-cell-wrapper {
@@ -12499,6 +12545,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/xml.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-xml .v-table-cell-wrapper {
@@ -12511,6 +12558,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/zip.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-zip .v-table-cell-wrapper {
@@ -12523,6 +12571,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/mp3.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-mp3 .v-table-cell-wrapper {
@@ -12535,6 +12584,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/mp4.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-mp4 .v-table-cell-wrapper {
@@ -12547,6 +12597,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/wmv.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-wmv .v-table-cell-wrapper {
@@ -12559,6 +12610,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/flv.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-flv .v-table-cell-wrapper {
@@ -12703,6 +12755,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/document_frozen.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-document_frozen .v-table-cell-wrapper {
@@ -12715,6 +12768,7 @@ div.v-layout.v-horizontal.v-widget {
 	background-image: url('images/icons/ext/mantis/document_locked.gif');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 }
 
 .constellio .v-table-cell-content-file-icon-document_locked .v-table-cell-wrapper {
@@ -12834,8 +12888,8 @@ div.v-layout.v-horizontal.v-widget {
 	width: 100%;
 }
 
-.constellio .viewable-record-window .main-component-wrapper {
-	overflow-y: auto;
+.constellio .viewable-record-window .main-component-wrapper .base-display-tab-panel .v-panel-content {
+	height: calc(100% - 170px);
 }
 
 .constellio .viewable-record-window .list-add-remove-comment {

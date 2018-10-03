@@ -69,9 +69,9 @@ public class ViewableRecordVOTable extends RecordVOTable {
 			
 			if (compressed) {
 				uncompressedPageLength = getPageLength();
-				setPageLength(25);
+//				setPageLength(25);
 			} else {
-				setPageLength(uncompressedPageLength);
+//				setPageLength(uncompressedPageLength);
 			}
 		}
 	}

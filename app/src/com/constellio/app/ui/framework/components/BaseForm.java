@@ -1,5 +1,22 @@
 package com.constellio.app.ui.framework.components;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.util.MessageUtils;
@@ -22,30 +39,17 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class BaseForm<T> extends CustomComponent {
@@ -86,7 +90,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 	protected TabSheet tabSheet;
 
-	private Map<String, VerticalLayout> tabs = new HashMap<>();
+	private Map<String, VerticalLayout> tabs = new LinkedHashMap<>();
 
 	private boolean useTabSheet;
 
@@ -136,7 +140,8 @@ public abstract class BaseForm<T> extends CustomComponent {
 		boolean tabFound = false;
 		for (Field<?> field : fields) {
 			Object propertyId = fieldGroup.getPropertyId(field);
-			if (StringUtils.isNotBlank(getTabCaption(field, propertyId))) {
+			String tabCaption = getTabCaption(field, propertyId);
+			if (StringUtils.isNotBlank(tabCaption)) {
 				tabFound = true;
 				break;
 			}
@@ -200,6 +205,43 @@ public abstract class BaseForm<T> extends CustomComponent {
 		}
 		formLayout.addComponent(buttonsLayout);
 		buttonsLayout.addComponents(saveButton, cancelButton);
+		
+		if (useTabSheet) {
+			List<String> orderedTabCaptions = getOrderedTabCaptions(viewObject);
+			List<String> usedTabCaptions = new ArrayList<>();
+			for (String orderedTabCaption : orderedTabCaptions) {
+				boolean usedTab = false;
+				usedTabsLoop: for (int i = 0; i < tabSheet.getComponentCount(); i++) {
+					Tab tab = tabSheet.getTab(i);
+					String tabCaption = tab.getCaption();
+					if (tabCaption.equals(orderedTabCaption)) {
+						usedTab = true;
+						break usedTabsLoop;
+					}
+				}	
+				if (usedTab) {
+					usedTabCaptions.add(orderedTabCaption);
+				}
+			}
+			Map<Component, Integer> newTabOrders = new HashMap<>();
+			for (int i = 0; i < tabSheet.getComponentCount(); i++) {
+				Tab tab = tabSheet.getTab(i);
+				String tabCaption = tab.getCaption();
+				int tabOrder = usedTabCaptions.indexOf(tabCaption);
+				if (tabOrder >= 0) {
+					newTabOrders.put(tab.getComponent(), tabOrder);
+				}
+			}
+			for (Component tabComponent : newTabOrders.keySet()) {
+				Integer newPosition = newTabOrders.get(tabComponent);
+				Tab tab = tabSheet.getTab(tabComponent);
+				tabSheet.setTabPosition(tab, newPosition);
+			}
+		}
+	}
+	
+	protected List<String> getOrderedTabCaptions(T viewObject) {
+		return new ArrayList<>();
 	}
 
 	public void setSpecialContainerTitleCase(boolean specialContainerTitleCase, Class<?> validatorClass) {

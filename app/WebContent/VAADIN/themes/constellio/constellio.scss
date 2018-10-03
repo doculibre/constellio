@@ -40,6 +40,7 @@ $popup-view-z-index: 3;
 	background-image: url('images/icons/ext/mantis/#{$file-name}');
 	background-repeat: no-repeat;
 	background-position: 10px 10px;
+	background-position-y: center;
 
 	.v-table-cell-wrapper {
 		position: relative;
@@ -552,7 +553,15 @@ $popup-view-z-index: 3;
    		width: 100%;
    		
    		.main-component-wrapper {
-   			overflow-y: auto;
+   			//overflow-y: auto;
+   			
+   			.base-display-tab-panel {
+   				
+   				.v-panel-content {
+   					height: calc(100% - 170px);
+   				}
+   				
+   			}
    		}
    		
    		.list-add-remove-comment {
