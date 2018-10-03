@@ -366,7 +366,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private void adjustProgressPercentageField() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
-		progressPercentageField.setVisible(editMode);
+		if(progressPercentageField != null) {
+			progressPercentageField.setVisible(editMode);
+		}
 	}
 
 	private void adjustDecisionField() {
@@ -479,12 +481,14 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustRelativeDueDate() {
 		TaskRelativeDueDateField field = (TaskRelativeDueDateField) view.getForm().getCustomField(Task.RELATIVE_DUE_DATE);
-		try {
-			Task task = loadTask();
+		if(field != null) {
+			try {
+				Task task = loadTask();
 
-			field.setVisible(task.isModel());
-		} catch (NoSuchRecordWithId e) {
-			field.setVisible(false);
+				field.setVisible(task.isModel());
+			} catch (NoSuchRecordWithId e) {
+				field.setVisible(false);
+			}
 		}
 	}
 
