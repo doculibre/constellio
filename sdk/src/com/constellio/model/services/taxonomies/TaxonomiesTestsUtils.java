@@ -11,6 +11,7 @@ import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.users.UserServices;
 import org.apache.commons.io.FileUtils;
@@ -21,6 +22,7 @@ import java.util.List;
 
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForGroups;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
+import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 
 public class TaxonomiesTestsUtils {
@@ -96,6 +98,8 @@ public class TaxonomiesTestsUtils {
 		Folder folder6 = tx.add(folderBuilder.get("f6"));
 		Folder folder7 = tx.add(folderBuilder.get("f7"));
 		Folder folder8 = tx.add(folderBuilder.get("f8"));
+		Folder folder9 = tx.add(folderBuilder.get("f9"));
+		Folder folder10 = tx.add(folderBuilder.get("f10"));
 
 		Document document1_1 = tx.add(createDocument(folder1, "d11"));
 		Document document2_1 = tx.add(createDocument(folder2, "d21"));
@@ -108,6 +112,8 @@ public class TaxonomiesTestsUtils {
 		Document document7_1 = tx.add(createDocument(folder7, "d71"));
 		Document document7_2 = tx.add(createDocument(folder7, "d72"));
 		Document document8_1 = tx.add(createDocument(folder8, "d81"));
+		Document document9_1 = tx.add(createDocument(folder9, "d91"));
+		Document document10_1 = tx.add(createDocument(folder10, "d101"));
 
 		appLayerFactory.getModelLayerFactory().newRecordServices().execute(tx);
 
@@ -130,16 +136,14 @@ public class TaxonomiesTestsUtils {
 		String folder2Auth1 = authServices.add(authorizationForGroups(heroes).givingNegativeReadAccess().on(folder2));
 
 		String folder3Auth1 = authServices.add(authorizationForGroups(heroes).givingNegativeReadAccess().on(folder3));
-		//String copyOfFolder3Auth1OnFolder3_1 = authServices.detach(folder3_1.getWrappedRecord()).get(folder3Auth1);
-		//String folder3Auth2 = authServices.add(authorizationForUsers(chuck).givingNegativeReadAccess().on(folder3_1));
-		//authServices.execute(AuthorizationDeleteRequest.authorizationDeleteRequest(copyOfFolder3Auth1OnFolder3_1, "zeCollection"));
-		authServices.execute(modifyAuthorizationOnRecord(folder3Auth1, document3_1).removingItOnRecord());
+		String copyOfFolder3Auth1OnDocument3_1 = authServices.detach(document3_1.getWrappedRecord()).get(folder3Auth1);
+		String folder3Auth2 = authServices.add(authorizationForUsers(chuck).givingNegativeReadAccess().on(document3_1));
+		authServices.execute(AuthorizationDeleteRequest.authorizationDeleteRequest(copyOfFolder3Auth1OnDocument3_1, "zeCollection"));
 
 		String folder4Auth1 = authServices.add(authorizationForGroups(heroes).givingNegativeReadAccess().on(folder4));
-		//String copyOfFolder4Auth1OnFolder4_1 = authServices.detach(folder4_1.getWrappedRecord()).get(folder4Auth1);
+		String copyOfFolder4Auth1OnFolder4_1 = authServices.detach(document4_1.getWrappedRecord()).get(folder4Auth1);
 		String folder4Auth2 = authServices.add(authorizationForGroups(legends).givingNegativeReadAccess().on(document4_1));
-		//authServices.execute(AuthorizationDeleteRequest.authorizationDeleteRequest(copyOfFolder4Auth1OnFolder4_1, "zeCollection"));
-		authServices.execute(modifyAuthorizationOnRecord(folder4Auth1, document4_1).removingItOnRecord());
+		authServices.execute(AuthorizationDeleteRequest.authorizationDeleteRequest(copyOfFolder4Auth1OnFolder4_1, "zeCollection"));
 
 		String folder5Auth1 = authServices.add(authorizationForGroups(heroes).givingNegativeReadAccess().on(folder5));
 		String folder5_1Auth1 = authServices.add(authorizationForGroups(heroes).givingReadAccess().on(document5_1));
@@ -156,6 +160,16 @@ public class TaxonomiesTestsUtils {
 		String folder8Auth2 = authServices.add(authorizationForGroups(heroes).givingNegativeReadAccess().on(document8_1));
 		authServices.execute(modifyAuthorizationOnRecord(folder8Auth1, document8_1).removingItOnRecord());
 
+
+		String folder9Auth1 = authServices.add(authorizationForGroups(legends, heroes).givingNegativeReadAccess().on(folder9));
+		String folder9_1Auth1 = authServices.add(authorizationForGroups(legends, heroes).givingNegativeReadAccess().on(document9_1));
+		authServices.execute(modifyAuthorizationOnRecord(folder9Auth1, document9_1).removingItOnRecord());
+
+
+		String folder10Auth1 = authServices.add(authorizationForGroups(legends, heroes).givingNegativeReadAccess().on(folder10));
+		String copyOfFolder10Auth1 = authServices.detach(document10_1.getWrappedRecord()).get(folder10Auth1);
+		String folder10_1Auth1 = authServices.add(authorizationForGroups(legends, heroes).givingNegativeReadAccess().on(document10_1));
+		authServices.execute(authorizationDeleteRequest(copyOfFolder10Auth1, "zeCollection"));
 	}
 
 
@@ -183,6 +197,8 @@ public class TaxonomiesTestsUtils {
 		Folder folder6 = tx.add(folderBuilder.get("f6"));
 		Folder folder7 = tx.add(folderBuilder.get("f7"));
 		Folder folder8 = tx.add(folderBuilder.get("f8"));
+		Folder folder9 = tx.add(folderBuilder.get("f9"));
+		Folder folder10 = tx.add(folderBuilder.get("f10"));
 
 		Folder folder1_1 = tx.add(createSubFolder(folder1, "f11"));
 		Folder folder2_1 = tx.add(createSubFolder(folder2, "f21"));
@@ -195,6 +211,8 @@ public class TaxonomiesTestsUtils {
 		Folder folder7_1 = tx.add(createSubFolder(folder7, "f71"));
 		Folder folder7_2 = tx.add(createSubFolder(folder7, "f72"));
 		Folder folder8_1 = tx.add(createSubFolder(folder8, "f81"));
+		Folder folder9_1 = tx.add(createSubFolder(folder9, "f91"));
+		Folder folder10_1 = tx.add(createSubFolder(folder10, "f101"));
 
 		appLayerFactory.getModelLayerFactory().newRecordServices().execute(tx);
 
@@ -217,16 +235,16 @@ public class TaxonomiesTestsUtils {
 		String folder2Auth1 = authServices.add(authorizationForGroups(heroes).givingNegativeReadAccess().on(folder2));
 
 		String folder3Auth1 = authServices.add(authorizationForGroups(heroes).givingNegativeReadAccess().on(folder3));
-		//String copyOfFolder3Auth1OnFolder3_1 = authServices.detach(folder3_1.getWrappedRecord()).get(folder3Auth1);
-		//String folder3Auth2 = authServices.add(authorizationForUsers(chuck).givingNegativeReadAccess().on(folder3_1));
-		//authServices.execute(AuthorizationDeleteRequest.authorizationDeleteRequest(copyOfFolder3Auth1OnFolder3_1, "zeCollection"));
-		authServices.execute(modifyAuthorizationOnRecord(folder3Auth1, folder3_1).removingItOnRecord());
+		String copyOfFolder3Auth1OnFolder3_1 = authServices.detach(folder3_1.getWrappedRecord()).get(folder3Auth1);
+		String folder3Auth2 = authServices.add(authorizationForUsers(chuck).givingNegativeReadAccess().on(folder3_1));
+		authServices.execute(authorizationDeleteRequest(copyOfFolder3Auth1OnFolder3_1, "zeCollection"));
+		//authServices.execute(modifyAuthorizationOnRecord(folder3Auth1, folder3_1).removingItOnRecord());
 
 		String folder4Auth1 = authServices.add(authorizationForGroups(heroes).givingNegativeReadAccess().on(folder4));
-		//String copyOfFolder4Auth1OnFolder4_1 = authServices.detach(folder4_1.getWrappedRecord()).get(folder4Auth1);
+		String copyOfFolder4Auth1OnFolder4_1 = authServices.detach(folder4_1.getWrappedRecord()).get(folder4Auth1);
 		String folder4Auth2 = authServices.add(authorizationForGroups(legends).givingNegativeReadAccess().on(folder4_1));
-		//authServices.execute(AuthorizationDeleteRequest.authorizationDeleteRequest(copyOfFolder4Auth1OnFolder4_1, "zeCollection"));
-		authServices.execute(modifyAuthorizationOnRecord(folder4Auth1, folder4_1).removingItOnRecord());
+		authServices.execute(authorizationDeleteRequest(copyOfFolder4Auth1OnFolder4_1, "zeCollection"));
+		//authServices.execute(modifyAuthorizationOnRecord(folder4Auth1, folder4_1).removingItOnRecord());
 
 		String folder5Auth1 = authServices.add(authorizationForGroups(heroes).givingNegativeReadAccess().on(folder5));
 		String folder5_1Auth1 = authServices.add(authorizationForGroups(heroes).givingReadAccess().on(folder5_1));
@@ -238,10 +256,18 @@ public class TaxonomiesTestsUtils {
 		String folder7Auth1 = authServices.add(authorizationForGroups(legends).givingNegativeReadAccess().on(folder7));
 		authServices.execute(modifyAuthorizationOnRecord(folder7Auth1, folder7_2).removingItOnRecord());
 
-
 		String folder8Auth1 = authServices.add(authorizationForGroups(legends).givingNegativeReadAccess().on(folder8));
 		String folder8Auth2 = authServices.add(authorizationForGroups(heroes).givingNegativeReadAccess().on(folder8_1));
 		authServices.execute(modifyAuthorizationOnRecord(folder8Auth1, folder8_1).removingItOnRecord());
+
+		String folder9Auth1 = authServices.add(authorizationForGroups(legends, heroes).givingNegativeReadAccess().on(folder9));
+		String folder9_1Auth1 = authServices.add(authorizationForGroups(legends, heroes).givingNegativeReadAccess().on(folder9_1));
+		authServices.execute(modifyAuthorizationOnRecord(folder9Auth1, folder9_1).removingItOnRecord());
+
+		String folder10Auth1 = authServices.add(authorizationForGroups(legends, heroes).givingNegativeReadAccess().on(folder10));
+		String copyOfFolder10Auth1 = authServices.detach(folder10_1.getWrappedRecord()).get(folder10Auth1);
+		String folder10_1Auth1 = authServices.add(authorizationForGroups(legends, heroes).givingNegativeReadAccess().on(folder10_1));
+		authServices.execute(authorizationDeleteRequest(copyOfFolder10Auth1, "zeCollection"));
 
 	}
 

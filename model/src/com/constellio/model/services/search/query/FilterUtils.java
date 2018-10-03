@@ -241,7 +241,7 @@ public class FilterUtils {
 		UserTokens tokens = securityTokenManager.getTokens(user);
 		addDenyTokens(stringBuilder, tokens.getAllowTokens(), 'r');
 
-		if (user.isActiveUser()) {
+		if (user.isActiveUser() && !user.hasCollectionAccess(access == null ? Role.READ : access)) {
 			if (stringBuilder.length() > 0) {
 				stringBuilder.append(" AND ");
 			}

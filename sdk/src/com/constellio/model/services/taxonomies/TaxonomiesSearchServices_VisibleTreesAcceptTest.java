@@ -1456,6 +1456,13 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		//		assertThatTokensOf("f81").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
 		//		assertThatTokensOf("f8").isEmpty();
 
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), records.categoryId_X13)
+				.has(recordsInOrder("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10"))
+				.has(recordsWithChildren("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f9").has(recordsInOrder("f91"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f10").has(recordsInOrder("f101"));
+
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(false));
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), records.categoryId_X13)
 				.has(recordsInOrder("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"))
@@ -1504,7 +1511,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	public void givenUserHavePositiveAuthorizationsOnFoldersAndDocumentsThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
 			throws Exception {
 
-
 		createFoldersAndDocumentsWithNegativeAuths(records.getUnit20(), records.getCategory_X13());
 		waitForBatchProcess();
 
@@ -1538,8 +1544,17 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 
 		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), records.categoryId_X13)
+				.has(recordsInOrder("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10"))
+				.has(recordsWithChildren("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f9").has(recordsInOrder("d91"));
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), "f10").has(recordsInOrder("d101"));
+
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(false));
+
+		assertThatChildWhenUserNavigateUsingPlanTaxonomy(users.aliceIn(zeCollection), records.categoryId_X13)
 				.has(recordsInOrder("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"))
 				.has(recordsWithChildren("f1", "f2", "f3", "f5", "f6", "f7", "f8"));
+
 
 		//				.has(solrQueryCounts(3, 4, 4))
 		//				.has(secondSolrQueryCounts(1, 0, 0));

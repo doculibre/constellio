@@ -89,6 +89,7 @@ public class FolderTokensOfHierarchyCalculator extends StringListMetadataValueCa
 		}
 
 		Set<String> allTokens = new HashSet<>();
+
 		allTokens.addAll(allPositiveTokens);
 
 		for (String negativeToken : allNegativeTokens) {

@@ -795,10 +795,21 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		//		assertThatTokensOf("f81").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
 		//		assertThatTokensOf("f8").isEmpty();
 
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(true));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, users.aliceIn(zeCollection))
+				.has(linkable("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10"))
+				.has(numFound(10));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f9", users.aliceIn(zeCollection)).has(linkable("f91"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f10", users.aliceIn(zeCollection)).has(linkable("f101"));
+
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(false));
+
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, users.aliceIn(zeCollection))
 				.has(linkable("f1", "f2", "f3", "f4", "f5", "f6"))
-				.has(unlinkable("f7", "f8"));
+				.has(unlinkable("f7", "f8"))
+				.has(numFound(8));
 		//				.has(solrQueryCounts(3, 4, 4))
 		//				.has(secondSolrQueryCounts(1, 0, 0));
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f1", users.aliceIn(zeCollection)).has(linkable("f11"));
@@ -849,6 +860,15 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		createFoldersAndDocumentsWithNegativeAuths(records.getUnit20(), records.getCategory_X13());
 		waitForBatchProcess();
 
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(true));
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X13, users.aliceIn(zeCollection))
+				.has(unlinkable("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10"))
+				.has(numFound(10));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f9", users.aliceIn(zeCollection)).has(linkable("d91"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f10", users.aliceIn(zeCollection)).has(linkable("d101"));
+
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(false));
 
 		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X13, users.aliceIn(zeCollection))
 				.has(unlinkable("f1", "f2", "f3", "f5", "f6", "f7", "f8"));

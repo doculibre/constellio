@@ -51,15 +51,15 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 	public List<String> calculate(CalculatorParameters parameters) {
 		SecurityModel securityModel = parameters.get(securityModelSpecialDependency);
 		List<SecurityModelAuthorization> authorizations = new ArrayList<>();
-		List<SecurityModelAuthorization> removedAuthorizations = new ArrayList<>();
-		calculateAppliedAuthorizations(parameters, securityModel, authorizations, removedAuthorizations);
-		return buildTokens(parameters, securityModel, authorizations, removedAuthorizations);
+		List<SecurityModelAuthorization> removedOrDetachedAuthorizations = new ArrayList<>();
+		calculateAppliedAuthorizations(parameters, securityModel, authorizations, removedOrDetachedAuthorizations);
+		return buildTokens(parameters, securityModel, authorizations, removedOrDetachedAuthorizations);
 	}
 
 	private void calculateAppliedAuthorizations(CalculatorParameters parameters,
 												SecurityModel securityModel,
 												List<SecurityModelAuthorization> authorizations,
-												List<SecurityModelAuthorization> removedAuthorizations) {
+												List<SecurityModelAuthorization> removedOrDetachedAuthorizations) {
 		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(hierarchyDependencyValuesParam);
 		authorizations.addAll(securityModel.getAuthorizationsOnTarget(parameters.getId()));
 		boolean detached = TRUE.equals(parameters.get(isDetachedParams));
@@ -71,16 +71,25 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 		authorizations.addAll(authsFromMetadatas);
 
-		if (!detached && !hasActiveOverridingAuth(authsFromMetadatas)) {
-			for (String inheritedNonTaxonomyAuthId : hierarchyDependencyValue.getInheritedNonTaxonomyAuthorizations()) {
-				SecurityModelAuthorization auth = securityModel.getAuthorizationWithId(inheritedNonTaxonomyAuthId);
-				if (!allRemovedAuths.contains(inheritedNonTaxonomyAuthId)) {
-					if (auth != null) {
-						authorizations.add(auth);
+		if (!hasActiveOverridingAuth(authsFromMetadatas)) {
+			if (!detached) {
+				for (String inheritedNonTaxonomyAuthId : hierarchyDependencyValue.getInheritedNonTaxonomyAuthorizations()) {
+					SecurityModelAuthorization auth = securityModel.getAuthorizationWithId(inheritedNonTaxonomyAuthId);
+					if (!allRemovedAuths.contains(inheritedNonTaxonomyAuthId)) {
+						if (auth != null) {
+							authorizations.add(auth);
+						}
+					} else {
+						if (auth != null) {
+							removedOrDetachedAuthorizations.add(auth);
+						}
 					}
-				} else {
+				}
+			} else {
+				for (String inheritedNonTaxonomyAuthId : hierarchyDependencyValue.getInheritedNonTaxonomyAuthorizations()) {
+					SecurityModelAuthorization auth = securityModel.getAuthorizationWithId(inheritedNonTaxonomyAuthId);
 					if (auth != null) {
-						removedAuthorizations.add(auth);
+						removedOrDetachedAuthorizations.add(auth);
 					}
 				}
 			}
@@ -89,7 +98,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 	private List<String> buildTokens(CalculatorParameters parameters, SecurityModel securityModel,
 									 List<SecurityModelAuthorization> authorizations,
-									 List<SecurityModelAuthorization> removedAuthorizations) {
+									 List<SecurityModelAuthorization> removedOrDetachedAuthorizations) {
 
 		List<String> manualTokens = parameters.get(manualTokensParam);
 
@@ -124,7 +133,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		}
 
 
-		for (SecurityModelAuthorization authorization : removedAuthorizations) {
+		for (SecurityModelAuthorization authorization : removedOrDetachedAuthorizations) {
 			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptAuth()
 				&& authorization.getDetails().isNegative()) {
 				for (String access : authorization.getDetails().getRoles()) {
@@ -174,7 +183,9 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		}
 
 		for (String removedNegativeToken : removedNegativeTokens) {
-			tokens.add("-n" + removedNegativeToken);
+			if (!negativeTokens.contains(removedNegativeToken)) {
+				tokens.add("-n" + removedNegativeToken);
+			}
 		}
 
 		tokens.addAll(manualTokens);
