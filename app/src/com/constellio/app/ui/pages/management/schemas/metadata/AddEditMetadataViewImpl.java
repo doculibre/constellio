@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.api.extensions.MetadataThatDontSupportRoleAccessRetParam;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.entities.FormMetadataVO;
@@ -114,6 +115,11 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		viewLayout = new VerticalLayout();
 		viewLayout.setSizeFull();
 		viewLayout.addComponents(buildTables());
+
+		if(!presenter.isRoleAccessSupportedOnThisMetadata()) {
+			listOptionGroupRole.setVisible(false);
+		}
+
 		return viewLayout;
 	}
 
@@ -157,6 +163,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				if (!searchableField.getValue()) {
 					advancedSearchField.setValue(false);
 				}
+			}
+
+			if(value == MetadataValueType.CONTENT) {
+				listOptionGroupRole.setVisible(false);
 			}
 
 			if (value == MetadataValueType.REFERENCE && multivalue) {
@@ -591,6 +601,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 					} else {
 						formMetadataVO.removeCustomAttribute(customAttributeField.getId());
 					}
+				}
+
+				if(!listOptionGroupRole.isVisible()) {
+					formMetadataVO.setReadAccessRoles(new ArrayList<String>());
 				}
 
 				try {

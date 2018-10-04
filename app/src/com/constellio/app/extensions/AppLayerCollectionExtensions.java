@@ -10,6 +10,8 @@ import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.LabelTemplateExtension;
 import com.constellio.app.api.extensions.ListSchemaExtention;
 import com.constellio.app.api.extensions.MetadataFieldExtension;
+import com.constellio.app.api.extensions.MetadataThatDontSupportRoleAccessExtension;
+import com.constellio.app.api.extensions.MetadataThatDontSupportRoleAccessRetParam;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
@@ -152,6 +154,9 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<ListSchemaExtention> listSchemaCommandExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<MetadataThatDontSupportRoleAccessExtension> metadataThatDontSupportRoleAccessExtensions = new VaultBehaviorsList<>();
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -686,6 +691,15 @@ public class AppLayerCollectionExtensions {
 			}
 		}
 		return new ArrayList<>(unwantedTaxonomies);
+	}
+
+	public List<MetadataThatDontSupportRoleAccessRetParam> getMetadataThatDontSupportRoleAccessExtension() {
+		List<MetadataThatDontSupportRoleAccessRetParam> metadataThatDontSupportRoleAccessRetParamList = new ArrayList<>();
+		for(MetadataThatDontSupportRoleAccessExtension metadataThatDontSupportRoleAccessRetParam : metadataThatDontSupportRoleAccessExtensions) {
+			metadataThatDontSupportRoleAccessRetParamList.addAll(metadataThatDontSupportRoleAccessRetParam.getMetadataThatDontSupportRoleAccess());
+		}
+
+		return metadataThatDontSupportRoleAccessRetParamList;
 	}
 
 }
