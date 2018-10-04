@@ -1,7 +1,6 @@
 package com.constellio.app.services.recovery;
 
 import com.constellio.sdk.tests.ConstellioTest;
-import com.sun.star.uno.RuntimeException;
 import org.junit.Before;
 import org.junit.Test;
 

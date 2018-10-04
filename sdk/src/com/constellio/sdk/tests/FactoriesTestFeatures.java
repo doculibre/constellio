@@ -36,10 +36,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.utils.CloseableUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
 import java.io.File;
@@ -130,17 +126,6 @@ public class FactoriesTestFeatures {
 				});
 			}
 
-			if (ContentDaoType.HADOOP == conf.getContentDaoType()) {
-
-				runnables.add(new Runnable() {
-					@Override
-					public void run() {
-						deleteFromHadoop(conf.getContentDaoHadoopUser(), conf.getContentDaoHadoopUrl());
-					}
-				});
-
-			}
-
 			if (ConfigManagerType.ZOOKEEPER == conf.getSettingsConfigType()) {
 
 				runnables.add(new Runnable() {
@@ -197,28 +182,6 @@ public class FactoriesTestFeatures {
 			throw new RuntimeException(e);
 		} finally {
 			CloseableUtils.closeQuietly(client);
-		}
-	}
-
-	private void deleteFromHadoop(String user, String url) {
-		System.setProperty("HADOOP_USER_NAME", user);
-		Configuration hadoopConfig = new Configuration();
-
-		if (url == null || user == null) {
-			throw new RuntimeException("No config");
-		}
-
-		hadoopConfig.set("fs.defaultFS", url);
-		hadoopConfig.set("hadoop.job.ugi", user);
-
-		try {
-			FileSystem hdfs = FileSystem.get(hadoopConfig);
-			for (FileStatus file : hdfs.globStatus(new Path("*"))) {
-				hdfs.delete(file.getPath(), true);
-			}
-
-		} catch (IOException e) {
-			throw new RuntimeException(e);
 		}
 	}
 

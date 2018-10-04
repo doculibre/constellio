@@ -1,7 +1,7 @@
 package com.constellio.data.dao.managers.config.values;
 
 import com.constellio.data.dao.managers.config.ConfigManagerRuntimeException;
-import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.jdom2.Document;

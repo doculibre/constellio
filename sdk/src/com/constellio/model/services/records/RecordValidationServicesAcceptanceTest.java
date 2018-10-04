@@ -54,9 +54,9 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasInputMa
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasLabel;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivaluesAndLimitedTo50Characters;
-import static com.thoughtworks.selenium.SeleneseTestBase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

@@ -19,7 +19,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.utils.MimeTypes;
-import org.apache.hadoop.io.Text;
+import org.jdom2.Text;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Test;

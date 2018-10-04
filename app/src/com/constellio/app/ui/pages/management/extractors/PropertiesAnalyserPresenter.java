@@ -5,7 +5,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.parser.FileParser;
-import org.apache.tika.io.IOUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedInputStream;
 import java.io.File;

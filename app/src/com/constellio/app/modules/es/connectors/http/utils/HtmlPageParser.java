@@ -35,8 +35,6 @@ import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Set;
 
-import static org.apache.tika.io.IOUtils.toByteArray;
-
 public class HtmlPageParser {
 
 	private static final long MAX_CONTENT_LENGTH = 20 * 1024 * 1024;
@@ -224,7 +222,7 @@ public class HtmlPageParser {
 		InputStream contentStream = null;
 		try {
 			contentStream = new LimitedInputStream(webResponse.getContentAsStream(), MAX_CONTENT_LENGTH);
-			return toByteArray(contentStream);
+			return IOUtils.toByteArray(contentStream);
 		} finally {
 			IOUtils.closeQuietly(contentStream);
 		}

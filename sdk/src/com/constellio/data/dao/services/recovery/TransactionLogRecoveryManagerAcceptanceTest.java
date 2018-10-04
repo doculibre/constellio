@@ -2,7 +2,6 @@ package com.constellio.data.dao.services.recovery;
 
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.sun.star.uno.RuntimeException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

@@ -1,8 +1,8 @@
 package com.constellio.model.services.contents.icap;
 
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.http.HttpStatus;
 
 import java.io.BufferedReader;
 import java.io.IOException;
