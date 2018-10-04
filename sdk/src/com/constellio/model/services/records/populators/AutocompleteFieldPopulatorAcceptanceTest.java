@@ -8,7 +8,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.assertj.core.api.ListAssert;
-import org.junit.Before;
 import org.junit.Test;
 
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA_AUTOCOMPLETE_FIELD;
@@ -20,31 +19,12 @@ public class AutocompleteFieldPopulatorAcceptanceTest extends ConstellioTest {
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
 
-	RecordServices recordServices;
-	SearchServices searchServices;
-	RMSchemasRecordsServices rm;
-
-	@Before
-	public void before()
-			throws Exception {
-
-		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records));
-		recordServices = getModelLayerFactory().newRecordServices();
-		searchServices = getModelLayerFactory().newSearchServices();
-		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-
-	}
-
 	@Test
 	public void givenFolderFieldsWithAutocompleteThenCopiedInChildFoldersAndDocuments()
 			throws Exception {
 
-		//		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
-		//			@Override
-		//			public void alter(MetadataSchemaTypesBuilder types) {
-		//				types.getSchemaType(Category.SCHEMA_TYPE).getMetadata(Category.TITLE).setSchemaAutocomplete(true);
-		//			}
-		//		});
+		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records));
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
 		Transaction tx = new Transaction();
 
@@ -67,7 +47,28 @@ public class AutocompleteFieldPopulatorAcceptanceTest extends ConstellioTest {
 		assertThatRecordsWithFullWordInAutocompleteField("wololo").containsOnly("wololo");
 	}
 
+	@Test
+	public void givenArabicTextThenAutocompleteIsWorking()
+			throws Exception {
+
+		prepareSystem(withZeCollection().withConstellioRMModule().withRMTest(records));
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+
+		Transaction tx = new Transaction();
+
+		Folder folder = tx.add(records.newFolderWithValuesAndId("arabicFolderTest").setTitle("إدارة موقع الواجهة")
+				.setCategoryEntered(records.categoryId_X));
+		recordServices.execute(tx);
+
+		assertThatRecordsWithFullWordInAutocompleteField("إدارة").containsOnly("arabicFolderTest");
+		assertThatRecordsWithFullWordInAutocompleteField("موقع").containsOnly("arabicFolderTest");
+		assertThatRecordsWithFullWordInAutocompleteField("إدموقعارة").isEmpty();
+	}
+
+
 	private ListAssert<String> assertThatRecordsWithFullWordInAutocompleteField(String word) {
+		SearchServices searchServices = getModelLayerFactory().newSearchServices();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		return assertThat(searchServices.searchRecordIds(from(asList(rm.folderSchemaType(), rm.documentSchemaType()))
 				.where(SCHEMA_AUTOCOMPLETE_FIELD).isEqualTo(word)));
 	}
