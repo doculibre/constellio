@@ -237,6 +237,9 @@ public abstract class BaseForm<T> extends CustomComponent {
 				Tab tab = tabSheet.getTab(tabComponent);
 				tabSheet.setTabPosition(tab, newPosition);
 			}
+			if (!newTabOrders.isEmpty()) {
+				tabSheet.setSelectedTab(0);
+			}
 		}
 	}
 	

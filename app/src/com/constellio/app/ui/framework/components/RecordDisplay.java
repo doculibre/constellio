@@ -156,6 +156,9 @@ public class RecordDisplay extends BaseDisplay {
 			Tab tab = tabSheet.getTab(tabComponent);
 			tabSheet.setTabPosition(tab, newPosition);
 		}
+		if (!newTabOrders.isEmpty()) {
+			tabSheet.setSelectedTab(0);
+		}
 		super.attach();
 	}
 	

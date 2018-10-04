@@ -634,9 +634,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			}
 		}
 
-		ContentVersionVO contentVersionVO = (ContentVersionVO) view.getForm().getCustomField(Document.CONTENT)
-				.getFieldValue();
-		documentVO.setContent(contentVersionVO);
+		if (view.getForm().getCustomField(Document.CONTENT) != null) {
+			ContentVersionVO contentVersionVO = (ContentVersionVO) view.getForm().getCustomField(Document.CONTENT)
+					.getFieldValue();
+			documentVO.setContent(contentVersionVO);
+		}
 
 		view.setRecord(documentVO);
 		view.getForm().reload();

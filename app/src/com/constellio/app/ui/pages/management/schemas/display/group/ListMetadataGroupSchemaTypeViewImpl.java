@@ -137,7 +137,7 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
 			@Override
 			public void drop(DragAndDropEvent event) {
                 Transferable t = event.getTransferable();
-                if (t.getSourceComponent() != table) {
+                if (t.getSourceComponent() != table || table.size() <= 1) {
                     return;
                 }
 
@@ -148,15 +148,16 @@ public class ListMetadataGroupSchemaTypeViewImpl extends BaseViewImpl implements
                 Boolean above;
                 if (target.getDropLocation().equals(VerticalDropLocation.TOP)) {
                 	above = true;
+                } else if (target.getDropLocation().equals(VerticalDropLocation.MIDDLE) && targetItemId.equals(table.firstItemId())) {	
+                	above = true;
                 } else {
                 	above = false;
                 }
                 
             	presenter.groupDroppedOn((String) sourceItemId, (String) targetItemId, above);
+        		moveAfter(targetItemId, sourceItemId);
             	if (Boolean.TRUE.equals(above)) {
             		moveAfter(sourceItemId, targetItemId);
-            	} else {
-            		moveAfter(targetItemId, sourceItemId);
             	}
 			}
 		});
