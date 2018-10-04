@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVORuntimeException;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -410,7 +411,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 					if (loadContainerProperty.getValue() instanceof String) {
 						String value = (String) loadContainerProperty.getValue();
 						if (Strings.isNullOrEmpty(value)) {
-							loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
+							try {
+								loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
+							} catch (RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e) {
+
+							}
 						}
 					}
 				}
