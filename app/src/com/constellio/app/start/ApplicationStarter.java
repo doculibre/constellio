@@ -3,19 +3,15 @@ package com.constellio.app.start;
 import com.constellio.model.conf.FoldersLocator;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.bio.SocketConnector;
-import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.ServletMapping;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.FragmentConfiguration;
 import org.eclipse.jetty.webapp.MetaInfConfiguration;
-import org.eclipse.jetty.webapp.TagLibConfiguration;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.webapp.WebInfConfiguration;
 import org.eclipse.jetty.webapp.WebXmlConfiguration;
@@ -58,12 +54,11 @@ public class ApplicationStarter {
 		resources.add(params.getWebContentDir().getAbsolutePath());
 
 		server = newServer(params);
-		server.setThreadPool(new QueuedThreadPool(1000));
+		//server.setThreadPool(new QueuedThreadPool(1000));
 
 		// Static file handler
 		handler = new WebAppContext();
-		handler.setConfigurations(new Configuration[]{new WebXmlConfiguration(), new WebInfConfiguration(),
-													  new TagLibConfiguration(), new MetaInfConfiguration(), new FragmentConfiguration()});
+		handler.setConfigurations(new Configuration[]{new WebXmlConfiguration(), new WebInfConfiguration(), new MetaInfConfiguration(), new FragmentConfiguration()});
 		handler.setContextPath("/constellio");
 
 		handler.setBaseResource(new ResourceCollection(resources.toArray(new String[0])));
@@ -106,12 +101,13 @@ public class ApplicationStarter {
 		if (params.isSSL()) {
 			return getSslServer(params);
 		} else {
-			SocketConnector connector = new SocketConnector();
+			/*
+		    SocketConnector connector = new SocketConnector();
 			connector.setPort(params.getPort());
 			connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
-
-			Server server = new Server();
-			server.setConnectors(new Connector[]{connector});
+            */
+			Server server = new Server(params.getPort());
+			//server.setConnectors(new Connector[]{connector});
 			return server;
 		}
 	}
@@ -158,12 +154,11 @@ public class ApplicationStarter {
 				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"
 		);
 
-		SslSocketConnector connector = new SslSocketConnector(sslContextFactory);
-		connector.setPort(params.getPort());
+		//SslSocketConnector connector = new SslSocketConnector(sslContextFactory);
+		//connector.setPort(params.getPort());
+		//connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
-		connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
-
-		sslServer.setConnectors(new Connector[]{connector});
+		//sslServer.setConnectors(new Connector[]{connector});
 
 		return sslServer;
 	}

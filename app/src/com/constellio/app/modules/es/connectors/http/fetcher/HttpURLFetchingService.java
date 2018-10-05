@@ -83,6 +83,6 @@ public class HttpURLFetchingService implements AutoCloseable {
 
 	@Override
 	public void close() {
-		webClient.closeAllWindows();
+		webClient.close();
 	}
 }

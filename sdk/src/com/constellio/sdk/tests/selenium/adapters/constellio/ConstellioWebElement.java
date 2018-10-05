@@ -20,8 +20,7 @@ package com.constellio.sdk.tests.selenium.adapters.constellio;
 import com.constellio.sdk.tests.selenium.adapters.base.WebElementAdapter;
 import com.constellio.sdk.tests.selenium.adapters.base.WebElementFinder;
 import org.apache.commons.lang3.StringUtils;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,5 +96,15 @@ public class ConstellioWebElement extends WebElementAdapter<ConstellioWebElement
 	public void clickAndWaitForRemoval() {
 		click();
 		waitForRemoval();
+	}
+
+	@Override
+	public <X> X getScreenshotAs(OutputType<X> target) throws WebDriverException {
+		return null;
+	}
+
+	@Override
+	public Rectangle getRect() {
+		return null;
 	}
 }

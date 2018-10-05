@@ -10,20 +10,13 @@ import org.openqa.selenium.Platform;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.browserlaunchers.Proxies;
 import org.openqa.selenium.firefox.ExtensionConnection;
 import org.openqa.selenium.firefox.FirefoxBinary;
-import org.openqa.selenium.firefox.internal.MarionetteConnection;
-import org.openqa.selenium.firefox.internal.NewProfileExtensionConnection;
-import org.openqa.selenium.internal.Killable;
-import org.openqa.selenium.internal.Lock;
-import org.openqa.selenium.internal.SocketLock;
 import org.openqa.selenium.io.TemporaryFilesystem;
 import org.openqa.selenium.io.Zip;
 import org.openqa.selenium.logging.LocalLogs;
 import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.logging.NeedsLocalLogs;
-import org.openqa.selenium.remote.BeanToJsonConverter;
 import org.openqa.selenium.remote.Command;
 import org.openqa.selenium.remote.CommandExecutor;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -31,7 +24,6 @@ import org.openqa.selenium.remote.DriverCommand;
 import org.openqa.selenium.remote.FileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.Response;
-import org.openqa.selenium.remote.SessionNotFoundException;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +38,7 @@ import static org.openqa.selenium.remote.CapabilityType.LOGGING_PREFS;
 import static org.openqa.selenium.remote.CapabilityType.PROXY;
 import static org.openqa.selenium.remote.CapabilityType.SUPPORTS_WEB_STORAGE;
 
-public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScreenshot, Killable {
+public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScreenshot {
 
 	public static final String BINARY = "firefox_binary";
 	public static final String PROFILE = "firefox_profile";
@@ -149,10 +141,12 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 			}
 		}
 
+		/*
 		if (capabilities.getCapability(HAS_NATIVE_EVENTS) != null) {
 			Boolean nativeEventsEnabled = (Boolean) capabilities.getCapability(HAS_NATIVE_EVENTS);
 			profile.setEnableNativeEvents(nativeEventsEnabled);
 		}
+		*/
 	}
 
 	private static FirefoxBinary getBinary(Capabilities capabilities) {
@@ -178,13 +172,15 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 		this(binary, profile, capabilities, null);
 	}
 
+
 	public ZeUltimateFirefoxDriver(FirefoxBinary binary, ZeUltimateFirefoxProfile profile,
 								   Capabilities desiredCapabilities, Capabilities requiredCapabilities) {
-		super(new LazyCommandExecutor(binary, profile),
-				dropCapabilities(desiredCapabilities, BINARY, PROFILE),
-				dropCapabilities(requiredCapabilities, BINARY, PROFILE));
+		//super(new LazyCommandExecutor(binary, profile),
+		//		dropCapabilities(desiredCapabilities, BINARY, PROFILE),
+		//		dropCapabilities(requiredCapabilities, BINARY, PROFILE));
 		this.binary = binary;
 	}
+
 
 	@Override
 	public void setFileDetector(FileDetector detector) {
@@ -225,6 +221,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 		};
 	}
 
+	/*
 	@Override
 	protected void startClient() {
 		LazyCommandExecutor exe = (LazyCommandExecutor) getCommandExecutor();
@@ -239,6 +236,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 			throw new WebDriverException("An error occurred while connecting to Firefox", e);
 		}
 	}
+	*/
 
 	private static ZeUltimateFirefoxProfile getProfile(ZeUltimateFirefoxProfile profile) {
 		ZeUltimateFirefoxProfile profileToUse = profile;
@@ -251,6 +249,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 		return profileToUse;
 	}
 
+	/*
 	protected Lock obtainLock() {
 		return new SocketLock();
 	}
@@ -259,6 +258,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 	protected void stopClient() {
 		((LazyCommandExecutor) this.getCommandExecutor()).quit();
 	}
+	*/
 
 	/**
 	 * Drops capabilities that we shouldn't send over the wire.
@@ -279,9 +279,9 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 		}));
 
 		// Ensure that the proxy is in a state fit to be sent to the extension
-		Proxy proxy = Proxies.extractProxy(capabilities);
+		Proxy proxy = Proxy.extractFrom(capabilities);
 		if (proxy != null) {
-			caps.setCapability(PROXY, new BeanToJsonConverter().convert(proxy));
+			//caps.setCapability(PROXY, new BeanToJsonConverter().convert(proxy));
 		}
 
 		return caps;
@@ -326,8 +326,10 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 				if (command.getName().equals(DriverCommand.QUIT)) {
 					return new Response();
 				}
+				/*
 				throw new SessionNotFoundException(
 						"The FirefoxDriver cannot be used after quit() was called.");
+						*/
 			}
 			return connection.execute(command);
 		}
@@ -340,6 +342,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 		}
 	}
 
+	/*
 	protected ExtensionConnection connectTo(FirefoxBinary binary, ZeUltimateFirefoxProfile profile, String host) {
 		ExtensionConnection connection;
 		long connectionStart = new Date().getTime();
@@ -364,6 +367,7 @@ public class ZeUltimateFirefoxDriver extends RemoteWebDriver implements TakesScr
 
 		return connection;
 	}
+	*/
 
 	@Override
 	public String toString() {

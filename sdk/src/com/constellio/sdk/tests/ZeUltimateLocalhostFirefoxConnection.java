@@ -6,23 +6,17 @@ import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.firefox.NotConnectedException;
 import org.openqa.selenium.firefox.internal.ClasspathExtension;
-import org.openqa.selenium.internal.Lock;
 import org.openqa.selenium.logging.LocalLogs;
 import org.openqa.selenium.logging.NeedsLocalLogs;
 import org.openqa.selenium.remote.Command;
 import org.openqa.selenium.remote.HttpCommandExecutor;
 import org.openqa.selenium.remote.Response;
-import org.openqa.selenium.remote.internal.CircularOutputStream;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.Socket;
-import java.net.URL;
+import java.net.*;
 
 import static org.openqa.selenium.firefox.FirefoxProfile.PORT_PREFERENCE;
-import static org.openqa.selenium.internal.SocketLock.DEFAULT_PORT;
 
 //Same as NewProfileExtensionConnection, except that "localhost" hostname is used instead of calling NetworkUtils which cause problems on some networks
 public class ZeUltimateLocalhostFirefoxConnection implements ExtensionConnection, NeedsLocalLogs {
@@ -31,17 +25,15 @@ public class ZeUltimateLocalhostFirefoxConnection implements ExtensionConnection
 	private final long connectTimeout;
 	private final FirefoxBinary process;
 	private final FirefoxProfile profile;
-	private final Lock lock;
 	private File profileDir;
 
 	private HttpCommandExecutor delegate;
 
 	private LocalLogs logs = LocalLogs.getNullLogger();
 
-	public ZeUltimateLocalhostFirefoxConnection(Lock lock, FirefoxBinary binary, FirefoxProfile profile)
+	public ZeUltimateLocalhostFirefoxConnection(FirefoxBinary binary, FirefoxProfile profile)
 			throws Exception {
 		this.connectTimeout = binary.getTimeout();
-		this.lock = lock;
 		this.profile = profile;
 		this.process = binary;
 	}
@@ -52,14 +44,14 @@ public class ZeUltimateLocalhostFirefoxConnection implements ExtensionConnection
 
 		int port = 0;
 
-		lock.lock(connectTimeout);
+		//lock.lock(connectTimeout);
 		try {
-			port = determineNextFreePort(DEFAULT_PORT);
+			port = determineNextFreePort(7070);
 			profile.setPreference(PORT_PREFERENCE, port);
 
 			profileDir = profile.layoutOnDisk();
 
-			process.clean(profile, profileDir);
+			//process.clean(profile, profileDir);
 
 			delegate = new HttpCommandExecutor(buildUrl("localhost", port));
 			delegate.setLocalLogs(logs);
@@ -70,7 +62,7 @@ public class ZeUltimateLocalhostFirefoxConnection implements ExtensionConnection
 					process.setOutputWatcher(System.out);
 				} else {
 					File logFile = new File(firefoxLogFile);
-					process.setOutputWatcher(new CircularOutputStream(logFile, BUFFER_SIZE));
+					///process.setOutputWatcher(new CircularOutputStream(logFile, BUFFER_SIZE));
 				}
 			}
 
@@ -108,7 +100,7 @@ public class ZeUltimateLocalhostFirefoxConnection implements ExtensionConnection
 		} catch (Exception e) {
 			throw new WebDriverException(e);
 		} finally {
-			lock.unlock();
+			//lock.unlock();
 		}
 	}
 
@@ -161,6 +153,11 @@ public class ZeUltimateLocalhostFirefoxConnection implements ExtensionConnection
 		if (profileDir != null) {
 			profile.clean(profileDir);
 		}
+	}
+
+	@Override
+	public URI getAddressOfRemoteServer() {
+		return null;
 	}
 
 	/**

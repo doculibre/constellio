@@ -27,16 +27,25 @@ public class FoldersLocator {
 
 		if (fullPath.contains("file:") && fullPath.contains("!")) {
 			String path = fullPath.split("!")[0];
-			path = path.split("file:")[1];
 
-			File classFolder = new File(path);
+			if (path.contains("constellio-plugins/sdk")) {
+				// is the plugin sdk test
+				path = path.split("file:")[0];
 
-			finalPath = classFolder.getParentFile();
-			while (!finalPath.getName().equals("model") && !finalPath.getName().equals("WEB-INF")) {
-				finalPath = finalPath.getParentFile();
+				File classFolder = new File(path);
+				finalPath = classFolder;
+			} else {
+				// is the webapp
+				path = path.split("file:")[1];
+				File classFolder = new File(path);
+				finalPath = classFolder.getParentFile();
+
+				while (!finalPath.getName().equals("model") && !finalPath.getName().equals("WEB-INF")) {
+					finalPath = finalPath.getParentFile();
+				}
+
+				finalPath = finalPath.getParentFile().getAbsoluteFile();
 			}
-
-			finalPath = finalPath.getParentFile().getAbsoluteFile();
 		} else {
 			File classFolder = new File(fullPath);
 

@@ -5,7 +5,6 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -60,10 +59,7 @@ public class WebsitesUtils {
 	}
 
 	public static Server startWebsite(File file, Handler... handlers) {
-		Server server = new Server();
-		SelectChannelConnector connector = new SelectChannelConnector();
-		connector.setPort(4242);
-		server.addConnector(connector);
+		Server server = new Server(4242);
 
 		ResourceHandler resourceHandler = new ResourceHandler();
 		resourceHandler.setDirectoriesListed(true);

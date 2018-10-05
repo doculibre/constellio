@@ -1,22 +1,12 @@
+
 dependencies {
+    compile 'org.quartz-scheduler:quartz:2.3.0'
+    compile "org.apache.poi:poi-ooxml:4.0.0"
+    compile "org.apache.poi:poi:4.0.0"    
+    
 	compile files("../libs/jodconverter-core-4.0.0-201709.jar")
 	compile files("../libs/jodconverter-local-4.0.0-201709.jar")
 	compile files("../libs/jodconverter-online-4.0.0-201709.jar")
-	compile "org.json:json:20160810"
-	compile "org.libreoffice:juh:5.2.0"
-	compile "org.libreoffice:jurt:5.2.0"
-	compile "org.libreoffice:ridl:5.2.0"
-	compile "org.libreoffice:unoil:5.2.0"
-    compile "org.apache.poi:poi-ooxml-schemas:3.17"
-    compile "org.apache.poi:poi-ooxml:3.17"
-    compile "org.apache.poi:poi:3.17"
-//	  compile "org.jodconverter:jodconverter-core:4.0.0-RELEASE"
-//    compile "jodconverter-core:jodconverter-core:3.0-beta-4"
-//    compile files("../libs/juh-3.2.1.jar")
-//    compile files("../libs/jurt-3.2.1.jar")
-//    compile files("../libs/ridl-3.2.1.jar")
-//    compile files("../libs/sigar.jar")
-//    compile files("../libs/unoil-3.2.1.jar")
 }
 
 sourceSets {

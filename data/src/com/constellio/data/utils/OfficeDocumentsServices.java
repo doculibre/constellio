@@ -6,10 +6,10 @@ import com.constellio.data.utils.OfficeDocumentsServicesException.NotCompatibleE
 import com.constellio.data.utils.OfficeDocumentsServicesException.PropertyDoesntExist;
 import com.constellio.data.utils.OfficeDocumentsServicesException.RTFFileIsNotCompatible;
 import org.apache.commons.io.IOUtils;
-import org.apache.poi.POIXMLDocument;
+import org.apache.poi.ooxml.POIXMLDocument;
+import org.apache.poi.ooxml.POIXMLProperties;
 import org.apache.poi.hpsf.CustomProperties;
 import org.apache.poi.hpsf.DocumentSummaryInformation;
-import org.apache.poi.hpsf.MarkUnsupportedException;
 import org.apache.poi.hpsf.NoPropertySetStreamException;
 import org.apache.poi.hpsf.PropertySet;
 import org.apache.poi.hpsf.PropertySetFactory;
@@ -129,7 +129,7 @@ public class OfficeDocumentsServices {
 		} catch (FileNotFoundException ex) {
 			LOGGER.debug("No summary in Office document. Creating new DocumentSummaryInformation", ex);
 			dsi = PropertySetFactory.newDocumentSummaryInformation();
-		} catch (UnexpectedPropertySetTypeException | NoPropertySetStreamException | MarkUnsupportedException | IOException e) {
+		} catch (UnexpectedPropertySetTypeException | NoPropertySetStreamException | IOException e) {
 			throw new OfficeDocumentsServicesException.CannotReadDocumentsProperties(e);
 		}
 		return dsi;
@@ -209,7 +209,7 @@ public class OfficeDocumentsServices {
 			throws IOException, PropertyDoesntExist, NotCompatibleExtension, CannotReadDocumentsProperties {
 		POIXMLDocument doc = parseDocument(ext, inputStreamFactory, propertyName);
 
-		org.apache.poi.POIXMLProperties.CustomProperties customProperties = doc.getProperties().getCustomProperties();
+		POIXMLProperties.CustomProperties customProperties = doc.getProperties().getCustomProperties();
 
 		int index = 0;
 		for (CTProperty prop : customProperties.getUnderlyingProperties().getPropertyList()) {
