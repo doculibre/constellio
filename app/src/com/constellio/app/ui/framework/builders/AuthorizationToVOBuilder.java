@@ -25,8 +25,8 @@ import static com.constellio.model.entities.Language.withLocale;
 import static java.util.Arrays.asList;
 
 public class AuthorizationToVOBuilder implements Serializable {
-	private static final String ENABLE = $("AuthorizationsView.enable");
-	private static final String DISABLE = $("AuthorizationsView.disable");
+	private static final String ENABLE = "AuthorizationsView.enable";
+	private static final String DISABLE = "AuthorizationsView.disable";
 	transient ModelLayerFactory modelLayerFactory;
 
 	public AuthorizationToVOBuilder(ModelLayerFactory modelLayerFactory) {
@@ -100,7 +100,7 @@ public class AuthorizationToVOBuilder implements Serializable {
 
 		String recordCaption = receivedFromValue == null ? null : getCaptionForRecord(receivedFromValue,
 				sessionContext.getCurrentLocale());
-		String authorizationType = authorization.getDetail().isNegative() ? DISABLE : ENABLE;
+		String authorizationType = authorization.getDetail().isNegative() ? $(DISABLE) : $(ENABLE);
 
 		AuthorizationVO authorizationVO = new AuthorizationVO(users, groups, records, accessRoles, userRoles, userRolesTitles,
 				authorization.getDetail().getId(), authorization.getDetail().getStartDate(),

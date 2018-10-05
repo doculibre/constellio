@@ -6,7 +6,6 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.converters.GroupIdToCaptionConverter;
@@ -29,7 +28,6 @@ import com.vaadin.data.Container;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
-import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
@@ -54,8 +52,8 @@ import static java.util.Arrays.asList;
 public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements ListAuthorizationsView {
 	public static final String INHERITED_AUTHORIZATIONS = "authorizations-inherited";
 	public static final String AUTHORIZATIONS = "authorizations";
-	private static final String ENABLE = $("AuthorizationsView.enable");
-	private static final String DISABLE = $("AuthorizationsView.disable");
+	private static final String ENABLE = "AuthorizationsView.enable";
+	private static final String DISABLE = "AuthorizationsView.disable";
 
 	public enum AuthorizationSource {
 		INHERITED, OWN, INHERITED_FROM_METADATA
@@ -351,7 +349,9 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			negative.setVisible(presenter.isNegativeAuthorizationConfigEnabledAndRecordIsNotATaxonomy());
 			negative.setRequired(presenter.hasManageSecurityPermission());
 			negative.setId("negative");
-			negative.addItems(asList(ENABLE, DISABLE));
+			negative.setNullSelectionAllowed(false);
+			negative.addItems(asList($(ENABLE), $(DISABLE)));
+			negative.setValue(negative.getItemIds().iterator().next());
 		}
 
 		protected void buildDateFields() {
@@ -483,7 +483,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			}
 
 			table.addGeneratedColumn(POSITIVE_OR_NEGATIVE, this);
-			table.setColumnHeader(POSITIVE_OR_NEGATIVE, $("AuthorizationsView.positiveOrNegative"));
+			table.setColumnHeader(POSITIVE_OR_NEGATIVE, $("AuthorizationsView.type"));
 
 			table.addGeneratedColumn(START_DATE, this);
 			table.setColumnHeader(START_DATE, $("AuthorizationsView.startDate"));
@@ -533,22 +533,10 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		}
 
 		private Object buildNegativeAuthorizationsColumn(AuthorizationVO authorization) {
-			if (DISABLE.equals(authorization.getNegative())) {
-				IconButton minusIcon = new IconButton(new ThemeResource("images/commun/minus.png"), "") {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-					}
-				};
-				minusIcon.setDescription($("AuthorizationsView.negativeIconMessage"));
-				return minusIcon;
+			if ($(DISABLE).equals(authorization.getNegative())) {
+				return new Label($("AuthorizationsView.disable"));
 			} else {
-				IconButton plusIcon = new IconButton(new ThemeResource("images/commun/plus.png"), "") {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-					}
-				};
-				plusIcon.setIcon(new ThemeResource("images/commun/plus.png"));
-				return plusIcon;
+				return new Label($("AuthorizationsView.enable"));
 			}
 		}
 

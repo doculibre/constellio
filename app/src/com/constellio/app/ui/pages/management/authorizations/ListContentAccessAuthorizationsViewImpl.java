@@ -52,7 +52,7 @@ public class ListContentAccessAuthorizationsViewImpl extends ListAuthorizationsV
 			buildNegativeAuthorizationField();
 			buildRolesField();
 			buildDateFields();
-			return new BaseForm<AuthorizationVO>(
+			Component authorizationComponent = new BaseForm<AuthorizationVO>(
 					AuthorizationVO.forContent(record.getId()), this, users, groups, accessRoles, userRoles, startDate, endDate, negative) {
 				@Override
 				protected void saveButtonClick(AuthorizationVO authorization)
@@ -66,6 +66,8 @@ public class ListContentAccessAuthorizationsViewImpl extends ListAuthorizationsV
 					getWindow().close();
 				}
 			};
+			authorizationComponent.setHeight("95%");
+			return authorizationComponent;
 		}
 
 		private void buildUsersAndGroupsField() {
