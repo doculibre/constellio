@@ -93,9 +93,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.util.SchemaCaptionUtils.getCaptionForRecordVO;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
@@ -303,6 +305,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				@Override
 				protected void deletionConfirmed(String reason) {
 					presenter.deleteFolderButtonClicked(reason);
+				}
+
+				@Override
+				public String getRecordCaption() {
+					return getCaptionForRecordVO(recordVO, getSessionContext().getCurrentLocale());
+//					return recordDisplay.getCaption();
 				}
 			};
 
