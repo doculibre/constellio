@@ -178,8 +178,9 @@ public class SearchResultReportPresenter {
 			MetadataDisplayConfig config = schemasManager.getMetadata(collection, metadata.getCode());
 			if (config.getInputType().equals(MetadataInputType.RICHTEXT)) {
 				String result = metadataValue.toString().replaceAll("<br>", "\n");
-				result = result.toString().replaceAll("<li>", "\n");
-				result = result.toString().replaceAll("\\<[^>]*>", "");
+				result = result.replace("&nbsp;", "");
+				result = result.replaceAll("<li>", "\n");
+				result = result.replaceAll("\\<[^>]*>", "");
 				return result;
 			}
 		} else if (metadata.getType() == MetadataValueType.ENUM) {
