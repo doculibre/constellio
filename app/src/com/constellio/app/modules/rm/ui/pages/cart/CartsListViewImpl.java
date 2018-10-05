@@ -89,7 +89,7 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 			}
 		};
 		Table table = buildTable();
-		tabLayout.addComponents(addButton, table);
+		tabLayout.addComponents(addButton, buildDefaultFavorites(), table);
 		tabLayout.setExpandRatio(table, 1);
 		tabLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 		return tabLayout;
@@ -97,7 +97,6 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 
 	private Table buildTable() {
 		RecordVOLazyContainer container = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
-
 		final ButtonsContainer<RecordVOLazyContainer> buttonsContainer = new ButtonsContainer<>(container);
 		buttonsContainer.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
@@ -129,6 +128,21 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 90);
 		table.setPageLength(Math.min(15, container.size()));
+		table.setWidth("100%");
+		return table;
+	}
+
+	private Table buildDefaultFavorites() {
+		Component displayButton = new DisplayButton() {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.displayDefaultFavorites();
+			}
+		};
+		Table table = new Table();
+		table.addContainerProperty("Titre", String.class, null);
+		table.addContainerProperty("", DisplayButton.class, null);
+		table.addItem(new Object[]{"Favoris par défaut", displayButton}, 0);
 		table.setWidth("100%");
 		return table;
 	}

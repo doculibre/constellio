@@ -77,4 +77,8 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 			throw new RuntimeException(e);
 		}
 	}
+
+	public void displayDefaultFavorites() {
+		view.navigate().to(RMViews.class).defaultCart();
+	}
 }

@@ -15,6 +15,7 @@ import com.constellio.app.modules.rm.ui.pages.agent.AgentSetupViewImpl;
 import com.constellio.app.modules.rm.ui.pages.agent.ListAgentLogsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.cart.CartViewImpl;
 import com.constellio.app.modules.rm.ui.pages.cart.CartsListViewImpl;
+import com.constellio.app.modules.rm.ui.pages.cart.DefaultCartView;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersByAdministrativeUnitsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInAdministrativeUnitViewImpl;
 import com.constellio.app.modules.rm.ui.pages.containers.ContainersInFilingSpaceViewImpl;
@@ -139,6 +140,7 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String LIST_RETENTION_RULES = "listRetentionRules";
 	public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
 	public static final String LIST_USER_DOCUMENTS = "listUserDocuments";
+	public static final String DEFAULT_CART = "defaultCart";
 
 
 	public static void configureNavigation(NavigationConfig config) {
@@ -182,6 +184,7 @@ public class RMNavigationConfiguration implements Serializable {
 		service.register(LIST_RETENTION_RULES, ListRetentionRulesViewImpl.class);
 		service.register(RETENTION_RULES_SEARCH, SearchRetentionRulesViewImpl.class);
 		service.register(LIST_USER_DOCUMENTS, ListUserDocumentsViewImpl.class);
+		service.register(DEFAULT_CART, DefaultCartView.class);
 
 	}
 

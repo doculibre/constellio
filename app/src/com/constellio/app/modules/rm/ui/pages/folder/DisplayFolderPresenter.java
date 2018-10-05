@@ -1178,4 +1178,26 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				"termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
 		query.sortFirstOn(sortField);
 	}
+
+	public void addToDefaultFavorite(RecordVO recordVO) {
+		Record record = getRecord(recordVO.getId());
+		Folder folder = rmSchemasRecordsServices.wrapFolder(record);
+		List<String> favoriteList = new ArrayList<>();
+		for (String favorite : folder.getFavoritesList()) {
+			favoriteList.add(favorite);
+		}
+		favoriteList.add(getCurrentUser().getId());
+		folder.setFavoritesList(favoriteList);
+		try {
+			recordServices.update(folder);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public boolean inDefaultFavorites(RecordVO recordVO) {
+		Record record = getRecord(recordVO.getId());
+		Folder folder = rmSchemasRecordsServices.wrapFolder(record);
+		return folder.getFavoritesList().contains(getCurrentUser().getId());
+	}
 }

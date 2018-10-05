@@ -105,7 +105,7 @@ public class RMFolderExtension extends RecordExtension {
 		for (String cartId : oldFavoritesList) {
 			LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmSchema.cart.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(cartId));
 			if (searchServices.getResultsCount(logicalSearchQuery) == 0) {
-				removedIds.add(cartId);
+				//				removedIds.add(cartId);
 			}
 		}
 		List<String> newFavoritesList = ListUtils.subtract(oldFavoritesList, removedIds);

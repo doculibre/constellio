@@ -192,6 +192,10 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.CART + "/" + cartId);
 	}
 
+	public void defaultCart() {
+		navigator.navigateTo(RMNavigationConfiguration.DEFAULT_CART);
+	}
+
 	// AUDIT EVENTS
 
 	public void eventAudit() {

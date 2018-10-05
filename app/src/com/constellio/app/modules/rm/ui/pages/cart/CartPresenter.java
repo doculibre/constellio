@@ -242,7 +242,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		};
 	}
 
-	private List<MetadataSchemaVO> getSchemas() {
+	protected List<MetadataSchemaVO> getSchemas() {
 		MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
 		return Arrays.asList(
 				builder.build(schema(Folder.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext()),
