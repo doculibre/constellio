@@ -6,9 +6,11 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDepositDatesCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDestructionDatesCalculator2;
+import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator2;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -30,7 +32,7 @@ public class RMMigrationTo8_1_1_1 extends MigrationHelper implements MigrationSc
 	class SchemaAlterationFor8_1_1_1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor8_1_1_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-										 AppLayerFactory appLayerFactory) {
+											 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -43,12 +45,18 @@ public class RMMigrationTo8_1_1_1 extends MigrationHelper implements MigrationSc
 						.defineDataEntry().asManual();
 			}
 
-			folderSchema.get(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).defineDataEntry()
-					.asCalculated(FolderCopyRulesExpectedTransferDatesCalculator2.class);
-			folderSchema.get(Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES).defineDataEntry()
-					.asCalculated(FolderCopyRulesExpectedDepositDatesCalculator2.class);
-			folderSchema.get(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).defineDataEntry()
-					.asCalculated(FolderCopyRulesExpectedDestructionDatesCalculator2.class);
+			boolean defaultDateCalculators = ((CalculatedDataEntry) folderSchema
+					.get(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).getDataEntry()).getCalculator()
+					instanceof FolderCopyRulesExpectedTransferDatesCalculator;
+
+			if (defaultDateCalculators) {
+				folderSchema.get(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).defineDataEntry()
+						.asCalculated(FolderCopyRulesExpectedTransferDatesCalculator2.class);
+				folderSchema.get(Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES).defineDataEntry()
+						.asCalculated(FolderCopyRulesExpectedDepositDatesCalculator2.class);
+				folderSchema.get(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).defineDataEntry()
+						.asCalculated(FolderCopyRulesExpectedDestructionDatesCalculator2.class);
+			}
 		}
 	}
 }

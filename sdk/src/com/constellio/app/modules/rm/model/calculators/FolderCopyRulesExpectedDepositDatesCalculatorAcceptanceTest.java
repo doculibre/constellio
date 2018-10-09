@@ -40,11 +40,9 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorAcceptanceTest extends
 		Folder folder = rm.wrapFolder(recordServices.getDocumentById("A10"));
 		LocalDate expectedDepositDate = folder.getExpectedDepositDate();
 
+
 		folder.setActualTransferDate(new LocalDate(2007, 10, 31));
 		recordServices.update(folder);
-
-		reindex();
-		waitForBatchProcess();
 
 		assertThat(folder.getExpectedDepositDate()).isEqualTo(expectedDepositDate);
 	}
@@ -60,13 +58,8 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorAcceptanceTest extends
 		folder.setActualTransferDate(new LocalDate(2007, 10, 31));
 		recordServices.update(folder);
 
-		reindex();
-		waitForBatchProcess();
-
 		assertThat(folder.getExpectedDepositDate()).isNotEqualTo(expectedDepositDate);
 	}
-
-
 
 
 }

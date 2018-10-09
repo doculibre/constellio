@@ -41,9 +41,6 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorAcceptanceTest ext
 		folder.setActualTransferDate(new LocalDate(2007, 10, 31));
 		recordServices.update(folder);
 
-		reindex();
-		waitForBatchProcess();
-
 		assertThat(folder.getExpectedDestructionDate()).isEqualTo(expectedDestructionDate);
 	}
 
@@ -57,9 +54,6 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorAcceptanceTest ext
 
 		folder.setActualTransferDate(new LocalDate(2007, 10, 31));
 		recordServices.update(folder);
-
-		reindex();
-		waitForBatchProcess();
 
 		assertThat(folder.getExpectedDestructionDate()).isNotEqualTo(expectedDestructionDate);
 	}
