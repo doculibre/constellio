@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.reports.label.LabelXmlGenerator;
 import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGeneratorParameters;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -82,7 +83,17 @@ public class GetXMLButton extends WindowButton {
 	@Override
 	protected Component buildWindowContent() {
 		final ListAddRemoveRecordLookupField listAddRemoveRecordLookupField = new ListAddRemoveRecordLookupField(currentSchema);
-		listAddRemoveRecordLookupField.setCaption(currentSchema.equals(Folder.SCHEMA_TYPE) ? $("GenerateXML.nbFolder") : $("GenerateXML.nbContainer"));
+		String caption;
+
+		if(currentSchema.equals(Folder.SCHEMA_TYPE)) {
+			caption =  $("GenerateXML.nbFolder");
+		} else if (currentSchema.equals(ContainerRecord.SCHEMA_TYPE)) {
+			caption = $("GenerateXML.nbContainer");
+		} else {
+			caption = $("GenerateXML.nbDocument");
+		}
+
+		listAddRemoveRecordLookupField.setCaption(caption);
 
 		return new BaseForm<LabelParametersVO>(
 				new LabelParametersVO(new LabelTemplate()), this, listAddRemoveRecordLookupField) {

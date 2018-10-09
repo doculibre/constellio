@@ -553,6 +553,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				return cart().getFolders().size() != 0;
 			case ContainerRecord.SCHEMA_TYPE:
 				return cart().getContainers().size() != 0;
+			case Document.SCHEMA_TYPE:
+				return cart().getDocuments().size() != 0;
 			default:
 				throw new RuntimeException("No labels for type : " + schemaType);
 		}

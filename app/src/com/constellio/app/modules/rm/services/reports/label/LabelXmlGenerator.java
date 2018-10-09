@@ -50,6 +50,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 	private static final Map<String, String> SCHEMA_CODE_MAP = new HashMap<String, String>() {{
 		put(ContainerRecord.SCHEMA_TYPE, "containers");
 		put(Folder.SCHEMA_TYPE, "folders");
+		put(com.constellio.app.modules.rm.wrappers.Document.SCHEMA_TYPE, "documents");
 	}};
 
 	public static LangUtils.StringReplacer replaceInvalidXMLCharacter = LangUtils.replacingRegex("[\\( \\)]", "")
