@@ -1,7 +1,7 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
 public enum FolderDetailStatus {
-	INCLUDED("included"), EXCLUDED("excluded"), SELECTED("selected");
+	INCLUDED("i"), EXCLUDED("e"), SELECTED("s");
 
 	private String code;
 

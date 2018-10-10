@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import java.util.StringTokenizer;
-
 import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.model.entities.schemas.StructureFactory;
+
+import java.util.StringTokenizer;
 
 public class DecomListFolderDetailFactory implements StructureFactory {
 	private static final String NULL = "~null~";
@@ -16,13 +16,19 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 		decomListFolderDetail.setFolderId(readString(stringTokenizer));
 		String folderDetailStatus = readString(stringTokenizer);
 		switch (folderDetailStatus) {
-		case "excluded":
+			case "true":
+				decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.INCLUDED);
+				break;
+			case "false":
+				decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.EXCLUDED);
+				break;
+			case "e":
 			decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.EXCLUDED);
 			break;
-		case "included":
+			case "i":
 			decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.INCLUDED);
 			break;
-		case "selected":
+			case "s":
 			decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.SELECTED);
 			break;
 		}

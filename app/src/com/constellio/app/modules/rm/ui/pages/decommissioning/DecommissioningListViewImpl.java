@@ -932,7 +932,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 	}
 
 	private Component buildSelectedFoldersComponent(List<FolderDetailVO> folders) {
-		Label header = new Label("Dossiers sélectionnés");
+		Label header = new Label($("DecommissioningListView.selectedFolders"));
 		header.addStyleName(ValoTheme.LABEL_H2);
 
 		selectedFolders = buildFolderTable(folders, false);
