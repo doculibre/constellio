@@ -8,6 +8,7 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.core.LockedRecordsExtension;
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
+import com.constellio.app.modules.tasks.extensions.TaskMetadataThatDontSupportRoleAccessExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension;
@@ -105,7 +106,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 		extensions.recordAppExtensions.add(new TaskRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new TaskRecordNavigationExtension(appLayerFactory, collection));
-
+		extensions.metadataThatDontSupportRoleAccessExtensions.add(new TaskMetadataThatDontSupportRoleAccessExtension());
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {

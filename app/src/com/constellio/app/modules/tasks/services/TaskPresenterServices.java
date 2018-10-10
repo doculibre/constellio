@@ -55,55 +55,60 @@ public class TaskPresenterServices {
 
 	public Task toTask(TaskVO taskVO, Record record) {
 		Task task = tasksSchemas.wrapTask(record);
-		List<TaskReminderVO> remindersVOs = taskVO.getReminders();
-		if (remindersVOs != null) {
-			List<TaskReminder> reminders = new ArrayList<>();
-			TaskReminderFromVOBuilder reminderBuilder = new TaskReminderFromVOBuilder();
-			for (Object reminderVO : remindersVOs) {
-				//FIXME should be VO!
-				if (reminderVO instanceof TaskReminderVO) {
-					reminders.add(reminderBuilder.build((TaskReminderVO) reminderVO));
-				} else {
-					reminders.add((TaskReminder) reminderVO);
+		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.REMINDERS)) {
+			List<TaskReminderVO> remindersVOs = taskVO.getReminders();
+			if (remindersVOs != null) {
+				List<TaskReminder> reminders = new ArrayList<>();
+				TaskReminderFromVOBuilder reminderBuilder = new TaskReminderFromVOBuilder();
+				for (Object reminderVO : remindersVOs) {
+					//FIXME should be VO!
+					if (reminderVO instanceof TaskReminderVO) {
+						reminders.add(reminderBuilder.build((TaskReminderVO) reminderVO));
+					} else {
+						reminders.add((TaskReminder) reminderVO);
+					}
 				}
+				task.setReminders(reminders);
 			}
-			task.setReminders(reminders);
 		}
-		List<TaskFollowerVO> followersVOs = taskVO.getTaskFollowers();
-		if (taskVO.getTaskFollowers() != null) {
-			TaskFollowerFromVOBuilder followerBuilder = new TaskFollowerFromVOBuilder();
-			Map<String, TaskFollower> taskFollowersMap = new HashMap<>();
-			for (Object follower : followersVOs) {
-				TaskFollowerVO followerVO;
-				//FIXME should always be VO
-				if (follower instanceof TaskFollowerVO) {
-					followerVO = (TaskFollowerVO) follower;
-				} else {
-					followerVO = toTaskFollowerVO((TaskFollower) follower);
+		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.REMINDERS)) {
+			List<TaskFollowerVO> followersVOs = taskVO.getTaskFollowers();
+			if (taskVO.getTaskFollowers() != null) {
+				TaskFollowerFromVOBuilder followerBuilder = new TaskFollowerFromVOBuilder();
+				Map<String, TaskFollower> taskFollowersMap = new HashMap<>();
+				for (Object follower : followersVOs) {
+					TaskFollowerVO followerVO;
+					//FIXME should always be VO
+					if (follower instanceof TaskFollowerVO) {
+						followerVO = (TaskFollowerVO) follower;
+					} else {
+						followerVO = toTaskFollowerVO((TaskFollower) follower);
+					}
+					TaskFollower currentTaskFollower = taskFollowersMap.get(followerVO.getFollowerId());
+					if (currentTaskFollower == null) {
+						currentTaskFollower = followerBuilder.build(followerVO);
+					}
+					if (followerVO.isFollowSubTasksModified()) {
+						currentTaskFollower.setFollowSubTasksModified(true);
+					}
+					if (followerVO.isFollowTaskAssigneeModified()) {
+						currentTaskFollower.setFollowTaskAssigneeModified(true);
+					}
+					if (followerVO.isFollowTaskCompleted()) {
+						currentTaskFollower.setFollowTaskCompleted(true);
+					}
+					if (followerVO.isFollowTaskDeleted()) {
+						currentTaskFollower.setFollowTaskDeleted(true);
+					}
+					if (followerVO.isFollowTaskStatusModified()) {
+						currentTaskFollower.setFollowTaskStatusModified(true);
+					}
+					taskFollowersMap.put(currentTaskFollower.getFollowerId(), currentTaskFollower);
 				}
-				TaskFollower currentTaskFollower = taskFollowersMap.get(followerVO.getFollowerId());
-				if (currentTaskFollower == null) {
-					currentTaskFollower = followerBuilder.build(followerVO);
-				}
-				if (followerVO.isFollowSubTasksModified()) {
-					currentTaskFollower.setFollowSubTasksModified(true);
-				}
-				if (followerVO.isFollowTaskAssigneeModified()) {
-					currentTaskFollower.setFollowTaskAssigneeModified(true);
-				}
-				if (followerVO.isFollowTaskCompleted()) {
-					currentTaskFollower.setFollowTaskCompleted(true);
-				}
-				if (followerVO.isFollowTaskDeleted()) {
-					currentTaskFollower.setFollowTaskDeleted(true);
-				}
-				if (followerVO.isFollowTaskStatusModified()) {
-					currentTaskFollower.setFollowTaskStatusModified(true);
-				}
-				taskFollowersMap.put(currentTaskFollower.getFollowerId(), currentTaskFollower);
+				task.setTaskFollowers(new ArrayList<>(taskFollowersMap.values()));
 			}
-			task.setTaskFollowers(new ArrayList<>(taskFollowersMap.values()));
 		}
+
 		return task;
 	}
 

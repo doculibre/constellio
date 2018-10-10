@@ -12,6 +12,7 @@ public class RMMetadataThatDontSupportRoleAccessExtension implements MetadataTha
 	public List<MetadataThatDontSupportRoleAccessRetParam> getMetadataThatDontSupportRoleAccess() {
 		return Arrays.asList(new MetadataThatDontSupportRoleAccessRetParam(Document.SCHEMA_TYPE, null, Document.FOLDER),
 				new MetadataThatDontSupportRoleAccessRetParam(Document.SCHEMA_TYPE, null, Document.APPLICABLE_COPY_RULES),
-				new MetadataThatDontSupportRoleAccessRetParam(Folder.SCHEMA_TYPE, null, Folder.PARENT_FOLDER));
+				new MetadataThatDontSupportRoleAccessRetParam(Folder.SCHEMA_TYPE, null, Folder.PARENT_FOLDER),
+				new MetadataThatDontSupportRoleAccessRetParam(Folder.SCHEMA_TYPE, null, Folder.SUMMARY));
 	}
 }

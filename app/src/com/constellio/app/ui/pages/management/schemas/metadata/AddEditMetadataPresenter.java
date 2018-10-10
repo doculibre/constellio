@@ -107,9 +107,11 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		List<MetadataThatDontSupportRoleAccessRetParam> metadataThatDontSupportRoleAccessRetParamList = view.getConstellioFactories().getAppLayerFactory()
 				.getExtensions().forCollection(view.getCollection()).getMetadataThatDontSupportRoleAccessExtension();
 
+
+
 		for(MetadataThatDontSupportRoleAccessRetParam currentMetadataThatDontSupportRoleAccessRetParam: metadataThatDontSupportRoleAccessRetParamList) {
 			if(currentMetadataThatDontSupportRoleAccessRetParam.getMetadataCode().equals(metadataLocalCode)
-					&& currentMetadataThatDontSupportRoleAccessRetParam.getMetadataSchemaType().equals(schemaType)
+					&& (currentMetadataThatDontSupportRoleAccessRetParam.getMetadataSchemaType() == null || currentMetadataThatDontSupportRoleAccessRetParam.getMetadataSchemaType().equals(schemaType))
 					&& (currentMetadataThatDontSupportRoleAccessRetParam.getMetadataSchema() == null || currentMetadataThatDontSupportRoleAccessRetParam.getMetadataSchema().equals(schema))) {
 				return false;
 			}

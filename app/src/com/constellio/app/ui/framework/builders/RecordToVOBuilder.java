@@ -48,8 +48,6 @@ public class RecordToVOBuilder implements Serializable {
 
 		User user = userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
 
-		List<Metadata> metadataList = schema.getMetadatas().onlyAccessibleOnRecordBy(user, record);
-
 		if (schemaVO == null) {
 			schemaVO = new MetadataSchemaToVOBuilder().build(schema, viewMode, sessionContext);
 		}
@@ -86,7 +84,7 @@ public class RecordToVOBuilder implements Serializable {
 				recordVOValue = listRecordVOValue;
 			}
 			MetadataValueVO metadataValueVO = new MetadataValueVO(metadataVO, recordVOValue);
-			if(MetadataUtil.isMetadataAccessbile(metadataVO, metadataList)) {
+			if(user.hasAccessToMetadata(metadata, record)) {
 				metadataValueVOs.add(metadataValueVO);
 			} else {
 				metadataCodeExcludedList.add(metadataVO.getCode());

@@ -57,6 +57,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -284,9 +285,12 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		workflowId = paramsMap.get("workflowId");
 		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
 		view.setRecord(taskVO);
-
-		originalAssignedTo = taskVO.getAssignee();
-		originalAssigner = taskVO.get(Task.ASSIGNER);
+		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + ASSIGNEE)) {
+			originalAssignedTo = taskVO.getAssignee();
+		}
+		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNER)) {
+			originalAssigner = taskVO.get(Task.ASSIGNER);
+		}
 	}
 
 	public String getViewTitle() {
@@ -358,7 +362,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustAssignerField() {
 		Field assignerField = getAssignerField();
-		if (assignerField != null && taskVO != null && !originalAssignedTo.equals(taskVO.getAssignee())) {
+		if (assignerField != null && taskVO != null &&  taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNEE)
+				&& originalAssignedTo != null && !originalAssignedTo.equals(taskVO.getAssignee())) {
 			assignerField.setValue(getCurrentUser().getId());
 		}
 	}
