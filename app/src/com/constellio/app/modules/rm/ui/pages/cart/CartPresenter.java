@@ -132,7 +132,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public void emailPreparationRequested() {
-		EmailMessage emailMessage = new CartEmailService(collection, modelLayerFactory).createEmailForCart(cart(), getCurrentUser());
+		EmailMessage emailMessage = new CartEmailService(collection, modelLayerFactory).createEmailForCart(cart().getOwner(), cart().getDocuments(), getCurrentUser());
 		String filename = emailMessage.getFilename();
 		InputStream stream = emailMessage.getInputStream();
 		view.startDownload(stream, filename);
@@ -341,7 +341,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return true;
 	}
 
-	private String getCurrentBorrowerOf(Document document) {
+	protected String getCurrentBorrowerOf(Document document) {
 		return document.getContent() == null ? null : document.getContent().getCheckoutUserId();
 	}
 
@@ -399,7 +399,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return rm().wrapDocuments(recordServices().getRecordsById(view.getCollection(), cart().getDocuments()));
 	}
 
-	private RMSchemasRecordsServices rm() {
+	protected RMSchemasRecordsServices rm() {
 		if (rm == null) {
 			rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		}

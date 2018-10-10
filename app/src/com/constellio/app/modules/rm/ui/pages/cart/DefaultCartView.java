@@ -1,11 +1,16 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
+import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ReportSelector;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -15,6 +20,12 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
+import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingView;
+import com.constellio.data.utils.Factory;
+import com.constellio.model.entities.enums.BatchProcessingMode;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.google.common.base.Strings;
@@ -38,6 +49,8 @@ import java.io.InputStream;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADATA_OF_SCHEMA;
+import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 import static java.util.Arrays.asList;
 
 public class DefaultCartView extends BaseViewImpl implements CartView {
@@ -73,14 +86,14 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeListener.ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
-		//		buttons.add(buildPrepareEmailButton());
-		//		buttons.add(buildBatchDuplicateButton());
-		//		buttons.add(buildDocumentsBatchProcessingButton());
-		//		buttons.add(buildFoldersBatchProcessingButton());
-		//		buttons.add(buildContainersBatchProcessingButton());
-		//		buttons.add(buildFoldersLabelsButton());
-		//		buttons.add(buildContainersLabelsButton());
-		//		buttons.add(buildBatchDeleteButton());
+		buttons.add(buildPrepareEmailButton());
+		buttons.add(buildBatchDuplicateButton());
+		buttons.add(buildDocumentsBatchProcessingButton());
+		buttons.add(buildFoldersBatchProcessingButton());
+		buttons.add(buildContainersBatchProcessingButton());
+		buttons.add(buildFoldersLabelsButton());
+		buttons.add(buildContainersLabelsButton());
+		buttons.add(buildBatchDeleteButton());
 		//		buttons.add(buildEmptyButton());
 		//		buttons.add(buildShareButton());
 		//		buttons.add(buildDecommissionButton());
@@ -90,78 +103,78 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 		return buttons;
 	}
 
-	//	private Button buildFoldersLabelsButton() {
-	//		Button button = buildLabelsButton(Folder.SCHEMA_TYPE);
-	//		button.setCaption($("CartView.foldersLabelsButton"));
-	//		return button;
-	//	}
-	//
-	//	private Button buildContainersLabelsButton() {
-	//		Button button = buildLabelsButton(ContainerRecord.SCHEMA_TYPE);
-	//		button.setCaption($("CartView.containersLabelsButton"));
-	//		return button;
-	//	}
+	private Button buildFoldersLabelsButton() {
+		Button button = buildLabelsButton(Folder.SCHEMA_TYPE);
+		button.setCaption($("CartView.foldersLabelsButton"));
+		return button;
+	}
 
-	//	private Button buildLabelsButton(final String schemaType) {
-	//		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-	//			@Override
-	//			public List<LabelTemplate> get() {
-	//				return presenter.getCustomTemplates(schemaType);
-	//			}
-	//		};
-	//		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
-	//			@Override
-	//			public List<LabelTemplate> get() {
-	//				return presenter.getDefaultTemplates(schemaType);
-	//			}
-	//		};
-	//		LabelButtonV2 labelsButton = new LabelButtonV2(
-	//				$("SearchView.labels"),
-	//				$("SearchView.printLabels"),
-	//				customLabelTemplatesFactory,
-	//				defaultLabelTemplatesFactory,
-	//				getConstellioFactories().getAppLayerFactory(),
-	//				getSessionContext().getCurrentCollection()
-	//		);
-	//		labelsButton.setElementsWithIds(presenter.getNotDeletedRecordsIds(schemaType), schemaType, getSessionContext());
-	//		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
-	//		labelsButton.setVisible(presenter.isLabelsButtonVisible(schemaType));
-	//		return labelsButton;
-	//	}
+	private Button buildContainersLabelsButton() {
+		Button button = buildLabelsButton(ContainerRecord.SCHEMA_TYPE);
+		button.setCaption($("CartView.containersLabelsButton"));
+		return button;
+	}
 
-	//	private Button buildContainersBatchProcessingButton() {
-	//		Button batchProcessingButton = buildBatchProcessingButton(ContainerRecord.SCHEMA_TYPE);
-	//		batchProcessingButton.setCaption($("CartView.containersBatchProcessingButton"));
-	//		return batchProcessingButton;
-	//	}
+	private Button buildLabelsButton(final String schemaType) {
+		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getCustomTemplates(schemaType);
+			}
+		};
+		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getDefaultTemplates(schemaType);
+			}
+		};
+		LabelButtonV2 labelsButton = new LabelButtonV2(
+				$("SearchView.labels"),
+				$("SearchView.printLabels"),
+				customLabelTemplatesFactory,
+				defaultLabelTemplatesFactory,
+				getConstellioFactories().getAppLayerFactory(),
+				getSessionContext().getCurrentCollection()
+		);
+		labelsButton.setElementsWithIds(presenter.getNotDeletedRecordsIds(schemaType), schemaType, getSessionContext());
+		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));
+		labelsButton.setVisible(presenter.isLabelsButtonVisible(schemaType));
+		return labelsButton;
+	}
 
-	//	private Button buildBatchProcessingButton(final String schemaType) {
-	//		BatchProcessingMode mode = presenter.getBatchProcessingMode();
-	//		WindowButton button;
-	//		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
-	//			button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType));
-	//		} else if (mode.equals(ONE_METADATA)) {
-	//			button = new BatchProcessingModifyingOneMetadataButton(presenter, new BatchProcessingViewImpl(schemaType));
-	//		} else {
-	//			throw new RuntimeException("Unsupported mode " + mode);
-	//		}
-	//		button.setEnabled(presenter.isBatchProcessingButtonVisible(schemaType));
-	//		button.setVisible(presenter.isBatchProcessingButtonVisible(schemaType));
-	//		return button;
-	//	}
+	private Button buildContainersBatchProcessingButton() {
+		Button batchProcessingButton = buildBatchProcessingButton(ContainerRecord.SCHEMA_TYPE);
+		batchProcessingButton.setCaption($("CartView.containersBatchProcessingButton"));
+		return batchProcessingButton;
+	}
 
-	//	private Button buildDocumentsBatchProcessingButton() {
-	//		Button button = buildBatchProcessingButton(Document.SCHEMA_TYPE);
-	//		button.setCaption($("CartView.documentsBatchProcessingButton"));
-	//		return button;
-	//	}
-	//
-	//	private Button buildFoldersBatchProcessingButton() {
-	//		Button button = buildBatchProcessingButton(Folder.SCHEMA_TYPE);
-	//		button.setCaption($("CartView.foldersBatchProcessingButton"));
-	//		return button;
-	//	}
-	//
+	private Button buildBatchProcessingButton(final String schemaType) {
+		BatchProcessingMode mode = presenter.getBatchProcessingMode();
+		WindowButton button;
+		if (mode.equals(ALL_METADATA_OF_SCHEMA)) {
+			button = new BatchProcessingButton(presenter, new BatchProcessingViewImpl(schemaType));
+		} else if (mode.equals(ONE_METADATA)) {
+			button = new BatchProcessingModifyingOneMetadataButton(presenter, new BatchProcessingViewImpl(schemaType));
+		} else {
+			throw new RuntimeException("Unsupported mode " + mode);
+		}
+		button.setEnabled(presenter.isBatchProcessingButtonVisible(schemaType));
+		button.setVisible(presenter.isBatchProcessingButtonVisible(schemaType));
+		return button;
+	}
+
+	private Button buildDocumentsBatchProcessingButton() {
+		Button button = buildBatchProcessingButton(Document.SCHEMA_TYPE);
+		button.setCaption($("CartView.documentsBatchProcessingButton"));
+		return button;
+	}
+
+	private Button buildFoldersBatchProcessingButton() {
+		Button button = buildBatchProcessingButton(Folder.SCHEMA_TYPE);
+		button.setCaption($("CartView.foldersBatchProcessingButton"));
+		return button;
+	}
+
 	//	private Button buildShareButton() {
 	//		return new WindowButton($("CartView.share"), $("CartView.shareWindow")) {
 	//			@Override
@@ -449,59 +462,59 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 		containerTable = newTable;
 	}
 
-	//	private Button buildPrepareEmailButton() {
-	//		Button button = new LinkButton($("CartView.prepareEmail")) {
-	//			@Override
-	//			protected void buttonClick(ClickEvent event) {
-	//				presenter.emailPreparationRequested();
-	//			}
-	//		};
-	//		button.setEnabled(presenter.canPrepareEmail());
-	//		button.setVisible(presenter.canPrepareEmail());
-	//		return button;
-	//	}
-	//
-	//	private Button buildBatchDuplicateButton() {
-	//		Button button = new LinkButton($("CartView.batchDuplicate")) {
-	//			@Override
-	//			protected void buttonClick(ClickEvent event) {
-	//				presenter.duplicationRequested();
-	//			}
-	//		};
-	//		button.setEnabled(presenter.canDuplicate());
-	//		button.setVisible(presenter.canDuplicate());
-	//		return button;
-	//	}
-	//
-	//	private Button buildBatchDeleteButton() {
-	//		Button button = new DeleteWithJustificationButton(false) {
-	//			@Override
-	//			protected void deletionConfirmed(String reason) {
-	//				presenter.deletionRequested(reason);
-	//			}
-	//
-	//			@Override
-	//			protected String getConfirmDialogMessage() {
-	//				List<String> cartFolderIds = presenter.getCartFolderIds();
-	//				List<String> cartDocumentIds = presenter.getCartDocumentIds();
-	//
-	//				StringBuilder stringBuilder = new StringBuilder();
-	//				String prefix = "";
-	//				if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
-	//					stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
-	//					prefix = " " + $("CartView.andAll") + " ";
-	//				}
-	//				if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
-	//					stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
-	//				}
-	//				return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
-	//			}
-	//		};
-	//		button.setEnabled(presenter.canDelete());
-	//		button.setVisible(presenter.canDelete());
-	//		return button;
-	//	}
-	//
+	private Button buildPrepareEmailButton() {
+		Button button = new LinkButton($("CartView.prepareEmail")) {
+			@Override
+			protected void buttonClick(Button.ClickEvent event) {
+				presenter.emailPreparationRequested();
+			}
+		};
+		button.setEnabled(presenter.canPrepareEmail());
+		button.setVisible(presenter.canPrepareEmail());
+		return button;
+	}
+
+	private Button buildBatchDuplicateButton() {
+		Button button = new LinkButton($("CartView.batchDuplicate")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.duplicationRequested();
+			}
+		};
+		button.setEnabled(presenter.canDuplicate());
+		button.setVisible(presenter.canDuplicate());
+		return button;
+	}
+
+	private Button buildBatchDeleteButton() {
+		Button button = new DeleteWithJustificationButton(false) {
+			@Override
+			protected void deletionConfirmed(String reason) {
+				presenter.deletionRequested(reason);
+			}
+
+			@Override
+			protected String getConfirmDialogMessage() {
+				List<String> cartFolderIds = presenter.getFoldersIds();
+				List<String> cartDocumentIds = presenter.getDocumentsIds();
+
+				StringBuilder stringBuilder = new StringBuilder();
+				String prefix = "";
+				if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
+					stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
+					prefix = " " + $("CartView.andAll") + " ";
+				}
+				if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
+					stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
+				}
+				return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
+			}
+		};
+		button.setEnabled(presenter.canDelete());
+		button.setVisible(presenter.canDelete());
+		return button;
+	}
+
 	//	private Button buildEmptyButton() {
 	//		Button button = new ConfirmDialogButton($("CartView.empty")) {
 	//			@Override
@@ -584,43 +597,43 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 		};
 	}
 
-	//	private class BatchProcessingViewImpl implements BatchProcessingView {
-	//		private final String schemaType;
-	//
-	//		public BatchProcessingViewImpl(String schemaType) {
-	//			this.schemaType = schemaType;
-	//		}
-	//
-	//		@Override
-	//		public List<String> getSelectedRecordIds() {
-	//			return presenter.getNotDeletedRecordsIds(schemaType);
-	//		}
-	//
-	//		@Override
-	//		public List<String> getUnselectedRecordIds() {
-	//			return null;
-	//		}
-	//
-	//		@Override
-	//		public String getSchemaType() {
-	//			return schemaType;
-	//		}
-	//
-	//		@Override
-	//		public SessionContext getSessionContext() {
-	//			return this.getSessionContext();
-	//		}
-	//
-	//		@Override
-	//		public void showErrorMessage(String error) {
-	//			this.showErrorMessage(error);
-	//		}
-	//
-	//		@Override
-	//		public void showMessage(String message) {
-	//			this.showMessage(message);
-	//		}
-	//	}
+	private class BatchProcessingViewImpl implements BatchProcessingView {
+		private final String schemaType;
+
+		public BatchProcessingViewImpl(String schemaType) {
+			this.schemaType = schemaType;
+		}
+
+		@Override
+		public List<String> getSelectedRecordIds() {
+			return presenter.getNotDeletedRecordsIds(schemaType);
+		}
+
+		@Override
+		public List<String> getUnselectedRecordIds() {
+			return null;
+		}
+
+		@Override
+		public String getSchemaType() {
+			return schemaType;
+		}
+
+		@Override
+		public SessionContext getSessionContext() {
+			return DefaultCartView.this.getSessionContext();
+		}
+
+		@Override
+		public void showErrorMessage(String error) {
+			DefaultCartView.this.showErrorMessage(error);
+		}
+
+		@Override
+		public void showMessage(String message) {
+			DefaultCartView.this.showMessage(message);
+		}
+	}
 
 	private class FireableTabSheet extends TabSheet {
 		public void fireTabSelectionChanged() {

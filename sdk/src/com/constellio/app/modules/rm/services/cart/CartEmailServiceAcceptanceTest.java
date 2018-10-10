@@ -163,7 +163,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenCartWithTestDocumentsWhenGetAttachmentsThenOk()
 			throws Exception {
-		List<MessageAttachment> attachments = cartEmlService.getAttachments(cart, users.adminIn(zeCollection));
+		List<MessageAttachment> attachments = cartEmlService.getAttachments(cart.getDocuments(), users.adminIn(zeCollection));
 		validateAttachments(attachments);
 	}
 
@@ -195,7 +195,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenCartWithTestDocumentsWhenCreateEmlForCartThenOk()
 			throws Exception {
-		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart, users.adminIn(zeCollection)).getInputStream();
+		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart.getOwner(), cart.getDocuments(), users.adminIn(zeCollection)).getInputStream();
 		validateEml(emlStreamFactory);
 		IOUtils.closeQuietly(emlStreamFactory);
 	}
@@ -203,7 +203,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenCartWithTestDocumentsWhenCreateEmlForCartThenHasAdequateMimeType()
 			throws Exception {
-		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart, users.adminIn(zeCollection)).getInputStream();
+		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart.getOwner(), cart.getDocuments(), users.adminIn(zeCollection)).getInputStream();
 		File tempFolder = newTempFolder();
 		File file = new File(tempFolder, "test.eml");
 		FileUtils.copyInputStreamToFile(emlStreamFactory, file);
@@ -217,7 +217,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	public void givenEmptyCartWithTestDocumentsWhenCreateEmlForCartThenOk()
 			throws Exception {
 		recordServices.add(cart.setDocuments(new ArrayList<String>()));
-		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart, users.adminIn(zeCollection)).getInputStream();
+		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart.getOwner(), cart.getDocuments(), users.adminIn(zeCollection)).getInputStream();
 		IOUtils.closeQuietly(emlStreamFactory);
 	}
 

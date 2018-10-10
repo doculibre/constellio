@@ -848,5 +848,17 @@ public class Folder extends RMObject {
 		return this;
 	}
 
+	public void removeFavorite(String favoriteToDelete) {
+		List<String> favoritesList = new ArrayList<>();
+		if (getFavoritesList().contains(favoriteToDelete)) {
+			for (String favorite : getFavoritesList()) {
+				if (favorite != favoriteToDelete) {
+					favoritesList.add(favorite);
+				}
+			}
+		}
+		setFavoritesList(favoritesList);
+	}
+
 }
 
