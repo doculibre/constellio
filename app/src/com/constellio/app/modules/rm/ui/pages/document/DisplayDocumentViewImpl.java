@@ -17,7 +17,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import com.constellio.app.api.extensions.params.DocumentFolderBreadcrumParams;
+import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
@@ -322,7 +322,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		breadcrumbTrail = getConstellioFactories().getAppLayerFactory()
 				.getExtensions().forCollection(getCollection()).getBreadcrumtrail(
-						new DocumentFolderBreadcrumParams(presenter.getDocument().getId(),presenter.getParams(), this));
+						new DocumentFolderBreadCrumbParams(presenter.getDocument().getId(),presenter.getParams(), this));
 
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;

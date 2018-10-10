@@ -1,6 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import com.constellio.app.api.extensions.params.DocumentFolderBreadcrumParams;
+import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
@@ -249,7 +249,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		BaseBreadcrumbTrail breadcrumbTrail;
 
 
-		breadcrumbTrail = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getBreadcrumtrail(new DocumentFolderBreadcrumParams(presenter.getFolderId(), presenter.getParams(), this));
+		breadcrumbTrail = getConstellioFactories().getAppLayerFactory().getExtensions().forCollection(getCollection()).getBreadcrumtrail(new DocumentFolderBreadCrumbParams(presenter.getFolderId(), presenter.getParams(), this));
 
 
 		if (breadcrumbTrail != null) {

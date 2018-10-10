@@ -4,7 +4,7 @@ import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.AddCustomLabelsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataDisplayedWhenModifiedParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.IsMetadataModifiableParams;
-import com.constellio.app.api.extensions.DocumentFolderBreadcrumExtention;
+import com.constellio.app.api.extensions.DocumentFolderBreadCrumbExtention;
 import com.constellio.app.api.extensions.DocumentViewButtonExtension;
 import com.constellio.app.api.extensions.DownloadContentVersionLinkExtension;
 import com.constellio.app.api.extensions.GenericRecordPageExtension;
@@ -26,7 +26,7 @@ import com.constellio.app.api.extensions.params.AddFieldsInLabelXMLParams;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.params.CollectionSystemCheckParams;
 import com.constellio.app.api.extensions.params.DecorateMainComponentAfterInitExtensionParams;
-import com.constellio.app.api.extensions.params.DocumentFolderBreadcrumParams;
+import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.api.extensions.params.DocumentViewButtonExtensionParam;
 import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
@@ -156,7 +156,7 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
 
-	public VaultBehaviorsList<DocumentFolderBreadcrumExtention> documentBreadcrumExtentions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<DocumentFolderBreadCrumbExtention> documentBreadcrumExtentions = new VaultBehaviorsList<>();
 
 	//Key : schema type code
 	//Values : record's code
@@ -693,11 +693,11 @@ public class AppLayerCollectionExtensions {
 		return new ArrayList<>(unwantedTaxonomies);
 	}
 
-	public BaseBreadcrumbTrail getBreadcrumtrail(DocumentFolderBreadcrumParams documentBreadcrumParams) {
+	public BaseBreadcrumbTrail getBreadcrumtrail(DocumentFolderBreadCrumbParams documentBreadcrumParams) {
 		BaseBreadcrumbTrail breadcrumbTrail = null;
 
-		for(DocumentFolderBreadcrumExtention documentFolderBreadcrumExtention : documentBreadcrumExtentions) {
-			breadcrumbTrail = documentFolderBreadcrumExtention.getBreadcrumTrail(documentBreadcrumParams);
+		for(DocumentFolderBreadCrumbExtention documentFolderBreadCrumbExtention : documentBreadcrumExtentions) {
+			breadcrumbTrail = documentFolderBreadCrumbExtention.getBreadcrumTrail(documentBreadcrumParams);
 
 			if(breadcrumbTrail != null) {
 				break;
