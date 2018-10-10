@@ -774,6 +774,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					&& schema.hasMetadataWithCode(Schemas.MARKED_FOR_REINDEXING.getLocalCode())
 					&& !record.isModified(Schemas.MARKED_FOR_REINDEXING)
 					&& !transaction.getIdsToReindex().contains(record.getId())) {
+
 					record.set(Schemas.MARKED_FOR_REINDEXING, null);
 				}
 			}

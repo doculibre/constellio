@@ -2,21 +2,20 @@ package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.schemas.SchemaUtils;
+import lombok.AllArgsConstructor;
 
-public class RecordRestorationEvent implements RecordEvent {
+@AllArgsConstructor
+public class RecordReindexationEvent implements RecordEvent {
 
 	Record record;
 
-	public RecordRestorationEvent(Record record) {
-		this.record = record;
-	}
-
+	@Override
 	public Record getRecord() {
 		return record;
 	}
 
 	public String getSchemaTypeCode() {
-		return new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
+		return SchemaUtils.getSchemaTypeCode(record.getSchemaCode());
 	}
 
 }

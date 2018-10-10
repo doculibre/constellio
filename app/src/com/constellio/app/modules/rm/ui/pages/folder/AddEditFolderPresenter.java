@@ -13,8 +13,10 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.mediumType.MediumTypeService;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.components.folder.FolderForm;
+import com.constellio.app.modules.rm.ui.components.folder.FolderFormImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.CustomFolderField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDepositDateField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderActualDestructionDateField;
@@ -40,6 +42,7 @@ import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.framework.components.fields.record.RecordOptionGroup;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.dao.dto.records.RecordsFlushing;
@@ -110,6 +113,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient BorrowingServices borrowingServices;
+	private transient MediumTypeService mediumTypeService;
 
 	public AddEditFolderPresenter(AddEditFolderView view) {
 		super(view, Folder.DEFAULT_SCHEMA);
@@ -125,6 +129,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	private void initTransientObjects() {
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, appLayerFactory);
 		borrowingServices = new BorrowingServices(collection, modelLayerFactory);
+		mediumTypeService = new MediumTypeService(collection, appLayerFactory);
 	}
 
 	@Override
@@ -244,6 +249,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	public void viewAssembled() {
 		adjustCustomFields(null, true);
+		adjustMediumTypesField();
 	}
 
 	public boolean isSubfolder() {
@@ -510,6 +516,14 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	void adjustTypeField() {
 		// Nothing to adjust
+	}
+
+	void adjustMediumTypesField() {
+		if (new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isMediumTypeSynchronisationEnabled()) {
+			FolderFormImpl folderForm = (FolderFormImpl) view.getForm();
+			RecordOptionGroup recordOptionGroup = (RecordOptionGroup) folderForm.getField(Folder.MEDIUM_TYPES);
+			recordOptionGroup.setItemEnabled(mediumTypeService.getDigitalMediumType().getId(), false);
+		}
 	}
 
 	void adjustParentFolderField() {
