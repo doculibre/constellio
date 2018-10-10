@@ -257,7 +257,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public String getLinuxVersion() throws IOException, InterruptedException {
 		try{
 			SystemInfosService service = new SystemInfosService();
-			String commande="uname -r";
+			String commande=service.getVersionLinuxCommande();
 			LinuxOperation operation= new LinuxOperation(commande,service.executCommand(commande));
 			return service.getVersionLinux(operation);
 		}catch (IOException e) {
@@ -269,7 +269,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 
 	public Boolean evaluateLinuxVersion() throws IOException, InterruptedException {
 		try{
-			String commande="uname -r";
+			String commande=service.getVersionLinuxCommande();
 			SystemInfosService service = new SystemInfosService();
 			LinuxOperation operation= new LinuxOperation(commande,service.executCommand(commande));
 
@@ -280,8 +280,8 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 	public Boolean evaluateJavaVersion() throws IOException, InterruptedException {
 		try{
-			String commande="java -version";
 			SystemInfosService service = new SystemInfosService();
+			String commande=service.getVersionJavaCommande();
 			LinuxOperation operation= new LinuxOperation(commande,service.executCommand(commande));
 
 			return service.compareVersionJava(operation);
@@ -299,7 +299,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public int getRepoPresence() throws IOException, InterruptedException {
 		try{
 			SystemInfosService service = new SystemInfosService();
-			String commande="yum repolist 2>&1 | grep -c \"constellio_constellio-updates\"";
+			String commande=service.getRepoCommande();
 			LinuxOperation operation= new LinuxOperation(commande,service.executCommand(commande));
 			return service.getRepo(operation);
 		}catch (IOException e) {
@@ -310,10 +310,10 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public String getConstellioUser() throws IOException, InterruptedException {
 		try{
 			SystemInfosService service = new SystemInfosService();
-			String commandePID=" /opt/constellio/startup status";
+			String commandePID=service.getPIDConstellioCommand();
 			LinuxOperation operationPID= new LinuxOperation(commandePID,service.executCommand(commandePID));
 			int pid = service.getUserConstellioPID(operationPID);
-			String commandeUSErConstellio=" ps -u -p "+pid+" | cut -d \" \" -f 1 ";
+			String commandeUSErConstellio=service.getUSErCommand(pid);
 			LinuxOperation operationUSER= new LinuxOperation(commandeUSErConstellio,service.executCommand(commandeUSErConstellio));
 			return StringUtils.substringAfter(service.getUserConstellio(operationUSER),"USER");
 
@@ -325,10 +325,10 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public String getSolrUser() throws IOException, InterruptedException {
 		try{
 			SystemInfosService service = new SystemInfosService();
-			String commandePID="/opt/solr/bin/solr status | cut -d \" \" -f 3";
+			String commandePID=service.getPIDSolrCommand();
 			LinuxOperation operationPID= new LinuxOperation(commandePID,service.executCommand(commandePID));
 			int pid = service.getUserSolrPID(operationPID);
-			String commandeUSErSolr=" ps -u -p "+pid+" | cut -d \" \" -f 1";
+			String commandeUSErSolr=service.getUSErCommand(pid);
 			LinuxOperation operationUSER= new LinuxOperation(commandeUSErSolr,service.executCommand(commandeUSErSolr));
 			return StringUtils.substringAfter(service.getUserConstellio(operationUSER),"USER");
 

@@ -60,6 +60,31 @@ public class SystemInfosService {
 		String SubVersion2 = StringUtils.substringBefore(SubVersion1, ".el7");
 		return SubVersion2;
 	}
+	public String getVersionLinuxCommande() {
+
+		return "uname -r";
+	}
+	public String getVersionJavaCommande() {
+
+		return "java -version";
+	}
+	public String getRepoCommande() {
+
+		return "yum repolist 2>&1 | grep -c \"constellio_constellio-updates\"";
+	}
+	public String getPIDConstellioCommand() {
+
+		return " /opt/constellio/startup status";
+	}
+	public String getUSErCommand(int pid) {
+
+		return " ps -u -p "+pid+" | cut -d \" \" -f 1 ";
+	}
+	public String getPIDSolrCommand() {
+
+		return "/opt/solr/bin/solr status | cut -d \" \" -f 3";
+	}
+
 	public String getVersionJava(LinuxOperation versionLinux) {
 		String SubVersion1 = StringUtils.substringBefore(versionLinux.getOperationBehavior(), "_131\"");
 		String SubVersion2 = StringUtils.substringAfter(SubVersion1, "version \"");

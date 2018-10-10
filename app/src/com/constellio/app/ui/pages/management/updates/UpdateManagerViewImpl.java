@@ -170,18 +170,18 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 					buildInfoItem($("UpdateManagerViewImpl.expirationDate"), "......" + info.getExpirationDate()));
 		} else {
 			layout.addComponents(
-					buildInfoItemRed($("UpdateManagerViewImpl.clientName"), "......" + "Non disponible"),
-					buildInfoItemRed($("UpdateManagerViewImpl.expirationDate"), "......" + "Non disponible"));
+					buildInfoItemRed($("UpdateManagerViewImpl.clientName"), "......" + $("UpdateManagerViewImpl.statut")),
+					buildInfoItemRed($("UpdateManagerViewImpl.expirationDate"), "......" + $("UpdateManagerViewImpl.statut")));
 		}
 
 		if (allocatedMemoryForConstellio != null) {
 			layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), "......" + allocatedMemoryForConstellio));
 		} else {
-			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), "......" + "Non disponible"));
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.allocatedMemoryForConstellio"), "......" + $("UpdateManagerViewImpl.statut")));
 
 		}
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
-			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"),"......" + "Non disponible"
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"),"......" + $("UpdateManagerViewImpl.statut")
  ));
 
 		} else {
@@ -193,19 +193,19 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		}
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
 
-			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"),"......" + "Non disponible"));
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"),"......" + $("UpdateManagerViewImpl.statut")));
 
 
 		} else {
 			if (presenter.getRepoPresence() == 0) {
-				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"),"......" + "Non"));
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"),"......" + $("no")));
 			} else {
-				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.privatedirectoryinstalled"),"......" + "Oui"));
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.privatedirectoryinstalled"),"......" + $("yes")));
 			}
 		}
 
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
-			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"),"......" + "Non disponible"));
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"),"......" + $("UpdateManagerViewImpl.statut")));
 
 		} else {
 			if (presenter.getSolrUser() == "root") {
@@ -216,7 +216,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		}
 
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
-			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"),"......" + "Non disponible"));
+			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"),"......" + $("UpdateManagerViewImpl.statut")));
 
 		} else {
 			if (presenter.getConstellioUser() == "root") {
@@ -228,7 +228,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
 			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"),"......" +
-																								   "Non disponible" ));
+																								$("UpdateManagerViewImpl.statut")));
 
 		} else {
 			if (presenter.evaluateJavaVersion().equals(True)) {
@@ -239,7 +239,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		}
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
 			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionofwrapper"),"......" +
-																								"Non disponible" ));
+																								  $("UpdateManagerViewImpl.statut") ));
 
 		} else {
 			if (presenter.evaluateJavaVersion().equals(True)) {
@@ -250,7 +250,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		}
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
 			layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"),"......" +
-																								  "Non disponible" ));
+																						   $("UpdateManagerViewImpl.statut") ));
 
 		} else {
 			if (presenter.evaluateSolrVersion().equals(True)) {
