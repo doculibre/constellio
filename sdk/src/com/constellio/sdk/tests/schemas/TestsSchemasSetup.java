@@ -423,6 +423,11 @@ public class TestsSchemasSetup extends SchemasSetup {
 		super(collection);
 	}
 
+
+	public TestsSchemasSetup(String collection, List<String> languages) {
+		super(collection, languages);
+	}
+
 	public static MetadataBuilderConfigurator whichHasLabel(final String label) {
 
 		return new MetadataBuilderConfigurator() {
