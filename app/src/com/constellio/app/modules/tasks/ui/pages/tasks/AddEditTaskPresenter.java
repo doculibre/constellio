@@ -520,12 +520,14 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		boolean userValue = CollectionUtils.isNotEmpty(user.getValue());
 
 		ListAddRemoveField priorite = (ListAddRemoveField) view.getForm().getField(ASSIGNATION_MODES);
-		boolean prioriteValue = CollectionUtils.isNotEmpty(priorite.getValue());
+		boolean prioriteValue = priorite != null && CollectionUtils.isNotEmpty(priorite.getValue());
 
 		assignee.setReadOnly(groupValue || userValue || prioriteValue);
 		group.setReadOnly(assigneeValue);
 		user.setReadOnly(assigneeValue);
-		priorite.setReadOnly(assigneeValue);
+		if (priorite != null) {
+			priorite.setReadOnly(assigneeValue);
+		}
 
 	}
 
