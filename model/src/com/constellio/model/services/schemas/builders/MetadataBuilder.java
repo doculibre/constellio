@@ -1,20 +1,5 @@
 package com.constellio.model.services.schemas.builders;
 
-import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
-import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.data.dao.services.DataStoreTypesFactory;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
@@ -44,6 +29,20 @@ import com.constellio.model.services.schemas.builders.MetadataBuilderRuntimeExce
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.utils.ClassProvider;
 import com.constellio.model.utils.InstanciationUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static com.constellio.model.entities.schemas.MetadataTransiency.PERSISTED;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.MANUAL;
 
 public class MetadataBuilder {
 
@@ -367,6 +366,7 @@ public class MetadataBuilder {
 	}
 
 	public MetadataBuilder setLabels(Map<Language, String> labels) {
+
 		if (labels == null) {
 			this.labels = new HashMap<>();
 		} else {
