@@ -149,8 +149,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		layout.setWidth("100%");
 
 
-		//WindowButton allocatedMemoryButton = buildAllocatedMemoryButton();
-		//layout.addComponent(allocatedMemoryButton);
+		WindowButton allocatedMemoryButton = buildAllocatedMemoryButton();
+		layout.addComponent(allocatedMemoryButton);
 
 		Component messagePanel = buildMessagePanel();
 		layout.addComponent(messagePanel);

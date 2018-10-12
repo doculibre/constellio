@@ -16,15 +16,15 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.solr.client.solrj.SolrClient;
 
 public class SystemInfosService {
-	String Behavior;
+	String behavior;
 	String command;
 	int versionNumber;
 
 
 
-	public Boolean compareVersionLinux(LinuxOperation versionLinux) {
+	public Boolean isLinuxVersionSupported(LinuxOperation versionLinux) {
 
-		versionNumber = CompareVersion(getVersionLinux(versionLinux), "862.3.2");
+		versionNumber = compareVersion(getVersionLinux(versionLinux), "862.3.2");
 
 
 		if (versionNumber == 0) {
@@ -33,9 +33,9 @@ public class SystemInfosService {
 			return false;
 		}
 	}
-	public Boolean compareVersionJava(LinuxOperation versionLinux) {
+	public Boolean isJavaVersionSupported(LinuxOperation versionLinux) {
 
-			versionNumber = CompareVersion(getVersionJava(versionLinux), "1.11.0");
+			versionNumber = compareVersion(getVersionJava(versionLinux), "1.11.0");
 
 
 			if (versionNumber == 0) {
@@ -44,9 +44,9 @@ public class SystemInfosService {
 				return false;
 			}
 	}
-	public Boolean compareVersionSolr(String Version) {
+	public Boolean isSolrVersionSupported(String Version) {
 
-		versionNumber = CompareVersion(getSolrVersion(), "1.7.0");
+		versionNumber = compareVersion(getSolrVersion(), "1.7.0");
 
 
 		if (versionNumber == 0) {
@@ -56,9 +56,9 @@ public class SystemInfosService {
 		}
 	}
 	public String getVersionLinux(LinuxOperation versionLinux) {
-		String SubVersion1 = StringUtils.substringAfter(versionLinux.getOperationBehavior(), "-");
-		String SubVersion2 = StringUtils.substringBefore(SubVersion1, ".el7");
-		return SubVersion2;
+		String subVersion1 = StringUtils.substringAfter(versionLinux.getOperationBehavior(), "-");
+		String subVersion2 = StringUtils.substringBefore(subVersion1, ".el7");
+		return subVersion2;
 	}
 	public String getVersionLinuxCommande() {
 
@@ -86,9 +86,8 @@ public class SystemInfosService {
 	}
 
 	public String getVersionJava(LinuxOperation versionLinux) {
-		String SubVersion1 = StringUtils.substringBefore(versionLinux.getOperationBehavior(), "_131\"");
-		String SubVersion2 = StringUtils.substringAfter(SubVersion1, "version \"");
-		return SubVersion2;
+		String subVersion1 = StringUtils.substringBefore(versionLinux.getOperationBehavior(), "_131");
+		return subVersion1;
 	}
 
 	public int getRepo(LinuxOperation versionLinux) {
@@ -97,10 +96,10 @@ public class SystemInfosService {
 	}
 
 	public int getUserConstellioPID(LinuxOperation userConstellio) {
-		String SubResult1 = StringUtils.substringAfter(userConstellio.getOperationBehavior(), "PID:");
-		String SubResult2= StringUtils.substringBefore(SubResult1, ",");
+		String subResult1 = StringUtils.substringAfter(userConstellio.getOperationBehavior(), "PID:");
+		String subResult2= StringUtils.substringBefore(subResult1, ",");
 
-		return Integer.valueOf(SubResult2);
+		return Integer.valueOf(subResult2);
 	}
 	public String getUserConstellio(LinuxOperation userConstellio) {
 		String result = userConstellio.getOperationBehavior();
@@ -113,11 +112,7 @@ public class SystemInfosService {
 
 		return Integer.valueOf(SubResult2);
 	}
-	public String getUserSolr(LinuxOperation userConstellio) {
-		String result = userConstellio.getOperationBehavior();
 
-		return result;
-	}
 	public String getJavaVersion(LinuxOperation userConstellio) {
 		String result = userConstellio.getOperationBehavior();
 
@@ -132,15 +127,15 @@ public class SystemInfosService {
 	}
 
 
-	public int CompareVersion(String SubVersion, String versionCompare) {
+	public int compareVersion(String subVersion, String versionCompare) {
 
-		String[] version1 = SubVersion.split("\\.");
+		String[] version1 = subVersion.split("\\.");
 		String[] version2 = versionCompare.split("\\.");
 		int length = Math.max(version1.length, version2.length);
 
 		for (int i = 0; i < length; i++) {
 			int thisPart = i < version1.length ?
-						   Integer.parseInt(version1[i]) : 0;
+					   Integer.parseInt(version1[i]) : 0;
 			int thatPart = i < version2.length ?
 						   Integer.parseInt(version2[i]) : 0;
 			if (thisPart < thatPart) {

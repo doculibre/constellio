@@ -273,7 +273,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			SystemInfosService service = new SystemInfosService();
 			LinuxOperation operation= new LinuxOperation(commande,service.executCommand(commande));
 
-			return service.compareVersionLinux(operation);
+			return service.isLinuxVersionSupported(operation);
 		}catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -284,7 +284,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 			String commande=service.getVersionJavaCommande();
 			LinuxOperation operation= new LinuxOperation(commande,service.executCommand(commande));
 
-			return service.compareVersionJava(operation);
+			return service.isJavaVersionSupported(operation);
 		}catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -292,7 +292,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public Boolean evaluateSolrVersion() throws IOException, InterruptedException {
 
 
-			return service.compareVersionSolr(service.getSolrVersion());
+			return service.isSolrVersionSupported(service.getSolrVersion());
 
 	}
 
@@ -340,7 +340,7 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	public String getJavaVersion() throws IOException, InterruptedException {
 		try{
 			SystemInfosService service = new SystemInfosService();
-			String commandeVersion="java -version";
+			String commandeVersion=service.getVersionJavaCommande();
 			LinuxOperation operationVersion= new LinuxOperation(commandeVersion,service.executCommand(commandeVersion));
 			return service.getJavaVersion(operationVersion);
 

@@ -6,7 +6,7 @@ public class LinuxOperation {
 	String Command;
 
 
-	LinuxOperation(String commande,String behavior){
+	public LinuxOperation(String commande, String behavior){
 
 		this.Command=commande;
 		this.Behavior=behavior;
