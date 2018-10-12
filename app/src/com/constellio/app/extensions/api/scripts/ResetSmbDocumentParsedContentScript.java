@@ -15,6 +15,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,7 +44,7 @@ public class ResetSmbDocumentParsedContentScript extends ScriptWithLogOutput {
 																	try {
 																		int numberOfBytes = content.getBytes("UTF-8").length;
 																		if (numberOfBytes > maxParsedContentSize) {																			;
-																			document.setParsedContent(content.substring(0, maxParsedContentSize));
+																			document.setParsedContent(new String(Arrays.copyOfRange(content.getBytes("UTF-8"), 0, maxParsedContentSize)));
 																			outputLogger.appendToFile("Reduced size of : " + document.getURL() + "\n");
 																			outputLogger.appendToFile("from " + numberOfBytes/1024 + " KB to " + maxParsedContentSize/1024 + " KB\n");
 																		}
