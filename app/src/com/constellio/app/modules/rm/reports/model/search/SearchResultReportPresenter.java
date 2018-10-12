@@ -134,7 +134,9 @@ public class SearchResultReportPresenter {
 			if (metadataValue == null) {
 				returnList.add(null);
 			} else {
-				returnList.add(getConvertedValue(metadata, metadataValue));
+				Metadata metadataOfRecordSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
+						.getSchemaOf(record).getMetadata(metadata.getLocalCode());
+				returnList.add(getConvertedValue(metadataOfRecordSchema, metadataValue));
 			}
 		}
 		return returnList;
