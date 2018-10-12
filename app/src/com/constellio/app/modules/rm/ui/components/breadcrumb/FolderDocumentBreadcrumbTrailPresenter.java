@@ -87,7 +87,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			folderOffSet = 1;
 		}
 
-		breadcrumbItems.addAll(getGetFolderDocumentBreadCrumbItems(recordId, folderOffSet, folderPresenterUtils,
+		breadcrumbItems.addAll(getGetFolderDocumentBreadCrumbItems(recordId, folderPresenterUtils,
 				rmSchemasRecordsServices));
 
 		UIContext uiContext = breadcrumbTrail.getUIContext();
@@ -169,7 +169,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		}
 	}
 
-	public static List<BreadcrumbItem> getGetFolderDocumentBreadCrumbItems(String currentRecordId, int folderOffSet,
+	public static List<BreadcrumbItem> getGetFolderDocumentBreadCrumbItems(String currentRecordId,
 			SchemaPresenterUtils schemaPresenterUtils, RMSchemasRecordsServices rmSchemasRecordsServices) {
 
 		String baseRecordId = currentRecordId;
@@ -182,7 +182,7 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			if (Folder.SCHEMA_TYPE.equals(currentSchemaTypeCode)) {
 				FolderBreadCrumbItem folderBreadCrumbItem = new FolderBreadCrumbItem(currentRecordId, schemaPresenterUtils,
 						baseRecordId);
-				breadcrumbItems.add(folderOffSet, folderBreadCrumbItem);
+				breadcrumbItems.add(0, folderBreadCrumbItem);
 
 				Folder folder = rmSchemasRecordsServices.wrapFolder(currentRecord);
 				currentRecordId = folder.getParentFolder();

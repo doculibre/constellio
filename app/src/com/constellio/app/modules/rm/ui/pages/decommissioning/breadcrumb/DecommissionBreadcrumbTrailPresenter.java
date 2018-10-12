@@ -89,10 +89,8 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 			});
 		}
 
-		int size = breadcrumbItems.size();
-
 		breadcrumbItems.addAll(FolderDocumentBreadcrumbTrailPresenter.
-				getGetFolderDocumentBreadCrumbItems(recordId, size, folderPresenterUtils, rmSchemasRecordsServices));
+				getGetFolderDocumentBreadCrumbItems(recordId, folderPresenterUtils, rmSchemasRecordsServices));
 
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);
