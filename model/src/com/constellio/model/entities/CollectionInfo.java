@@ -91,4 +91,8 @@ public class CollectionInfo implements Serializable {
 	public List<String> getSecondaryCollectionLanguesCodes() {
 		return secondaryCollectionLanguageCodes;
 	}
+
+	public boolean isMonoLingual() {
+		return collectionLocales.size() == 1;
+	}
 }

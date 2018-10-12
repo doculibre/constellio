@@ -1,28 +1,5 @@
 package com.constellio.model.services.records;
 
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
-import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
-import static com.constellio.model.services.records.RecordUtils.invalidateTaxonomiesCache;
-import static com.constellio.model.services.records.cache.RecordsCachesUtils.evaluateCacheInsert;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.utils.MaskUtils.format;
-import static java.util.Arrays.asList;
-import static net.jcores.CoreKeeper.$;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import com.constellio.data.utils.dev.Toggle;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.dto.records.RecordDTO;
 import com.constellio.data.dao.dto.records.RecordDeltaDTO;
@@ -43,6 +20,7 @@ import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -1097,7 +1075,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			List<RecordDeltaDTO> modifiedRecordDTOs = new ArrayList<>();
 			LanguageDetectionManager languageDetectionManager = modelFactory.getLanguageDetectionManager();
 			ContentManager contentManager = modelFactory.getContentManager();
-			List<String> collectionLanguages = modelFactory.getCollectionsListManager().getCollectionLanguages(collection);
+			CollectionInfo collectionInfo = modelFactory.getCollectionsListManager().getCollectionInfo(collection);
 			List<FieldsPopulator> fieldsPopulators = new ArrayList<>();
 			MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 			ConstellioEIMConfigs systemConfigs = modelFactory.getSystemConfigs();
@@ -1105,7 +1083,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					transaction.getParsedContentCache());
 
 			fieldsPopulators
-					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages,
+					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionInfo,
 							systemConfigs, modelLayerFactory.getExtensions()));
 
 			fieldsPopulators.add(new SortFieldsPopulator(types, options.isFullRewrite(), modelFactory,
@@ -1457,7 +1435,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public void flush() {
 		try {
 			recordDao.flush();
-			if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled())  {
+			if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 				eventsDao.flush();
 			}
 			notificationsDao.flush();

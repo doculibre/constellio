@@ -18,6 +18,7 @@ import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
@@ -387,7 +388,8 @@ public class SearchServices {
 
 	public List<String> getLanguages(LogicalSearchQuery query) {
 		if (query.getLanguage() != null) {
-			return Collections.singletonList(query.getLanguage());
+			//return Collections.singletonList(query.getLanguage());
+			return getLanguageCodes(query.getCondition().getCollection());
 
 		} else if (query.getCondition().isCollectionSearch()) {
 			return getLanguageCodes(query.getCondition().getCollection());
@@ -480,7 +482,8 @@ public class SearchServices {
 		List<MetadataSchemaType> searchedSchemaTypes = getSearchedTypes(query, types);
 
 		List<String> languages = getLanguages(query);
-		params.add(CommonParams.FQ, "" + query.getQuery(languages.get(0), types));
+		String queryLanguage = query.getLanguage() == null ? mainDataLanguage : query.getLanguage();
+		params.add(CommonParams.FQ, "" + query.getQuery(queryLanguage, types));
 
 		if (DataStore.RECORDS.equals(query.getDataStore()) || query.getDataStore() == null) {
 			if (query.isMoreLikeThis()) {
@@ -492,7 +495,7 @@ public class SearchServices {
 			}
 		}
 		if (query.getFreeTextQuery() != null) {
-			String qf = getQfFor(languages, query.getFieldBoosts(), searchedSchemaTypes);
+			String qf = getQfFor(languages, query.getLanguage(), query.getFieldBoosts(), searchedSchemaTypes);
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
@@ -780,7 +783,7 @@ public class SearchServices {
 		return queryTerms.size();
 	}
 
-	private String getQfFor(List<String> languages, List<SearchBoost> boosts,
+	private String getQfFor(List<String> languages, String queryLanguage, List<SearchBoost> boosts,
 							List<MetadataSchemaType> searchedSchemaTypes) {
 		StringBuilder sb = new StringBuilder();
 
@@ -801,11 +804,21 @@ public class SearchServices {
 						sb.append(Schemas.LEGACY_ID.getDataStoreCode());
 						sb.append("^20 ");
 					} else {
-						for (String language : languages) {
-							String analyzedField = metadata.getAnalyzedField(language).getDataStoreCode();
+						if (metadata.getType() == MetadataValueType.CONTENT) {
+							for (String language : languages) {
+								String analyzedField = metadata.getAnalyzedField(language).getDataStoreCode();
+								if (!fields.contains(analyzedField)) {
+									sb.append(analyzedField + " ");
+									fields.add(analyzedField);
+								}
+							}
+						} else {
+							String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? queryLanguage : mainDataLanguage).getDataStoreCode();
 							if (!fields.contains(analyzedField)) {
 								sb.append(analyzedField + " ");
+								fields.add(analyzedField);
 							}
+
 						}
 					}
 				}
@@ -815,6 +828,7 @@ public class SearchServices {
 		String idAnalyzedField = Schemas.IDENTIFIER.getAnalyzedField(mainDataLanguage).getDataStoreCode();
 		if (!fields.contains(idAnalyzedField)) {
 			sb.append(idAnalyzedField + " ");
+			fields.add(idAnalyzedField);
 		}
 		return sb.toString();
 	}
