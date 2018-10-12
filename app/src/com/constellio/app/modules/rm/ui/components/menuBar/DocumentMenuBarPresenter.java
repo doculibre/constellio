@@ -1,12 +1,10 @@
 package com.constellio.app.modules.rm.ui.components.menuBar;
 
-import java.util.Map;
-
-import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.util.BatchNavUtil;
-import com.constellio.app.modules.rm.util.DecommissionNavUtil;
+import com.constellio.app.modules.rm.util.RMNavUtil;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -19,13 +17,19 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.services.schemas.SchemaUtils;
 
+import java.util.Map;
+
 public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<DocumentMenuBar> {
 
 	private DocumentMenuBar menuBar;
+	private RMModuleExtensions rmModuleExtensions;
 
 	public DocumentMenuBarPresenter(DocumentMenuBar menuBar) {
 		super(menuBar);
 		this.menuBar = menuBar;
+		rmModuleExtensions = menuBar.getConstellioFactories().getAppLayerFactory().getExtensions()
+				.forCollection(menuBar.getSessionContext().getCurrentCollection())
+				.forModule(ConstellioRMModule.ID);
 	}
 
 	@Override
@@ -54,19 +58,9 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 	public void displayDocumentButtonClicked() {
 		Map<String,String> params = ParamUtils.getCurrentParams();
 
-		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-		boolean isBatchIsPresent = BatchNavUtil.isBatchIdPresent(params);
-
-		if(areSearchTypeAndSearchIdPresent) {
-			menuBar.navigate().to(RMViews.class)
-					.displayDocumentFromDecommission(documentVO.getId(), DecommissionNavUtil.getHomeUri(actionsComponent.getConstellioFactories().getAppLayerFactory()),
-							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (isBatchIsPresent) {
-			menuBar.navigate().to(RMViews.class).displayDocumentFromBatchImport(documentVO.getId(), BatchNavUtil.getBatchId(params));
-
-		} else {
-			menuBar.navigate().to(RMViews.class).displayDocument(documentVO.getId());
-		}
+		RMNavUtil.navigateToDisplayDocumentAreTypeAndSearchIdPresent(documentVO.getId(),
+				params, menuBar.getConstellioFactories().getAppLayerFactory(),
+				menuBar.getSessionContext().getCurrentCollection());
 
 		updateSearchResultClicked();
 	}

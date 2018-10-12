@@ -1,7 +1,8 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
+import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
@@ -15,6 +16,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
@@ -22,9 +24,11 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentCont
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.util.BatchNavUtil;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
+import com.constellio.app.modules.rm.util.RMNavUtil;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -47,6 +51,7 @@ import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -80,7 +85,6 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQueryOper
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.security.AuthorizationsServices;
-
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -124,6 +128,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private transient ModelLayerCollectionExtensions extensions;
 	private transient RMModuleExtensions rmModuleExtensions;
 	private transient ConstellioEIMConfigs eimConfigs;
+	private String taxonomyCode;
 
 	Boolean allItemsSelected = false;
 
@@ -140,6 +145,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (recordVO != null) {
 			forParams(recordVO.getId());
 		}
+
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -159,6 +165,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+	}
+
+	protected void setTaxonomyCode(String taxonomyCode) {
+		this.taxonomyCode = taxonomyCode;
 	}
 
 	@Override
@@ -303,6 +313,47 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
+	public BaseBreadcrumbTrail getBreadCrumbTrail() {
+		String saveSearchDecommissioningId = null;
+		String searchTypeAsString = null;
+
+		Map<String, String> params = getParams();
+		if (params != null && params.get("decommissioningSearchId") != null) {
+			saveSearchDecommissioningId = params.get("decommissioningSearchId");
+			view.getUIContext()
+					.setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, saveSearchDecommissioningId);
+		}
+
+		if (params != null && params.get("decommissioningType") != null) {
+			searchTypeAsString = params.get("decommissioningType");
+			view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchTypeAsString);
+		}
+
+		SearchType searchType = null;
+		if (searchTypeAsString != null) {
+			searchType = SearchType.valueOf((searchTypeAsString));
+		}
+		BaseBreadcrumbTrail breadcrumbTrail;
+
+		RMModuleExtensions rmModuleExtensions = view.getConstellioFactories().getAppLayerFactory().getExtensions()
+				.forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
+		breadcrumbTrail = rmModuleExtensions
+				.getBreadCrumbtrail(new DocumentFolderBreadCrumbParams(getFolderId(), params, view));
+
+		if (breadcrumbTrail != null) {
+			return breadcrumbTrail;
+		} else if (saveSearchDecommissioningId == null) {
+			String containerId = null;
+			if (params != null && params instanceof Map) {
+				containerId = params.get("containerId");
+			}
+			return new FolderDocumentContainerBreadcrumbTrail(view.getRecord().getId(), taxonomyCode, containerId, this.view);
+		} else {
+			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()),
+					searchType, saveSearchDecommissioningId, view.getRecord().getId(), this.view);
+		}
+	}
+
 	public int getFolderContentCount() {
 		return subFoldersDataProvider.size() + documentsDataProvider.size();
 	}
@@ -439,8 +490,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	ComponentState getPrintButtonState(User user, Folder folder) {
 		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-		AppLayerCollectionExtensions appLayerCollectionExtensions = appLayerFactory.getExtensions().forCollection(collection);
-		RMModuleExtensions rmModuleExtensions = appLayerCollectionExtensions.forModule(ConstellioRMModule.ID);
 		if (authorizationsServices.canRead(user, folder.getWrappedRecord())) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
@@ -659,16 +708,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void editFolderButtonClicked() {
-		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-		if(areTypeAndSearchIdPresent) {
-			navigate().to(RMViews.class).editFolderFromDecommission(folderVO.getId(),
-					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (BatchNavUtil.isBatchIdPresent(params)) {
-			navigate().to(RMViews.class).editFolderFromBatchImport(folderVO.getId(), BatchNavUtil.getBatchId(params));
-		} else {
-			navigate().to(RMViews.class).editFolder(folderVO.getId());
-		}
+		RMNavUtil.navigateToEditDocumentAreTypeAndSearchPresent(folderVO.getId(), params, appLayerFactory, collection);
 	}
 
 	public void deleteFolderButtonClicked(String reason) {
@@ -705,8 +745,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (areTypeAndSearchIdPresent) {
 			navigate().to(RMViews.class).duplicateFolderFromDecommission(folderVO.getId(), isStructure,
 					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (BatchNavUtil.isBatchIdPresent(params)) {
-			navigate().to(RMViews.class).duplicateFolderFromBatchImport(folder.getId(), isStructure, BatchNavUtil.getBatchId(params));
+		} else if (rmModuleExtensions
+				.navigateToDuplicateFolderFromAPage(new NavigateToFromAPageParams(params, isStructure, folderVO.getId()))) {
 		} else {
 			navigate().to(RMViews.class).duplicateFolder(folder.getId(), isStructure);
 		}
@@ -741,17 +781,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void editDocumentButtonClicked(RecordVO recordVO) {
-		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-		if(areTypeAndSearchIdPresent) {
-			navigate().to(RMViews.class).editDocumentFromDecommission(recordVO.getId(),
-					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (BatchNavUtil.isBatchIdPresent(params)){
-			navigate().to(RMViews.class).editDocumentFromBatchImport(recordVO.getId(), BatchNavUtil.getBatchId(params));
-		} else
-		{
-			navigate().to(RMViews.class).editDocument(recordVO.getId());
-		}
+		RMNavUtil.navigateToEditDocumentAreTypeAndSearchPresent(recordVO.getId(), params, appLayerFactory, collection);
 
 	}
 
@@ -780,42 +810,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private void navigateToDocument(RecordVO recordVO) {
-		String containerId = null;
-
-		if(params instanceof Map) {
-			containerId = params.get("containerId");
-		}
-
-		if(containerId != null) {
-			navigate().to(RMViews.class).displayDocumentFromContainer(recordVO.getId(), containerId);
-		} else if (DecommissionNavUtil.areTypeAndSearchIdPresent(params)) {
-			ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
-			navigate().to(RMViews.class).displayDocumentFromDecommission(recordVO.getId(), configs.getConstellioUrl(),
-					false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		}else if (BatchNavUtil.isBatchIdPresent(params)){
-			navigate().to(RMViews.class).displayDocumentFromBatchImport(recordVO.getId(), BatchNavUtil.getBatchId(params));
-		}  else {
-			navigate().to(RMViews.class).displayDocument(recordVO.getId());
-		}
+		RMNavUtil.navigateToDisplayDocumentAreSearchTypeAndSearchIdOrContainerPresent(recordVO.getId(), params, appLayerFactory,
+				collection);
 	}
 
 	public void navigateToFolder(String folderId) {
-		String containerId = null;
-
-		if (params instanceof Map) {
-			containerId = params.get("containerId");
-		}
-		if (containerId != null) {
-			navigate().to(RMViews.class).displayFolderFromContainer(folderId, containerId);
-		} else if (DecommissionNavUtil.areTypeAndSearchIdPresent(params)) {
-
-			navigate().to(RMViews.class).displayFolderFromDecommission(folderId, DecommissionNavUtil.getHomeUri(appLayerFactory),
-					false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (BatchNavUtil.isBatchIdPresent(params)){
-			navigate().to(RMViews.class).displayFolderFromBatchImport(folderId, BatchNavUtil.getBatchId(params));
-		} else {
-			navigate().to(RMViews.class).displayFolder(folderId);
-		}
+		RMNavUtil.navigateToDisplayFolderAreSearchTypeSearchIdOrContainerPresent(folderId, params, appLayerFactory, collection);
 	}
 
 	public void taskClicked(RecordVO taskVO) {
@@ -1268,4 +1268,5 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				"termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
 		query.sortFirstOn(sortField);
 	}
+
 }

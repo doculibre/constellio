@@ -1,12 +1,12 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
-import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.util.BatchNavUtil;
-import com.constellio.app.modules.rm.util.DecommissionNavUtil;
+import com.constellio.app.modules.rm.util.RMNavUtil;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -55,6 +55,7 @@ public class DocumentContentVersionPresenter implements Serializable {
 	private transient AppLayerFactory appLayerFactory;
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
+	private RMModuleExtensions rmModuleExtensions;
 
 	private Map<String,String> params;
 
@@ -73,6 +74,9 @@ public class DocumentContentVersionPresenter implements Serializable {
 
 		boolean checkOutLinkVisible = isCheckOutLinkVisible();
 		window.setCheckOutLinkVisible(checkOutLinkVisible);
+
+		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(window.getSessionContext().getCurrentCollection())
+				.forModule(ConstellioRMModule.ID);
 
 		String readOnlyMessage;
 		if (!hasWritePermission()) {
@@ -144,20 +148,9 @@ public class DocumentContentVersionPresenter implements Serializable {
 	public void displayDocumentLinkClicked() {
 		window.closeWindow();
 		String documentId = documentVO.getId();
-		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-		boolean areBatchIdAndId = BatchNavUtil.isBatchIdPresent(params);
 
-		if(areTypeAndSearchIdPresent) {
-			window.navigate().to(RMViews.class).displayDocumentFromDecommission(documentId,
-					DecommissionNavUtil.getHomeUri(window.getConstellioFactories().getAppLayerFactory()), false,
-					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (areBatchIdAndId) {
-			window.navigate().to(RMViews.class).displayDocumentFromBatchImport(documentId,BatchNavUtil.getBatchId(params));
-		}
-		else
-		{
-			window.navigate().to(RMViews.class).displayDocument(documentId);
-		}
+		RMNavUtil.navigateToDisplayDocumentAreTypeAndSearchIdPresent(documentId, params, appLayerFactory,
+				window.getSessionContext().getCurrentCollection());
 
 		 updateSearchResultClicked();
 	}

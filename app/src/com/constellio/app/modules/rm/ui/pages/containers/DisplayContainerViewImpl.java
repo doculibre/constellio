@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
-import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.breadcrumb.ContainerByAdministrativeUnitBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
@@ -337,15 +336,12 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
 		String searchId = getUIContext().getAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
-		SearchType searchType = getUIContext().getAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
-		BaseBreadcrumbTrail breadcrumbTrail = null;
-
 
 		if(presenter.getAdministrativeUnitId() != null && presenter.getTabName() != null) {
 			return new ContainerByAdministrativeUnitBreadcrumbTrail(presenter.getContainerId(), presenter.getAdministrativeUnitId(), this, presenter.getTabName()) {
 				@Override
 				public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
-					return Arrays.asList(BreadcrumbTrailUtil.containterByUnitSector(presenter.getTabName()));
+					return Arrays.asList(BreadcrumbTrailUtil.containterByAdministrativeUnit(presenter.getTabName()));
 				}
 			};
 		}

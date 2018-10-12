@@ -1,10 +1,14 @@
 package com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb;
 
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.DocumentBreadcrumbItem;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.DocumentBreadCrumbItem;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderBreadCrumbItem;
 import com.constellio.app.ui.application.ConstellioUI;
-import com.constellio.app.ui.framework.components.breadcrumb.*;
+import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.UIContext;
 import com.constellio.app.ui.pages.base.UIContextProvider;
@@ -29,10 +33,10 @@ public class DecommissionBreadcrumbTrail extends TitleBreadcrumbTrail implements
 		String recordId;
 		if (item instanceof CollectionBreadcrumbItem) {
 			recordId = null;
-		} else if (item instanceof DecommissionBreadcrumbTrailPresenter.FolderBreadcrumbItem) {
-			recordId = ((DecommissionBreadcrumbTrailPresenter.FolderBreadcrumbItem) item).getFolderId();
-		} else if (item instanceof FolderDocumentBreadcrumbTrailPresenter.DocumentBreadcrumbItem) {
-			recordId = ((DocumentBreadcrumbItem) item).getDocumentId();
+		} else if (item instanceof FolderBreadCrumbItem) {
+			recordId = ((FolderBreadCrumbItem) item).getFolderId();
+		} else if (item instanceof DocumentBreadCrumbItem) {
+			recordId = ((DocumentBreadCrumbItem) item).getDocumentId();
 		} else if (item instanceof SearchResultsBreadcrumbItem) {
 			recordId = null;
 		} else if (item instanceof ViewGroupBreadcrumbItem) {

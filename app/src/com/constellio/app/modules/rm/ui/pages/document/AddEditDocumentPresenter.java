@@ -19,8 +19,7 @@ import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeF
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.util.BatchNavUtil;
-import com.constellio.app.modules.rm.util.DecommissionNavUtil;
+import com.constellio.app.modules.rm.util.RMNavUtil;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -306,34 +305,12 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	}
 
 	private void navigateToDocumentDisplay(String id) {
-		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-		if(areSearchTypeAndSearchIdPresent) {
-			view.navigate().to(RMViews.class)
-					.displayDocumentFromDecommission(id, DecommissionNavUtil.getHomeUri(appLayerFactory),
-							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (BatchNavUtil.isBatchIdPresent(params))
-		{
-			view.navigate().to(RMViews.class).displayDocumentFromBatchImport(id, BatchNavUtil.getBatchId(params));
-		} else {
-			view.navigate().to(RMViews.class).displayDocument(id);
-		}
+		RMNavUtil.navigateToDisplayDocumentAreTypeAndSearchIdPresent(id, params, appLayerFactory, view.getCollection());
 
 	}
 
 	private void navigateToFolderDisplay(String id) {
-		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-		if (areSearchTypeAndSearchIdPresent) {
-			view.navigate().to(RMViews.class)
-					.displayFolderFromDecommission(id, DecommissionNavUtil.getHomeUri(appLayerFactory),
-							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (BatchNavUtil.isBatchIdPresent(params))
-		{
-			view.navigate().to(RMViews.class).displayFolderFromBatchImport(id, BatchNavUtil.getBatchId(params));
-		} else {
-			view.navigate().to(RMViews.class).displayFolder(id);
-		}
+		RMNavUtil.navigateToDisplayFolderAreTypeAndSearchIdPresent(id, params, appLayerFactory, view.getCollection());
 	}
 
 	private void setAsNewVersionOfContent(Document document) {

@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.ui.components.breadcrumb;
 
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.*;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.ContainerBreadcrumbItem;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.TaxonomyBreadcrumbItem;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter.TaxonomyElementBreadcrumbItem;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
@@ -31,10 +33,10 @@ public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail
 	protected Button newButton(BreadcrumbItem item) {
 		Button button = super.newButton(item);
 		String recordId;
-		if (item instanceof FolderBreadcrumbItem) {
-			recordId = ((FolderBreadcrumbItem) item).getFolderId();
-		} else if (item instanceof DocumentBreadcrumbItem) {
-			recordId = ((DocumentBreadcrumbItem) item).getDocumentId();
+		if (item instanceof FolderBreadCrumbItem) {
+			recordId = ((FolderBreadCrumbItem) item).getFolderId();
+		} else if (item instanceof DocumentBreadCrumbItem) {
+			recordId = ((DocumentBreadCrumbItem) item).getDocumentId();
 		} else if (item instanceof TaxonomyElementBreadcrumbItem) {
 			recordId = ((TaxonomyElementBreadcrumbItem) item).getTaxonomyElementId();
 		} else if (item instanceof TaxonomyBreadcrumbItem) {

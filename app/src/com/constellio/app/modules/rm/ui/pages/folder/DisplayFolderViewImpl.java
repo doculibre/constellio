@@ -1,19 +1,12 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
-import com.constellio.app.modules.rm.ConstellioRMModule;
-import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
-import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
-import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
@@ -97,7 +90,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -142,6 +134,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		if (event != null) {
 			presenter.forParams(event.getParameters());
 		}
+	}
+
+	public String getTaxonomyCode() {
+		return taxonomyCode;
 	}
 
 	@Override
@@ -234,55 +230,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		String saveSearchDecommissioningId = null;
-		String searchTypeAsString = null;
-
-
-		if(presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
-			saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
-			getUIContext().setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, saveSearchDecommissioningId);
-		}
-
-		if(presenter.getParams() != null && presenter.getParams().get("decommissioningType") != null) {
-			searchTypeAsString = presenter.getParams().get("decommissioningType");
-			getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchTypeAsString);
-		}
-
-		SearchType searchType = null;
-		if(searchTypeAsString != null) {
-			searchType = SearchType.valueOf((searchTypeAsString));
-		}
-		BaseBreadcrumbTrail breadcrumbTrail;
-
-		RMModuleExtensions rmModuleExtensions = getConstellioFactories().getAppLayerFactory().getExtensions()
-				.forCollection(getCollection()).forModule(ConstellioRMModule.ID);
-		breadcrumbTrail = rmModuleExtensions
-				.getBreadCrumbtrail(new DocumentFolderBreadCrumbParams(presenter.getFolderId(), presenter.getParams(), this));
-
-
-		if (breadcrumbTrail != null) {
-			return breadcrumbTrail;
-		} else if(saveSearchDecommissioningId == null) {
-			String containerId = null;
-			if(presenter.getParams() != null && presenter.getParams() instanceof Map) {
-				containerId = presenter.getParams().get("containerId");
-			}
-			return new FolderDocumentContainerBreadcrumbTrail(recordVO.getId(), taxonomyCode, containerId, this);
-		} else {
-			return new DecommissionBreadcrumbTrail($( "DecommissioningBuilderView.viewTitle." + searchType.name()),
-					searchType, saveSearchDecommissioningId, recordVO.getId(), this);
-		}
+		return presenter.getBreadCrumbTrail();
 	}
 
-	//	@Override
-	//	protected ClickListener getBackButtonClickListener() {
-	//		return new ClickListener() {
-	//			@Override
-	//			public void buttonClick(ClickEvent event) {
-	//				presenter.backButtonClicked();
-	//			}
-	//		};
-	//	}
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
@@ -1107,6 +1057,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setTaxonomyCode(String taxonomyCode) {
+		this.presenter.setTaxonomyCode(taxonomyCode);
 		this.taxonomyCode = taxonomyCode;
 	}
 

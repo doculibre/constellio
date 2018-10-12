@@ -3,18 +3,15 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.DocumentBreadCrumbItem;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderBreadCrumbItem;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
-import com.constellio.app.ui.util.SchemaCaptionUtils;
-import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.schemas.SchemaUtils;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
@@ -94,25 +91,8 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 
 		int size = breadcrumbItems.size();
 
-		String currentRecordId = recordId;
-		while (currentRecordId != null) {
-			Record currentRecord = folderPresenterUtils.getRecord(currentRecordId);
-			String currentSchemaCode = currentRecord.getSchemaCode();
-			String currentSchemaTypeCode = SchemaUtils.getSchemaTypeCode(currentSchemaCode);
-			if (Folder.SCHEMA_TYPE.equals(currentSchemaTypeCode)) {
-				breadcrumbItems.add(size, new FolderBreadcrumbItem(currentRecordId));
-
-				Folder folder = rmSchemasRecordsServices.wrapFolder(currentRecord);
-				currentRecordId = folder.getParentFolder();
-			} else if (Document.SCHEMA_TYPE.equals(currentSchemaTypeCode)) {
-				breadcrumbItems.add(new FolderDocumentBreadcrumbTrailPresenter.DocumentBreadcrumbItem(currentRecordId));
-
-				Document document = rmSchemasRecordsServices.wrapDocument(currentRecord);
-				currentRecordId = document.getFolder();
-			} else {
-				throw new RuntimeException("Unrecognized schema type code : " + currentSchemaTypeCode);
-			}
-		}
+		breadcrumbItems.addAll(FolderDocumentBreadcrumbTrailPresenter.
+				getGetFolderDocumentBreadCrumbItems(recordId, size, folderPresenterUtils, rmSchemasRecordsServices));
 
 		for (BreadcrumbItem breadcrumbItem : breadcrumbItems) {
 			breadcrumbTrail.addItem(breadcrumbItem);
@@ -122,13 +102,9 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 	public boolean itemClicked(BreadcrumbItem item) {
 		boolean handled;
 
-
-		if (item instanceof DecommissionBreadcrumbTrailPresenter.FolderBreadcrumbItem) {
+		if (item instanceof FolderBreadCrumbItem) {
 			handled = true;
-			String folderId = ((DecommissionBreadcrumbTrailPresenter.FolderBreadcrumbItem) item).getFolderId();
-
-//			breadcrumbTrail.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType);
-//			breadcrumbTrail.getUIContext().setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, searchId);
+			String folderId = ((FolderBreadCrumbItem) item).getFolderId();
 
 			breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
 
@@ -140,15 +116,10 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 				breadcrumbTrail.navigate().to(RMViews.class).displayDocument(folderId);
 			}
 
-//			breadcrumbTrail.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
-//			breadcrumbTrail.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
-
-		} else if (item instanceof FolderDocumentBreadcrumbTrailPresenter.DocumentBreadcrumbItem) {
+		} else if (item instanceof DocumentBreadCrumbItem) {
 			handled = true;
-			String documentId = ((FolderDocumentBreadcrumbTrailPresenter.DocumentBreadcrumbItem) item).getDocumentId();
+			String documentId = ((DocumentBreadCrumbItem) item).getDocumentId();
 
-//			breadcrumbTrail.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType);
-//			breadcrumbTrail.getUIContext().setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, searchId);
 			if(searchId != null && searchType != null) {
 				breadcrumbTrail.navigate().to(RMViews.class).displayDocumentFromDecommission(documentId,
 						DecommissionNavUtil.getHomeUri(breadcrumbTrail.getConstellioFactories().getAppLayerFactory()), false,
@@ -157,8 +128,6 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 				breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
 			}
 
-//			breadcrumbTrail.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
-//			breadcrumbTrail.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 
 		} else if(item instanceof  DispositionListBreadcrumbItem) {
 			handled = true;
@@ -222,35 +191,4 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 		}
 	}
 
-	class FolderBreadcrumbItem implements BreadcrumbItem {
-
-		private String folderId;
-
-		FolderBreadcrumbItem(String folderId) {
-			this.folderId = folderId;
-		}
-
-		public final String getFolderId() {
-			return folderId;
-		}
-
-		@Override
-		public String getLabel() {
-			return SchemaCaptionUtils.getCaptionForRecordId(folderId);
-		}
-
-		@Override
-		public boolean isEnabled() {
-			boolean enabled;
-			if (folderId.equals(recordId)) {
-				enabled = false;
-			} else {
-				Record record = folderPresenterUtils.getRecord(folderId);
-				User user = folderPresenterUtils.getCurrentUser();
-				enabled = user.hasReadAccess().on(record);
-			}
-			return enabled;
-		}
-
-	}
 }

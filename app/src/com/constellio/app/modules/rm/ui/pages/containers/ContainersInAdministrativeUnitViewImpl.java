@@ -18,10 +18,10 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.VerticalLayout;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
 import java.util.Arrays;
 import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl implements ContainersInAdministrativeUnitView {
 
@@ -123,7 +123,7 @@ public class ContainersInAdministrativeUnitViewImpl extends BaseViewImpl impleme
 		return new ContainerByAdministrativeUnitBreadcrumbTrail(presenter.getAdministrativeUnitId(), null, this, presenter.getTabName()) {
 			@Override
 			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
-				return Arrays.asList(BreadcrumbTrailUtil.containterByUnitSector(presenter.getTabName()));
+				return Arrays.asList(BreadcrumbTrailUtil.containterByAdministrativeUnit(presenter.getTabName()));
 			}
 		};
 	}

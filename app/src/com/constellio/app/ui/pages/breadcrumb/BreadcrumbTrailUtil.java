@@ -7,7 +7,11 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.params.ParamUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -148,7 +152,7 @@ public class BreadcrumbTrailUtil {
 		};
 	}
 
-	public static IntermediateBreadCrumbTailItem containterByUnitSector(final String type) {
+	public static IntermediateBreadCrumbTailItem containterByAdministrativeUnit(final String type) {
 		return new IntermediateBreadCrumbTailItem() {
 			@Override
 			public String getTitle() {

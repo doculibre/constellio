@@ -34,7 +34,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.jgoodies.common.base.Strings;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,7 +131,7 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 			addOrUpdate(toRecord(record));
 			if(Strings.isNotBlank(tabName) && Strings.isNotBlank(administrativeUnitId)) {
 				view.navigate().to(RMViews.class)
-						.displayContainerFromContainerBySectorAndUnit(record.getId(), tabName, administrativeUnitId);
+						.displayContainerFromContainerByAdministrativeUnit(record.getId(), tabName, administrativeUnitId);
 			} else {
 				view.navigate().to(RMViews.class)
 						.displayContainer(record.getId());

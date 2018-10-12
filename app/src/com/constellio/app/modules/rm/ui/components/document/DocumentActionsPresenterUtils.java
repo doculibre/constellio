@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
+import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -12,8 +13,8 @@ import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingServ
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.util.BatchNavUtil;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
+import com.constellio.app.modules.rm.util.RMNavUtil;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -153,18 +154,9 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	public void editDocumentButtonClicked(Map<String, String> params) {
 		if (isEditDocumentPossible()) {
 
-			boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-			if(areTypeAndSearchIdPresent) {
-				actionsComponent.navigate().to(RMViews.class).editDocumentFromDecommission(documentVO.getId(),
-						DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-			} else if (BatchNavUtil.isBatchIdPresent(params)) {
-				actionsComponent.navigate().to(RMViews.class).editDocumentFromBatchImport(documentVO.getId(),
-						BatchNavUtil.getBatchId(params));
-			} else
-			{
-				actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
-			}
+			RMNavUtil.navigateToEditDocumentAreTypeAndSearchPresent(documentVO.getId(), params,
+					actionsComponent.getConstellioFactories().getAppLayerFactory(),
+					actionsComponent.getSessionContext().getCurrentCollection());
 
 			updateSearchResultClicked();
 		}
@@ -203,8 +195,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			if(areSearchTypeAndSearchIdPresent) {
 				actionsComponent.navigate().to(RMViews.class)
 						.addDocumentWithContentFromDecommission(documentVO.getId(), DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-			} else if(BatchNavUtil.isBatchIdPresent(params)) {
-				actionsComponent.navigate().to(RMViews.class).addDocumentWithContentFromBatchImport(documentVO.getId(), BatchNavUtil.getBatchId(params));
+			} else if (rmModuleExtensions
+					.navigateToAddDocumentWithContentFromAPage(new NavigateToFromAPageParams(params, documentVO.getId()))) {
 			} else {
 				actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
 			}
@@ -489,32 +481,15 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void navigateToDisplayDocument(String documentId, Map<String, String> params) {
-		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-		if(areSearchTypeAndSearchIdPresent) {
-			actionsComponent.navigate().to(RMViews.class)
-					.displayDocumentFromDecommission(documentId, DecommissionNavUtil.getHomeUri(actionsComponent.getConstellioFactories().getAppLayerFactory()),
-							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if(BatchNavUtil.isBatchIdPresent(params)) {
-			actionsComponent.navigate().to(RMViews.class).displayDocumentFromBatchImport(documentId, BatchNavUtil.getBatchId(params));
-		} else {
-			actionsComponent.navigate().to(RMViews.class).displayDocument(documentId);
-		}
+		RMNavUtil.navigateToDisplayDocumentAreTypeAndSearchIdPresent(documentId, params,
+				actionsComponent.getConstellioFactories().getAppLayerFactory(),
+				actionsComponent.getSessionContext().getCurrentCollection());
 	}
 
 	public void navigateToDisplayFolder(String folderId, Map<String, String> params) {
-		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-		if(areSearchTypeAndSearchIdPresent) {
-			actionsComponent.navigate().to(RMViews.class)
-					.displayFolderFromDecommission(
-							folderId, DecommissionNavUtil.getHomeUri(actionsComponent.getConstellioFactories().getAppLayerFactory()),
-							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if(BatchNavUtil.isBatchIdPresent(params)) {
-			actionsComponent.navigate().to(RMViews.class).displayFolderFromBatchImport(folderId, BatchNavUtil.getBatchId(params));
-		} else {
-			actionsComponent.navigate().to(RMViews.class).displayFolder(folderId);
-		}
+		RMNavUtil.navigateToDisplayFolderAreTypeAndSearchIdPresent(folderId, params,
+				actionsComponent.getConstellioFactories().getAppLayerFactory(),
+				actionsComponent.getSessionContext().getCurrentCollection());
 	}
 
 	public void checkInButtonClicked() {

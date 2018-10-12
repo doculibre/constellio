@@ -122,6 +122,7 @@ public class ContainersInAdministrativeUnitPresenter extends BasePresenter<Conta
 	}
 
 	public void displayContainerButtonClicked(RecordVO container) {
-		view.navigate().to(RMViews.class).displayContainerFromContainerBySectorAndUnit(container.getId(), tabName, adminUnitId);
+		view.navigate().to(RMViews.class)
+				.displayContainerFromContainerByAdministrativeUnit(container.getId(), tabName, adminUnitId);
 	}
 }

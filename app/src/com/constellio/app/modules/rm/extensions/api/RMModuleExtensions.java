@@ -1,7 +1,9 @@
 package com.constellio.app.modules.rm.extensions.api;
 
 import com.constellio.app.api.extensions.DocumentFolderBreadCrumbExtention;
+import com.constellio.app.api.extensions.NavigateToFromAPageImportExtension;
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
+import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.extensions.ModuleExtensions;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
@@ -25,6 +27,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<FolderExtension> folderExtensions;
 	private VaultBehaviorsList<AdvancedSearchPresenterExtension> advancedSearchPresenterExtensions;
 	private VaultBehaviorsList<DocumentFolderBreadCrumbExtention> documentBreadcrumExtentions;
+	private VaultBehaviorsList<NavigateToFromAPageImportExtension> navigateToFromAPageExtensions;
 
 	private ModelLayerExtensions modelLayerExtensions;
 
@@ -36,6 +39,7 @@ public class RMModuleExtensions implements ModuleExtensions {
 		folderExtensions = new VaultBehaviorsList<>();
 		advancedSearchPresenterExtensions = new VaultBehaviorsList<>();
 		this.documentBreadcrumExtentions = new VaultBehaviorsList<>();
+		this.navigateToFromAPageExtensions = new VaultBehaviorsList<>();
 		this.modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
 	}
 
@@ -54,6 +58,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 	public void setDecommissioningListFolderTableExtension(
 			DecommissioningListFolderTableExtension decommissioningListFolderTableExtension) {
 		this.decommissioningListFolderTableExtension = decommissioningListFolderTableExtension;
+	}
+
+	public VaultBehaviorsList<NavigateToFromAPageImportExtension> getNavigateToFromAPageExtensions() {
+		return this.navigateToFromAPageExtensions;
 	}
 
 	public VaultBehaviorsList<DecommissioningListPresenterExtension> getDecommissioningListPresenterExtensions() {
@@ -208,4 +216,63 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return breadcrumbTrail;
 	}
 
+	public boolean navigateToDisplayDocumentFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
+			if (navigateToFromAPageImportExtension.navigateToDisplayDocumentFromAPage(navigateToFromAPageParams)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean navigateToDisplayFolderFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
+			if (navigateToFromAPageImportExtension.navigateToDisplayFolderFromAPage(navigateToFromAPageParams)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean navigateToEditFolderFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
+			if (navigateToFromAPageImportExtension.navigateToEditFolderFromAPage(navigateToFromAPageParams)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean navigateToDuplicateFolderFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
+			if (navigateToFromAPageImportExtension.navigateToDuplicateFolderFromAPage(navigateToFromAPageParams)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean navigateToEditDocumentFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
+			if (navigateToFromAPageImportExtension.navigateToEditDocumentFromAPage(navigateToFromAPageParams)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean navigateToAddDocumentWithContentFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
+			if (navigateToFromAPageImportExtension.navigateToAddDocumentWithContentFromAPage(navigateToFromAPageParams)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }
