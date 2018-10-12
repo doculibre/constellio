@@ -30,6 +30,7 @@ import com.constellio.app.ui.framework.components.table.columns.TableColumnsMana
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
+import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
@@ -68,7 +69,7 @@ import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADA
 import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 import static java.util.Arrays.asList;
 
-public class DefaultCartView extends CartViewImpl {
+public class DefaultCartView extends BaseViewImpl implements CartView {
 	private final DefaultCartPresenter presenter;
 	private CartTabLayout folderLayout;
 	private CartTabLayout documentLayout;
@@ -243,8 +244,8 @@ public class DefaultCartView extends CartViewImpl {
 				super.buttonClick(event);
 			}
 		};
-		reportGeneratorButton.setEnabled(!presenter.cartHasRecords());
-		reportGeneratorButton.setVisible(!presenter.cartHasRecords());
+		reportGeneratorButton.setEnabled(presenter.cartHasRecords());
+		reportGeneratorButton.setVisible(presenter.cartHasRecords());
 		return reportGeneratorButton;
 	}
 
@@ -547,8 +548,8 @@ public class DefaultCartView extends CartViewImpl {
 				super.buttonClick(event);
 			}
 		};
-		siPbutton.setEnabled(!presenter.cartHasRecords());
-		siPbutton.setVisible(!presenter.cartHasRecords());
+		siPbutton.setEnabled(presenter.cartHasRecords());
+		siPbutton.setVisible(presenter.cartHasRecords());
 		return siPbutton;
 	}
 
@@ -569,8 +570,8 @@ public class DefaultCartView extends CartViewImpl {
 			}
 
 		};
-		consolidatedPdfButton.setEnabled(!presenter.cartHasRecords());
-		consolidatedPdfButton.setVisible(!presenter.cartHasRecords());
+		consolidatedPdfButton.setEnabled(presenter.cartHasRecords());
+		consolidatedPdfButton.setVisible(presenter.cartHasRecords());
 		return consolidatedPdfButton;
 	}
 

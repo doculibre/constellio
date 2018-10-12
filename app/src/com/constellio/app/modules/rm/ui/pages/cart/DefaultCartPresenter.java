@@ -47,7 +47,7 @@ public class DefaultCartPresenter extends CartPresenter {
 	private transient ModelLayerCollectionExtensions modelLayerExtensions;
 	private transient RMModuleExtensions rmModuleExtensions;
 
-	public DefaultCartPresenter(CartViewImpl view) {
+	public DefaultCartPresenter(DefaultCartView view) {
 		super(view);
 		modelLayerExtensions = modelLayerFactory.getExtensions().forCollection(view.getCollection());
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
