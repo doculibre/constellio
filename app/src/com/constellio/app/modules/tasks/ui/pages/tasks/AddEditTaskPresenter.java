@@ -214,6 +214,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					} else if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assigner())) {
 						Field<?> field = getAssignerField();
 						task.setAssigner((String) field.getValue());
+						if(task.getAssignedOn() == null) {
+							task.setAssignationDate(TimeProvider.getLocalDate());
+						}
 					}
 				}
 			}
