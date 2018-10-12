@@ -14,7 +14,11 @@ public class StarredButton extends Button {
 			public void buttonClick(ClickEvent event) {
 				isStarred = !isStarred;
 				updateIcon();
-				updateDefaultFavorites();
+				if (isStarred) {
+					addToDefaultFavorites();
+				} else {
+					removeFromDefaultFavorites();
+				}
 			}
 		});
 	}
@@ -32,6 +36,9 @@ public class StarredButton extends Button {
 		updateIcon();
 	}
 
-	public void updateDefaultFavorites() {
+	public void addToDefaultFavorites() {
+	}
+
+	public void removeFromDefaultFavorites() {
 	}
 }

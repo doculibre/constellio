@@ -336,4 +336,35 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		ContainerRecord record = rmRecordServices().getContainerRecord(containerId);
 		return getCurrentUser().hasWriteAccess().on(record);
 	}
+
+	public void addToDefaultFavorite() {
+		ContainerRecord containerRecord = getContainer(containerId);
+		containerRecord.addFavorite(getCurrentUser().getId());
+		try {
+			recordServices().update(containerRecord);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		view.showMessage($("DisplayContainerViewImpl.containerAddedToDefaultFavorites"));
+	}
+
+	public void removeFromDefaultFavorites() {
+		ContainerRecord containerRecord = getContainer(containerId);
+		containerRecord.removeFavorite(getCurrentUser().getId());
+		try {
+			recordServices().update(containerRecord);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		view.showMessage($("DisplayContainerViewImpl.containerRemovedFromDefaultFavorites"));
+	}
+
+	public boolean containerInDefaultFavorites() {
+		ContainerRecord container = getContainer(containerId);
+		return container.getFavoritesList().contains(getCurrentUser().getId());
+	}
+
+	private ContainerRecord getContainer(String containerId) {
+		return rmRecordServices().getContainerRecord(containerId);
+	}
 }

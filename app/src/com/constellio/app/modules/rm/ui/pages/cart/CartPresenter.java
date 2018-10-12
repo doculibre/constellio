@@ -258,7 +258,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		return cart;
 	}
 
-	private boolean cartHasRecords() {
+	public boolean cartHasRecords() {
 		return !cart().isEmpty();
 	}
 

@@ -13,6 +13,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Document extends RMObject {
@@ -361,5 +362,19 @@ public class Document extends RMObject {
 	public Document setFavoritesList(List<String> favoritesList) {
 		set(FAVORITES_LIST, favoritesList);
 		return this;
+	}
+
+	public void removeFavorite(String favoriteToDelete) {
+		List<String> favoritesList = new ArrayList<>();
+		favoritesList.addAll(getFavoritesList());
+		favoritesList.remove(favoriteToDelete);
+		setFavoritesList(favoritesList);
+	}
+
+	public void addFavorite(String favoriteToAdd) {
+		List<String> favoritesList = new ArrayList<>();
+		favoritesList.addAll(getFavoritesList());
+		favoritesList.add(favoriteToAdd);
+		setFavoritesList(favoritesList);
 	}
 }

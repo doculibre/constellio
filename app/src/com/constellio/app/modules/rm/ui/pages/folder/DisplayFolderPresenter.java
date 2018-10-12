@@ -1180,24 +1180,29 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void addToDefaultFavorite(RecordVO recordVO) {
-		Record record = getRecord(recordVO.getId());
-		Folder folder = rmSchemasRecordsServices.wrapFolder(record);
-		List<String> favoriteList = new ArrayList<>();
-		for (String favorite : folder.getFavoritesList()) {
-			favoriteList.add(favorite);
-		}
-		favoriteList.add(getCurrentUser().getId());
-		folder.setFavoritesList(favoriteList);
+		Folder folder = rmSchemasRecordsServices.wrapFolder(getRecord(recordVO.getId()));
+		folder.addFavorite(getCurrentUser().getId());
 		try {
 			recordServices.update(folder);
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 		}
+		view.showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
 	}
 
 	public boolean inDefaultFavorites(RecordVO recordVO) {
-		Record record = getRecord(recordVO.getId());
-		Folder folder = rmSchemasRecordsServices.wrapFolder(record);
+		Folder folder = rmSchemasRecordsServices.wrapFolder(getRecord(recordVO.getId()));
 		return folder.getFavoritesList().contains(getCurrentUser().getId());
+	}
+
+	public void removeFromDefaultFavorites(RecordVO recordVO) {
+		Folder folder = rmSchemasRecordsServices.wrapFolder(getRecord(recordVO.getId()));
+		folder.removeFavorite(getCurrentUser().getId());
+		try {
+			recordServices.update(folder);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		view.showMessage($("DisplayFolderViewImpl.folderRemovedFromDefaultFavorites"));
 	}
 }

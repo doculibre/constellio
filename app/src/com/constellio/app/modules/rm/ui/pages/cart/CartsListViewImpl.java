@@ -89,7 +89,8 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 			}
 		};
 		Table table = buildTable();
-		tabLayout.addComponents(addButton, buildDefaultFavorites(), table);
+		Table defaultFavoritesTable = buildDefaultFavorites();
+		tabLayout.addComponents(addButton, defaultFavoritesTable, table);
 		tabLayout.setExpandRatio(table, 1);
 		tabLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
 		return tabLayout;
@@ -140,10 +141,14 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 			}
 		};
 		Table table = new Table();
-		table.addContainerProperty("Titre", String.class, null);
-		table.addContainerProperty("", DisplayButton.class, null);
-		table.addItem(new Object[]{"Favoris par défaut", displayButton}, 0);
+		table.addContainerProperty($("title"), String.class, null);
+		table.addContainerProperty("display", DisplayButton.class, null);
+		table.addItem(new Object[]{$("CartView.defaultFavorites"), displayButton}, 0);
+		table.setColumnHeader("display", "");
+		table.setColumnWidth("display", 90);
 		table.setWidth("100%");
+		table.setPageLength(1);
+
 		return table;
 	}
 

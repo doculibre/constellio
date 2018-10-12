@@ -1,25 +1,35 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
+import com.constellio.app.api.extensions.params.AvailableActionsParam;
+import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
+import com.constellio.app.ui.framework.buttons.SIPButton.SIPButtonImpl;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ReportSelector;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.ReportViewer;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
+import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeComboBox;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.TableColumnsManager;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOWithDistinctSchemaTypesLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVOWithDistinctSchemasDataProvider;
-import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingButton;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyingOneMetadataButton;
@@ -39,13 +49,18 @@ import com.vaadin.server.Resource;
 import com.vaadin.server.StreamResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -53,7 +68,7 @@ import static com.constellio.model.entities.enums.BatchProcessingMode.ALL_METADA
 import static com.constellio.model.entities.enums.BatchProcessingMode.ONE_METADATA;
 import static java.util.Arrays.asList;
 
-public class DefaultCartView extends BaseViewImpl implements CartView {
+public class DefaultCartView extends CartViewImpl {
 	private final DefaultCartPresenter presenter;
 	private CartTabLayout folderLayout;
 	private CartTabLayout documentLayout;
@@ -94,12 +109,11 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 		buttons.add(buildFoldersLabelsButton());
 		buttons.add(buildContainersLabelsButton());
 		buttons.add(buildBatchDeleteButton());
-		//		buttons.add(buildEmptyButton());
-		//		buttons.add(buildShareButton());
-		//		buttons.add(buildDecommissionButton());
-		//		buttons.add(buildPrintMetadataReportButton());
-		//		buttons.add(buildCreateSIPArchivesButton());
-		//		buttons.add(buildConsolidatedPdfButton());
+		buttons.add(buildEmptyButton());
+		buttons.add(buildDecommissionButton());
+		buttons.add(buildPrintMetadataReportButton());
+		buttons.add(buildCreateSIPArchivesButton());
+		buttons.add(buildConsolidatedPdfButton());
 		return buttons;
 	}
 
@@ -175,146 +189,120 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 		return button;
 	}
 
-	//	private Button buildShareButton() {
-	//		return new WindowButton($("CartView.share"), $("CartView.shareWindow")) {
-	//			@Override
-	//			protected Component buildWindowContent() {
-	//				VerticalLayout layout = new VerticalLayout();
-	//				layout.setSpacing(true);
-	//
-	//				final ListAddRemoveRecordLookupFieldWithIgnoreOneRecord lookup = new ListAddRemoveRecordLookupFieldWithIgnoreOneRecord(User.SCHEMA_TYPE, getSessionContext().getCurrentUser().getId());
-	//				lookup.setValue(presenter.cart().getSharedWithUsers());
-	//
-	//				layout.addComponent(lookup);
-	//
-	//				BaseButton saveButton = new BaseButton($("save")) {
-	//					@Override
-	//					protected void buttonClick(ClickEvent event) {
-	//						presenter.shareWithUsersRequested(lookup.getValue());
-	//						getWindow().close();
-	//					}
-	//				};
-	//				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-	//				layout.addComponent(saveButton);
-	//				return layout;
-	//			}
-	//		};
-	//	}
+	private HorizontalLayout buildFolderFilterComponent() {
+		HorizontalLayout filterComponent = new HorizontalLayout();
+		filterComponent.setSpacing(true);
+		folderFilterField = new BaseTextField();
+		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.folderFilterButtonClicked();
+			}
+		};
+		filterComponent.addComponents(folderFilterField, filterButton);
+		return filterComponent;
+	}
 
-	//	private HorizontalLayout buildFolderFilterComponent() {
-	//		HorizontalLayout filterComponent = new HorizontalLayout();
-	//		filterComponent.setSpacing(true);
-	//		folderFilterField = new BaseTextField();
-	//		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
-	//			@Override
-	//			protected void buttonClick(ClickEvent event) {
-	//				presenter.folderFilterButtonClicked();
-	//			}
-	//		};
-	//		filterComponent.addComponents(folderFilterField, filterButton);
-	//		return filterComponent;
-	//	}
-	//
-	//	private HorizontalLayout buildDocumentFilterComponent() {
-	//		HorizontalLayout filterComponent = new HorizontalLayout();
-	//		filterComponent.setSpacing(true);
-	//		documentFilterField = new BaseTextField();
-	//		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
-	//			@Override
-	//			protected void buttonClick(ClickEvent event) {
-	//				presenter.documentFilterButtonClicked();
-	//			}
-	//		};
-	//		filterComponent.addComponents(documentFilterField, filterButton);
-	//		return filterComponent;
-	//	}
-	//
-	//	private HorizontalLayout buildContainerFilterComponent() {
-	//		HorizontalLayout filterComponent = new HorizontalLayout();
-	//		filterComponent.setSpacing(true);
-	//		containerFilterField = new BaseTextField();
-	//		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
-	//			@Override
-	//			protected void buttonClick(ClickEvent event) {
-	//				presenter.containerFilterButtonClicked();
-	//			}
-	//		};
-	//		filterComponent.addComponents(containerFilterField, filterButton);
-	//		return filterComponent;
-	//	}
+	private HorizontalLayout buildDocumentFilterComponent() {
+		HorizontalLayout filterComponent = new HorizontalLayout();
+		filterComponent.setSpacing(true);
+		documentFilterField = new BaseTextField();
+		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.documentFilterButtonClicked();
+			}
+		};
+		filterComponent.addComponents(documentFilterField, filterButton);
+		return filterComponent;
+	}
 
-	//	private Button buildPrintMetadataReportButton() {
-	//		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"),
-	//				this.getConstellioFactories().getAppLayerFactory(), getCollection(), false, false, this.presenter, getSessionContext()) {
-	//			@Override
-	//			public void buttonClick(ClickEvent event) {
-	//				List<RecordVO> allRecords = new ArrayList<>();
-	//				allRecords.addAll(presenter.getNotDeletedCartFoldersVO());
-	//				allRecords.addAll(presenter.getNotDeletedCartDocumentVO());
-	//				setRecordVoList(allRecords.toArray(new RecordVO[0]));
-	//				super.buttonClick(event);
-	//			}
-	//		};
-	//
-	//		return reportGeneratorButton;
-	//	}
+	private HorizontalLayout buildContainerFilterComponent() {
+		HorizontalLayout filterComponent = new HorizontalLayout();
+		filterComponent.setSpacing(true);
+		containerFilterField = new BaseTextField();
+		BaseButton filterButton = new BaseButton($("ConnectorReportView.filterButton")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.containerFilterButtonClicked();
+			}
+		};
+		filterComponent.addComponents(containerFilterField, filterButton);
+		return filterComponent;
+	}
 
-	//	private Button buildDecommissionButton() {
-	//		WindowButton windowButton = new WindowButton($("CartView.decommissioningList"), $("CartView.createDecommissioningList")) {
-	//
-	//			@Override
-	//			public void buttonClick(ClickEvent event) {
-	//				if (presenter.getCommonAdministrativeUnit(presenter.getCartFolders()) == null) {
-	//					showErrorMessage($("CartView.foldersFromDifferentAdminUnits"));
-	//				} else if (presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()).isEmpty()) {
-	//					showErrorMessage($("CartView.foldersShareNoCommonDecommisioningTypes"));
-	//				} else if (presenter.isAnyFolderBorrowed()) {
-	//					showErrorMessage($("CartView.aFolderIsBorrowed"));
-	//				} else if (presenter.isAnyFolderInDecommissioningList()) {
-	//					showErrorMessage($("CartView.aFolderIsInADecommissioningList"));
-	//				} else if (presenter.isDecommissioningActionPossible()) {
-	//					super.buttonClick(event);
-	//				}
-	//			}
-	//
-	//			@Override
-	//			protected Component buildWindowContent() {
-	//				VerticalLayout layout = new VerticalLayout();
-	//
-	//				final BaseTextField titleField = new BaseTextField($("title"));
-	//				layout.addComponent(titleField);
-	//
-	//				final EnumWithSmallCodeComboBox<DecommissioningListType> decomTypeField = new EnumWithSmallCodeComboBox<>(DecommissioningListType.class);
-	//				decomTypeField.removeAllItems();
-	//				decomTypeField.addItems(presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()));
-	//				decomTypeField.setCaption($("CartView.decommissioningTypeField"));
-	//				layout.addComponent(decomTypeField);
-	//
-	//				BaseButton saveButton = new BaseButton($("save")) {
-	//					@Override
-	//					protected void buttonClick(ClickEvent event) {
-	//						if (StringUtils.isBlank(titleField.getValue())) {
-	//							showErrorMessage($("CartView.decommissioningListIsMissingTitle"));
-	//							return;
-	//						}
-	//						if (decomTypeField.getValue() == null) {
-	//							showErrorMessage($("CartView.decommissioningListIsMissingType"));
-	//							return;
-	//						}
-	//						presenter.buildDecommissioningListRequested(titleField.getValue(), (DecommissioningListType) decomTypeField.getValue());
-	//						getWindow().close();
-	//					}
-	//				};
-	//				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-	//				layout.addComponent(saveButton);
-	//				layout.setSpacing(true);
-	//				return layout;
-	//			}
-	//		};
-	//		windowButton.setEnabled(!presenter.getCartFolders().isEmpty() && presenter.canCurrentUserBuildDecommissioningList());
-	//		windowButton.setVisible(!presenter.getCartFolders().isEmpty() && presenter.canCurrentUserBuildDecommissioningList());
-	//		return windowButton;
-	//	}
+	private Button buildPrintMetadataReportButton() {
+		ReportTabButton reportGeneratorButton = new ReportTabButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"),
+				this.getConstellioFactories().getAppLayerFactory(), getCollection(), false, false, this.presenter, getSessionContext()) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				List<RecordVO> allRecords = new ArrayList<>();
+				allRecords.addAll(presenter.getNotDeletedCartFoldersVO());
+				allRecords.addAll(presenter.getNotDeletedCartDocumentVO());
+				setRecordVoList(allRecords.toArray(new RecordVO[0]));
+				super.buttonClick(event);
+			}
+		};
+		reportGeneratorButton.setEnabled(!presenter.cartHasRecords());
+		reportGeneratorButton.setVisible(!presenter.cartHasRecords());
+		return reportGeneratorButton;
+	}
+
+	private Button buildDecommissionButton() {
+		WindowButton windowButton = new WindowButton($("CartView.decommissioningList"), $("CartView.createDecommissioningList")) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				if (presenter.getCommonAdministrativeUnit(presenter.getCartFolders()) == null) {
+					showErrorMessage($("CartView.foldersFromDifferentAdminUnits"));
+				} else if (presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()).isEmpty()) {
+					showErrorMessage($("CartView.foldersShareNoCommonDecommisioningTypes"));
+				} else if (presenter.isAnyFolderBorrowed()) {
+					showErrorMessage($("CartView.aFolderIsBorrowed"));
+				} else if (presenter.isAnyFolderInDecommissioningList()) {
+					showErrorMessage($("CartView.aFolderIsInADecommissioningList"));
+				} else if (presenter.isDecommissioningActionPossible()) {
+					super.buttonClick(event);
+				}
+			}
+
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout layout = new VerticalLayout();
+
+				final BaseTextField titleField = new BaseTextField($("title"));
+				layout.addComponent(titleField);
+
+				final EnumWithSmallCodeComboBox<DecommissioningListType> decomTypeField = new EnumWithSmallCodeComboBox<>(DecommissioningListType.class);
+				decomTypeField.removeAllItems();
+				decomTypeField.addItems(presenter.getCommonDecommissioningListTypes(presenter.getCartFolders()));
+				decomTypeField.setCaption($("CartView.decommissioningTypeField"));
+				layout.addComponent(decomTypeField);
+
+				BaseButton saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						if (StringUtils.isBlank(titleField.getValue())) {
+							showErrorMessage($("CartView.decommissioningListIsMissingTitle"));
+							return;
+						}
+						if (decomTypeField.getValue() == null) {
+							showErrorMessage($("CartView.decommissioningListIsMissingType"));
+							return;
+						}
+						presenter.buildDecommissioningListRequested(titleField.getValue(), (DecommissioningListType) decomTypeField.getValue());
+						getWindow().close();
+					}
+				};
+				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+				layout.addComponent(saveButton);
+				layout.setSpacing(true);
+				return layout;
+			}
+		};
+		windowButton.setEnabled(!presenter.getCartFolders().isEmpty() && presenter.canCurrentUserBuildDecommissioningList());
+		windowButton.setVisible(!presenter.getCartFolders().isEmpty() && presenter.canCurrentUserBuildDecommissioningList());
+		return windowButton;
+	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
@@ -322,15 +310,15 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 		folderTable = buildTable("CartView.folders", presenter.getFolderRecords());
 		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords());
 		containerTable = buildTable("CartView.containers", presenter.getContainerRecords());
-		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new CartTabLayout(folderTable));
+		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new CartTabLayout(buildFolderFilterComponent(), folderTable));
 		folderTab.setCaption($("CartView.foldersTab"));
 		folderLayout.setSchemaType(Folder.SCHEMA_TYPE);
 		folderTab.setVisible(!folderTable.getContainerDataSource().getItemIds().isEmpty());
-		TabSheet.Tab documentTab = tabSheet.addTab(documentLayout = new CartTabLayout(documentTable));
+		TabSheet.Tab documentTab = tabSheet.addTab(documentLayout = new CartTabLayout(buildDocumentFilterComponent(), documentTable));
 		documentTab.setCaption($("CartView.documentsTab"));
 		documentLayout.setSchemaType(Document.SCHEMA_TYPE);
 		documentTab.setVisible(!documentTable.getContainerDataSource().getItemIds().isEmpty());
-		TabSheet.Tab containerTab = tabSheet.addTab(containerLayout = new CartTabLayout(containerTable));
+		TabSheet.Tab containerTab = tabSheet.addTab(containerLayout = new CartTabLayout(buildContainerFilterComponent(), containerTable));
 		containerTab.setCaption($("CartView.containersTab"));
 		containerLayout.setSchemaType(ContainerRecord.SCHEMA_TYPE);
 		containerTab.setVisible(!containerTable.getContainerDataSource().getItemIds().isEmpty());
@@ -426,11 +414,11 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 	@Override
 	public void filterFolderTable() {
 		final RecordVOWithDistinctSchemasDataProvider dataProvider;
-		//		if (folderFilterField.isEmpty()) {
-		dataProvider = presenter.getFolderRecords();
-		//		} else {
-		//			dataProvider = presenter.getFilteredFolderRecords(folderFilterField.getValue());
-		//		}
+		if (folderFilterField.isEmpty()) {
+			dataProvider = presenter.getFolderRecords();
+		} else {
+			dataProvider = presenter.getFilteredFolderRecords(folderFilterField.getValue());
+		}
 		Table newTable = buildTable("CartView.folders", dataProvider);
 		folderLayout.replaceComponent(folderTable, newTable);
 		folderTable = newTable;
@@ -439,11 +427,11 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 	@Override
 	public void filterDocumentTable() {
 		final RecordVOWithDistinctSchemasDataProvider dataProvider;
-		//		if (documentFilterField.isEmpty()) {
-		dataProvider = presenter.getDocumentRecords();
-		//		} else {
-		//			dataProvider = presenter.getFilteredDocumentRecords(documentFilterField.getValue());
-		//		}
+		if (documentFilterField.isEmpty()) {
+			dataProvider = presenter.getDocumentRecords();
+		} else {
+			dataProvider = presenter.getFilteredDocumentRecords(documentFilterField.getValue());
+		}
 		Table newTable = buildTable("CartView.documents", dataProvider);
 		documentLayout.replaceComponent(documentTable, newTable);
 		documentTable = newTable;
@@ -452,11 +440,11 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 	@Override
 	public void filterContainerTable() {
 		final RecordVOWithDistinctSchemasDataProvider dataProvider;
-		//		if (containerFilterField.isEmpty()) {
-		dataProvider = presenter.getContainerRecords();
-		//		} else {
-		//			dataProvider = presenter.getFilteredContainerRecords(containerFilterField.getValue());
-		//		}
+		if (containerFilterField.isEmpty()) {
+			dataProvider = presenter.getContainerRecords();
+		} else {
+			dataProvider = presenter.getFilteredContainerRecords(containerFilterField.getValue());
+		}
 		Table newTable = buildTable("CartView.containers", dataProvider);
 		containerLayout.replaceComponent(containerTable, newTable);
 		containerTable = newTable;
@@ -495,8 +483,8 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 
 			@Override
 			protected String getConfirmDialogMessage() {
-				List<String> cartFolderIds = presenter.getFoldersIds();
-				List<String> cartDocumentIds = presenter.getDocumentsIds();
+				List<String> cartFolderIds = presenter.getCartFolderIds();
+				List<String> cartDocumentIds = presenter.getCartDocumentIds();
 
 				StringBuilder stringBuilder = new StringBuilder();
 				String prefix = "";
@@ -515,22 +503,22 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 		return button;
 	}
 
-	//	private Button buildEmptyButton() {
-	//		Button button = new ConfirmDialogButton($("CartView.empty")) {
-	//			@Override
-	//			protected String getConfirmDialogMessage() {
-	//				return $("CartView.emptyCartConfirmation");
-	//			}
-	//
-	//			@Override
-	//			protected void confirmButtonClick(ConfirmDialog dialog) {
-	//				presenter.cartEmptyingRequested();
-	//			}
-	//		};
-	//		button.setEnabled(presenter.canEmptyCart());
-	//		button.setVisible(presenter.canEmptyCart());
-	//		return button;
-	//	}
+	private Button buildEmptyButton() {
+		Button button = new ConfirmDialogButton($("CartView.empty")) {
+			@Override
+			protected String getConfirmDialogMessage() {
+				return $("CartView.emptyCartConfirmation");
+			}
+
+			@Override
+			protected void confirmButtonClick(ConfirmDialog dialog) {
+				presenter.cartEmptyingRequested();
+			}
+		};
+		button.setEnabled(presenter.canEmptyCart());
+		button.setVisible(presenter.canEmptyCart());
+		return button;
+	}
 
 	private Container buildContainer(final RecordVOWithDistinctSchemasDataProvider dataProvider) {
 		RecordVOWithDistinctSchemaTypesLazyContainer records = new RecordVOWithDistinctSchemaTypesLazyContainer(
@@ -551,36 +539,40 @@ public class DefaultCartView extends BaseViewImpl implements CartView {
 		return container;
 	}
 
-	//	private Button buildCreateSIPArchivesButton() {
-	//		SIPButtonImpl siPbutton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true) {
-	//			@Override
-	//			public void buttonClick(ClickEvent event) {
-	//				setAllObject(presenter.getNotDeletedCartFoldersVO().toArray(new FolderVO[0]));
-	//				super.buttonClick(event);
-	//			}
-	//		};
-	//		return siPbutton;
-	//	}
-	//
-	//	private Button buildConsolidatedPdfButton() {
-	//		Button consolidatedPdfButton = new ConsolidatedPdfButton() {
-	//			@Override
-	//			public void buttonClick(ClickEvent event) {
-	//				List<String> notDeletedDocumentIds = new ArrayList<>();
-	//				List<DocumentVO> notDeletedDocumentVOs = presenter.getNotDeletedCartDocumentVO();
-	//				for (DocumentVO documentVO : notDeletedDocumentVOs) {
-	//					notDeletedDocumentIds.add(documentVO.getId());
-	//				}
-	//				if (presenter.isPdfGenerationActionPossible(notDeletedDocumentIds)) {
-	//					AvailableActionsParam params = new AvailableActionsParam(notDeletedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
-	//					setParams(params);
-	//					super.buttonClick(event);
-	//				}
-	//			}
-	//
-	//		};
-	//		return consolidatedPdfButton;
-	//	}
+	private Button buildCreateSIPArchivesButton() {
+		SIPButtonImpl siPbutton = new SIPButtonImpl($("SIPButton.caption"), $("SIPButton.caption"), ConstellioUI.getCurrent().getHeader(), true) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				setAllObject(presenter.getNotDeletedCartFoldersVO().toArray(new FolderVO[0]));
+				super.buttonClick(event);
+			}
+		};
+		siPbutton.setEnabled(!presenter.cartHasRecords());
+		siPbutton.setVisible(!presenter.cartHasRecords());
+		return siPbutton;
+	}
+
+	private Button buildConsolidatedPdfButton() {
+		Button consolidatedPdfButton = new ConsolidatedPdfButton() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				List<String> notDeletedDocumentIds = new ArrayList<>();
+				List<DocumentVO> notDeletedDocumentVOs = presenter.getNotDeletedCartDocumentVO();
+				for (DocumentVO documentVO : notDeletedDocumentVOs) {
+					notDeletedDocumentIds.add(documentVO.getId());
+				}
+				if (presenter.isPdfGenerationActionPossible(notDeletedDocumentIds)) {
+					AvailableActionsParam params = new AvailableActionsParam(notDeletedDocumentIds, Arrays.asList(Document.SCHEMA_TYPE), null, null, null);
+					setParams(params);
+					super.buttonClick(event);
+				}
+			}
+
+		};
+		consolidatedPdfButton.setEnabled(!presenter.cartHasRecords());
+		consolidatedPdfButton.setVisible(!presenter.cartHasRecords());
+		return consolidatedPdfButton;
+	}
 
 	@Override
 	public String getCurrentSchemaType() {

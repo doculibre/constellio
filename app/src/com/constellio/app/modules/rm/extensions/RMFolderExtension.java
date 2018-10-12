@@ -11,7 +11,6 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
@@ -19,6 +18,7 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -102,10 +102,10 @@ public class RMFolderExtension extends RecordExtension {
 	private void deleteNonExistentFavoritesIds(Folder folder) {
 		List<String> oldFavoritesList = folder.getFavoritesList();
 		List<String> removedIds = new ArrayList<>();
+		RecordsCaches recordsCaches = modelLayerFactory.getRecordsCaches();
 		for (String cartId : oldFavoritesList) {
-			LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmSchema.cart.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(cartId));
-			if (searchServices.getResultsCount(logicalSearchQuery) == 0) {
-				//				removedIds.add(cartId);
+			if (recordsCaches.getRecord(cartId) == null) {
+				removedIds.add(cartId);
 			}
 		}
 		List<String> newFavoritesList = ListUtils.subtract(oldFavoritesList, removedIds);

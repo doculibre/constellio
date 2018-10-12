@@ -426,8 +426,13 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 											 && ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
 			StarredButton favoriteStar = new StarredButton() {
 				@Override
-				public void updateDefaultFavorites() {
+				public void addToDefaultFavorites() {
 					presenter.addToDefaultFavorite(recordVO);
+				}
+
+				@Override
+				public void removeFromDefaultFavorites() {
+					presenter.removeFromDefaultFavorites(recordVO);
 				}
 			};
 			favoriteStar.setStarred(presenter.inDefaultFavorites(recordVO));

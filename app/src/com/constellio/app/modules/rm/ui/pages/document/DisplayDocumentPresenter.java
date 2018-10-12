@@ -40,6 +40,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.StatusFilter;
@@ -64,6 +65,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
+	private transient RecordServices recordServices;
 
 	protected DocumentToVOBuilder voBuilder;
 	protected ContentVersionToVOBuilder contentVersionVOBuilder;
@@ -83,6 +85,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, boolean popup) {
 		super(view);
+		initTransientObjects();
 		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
 			@Override
 			public void updateActionsComponent() {
@@ -99,6 +102,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		if (recordVO != null) {
 			forParams(recordVO.getId());
 		}
+	}
+
+	private void initTransientObjects() {
+		recordServices = modelLayerFactory.newRecordServices();
 	}
 
 	@Override
@@ -503,5 +510,33 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		LogicalSearchQuerySort sortField = new FunctionLogicalSearchQuerySort(
 				"termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
 		query.sortFirstOn(sortField);
+	}
+
+	public void addToDefaultFavorite(DocumentVO documentVO) {
+		Document document = rm.wrapDocument(getRecord(documentVO.getId()));
+		document.addFavorite(getCurrentUser().getId());
+		try {
+			recordServices.update(document);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		view.showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
+	}
+
+	public void removeFromDefaultFavorites(DocumentVO documentVO) {
+		Document document = rm.wrapDocument(getRecord(documentVO.getId()));
+		document.removeFavorite(getCurrentUser().getId());
+		try {
+			recordServices.update(document);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+		view.showMessage($("DisplayDocumentView.documentRemovedFromDefaultFavorites"));
+	}
+
+	public boolean inDefaultFavorites(DocumentVO documentVO) {
+		Record record = getRecord(documentVO.getId());
+		Document document = rm.wrapDocument(record);
+		return document.getFavoritesList().contains(getCurrentUser().getId());
 	}
 }

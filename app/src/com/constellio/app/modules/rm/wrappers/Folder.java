@@ -850,13 +850,15 @@ public class Folder extends RMObject {
 
 	public void removeFavorite(String favoriteToDelete) {
 		List<String> favoritesList = new ArrayList<>();
-		if (getFavoritesList().contains(favoriteToDelete)) {
-			for (String favorite : getFavoritesList()) {
-				if (favorite != favoriteToDelete) {
-					favoritesList.add(favorite);
-				}
-			}
-		}
+		favoritesList.addAll(getFavoritesList());
+		favoritesList.remove(favoriteToDelete);
+		setFavoritesList(favoritesList);
+	}
+
+	public void addFavorite(String favoriteToAdd) {
+		List<String> favoritesList = new ArrayList<>();
+		favoritesList.addAll(getFavoritesList());
+		favoritesList.add(favoriteToAdd);
 		setFavoritesList(favoritesList);
 	}
 

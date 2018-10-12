@@ -277,7 +277,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				super.buttonClick(event);
 			}
 		};
-
+		reportGeneratorButton.setEnabled(presenter.cartHasRecords());
+		reportGeneratorButton.setVisible(presenter.cartHasRecords());
 		return reportGeneratorButton;
 	}
 
@@ -581,6 +582,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				super.buttonClick(event);
 			}
 		};
+		siPbutton.setEnabled(presenter.cartHasRecords());
+		siPbutton.setVisible(presenter.cartHasRecords());
 		return siPbutton;
 	}
 
@@ -601,6 +604,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 
 		};
+		consolidatedPdfButton.setEnabled(!presenter.cartHasRecords());
+		consolidatedPdfButton.setVisible(!presenter.cartHasRecords());
 		return consolidatedPdfButton;
 	}
 

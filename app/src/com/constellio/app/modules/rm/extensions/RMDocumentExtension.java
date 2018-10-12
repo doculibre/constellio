@@ -21,8 +21,9 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,8 +35,8 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 
 public class RMDocumentExtension extends RecordExtension {
+	private final ModelLayerFactory modelLayerFactory;
 	private final RMSchemasRecordsServices rmSchema;
-	private final SearchServices searchServices;
 
 	private static String OUTLOOK_MSG_MIMETYPE = "application/vnd.ms-outlook";
 
@@ -47,7 +48,7 @@ public class RMDocumentExtension extends RecordExtension {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		rmSchema = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
-		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		modelLayerFactory = appLayerFactory.getModelLayerFactory();
 	}
 
 	@Override
@@ -199,9 +200,9 @@ public class RMDocumentExtension extends RecordExtension {
 	private void deleteNonExistentFavoritesIds(Document document) {
 		List<String> oldFavoritesList = document.getFavoritesList();
 		List<String> removedIds = new ArrayList<>();
+		RecordsCaches recordsCaches = modelLayerFactory.getRecordsCaches();
 		for (String cartId : oldFavoritesList) {
-			LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmSchema.cart.schemaType()).where(Schemas.IDENTIFIER).isEqualTo(cartId));
-			if (searchServices.getResultsCount(logicalSearchQuery) == 0) {
+			if (recordsCaches.getRecord(cartId) == null) {
 				removedIds.add(cartId);
 			}
 		}
