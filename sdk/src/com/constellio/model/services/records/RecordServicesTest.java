@@ -15,6 +15,8 @@ import com.constellio.data.dao.services.bigVault.RecordDaoRuntimeException.Recor
 import com.constellio.data.dao.services.idGenerator.UniqueIdGenerator;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.dev.Toggle;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordMigrationScript;
@@ -315,6 +317,7 @@ public class RecordServicesTest extends ConstellioTest {
 		when(metadataSchema.getMetadata(anyString())).thenReturn(mock(Metadata.class));
 
 		when(recordsCaches.getCache(anyString())).thenReturn(recordsCache);
+		when(collectionsListManager.getCollectionInfo(zeCollection)).thenReturn(new CollectionInfo(zeCollection, "fr", asList("fr")));
 	}
 
 	@Test
@@ -1069,13 +1072,26 @@ public class RecordServicesTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenFlushingThenFlushInDao()
+	public void givenAdvancedSearchConfigsWhenFlushingThenFlushInDao()
 			throws Exception {
+		Toggle.ADVANCED_SEARCH_CONFIGS.enable();
 
 		recordServices.flush();
 
 		verify(recordDao).flush();
 		verify(eventsDao).flush();
+
+	}
+
+
+	@Test
+	public void givenNoAdvancedSearchConfigsWhenFlushingThenFlushInDao()
+			throws Exception {
+
+		recordServices.flush();
+
+		verify(recordDao).flush();
+		verify(eventsDao, never()).flush();
 
 	}
 
@@ -1092,7 +1108,7 @@ public class RecordServicesTest extends ConstellioTest {
 	@Test(expected = RecordServicesRuntimeException_RecordsFlushingFailed.class)
 	public void givenEventsDaoRuntimeExceptionWhenFlushingThenFlushInDao()
 			throws Exception {
-
+		Toggle.ADVANCED_SEARCH_CONFIGS.enable();
 		doThrow(RecordDaoRuntimeException_RecordsFlushingFailed.class).when(eventsDao).flush();
 
 		recordServices.flush();
