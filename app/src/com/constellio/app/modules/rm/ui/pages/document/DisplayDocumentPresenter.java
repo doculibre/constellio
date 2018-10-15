@@ -423,13 +423,13 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
+		document.addFavorite(cart.getId());
 		try {
-			cart.addDocuments(Arrays.asList(presenterUtils.getDocumentVO().getId()));
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			recordServices().update(document);
 			view.showMessage($("DocumentActionsComponent.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
-			throw new RuntimeException(e);
 		}
 	}
 

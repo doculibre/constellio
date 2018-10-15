@@ -154,14 +154,21 @@ public class DocumentActionsPresenterUtilsAcceptanceTest extends ConstellioTest 
 		transaction.add(documentWithoutContent.setTitle("withoutContent"));
 
 		cart = rm.getOrCreateUserCart(users.aliceIn(zeCollection));
-		transaction.add(cart.setDocuments(asList(document11WithContent1HavingTitle1.getId(),
-				document12WithContent1HavingTitle2.getId(),
-				document21WithContent2HavingTitle1.getId(),
-				document22WithContent2HavingTitle2.getId(),
-				documentWithoutContent.getId())));
-
+		List<Record> documents = asList(document11WithContent1HavingTitle1.getWrappedRecord(),
+				document12WithContent1HavingTitle2.getWrappedRecord(),
+				document21WithContent2HavingTitle1.getWrappedRecord(),
+				document22WithContent2HavingTitle2.getWrappedRecord(),
+				documentWithoutContent.getWrappedRecord());
+		addDocumentsToCart(cart, documents);
+		transaction.add(cart);
 		recordServices.execute(transaction);
+		recordServices.execute(new Transaction(documents));
+	}
 
+	private void addDocumentsToCart(Cart cart, List<Record> documents) {
+		for (Record record : documents) {
+			rm.wrapDocument(record).addFavorite(cart.getId());
+		}
 	}
 
 	private Content createContent(String resource, String title) {

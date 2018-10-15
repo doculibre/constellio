@@ -62,7 +62,6 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickListener;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -797,8 +796,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void addToCartRequested(RecordVO cartVO) {
-		Cart cart = rmSchemasRecordsServices.getCart(cartVO.getId()).addDocuments(Arrays.asList(documentVO.getId()));
+		Cart cart = rmSchemasRecordsServices.getCart(cartVO.getId());
+		Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
+		document.addFavorite(cart.getId());
 		presenterUtils.addOrUpdate(cart.getWrappedRecord());
+		presenterUtils.addOrUpdate(document.getWrappedRecord());
 		actionsComponent.showMessage($("DocumentActionsComponent.addedToCart"));
 	}
 

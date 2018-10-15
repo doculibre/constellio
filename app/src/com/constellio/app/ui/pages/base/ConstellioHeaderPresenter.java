@@ -714,29 +714,34 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		for (String record : recordIds) {
-			switch (recordServices.getDocumentById(record).getTypeCode()) {
+		List<Record> records = getRecords(recordIds);
+		for (Record record : records) {
+			switch (record.getTypeCode()) {
 				case Folder.SCHEMA_TYPE:
-					cart.addFolders(asList(record));
+					addFolderToCart(cart, record);
 					break;
 				case Document.SCHEMA_TYPE:
-					cart.addDocuments(asList(record));
+					addDocumentToCart(cart, record);
 					break;
 				case ContainerRecord.SCHEMA_TYPE:
-					cart.addContainers(asList(record));
+					addContainerToCart(cart, record);
 					break;
 			}
 		}
 
 		try {
 			modelLayerFactory.newRecordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			modelLayerFactory.newRecordServices().execute(new Transaction(records));
 			showMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
 			//			view.showMessage($("SearchView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
+	}
+
+	private List<Record> getRecords(List<String> recordIds) {
+		return modelLayerFactory.newRecordServices().getRecordsById(header.getCollection(), recordIds);
 	}
 
 	public RecordVODataProvider getOwnedCartsDataProvider() {
@@ -771,26 +776,42 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		// TODO: Create an extension for this
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
 		Cart cart = rm.getOrCreateCart(getCurrentUser(), cartVO.getId());
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
-		for (String record : recordIds) {
-			switch (recordServices.getDocumentById(record).getTypeCode()) {
+		List<Record> records = getRecords(recordIds);
+		for (Record record : records) {
+			switch (record.getTypeCode()) {
 				case Folder.SCHEMA_TYPE:
-					cart.addFolders(asList(record));
+					addFolderToCart(cart, record);
 					break;
 				case Document.SCHEMA_TYPE:
-					cart.addDocuments(asList(record));
+					addDocumentToCart(cart, record);
 					break;
 				case ContainerRecord.SCHEMA_TYPE:
-					cart.addContainers(asList(record));
+					addContainerToCart(cart, record);
 					break;
 			}
 		}
 		try {
 			modelLayerFactory.newRecordServices().add(cart);
+			modelLayerFactory.newRecordServices().execute(new Transaction(records));
 			showMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
 		} catch (RecordServicesException e) {
 			showMessage($(e));
 		}
+	}
+
+	private void addFolderToCart(Cart cart, Record record) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
+		rm.wrapFolder(record).addFavorite(cart.getId());
+	}
+
+	private void addDocumentToCart(Cart cart, Record record) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
+		rm.wrapDocument(record).addFavorite(cart.getId());
+	}
+
+	private void addContainerToCart(Cart cart, Record record) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
+		rm.wrapContainerRecord(record).addFavorite(cart.getId());
 	}
 
 	public void showMessage(String errorMessage) {

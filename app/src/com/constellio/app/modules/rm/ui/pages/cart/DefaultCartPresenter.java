@@ -114,7 +114,7 @@ public class DefaultCartPresenter extends CartPresenter {
 				List<String> documents = getCartDocumentIds();
 				return getNonDeletedRecordsIds(rm.getDocuments(documents), currentUser);
 			case ContainerRecord.SCHEMA_TYPE:
-				List<String> containers = getContainersIds();
+				List<String> containers = getCartContainersIds();
 				return getNonDeletedRecordsIds(rm.getContainerRecords(containers), currentUser);
 			default:
 				throw new RuntimeException("Unsupported type : " + schemaType);
@@ -137,7 +137,7 @@ public class DefaultCartPresenter extends CartPresenter {
 	}
 
 	public List<String> getCartDocumentIds() {
-		List<Document> documents = getDocuments();
+		List<Document> documents = getCartDocuments();
 		List<String> documentsIds = new ArrayList<>();
 		for (Document document : documents) {
 			documentsIds.add(document.getId());
@@ -145,14 +145,14 @@ public class DefaultCartPresenter extends CartPresenter {
 		return documentsIds;
 	}
 
-	private List<Document> getDocuments() {
+	private List<Document> getCartDocuments() {
 		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FAVORITES_LIST);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.document.schemaType()).where(metadata).isContaining(asList(getCurrentUser().getId())));
 		return rm.searchDocuments(logicalSearchQuery);
 	}
 
-	public List<String> getContainersIds() {
-		List<ContainerRecord> containers = getContainers();
+	public List<String> getCartContainersIds() {
+		List<ContainerRecord> containers = getCartContainers();
 		List<String> containersIds = new ArrayList<>();
 		for (ContainerRecord container : containers) {
 			containersIds.add(container.getId());
@@ -160,7 +160,7 @@ public class DefaultCartPresenter extends CartPresenter {
 		return containersIds;
 	}
 
-	private List<ContainerRecord> getContainers() {
+	private List<ContainerRecord> getCartContainers() {
 		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FAVORITES_LIST);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.containerRecord.schemaType()).where(metadata).isContaining(asList(getCurrentUser().getId())));
 		return rm.searchContainerRecords(logicalSearchQuery);
@@ -181,7 +181,7 @@ public class DefaultCartPresenter extends CartPresenter {
 			case Folder.SCHEMA_TYPE:
 				return getCartFolders().size() != 0;
 			case ContainerRecord.SCHEMA_TYPE:
-				return getContainers().size() != 0;
+				return getCartContainers().size() != 0;
 			default:
 				throw new RuntimeException("No labels for type : " + schemaType);
 		}
@@ -189,7 +189,7 @@ public class DefaultCartPresenter extends CartPresenter {
 
 	public boolean canPrepareEmail() {
 		// TODO: Maybe better test
-		return cartHasRecords() && getContainers().isEmpty();
+		return cartHasRecords() && getCartContainers().isEmpty();
 	}
 
 	public boolean canEmptyCart() {
@@ -236,7 +236,7 @@ public class DefaultCartPresenter extends CartPresenter {
 	}
 
 	private boolean cartHasOnlyFolders() {
-		return !getCartFolders().isEmpty() && getDocuments().isEmpty() && getContainers().isEmpty();
+		return !getCartFolders().isEmpty() && getCartDocuments().isEmpty() && getCartContainers().isEmpty();
 	}
 
 	private boolean canDuplicateFolders(User user) {
@@ -265,7 +265,7 @@ public class DefaultCartPresenter extends CartPresenter {
 	}
 
 	public boolean cartHasRecords() {
-		return !getCartFolderIds().isEmpty();
+		return !getCartFolderIds().isEmpty() || !getCartDocumentIds().isEmpty() || !getCartContainers().isEmpty();
 	}
 
 	public void displayRecordRequested(RecordVO recordVO) {
@@ -307,14 +307,14 @@ public class DefaultCartPresenter extends CartPresenter {
 			view.showErrorMessage($("CartView.cannotDelete"));
 			return;
 		}
-		for (Record record : recordServices().getRecordsById(view.getCollection(), getAllItems())) {
+		for (Record record : recordServices().getRecordsById(view.getCollection(), getAllCartItems())) {
 			if (modelLayerExtensions.isDeleteBlocked(record, getCurrentUser())) {
 				view.showErrorMessage($("CartView.actionBlockedByExtension"));
 				return;
 			}
 		}
 
-		for (Record record : recordServices().getRecordsById(view.getCollection(), getAllItems())) {
+		for (Record record : recordServices().getRecordsById(view.getCollection(), getAllCartItems())) {
 			delete(record, reason);
 		}
 		cartEmptyingRequested();
@@ -325,27 +325,27 @@ public class DefaultCartPresenter extends CartPresenter {
 			folder.removeFavorite(getCurrentUser().getId());
 			addOrUpdate(folder.getWrappedRecord());
 		}
-		for (Document document : getDocuments()) {
+		for (Document document : getCartDocuments()) {
 			document.removeFavorite(getCurrentUser().getId());
 			addOrUpdate(document.getWrappedRecord());
 		}
-		for (ContainerRecord container : getContainers()) {
+		for (ContainerRecord container : getCartContainers()) {
 			container.removeFavorite(getCurrentUser().getId());
 			addOrUpdate(container.getWrappedRecord());
 		}
 		view.navigate().to(RMViews.class).defaultCart();
 	}
 
-	public List<String> getAllItems() {
+	public List<String> getAllCartItems() {
 		List<String> result = new ArrayList<>();
 		result.addAll(getCartFolderIds());
 		result.addAll(getCartDocumentIds());
-		result.addAll(getContainersIds());
+		result.addAll(getCartContainersIds());
 		return result;
 	}
 
 	public boolean canDelete() {
-		return cartHasRecords() && getContainers().isEmpty()
+		return cartHasRecords() && getCartContainers().isEmpty()
 			   && canDeleteFolders(getCurrentUser()) && canDeleteDocuments(getCurrentUser());
 	}
 
@@ -372,7 +372,7 @@ public class DefaultCartPresenter extends CartPresenter {
 	}
 
 	private boolean canDeleteDocuments(User user) {
-		for (Document document : getDocuments()) {
+		for (Document document : getCartDocuments()) {
 			if (!user.hasDeleteAccess().on(document)) {
 				return false;
 			}
@@ -537,7 +537,7 @@ public class DefaultCartPresenter extends CartPresenter {
 	List<DocumentVO> getNotDeletedCartDocumentVO() {
 		DocumentToVOBuilder builder = new DocumentToVOBuilder(modelLayerFactory);
 		List<DocumentVO> documentVOS = new ArrayList<>();
-		for (Document document : this.getDocuments()) {
+		for (Document document : this.getCartDocuments()) {
 			if (!document.isLogicallyDeletedStatus()) {
 				documentVOS.add(builder.build(document.getWrappedRecord(), RecordVO.VIEW_MODE.DISPLAY, view.getSessionContext()));
 			}

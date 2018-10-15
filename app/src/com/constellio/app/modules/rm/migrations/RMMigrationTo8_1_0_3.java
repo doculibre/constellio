@@ -54,9 +54,9 @@ public class RMMigrationTo8_1_0_3 implements MigrationScript {
 
 			for (Record record : searchServices.search(query)) {
 				Cart cart = rm.wrapCart(record);
-				addToFavoritesList(cart.getFolders(), cart.getId());
-				addToFavoritesList(cart.getDocuments(), cart.getId());
-				addToFavoritesList(cart.getContainers(), cart.getId());
+				addToFavoritesList(cart.get("folders"), cart.getId());
+				addToFavoritesList(cart.get("documents"), cart.getId());
+				addToFavoritesList(cart.get("containers"), cart.getId());
 			}
 
 			modifyRecords(rm.folder.schemaType(), Folder.FAVORITES_LIST);
@@ -66,7 +66,9 @@ public class RMMigrationTo8_1_0_3 implements MigrationScript {
 		}
 
 		private void modifyRecords(final MetadataSchemaType metadataSchemaType, final String metadataCode) {
-			onCondition(from(metadataSchemaType).returnAll()).modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
+			ConditionnedActionExecutorInBatchBuilder conditionnedActionExecutorInBatchBuilder = onCondition(from(metadataSchemaType).returnAll());
+			conditionnedActionExecutorInBatchBuilder.setBatchSize(500);
+			conditionnedActionExecutorInBatchBuilder.modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
 				@Override
 				public void modifyRecord(Record record) {
 					Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record).getMetadata(metadataCode);
@@ -81,8 +83,8 @@ public class RMMigrationTo8_1_0_3 implements MigrationScript {
 			});
 		}
 
-		public void addToFavoritesList(List<String> records, String cartId) {
-			for (String recordId : records) {
+		public void addToFavoritesList(Object records, String cartId) {
+			for (String recordId : (List<String>) records) {
 				FAVORITES_LIST_MAP.add(recordId, cartId);
 			}
 		}

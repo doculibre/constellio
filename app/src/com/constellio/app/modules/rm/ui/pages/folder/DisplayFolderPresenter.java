@@ -976,9 +976,17 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void addToCartRequested(RecordVO recordVO) {
-		Cart cart = rmSchemasRecordsServices.getCart(recordVO.getId()).addFolders(Arrays.asList(folderVO.getId()));
-		addOrUpdate(cart.getWrappedRecord());
-		view.showMessage($("DisplayFolderView.addedToCart"));
+		Cart cart = rmSchemasRecordsServices.getCart(recordVO.getId());
+		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
+		folder.addFavorite(cart.getId());
+		try {
+			recordServices().update(folder);
+			addOrUpdate(cart.getWrappedRecord());
+			view.showMessage($("DisplayFolderView.addedToCart"));
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 
 	public RecordVODataProvider getOwnedCartsDataProvider() {
@@ -1024,11 +1032,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void createNewCartAndAddToItRequested(String title) {
 		Cart cart = rmSchemasRecordsServices.newCart();
+		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
 		try {
-			cart.addFolders(Arrays.asList(folderVO.getId()));
+			folder.addFavorite(cart.getId());
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			recordServices().add(folder);
 			view.showMessage($("DisplayFolderView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();

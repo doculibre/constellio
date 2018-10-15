@@ -6,10 +6,6 @@ import com.constellio.model.services.records.RecordValidatorParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 public class CartValidator implements RecordValidator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CartValidator.class);
@@ -25,27 +21,27 @@ public class CartValidator implements RecordValidator {
 	}
 
 	private void validate(Cart cart, RecordValidatorParams params) {
-		List<String> folders = cart.getFolders();
-		List<String> documents = cart.getDocuments();
-		List<String> containers = cart.getContainers();
-
-		if (folders != null && folders.size() > 1000) {
-			Map<String, Object> parameters = new HashMap<>();
-			parameters.put(NUMBER_OF_RECORDS, formatToParameter(folders.size()));
-			params.getValidationErrors().add(CartValidator.class, CART_CANNOT_CONTAIN_MORE_THAN_A_THOUSAND_FOLDERS, parameters);
-		}
-
-		if (documents != null && documents.size() > 1000) {
-			Map<String, Object> parameters = new HashMap<>();
-			parameters.put(NUMBER_OF_RECORDS, formatToParameter(documents.size()));
-			params.getValidationErrors().add(CartValidator.class, CART_CANNOT_CONTAIN_MORE_THAN_A_THOUSAND_DOCUMENTS, parameters);
-		}
-
-		if (containers != null && containers.size() > 1000) {
-			Map<String, Object> parameters = new HashMap<>();
-			parameters.put(NUMBER_OF_RECORDS, formatToParameter(containers.size()));
-			params.getValidationErrors().add(CartValidator.class, CART_CANNOT_CONTAIN_MORE_THAN_A_THOUSAND_CONTAINERS, parameters);
-		}
+		//		List<String> folders = cart.getFolders();
+		//		List<String> documents = cart.getDocuments();
+		//		List<String> containers = cart.getContainers();
+		//
+		//		if (folders != null && folders.size() > 1000) {
+		//			Map<String, Object> parameters = new HashMap<>();
+		//			parameters.put(NUMBER_OF_RECORDS, formatToParameter(folders.size()));
+		//			params.getValidationErrors().add(CartValidator.class, CART_CANNOT_CONTAIN_MORE_THAN_A_THOUSAND_FOLDERS, parameters);
+		//		}
+		//
+		//		if (documents != null && documents.size() > 1000) {
+		//			Map<String, Object> parameters = new HashMap<>();
+		//			parameters.put(NUMBER_OF_RECORDS, formatToParameter(documents.size()));
+		//			params.getValidationErrors().add(CartValidator.class, CART_CANNOT_CONTAIN_MORE_THAN_A_THOUSAND_DOCUMENTS, parameters);
+		//		}
+		//
+		//		if (containers != null && containers.size() > 1000) {
+		//			Map<String, Object> parameters = new HashMap<>();
+		//			parameters.put(NUMBER_OF_RECORDS, formatToParameter(containers.size()));
+		//			params.getValidationErrors().add(CartValidator.class, CART_CANNOT_CONTAIN_MORE_THAN_A_THOUSAND_CONTAINERS, parameters);
+		//		}
 	}
 
 	private String formatToParameter(Object parameter) {
