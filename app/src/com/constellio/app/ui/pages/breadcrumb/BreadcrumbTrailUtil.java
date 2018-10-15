@@ -54,6 +54,25 @@ public class BreadcrumbTrailUtil {
 		};
 	}
 
+	public static IntermediateBreadCrumbTailItem getArchiveManagementIntermediateBreadcrumb() {
+		return new IntermediateBreadCrumbTailItem() {
+			@Override
+			public boolean isEnabled() {
+				return true;
+			}
+
+			@Override
+			public String getTitle() {
+				return $("ViewGroup.ArchivesManagementViewGroup");
+			}
+
+			@Override
+			public void activate(Navigation navigate) {
+				navigate.to(RMViews.class).archiveManagement();
+			}
+		};
+	}
+
 	public static IntermediateBreadCrumbTailItem listSchemaIntermediateBreadcrumb(final String schemaCode) {
 
 		return new IntermediateBreadCrumbTailItem() {

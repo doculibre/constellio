@@ -347,8 +347,14 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		}
 
 		if(searchId == null) {
-			return new FolderDocumentContainerBreadcrumbTrail(null, null, presenter.getContainer().getId(), this);
+			return new FolderDocumentContainerBreadcrumbTrail(null, null, presenter.getContainer().getId(), this) {
+				@Override
+				public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+					return Arrays.asList(BreadcrumbTrailUtil.getArchiveManagementIntermediateBreadcrumb());
+				}
+			};
 		}
+
 
 		return null;
 	}

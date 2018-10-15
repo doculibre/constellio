@@ -336,24 +336,26 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 					if (isSpecialContainerTitleCase) {
 						ValidationErrors newValidationErrors = new ValidationErrors();
-						for (Iterator<ValidationError> it = validationErrorsFromException.getValidationErrors().iterator(); it
-								.hasNext(); ) {
-							ValidationError validationError = it.next();
-							if (validationError.getValidatorErrorCode().equals(REQUIRED_VALUE_FOR_METADATA)
-								&& validationError.getParameters().size() > 0
-								&& validationError.getParameters().get(METADATA_CODE)
+						if (validationErrorsFromException != null) {
+							for (Iterator<ValidationError> it = validationErrorsFromException.getValidationErrors().iterator(); it
+									.hasNext(); ) {
+								ValidationError validationError = it.next();
+								if (validationError.getValidatorErrorCode().equals(REQUIRED_VALUE_FOR_METADATA)
+										&& validationError.getParameters().size() > 0
+										&& validationError.getParameters().get(METADATA_CODE)
 										.equals(CONTAINER_RECORD_DEFAULT_TITLE)) {
-								Map<String, Object> params = new HashMap<String, Object>();
+									Map<String, Object> params = new HashMap<String, Object>();
 
-								ValidationError newValidationError = new ValidationError(validatorClass,
-										REQUIRED_VALUE_FOR_METADATA, params);
-								newValidationErrors.add(newValidationError, newValidationError.getParameters());
+									ValidationError newValidationError = new ValidationError(validatorClass,
+											REQUIRED_VALUE_FOR_METADATA, params);
+									newValidationErrors.add(newValidationError, newValidationError.getParameters());
 
-							} else {
-								newValidationErrors.add(validationError, validationError.getParameters());
+								} else {
+									newValidationErrors.add(validationError, validationError.getParameters());
+								}
 							}
+							validationErrorsFromException = newValidationErrors;
 						}
-						validationErrorsFromException = newValidationErrors;
 					}
 
 					if (validationErrorsFromException != null) {

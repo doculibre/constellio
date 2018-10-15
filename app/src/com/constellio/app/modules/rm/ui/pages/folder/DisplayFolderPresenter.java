@@ -708,7 +708,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void editFolderButtonClicked() {
-		RMNavUtil.navigateToEditDocumentAreTypeAndSearchPresent(folderVO.getId(), params, appLayerFactory, collection);
+		RMNavUtil.navigateToEditFolderAreTypeAndSearchIdPresent(folderVO.getId(), params, appLayerFactory, collection);
 	}
 
 	public void deleteFolderButtonClicked(String reason) {

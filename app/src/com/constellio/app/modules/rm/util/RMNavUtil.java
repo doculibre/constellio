@@ -50,6 +50,23 @@ public class RMNavUtil {
 		}
 	}
 
+	public static void navigateToEditFolderAreTypeAndSearchIdPresent(String id, Map<String, String> params,
+			AppLayerFactory appLayerFactory, String collection) {
+		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
+				.forModule(ConstellioRMModule.ID);
+
+		Navigation navigation = new Navigation();
+
+		if (areTypeAndSearchIdPresent) {
+			navigation.to(RMViews.class).editFolderFromDecommission(id,
+					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else if (rmModuleExtensions.navigateToEditFolderFromAPage(new NavigateToFromAPageParams(params, id))) {
+		} else {
+			navigation.to(RMViews.class).editFolder(id);
+		}
+	}
+
 	public static void navigateToDisplayDocumentAreTypeAndSearchIdPresent(String id, Map<String, String> params,
 			AppLayerFactory appLayerFactory, String collection) {
 		Navigation navigation = new Navigation();
@@ -71,7 +88,11 @@ public class RMNavUtil {
 
 	public static void navigateToDisplayDocumentAreSearchTypeAndSearchIdOrContainerPresent(String id, Map<String, String> params,
 			AppLayerFactory appLayerFactory, String collection) {
-		String containerId = params.get("containerId");
+		String containerId = null;
+
+		if (params != null) {
+			params.get("containerId");
+		}
 
 		Navigation navigation = new Navigation();
 		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)

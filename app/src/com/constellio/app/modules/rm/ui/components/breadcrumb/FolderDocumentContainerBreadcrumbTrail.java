@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBrea
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.SearchResultsBreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseView;
@@ -48,6 +49,8 @@ public class FolderDocumentContainerBreadcrumbTrail extends TitleBreadcrumbTrail
 		} else if(item instanceof ContainerBreadcrumbItem) {
 			recordId = ((ContainerBreadcrumbItem) item).getContainerId();
 		} else if (item instanceof ViewGroupBreadcrumbItem) {
+			recordId = null;
+		} else if (item instanceof IntermediateBreadCrumbTailItem) {
 			recordId = null;
 		} else {
 			throw new RuntimeException("Unrecognized breadcrumb item type : " + item.getClass());

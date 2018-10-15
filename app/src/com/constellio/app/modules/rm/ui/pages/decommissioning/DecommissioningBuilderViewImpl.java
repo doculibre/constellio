@@ -71,15 +71,19 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 				saveEventId = event.getSavedSearch().getId();
 				getUIContext().setAttribute(DECOMMISSIONING_BUILDER_TYPE, presenter.getSearchType().toString());
 				getUIContext().setAttribute(SAVE_SEARCH_DECOMMISSIONING, saveEventId);
-				Map<String,String> extraParameters = new HashMap<>();
-				extraParameters.put(DECOMMISSIONING_BUILDER_TYPE, presenter.getSearchType().toString());
-				extraParameters.put(SAVE_SEARCH_DECOMMISSIONING, saveEventId);
-
-				DecommissioningBuilderViewImpl.this.setExtraParameters(extraParameters);
+				setExtraParameters(presenter.getSearchType().toString(), saveEventId);
 			}
 		});
 
 		addStyleName("search-decommissioning");
+	}
+
+	public void setExtraParameters(String searchType, String saveEventId) {
+		Map<String, String> extraParameters = new HashMap<>();
+		extraParameters.put(DECOMMISSIONING_BUILDER_TYPE, searchType);
+		extraParameters.put(SAVE_SEARCH_DECOMMISSIONING, saveEventId);
+
+		DecommissioningBuilderViewImpl.this.setExtraParameters(extraParameters);
 	}
 
 	@Override

@@ -36,7 +36,6 @@ import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.jgoodies.common.base.Strings;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,12 +141,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public void editContainer() {
-		if(Strings.isNotBlank(tabName) && Strings.isNotBlank(administrativeUnitId)) {
-			view.navigate().to(RMViews.class)
-					.editContainerFromContainerByAdminsitrativeUnit(containerId, tabName, administrativeUnitId);
-		} else {
-			view.navigate().to(RMViews.class).editContainer(containerId);
-		}
+		view.navigate().to(RMViews.class).editContainer(containerId);
 	}
 
 	public ComponentState getEmptyButtonState() {
