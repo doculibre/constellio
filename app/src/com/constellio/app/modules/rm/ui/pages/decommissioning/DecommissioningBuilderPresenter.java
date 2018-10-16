@@ -96,7 +96,9 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				pageNumber = 1;
 			} else {
 				searchType = SearchType.valueOf(parts[0]);
-				setSavedSearch(getSavedSearch(saveSearchFromSession));
+				SavedSearch savedSearch = getSavedSearch(saveSearchFromSession);
+				setSavedSearch(savedSearch);
+				view.setExtraParameters(searchType.toString(), savedSearch.getId());
 				this.displayResults = true;
 			}
 		} else if (parts.length > 2) {
@@ -113,8 +115,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 			if(saveSearchFromSession != null) {
 				searchType = SearchType.valueOf(params);
-				setSavedSearch(getSavedSearch(saveSearchFromSession));
+				SavedSearch savedSearch = getSavedSearch(saveSearchFromSession);
+				setSavedSearch(savedSearch);
 				this.displayResults = true;
+				view.setExtraParameters(searchType.toString(), savedSearch.getId());
 			} else {
 				searchType = SearchType.valueOf(params);
 				view.setCriteriaSchemaType(getSchemaType());
@@ -201,7 +205,9 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		try {
 			buildSearchCondition();
 			resetFacetSelection();
+
 			view.refreshSearchResultsAndFacets();
+
 		} catch (ConditionException_EmptyCondition e) {
 			view.showErrorMessage($("AdvancedSearchView.emptyCondition"));
 		} catch (ConditionException_TooManyClosedParentheses e) {
@@ -456,6 +462,10 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		search.getWrappedRecord().markAsSaved(99, search.getSchema());
 		modelLayerFactory.getRecordsCaches().getCache(view.getCollection()).insert(search.getWrappedRecord(), WAS_MODIFIED);
 		//recordServices().update(search);
+
+		view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, search.getId());
+		view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType.toString());
+
 		if (refreshPage) {
 			view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
 		}

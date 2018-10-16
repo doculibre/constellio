@@ -346,7 +346,12 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			};
 		}
 
-		if(searchId == null) {
+		String regularSearchId = getUIContext().getAttribute(BaseBreadcrumbTrail.SEARCH_ID);
+		Boolean advancedSearch = getUIContext().getAttribute(BaseBreadcrumbTrail.ADVANCED_SEARCH);
+
+		if (searchId == null && regularSearchId != null && advancedSearch) {
+			return new FolderDocumentContainerBreadcrumbTrail(null, null, presenter.getContainer().getId(), this);
+		} else {
 			return new FolderDocumentContainerBreadcrumbTrail(null, null, presenter.getContainer().getId(), this) {
 				@Override
 				public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
@@ -354,8 +359,5 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				}
 			};
 		}
-
-
-		return null;
 	}
 }
