@@ -351,7 +351,6 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			negative.setId("negative");
 			negative.setNullSelectionAllowed(false);
 			negative.addItems(asList($(ENABLE), $(DISABLE)));
-			negative.setValue(negative.getItemIds().iterator().next());
 		}
 
 		protected void buildDateFields() {
@@ -457,16 +456,18 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 				primary = PRINCIPALS;
 			}
 			table.setColumnExpandRatio(primary, 1);
-			columnIds.addAll(asList(primary, START_DATE, END_DATE));
+			if (negativeAuthorizationConfigEnabled && seeAccessField) {
+				columnIds.add(POSITIVE_OR_NEGATIVE);
+			}
+			columnIds.add(primary);
 
 			if (seeAccessField) {
 				table.addGeneratedColumn(ACCESS, this);
 				table.setColumnHeader(ACCESS, $("AuthorizationsView.access"));
 				columnIds.add(ACCESS);
-				if (negativeAuthorizationConfigEnabled) {
-					columnIds.add(POSITIVE_OR_NEGATIVE);
-				}
 			}
+
+			columnIds.addAll(asList(START_DATE, END_DATE));
 
 			if (seeRolesField) {
 				table.addGeneratedColumn(USER_ROLES, this);
