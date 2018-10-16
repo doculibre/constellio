@@ -519,11 +519,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	void adjustMediumTypesField() {
-		if (new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isMediumTypeSynchronisationEnabled()) {
-			FolderFormImpl folderForm = (FolderFormImpl) view.getForm();
-			RecordOptionGroup recordOptionGroup = (RecordOptionGroup) folderForm.getField(Folder.MEDIUM_TYPES);
-			recordOptionGroup.setItemEnabled(mediumTypeService.getDigitalMediumType().getId(), false);
-		}
+		FolderFormImpl folderForm = (FolderFormImpl) view.getForm();
+		RecordOptionGroup recordOptionGroup = (RecordOptionGroup) folderForm.getField(Folder.MEDIUM_TYPES);
+		recordOptionGroup.setItemEnabled(mediumTypeService.getDigitalMediumType().getId(), false);
 	}
 
 	void adjustParentFolderField() {

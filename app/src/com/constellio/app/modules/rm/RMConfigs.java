@@ -76,8 +76,7 @@ public class RMConfigs {
 			LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS,
 			ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE,
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
-			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
-			MEDIUM_TYPES_SYNCHRONISATION_ENABLED;
+			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -270,10 +269,6 @@ public class RMConfigs {
 
 		add(STORAGE_SPACE_TITLE_CALCULATOR_ENABLED = others
 				.createBooleanTrueByDefault("enableStorageSpaceTitleCalculator")
-				.scriptedBy(EnableOrDisableStorageSpaceTitleCalculatorScript.class));
-
-		add(MEDIUM_TYPES_SYNCHRONISATION_ENABLED = others
-				.createBooleanFalseByDefault("enableAutomaticMediumTypeSynchronisation")
 				.scriptedBy(EnableOrDisableStorageSpaceTitleCalculatorScript.class));
 
 		add(DEFAULT_TAB_IN_FOLDER_DISPLAY = others.createString("defaultTabInFolderDisplay")
@@ -564,9 +559,5 @@ public class RMConfigs {
 
 	public boolean isDecommissioningTypeRequiredInContainers() {
 		return manager.getValue(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS);
-	}
-
-	public boolean isMediumTypeSynchronisationEnabled() {
-		return manager.getValue(MEDIUM_TYPES_SYNCHRONISATION_ENABLED);
 	}
 }

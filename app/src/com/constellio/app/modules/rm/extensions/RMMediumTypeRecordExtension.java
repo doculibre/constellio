@@ -1,21 +1,22 @@
-package com.constellio.app.modules.rm.extensions.app;
+package com.constellio.app.modules.rm.extensions;
 
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.mediumType.MediumTypeService;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
+import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordReindexationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import lombok.extern.slf4j.Slf4j;
@@ -26,24 +27,28 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.constellio.app.modules.rm.extensions.RMMediumTypeRecordExtension.EventType.CREATION;
+import static com.constellio.app.modules.rm.extensions.RMMediumTypeRecordExtension.EventType.LOGICAL_DELETION;
+import static com.constellio.app.modules.rm.extensions.RMMediumTypeRecordExtension.EventType.MODIFICATION;
+import static com.constellio.app.modules.rm.extensions.RMMediumTypeRecordExtension.EventType.MOVEMENT;
+import static com.constellio.app.modules.rm.extensions.RMMediumTypeRecordExtension.EventType.RESTORATION;
+import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static java.util.Collections.singletonList;
 
 @Slf4j
-public class RMRecordMediumTypeExtension extends RecordExtension {
+public class RMMediumTypeRecordExtension extends RecordExtension {
 
-	private ModelLayerFactory modelLayerFactory;
 	private RMSchemasRecordsServices rm;
 	private RecordServices recordServices;
 	private MediumTypeService mediumTypeService;
 
 	private MediumType digitalMediumType;
 
-	private enum EventType {
-		CREATION, MODIFICATION, LOGICAL_DELETION, RESTORATION
+	enum EventType {
+		CREATION, MODIFICATION, LOGICAL_DELETION, RESTORATION, MOVEMENT
 	}
 
-	public RMRecordMediumTypeExtension(String collection, AppLayerFactory appLayerFactory) {
-		modelLayerFactory = appLayerFactory.getModelLayerFactory();
+	public RMMediumTypeRecordExtension(String collection, AppLayerFactory appLayerFactory) {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 		mediumTypeService = new MediumTypeService(collection, appLayerFactory);
@@ -52,62 +57,57 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 	}
 
 	@Override
-	public void recordModified(RecordModificationEvent event) {
-		if (isSynchronisationDisabled()) {
-			return;
+	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		if (MediumType.SCHEMA_TYPE.equals(event.getSchemaTypeCode())
+			&& event.getRecord().get(CODE).equals("DM")) {
+			return ExtensionBooleanResult.FALSE;
 		}
+		return super.isLogicallyDeletable(event);
+	}
 
+	@Override
+	public void recordModified(RecordModificationEvent event) {
 		String schemaType = event.getSchemaTypeCode();
 		if (schemaType.equals(Folder.SCHEMA_TYPE)) {
 			if (event.hasModifiedMetadata(Folder.MEDIUM_TYPES) || event.hasModifiedMetadata(Folder.PARENT_FOLDER)) {
-				updateParentFolderMediumType(event.getRecord(), event.getOriginalRecord(), EventType.MODIFICATION);
+				EventType type = event.hasModifiedMetadata(Folder.PARENT_FOLDER) ? MOVEMENT : MODIFICATION;
+				updateParentFolderMediumType(event.getRecord(), event.getOriginalRecord(), type);
 			}
 		} else if (schemaType.equals(Document.SCHEMA_TYPE)) {
 			if (event.hasModifiedMetadata(Document.CONTENT) || event.hasModifiedMetadata(Document.FOLDER)) {
-				updateParentFolderMediumType(event.getRecord(), event.getOriginalRecord(), EventType.MODIFICATION);
+				EventType type = event.hasModifiedMetadata(Document.FOLDER) ? MOVEMENT : MODIFICATION;
+				updateParentFolderMediumType(event.getRecord(), event.getOriginalRecord(), type);
 			}
 		}
 	}
 
 	@Override
 	public void recordLogicallyDeleted(RecordLogicalDeletionEvent event) {
-		if (isSynchronisationDisabled()) {
-			return;
-		}
-
 		String schemaType = event.getSchemaTypeCode();
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE)) {
-			updateParentFolderMediumType(event.getRecord(), null, EventType.LOGICAL_DELETION);
+			updateParentFolderMediumType(event.getRecord(), null, LOGICAL_DELETION);
 		}
 	}
 
 	@Override
 	public void recordRestored(RecordRestorationEvent event) {
-		if (isSynchronisationDisabled()) {
-			return;
-		}
-
 		String schemaType = event.getSchemaTypeCode();
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE)) {
-			updateParentFolderMediumType(event.getRecord(), null, EventType.RESTORATION);
+			updateParentFolderMediumType(event.getRecord(), null, RESTORATION);
 		}
 	}
 
 	@Override
 	public void recordCreated(RecordCreationEvent event) {
-		if (isSynchronisationDisabled()) {
-			return;
-		}
-
 		String schemaType = event.getSchemaTypeCode();
 		if (schemaType.equals(Folder.SCHEMA_TYPE) || schemaType.equals(Document.SCHEMA_TYPE)) {
-			updateParentFolderMediumType(event.getRecord(), null, EventType.CREATION);
+			updateParentFolderMediumType(event.getRecord(), null, CREATION);
 		}
 	}
 
 	@Override
 	public void recordReindexed(RecordReindexationEvent event) {
-		if (isSynchronisationDisabled() || !event.getSchemaTypeCode().equals(Folder.SCHEMA_TYPE)) {
+		if (!event.getSchemaTypeCode().equals(Folder.SCHEMA_TYPE)) {
 			return;
 		}
 
@@ -121,18 +121,26 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 
 	private void updateParentFolderMediumType(Record record, Record originalRecord, EventType eventType) {
 		try {
-			String parentFolderId = getParentFolder(record);
-			if (parentFolderId == null) {
-				return;
+			Transaction transaction = new Transaction();
+
+			if (eventType.equals(MOVEMENT) && isMediumTypeRemoved(record, originalRecord, eventType)) {
+				markForReindexation(transaction, originalRecord.getParentId());
 			}
-			if (isMediumTypeAdded(record, eventType)) {
-				List<String> mediumTypes = getAddedMediumTypes(record, originalRecord);
-				if (!mediumTypes.isEmpty()) {
-					addMediumTypeToParentFolder(parentFolderId, mediumTypes);
+
+			String parentFolderId = getParentFolder(record);
+			if (parentFolderId != null) {
+				if (isMediumTypeAdded(record, eventType)) {
+					List<String> mediumTypes = getAddedMediumTypes(record, originalRecord, eventType);
+					if (!mediumTypes.isEmpty()) {
+						addMediumTypeToParentFolder(parentFolderId, mediumTypes);
+					}
+				} else if (isMediumTypeRemoved(record, originalRecord, eventType)) {
+					markForReindexation(transaction, parentFolderId);
 				}
-			} else if (isMediumTypeRemoved(record, originalRecord, eventType)) {
-				Folder folder = rm.getFolder(parentFolderId).set(Schemas.MARKED_FOR_REINDEXING, true);
-				recordServices.update(folder.getWrappedRecord());
+			}
+
+			if (!transaction.getRecords().isEmpty()) {
+				recordServices.execute(transaction);
 			}
 		} catch (RecordServicesException e) {
 			log.error("Failed to update parent folder's medium types", e);
@@ -153,10 +161,9 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 
 	private boolean isMediumTypeAdded(Record record, EventType eventType) {
 		if (isFolder(record)) {
-			return eventType.equals(EventType.CREATION) || eventType.equals(EventType.RESTORATION);
+			return eventType.equals(CREATION) || eventType.equals(RESTORATION) || eventType.equals(MOVEMENT);
 		} else {
-			if (eventType.equals(EventType.CREATION) || eventType.equals(EventType.MODIFICATION) ||
-				eventType.equals(EventType.RESTORATION)) {
+			if (!eventType.equals(LOGICAL_DELETION)) {
 				return isDigital(record);
 			} else {
 				return false;
@@ -166,11 +173,11 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 
 	private boolean isMediumTypeRemoved(Record record, Record originalRecord, EventType eventType) {
 		if (isFolder(record)) {
-			return eventType.equals(EventType.MODIFICATION) || eventType.equals(EventType.LOGICAL_DELETION);
+			return eventType.equals(MODIFICATION) || eventType.equals(LOGICAL_DELETION);
 		} else {
-			if (eventType.equals(EventType.MODIFICATION)) {
+			if (eventType.equals(MODIFICATION)) {
 				return !isDigital(record) && isDigital(originalRecord);
-			} else if (eventType.equals(EventType.LOGICAL_DELETION)) {
+			} else if (eventType.equals(LOGICAL_DELETION)) {
 				return isDigital(record);
 			} else {
 				return false;
@@ -178,9 +185,11 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 		}
 	}
 
-	private List<String> getAddedMediumTypes(Record record, Record originalRecord) {
+	private List<String> getAddedMediumTypes(Record record, Record originalRecord, EventType eventType) {
 		Set<String> mediumTypes = new HashSet<>(getCurrentMediumTypes(record));
-		mediumTypes.removeAll(getOriginalMediumTypes(originalRecord));
+		if (eventType.equals(MODIFICATION)) {
+			mediumTypes.removeAll(getOriginalMediumTypes(originalRecord));
+		}
 		return new ArrayList<>(mediumTypes);
 	}
 
@@ -213,8 +222,8 @@ public class RMRecordMediumTypeExtension extends RecordExtension {
 		return record.get(rm.document.content()) != null;
 	}
 
-	private boolean isSynchronisationDisabled() {
-		return !(new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isMediumTypeSynchronisationEnabled());
+	private void markForReindexation(Transaction transaction, String parentFolderId) {
+		Folder folder = rm.getFolder(parentFolderId).set(Schemas.MARKED_FOR_REINDEXING, true);
+		transaction.add(folder.getWrappedRecord());
 	}
-
 }
