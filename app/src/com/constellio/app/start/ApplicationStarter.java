@@ -1,8 +1,8 @@
 package com.constellio.app.start;
 
 import com.constellio.model.conf.FoldersLocator;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.http.HttpVersion;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -101,13 +101,17 @@ public class ApplicationStarter {
 		if (params.isSSL()) {
 			return getSslServer(params);
 		} else {
-			/*
-		    SocketConnector connector = new SocketConnector();
-			connector.setPort(params.getPort());
-			connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
-            */
-			Server server = new Server(params.getPort());
-			//server.setConnectors(new Connector[]{connector});
+			Server server = new Server();
+
+			HttpConfiguration http_config = new HttpConfiguration();
+			http_config.setOutputBufferSize(32768);
+			http_config.setRequestHeaderSize(REQUEST_HEADER_SIZE);
+
+			ServerConnector http = new ServerConnector(server, new HttpConnectionFactory(http_config));
+			http.setPort(params.getPort());
+			http.setIdleTimeout(30000);
+
+			server.setConnectors(new Connector[]{http});
 			return server;
 		}
 	}
@@ -154,11 +158,22 @@ public class ApplicationStarter {
 				"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"
 		);
 
-		//SslSocketConnector connector = new SslSocketConnector(sslContextFactory);
-		//connector.setPort(params.getPort());
-		//connector.setRequestHeaderSize(REQUEST_HEADER_SIZE);
+		HttpConfiguration https_config = new HttpConfiguration();
+		https_config.setOutputBufferSize(32768);
+		https_config.setRequestHeaderSize(REQUEST_HEADER_SIZE);
 
-		//sslServer.setConnectors(new Connector[]{connector});
+		SecureRequestCustomizer src = new SecureRequestCustomizer();
+		src.setStsMaxAge(2000);
+		src.setStsIncludeSubDomains(true);
+		https_config.addCustomizer(src);
+
+		ServerConnector https = new ServerConnector(server,
+				new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_2.asString()),
+				new HttpConnectionFactory(https_config));
+		https.setPort(params.getPort());
+		https.setIdleTimeout(500000);
+
+		sslServer.setConnectors(new Connector[]{https});
 
 		return sslServer;
 	}

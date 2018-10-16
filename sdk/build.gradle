@@ -1,4 +1,6 @@
-//apply plugin: 'org.sonarqube'
+plugins {
+  id "org.sonarqube" version "2.6.2" 
+} 
 
 dependencies {
     compile project(":constellio:data")
@@ -58,20 +60,17 @@ artifacts {
     testArtifacts jarTest
 }
 
-/*
 project.tasks["sonarqube"].dependsOn "build"
 
 sonarqube {
     properties {
         property "sonar.jacoco.reportPath", "$projectDir/build/jacoco/jacocoTest.exec"
         property "sonar.junit.reportsPath", "$projectDir/build/reports/"
-        property "sonar.projectName", "constellio"
-        property "sonar.projectKey", "constellio"
-        properties["sonar.sources"] = sourceSets.sonar.allJava
         property "sonar.tests", "$projectDir/src/"
-        property "sonar.host.url", "http://167.114.79.165:82"
-        property "sonar.login", "c118fd00dcba2ee386bc45fbdfb63ff71657e830"
+        property "sonar.sourceEncoding", "UTF-8"
+        properties["sonar.sources"] = sourceSets.sonar.allJava
         property "sonar.projectBaseDir", project(":constellio").projectDir.getAbsolutePath()
+        property "sonar.java.binaries", sourceSets.sonar.output.getDirs()
     }
 }
 
@@ -88,9 +87,10 @@ task buildSonarSourceset() {
 
     projectsList.each {
         project(it).sourceSets.main.allSource.srcDirs.each {
-            //sourceSets.sonar.allJava.srcDirs += it
+            sourceSets.sonar.allJava.srcDirs += it
+        }
+        project(it).sourceSets.main.output.classesDirs.each {
+            sourceSets.sonar.output.dir(it)
         }
     }
 }
-*/
-
