@@ -10,7 +10,6 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBrea
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
@@ -167,7 +166,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public List<LabelTemplate> getCustomTemplates() {
-		return view.getConstellioFactories().getAppLayerFactory().getLabelTemplateManager().listExtensionTemplates(ContainerRecord.SCHEMA_TYPE);
+		return view.getConstellioFactories().getAppLayerFactory().getLabelTemplateManager().listExtensionTemplates(Document.SCHEMA_TYPE);
 	}
 
 	public RecordVO getDocument() {
