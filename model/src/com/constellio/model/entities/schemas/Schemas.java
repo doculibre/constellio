@@ -150,27 +150,33 @@ Schemas {
 
 		String dataStoreCode = metadata.getDataStoreCode();
 
-		if (metadata.isMultivalue()) {
-			dataStoreCode = dataStoreCode.replace("_txt", "_txt_" + languageCode);
-			dataStoreCode = dataStoreCode.replace("_ss", "_txt_" + languageCode);
-			dataStoreCode = dataStoreCode.replace("_das", DATE_SEARCH_FIELD);
+		if(isValueTypeSearchable(metadata)) {
+			if (metadata.isMultivalue()) {
+				dataStoreCode = dataStoreCode.replace("_txt", "_txt_" + languageCode);
+				dataStoreCode = dataStoreCode.replace("_ss", "_txt_" + languageCode);
+				dataStoreCode = dataStoreCode.replace("_das", DATE_SEARCH_FIELD);
 
-		} else if (metadata.getLocalCode().equals("id")) {
-			dataStoreCode = "id_txt_" + languageCode;
+			} else if (metadata.getLocalCode().equals("id")) {
+				dataStoreCode = "id_txt_" + languageCode;
 
-		} else {
-			dataStoreCode = dataStoreCode.replace("_t", "_t_" + languageCode);
-			if (metadata.getType() == MetadataValueType.CONTENT) {
-				dataStoreCode = dataStoreCode.replace("_s", "_txt_" + languageCode);
 			} else {
-				dataStoreCode = dataStoreCode.replace("_s", "_t_" + languageCode);
-				dataStoreCode = dataStoreCode.replace("_da", DATE_SEARCH_FIELD);
+				dataStoreCode = dataStoreCode.replace("_t", "_t_" + languageCode);
+				if (metadata.getType() == MetadataValueType.CONTENT) {
+					dataStoreCode = dataStoreCode.replace("_s", "_txt_" + languageCode);
+				} else {
+					dataStoreCode = dataStoreCode.replace("_s", "_t_" + languageCode);
+					dataStoreCode = dataStoreCode.replace("_da", DATE_SEARCH_FIELD);
+				}
 			}
 		}
 
 		String schemaCode = metadata.getCode().replace("_" + metadata.getLocalCode(), "");
 		return new Metadata(schemaCode, dataStoreCode, TEXT, metadata.isMultivalue(),
 				metadata.isMultiLingual());
+	}
+
+	public static boolean isValueTypeSearchable(Metadata metadata) {
+		return metadata.getType() != MetadataValueType.ENUM;
 	}
 
 	public static Metadata getSecondaryLanguageMetadata(Metadata metadata, String language) {
