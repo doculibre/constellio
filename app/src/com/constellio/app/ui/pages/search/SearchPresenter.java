@@ -161,6 +161,10 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	}
 
+	private void isFacetVisisble(Facet facet) {
+
+	}
+
 	private void initSortParameters() {
 		SearchSortType searchSortType = modelLayerFactory.getSystemConfigs().getSearchSortType();
 		switch (searchSortType) {
@@ -746,7 +750,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			}
 		} else {
 			for (Metadata metadata : schemaType.getAllMetadatas()) {
-				metadataCodes.add(metadata.getCode());
+				if(getCurrentUser().hasGlobalAccessToMetadata(metadata)) {
+					metadataCodes.add(metadata.getCode());
+				}
 			}
 		}
 

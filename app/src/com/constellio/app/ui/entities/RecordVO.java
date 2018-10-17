@@ -172,10 +172,14 @@ public class RecordVO implements Serializable {
 			searchMetadataCodes = getMetadataCodes();
 		}
 		for (String tableMetadataCode : searchMetadataCodes) {
-			MetadataVO metadataVO = getMetadata(tableMetadataCode);
-			MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
-			if (metadataValueVO != null) {
-				searchMetadataValues.add(metadataValueVO);
+			try {
+				MetadataVO metadataVO = getMetadata(tableMetadataCode);
+				MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
+				if (metadataValueVO != null) {
+					searchMetadataValues.add(metadataValueVO);
+				}
+			} catch (RecordVORuntimeException_NoSuchMetadata e) {
+
 			}
 		}
 		return searchMetadataValues;

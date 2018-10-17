@@ -202,6 +202,10 @@ public class SearchResultDisplay extends VerticalLayout {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setSpacing(true);
 		for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
+			if(!recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
+				continue;
+			}
+
 			MetadataVO metadataVO = metadataValue.getMetadata();
 			if (metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
 				continue;

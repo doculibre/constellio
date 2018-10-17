@@ -13,10 +13,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.constellio.app.api.extensions.params.MetadataThatDontSupportRoleAccessParams;
 import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import com.constellio.app.api.extensions.MetadataThatDontSupportRoleAccessRetParam;
+import com.constellio.app.api.extensions.MetadataThatDontSupportRoleAccessRetValue;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -104,15 +105,17 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		if(Strings.isNotBlank(metadataCode)) {
 			metadataLocalCode = metadataCode.split("_")[2];
 		}
-		List<MetadataThatDontSupportRoleAccessRetParam> metadataThatDontSupportRoleAccessRetParamList = view.getConstellioFactories().getAppLayerFactory()
-				.getExtensions().forCollection(view.getCollection()).getMetadataThatDontSupportRoleAccessExtension();
+		List<MetadataThatDontSupportRoleAccessRetValue> metadataThatDontSupportRoleAccessRetValueList = view.getConstellioFactories().getAppLayerFactory()
+				.getExtensions().forCollection(view.getCollection()).getMetadataThatDontSupportRoleAccessExtension(new MetadataThatDontSupportRoleAccessParams(getSchemaCode()));
 
 
 
-		for(MetadataThatDontSupportRoleAccessRetParam currentMetadataThatDontSupportRoleAccessRetParam: metadataThatDontSupportRoleAccessRetParamList) {
-			if(currentMetadataThatDontSupportRoleAccessRetParam.getMetadataCode().equals(metadataLocalCode)
-					&& (currentMetadataThatDontSupportRoleAccessRetParam.getMetadataSchemaType() == null || currentMetadataThatDontSupportRoleAccessRetParam.getMetadataSchemaType().equals(schemaType))
-					&& (currentMetadataThatDontSupportRoleAccessRetParam.getMetadataSchema() == null || currentMetadataThatDontSupportRoleAccessRetParam.getMetadataSchema().equals(schema))) {
+		for(MetadataThatDontSupportRoleAccessRetValue currentMetadataThatDontSupportRoleAccessRetValue : metadataThatDontSupportRoleAccessRetValueList) {
+			if(currentMetadataThatDontSupportRoleAccessRetValue.getMetadataCode().equals(metadataLocalCode)
+					&& (currentMetadataThatDontSupportRoleAccessRetValue.getMetadataSchemaType() == null || currentMetadataThatDontSupportRoleAccessRetValue
+					.getMetadataSchemaType().equals(schemaType))
+					&& (currentMetadataThatDontSupportRoleAccessRetValue.getMetadataSchema() == null || currentMetadataThatDontSupportRoleAccessRetValue
+					.getMetadataSchema().equals(schema))) {
 				return false;
 			}
 		}

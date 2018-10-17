@@ -1,11 +1,11 @@
 package com.constellio.app.api.extensions;
 
-public class MetadataThatDontSupportRoleAccessRetParam {
+public class MetadataThatDontSupportRoleAccessRetValue {
 	private String metadataSchemaType;
 	private String metadataSchema;
 	private String metadataCode;
 
-	public MetadataThatDontSupportRoleAccessRetParam(String metadataSchemaType, String metadataSchema, String metadataCode) {
+	public MetadataThatDontSupportRoleAccessRetValue(String metadataSchemaType, String metadataSchema, String metadataCode) {
 		this.metadataSchemaType = metadataSchemaType;
 		this.metadataSchema = metadataSchema;
 		this.metadataCode = metadataCode;

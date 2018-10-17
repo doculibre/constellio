@@ -3,5 +3,5 @@ package com.constellio.app.api.extensions;
 import java.util.List;
 
 public interface MetadataThatDontSupportRoleAccessExtension {
-	List<MetadataThatDontSupportRoleAccessRetParam> getMetadataThatDontSupportRoleAccess();
+	List<MetadataThatDontSupportRoleAccessRetValue> getMetadataThatDontSupportRoleAccess();
 }

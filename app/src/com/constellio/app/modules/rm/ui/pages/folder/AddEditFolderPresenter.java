@@ -420,7 +420,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	String getTypeFieldValue() {
-		return (String) view.getForm().getCustomField(Folder.TYPE).getFieldValue();
+		CustomFolderField field = view.getForm().getCustomField(Folder.TYPE);
+		if(field == null) {
+			return "";
+		}
+		return (String) field.getFieldValue();
 	}
 
 	private Metadata getNotEnteredMetadata(String metadataCode) {
@@ -605,7 +609,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		FolderUniformSubdivisionField uniformSubdivisionField = (FolderUniformSubdivisionField) view.getForm().getCustomField(
 				Folder.UNIFORM_SUBDIVISION_ENTERED);
 
-		if (retentionRuleField != null) {
+		if (retentionRuleField != null && uniformSubdivisionField != null && categoryField != null) {
 			if (folderVO.getParentFolder() != null) {
 				setFieldVisible(retentionRuleField, false, Folder.RETENTION_RULE_ENTERED);
 			} else {
@@ -642,6 +646,16 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 					if (retentionRuleField.isVisible()) {
 						setFieldVisible(retentionRuleField, false, Folder.RETENTION_RULE_ENTERED);
 					}
+				}
+			}
+		} else {
+			if (categoryField == null) {
+				if (retentionRuleField != null) {
+					retentionRuleField.setVisible(false);
+				}
+
+				if(uniformSubdivisionField != null) {
+					uniformSubdivisionField.setRequired(false);
 				}
 			}
 		}
@@ -741,8 +755,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustActualTransferDateField(CustomFolderField<?> changedCustomField) {
 		FolderActualTransferDateField actualTransferDateField = (FolderActualTransferDateField) view.getForm().getCustomField(
 				Folder.ACTUAL_TRANSFER_DATE);
-		customContainerDependencyFields.put(actualTransferDateField, actualTransferDateField.getFieldValue());
+
 		if (actualTransferDateField != null) {
+			customContainerDependencyFields.put(actualTransferDateField, actualTransferDateField.getFieldValue());
 			if (isTransferDateInputPossibleForUser()) {
 				if (!actualTransferDateField.isVisible()) {
 					setFieldVisible(actualTransferDateField, true, Folder.ACTUAL_TRANSFER_DATE);
@@ -758,6 +773,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	private void configureIgnoreContainerFieldWhenReloadForm(CustomFolderField<?> changedCustomField,
 															 CustomFolderField currentField) {
 		FolderContainerField containerField = (FolderContainerField) view.getForm().getCustomField(Folder.CONTAINER);
+
+		if(containerField == null) {
+			return;
+		}
+
 		boolean clearContainerField = true;
 		for (Map.Entry customContainerDependencyField : customContainerDependencyFields.entrySet()) {
 			if (customContainerDependencyField.getValue() != null) {
@@ -780,8 +800,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustActualDepositDateField(CustomFolderField<?> changedCustomField) {
 		FolderActualDepositDateField actualDepositDateField = (FolderActualDepositDateField) view.getForm().getCustomField(
 				Folder.ACTUAL_DEPOSIT_DATE);
-		customContainerDependencyFields.put(actualDepositDateField, actualDepositDateField.getFieldValue());
 		if (actualDepositDateField != null) {
+			customContainerDependencyFields.put(actualDepositDateField, actualDepositDateField.getFieldValue());
 			if (isDepositDateInputPossibleForUser()) {
 				if (!actualDepositDateField.isVisible()) {
 					setFieldVisible(actualDepositDateField, true, Folder.ACTUAL_DEPOSIT_DATE);
@@ -802,8 +822,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustActualDestructionDateField(CustomFolderField<?> changedCustomField) {
 		FolderActualDestructionDateField actualDestructionDateField = (FolderActualDestructionDateField) view.getForm()
 				.getCustomField(Folder.ACTUAL_DESTRUCTION_DATE);
-		customContainerDependencyFields.put(actualDestructionDateField, actualDestructionDateField.getFieldValue());
+
 		if (actualDestructionDateField != null) {
+			customContainerDependencyFields.put(actualDestructionDateField, actualDestructionDateField.getFieldValue());
 			if (isDestructionDateInputPossibleForUser()) {
 				if (!actualDestructionDateField.isVisible()) {
 					setFieldVisible(actualDestructionDateField, true, Folder.ACTUAL_DESTRUCTION_DATE);

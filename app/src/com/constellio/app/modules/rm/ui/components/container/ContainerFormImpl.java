@@ -85,6 +85,9 @@ public abstract class ContainerFormImpl extends RecordForm implements ContainerF
 	private static List<FieldAndPropertyId> buildFields(RecordVO recordVO, RecordFieldFactory formFieldFactory) {
 		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
 		for (MetadataVO metadataVO : recordVO.getFormMetadatas()) {
+			if(!recordVO.getMetadataCodes().contains(metadataVO.getCode()))  {
+				continue;
+			}
 			Field<?> field = formFieldFactory.build(recordVO, metadataVO);
 			if (field != null) {
 				field.addStyleName(STYLE_FIELD);
