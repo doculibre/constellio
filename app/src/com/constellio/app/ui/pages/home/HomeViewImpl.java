@@ -7,6 +7,9 @@ import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentIte
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -149,6 +152,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return buildRecordTreeOrRecordMultiTree((RecordTree) tabSource);
 			case CUSTOM_ITEM:
 				return buildCustomComponent((CustomItem) tabSource);
+			case RECORD_FAVORITES:
+				return buildFavoritesSheet((PageItem.RecordTabSheet) tabSource);
 			default:
 				throw new RuntimeException("Unsupported tab type : " + tabSource.getType());
 		}
@@ -201,6 +206,10 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	private Component buildRecordTable(final RecordTable recordTable) {
 		RecordVODataProvider dataProvider = recordTable
 				.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
+		return buildTable(dataProvider);
+	}
+
+	private Component buildTable(RecordVODataProvider dataProvider) {
 		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
 		final RecordVOTable table = new RecordVOTable(container);
 		table.addStyleName("record-table");
@@ -259,6 +268,27 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				adjustSelectAllButton(selected);
 			}
 		};
+	}
+
+	private Component buildFavoritesSheet(PageItem.RecordTabSheet recordTabSheet) {
+		List<RecordVODataProvider> providers = recordTabSheet.getDataProviders(
+				getConstellioFactories().getAppLayerFactory(), getSessionContext());
+		TabSheet favoritesSheet = new TabSheet();
+		for (RecordVODataProvider provider : providers) {
+			switch (provider.getSchema().getTypeCode()) {
+				case Folder.SCHEMA_TYPE:
+					favoritesSheet.addTab(buildTable(provider), $("HomeView.Tab.defaultFavorites.folders"));
+					break;
+				case Document.SCHEMA_TYPE:
+					favoritesSheet.addTab(buildTable(provider), $("HomeView.Tab.defaultFavorites.documents"));
+					break;
+				case ContainerRecord.SCHEMA_TYPE:
+					favoritesSheet.addTab(buildTable(provider), $("HomeView.Tab.defaultFavorites.containers"));
+					break;
+			}
+
+		}
+		return favoritesSheet;
 	}
 
 	private Component buildRecordTreeOrRecordMultiTree(RecordTree recordTree) {

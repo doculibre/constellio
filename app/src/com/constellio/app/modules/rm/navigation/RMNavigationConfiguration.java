@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.navigation;
 
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
+import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
@@ -35,6 +36,7 @@ import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.ui.pages.home.CheckedOutDocumentsTable;
+import com.constellio.app.modules.rm.ui.pages.home.DefaultFavoritesTable;
 import com.constellio.app.modules.rm.ui.pages.management.ArchiveManagementViewImpl;
 import com.constellio.app.modules.rm.ui.pages.reports.RMReportsViewImpl;
 import com.constellio.app.modules.rm.ui.pages.retentionRule.AddEditRetentionRuleViewImpl;
@@ -93,6 +95,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 	public static final String LAST_VIEWED_FOLDERS = "lastViewedFolders";
 	public static final String LAST_VIEWED_DOCUMENTS = "lastViewedDocuments";
+	public static final String DEFAULT_FAVORITES = "defaultFavorites";
 	public static final String CHECKED_OUT_DOCUMENTS = "checkedOutDocuments";
 	public static final String TAXONOMIES = "taxonomies";
 
@@ -297,6 +300,13 @@ public class RMNavigationConfiguration implements Serializable {
 			public RecordVODataProvider getDataProvider(AppLayerFactory appLayerFactory,
 														SessionContext sessionContext) {
 				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
+			}
+		});
+		config.add(HomeView.TABS, new PageItem.RecordTabSheet(DEFAULT_FAVORITES) {
+			@Override
+			public List<RecordVODataProvider> getDataProviders(AppLayerFactory appLayerFactory,
+															   SessionContext sessionContext) {
+				return new DefaultFavoritesTable(appLayerFactory, sessionContext).getDataProviders();
 			}
 		});
 	}
