@@ -153,6 +153,33 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 	}
 
+
+	public void addDocumentToDefaultFavorite() {
+		Document document = rmSchemasRecordsServices.wrapDocument(presenterUtils.getRecord(documentVO.getId()));
+		document.addFavorite(getCurrentUser().getId());
+		try {
+			presenterUtils.recordServices().update(document);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void removeDocumentFromDefaultFavorites() {
+		Document document = rmSchemasRecordsServices.wrapDocument(presenterUtils.getRecord(documentVO.getId()));
+		document.removeFavorite(getCurrentUser().getId());
+		try {
+			presenterUtils.recordServices().update(document);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public boolean documentInDefaultFavorites() {
+		Record record = presenterUtils.getRecord(documentVO.getId());
+		Document document = rmSchemasRecordsServices.wrapDocument(record);
+		return document.getFavoritesList().contains(getCurrentUser().getId());
+	}
+
 	public Document renameContentButtonClicked(String newName) {
 		if (isEditDocumentPossible()) {
 			Record record = presenterUtils.getRecord(documentVO.getId());
