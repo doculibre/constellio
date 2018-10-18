@@ -35,6 +35,7 @@ import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnPara
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
 import com.constellio.app.api.extensions.params.ValidateRecordsCheckParams;
@@ -86,6 +87,7 @@ import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
@@ -688,4 +690,11 @@ public class AppLayerCollectionExtensions {
 		return new ArrayList<>(unwantedTaxonomies);
 	}
 
+	public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
+		LogicalSearchCondition condition = param.getCondition();
+		for (SearchPageExtension extension : searchPageExtensions) {
+			condition = extension.adjustSearchPageCondition(new SearchPageConditionParam(param.getMainComponent(), condition, param.getUser()));
+		}
+		return condition;
+	}
 }
