@@ -114,6 +114,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildFoldersBatchProcessingButton());
 		buttons.add(buildContainersBatchProcessingButton());
 		buttons.add(buildFoldersLabelsButton());
+		buttons.add(buildDocumentLabelsButton());
 		buttons.add(buildContainersLabelsButton());
 		buttons.add(buildBatchDeleteButton());
 		buttons.add(buildEmptyButton());
@@ -123,6 +124,12 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildCreateSIPArchivesButton());
 		buttons.add(buildConsolidatedPdfButton());
 		return buttons;
+	}
+
+	private Button buildDocumentLabelsButton() {
+		Button button = buildLabelsButton(Document.SCHEMA_TYPE);
+		button.setCaption($("CartView.documentLabelsButton"));
+		return button;
 	}
 
 	private Button buildFoldersLabelsButton() {

@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.management.labels;
 
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
@@ -217,9 +218,12 @@ public class AddEditLabelViewImpl extends BaseViewImpl implements AddEditLabelVi
 			ComboBox monComboBox = new BaseComboBox();
 			Object valeur1 = Folder.SCHEMA_TYPE;
 			Object valeur2 = ContainerRecord.SCHEMA_TYPE;
-			monComboBox.addItems(valeur1, valeur2);
+			Object valeur3 = Document.SCHEMA_TYPE;
+			monComboBox.addItems(valeur1, valeur2, valeur3);
+
 			monComboBox.setItemCaption(valeur1, $("AddEditTaxonomyView.classifiedObject.folder"));
 			monComboBox.setItemCaption(valeur2, $("DecommissioningListView.folderDetails.container"));
+			monComboBox.setItemCaption(valeur3, $("AddLabelView.addedit.type.document"));
 			monComboBox.setTextInputAllowed(false);
 			monComboBox.setValue(valeur1);
 			monComboBox.setCaption(metadataVO.getLabel(i18n.getLocale()));

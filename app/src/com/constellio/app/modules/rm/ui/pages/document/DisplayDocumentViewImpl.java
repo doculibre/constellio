@@ -13,6 +13,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
+import com.constellio.data.utils.Factory;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
@@ -485,6 +488,26 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 
+		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getCustomTemplates();
+			}
+		};
+
+		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getDefaultTemplates();
+			}
+		};
+
+		Button labels = new LabelButtonV2($("DisplayFolderView.printLabel"),
+				$("DisplayFolderView.printLabel"), customLabelTemplatesFactory,
+				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
+				getSessionContext().getCurrentCollection(), presenter.getDocument());
+
+
 		addToCartButton = buildAddToCartButton();
 
 		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO, getSessionContext().getSelectedRecordIds().contains(documentVO.getId()));
@@ -663,6 +686,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		}
 		startWorkflowButton = new StartWorkflowButton();
 		startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
+
+		actionMenuButtons.add(labels);
 
 		actionMenuButtons.add(deleteDocumentButton);
 		actionMenuButtons.add(linkToDocumentButton);

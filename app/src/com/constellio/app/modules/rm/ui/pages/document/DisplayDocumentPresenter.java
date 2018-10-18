@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
@@ -9,6 +10,7 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBrea
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
@@ -158,6 +160,19 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public int getTaskCount() {
 		return tasksDataProvider.size();
+	}
+
+	public List<LabelTemplate> getDefaultTemplates() {
+		return view.getConstellioFactories().getAppLayerFactory().getLabelTemplateManager().listTemplates(Document.SCHEMA_TYPE);
+	}
+
+	public List<LabelTemplate> getCustomTemplates() {
+		return view.getConstellioFactories().getAppLayerFactory().getLabelTemplateManager().listExtensionTemplates(ContainerRecord.SCHEMA_TYPE);
+	}
+
+	public RecordVO getDocument() {
+		return new RecordToVOBuilder()
+				.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public void backgroundViewMonitor() {
