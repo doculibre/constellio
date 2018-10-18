@@ -161,10 +161,6 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 
 	}
 
-	private void isFacetVisisble(Facet facet) {
-
-	}
-
 	private void initSortParameters() {
 		SearchSortType searchSortType = modelLayerFactory.getSystemConfigs().getSearchSortType();
 		switch (searchSortType) {
@@ -278,9 +274,15 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		init(constellioFactories, sessionContext);
 	}
 
-	private void init(ConstellioFactories constellioFactories, SessionContext sessionContext) {
+	void init(ConstellioFactories constellioFactories, SessionContext sessionContext) {
 		collection = sessionContext.getCurrentCollection();
-		service = new SearchPresenterService(collection, constellioFactories.getModelLayerFactory());
+
+		User user = view.getConstellioFactories().getAppLayerFactory()
+				.getModelLayerFactory().newUserServices().getUserInCollection(
+						view.getSessionContext().getCurrentUser().getUsername(),
+						collection);
+
+		service = new SearchPresenterService(collection, user, constellioFactories.getModelLayerFactory(), null);
 		schemasDisplayManager = constellioFactories.getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		ConstellioModulesManager modulesManager = constellioFactories.getAppLayerFactory().getModulesManager();
@@ -750,9 +752,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			}
 		} else {
 			for (Metadata metadata : schemaType.getAllMetadatas()) {
-				if(getCurrentUser().hasGlobalAccessToMetadata(metadata)) {
-					metadataCodes.add(metadata.getCode());
-				}
+				metadataCodes.add(metadata.getCode());
 			}
 		}
 
@@ -766,7 +766,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch() &&
+
+				if (getCurrentUser().hasGlobalAccessToMetadata(metadata)
+						&& config.isVisibleInAdvancedSearch() &&
 					isMetadataVisibleForUser(metadata, getCurrentUser()) &&
 					(!isTextOrString || isTextOrString && metadata.isSearchable() ||
 					 Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||

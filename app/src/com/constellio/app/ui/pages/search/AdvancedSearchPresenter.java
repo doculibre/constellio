@@ -119,6 +119,16 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 
 	public void setSchemaType(String schemaType) {
 		this.schemaTypeCode = schemaType;
+		setSchemaTypeOnPresenterService();
+	}
+
+	private void setSchemaTypeOnPresenterService() {
+		if(schemaTypeCode != null) {
+			service.setMetadataSchemaTypesList(Arrays.asList(modelLayerFactory.getMetadataSchemasManager()
+					.getSchemaTypes(collection).getSchemaType(schemaTypeCode)));
+		} else {
+			service.setMetadataSchemaTypesList(new ArrayList<MetadataSchemaType>());
+		}
 	}
 
 	@Override
@@ -143,8 +153,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			resultsViewMode = SearchResultsViewMode.DETAILED;
 			saveTemporarySearch(false);
 		}
+		setSchemaTypeOnPresenterService();
 		return this;
 	}
+
 
 	private void setSavedSearch(SavedSearch search) {
 		searchExpression = search.getFreeTextSearch();

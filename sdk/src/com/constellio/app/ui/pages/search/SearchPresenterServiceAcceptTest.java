@@ -58,7 +58,8 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		recordServices = getModelLayerFactory().newRecordServices();
 		searchServices = getModelLayerFactory().newSearchServices();
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		searchPresenterService = new SearchPresenterService(zeCollection, getModelLayerFactory());
+
+		searchPresenterService = new SearchPresenterService(zeCollection, users.adminIn(zeCollection), getModelLayerFactory(), null);
 
 		allFolders = new LogicalSearchQuery(from(rm.folderSchemaType()).returnAll());
 		allFoldersAndDocuments = new LogicalSearchQuery(from(asList(rm.folderSchemaType(), rm.documentSchemaType())).returnAll());
@@ -183,7 +184,7 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 
 		recordServices.add(rm.newFacetField().setOrder(0).setFieldDataStoreCode("schema_s").setTitle("Ze type"));
 
-		List<FacetVO> facets = new SearchPresenterService(zeCollection, getModelLayerFactory()).getFacets(allFoldersAndDocuments,
+		List<FacetVO> facets = new SearchPresenterService(zeCollection, users.adminIn(zeCollection), getModelLayerFactory(), null).getFacets(allFoldersAndDocuments,
 				facetStatus, Locale.FRENCH);
 
 		assertThat(facets.get(0)).has(label("Ze type")).has(
