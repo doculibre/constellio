@@ -19,6 +19,8 @@ import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
+import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
+import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -85,19 +87,22 @@ public class RMSearchPageExtension extends SearchPageExtension {
 
 	@Override
 	public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
+		Component mainComponent = param.getMainComponent();
 		LogicalSearchCondition logicalSearchCondition = param.getCondition();
-		User user = param.getUser();
-		if (Boolean.TRUE.equals(user.get(RMUser.HIDE_NOT_ACTIVE))) {
-			List<String> notActiveCodes = new ArrayList<>();
-			notActiveCodes.add(FolderStatus.SEMI_ACTIVE.getCode());
-			notActiveCodes.add(FolderStatus.INACTIVE_DEPOSITED.getCode());
-			notActiveCodes.add(FolderStatus.INACTIVE_DESTROYED.getCode());
+		if(mainComponent instanceof SimpleSearchViewImpl || mainComponent instanceof AdvancedSearchViewImpl) {
+			User user = param.getUser();
+			if (Boolean.TRUE.equals(user.get(RMUser.HIDE_NOT_ACTIVE))) {
+				List<String> notActiveCodes = new ArrayList<>();
+				notActiveCodes.add(FolderStatus.SEMI_ACTIVE.getCode());
+				notActiveCodes.add(FolderStatus.INACTIVE_DEPOSITED.getCode());
+				notActiveCodes.add(FolderStatus.INACTIVE_DESTROYED.getCode());
 
-			LogicalSearchCondition activesOnlyCondition = anyConditions(
-					where(rm.folder.archivisticStatus()).isNotIn(notActiveCodes),
-					where(rm.folder.archivisticStatus()).isNull()
-			);
-			logicalSearchCondition = allConditions(logicalSearchCondition, activesOnlyCondition);
+				LogicalSearchCondition activesOnlyCondition = anyConditions(
+						where(rm.folder.archivisticStatus()).isNotIn(notActiveCodes),
+						where(rm.folder.archivisticStatus()).isNull()
+				);
+				logicalSearchCondition = allConditions(logicalSearchCondition, activesOnlyCondition);
+			}
 		}
 		return logicalSearchCondition;
 	}
