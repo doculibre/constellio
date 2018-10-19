@@ -27,7 +27,6 @@ import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServic
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -50,6 +49,8 @@ public class RMFolderExtension extends RecordExtension {
 	final RMSchemasRecordsServices rm;
 	final RMConfigs configs;
 
+	private List<String> removedCartsIds;
+
 	public RMFolderExtension(String collection, ModelLayerFactory modelLayerFactory) {
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
@@ -60,6 +61,7 @@ public class RMFolderExtension extends RecordExtension {
 		taxonomyManager = modelLayerFactory.getTaxonomiesManager();
 		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
 		this.configs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		removedCartsIds = new ArrayList<>();
 	}
 
 	@Override
@@ -100,16 +102,21 @@ public class RMFolderExtension extends RecordExtension {
 	}
 
 	private void deleteNonExistentFavoritesIds(Folder folder) {
-		List<String> oldFavoritesList = folder.getFavoritesList();
 		List<String> removedIds = new ArrayList<>();
 		RecordsCaches recordsCaches = modelLayerFactory.getRecordsCaches();
-		for (String cartId : oldFavoritesList) {
-			if (recordsCaches.getRecord(cartId) == null) {
+		for (String cartId : folder.getFavoritesList()) {
+			if (!removedCartsIds.contains(cartId)) {
+				if (recordsCaches.getRecord(cartId) == null) {
+					removedIds.add(cartId);
+					removedCartsIds.add(cartId);
+				}
+			} else {
 				removedIds.add(cartId);
 			}
 		}
-		List<String> newFavoritesList = ListUtils.subtract(oldFavoritesList, removedIds);
-		folder.setFavoritesList(newFavoritesList);
+		if (!removedIds.isEmpty()) {
+			folder.removeFavorites(removedIds);
+		}
 	}
 
 	private void completeMissingActualDates(Folder folder) {

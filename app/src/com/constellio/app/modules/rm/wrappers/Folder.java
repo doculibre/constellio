@@ -862,5 +862,11 @@ public class Folder extends RMObject {
 		setFavoritesList(favoritesList);
 	}
 
+	public void removeFavorites(List<String> favoritesToDelete) {
+		List<String> favoritesList = new ArrayList<>();
+		favoritesList.addAll(getFavoritesList());
+		favoritesList.removeAll(favoritesToDelete);
+		setFavoritesList(favoritesList);
+	}
 }
 

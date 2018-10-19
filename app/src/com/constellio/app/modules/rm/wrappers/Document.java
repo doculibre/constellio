@@ -377,4 +377,11 @@ public class Document extends RMObject {
 		favoritesList.add(favoriteToAdd);
 		setFavoritesList(favoritesList);
 	}
+
+	public void removeFavorites(List<String> favoritesToDelete) {
+		List<String> favoritesList = new ArrayList<>();
+		favoritesList.addAll(getFavoritesList());
+		favoritesList.removeAll(favoritesToDelete);
+		set(FAVORITES_LIST, favoritesList);
+	}
 }

@@ -117,7 +117,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildContainersLabelsButton());
 		buttons.add(buildBatchDeleteButton());
 		buttons.add(buildEmptyButton());
-		buttons.add(buildShareButton());
+		if (!presenter.isDefaultCart()) {
+			buttons.add(buildShareButton());
+		}
 		buttons.add(buildDecommissionButton());
 		buttons.add(buildPrintMetadataReportButton());
 		buttons.add(buildCreateSIPArchivesButton());
@@ -198,7 +200,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildShareButton() {
-		return new WindowButton($("CartView.share"), $("CartView.shareWindow")) {
+		Button shareButton = new WindowButton($("CartView.share"), $("CartView.shareWindow")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
@@ -221,6 +223,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				return layout;
 			}
 		};
+		shareButton.setEnabled(presenter.cartHasRecords());
+		shareButton.setVisible(presenter.cartHasRecords());
+		return shareButton;
 	}
 
 	private HorizontalLayout buildFolderFilterComponent() {
@@ -604,8 +609,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 
 		};
-		consolidatedPdfButton.setEnabled(!presenter.cartHasRecords());
-		consolidatedPdfButton.setVisible(!presenter.cartHasRecords());
+		consolidatedPdfButton.setEnabled(presenter.cartHasRecords());
+		consolidatedPdfButton.setVisible(presenter.cartHasRecords());
 		return consolidatedPdfButton;
 	}
 

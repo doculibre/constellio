@@ -100,6 +100,7 @@ import static java.util.Arrays.asList;
 
 public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
+	private static final long NUMBER_OF_FOLDERS_IN_CART_LIMIT = 1000;
 	Boolean allItemsSelected = true;
 
 	Boolean allItemsDeselected = false;
@@ -800,18 +801,30 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	private void addFolderToCart(Cart cart, Record record) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-		rm.wrapFolder(record).addFavorite(cart.getId());
+		if (numberOfFoldersInFavoritesReachesLimit(cart.getId())) {
+			showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
+		} else {
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
+			rm.wrapFolder(record).addFavorite(cart.getId());
+		}
 	}
 
 	private void addDocumentToCart(Cart cart, Record record) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-		rm.wrapDocument(record).addFavorite(cart.getId());
+		if (numberOfDocumentsInFavoritesReachesLimit(cart.getId())) {
+			showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
+			rm.wrapDocument(record).addFavorite(cart.getId());
+		}
 	}
 
 	private void addContainerToCart(Cart cart, Record record) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-		rm.wrapContainerRecord(record).addFavorite(cart.getId());
+		if (numberOfContainersInFavoritesReachesLimit(cart.getId())) {
+			showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
+		} else {
+			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
+			rm.wrapContainerRecord(record).addFavorite(cart.getId());
+		}
 	}
 
 	public void showMessage(String errorMessage) {
@@ -905,4 +918,27 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 	}
 
+	private boolean numberOfFoldersInFavoritesReachesLimit(String cartId) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(header.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
+		return searchServices.getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
+	}
+
+	private boolean numberOfContainersInFavoritesReachesLimit(String cartId) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(header.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
+		return searchServices.getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
+	}
+
+	private boolean numberOfDocumentsInFavoritesReachesLimit(String cartId) {
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(header.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
+		return searchServices.getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
+	}
 }

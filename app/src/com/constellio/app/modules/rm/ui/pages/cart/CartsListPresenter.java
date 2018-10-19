@@ -79,6 +79,6 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 	}
 
 	public void displayDefaultFavorites() {
-		view.navigate().to(RMViews.class).defaultCart();
+		view.navigate().to(RMViews.class).cart(getCurrentUser().getId());
 	}
 }

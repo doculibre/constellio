@@ -54,15 +54,20 @@ public class RMMigrationTo8_1_0_3 implements MigrationScript {
 
 			for (Record record : searchServices.search(query)) {
 				Cart cart = rm.wrapCart(record);
-				addToFavoritesList(cart.get("folders"), cart.getId());
-				addToFavoritesList(cart.get("documents"), cart.getId());
-				addToFavoritesList(cart.get("containers"), cart.getId());
+				if (cart.getMetadataSchemaTypes().hasMetadata("folders")) {
+					addToFavoritesList(cart.get("folders"), cart.getId());
+				}
+				if (cart.getMetadataSchemaTypes().hasMetadata("documents")) {
+					addToFavoritesList(cart.get("documents"), cart.getId());
+				}
+				if (cart.getMetadataSchemaTypes().hasMetadata("containers")) {
+					addToFavoritesList(cart.get("containers"), cart.getId());
+				}
 			}
 
 			modifyRecords(rm.folder.schemaType(), Folder.FAVORITES_LIST);
 			modifyRecords(rm.document.schemaType(), Document.FAVORITES_LIST);
 			modifyRecords(rm.containerRecord.schemaType(), ContainerRecord.FAVORITES_LIST);
-
 		}
 
 		private void modifyRecords(final MetadataSchemaType metadataSchemaType, final String metadataCode) {

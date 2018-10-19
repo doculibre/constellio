@@ -432,4 +432,11 @@ public class ContainerRecord extends RecordWrapper {
 		favoritesList.add(favoriteToAdd);
 		setFavoritesList(favoritesList);
 	}
+
+	public void removeFavorites(List<String> favoritesToDelete) {
+		List<String> favoritesList = new ArrayList<>();
+		favoritesList.addAll(getFavoritesList());
+		favoritesList.removeAll(favoritesToDelete);
+		setFavoritesList(favoritesList);
+	}
 }

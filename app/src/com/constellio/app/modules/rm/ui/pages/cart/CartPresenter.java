@@ -102,24 +102,22 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public void itemRemovalRequested(RecordVO recordVO) {
-		Cart cart = cart();
 		Record record = recordVO.getRecord();
 		switch (recordVO.getSchema().getTypeCode()) {
 			case Folder.SCHEMA_TYPE:
 				Folder folder = rm.wrapFolder(record);
-				folder.removeFavorite(cart.getId());
+				folder.removeFavorite(cartId);
 				break;
 			case Document.SCHEMA_TYPE:
 				Document document = rm.wrapDocument(record);
-				document.removeFavorite(cart.getId());
+				document.removeFavorite(cartId);
 				break;
 			case ContainerRecord.SCHEMA_TYPE:
 				ContainerRecord containerRecord = rm.wrapContainerRecord(record);
-				containerRecord.removeFavorite(cart.getId());
+				containerRecord.removeFavorite(cartId);
 				break;
 		}
-		addOrUpdate(cart.getWrappedRecord());
-		view.navigate().to(RMViews.class).cart(cart.getId());
+		view.navigate().to(RMViews.class).cart(cartId);
 	}
 
 	public boolean canEmptyCart() {
@@ -139,7 +137,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			container.removeFavorite(getCurrentUser().getId());
 			addOrUpdate(container.getWrappedRecord());
 		}
-		view.navigate().to(RMViews.class).cart(cart().getId());
+		view.navigate().to(RMViews.class).cart(cartId);
 	}
 
 	public boolean canPrepareEmail() {
@@ -148,7 +146,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	public void emailPreparationRequested() {
-		EmailMessage emailMessage = new CartEmailService(collection, modelLayerFactory).createEmailForCart(cart().getOwner(), getCartDocumentIds(), getCurrentUser());
+		EmailMessage emailMessage = new CartEmailService(collection, modelLayerFactory).createEmailForCart(cartOwner(), getCartDocumentIds(), getCurrentUser());
 		String filename = emailMessage.getFilename();
 		InputStream stream = emailMessage.getInputStream();
 		view.startDownload(stream, filename);
@@ -267,11 +265,19 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	}
 
 	Cart cart() {
-		if (cart == null) {
+		if (!isDefaultCart() && cart == null) {
 			//			cart = rm().getOrCreateUserCart(getCurrentUser());
 			cart = rm().getCart(cartId);
 		}
 		return cart;
+	}
+
+	public boolean isDefaultCart() {
+		return getCurrentUser().getId().equals(cartId);
+	}
+
+	String cartOwner() {
+		return isDefaultCart() ? getCurrentUser().getId() : cart().getOwner();
 	}
 
 	private boolean cartHasOnlyFolders() {
@@ -914,7 +920,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	protected List<Folder> getCartFolders() {
 		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().folder.schemaType()).where(metadata).isContaining(asList(cart().getId())));
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().folder.schemaType()).where(metadata).isContaining(asList(cartId)));
 		return rm.searchFolders(logicalSearchQuery);
 	}
 
@@ -929,7 +935,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	private List<Document> getCartDocuments() {
 		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FAVORITES_LIST);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().document.schemaType()).where(metadata).isContaining(asList(cart().getId())));
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().document.schemaType()).where(metadata).isContaining(asList(cartId)));
 		return rm.searchDocuments(logicalSearchQuery);
 	}
 
@@ -944,25 +950,25 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	private List<ContainerRecord> getCartContainers() {
 		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FAVORITES_LIST);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().containerRecord.schemaType()).where(metadata).isContaining(asList(cart().getId())));
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().containerRecord.schemaType()).where(metadata).isContaining(asList(cartId)));
 		return rm.searchContainerRecords(logicalSearchQuery);
 	}
 
 	protected boolean cartFoldersIsEmpty() {
 		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().folder.schemaType()).where(metadata).isContaining(asList(cart().getId())));
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().folder.schemaType()).where(metadata).isContaining(asList(cartId)));
 		return searchServices().getResultsCount(logicalSearchQuery) == 0;
 	}
 
 	private boolean cartDocumentsIsEmpty() {
 		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FAVORITES_LIST);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().document.schemaType()).where(metadata).isContaining(asList(cart().getId())));
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().document.schemaType()).where(metadata).isContaining(asList(cartId)));
 		return searchServices().getResultsCount(logicalSearchQuery) == 0;
 	}
 
 	private boolean cartContainerIsEmpty() {
 		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FAVORITES_LIST);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().containerRecord.schemaType()).where(metadata).isContaining(asList(cart().getId())));
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm().containerRecord.schemaType()).where(metadata).isContaining(asList(cartId)));
 		return searchServices().getResultsCount(logicalSearchQuery) == 0;
 	}
 

@@ -29,6 +29,7 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.StatusFilter;
@@ -44,9 +45,11 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements NewReportPresenter {
+	private static final long NUMBER_OF_FOLDERS_IN_CART_LIMIT = 1000;
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayContainerPresenter.class);
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
@@ -338,14 +341,18 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public void addToDefaultFavorite() {
-		ContainerRecord containerRecord = getContainer(containerId);
-		containerRecord.addFavorite(getCurrentUser().getId());
-		try {
-			recordServices().update(containerRecord);
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
+		if (numberOfContainersInFavoritesReachesLimit(getCurrentUser().getId())) {
+			view.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
+		} else {
+			ContainerRecord containerRecord = getContainer(containerId);
+			containerRecord.addFavorite(getCurrentUser().getId());
+			try {
+				recordServices().update(containerRecord);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+			}
+			view.showMessage($("DisplayContainerViewImpl.containerAddedToDefaultFavorites"));
 		}
-		view.showMessage($("DisplayContainerViewImpl.containerAddedToDefaultFavorites"));
 	}
 
 	public void removeFromDefaultFavorites() {
@@ -362,6 +369,12 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	public boolean containerInDefaultFavorites() {
 		ContainerRecord container = getContainer(containerId);
 		return container.getFavoritesList().contains(getCurrentUser().getId());
+	}
+
+	private boolean numberOfContainersInFavoritesReachesLimit(String cartId) {
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmRecordServices().folder.schemaType()).where(metadata).isContaining(asList(cartId)));
+		return searchServices().getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 
 	private ContainerRecord getContainer(String containerId) {

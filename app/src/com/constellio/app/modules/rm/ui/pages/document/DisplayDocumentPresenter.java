@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPrese
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
@@ -65,6 +66,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
+	private static final long NUMBER_OF_FOLDERS_IN_CART_LIMIT = 1000;
 	private transient RecordServices recordServices;
 
 	protected DocumentToVOBuilder voBuilder;
@@ -386,7 +388,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void addToCartRequested(RecordVO recordVO) {
-		presenterUtils.addToCartRequested(recordVO);
+		if (numberOfDocumentsInFavoritesReachesLimit(rm.getCart(recordVO.getId()).getId())) {
+			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			presenterUtils.addToCartRequested(recordVO);
+		}
 	}
 
 	public InputStream getSignatureInputStream(String certificate, String password) {
@@ -513,14 +519,18 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void addToDefaultFavorite(DocumentVO documentVO) {
-		Document document = rm.wrapDocument(getRecord(documentVO.getId()));
-		document.addFavorite(getCurrentUser().getId());
-		try {
-			recordServices.update(document);
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
+		if (numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId())) {
+			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			Document document = rm.wrapDocument(getRecord(documentVO.getId()));
+			document.addFavorite(getCurrentUser().getId());
+			try {
+				recordServices.update(document);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+			}
+			view.showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
 		}
-		view.showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
 	}
 
 	public void removeFromDefaultFavorites(DocumentVO documentVO) {
@@ -538,5 +548,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		Record record = getRecord(documentVO.getId());
 		Document document = rm.wrapDocument(record);
 		return document.getFavoritesList().contains(getCurrentUser().getId());
+	}
+
+	private boolean numberOfDocumentsInFavoritesReachesLimit(String cartId) {
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
+		return searchServices().getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 }

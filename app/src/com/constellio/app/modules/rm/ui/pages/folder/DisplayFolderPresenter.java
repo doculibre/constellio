@@ -101,6 +101,7 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFolderView> {
 
 	private static final int WAIT_ONE_SECOND = 1;
+	private static final long NUMBER_OF_FOLDERS_IN_CART_LIMIT = 1000;
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderPresenter.class);
 	private RecordVODataProvider documentsDataProvider;
 	private RecordVODataProvider tasksDataProvider;
@@ -977,15 +978,18 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void addToCartRequested(RecordVO recordVO) {
 		Cart cart = rmSchemasRecordsServices.getCart(recordVO.getId());
-		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
-		folder.addFavorite(cart.getId());
-		try {
-			recordServices().update(folder);
-			addOrUpdate(cart.getWrappedRecord());
-			view.showMessage($("DisplayFolderView.addedToCart"));
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
+		if (numberOfFoldersInFavoritesReachesLimit(cart.getId())) {
+			view.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
+		} else {
+			Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
+			folder.addFavorite(cart.getId());
+			try {
+				recordServices().update(folder);
+				view.showMessage($("DisplayFolderView.addedToCart"));
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
 		}
 	}
 
@@ -1038,7 +1042,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		try {
 			folder.addFavorite(cart.getId());
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
-			recordServices().add(folder);
+			recordServices().update(folder);
 			view.showMessage($("DisplayFolderView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
@@ -1190,14 +1194,24 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void addToDefaultFavorite(RecordVO recordVO) {
-		Folder folder = rmSchemasRecordsServices.wrapFolder(getRecord(recordVO.getId()));
-		folder.addFavorite(getCurrentUser().getId());
-		try {
-			recordServices.update(folder);
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
+		if (numberOfFoldersInFavoritesReachesLimit(getCurrentUser().getId())) {
+			view.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
+		} else {
+			Folder folder = rmSchemasRecordsServices.wrapFolder(getRecord(recordVO.getId()));
+			folder.addFavorite(getCurrentUser().getId());
+			try {
+				recordServices.update(folder);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+			}
+			view.showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
 		}
-		view.showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
+	}
+
+	private boolean numberOfFoldersInFavoritesReachesLimit(String cartId) {
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmSchemasRecordsServices().folder.schemaType()).where(metadata).isContaining(asList(cartId)));
+		return searchServices().getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 
 	public boolean inDefaultFavorites(RecordVO recordVO) {

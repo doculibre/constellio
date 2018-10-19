@@ -89,9 +89,11 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AdvancedSearchPresenter.class);
+	private static final long NUMBER_OF_FOLDERS_IN_CART_LIMIT = 1000;
 
 	String searchExpression;
 	String schemaTypeCode;
@@ -421,21 +423,51 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	}
 
 	private void addFoldersToCart(Cart cart, List<Record> records) {
-		for (Record record : records) {
-			rm().wrapFolder(record).addFavorite(cart.getId());
+		if (numberOfFoldersInFavoritesReachesLimit(cart.getId(), records.size())) {
+			view.showMessage("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders");
+		} else {
+			for (Record record : records) {
+				rm().wrapFolder(record).addFavorite(cart.getId());
+			}
 		}
+	}
+
+	private boolean numberOfFoldersInFavoritesReachesLimit(String cartId, int size) {
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
+		return searchServices().getResultsCount(logicalSearchQuery) + size > NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 
 	private void addDocumentsToCart(Cart cart, List<Record> records) {
-		for (Record record : records) {
-			rm().wrapDocument(record).addFavorite(cart.getId());
+		if (numberOfDocumentsInFavoritesReachesLimit(cart.getId(), records.size())) {
+			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			for (Record record : records) {
+				rm().wrapDocument(record).addFavorite(cart.getId());
+			}
 		}
 	}
 
+	private boolean numberOfDocumentsInFavoritesReachesLimit(String cartId, int size) {
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
+		return searchServices().getResultsCount(logicalSearchQuery) + size > NUMBER_OF_FOLDERS_IN_CART_LIMIT;
+	}
+
 	private void addContainersToCart(Cart cart, List<Record> records) {
-		for (Record record : records) {
-			rm().wrapContainerRecord(record).addFavorite(cart.getId());
+		if (numberOfContainersInFavoritesReachesLimit(cart.getId(), records.size())) {
+			view.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
+		} else {
+			for (Record record : records) {
+				rm().wrapContainerRecord(record).addFavorite(cart.getId());
+			}
 		}
+	}
+
+	private boolean numberOfContainersInFavoritesReachesLimit(String cartId, int size) {
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
+		return searchServices().getResultsCount(logicalSearchQuery) + size > NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 
 	public RecordVODataProvider getOwnedCartsDataProvider() {

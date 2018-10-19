@@ -24,7 +24,6 @@ import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.search.SearchServices;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -41,14 +40,15 @@ public class RMDocumentExtension extends RecordExtension {
 	private static String OUTLOOK_MSG_MIMETYPE = "application/vnd.ms-outlook";
 
 	private String collection;
-
 	private AppLayerFactory appLayerFactory;
+	private List<String> removedCartsIds;
 
 	public RMDocumentExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		rmSchema = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		removedCartsIds = new ArrayList<>();
 	}
 
 	@Override
@@ -198,16 +198,21 @@ public class RMDocumentExtension extends RecordExtension {
 	}
 
 	private void deleteNonExistentFavoritesIds(Document document) {
-		List<String> oldFavoritesList = document.getFavoritesList();
 		List<String> removedIds = new ArrayList<>();
 		RecordsCaches recordsCaches = modelLayerFactory.getRecordsCaches();
-		for (String cartId : oldFavoritesList) {
-			if (recordsCaches.getRecord(cartId) == null) {
+		for (String cartId : document.getFavoritesList()) {
+			if (!removedCartsIds.contains(cartId)) {
+				if (recordsCaches.getRecord(cartId) == null) {
+					removedIds.add(cartId);
+					removedCartsIds.add(cartId);
+				}
+			} else {
 				removedIds.add(cartId);
 			}
 		}
-		List<String> newFavoritesList = ListUtils.subtract(oldFavoritesList, removedIds);
-		document.setFavoritesList(newFavoritesList);
+		if (!removedIds.isEmpty()) {
+			document.removeFavorites(removedIds);
+		}
 	}
 
 }

@@ -8,7 +8,6 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.search.SearchServices;
-import org.apache.commons.collections.ListUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,10 +17,13 @@ public class RMContainerRecordExtension extends RecordExtension {
 	private final SearchServices searchServices;
 	private final ModelLayerFactory modelLayerFactory;
 
+	private List<String> removedCartsIds;
+
 	public RMContainerRecordExtension(String collection, AppLayerFactory appLayerFactory) {
 		rmSchema = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		removedCartsIds = new ArrayList<>();
 	}
 
 	@Override
@@ -33,16 +35,21 @@ public class RMContainerRecordExtension extends RecordExtension {
 		}
 	}
 
-	private void deleteNonExistentFavoritesIds(ContainerRecord containerRecord) {
-		List<String> oldFavoritesList = containerRecord.getFavoritesList();
+	private void deleteNonExistentFavoritesIds(ContainerRecord container) {
 		List<String> removedIds = new ArrayList<>();
 		RecordsCaches recordsCaches = modelLayerFactory.getRecordsCaches();
-		for (String cartId : oldFavoritesList) {
-			if (recordsCaches.getRecord(cartId) == null) {
+		for (String cartId : container.getFavoritesList()) {
+			if (!removedCartsIds.contains(cartId)) {
+				if (recordsCaches.getRecord(cartId) == null) {
+					removedIds.add(cartId);
+					removedCartsIds.add(cartId);
+				}
+			} else {
 				removedIds.add(cartId);
 			}
 		}
-		List<String> newFavoritesList = ListUtils.subtract(oldFavoritesList, removedIds);
-		containerRecord.setFavoritesList(newFavoritesList);
+		if (!removedIds.isEmpty()) {
+			container.removeFavorites(removedIds);
+		}
 	}
 }
