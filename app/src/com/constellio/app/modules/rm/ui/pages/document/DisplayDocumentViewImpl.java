@@ -5,7 +5,7 @@ import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBrea
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.ui.components.fields.StarredButton;
+import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -500,7 +500,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		finalizeButton.addStyleName(ValoTheme.BUTTON_LINK);
 
-		StarredButton favoriteStar = new StarredButton() {
+		DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
 			@Override
 			public void addToDefaultFavorites() {
 				presenter.addToDefaultFavorite(documentVO);

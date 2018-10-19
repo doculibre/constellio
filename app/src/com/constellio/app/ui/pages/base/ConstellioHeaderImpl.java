@@ -581,9 +581,28 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private void buildSelectionPanelButtons(VerticalLayout actionMenuLayout) {
 		WindowButton addToCartButton = buildAddToCartButton(actionMenuLayout);
+		Button addToDefaultFavorites = addToDefaultFavoritesButton();
 		SelectionPanelExtension.setStyles(addToCartButton);
-		actionMenuLayout.addComponents(addToCartButton);
+		SelectionPanelExtension.setStyles(addToDefaultFavorites);
+		actionMenuLayout.addComponents(addToDefaultFavorites, addToCartButton);
 		presenter.buildSelectionPanelActionButtons(actionMenuLayout);
+	}
+
+	private Button addToDefaultFavoritesButton() {
+		final AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
+		Button addToDefaultFavoritesButton = new Button();
+		addToDefaultFavoritesButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.addToDefaultFavoriteRequested(param.getIds());
+			}
+		});
+		addToDefaultFavoritesButton.setCaption($("ConstellioHeader.selection.addToDefaultFavorites"));
+		addToDefaultFavoritesButton.setEnabled(
+				presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(param.getSchemaTypeCodes(),
+						asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE)));
+		addToDefaultFavoritesButton.setVisible(isEnabled());
+		return addToDefaultFavoritesButton;
 	}
 
 	private WindowButton buildAddToCartButton(final VerticalLayout actionMenuLayout) {

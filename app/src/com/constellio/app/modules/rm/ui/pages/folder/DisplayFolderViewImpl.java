@@ -10,7 +10,7 @@ import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.ui.components.fields.StarredButton;
+import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -424,7 +424,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
 											 && ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
-			StarredButton favoriteStar = new StarredButton() {
+			DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
 				@Override
 				public void addToDefaultFavorites() {
 					presenter.addToDefaultFavorite(recordVO);

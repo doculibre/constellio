@@ -2,7 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.tasks.ui.components.fields.StarredButton;
+import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -168,12 +168,11 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
 
-		StarredButton favoriteStar = new StarredButton() {
+		DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
 			@Override
 			public void addToDefaultFavorites() {
 				presenter.addToDefaultFavorite();
 			}
-
 			@Override
 			public void removeFromDefaultFavorites() {
 				presenter.removeFromDefaultFavorites();

@@ -719,13 +719,13 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		for (Record record : records) {
 			switch (record.getTypeCode()) {
 				case Folder.SCHEMA_TYPE:
-					addFolderToCart(cart, record);
+					addFolderToCart(cart.getId(), record);
 					break;
 				case Document.SCHEMA_TYPE:
-					addDocumentToCart(cart, record);
+					addDocumentToCart(cart.getId(), record);
 					break;
 				case ContainerRecord.SCHEMA_TYPE:
-					addContainerToCart(cart, record);
+					addContainerToCart(cart.getId(), record);
 					break;
 			}
 		}
@@ -773,6 +773,30 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		};
 	}
 
+	public void addToDefaultFavoriteRequested(List<String> recordIds) {
+		List<Record> records = getRecords(recordIds);
+		for (Record record : records) {
+			switch (record.getTypeCode()) {
+				case Folder.SCHEMA_TYPE:
+					addFolderToCart(getCurrentUser().getId(), record);
+					break;
+				case Document.SCHEMA_TYPE:
+					addDocumentToCart(getCurrentUser().getId(), record);
+					break;
+				case ContainerRecord.SCHEMA_TYPE:
+					addContainerToCart(getCurrentUser().getId(), record);
+					break;
+			}
+		}
+		try {
+			modelLayerFactory.newRecordServices().execute(new Transaction(records));
+			showMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
+		} catch (RecordServicesException e) {
+			showMessage($(e));
+		}
+	}
+
+
 	public void addToCartRequested(List<String> recordIds, RecordVO cartVO) {
 		// TODO: Create an extension for this
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
@@ -781,13 +805,13 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		for (Record record : records) {
 			switch (record.getTypeCode()) {
 				case Folder.SCHEMA_TYPE:
-					addFolderToCart(cart, record);
+					addFolderToCart(cart.getId(), record);
 					break;
 				case Document.SCHEMA_TYPE:
-					addDocumentToCart(cart, record);
+					addDocumentToCart(cart.getId(), record);
 					break;
 				case ContainerRecord.SCHEMA_TYPE:
-					addContainerToCart(cart, record);
+					addContainerToCart(cart.getId(), record);
 					break;
 			}
 		}
@@ -800,30 +824,30 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		}
 	}
 
-	private void addFolderToCart(Cart cart, Record record) {
-		if (numberOfFoldersInFavoritesReachesLimit(cart.getId())) {
+	private void addFolderToCart(String cartId, Record record) {
+		if (numberOfFoldersInFavoritesReachesLimit(cartId)) {
 			showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
 		} else {
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-			rm.wrapFolder(record).addFavorite(cart.getId());
+			rm.wrapFolder(record).addFavorite(cartId);
 		}
 	}
 
-	private void addDocumentToCart(Cart cart, Record record) {
-		if (numberOfDocumentsInFavoritesReachesLimit(cart.getId())) {
+	private void addDocumentToCart(String cartId, Record record) {
+		if (numberOfDocumentsInFavoritesReachesLimit(cartId)) {
 			showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-			rm.wrapDocument(record).addFavorite(cart.getId());
+			rm.wrapDocument(record).addFavorite(cartId);
 		}
 	}
 
-	private void addContainerToCart(Cart cart, Record record) {
-		if (numberOfContainersInFavoritesReachesLimit(cart.getId())) {
+	private void addContainerToCart(String cartId, Record record) {
+		if (numberOfContainersInFavoritesReachesLimit(cartId)) {
 			showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
 		} else {
 			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-			rm.wrapContainerRecord(record).addFavorite(cart.getId());
+			rm.wrapContainerRecord(record).addFavorite(cartId);
 		}
 	}
 
