@@ -15,7 +15,13 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetOrderType;
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
+import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -219,6 +225,78 @@ public class SearchPresenterServiceAcceptTest extends ConstellioTest {
 		facetStatus.put(facet.getId(), false);
 		List<FacetVO> facets = searchPresenterService.getFacets(allFoldersAndDocuments, facetStatus, Locale.FRENCH);
 		assertThat(facets.get(0).isOpen()).isFalse();
+	}
+
+	@Test
+	public void givenFacetIsVisisbleByDefaultThenOk() throws Exception {
+		Facet facet;
+		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
+				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+
+		assertThat(searchPresenterService.isFacetVisisble(facet)).isTrue();
+	}
+
+	@Test
+	public void givenFacetThenMakeItUnVisisbleByUserThenOk() throws Exception {
+		Facet facet;
+		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
+				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+
+		addRoleToFolderDefaultTitleMetadata("M");
+
+		assertThat(searchPresenterService.isFacetVisisble(facet)).isFalse();
+	}
+
+
+	@Test
+	public void givenFacetItIsVisisbleByUsingAValidRoleForUserThenOk() throws Exception {
+		Facet facet;
+		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
+				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+
+		addRoleToFolderDefaultTitleMetadata("RGD");
+
+		assertThat(searchPresenterService.isFacetVisisble(facet)).isTrue();
+	}
+
+	@Test
+	public void givenFacetThenMakeItVisisbleByProvidingSchemaTypeThatIsNotRoleRestritedForTheMetadataThenOk() throws Exception {
+		Facet facet;
+		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
+				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+
+		addRoleToFolderDefaultTitleMetadata("M");
+		searchPresenterService.setMetadataSchemaTypesList(asList(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Document.SCHEMA_TYPE)));
+		assertThat(searchPresenterService.isFacetVisisble(facet)).isTrue();
+	}
+
+	@Test
+	public void givenFacetThenMakeItNotVisisbleByProvidingSchemaTypeThatHaveARoleRestritionForTheMetadataThenOk() throws Exception {
+		Facet facet;
+		recordServices.add(facet = rm.newFacetField().setOrder(0).setFieldDataStoreCode("title_s")
+				.setTitle("Titre").setOrderResult(FacetOrderType.RELEVANCE).setOpenByDefault(true));
+
+		addRoleToFolderDefaultTitleMetadata("M");
+		searchPresenterService.setMetadataSchemaTypesList(asList(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getSchemaType(Folder.SCHEMA_TYPE)));
+		assertThat(searchPresenterService.isFacetVisisble(facet)).isFalse();
+	}
+
+	private void addRoleToFolderDefaultTitleMetadata(String role)
+			throws OptimisticLocking {
+		final MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		final MetadataSchemaTypesBuilder types = schemasManager.modify(zeCollection);
+		final MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
+		final MetadataBuilder builder;
+
+		builder = types.getSchema(Folder.DEFAULT_SCHEMA).get(Schemas.TITLE.getLocalCode());
+
+		MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(asList(role), new ArrayList<String>(),
+				new ArrayList<String>(), new ArrayList<String>());
+
+		metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
+		builder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
+
+		schemasManager.saveUpdateSchemaTypes(types);
 	}
 
 	@Test

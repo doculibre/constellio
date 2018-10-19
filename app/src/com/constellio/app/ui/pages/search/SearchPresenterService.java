@@ -129,7 +129,7 @@ public class SearchPresenterService {
 		return facetQuery;
 	}
 
-	private boolean isFacetVisisble(Facet facet) {
+	public boolean isFacetVisisble(Facet facet) {
 		facet.getFieldDataStoreCode();
 		List<MetadataSchemaType> metadataSchemaTypeList = metadataSchemaTypesList;
 
