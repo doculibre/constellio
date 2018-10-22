@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.DocumentBreadCrumbItem;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderBreadCrumbItem;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrailPresenter;
+import com.constellio.app.modules.rm.ui.pages.viewGroups.ArchivesManagementViewGroup;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -66,6 +67,10 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 	private void addBreadcrumbItems() {
 		List<BreadcrumbItem> breadcrumbItems = new ArrayList<>();
 
+		if(!(breadcrumbTrail.getView() instanceof ArchivesManagementViewGroup)) {
+			breadcrumbItems.add(new ArchiveManagementBreadCrumbItem());
+		}
+
 		breadcrumbItems.add(new DispositionListBreadcrumbItem());
 
 		if(searchId == null) {
@@ -100,7 +105,10 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 	public boolean itemClicked(BreadcrumbItem item) {
 		boolean handled;
 
-		if (item instanceof FolderBreadCrumbItem) {
+		if(item instanceof ArchiveManagementBreadCrumbItem) {
+			handled = true;
+			breadcrumbTrail.navigate().to(RMViews.class).archiveManagement();
+		} else if (item instanceof FolderBreadCrumbItem) {
 			handled = true;
 			String folderId = ((FolderBreadCrumbItem) item).getFolderId();
 
@@ -146,6 +154,19 @@ public class DecommissionBreadcrumbTrailPresenter implements Serializable {
 		}
 
 		return handled;
+	}
+
+	class ArchiveManagementBreadCrumbItem implements BreadcrumbItem {
+
+		@Override
+		public String getLabel() {
+			return $("ArchiveManagementView.viewTitle");
+		}
+
+		@Override
+		public boolean isEnabled() {
+			return true;
+		}
 	}
 
 	class DispositionListBreadcrumbItem implements BreadcrumbItem {
