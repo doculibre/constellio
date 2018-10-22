@@ -4,30 +4,42 @@ import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.FacetVO;
+import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
 import com.constellio.app.ui.pages.search.AdvancedSearchView;
+import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchPresenter;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.CriteriaBuilder;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
+import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
+import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,7 +55,7 @@ public class SearchPageExtensionAcceptanceTest extends ConstellioTest {
 	@Mock UserVO user;
 	@Mock RecordToVOBuilder recordToVOBuilder;
 	@Mock SimpleSearchView simpleSearchView;
-	@Mock AdvancedSearchView advancedSearchView;
+	@Mock AdvancedSearchViewImpl advancedSearchView;
 	MockedNavigation navigator = new MockedNavigation();
 
 	RMSchemasRecordsServices rm;
@@ -139,4 +151,62 @@ public class SearchPageExtensionAcceptanceTest extends ConstellioTest {
 		assertThat(criterionList.get(0).getMetadataCode()).isEqualTo("folder_default_title");
 		assertThat(criterionList.get(0).getValue()).isEqualTo("Abeille");
 	}
+
+	@Test
+	public void givenUserInAdvancedSearchViewThenOnlySeeNonActivesIfConfigIsDeactivated()
+			throws Exception {
+		when(advancedSearchView.getSchemaType()).thenReturn(Folder.SCHEMA_TYPE);
+		when(advancedSearchView.getSearchExpression()).thenReturn("*");
+		when(advancedSearchView.getSearchCriteria()).thenReturn(new ArrayList<Criterion>());
+		final User gandalf = getModelLayerFactory().newUserServices().getUserInCollection(this.gandalf, zeCollection);
+		AdvancedSearchPresenter advancedSearchPresenter = buildDefaultAdvancedSearchPresenter(gandalf);
+
+		List<FacetVO> facets = advancedSearchPresenter.getFacets(null);
+		assertThat(facets).has(allArchivisticStatuses);
+
+		gandalf.set(RMUser.HIDE_NOT_ACTIVE, true);
+		advancedSearchPresenter = buildDefaultAdvancedSearchPresenter(gandalf);
+		facets = advancedSearchPresenter.getFacets(null);
+		assertThat(facets).has(onlyActiveFolders);
+	}
+
+	AdvancedSearchPresenter buildDefaultAdvancedSearchPresenter(final User user) {
+		AdvancedSearchPresenter advancedSearchPresenter = new AdvancedSearchPresenter(advancedSearchView) {
+			@Override
+			protected void updateUIContext(SavedSearch savedSearch) {}
+
+			@Override
+			protected User getCurrentUser() {
+				return user;
+			}
+		};
+		advancedSearchPresenter.forRequestParameters(null);
+		return advancedSearchPresenter;
+	}
+
+	Condition<List<FacetVO>> onlyActiveFolders = new Condition<List<FacetVO>>() {
+		@Override
+		public boolean matches(List<FacetVO> facets) {
+			for(FacetVO facetVO: facets) {
+				if(rm.getFacet(facetVO.getId()).getFieldDataStoreCode().equals(rm.folder.archivisticStatus().getDataStoreCode())) {
+					List<FacetValueVO> facetValues = facetVO.getValues();
+					return facetValues.size() == 1 && facetValues.get(0).getValue().equals("a");
+				}
+			}
+			return false;
+		}
+	};
+
+	Condition<List<FacetVO>> allArchivisticStatuses = new Condition<List<FacetVO>>() {
+		@Override
+		public boolean matches(List<FacetVO> facets) {
+			for(FacetVO facetVO: facets) {
+				if(rm.getFacet(facetVO.getId()).getFieldDataStoreCode().equals(rm.folder.archivisticStatus().getDataStoreCode())) {
+					List<FacetValueVO> facetValues = facetVO.getValues();
+					return facetValues.size() == 4;
+				}
+			}
+			return false;
+		}
+	};
 }
