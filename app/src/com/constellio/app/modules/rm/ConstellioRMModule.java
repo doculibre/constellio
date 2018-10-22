@@ -1,6 +1,23 @@
 package com.constellio.app.modules.rm;
 
 import com.constellio.app.entities.modules.*;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.constellio.app.entities.modules.ComboMigrationScript;
+import com.constellio.app.entities.modules.InstallableSystemModule;
+import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
+import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.entities.modules.ModuleWithComboMigration;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -14,6 +31,91 @@ import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtens
 import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.migrations.*;
+import com.constellio.app.modules.rm.migrations.*;
+import com.constellio.app.modules.rm.migrations.RMMigrationCombo;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_4_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_0_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_0_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_2_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_4_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo5_1_9;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_1_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_2_0_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_20;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_21;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_33;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_34;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_36;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_37;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_50;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_54;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_5_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo6_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_0_10_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_0_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_1_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_1_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_2_0_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_3_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_4_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_4_48;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_4_48_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_4_49;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_5_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_5_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_5_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_10;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_11;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_6;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_6_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_6_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_8;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_6_9;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_0_42;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_4_33;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_5_4;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo7_7_5_5;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_0_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_0_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_0_3;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_0_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
@@ -41,17 +143,6 @@ import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
 import com.constellio.model.services.security.GlobalSecurizedTypeCondition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
-import static java.util.Arrays.asList;
 
 public class ConstellioRMModule implements InstallableSystemModule, ModuleWithComboMigration,
 		InstallableSystemModuleWithRecordMigrations {
@@ -166,6 +257,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_0_2());
 		scripts.add(new RMMigrationTo8_0_3());
 		scripts.add(new RMMigrationTo8_1());
+		scripts.add(new RMMigrationTo8_1_0_1());
+		scripts.add(new RMMigrationTo8_1_0_2());
+		scripts.add(new RMMigrationTo8_1_1());
+		scripts.add(new RMMigrationTo8_1_1_1());
 
 		return scripts;
 	}

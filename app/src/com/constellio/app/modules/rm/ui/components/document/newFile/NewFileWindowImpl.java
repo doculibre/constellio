@@ -59,7 +59,7 @@ public class NewFileWindowImpl extends BaseWindow implements NewFileWindow {
 	public NewFileWindowImpl(boolean isViewOnly) {
 		setModal(true);
 		setWidth("70%");
-		setHeight("340px");
+		setHeight("360px");
 		setZIndex(null);
 
 		mainLayout = new VerticalLayout();

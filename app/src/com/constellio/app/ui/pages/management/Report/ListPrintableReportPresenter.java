@@ -3,7 +3,6 @@ package com.constellio.app.ui.pages.management.Report;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.Printable;
-import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -11,7 +10,6 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.CorePermissions;
@@ -100,38 +98,24 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
 		view.navigate().to().addPrintableReport();
 	}
 
-	protected void editButtonClicked(String id, PrintableReportListPossibleType schema) {
-		view.navigate().to().editPrintableReport(id);
+	protected void editButtonClicked(RecordVO report) {
+		view.navigate().to().editPrintableReport(report.getId());
 	}
 
-	protected void displayButtonClicked(String id, PrintableReportListPossibleType schema) {
-		view.navigate().to().displayPrintableReport(id);
+	protected void displayButtonClicked(RecordVO report) {
+		view.navigate().to().displayPrintableReport(report.getId());
 	}
 
-	public void removeRecord(String id, PrintableReportListPossibleType schema) {
-		Record record;
-		SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
-		if (id.startsWith("0") && id.length() > 1) {
-			//the item id is not an index, it's an id. we get the record from that id.
-			record = recordServices().getDocumentById(id);
-		} else {
-			record = utils.toRecord(getRecordsWithIndex(schema, id));
-		}
-		custtomDelete(record);
+	public void removeRecord(RecordVO report) {
+		customDelete(recordServices().getDocumentById(report.getId()));
 		view.navigate().to().managePrintableReport();
 	}
 
-	public void custtomDelete(Record record) {
+	public void customDelete(Record record) {
 		if (recordServices().isLogicallyThenPhysicallyDeletable(record, User.GOD)) {
 			recordServices().logicallyDelete(record, User.GOD);
 			recordServices().physicallyDelete(record, User.GOD);
 		}
-	}
-
-	public RecordVO getRecordsWithIndex(PrintableReportListPossibleType schema, String itemId) {
-
-		RecordVODataProvider dataProvider = this.getDataProviderForSchemaType(schema.getSchemaType());
-		return itemId == null ? null : dataProvider.getRecordVO(Integer.parseInt(itemId));
 	}
 
 	protected StreamResource createResource() {
