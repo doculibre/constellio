@@ -1,12 +1,5 @@
 package com.constellio.app.modules.rm.extensions.app;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.api.extensions.ListSchemaExtention;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
@@ -19,6 +12,13 @@ import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.MenuBar;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class RMListSchemaExtention extends ListSchemaExtention {
 
 	@Override
@@ -29,7 +29,7 @@ public class RMListSchemaExtention extends ListSchemaExtention {
 				.getAppLayerFactory().getModelLayerFactory()
 				.getSystemConfigurationsManager();
 
-		if (systemConfigurationsManager.getValue(RMConfigs.SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG)) {
+		if ((Boolean) systemConfigurationsManager.getValue(RMConfigs.SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG)) {
 			if (listSchemaExtraCommandParams.getSchemaVO().getCode().startsWith(Folder.SCHEMA_TYPE)) {
 				listSchemaExtraCommandReturnParams.add(new ListSchemaExtraCommandReturnParams(new MenuBar.Command() {
 					@Override

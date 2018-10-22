@@ -438,6 +438,10 @@ $popup-view-z-index: 3;
 		font-weight: bold;
 	}
 
+	.v-table-cell-content-important {
+		font-weight: bold;
+	}
+
 	.v-table-cell-content-disabled {
 		/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#eeeeee+0,cccccc+100;Gren+3D */
 		background: rgb(238,238,238); /* Old browsers */
@@ -1541,11 +1545,12 @@ $popup-view-z-index: 3;
 										}
 									}
 								}
-
+							
 								.search-result-title {
 									padding-top: 8px;
 									font-size: 18px;
 									text-align: left;
+									color: rgb(25, 125, 225);
 								}
 								
 								.document-search-result-title {
