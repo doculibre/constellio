@@ -60,6 +60,7 @@ artifacts {
     testArtifacts jarTest
 }
 
+/*
 project.tasks["sonarqube"].dependsOn "build"
 
 sonarqube {
@@ -94,3 +95,4 @@ task buildSonarSourceset() {
         }
     }
 }
+*/
