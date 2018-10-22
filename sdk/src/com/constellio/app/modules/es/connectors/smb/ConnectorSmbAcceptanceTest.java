@@ -19,7 +19,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.SDKPasswords;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
+import com.constellio.sdk.tests.annotations.InternetTest;
 import jcifs.smb.NtlmPasswordAuthentication;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.LocalDateTime;
@@ -40,8 +40,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.fail;
 
-@InDevelopmentTest
 //TODO Activate test
+@InternetTest
 public class ConnectorSmbAcceptanceTest extends ConstellioTest {
 	private ConnectorManager connectorManager;
 	private RecordServices recordServices;

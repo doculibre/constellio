@@ -7,7 +7,6 @@ import com.constellio.model.conf.LDAPTestConfig;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import org.junit.Before;
-import org.junit.Test;
 
 import javax.naming.ldap.LdapContext;
 import java.util.UUID;
@@ -15,8 +14,11 @@ import java.util.UUID;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * This test is broken, the service doesn't seem to exist anymore
+ */
 @InternetTest
-public class ConnectorLDAPUserDocumentFactoryRealTest extends ConstellioTest {
+public class ConnectorLDAPUserDocumentFactoryRealDeprecatedTest extends ConstellioTest {
 	ESSchemasRecordsServices es;
 
 	ConnectorLDAPServices connectorLDAPServices = new ConnectorLDAPServicesImpl();
@@ -34,7 +36,7 @@ public class ConnectorLDAPUserDocumentFactoryRealTest extends ConstellioTest {
 		document = es.newConnectorLDAPUserDocument(connectorInstance);
 	}
 
-	@Test
+	//@Test
 	public void whenPopulateUserThenOk()
 			throws Exception {
 
@@ -58,7 +60,7 @@ public class ConnectorLDAPUserDocumentFactoryRealTest extends ConstellioTest {
 		assertThat(user.getManager()).isEqualTo("CN=bfay,CN=Users,DC=test,DC=doculibre,DC=ca");
 	}
 
-	@Test
+	//@Test
 	public void whenPopulateEnabledADUserThenEnsabled()
 			throws Exception {
 
@@ -75,7 +77,7 @@ public class ConnectorLDAPUserDocumentFactoryRealTest extends ConstellioTest {
 		return "CN=bfay,CN=Users,DC=test,DC=doculibre,DC=ca";
 	}
 
-	@Test
+	//@Test
 	public void whenPopulateDisabledADUserThenDisabled()
 			throws Exception {
 

@@ -77,6 +77,10 @@ public abstract class Decommissioner {
 	private LocalDate processingDate;
 	private User user;
 
+	private final static int MAX_RECORDS_PER_TRANSACTION_MEMORY = 100;
+	private final static int MAX_RECORDS_PER_TRANSACTION_NORMAL = 500;
+	private final static int MAX_RECORDS_PER_TRANSACTION_PERFORMANCE = 1000;
+
 	public static Decommissioner forList(DecommissioningList decommissioningList,
 										 DecommissioningService decommissioningService,
 										 AppLayerFactory appLayerFactory) {
@@ -553,7 +557,11 @@ public abstract class Decommissioner {
 
 		try {
 			transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-			recordServices.execute(transaction);
+			if (transaction.getRecordCount() <= getMaxRecordsPerTransaction()) {
+				recordServices.execute(transaction);
+			} else {
+				recordServices.executeHandlingImpactsAsync(transaction);
+			}
 			for (Record record : recordsToDelete) {
 				recordServices.logicallyDelete(record, user);
 			}
@@ -582,6 +590,16 @@ public abstract class Decommissioner {
 
 	public interface DocumentUpdater {
 		void update(Document document);
+	}
+
+	protected int getMaxRecordsPerTransaction() {
+		ConstellioEIMConfigs configs = new ConstellioEIMConfigs(modelLayerFactory);
+		if (configs.getMemoryConsumptionLevel().isPrioritizingMemoryConsumption()) {
+			return MAX_RECORDS_PER_TRANSACTION_MEMORY;
+		} else if (configs.getMemoryConsumptionLevel().isPrioritizingPerformance()) {
+			return MAX_RECORDS_PER_TRANSACTION_PERFORMANCE;
+		}
+		return MAX_RECORDS_PER_TRANSACTION_NORMAL;
 	}
 }
 

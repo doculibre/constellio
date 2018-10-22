@@ -46,6 +46,12 @@ public class SIPBuildAsyncTask implements AsyncTask {
 
 	public SIPBuildAsyncTask(String sipFileName, List<String> bagInfoLines, List<String> includeDocumentIds,
 							 List<String> includeFolderIds, Boolean limitSize, String username, Boolean deleteFiles,
+							 String currentVersion) {
+		this(sipFileName, bagInfoLines, includeDocumentIds, includeFolderIds, limitSize, username, deleteFiles, currentVersion, "fr");
+	}
+
+	public SIPBuildAsyncTask(String sipFileName, List<String> bagInfoLines, List<String> includeDocumentIds,
+							 List<String> includeFolderIds, Boolean limitSize, String username, Boolean deleteFiles,
 							 String currentVersion,
 							 String localeLanguage) {
 		this.bagInfoLines = bagInfoLines;
