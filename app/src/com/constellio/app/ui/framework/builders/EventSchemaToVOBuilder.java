@@ -23,7 +23,7 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 	protected MetadataToVOBuilder newMetadataToVOBuilder() {
 		return new MetadataToVOBuilder() {
 			@Override
-			protected MetadataVO newMetadataVO(String metadataCode, String datastoreCode, MetadataValueType type,
+			protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode, String datastoreCode, MetadataValueType type,
 											   String collection, MetadataSchemaVO schemaVO, boolean required,
 											   boolean multivalue,
 											   boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
@@ -47,14 +47,14 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 						newLabels.put(labelLocale, newLabel);
 					}
 					metadataVO = super
-							.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
+							.newMetadataVO(metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									metadataDisplayType, allowedReferences,
 									enabled, structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO);
 				} else {
 					metadataVO = super
-							.newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue,
+							.newMetadataVO(metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue,
 									readOnly,
 									unmodifiable, labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType,
 									metadataDisplayType, allowedReferences,

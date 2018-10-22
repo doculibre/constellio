@@ -45,6 +45,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 	private final SearchServices searchServices;
 	private final MetadataSchema categorySchema;
 	private final MetadataSchema subdivisionSchema;
+	private final SchemaUtils schemaUtils;
 	private SessionContext sessionContext;
 
 	public RetentionRuleToVOBuilder(AppLayerFactory appLayerFactory, MetadataSchema categorySchema,
@@ -54,6 +55,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		rm = new RMSchemasRecordsServices(categorySchema.getCollection(), appLayerFactory);
+		schemaUtils = new SchemaUtils();
 	}
 
 	public RetentionRuleToVOBuilder(SessionContext sessionContext, AppLayerFactory appLayerFactory,
@@ -65,6 +67,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 		schemasDisplayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 		rm = new RMSchemasRecordsServices(categorySchema.getCollection(), appLayerFactory);
+		schemaUtils = new SchemaUtils();
 	}
 
 	@Override
@@ -148,7 +151,7 @@ public class RetentionRuleToVOBuilder extends RecordToVOBuilder {
 		putMetadataAtTheEnd(label, schema.getDisplayMetadataCodes());
 		insertMetadataCodeBefore(label, RetentionRule.COPY_RETENTION_RULES, schema.getFormMetadataCodes());
 
-		return new MetadataVO(label, MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
+		return new MetadataVO(label, MetadataVO.getCodeWithoutPrefix(label), MetadataValueType.REFERENCE, schema.getCollection(), schema, false, true, false,
 				labels, null, taxoCodes, referencedSchemaType, MetadataInputType.LOOKUP, MetadataDisplayType.VERTICAL,
 				new AllowedReferences(referencedSchemaType, references), groupLabel, null, false, new HashSet<String>(), false, null,
 				new HashMap<String, Object>(), schema.getCollectionInfoVO());
