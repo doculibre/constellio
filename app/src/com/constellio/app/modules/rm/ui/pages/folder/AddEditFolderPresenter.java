@@ -34,7 +34,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewRe
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionField;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
-import com.constellio.app.modules.rm.util.RMNavUtil;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -275,7 +275,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				view.navigate().to().recordsManagement();
 			}
 		} else {
-			if(!isDuplicateStructureAction) {
+			if (!isDuplicateStructureAction) {
 				navigateToFolderDisplay(params.get("id"));
 			} else {
 				navigateToFolderDisplay(folderVO.getId());
@@ -284,7 +284,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	private void navigateToFolderDisplay(String id) {
-		RMNavUtil.navigateToDisplayFolderAreTypeAndSearchIdPresent(id, params, appLayerFactory, view.getCollection());
+		RMNavigationUtils.navigateToDisplayFolder(id, params, appLayerFactory, view.getCollection());
 	}
 
 	public FolderVO getFolderVO() {

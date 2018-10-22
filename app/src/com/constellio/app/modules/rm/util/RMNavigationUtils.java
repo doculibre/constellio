@@ -10,28 +10,10 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 import java.util.Map;
 
-public class RMNavUtil {
-	public static void navigateToDisplayFolderAreTypeAndSearchIdPresent(String id, Map<String, String> params,
-			AppLayerFactory appLayerFactory, String collection) {
-		Navigation navigation = new Navigation();
+public class RMNavigationUtils {
 
-		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
-				.forModule(ConstellioRMModule.ID);
-
-		if (areSearchTypeAndSearchIdPresent) {
-			navigation.to(RMViews.class)
-					.displayFolderFromDecommission(id, DecommissionNavUtil.getHomeUri(appLayerFactory),
-							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (rmModuleExtensions.navigateToDisplayFolderFromAPage(new NavigateToFromAPageParams(params, id))) {
-		} else {
-			navigation.to(RMViews.class).displayFolder(id);
-		}
-	}
-
-	public static void navigateToDisplayFolderAreSearchTypeSearchIdOrContainerPresent(String id, Map<String, String> params,
-			AppLayerFactory appLayerFactory, String collection) {
+	public static void navigateToDisplayFolder(String id, Map<String, String> params,
+											   AppLayerFactory appLayerFactory, String collection) {
 		Navigation navigation = new Navigation();
 
 		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
@@ -44,14 +26,15 @@ public class RMNavUtil {
 
 			navigation.to(RMViews.class).displayFolderFromDecommission(id, DecommissionNavUtil.getHomeUri(appLayerFactory),
 					false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (rmModuleExtensions.navigateToDisplayFolderFromAPage(new NavigateToFromAPageParams(params, id))) {
+		} else if (rmModuleExtensions.navigateToDisplayFolderWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, id))) {
 		} else {
 			navigation.to(RMViews.class).displayFolder(id);
 		}
 	}
 
-	public static void navigateToEditFolderAreTypeAndSearchIdPresent(String id, Map<String, String> params,
-			AppLayerFactory appLayerFactory, String collection) {
+	public static void navigateToEditFolder(String id, Map<String, String> params,
+											AppLayerFactory appLayerFactory,
+											String collection) {
 		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
 		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
 				.forModule(ConstellioRMModule.ID);
@@ -61,37 +44,19 @@ public class RMNavUtil {
 		if (areTypeAndSearchIdPresent) {
 			navigation.to(RMViews.class).editFolderFromDecommission(id,
 					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (rmModuleExtensions.navigateToEditFolderFromAPage(new NavigateToFromAPageParams(params, id))) {
+		} else if (rmModuleExtensions.navigateToEditFolderWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, id))) {
 		} else {
 			navigation.to(RMViews.class).editFolder(id);
 		}
 	}
 
-	public static void navigateToDisplayDocumentAreTypeAndSearchIdPresent(String id, Map<String, String> params,
-			AppLayerFactory appLayerFactory, String collection) {
-		Navigation navigation = new Navigation();
 
-		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
-				.forModule(ConstellioRMModule.ID);
-
-		boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
-
-		if (areSearchTypeAndSearchIdPresent) {
-			navigation.to(RMViews.class)
-					.displayDocumentFromDecommission(id, DecommissionNavUtil.getHomeUri(appLayerFactory),
-							false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (rmModuleExtensions.navigateToDisplayDocumentFromAPage(new NavigateToFromAPageParams(params, id))) {
-		} else {
-			navigation.to(RMViews.class).displayDocument(id);
-		}
-	}
-
-	public static void navigateToDisplayDocumentAreSearchTypeAndSearchIdOrContainerPresent(String id, Map<String, String> params,
-			AppLayerFactory appLayerFactory, String collection) {
+	public static void navigateToDisplayDocument(String id, Map<String, String> params,
+												 AppLayerFactory appLayerFactory, String collection) {
 		String containerId = null;
 
 		if (params != null) {
-			params.get("containerId");
+			containerId = params.get("containerId");
 		}
 
 		Navigation navigation = new Navigation();
@@ -104,14 +69,15 @@ public class RMNavUtil {
 			ConstellioEIMConfigs configs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory());
 			navigation.to(RMViews.class).displayDocumentFromDecommission(id, configs.getConstellioUrl(),
 					false, DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (rmModuleExtensions.navigateToDisplayDocumentFromAPage(new NavigateToFromAPageParams(params, id))) {
+		} else if (rmModuleExtensions.navigateToDisplayDocumentWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, id))) {
 		} else {
 			navigation.to(RMViews.class).displayDocument(id);
 		}
 	}
 
-	public static void navigateToEditDocumentAreTypeAndSearchPresent(String id, Map<String, String> params,
-			AppLayerFactory appLayerFactory, String collection) {
+	public static void navigateToEditDocument(String id, Map<String, String> params,
+											  AppLayerFactory appLayerFactory,
+											  String collection) {
 
 		Navigation navigation = new Navigation();
 		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
@@ -122,7 +88,7 @@ public class RMNavUtil {
 		if (areTypeAndSearchIdPresent) {
 			navigation.to(RMViews.class).editDocumentFromDecommission(id,
 					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
-		} else if (rmModuleExtensions.navigateToEditDocumentFromAPage(new NavigateToFromAPageParams(params, id))) {
+		} else if (rmModuleExtensions.navigateToEditDocumentWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, id))) {
 		} else {
 			navigation.to(RMViews.class).editDocument(id);
 		}

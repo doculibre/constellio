@@ -4,7 +4,7 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.util.RMNavUtil;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -56,9 +56,9 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 	}
 
 	public void displayDocumentButtonClicked() {
-		Map<String,String> params = ParamUtils.getCurrentParams();
+		Map<String, String> params = ParamUtils.getCurrentParams();
 
-		RMNavUtil.navigateToDisplayDocumentAreTypeAndSearchIdPresent(documentVO.getId(),
+		RMNavigationUtils.navigateToDisplayDocument(documentVO.getId(),
 				params, menuBar.getConstellioFactories().getAppLayerFactory(),
 				menuBar.getSessionContext().getCurrentCollection());
 

@@ -216,9 +216,9 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return breadcrumbTrail;
 	}
 
-	public boolean navigateToDisplayDocumentFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+	public boolean navigateToDisplayDocumentWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
 		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
-			if (navigateToFromAPageImportExtension.navigateToDisplayDocumentFromAPage(navigateToFromAPageParams)) {
+			if (navigateToFromAPageImportExtension.navigateToDisplayDocumentWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
 				return true;
 			}
 		}
@@ -226,9 +226,9 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return false;
 	}
 
-	public boolean navigateToDisplayFolderFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+	public boolean navigateToDisplayFolderWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
 		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
-			if (navigateToFromAPageImportExtension.navigateToDisplayFolderFromAPage(navigateToFromAPageParams)) {
+			if (navigateToFromAPageImportExtension.navigateToDisplayFolderWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
 				return true;
 			}
 		}
@@ -236,9 +236,9 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return false;
 	}
 
-	public boolean navigateToEditFolderFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+	public boolean navigateToEditFolderWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
 		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
-			if (navigateToFromAPageImportExtension.navigateToEditFolderFromAPage(navigateToFromAPageParams)) {
+			if (navigateToFromAPageImportExtension.navigateToEditFolderWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
 				return true;
 			}
 		}
@@ -246,9 +246,9 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return false;
 	}
 
-	public boolean navigateToDuplicateFolderFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+	public boolean navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
 		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
-			if (navigateToFromAPageImportExtension.navigateToDuplicateFolderFromAPage(navigateToFromAPageParams)) {
+			if (navigateToFromAPageImportExtension.navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
 				return true;
 			}
 		}
@@ -256,9 +256,9 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return false;
 	}
 
-	public boolean navigateToEditDocumentFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+	public boolean navigateToEditDocumentWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
 		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
-			if (navigateToFromAPageImportExtension.navigateToEditDocumentFromAPage(navigateToFromAPageParams)) {
+			if (navigateToFromAPageImportExtension.navigateToEditDocumentWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
 				return true;
 			}
 		}
@@ -266,9 +266,9 @@ public class RMModuleExtensions implements ModuleExtensions {
 		return false;
 	}
 
-	public boolean navigateToAddDocumentWithContentFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+	public boolean navigateToAddDocumentWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
 		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
-			if (navigateToFromAPageImportExtension.navigateToAddDocumentWithContentFromAPage(navigateToFromAPageParams)) {
+			if (navigateToFromAPageImportExtension.navigateToAddDocumentWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
 				return true;
 			}
 		}

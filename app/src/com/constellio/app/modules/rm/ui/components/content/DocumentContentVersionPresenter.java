@@ -6,7 +6,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.util.RMNavUtil;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -57,7 +57,7 @@ public class DocumentContentVersionPresenter implements Serializable {
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private RMModuleExtensions rmModuleExtensions;
 
-	private Map<String,String> params;
+	private Map<String, String> params;
 
 	public DocumentContentVersionPresenter(DocumentContentVersionWindow window, Map<String, String> params) {
 		this.window = window;
@@ -149,10 +149,10 @@ public class DocumentContentVersionPresenter implements Serializable {
 		window.closeWindow();
 		String documentId = documentVO.getId();
 
-		RMNavUtil.navigateToDisplayDocumentAreTypeAndSearchIdPresent(documentId, params, appLayerFactory,
+		RMNavigationUtils.navigateToDisplayDocument(documentId, params, appLayerFactory,
 				window.getSessionContext().getCurrentCollection());
 
-		 updateSearchResultClicked();
+		updateSearchResultClicked();
 	}
 
 	void checkOutLinkClicked() {
@@ -186,7 +186,7 @@ public class DocumentContentVersionPresenter implements Serializable {
 			SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(),
 					presenterUtils.modelLayerFactory());
 			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
-			if(searchEvent != null) {
+			if (searchEvent != null) {
 				searchEventServices.incrementClickCounter(searchEvent.getId());
 
 				String url = null;

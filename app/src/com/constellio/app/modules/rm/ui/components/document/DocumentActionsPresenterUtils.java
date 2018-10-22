@@ -14,7 +14,7 @@ import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
-import com.constellio.app.modules.rm.util.RMNavUtil;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -154,7 +154,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	public void editDocumentButtonClicked(Map<String, String> params) {
 		if (isEditDocumentPossible()) {
 
-			RMNavUtil.navigateToEditDocumentAreTypeAndSearchPresent(documentVO.getId(), params,
+			RMNavigationUtils.navigateToEditDocument(documentVO.getId(), params,
 					actionsComponent.getConstellioFactories().getAppLayerFactory(),
 					actionsComponent.getSessionContext().getCurrentCollection());
 
@@ -192,11 +192,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		if (isCopyDocumentPossible()) {
 			boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
 
-			if(areSearchTypeAndSearchIdPresent) {
+			if (areSearchTypeAndSearchIdPresent) {
 				actionsComponent.navigate().to(RMViews.class)
 						.addDocumentWithContentFromDecommission(documentVO.getId(), DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
 			} else if (rmModuleExtensions
-					.navigateToAddDocumentWithContentFromAPage(new NavigateToFromAPageParams(params, documentVO.getId()))) {
+					.navigateToAddDocumentWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, documentVO.getId()))) {
 			} else {
 				actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
 			}
@@ -481,13 +481,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void navigateToDisplayDocument(String documentId, Map<String, String> params) {
-		RMNavUtil.navigateToDisplayDocumentAreTypeAndSearchIdPresent(documentId, params,
+		RMNavigationUtils.navigateToDisplayDocument(documentId, params,
 				actionsComponent.getConstellioFactories().getAppLayerFactory(),
 				actionsComponent.getSessionContext().getCurrentCollection());
 	}
 
 	public void navigateToDisplayFolder(String folderId, Map<String, String> params) {
-		RMNavUtil.navigateToDisplayFolderAreTypeAndSearchIdPresent(folderId, params,
+		RMNavigationUtils.navigateToDisplayFolder(folderId, params,
 				actionsComponent.getConstellioFactories().getAppLayerFactory(),
 				actionsComponent.getSessionContext().getCurrentCollection());
 	}
@@ -959,7 +959,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 
-			if(searchEvent != null) {
+			if (searchEvent != null) {
 				searchEventServices.incrementClickCounter(searchEvent.getId());
 
 				String url = null;

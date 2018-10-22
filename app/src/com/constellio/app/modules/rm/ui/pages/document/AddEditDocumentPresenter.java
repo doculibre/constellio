@@ -19,7 +19,7 @@ import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeF
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
-import com.constellio.app.modules.rm.util.RMNavUtil;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -305,12 +305,12 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	}
 
 	private void navigateToDocumentDisplay(String id) {
-		RMNavUtil.navigateToDisplayDocumentAreTypeAndSearchIdPresent(id, params, appLayerFactory, view.getCollection());
+		RMNavigationUtils.navigateToDisplayDocument(id, params, appLayerFactory, view.getCollection());
 
 	}
 
 	private void navigateToFolderDisplay(String id) {
-		RMNavUtil.navigateToDisplayFolderAreTypeAndSearchIdPresent(id, params, appLayerFactory, view.getCollection());
+		RMNavigationUtils.navigateToDisplayFolder(id, params, appLayerFactory, view.getCollection());
 	}
 
 	private void setAsNewVersionOfContent(Document document) {

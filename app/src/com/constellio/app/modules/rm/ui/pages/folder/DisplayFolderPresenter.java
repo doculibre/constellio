@@ -28,7 +28,7 @@ import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBui
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.DecommissionNavUtil;
-import com.constellio.app.modules.rm.util.RMNavUtil;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -708,7 +708,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void editFolderButtonClicked() {
-		RMNavUtil.navigateToEditFolderAreTypeAndSearchIdPresent(folderVO.getId(), params, appLayerFactory, collection);
+		RMNavigationUtils.navigateToEditFolder(folderVO.getId(), params, appLayerFactory, collection);
 	}
 
 	public void deleteFolderButtonClicked(String reason) {
@@ -746,7 +746,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			navigate().to(RMViews.class).duplicateFolderFromDecommission(folderVO.getId(), isStructure,
 					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
 		} else if (rmModuleExtensions
-				.navigateToDuplicateFolderFromAPage(new NavigateToFromAPageParams(params, isStructure, folderVO.getId()))) {
+				.navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, isStructure, folderVO.getId()))) {
 		} else {
 			navigate().to(RMViews.class).duplicateFolder(folder.getId(), isStructure);
 		}
@@ -781,7 +781,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void editDocumentButtonClicked(RecordVO recordVO) {
-		RMNavUtil.navigateToEditDocumentAreTypeAndSearchPresent(recordVO.getId(), params, appLayerFactory, collection);
+		RMNavigationUtils.navigateToEditDocument(recordVO.getId(), params, appLayerFactory, collection);
 
 	}
 
@@ -810,12 +810,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private void navigateToDocument(RecordVO recordVO) {
-		RMNavUtil.navigateToDisplayDocumentAreSearchTypeAndSearchIdOrContainerPresent(recordVO.getId(), params, appLayerFactory,
+		RMNavigationUtils.navigateToDisplayDocument(recordVO.getId(), params, appLayerFactory,
 				collection);
 	}
 
 	public void navigateToFolder(String folderId) {
-		RMNavUtil.navigateToDisplayFolderAreSearchTypeSearchIdOrContainerPresent(folderId, params, appLayerFactory, collection);
+		RMNavigationUtils.navigateToDisplayFolder(folderId, params, appLayerFactory, collection);
 	}
 
 	public void taskClicked(RecordVO taskVO) {

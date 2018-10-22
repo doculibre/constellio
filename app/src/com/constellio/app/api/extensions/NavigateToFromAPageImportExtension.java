@@ -3,27 +3,52 @@ package com.constellio.app.api.extensions;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 
 public class NavigateToFromAPageImportExtension {
-	public boolean navigateToDisplayDocumentFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+
+	/**
+	 * @return whether or not a navigation has occured
+	 */
+	public boolean navigateToDisplayDocumentWhileKeepingTraceOfPreviousView(
+			NavigateToFromAPageParams navigateToFromAPageParams) {
 		return false;
 	}
 
-	public boolean navigateToDisplayFolderFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+	/**
+	 * @return whether or not a navigation has occured
+	 */
+	public boolean navigateToDisplayFolderWhileKeepingTraceOfPreviousView(
+			NavigateToFromAPageParams navigateToFromAPageParams) {
 		return false;
 	}
 
-	public boolean navigateToEditFolderFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+	/**
+	 * @return whether or not a navigation has occured
+	 */
+	public boolean navigateToEditFolderWhileKeepingTraceOfPreviousView(
+			NavigateToFromAPageParams navigateToFromAPageParams) {
 		return false;
 	}
 
-	public boolean navigateToEditDocumentFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+	/**
+	 * @return whether or not a navigation has occured
+	 */
+	public boolean navigateToEditDocumentWhileKeepingTraceOfPreviousView(
+			NavigateToFromAPageParams navigateToFromAPageParams) {
 		return false;
 	}
 
-	public boolean navigateToDuplicateFolderFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+	/**
+	 * @return whether or not a navigation has occured
+	 */
+	public boolean navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(
+			NavigateToFromAPageParams navigateToFromAPageParams) {
 		return false;
 	}
 
-	public boolean navigateToAddDocumentWithContentFromAPage(NavigateToFromAPageParams navigateToFromAPageParams) {
+	/**
+	 * @return whether or not a navigation has occured
+	 */
+	public boolean navigateToAddDocumentWhileKeepingTraceOfPreviousView(
+			NavigateToFromAPageParams navigateToFromAPageParams) {
 		return false;
 	}
 }
