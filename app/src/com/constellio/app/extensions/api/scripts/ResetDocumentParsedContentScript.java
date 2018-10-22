@@ -17,9 +17,9 @@ import java.util.Set;
 
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.PARSED_CONTENT_MAX_LENGTH_IN_KILOOCTETS;
 
-public class ResetParsedContentScript extends ScriptWithLogOutput {
-	public ResetParsedContentScript(AppLayerFactory appLayerFactory) {
-		super(appLayerFactory, "Content", "ResetParsedContentScript");
+public class ResetDocumentParsedContentScript extends ScriptWithLogOutput {
+	public ResetDocumentParsedContentScript(AppLayerFactory appLayerFactory) {
+		super(appLayerFactory, "Content", "ResetDocumentParsedContentScript");
 	}
 
 	@Override
