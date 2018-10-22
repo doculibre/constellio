@@ -39,6 +39,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
+import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -521,7 +522,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustMediumTypesField() {
 		FolderFormImpl folderForm = (FolderFormImpl) view.getForm();
 		RecordOptionGroup recordOptionGroup = (RecordOptionGroup) folderForm.getField(Folder.MEDIUM_TYPES);
-		recordOptionGroup.setItemEnabled(mediumTypeService.getDigitalMediumType().getId(), false);
+		for (MediumType mediumType : mediumTypeService.getActivatedOnContentMediumTypes()) {
+			recordOptionGroup.setItemEnabled(mediumType.getId(), false);
+		}
 	}
 
 	void adjustParentFolderField() {

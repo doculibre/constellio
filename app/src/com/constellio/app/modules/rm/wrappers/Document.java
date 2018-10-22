@@ -61,6 +61,7 @@ public class Document extends RMObject {
 	public static final String ESSENTIAL = "essential";
 	public static final String CONFIDENTIAL = "confidential";
 	public static final String MIME_TYPE = "mimetype";
+	public static final String HAS_CONTENT = "hasContent";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {
@@ -351,5 +352,9 @@ public class Document extends RMObject {
 
 	public String getContentCheckedOutBy() {
 		return get(CONTENT_CHECKED_OUT_BY);
+	}
+
+	public boolean hasContent() {
+		return getBooleanWithDefaultValue(HAS_CONTENT, false);
 	}
 }

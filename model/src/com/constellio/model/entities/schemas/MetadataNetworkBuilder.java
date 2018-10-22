@@ -382,20 +382,21 @@ public class MetadataNetworkBuilder {
 		} else if (DataEntryType.AGGREGATED == metadata.getDataEntry().getType()) {
 			AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
-			Metadata refMetadata = builder.metadata(dataEntry.getReferenceMetadata());
+			List<String> referenceMetadatas = dataEntry.getReferenceMetadatas();
+			for (String referenceMetadata : referenceMetadatas) {
+				Metadata refMetadata = builder.metadata(referenceMetadata);
 
-			GetMetadatasUsedToCalculateParams params = new GetMetadatasUsedToCalculateParams(metadata) {
+				GetMetadatasUsedToCalculateParams params = new GetMetadatasUsedToCalculateParams(metadata, referenceMetadata) {
+					@Override
+					public Metadata getMetadata(String metadataCode) {
+						return builder.metadata(metadataCode);
+					}
+				};
 
-				@Override
-				public Metadata getMetadata(String metadataCode) {
-					return builder.metadata(metadataCode);
-				}
-			};
-
-			List<Metadata> tos = getHandlerFor(metadata).getMetadatasUsedToCalculate(params);
-			int level = builder.getDependencyLevelRequiredFor(metadata, tos, true, false);
-			builder.addNetworkLink(metadata, tos, refMetadata, level, AGGREGATION_INPUT, true, false);
-
+				List<Metadata> tos = getHandlerFor(metadata).getMetadatasUsedToCalculate(params);
+				int level = builder.getDependencyLevelRequiredFor(metadata, tos, true, false);
+				builder.addNetworkLink(metadata, tos, refMetadata, level, AGGREGATION_INPUT, true, false);
+			}
 		}
 	}
 

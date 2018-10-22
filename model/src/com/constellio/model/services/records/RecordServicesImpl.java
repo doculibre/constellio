@@ -816,9 +816,15 @@ public class RecordServicesImpl extends BaseRecordServices {
 						catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
 				if (record.isSaved()) {
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-					extensions.callRecordInModificationBeforeSave(
-							new RecordInModificationBeforeSaveEvent(record, modifiedMetadatas, transaction.getUser(),
-									singleRecordTransaction, recordErrors), options);
+					extensions.callRecordInModificationBeforeSave(new RecordInModificationBeforeSaveEvent(record,
+							modifiedMetadatas, transaction.getUser(), singleRecordTransaction, recordErrors) {
+						@Override
+						public void recalculateRecord(List<String> metadatas) {
+							newAutomaticMetadataServices().updateAutomaticMetadatas(
+									(RecordImpl) record, newRecordProvider(transaction),
+									metadatas, transaction);
+						}
+					}, options);
 				} else {
 					extensions.callRecordInCreationBeforeSave(new RecordInCreationBeforeSaveEvent(
 							record, transaction.getUser(), singleRecordTransaction, recordErrors) {
