@@ -413,11 +413,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 					if (loadContainerProperty.getValue() instanceof String) {
 						String value = (String) loadContainerProperty.getValue();
 						if (Strings.isNullOrEmpty(value)) {
-							try {
-								loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
-							} catch (RecordVORuntimeException.RecordVORuntimeException_NoSuchMetadata e) {
-
-							}
+							loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
 						}
 					}
 				}
