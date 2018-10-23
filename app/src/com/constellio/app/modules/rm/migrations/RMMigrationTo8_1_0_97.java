@@ -5,7 +5,6 @@ import com.constellio.app.entities.modules.MigrationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.modules.rm.model.calculators.document.DocumentHasContentCalculator;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderHasContentCalculator;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
@@ -16,11 +15,16 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static java.util.Collections.singletonList;
 
 public class RMMigrationTo8_1_0_97 extends MigrationHelper implements MigrationScript {
 
@@ -74,12 +78,13 @@ public class RMMigrationTo8_1_0_97 extends MigrationHelper implements MigrationS
 					.defineDataEntry().asCalculated(DocumentHasContentCalculator.class);
 
 			MetadataSchemaBuilder folderSchema = typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE);
-			folderSchema.createUndeletable(Folder.HAS_CONTENT).setType(MetadataValueType.BOOLEAN)
-					.defineDataEntry().asCalculated(FolderHasContentCalculator.class);
-			folderSchema.createUndeletable(Folder.SUB_FOLDERS_WITH_CONTENT).setType(MetadataValueType.BOOLEAN).defineDataEntry()
-					.asAggregatedOr(folderSchema.get(Folder.PARENT_FOLDER), folderSchema.get(Folder.HAS_CONTENT));
-			folderSchema.createUndeletable(Folder.DOCUMENTS_WITH_CONTENT).setType(MetadataValueType.BOOLEAN).defineDataEntry()
-					.asAggregatedOr(documentSchema.get(Document.FOLDER), documentSchema.get(Document.HAS_CONTENT));
+
+			MetadataBuilder folderHasContent = folderSchema.createUndeletable(Folder.HAS_CONTENT).setType(MetadataValueType.BOOLEAN);
+
+			Map<MetadataBuilder, List<MetadataBuilder>> metadatasByRefMetadata = new HashMap<>();
+			metadatasByRefMetadata.put(documentSchema.get(Document.FOLDER), singletonList(documentSchema.get(Document.HAS_CONTENT)));
+			metadatasByRefMetadata.put(folderSchema.get(Folder.PARENT_FOLDER), singletonList(folderHasContent));
+			folderHasContent.defineDataEntry().asAggregatedOr(metadatasByRefMetadata);
 		}
 	}
 }

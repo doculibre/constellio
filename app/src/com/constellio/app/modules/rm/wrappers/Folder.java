@@ -115,8 +115,6 @@ public class Folder extends RMObject {
 	public static final String DOCUMENTS_TOKENS = "documentsTokens";
 	public static final String UNIQUE_KEY = "uniqueKey";
 	public static final String SUMMARY = "summary";
-	public static final String SUB_FOLDERS_WITH_CONTENT = "subFoldersWithContent";
-	public static final String DOCUMENTS_WITH_CONTENT = "documentsWithContent";
 	public static final String HAS_CONTENT = "hasContent";
 
 	public Folder(Record record,

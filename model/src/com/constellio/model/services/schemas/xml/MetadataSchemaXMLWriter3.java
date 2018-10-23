@@ -695,14 +695,14 @@ public class MetadataSchemaXMLWriter3 {
 
 			Map<String, List<String>> metadatasByRefMetadata = agregatedDataEntry.getInputMetadatasByReferenceMetadata();
 
-			String referenceMetadata = StringUtils.join(metadatasByRefMetadata.entrySet(), ";");
+			String referenceMetadata = StringUtils.join(metadatasByRefMetadata.keySet(), ";");
 			dataEntry.setAttribute("referenceMetadata", referenceMetadata);
 
 			List<String> inputMetadataStr = new ArrayList<>();
 			for (List<String> inputMetadatas : metadatasByRefMetadata.values()) {
 				inputMetadataStr.add(StringUtils.join(inputMetadatas, ","));
 			}
-			if (inputMetadataStr.isEmpty()) {
+			if (!inputMetadataStr.isEmpty()) {
 				String inputMetadatasStr = StringUtils.join(inputMetadataStr, ";");
 				dataEntry.setAttribute("inputMetadata", inputMetadatasStr);
 			}

@@ -644,13 +644,16 @@ public class MetadataSchemaXMLReader3 {
 				String inputMetadataStr = dataEntry.getAttributeValue("inputMetadata");
 
 				Map<String, List<String>> inputMetadatasByRefMetadata = new HashMap<>();
-				if (!isBlank(referenceMetadata) && !isBlank(inputMetadataStr)) {
+				if (!isBlank(referenceMetadata)) {
 					List<String> referenceMetadatas = asList(referenceMetadata.split(";"));
-					List<String> inputMetadatas = asList(inputMetadataStr.split(";"));
+					List<String> inputMetadatas = !isBlank(inputMetadataStr) ?
+												  asList(inputMetadataStr.split(";")) :
+												  new ArrayList<String>();
 
-					for (int i = 0; i < referenceMetadata.length(); i++) {
+					for (int i = 0; i < referenceMetadatas.size(); i++) {
 						inputMetadatasByRefMetadata.put(referenceMetadatas.get(i),
-								asList(inputMetadatas.get(i).split(",")));
+								!inputMetadatas.isEmpty() ? asList(inputMetadatas.get(i).split(",")) :
+								new ArrayList<String>());
 					}
 				}
 
