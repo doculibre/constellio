@@ -42,11 +42,11 @@ public class RMMigrationTo8_1_0_2 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder builder) {
 			builder.getDefaultSchema(Folder.SCHEMA_TYPE)
-					.createUndeletable(Folder.FAVORITES_LIST).setType(MetadataValueType.STRING).setMultivalue(true);
+					.createUndeletable(Folder.FAVORITES_LIST).setType(MetadataValueType.STRING).setMultivalue(true).setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true);
 			builder.getDefaultSchema(Document.SCHEMA_TYPE)
-					.createUndeletable(Document.FAVORITES_LIST).setType(MetadataValueType.STRING).setMultivalue(true);
+					.createUndeletable(Document.FAVORITES_LIST).setType(MetadataValueType.STRING).setMultivalue(true).setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true);
 			builder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE)
-					.createUndeletable(ContainerRecord.FAVORITES_LIST).setType(MetadataValueType.STRING).setMultivalue(true);
+					.createUndeletable(ContainerRecord.FAVORITES_LIST).setType(MetadataValueType.STRING).setMultivalue(true).setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true);
 		}
 	}
 

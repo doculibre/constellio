@@ -25,6 +25,9 @@ import java.util.List;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class RMMigrationTo8_1_0_3 implements MigrationScript {
+	private static final String FOLDERS = "folders";
+	private static final String DOCUMENTS = "documents";
+	private static final String CONTAINERS = "containers";
 	KeySetMap<String, String> FAVORITES_LIST_MAP = new KeySetMap<>();
 
 	@Override
@@ -54,14 +57,14 @@ public class RMMigrationTo8_1_0_3 implements MigrationScript {
 
 			for (Record record : searchServices.search(query)) {
 				Cart cart = rm.wrapCart(record);
-				if (cart.getMetadataSchemaTypes().hasMetadata("folders")) {
-					addToFavoritesList(cart.get("folders"), cart.getId());
+				if (cart.getMetadataSchemaTypes().hasMetadata(Cart.DEFAULT_SCHEMA + "_" + FOLDERS)) {
+					addToFavoritesList(cart.get(FOLDERS), cart.getId());
 				}
-				if (cart.getMetadataSchemaTypes().hasMetadata("documents")) {
-					addToFavoritesList(cart.get("documents"), cart.getId());
+				if (cart.getMetadataSchemaTypes().hasMetadata(Cart.DEFAULT_SCHEMA + "_" + DOCUMENTS)) {
+					addToFavoritesList(cart.get(DOCUMENTS), cart.getId());
 				}
-				if (cart.getMetadataSchemaTypes().hasMetadata("containers")) {
-					addToFavoritesList(cart.get("containers"), cart.getId());
+				if (cart.getMetadataSchemaTypes().hasMetadata(Cart.DEFAULT_SCHEMA + "_" + CONTAINERS)) {
+					addToFavoritesList(cart.get(CONTAINERS), cart.getId());
 				}
 			}
 

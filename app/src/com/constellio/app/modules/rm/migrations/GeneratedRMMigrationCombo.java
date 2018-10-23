@@ -91,6 +91,7 @@ import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.model.enums.RetentionRuleScope;
 import com.constellio.app.modules.rm.model.enums.RetentionType;
+import com.constellio.app.modules.rm.model.validators.CartValidator;
 import com.constellio.app.modules.rm.model.validators.ContainerRecordValidator;
 import com.constellio.app.modules.rm.model.validators.FolderValidator;
 import com.constellio.app.modules.rm.model.validators.MediumTypeValidator;
@@ -221,6 +222,8 @@ public final class GeneratedRMMigrationCombo {
 		MetadataSchemaBuilder bagInfoSchema = bagInfoSchemaType.getDefaultSchema();
 		MetadataSchemaTypeBuilder cartSchemaType = typesBuilder.createNewSchemaType("cart", false).setSecurity(false);
 		MetadataSchemaTypeBuilder categorySchemaType = typesBuilder.createNewSchemaType("category", false).setSecurity(false);
+		MetadataSchemaBuilder cartSchema = cartSchemaType.getDefaultSchema();
+		cartSchema.defineValidators().add(CartValidator.class);
 		MetadataSchemaBuilder categorySchema = categorySchemaType.getDefaultSchema();
 		MetadataSchemaTypeBuilder containerRecordSchemaType = typesBuilder.createNewSchemaType("containerRecord", false).setSecurity(false).setSmallCode("c");
 		MetadataSchemaBuilder containerRecordSchema = containerRecordSchemaType.getDefaultSchema();
@@ -265,7 +268,6 @@ public final class GeneratedRMMigrationCombo {
 		createAuthorizationDetailsSchemaTypeMetadatas(typesBuilder, authorizationDetailsSchemaType, authorizationDetailsSchema);
 		createBagInfoSchemaTypeMetadatas(typesBuilder, bagInfoSchemaType, bagInfoSchema);
 		createCapsuleSchemaTypeMetadatas(typesBuilder, capsuleSchemaType, capsuleSchema);
-		MetadataSchemaBuilder cartSchema = cartSchemaType.getDefaultSchema();
 		createCartSchemaTypeMetadatas(typesBuilder, cartSchemaType, cartSchema);
 		createCategorySchemaTypeMetadatas(typesBuilder, categorySchemaType, categorySchema);
 		createContainerRecordSchemaTypeMetadatas(typesBuilder, containerRecordSchemaType, containerRecordSchema);

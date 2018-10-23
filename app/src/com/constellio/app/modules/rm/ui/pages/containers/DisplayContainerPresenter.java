@@ -368,30 +368,32 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		if (numberOfContainersInFavoritesReachesLimit(getCurrentUser().getId())) {
 			view.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
 		} else {
-			ContainerRecord containerRecord = getContainer(containerId);
-			containerRecord.addFavorite(getCurrentUser().getId());
+			ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
+			container.addFavorite(getCurrentUser().getId());
 			try {
-				recordServices().update(containerRecord);
+				recordServices().update(container);
 			} catch (RecordServicesException e) {
 				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 			view.showMessage($("DisplayContainerViewImpl.containerAddedToDefaultFavorites"));
 		}
 	}
 
 	public void removeFromDefaultFavorites() {
-		ContainerRecord containerRecord = getContainer(containerId);
-		containerRecord.removeFavorite(getCurrentUser().getId());
+		ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
+		container.removeFavorite(getCurrentUser().getId());
 		try {
-			recordServices().update(containerRecord);
+			recordServices().update(container);
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 		view.showMessage($("DisplayContainerViewImpl.containerRemovedFromDefaultFavorites"));
 	}
 
 	public boolean containerInDefaultFavorites() {
-		ContainerRecord container = getContainer(containerId);
+		ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
 		return container.getFavoritesList().contains(getCurrentUser().getId());
 	}
 
@@ -401,7 +403,4 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		return searchServices().getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 
-	private ContainerRecord getContainer(String containerId) {
-		return rmRecordServices().getContainerRecord(containerId);
-	}
 }

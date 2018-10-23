@@ -126,15 +126,15 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public void cartEmptyingRequested() {
 		for (Folder folder : getCartFolders()) {
-			folder.removeFavorite(getCurrentUser().getId());
+			folder.removeFavorite(cartId);
 			addOrUpdate(folder.getWrappedRecord());
 		}
 		for (Document document : getCartDocuments()) {
-			document.removeFavorite(getCurrentUser().getId());
+			document.removeFavorite(cartId);
 			addOrUpdate(document.getWrappedRecord());
 		}
 		for (ContainerRecord container : getCartContainers()) {
-			container.removeFavorite(getCurrentUser().getId());
+			container.removeFavorite(cartId);
 			addOrUpdate(container.getWrappedRecord());
 		}
 		view.navigate().to(RMViews.class).cart(cartId);

@@ -548,15 +548,15 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
 			@Override
 			public void addToDefaultFavorites() {
-				presenter.addToDefaultFavorite(documentVO);
+				presenter.addToDefaultFavorite();
 			}
 
 			@Override
 			public void removeFromDefaultFavorites() {
-				presenter.removeFromDefaultFavorites(documentVO);
+				presenter.removeFromDefaultFavorites();
 			}
 		};
-		favoriteStar.setStarred(presenter.inDefaultFavorites(documentVO));
+		favoriteStar.setStarred(presenter.inDefaultFavorites());
 		actionMenuButtons.add(favoriteStar);
 
 		actionMenuButtons.add(editDocumentButton);
