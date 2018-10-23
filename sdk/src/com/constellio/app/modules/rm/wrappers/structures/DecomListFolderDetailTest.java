@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
-import com.constellio.model.entities.schemas.ModifiableStructure;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -80,7 +79,7 @@ public class DecomListFolderDetailTest extends ConstellioTest {
 				.setReversedSort(true)
 				.setFolderLinearSize(123.4d);
 
-		String serialized = toStringWithOldStructure(detail, true);
+		String serialized = "01:true:~null~:~null~:~null~:containerRecordId:true:123.4:false";
 		DecomListFolderDetail deserialized = (DecomListFolderDetail) factory.build(serialized);
 
 		assertThat(deserialized).isEqualTo(detail);
@@ -96,48 +95,10 @@ public class DecomListFolderDetailTest extends ConstellioTest {
 				.setReversedSort(true)
 				.setFolderLinearSize(123.4d);
 
-		String serialized = toStringWithOldStructure(detail, false);
+		String serialized = "01:false:~null~:~null~:~null~:containerRecordId:true:123.4:false";
 		DecomListFolderDetail deserialized = (DecomListFolderDetail) factory.build(serialized);
 
 		assertThat(deserialized).isEqualTo(detail);
 	}
 
-	private String toStringWithOldStructure(ModifiableStructure structure, boolean included) {
-		DecomListFolderDetail decomListFolderDetail = (DecomListFolderDetail) structure;
-		StringBuilder stringBuilder = new StringBuilder();
-		writeString(stringBuilder, decomListFolderDetail.getFolderId());
-		writeString(stringBuilder, String.valueOf(included));
-		writeString(stringBuilder, null);
-		writeString(stringBuilder, null);
-		writeString(stringBuilder, null);
-		writeString(stringBuilder, decomListFolderDetail.getContainerRecordId());
-		writeString(stringBuilder, String.valueOf(decomListFolderDetail.isReversedSort()));
-		writeDouble(stringBuilder, decomListFolderDetail.getFolderLinearSize());
-		writeString(stringBuilder, "" + decomListFolderDetail.isPlacedInContainer() == null ?
-								   String.valueOf(false) :
-								   String.valueOf(decomListFolderDetail.isPlacedInContainer()));
-		return stringBuilder.toString();
-	}
-
-	private void writeDouble(StringBuilder stringBuilder, Double value) {
-		if (stringBuilder.length() != 0) {
-			stringBuilder.append(":");
-		}
-		if (value == null) {
-			stringBuilder.append(NULL);
-		} else {
-			stringBuilder.append(String.valueOf(value));
-		}
-	}
-
-	private void writeString(StringBuilder stringBuilder, String value) {
-		if (stringBuilder.length() != 0) {
-			stringBuilder.append(":");
-		}
-		if (value == null) {
-			stringBuilder.append(NULL);
-		} else {
-			stringBuilder.append(value.replace(":", "~~~"));
-		}
-	}
 }
