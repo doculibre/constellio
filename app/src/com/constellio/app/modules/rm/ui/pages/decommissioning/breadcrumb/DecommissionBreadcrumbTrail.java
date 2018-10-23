@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.DocumentBreadCrumbItem;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderBreadCrumbItem;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrailPresenter.ArchiveManagementBreadCrumbItem;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.framework.components.breadcrumb.BreadcrumbItem;
 import com.constellio.app.ui.framework.components.breadcrumb.CollectionBreadcrumbItem;
@@ -32,6 +33,8 @@ public class DecommissionBreadcrumbTrail extends TitleBreadcrumbTrail implements
 		Button button = super.newButton(item);
 		String recordId;
 		if (item instanceof CollectionBreadcrumbItem) {
+			recordId = null;
+		} else if (item instanceof ArchiveManagementBreadCrumbItem) {
 			recordId = null;
 		} else if (item instanceof FolderBreadCrumbItem) {
 			recordId = ((FolderBreadCrumbItem) item).getFolderId();
