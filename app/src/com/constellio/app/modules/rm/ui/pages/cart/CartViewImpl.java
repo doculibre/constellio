@@ -399,10 +399,12 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				Property loadContainerProperty = null;
 				if (itemId instanceof Integer && CommonMetadataBuilder.SUMMARY.equals(propertyId)) {
 					RecordVO recordVO = dataProvider.getRecordVO((int) itemId);
-					MetadataVO metadataVO = recordVO.getSchema().getMetadata(Folder.SUMMARY);
-					String value = recordVO.get(recordVO.getSchema().getMetadata(Folder.SUMMARY));
-					if (metadataVO != null && !Strings.isNullOrEmpty(value)) {
-						loadContainerProperty = new ObjectProperty(value, Component.class);
+					if(recordVO.getMetadataOrNull(recordVO.getSchema().getCode() + "_" + Folder.SUMMARY) != null) {
+						MetadataVO metadataVO = recordVO.getSchema().getMetadata(Folder.SUMMARY);
+						String value = recordVO.get(recordVO.getSchema().getMetadata(Folder.SUMMARY));
+						if (metadataVO != null && !Strings.isNullOrEmpty(value)) {
+							loadContainerProperty = new ObjectProperty(value, Component.class);
+						}
 					}
 				}
 

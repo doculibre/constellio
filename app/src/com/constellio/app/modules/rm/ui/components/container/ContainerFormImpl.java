@@ -27,9 +27,28 @@ import static com.constellio.app.ui.i18n.i18n.$;
  */
 public abstract class ContainerFormImpl extends RecordForm implements ContainerForm {
 
+	private static String getTypeFromRecordIfAvalible(RecordVO recordVO) {
+		MetadataVO metadataVOOrNull = recordVO.getMetadataOrNull(ContainerRecord.TYPE);
+		if(metadataVOOrNull == null) {
+			return null;
+		} else {
+			return recordVO.get(ContainerRecord.TYPE);
+		}
+	}
+
+	private static Double getCapacityFromrecordVOIfAvalible(RecordVO recordVO) {
+		MetadataVO metadataVOOrNull = recordVO.getMetadataOrNull(ContainerRecord.CAPACITY);
+
+		if(metadataVOOrNull == null) {
+			return null;
+		} else {
+			return recordVO.get(ContainerRecord.CAPACITY);
+		}
+	}
+
 	public ContainerFormImpl(RecordVO record, final AddEditContainerPresenter presenter) {
-		this(record, new ContainerFieldFactory((String) record.get(ContainerRecord.TYPE),
-				(Double) record.get(ContainerRecord.CAPACITY), presenter));
+		this(record, new ContainerFieldFactory(getTypeFromRecordIfAvalible(record),
+				getCapacityFromrecordVOIfAvalible(record), presenter));
 		if (presenter.isMultipleMode()) {
 			WindowButton newSaveButton = new WindowButton(saveButton.getCaption(), saveButton.getCaption()) {
 				@Override
