@@ -102,7 +102,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	@Override
 	protected String getTitle() {
-		return $("CartView.viewTitle");
+		if (presenter.isDefaultCart()) {
+			return $("CartView.defaultFavoritesViewTitle");
+		} else {
+			return $("CartView.viewTitle");
+		}
 	}
 
 	@Override

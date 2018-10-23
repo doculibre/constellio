@@ -1193,16 +1193,17 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		query.sortFirstOn(sortField);
 	}
 
-	public void addToDefaultFavorite(RecordVO recordVO) {
+	public void addToDefaultFavorite() {
 		if (numberOfFoldersInFavoritesReachesLimit(getCurrentUser().getId())) {
 			view.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
 		} else {
-			Folder folder = rmSchemasRecordsServices.wrapFolder(getRecord(recordVO.getId()));
+			Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
 			folder.addFavorite(getCurrentUser().getId());
 			try {
 				recordServices.update(folder);
 			} catch (RecordServicesException e) {
 				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 			view.showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
 		}
@@ -1214,18 +1215,19 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return searchServices().getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 
-	public boolean inDefaultFavorites(RecordVO recordVO) {
-		Folder folder = rmSchemasRecordsServices.wrapFolder(getRecord(recordVO.getId()));
+	public boolean inDefaultFavorites() {
+		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
 		return folder.getFavoritesList().contains(getCurrentUser().getId());
 	}
 
-	public void removeFromDefaultFavorites(RecordVO recordVO) {
-		Folder folder = rmSchemasRecordsServices.wrapFolder(getRecord(recordVO.getId()));
+	public void removeFromDefaultFavorites() {
+		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
 		folder.removeFavorite(getCurrentUser().getId());
 		try {
 			recordServices.update(folder);
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 		view.showMessage($("DisplayFolderViewImpl.folderRemovedFromDefaultFavorites"));
 	}

@@ -427,15 +427,15 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
 				@Override
 				public void addToDefaultFavorites() {
-					presenter.addToDefaultFavorite(recordVO);
+					presenter.addToDefaultFavorite();
 				}
 
 				@Override
 				public void removeFromDefaultFavorites() {
-					presenter.removeFromDefaultFavorites(recordVO);
+					presenter.removeFromDefaultFavorites();
 				}
 			};
-			favoriteStar.setStarred(presenter.inDefaultFavorites(recordVO));
+			favoriteStar.setStarred(presenter.inDefaultFavorites());
 			actionMenuButtons.add(favoriteStar);
 			actionMenuButtons.add(editFolderButton);
 

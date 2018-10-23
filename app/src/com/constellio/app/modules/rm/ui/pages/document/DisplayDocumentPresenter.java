@@ -518,35 +518,33 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		query.sortFirstOn(sortField);
 	}
 
-	public void addToDefaultFavorite(DocumentVO documentVO) {
+	public void addToDefaultFavorite() {
 		if (numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId())) {
 			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {
-			Document document = rm.wrapDocument(getRecord(documentVO.getId()));
 			document.addFavorite(getCurrentUser().getId());
 			try {
 				recordServices.update(document);
 			} catch (RecordServicesException e) {
 				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 			view.showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
 		}
 	}
 
-	public void removeFromDefaultFavorites(DocumentVO documentVO) {
-		Document document = rm.wrapDocument(getRecord(documentVO.getId()));
+	public void removeFromDefaultFavorites() {
 		document.removeFavorite(getCurrentUser().getId());
 		try {
 			recordServices.update(document);
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 		view.showMessage($("DisplayDocumentView.documentRemovedFromDefaultFavorites"));
 	}
 
-	public boolean inDefaultFavorites(DocumentVO documentVO) {
-		Record record = getRecord(documentVO.getId());
-		Document document = rm.wrapDocument(record);
+	public boolean inDefaultFavorites() {
 		return document.getFavoritesList().contains(getCurrentUser().getId());
 	}
 

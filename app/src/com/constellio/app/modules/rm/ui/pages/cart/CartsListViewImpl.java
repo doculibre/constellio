@@ -89,10 +89,10 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 			}
 		};
 		Table table = buildTable();
-		Table defaultFavoritesTable = buildDefaultFavorites();
-		tabLayout.addComponents(addButton, defaultFavoritesTable, table);
+		tabLayout.addComponents(buildDefaultFavoritesTable(), addButton, table);
 		tabLayout.setExpandRatio(table, 1);
-		tabLayout.setComponentAlignment(addButton, Alignment.TOP_RIGHT);
+		tabLayout.setSpacing(true);
+		tabLayout.setComponentAlignment(addButton, Alignment.BOTTOM_RIGHT);
 		return tabLayout;
 	}
 
@@ -133,7 +133,7 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 		return table;
 	}
 
-	private Table buildDefaultFavorites() {
+	private Table buildDefaultFavoritesTable() {
 		Component displayButton = new DisplayButton() {
 			@Override
 			protected void buttonClick(ClickEvent event) {
