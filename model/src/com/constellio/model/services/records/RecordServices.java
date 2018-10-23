@@ -36,6 +36,9 @@ public interface RecordServices {
 	List<BatchProcess> executeHandlingImpactsAsync(Transaction transaction)
 			throws RecordServicesException;
 
+	void executeInBatch(Transaction transaction)
+			throws RecordServicesException;
+
 	void execute(Transaction transaction)
 			throws RecordServicesException;
 

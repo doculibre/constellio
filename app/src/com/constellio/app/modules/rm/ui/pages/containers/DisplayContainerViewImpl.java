@@ -1,6 +1,9 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.ui.breadcrumb.ContainerByAdministrativeUnitBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -15,6 +18,8 @@ import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -22,6 +27,7 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
 import com.constellio.data.utils.Factory;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
@@ -33,6 +39,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -54,7 +61,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	@Override
 	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		if (event != null) {
-			presenter.forContainerId(event.getParameters());
+			presenter.forParams(event.getParameters());
 		}
 	}
 
@@ -337,6 +344,34 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		} else {
 			borrowedLabel.setVisible(false);
 			borrowedLabel.setValue(null);
+		}
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		String searchId = getUIContext().getAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+
+		if(presenter.getAdministrativeUnitId() != null && presenter.getTabName() != null) {
+			return new ContainerByAdministrativeUnitBreadcrumbTrail(presenter.getContainerId(), presenter.getAdministrativeUnitId(), this, presenter.getTabName()) {
+				@Override
+				public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+					return Arrays.asList(BreadcrumbTrailUtil.containterByAdministrativeUnit(presenter.getTabName()));
+				}
+			};
+		}
+
+		String regularSearchId = getUIContext().getAttribute(BaseBreadcrumbTrail.SEARCH_ID);
+		Boolean advancedSearch = getUIContext().getAttribute(BaseBreadcrumbTrail.ADVANCED_SEARCH);
+
+		if (searchId == null && regularSearchId != null && advancedSearch) {
+			return new FolderDocumentContainerBreadcrumbTrail(null, null, presenter.getContainer().getId(), this);
+		} else {
+			return new FolderDocumentContainerBreadcrumbTrail(null, null, presenter.getContainer().getId(), this) {
+				@Override
+				public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+					return Arrays.asList(BreadcrumbTrailUtil.getArchiveManagementIntermediateBreadcrumb());
+				}
+			};
 		}
 	}
 }

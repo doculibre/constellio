@@ -80,7 +80,9 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		searchExpression = search.getFreeTextSearch();
 		facetSelections.putAll(search.getSelectedFacets());
 		sortCriterion = search.getSortField();
-		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		if(search.getSortOrder() != null) {
+			sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		}
 		pageNumber = search.getPageNumber();
 		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode() : SearchResultsViewMode.DETAILED;
 		setSelectedPageLength(search.getPageLength());

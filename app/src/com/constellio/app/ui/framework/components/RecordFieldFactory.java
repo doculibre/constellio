@@ -26,6 +26,7 @@ public class RecordFieldFactory implements Serializable {
 		this.metadataFieldFactory = metadataFieldFactory;
 	}
 
+	//Do not call as super when overwriting function with Locale
 	public final Field<?> build(RecordVO recordVO, MetadataVO metadataVO) {
 		return build(recordVO, metadataVO, null);
 	}

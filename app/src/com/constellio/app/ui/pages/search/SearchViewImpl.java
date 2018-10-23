@@ -27,13 +27,13 @@ import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
-import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.label.ContentMode;
@@ -59,10 +59,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
@@ -75,6 +72,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public static final String SORT_TITLE_STYLE = "sort-title";
 	public static final String SAVE_SEARCH = "save-search";
 
+
 	protected T presenter;
 	private VerticalLayout thesaurusDisambiguation;
 	private VerticalLayout spellCheckerSuggestions;
@@ -86,6 +84,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
+	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
+	private Map<String, String> extraParameters = null;
+
+	public void addSaveSearchListenerList(SaveSearchListener saveSearchListener) {
+		saveSearchListenerList.add(saveSearchListener);
+	}
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -118,6 +122,14 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			refreshSearchResultsAndFacets(false);
 		}
 		return layout;
+	}
+
+	protected Map<String, String> getExtraParameters() {
+		return extraParameters;
+	}
+
+	protected void setExtraParameters(Map<String, String> extraParameters) {
+		this.extraParameters = extraParameters;
 	}
 
 	private void buildThesaurusDisambiguation(List<String> disambiguationSuggestions) {
@@ -228,7 +240,11 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	@Override
 	public SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets) {
 		if (temporarySave) {
-			presenter.saveTemporarySearch(false);
+			SavedSearch savedSearch = presenter.saveTemporarySearch(false);
+
+			for(SaveSearchListener saveSearchListener : saveSearchListenerList) {
+				saveSearchListener.save(new SaveSearchListener.Event(savedSearch));
+			}
 		}
 
 		SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
@@ -392,12 +408,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		srTable.setItemsPerPageValue(selectedPageLength);
 		srTable.setCurrentPage(currentPage);
 
-		srTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-			}
-		});
-
 		srTable.addListener(new SearchResultDetailedTable.PageChangeListener() {
 			public void pageChanged(PagedTableChangeEvent event) {
 				presenter.setPageNumber(event.getCurrentPage());
@@ -425,6 +435,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		});
 
 		srTable.setWidth("100%");
+
 		return srTable;
 	}
 
@@ -433,7 +444,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected SearchResultContainer buildResultContainer(SearchResultVODataProvider dataProvider) {
-		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
+		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
 		SearchResultContainer container = new SearchResultContainer(results, displayFactory,
 				presenter.getSearchQuery().getFreeTextQuery()) {
@@ -443,7 +454,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					@Override
 					public void buttonClick(ClickEvent event) {
 						presenter.searchResultClicked(searchResultVO.getRecordVO());
-
 					}
 				};
 			}

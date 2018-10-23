@@ -9,6 +9,15 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.migrations.scripts.CoreMigrationTo_8_1_0_2;
+import com.constellio.data.dao.managers.config.ConfigManagerException;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class RMMigrationTo8_1_0_2 implements MigrationScript {
 	@Override

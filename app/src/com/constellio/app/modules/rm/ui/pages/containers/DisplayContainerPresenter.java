@@ -22,6 +22,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.NewReportPresenter;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
@@ -55,6 +56,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	private transient DecommissioningService decommissioningService;
 
 	private String containerId;
+	private String tabName;
+	private String administrativeUnitId;
 
 	public DisplayContainerPresenter(DisplayContainerView view) {
 		this(view, null, false);
@@ -63,7 +66,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	public DisplayContainerPresenter(DisplayContainerView view, RecordVO recordVO, boolean popup) {
 		super(view);
 		if (recordVO != null) {
-			forContainerId(recordVO.getId());
+			forParams(recordVO.getId());
 		}
 	}
 
@@ -117,7 +120,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	@Override
 	protected List<String> getRestrictedRecordIds(String params) {
-		return asList(params);
+		return asList(containerId);
 	}
 
 	public void backButtonClicked() {
@@ -169,7 +172,12 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public void displayFolderButtonClicked(RecordVO folder) {
-		view.navigate().to(RMViews.class).displayFolder(folder.getId());
+		if(view.getUIContext().getAttribute(BaseBreadcrumbTrail.SEARCH_ID) != null && containerId != null) {
+			view.navigate().to(RMViews.class).displayFolderFromContainer(folder.getId(), containerId);
+		} else {
+			view.navigate().to(RMViews.class).displayFolder(folder.getId());
+		}
+
 	}
 
 	@Override
@@ -203,8 +211,24 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		return true;
 	}
 
-	public void forContainerId(String containerId) {
-		this.containerId = containerId;
+	public void forParams(String containerId) {
+		String[] parts = containerId.split("/");
+
+		if(parts.length == 1) {
+			this.containerId = containerId;
+		} else {
+			this.containerId = parts[0];
+			this.tabName = parts[1];
+			this.administrativeUnitId = parts[2];
+		}
+	}
+
+	public String getTabName() {
+		return tabName;
+	}
+
+	public String getAdministrativeUnitId() {
+		return administrativeUnitId;
 	}
 
 	public String getContainerId() {

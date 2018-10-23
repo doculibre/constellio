@@ -153,6 +153,7 @@ public class AppLayerCollectionExtensions {
 
 	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
 
+
 	//Key : schema type code
 	//Values : record's code
 	public KeyListMap<String, String> lockedRecords = new KeyListMap<>();
@@ -687,5 +688,6 @@ public class AppLayerCollectionExtensions {
 		}
 		return new ArrayList<>(unwantedTaxonomies);
 	}
+
 
 }

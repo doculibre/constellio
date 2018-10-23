@@ -1,15 +1,22 @@
 package com.constellio.app.ui.pages.management.schemas.schema;
 
+import com.constellio.app.ui.application.CoreViews;
+import com.constellio.app.ui.application.Navigation;
+import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.MetadataVOLazyContainer;
 import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
 import com.constellio.app.ui.params.ParamUtils;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Alignment;
@@ -22,9 +29,13 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEditSchemaMetadataView, ClickListener {
 
@@ -134,5 +145,20 @@ public class AddEditSchemaMetadataViewImpl extends BaseViewImpl implements AddEd
 		}
 
 		return tabSheet;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new TitleBreadcrumbTrail(this, getTitle()) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				List<IntermediateBreadCrumbTailItem> intermediateBreadCrumbTailItemsList = new ArrayList<>();
+				intermediateBreadCrumbTailItemsList.addAll(super.getIntermediateItems());
+				intermediateBreadCrumbTailItemsList.addAll(asList(BreadcrumbTrailUtil.listSchemaTypeIntermediateBreadcrumb(),
+						BreadcrumbTrailUtil.listSchemaIntermediateBreadcrumb(presenter.getSchemaCode())));
+
+				return intermediateBreadCrumbTailItemsList;
+			}
+		};
 	}
 }

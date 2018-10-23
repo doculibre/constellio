@@ -1,26 +1,35 @@
 package com.constellio.app.modules.rm.ui.components.menuBar;
 
-import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.services.schemas.SchemaUtils;
 
+import java.util.Map;
+
 public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<DocumentMenuBar> {
 
 	private DocumentMenuBar menuBar;
+	private RMModuleExtensions rmModuleExtensions;
 
 	public DocumentMenuBarPresenter(DocumentMenuBar menuBar) {
 		super(menuBar);
 		this.menuBar = menuBar;
+		rmModuleExtensions = menuBar.getConstellioFactories().getAppLayerFactory().getExtensions()
+				.forCollection(menuBar.getSessionContext().getCurrentCollection())
+				.forModule(ConstellioRMModule.ID);
 	}
 
 	@Override
@@ -47,7 +56,12 @@ public class DocumentMenuBarPresenter extends DocumentActionsPresenterUtils<Docu
 	}
 
 	public void displayDocumentButtonClicked() {
-		menuBar.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+		Map<String, String> params = ParamUtils.getCurrentParams();
+
+		RMNavigationUtils.navigateToDisplayDocument(documentVO.getId(),
+				params, menuBar.getConstellioFactories().getAppLayerFactory(),
+				menuBar.getSessionContext().getCurrentCollection());
+
 		updateSearchResultClicked();
 	}
 

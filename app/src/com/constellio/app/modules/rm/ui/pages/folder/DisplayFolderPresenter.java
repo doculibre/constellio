@@ -1,7 +1,9 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
+import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
+import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
+import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
-import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
@@ -15,14 +17,19 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.content.ConstellioAgentClickHandler;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.DecommissionNavUtil;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -34,6 +41,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.services.BetaWorkflowServices;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -45,10 +53,13 @@ import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.ComponentState;
+import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
@@ -121,12 +132,15 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private transient ModelLayerCollectionExtensions extensions;
 	private transient RMModuleExtensions rmModuleExtensions;
 	private transient ConstellioEIMConfigs eimConfigs;
+	private String taxonomyCode;
 
 	Boolean allItemsSelected = false;
 
 	Boolean allItemsDeselected = false;
 
 	private boolean popup;
+
+	private Map<String, String> params = null;
 
 	public DisplayFolderPresenter(DisplayFolderView view, RecordVO recordVO, boolean popup) {
 		super(view, Folder.DEFAULT_SCHEMA);
@@ -135,6 +149,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (recordVO != null) {
 			forParams(recordVO.getId());
 		}
+
 	}
 
 	private void readObject(java.io.ObjectInputStream stream)
@@ -156,14 +171,26 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 	}
 
+	protected void setTaxonomyCode(String taxonomyCode) {
+		this.taxonomyCode = taxonomyCode;
+	}
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return true;
 	}
 
 	public void forParams(String params) {
-		String id = params;
-		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
+		String id;
+
+		if(params.contains("id")) {
+			this.params = ParamUtils.getParamsMap(params);
+			id = this.params.get("id");
+		} else {
+			id = params;
+		}
+
+		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
 
 		Record record = getRecord(id);
@@ -216,6 +243,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.setEvents(eventsDataProvider);
 
 		computeAllItemsSelected();
+	}
+
+	public Map<String, String> getParams() {
+		return params;
+	}
+
+	public String getFolderId() {
+		return folderVO.getId();
 	}
 
 	LogicalSearchQuery getDocumentsQuery() {
@@ -279,6 +314,47 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			} else if (DefaultTabInFolderDisplay.CONTENT.getCode().equals(defaultTabInFolderDisplayCode)) {
 				view.selectFolderContentTab();
 			}
+		}
+	}
+
+	public BaseBreadcrumbTrail getBreadCrumbTrail() {
+		String saveSearchDecommissioningId = null;
+		String searchTypeAsString = null;
+
+		Map<String, String> params = getParams();
+		if (params != null && params.get("decommissioningSearchId") != null) {
+			saveSearchDecommissioningId = params.get("decommissioningSearchId");
+			view.getUIContext()
+					.setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, saveSearchDecommissioningId);
+		}
+
+		if (params != null && params.get("decommissioningType") != null) {
+			searchTypeAsString = params.get("decommissioningType");
+			view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchTypeAsString);
+		}
+
+		SearchType searchType = null;
+		if (searchTypeAsString != null) {
+			searchType = SearchType.valueOf((searchTypeAsString));
+		}
+		BaseBreadcrumbTrail breadcrumbTrail;
+
+		RMModuleExtensions rmModuleExtensions = view.getConstellioFactories().getAppLayerFactory().getExtensions()
+				.forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
+		breadcrumbTrail = rmModuleExtensions
+				.getBreadCrumbtrail(new DocumentFolderBreadCrumbParams(getFolderId(), params, view));
+
+		if (breadcrumbTrail != null) {
+			return breadcrumbTrail;
+		} else if (saveSearchDecommissioningId == null) {
+			String containerId = null;
+			if (params != null && params instanceof Map) {
+				containerId = params.get("containerId");
+			}
+			return new FolderDocumentContainerBreadcrumbTrail(view.getRecord().getId(), taxonomyCode, containerId, this.view);
+		} else {
+			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()),
+					searchType, saveSearchDecommissioningId, view.getRecord().getId(), this.view);
 		}
 	}
 
@@ -418,8 +494,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	ComponentState getPrintButtonState(User user, Folder folder) {
 		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-		AppLayerCollectionExtensions appLayerCollectionExtensions = appLayerFactory.getExtensions().forCollection(collection);
-		RMModuleExtensions rmModuleExtensions = appLayerCollectionExtensions.forModule(ConstellioRMModule.ID);
 		if (authorizationsServices.canRead(user, folder.getWrappedRecord())) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
@@ -638,7 +712,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void editFolderButtonClicked() {
-		navigate().to(RMViews.class).editFolder(folderVO.getId());
+		RMNavigationUtils.navigateToEditFolder(folderVO.getId(), params, appLayerFactory, collection);
 	}
 
 	public void deleteFolderButtonClicked(String reason) {
@@ -650,7 +724,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
 			delete(record, reason, false, WAIT_ONE_SECOND);
 			if (parentId != null) {
-				navigate().to(RMViews.class).displayFolder(parentId);
+				navigateToFolder(parentId);
 			} else {
 				navigate().to().home();
 			}
@@ -662,17 +736,37 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void duplicateFolderButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
 		if (isDuplicateFolderPossible(getCurrentUser(), folder)) {
-			navigate().to(RMViews.class).duplicateFolder(folder.getId(), false);
+			navigateToDuplicateFolder(folder, false);
 		}
 		if (!popup) {
 			view.closeAllWindows();
 		}
 	}
 
+	private void navigateToDuplicateFolder(Folder folder, boolean isStructure) {
+		boolean areTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+		if (areTypeAndSearchIdPresent) {
+			navigate().to(RMViews.class).duplicateFolderFromDecommission(folderVO.getId(), isStructure,
+					DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+		} else if (rmModuleExtensions
+				.navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, isStructure, folderVO.getId()))) {
+		} else {
+			navigate().to(RMViews.class).duplicateFolder(folder.getId(), isStructure);
+		}
+	}
+
 	public void duplicateStructureButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
 		if (isDuplicateFolderPossible(getCurrentUser(), folder)) {
-			navigate().to(RMViews.class).duplicateFolder(folder.getId(), true);
+			try {
+				decommissioningService().validateDuplicateStructure(folder, getCurrentUser(), false);
+				navigateToDuplicateFolder(folder, true);
+			} catch (RecordServicesException.ValidationException e) {
+				view.showErrorMessage($(e.getErrors()));
+			} catch (Exception e) {
+				view.showErrorMessage(e.getMessage());
+			}
 		}
 		if (!popup) {
 			view.closeAllWindows();
@@ -698,7 +792,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void editDocumentButtonClicked(RecordVO recordVO) {
-		navigate().to(RMViews.class).editDocument(recordVO.getId());
+		RMNavigationUtils.navigateToEditDocument(recordVO.getId(), params, appLayerFactory, collection);
+
 	}
 
 	public void downloadDocumentButtonClicked(RecordVO recordVO) {
@@ -707,26 +802,31 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void displayDocumentButtonClicked(RecordVO record) {
-		navigate().to(RMViews.class).displayDocument(record.getId());
+		navigateToDocument(record);
 	}
 
 	public void documentClicked(RecordVO recordVO) {
 		ContentVersionVO contentVersionVO = recordVO.get(Document.CONTENT);
 		if (contentVersionVO == null) {
-			navigate().to(RMViews.class).displayDocument(recordVO.getId());
+			navigateToDocument(recordVO);
 			return;
 		}
 		String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 		if (agentURL != null) {
 			//			view.openAgentURL(agentURL);
-			new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO);
+			new ConstellioAgentClickHandler().handleClick(agentURL, recordVO, contentVersionVO, params);
 		} else {
-			navigate().to(RMViews.class).displayDocument(recordVO.getId());
+			navigateToDocument(recordVO);
 		}
 	}
 
-	public void subFolderClicked(RecordVO subFolderVO) {
-		navigate().to(RMViews.class).displayFolder(subFolderVO.getId());
+	private void navigateToDocument(RecordVO recordVO) {
+		RMNavigationUtils.navigateToDisplayDocument(recordVO.getId(), params, appLayerFactory,
+				collection);
+	}
+
+	public void navigateToFolder(String folderId) {
+		RMNavigationUtils.navigateToDisplayFolder(folderId, params, appLayerFactory, collection);
 	}
 
 	public void taskClicked(RecordVO taskVO) {
@@ -841,7 +941,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				borrowingServices
 						.borrowFolder(folderVO.getId(), borrowingDate, previewReturnDate, getCurrentUser(), borrowerEntered,
 								borrowingType, true);
-				navigate().to(RMViews.class).displayFolder(folderVO.getId());
+				navigateToFolder(folderVO.getId());
 				borrowed = true;
 			} catch (RecordServicesException e) {
 				LOGGER.error(e.getMessage(), e);
@@ -869,7 +969,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 		try {
 			borrowingServices.returnFolder(folderVO.getId(), getCurrentUser(), returnDate, true);
-			navigate().to(RMViews.class).displayFolder(folderVO.getId());
+			navigateToFolder(folderVO.getId());
 			return true;
 		} catch (RecordServicesException e) {
 			view.showErrorMessage($("DisplayFolderView.cannotReturnFolder"));
@@ -1228,5 +1328,23 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			e.printStackTrace();
 		}
 		view.showMessage($("DisplayFolderViewImpl.folderRemovedFromDefaultFavorites"));
+	}
+
+	public RMSelectionPanelReportPresenter buildReportPresenter() {
+		return new RMSelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
+			@Override
+			public String getSelectedSchemaType() {
+				return Folder.SCHEMA_TYPE;
+			}
+
+			@Override
+			public List<String> getSelectedRecordIds() {
+				return asList(folderVO.getId());
+			}
+		};
+	}
+
+	public AppLayerFactory getApplayerFactory() {
+		return appLayerFactory;
 	}
 }

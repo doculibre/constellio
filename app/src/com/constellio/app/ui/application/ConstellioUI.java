@@ -40,6 +40,7 @@ import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Page.BrowserWindowResizeEvent;
 import com.vaadin.server.Page.BrowserWindowResizeListener;
@@ -86,6 +87,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 	private View currentView;
 
+	private ViewChangeEvent viewChangeEvent;
+
 	static {
 		try {
 			ConfirmDialog.setFactory(new ConfirmDialog.Factory() {
@@ -108,6 +111,14 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public ViewChangeEvent getViewChangeEvent() {
+		return viewChangeEvent;
+	}
+
+	public void setViewChangeEvent(ViewChangeEvent viewChangeEvent) {
+		this.viewChangeEvent = viewChangeEvent;
 	}
 
 	public void addRequestHandler(RequestHandler handler) {
@@ -262,6 +273,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 				navigator.addViewChangeListener(new ViewChangeListener() {
 					@Override
 					public boolean beforeViewChange(ViewChangeEvent event) {
+
 						ConstellioFactories.getInstance().onRequestEnded();
 						ConstellioFactories.getInstance().onRequestStarted();
 						return true;
@@ -269,6 +281,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 					@Override
 					public void afterViewChange(ViewChangeEvent event) {
+						ConstellioUI.getCurrent().setViewChangeEvent(event);
 						View oldView = event.getOldView();
 						if (oldView instanceof PollListener) {
 							removePollListener((PollListener) oldView);
