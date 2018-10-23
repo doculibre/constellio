@@ -95,6 +95,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return this;
 	}
 
+
+
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
 		return true;

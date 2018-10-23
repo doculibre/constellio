@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.EventVOTableColumnsManager;
@@ -245,9 +246,16 @@ public class DisplayTaskViewImpl extends BaseViewImpl implements DisplayTaskView
 			};
 			actionMenuButtons.add(deleteTask);
 
-			ReportGeneratorButton reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
-					$("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(),
-					PrintableReportListPossibleType.TASK, presenter.getTask());
+			ReportTabButton reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), presenter.getApplayerFactory(),
+					getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					setRecordVoList(getCurrentTask());
+					super.buttonClick(event);
+				}
+			};
+
+
 			actionMenuButtons.add(reportGeneratorButton);
 		}
 

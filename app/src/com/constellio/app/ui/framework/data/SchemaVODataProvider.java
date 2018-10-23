@@ -9,6 +9,7 @@ import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 
@@ -18,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import static java.util.Arrays.asList;
 
 @SuppressWarnings("serial")
 public class SchemaVODataProvider implements Serializable {
@@ -111,7 +114,7 @@ public class SchemaVODataProvider implements Serializable {
 
 		for (MetadataSchema schema : type.getCustomSchemas()) {
 			if (schema.isActive() == active) {
-				result.add(voBuilder.build(schema, VIEW_MODE.TABLE, sessionContext));
+				result.add(voBuilder.build(schema, VIEW_MODE.TABLE, asList(Schemas.CODE.getCode(), Schemas.TITLE.getCode()), sessionContext, false, true));
 			}
 		}
 
@@ -126,7 +129,7 @@ public class SchemaVODataProvider implements Serializable {
 		//		});
 
 		if (active) {
-			result.add(0, voBuilder.build(type.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext));
+			result.add(0, voBuilder.build(type.getDefaultSchema(), VIEW_MODE.TABLE, asList(Schemas.CODE.getCode(), Schemas.TITLE.getCode()), sessionContext, false, true));
 		}
 
 		return result;

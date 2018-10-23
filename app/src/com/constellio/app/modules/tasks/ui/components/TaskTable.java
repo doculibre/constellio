@@ -281,6 +281,7 @@ public class TaskTable extends RecordVOTable {
 
 	public class TaskStyleGenerator implements CellStyleGenerator {
 		private static final String OVER_DUE_TASK_STYLE = "error";
+		private static final String UNREAD_TASK_STYLE = "important";
 		private static final String FINISHED_TASK_STYLE = "disabled";
 
 		@Override
@@ -290,7 +291,7 @@ public class TaskTable extends RecordVOTable {
 				RecordVOItem item = (RecordVOItem) source.getItem(itemId);
 				if (!presenter.isReadByUser(item.getRecord())) {
 					// TODO Rendre gras le texte plutôt que le fond
-					style = OVER_DUE_TASK_STYLE;
+					style = UNREAD_TASK_STYLE;
 				} else {
 					style = null;
 				}

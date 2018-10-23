@@ -159,13 +159,6 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 				ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 				return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
 			}
-
-
-			@SuppressWarnings("unchecked")
-			@Override
-			public Class<T> getModelType() {
-				return (Class<T>) LookupField.this.getType();
-			}
 		};
 		autoCompleteField = newAutocompleteField(suggestionsProvider);
 		autoCompleteField.addStyleName(AUTOCOMPLETE_FIELD_STYLE_NAME);

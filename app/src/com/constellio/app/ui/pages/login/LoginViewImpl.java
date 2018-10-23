@@ -236,11 +236,10 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 		window.setCaption($("LoginView.privacyPolicyWindow"));
 
 		VerticalLayout mainLayout = new VerticalLayout();
-		mainLayout.setSizeFull();
 		mainLayout.setSpacing(true);
 
 		VerticalLayout textLayout = new VerticalLayout();
-
+		textLayout.setSizeFull();
 		HorizontalLayout buttonLayout = new HorizontalLayout();
 		buttonLayout.setSpacing(true);
 		buttonLayout.setHeight("50px");
@@ -262,15 +261,17 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 			}
 		};
 		acceptButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		DocumentViewer documentViewer = new DocumentViewer(presenter.getPrivacyPolicyFile());
 
-		textLayout.addComponent(new DocumentViewer(presenter.getPrivacyPolicyFile()));
+		textLayout.addComponent(documentViewer);
 		buttonLayout.addComponents(acceptButton, cancelButton);
 
 		mainLayout.addComponents(textLayout, buttonLayout);
 		mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
 
 		window.setContent(mainLayout);
-
+		window.setSizeUndefined();
+		window.center();
 		ConstellioUI.getCurrent().addWindow(window);
 	}
 }

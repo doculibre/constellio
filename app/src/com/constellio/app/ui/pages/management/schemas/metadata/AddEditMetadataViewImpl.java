@@ -13,10 +13,14 @@ import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.ListOptionGroup;
 import com.constellio.app.ui.framework.components.fields.MultilingualTextField;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -104,12 +108,15 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 	}
 
 	@Override
-	protected Component buildMainComponent(ViewChangeEvent event) {
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
 		Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
 		presenter.setSchemaCode(params.get("schemaCode"));
 		presenter.setParameters(params);
 		presenter.setMetadataCode(params.get("metadataCode"));
+	}
 
+	@Override
+	protected Component buildMainComponent(ViewChangeEvent event) {
 		viewLayout = new VerticalLayout();
 		viewLayout.setSizeFull();
 		viewLayout.addComponents(buildTables());
@@ -509,7 +516,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 
 		MetadataFieldFactory factory = new MetadataFieldFactory();
 
-		MetadataVO defaultValueMetadataVO = presenter.getDefaultValueMetadataVO(formMetadataVO);
+		MetadataVO defaultValueMetadataVO = presenter.getDefaultValueMetadataVO(formMetadataVO, editMode);
 
 		Field<?> previousDefaultValueField = defaultValueField;
 		if (defaultValueMetadataVO != null && presenter.isDefaultValuePossible(formMetadataVO)) {
@@ -697,5 +704,21 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				advancedSearchField.setEnabled(false);
 			}
 		}
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+
+		return new TitleBreadcrumbTrail(this, getTitle()) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				List<IntermediateBreadCrumbTailItem> intermediateBreadCrumbTailItemList = BreadcrumbTrailUtil.llistSchemaTypeSchemaList(presenter.getSchemaCode());
+				intermediateBreadCrumbTailItemList.add(BreadcrumbTrailUtil
+						.editSchemaMetadata(presenter.getParamSchemaCode(), presenter.getSchemaTypeCode(),
+						presenter.getSchemaVO().getLabel(getSessionContext().getCurrentLocale().getLanguage())));
+
+				return intermediateBreadCrumbTailItemList;
+			}
+		};
 	}
 }

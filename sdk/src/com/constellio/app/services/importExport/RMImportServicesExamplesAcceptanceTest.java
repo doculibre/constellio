@@ -16,16 +16,12 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestUtils;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
-import com.constellio.sdk.tests.annotations.UiTest;
 import org.junit.Test;
 
 import static com.constellio.app.services.importExport.settings.model.ImportedDataEntry.asJEXLScript;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static org.assertj.core.api.Assertions.tuple;
 
-@InDevelopmentTest
-@UiTest
 public class RMImportServicesExamplesAcceptanceTest extends ConstellioTest {
 
 	RecordServices recordServices;
@@ -57,7 +53,6 @@ public class RMImportServicesExamplesAcceptanceTest extends ConstellioTest {
 		new SettingsImportServices(getAppLayerFactory()).importSettings(importedSettings);
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
-		System.out.println("Script to import : ");
 		TestUtils.printDocument(new SettingsXMLFileWriter().writeSettings(importedSettings));
 
 		Folder folder1 = validFolderWithCategoryFactory.get().setTitle("1").setCategoryEntered(records.categoryId_X13);
@@ -80,9 +75,6 @@ public class RMImportServicesExamplesAcceptanceTest extends ConstellioTest {
 				tuple("5", null, "2"),
 				tuple("6", null, "42")
 		);
-
-		newWebDriver();
-		waitUntilICloseTheBrowsers();
 	}
 
 	Factory<Folder> validFolderWithCategoryFactory = new Factory<Folder>() {

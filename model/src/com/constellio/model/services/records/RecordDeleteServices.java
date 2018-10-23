@@ -36,6 +36,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.Reco
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord;
 import com.constellio.model.services.records.preparation.RecordsToReindexResolver;
+import com.constellio.model.services.records.utils.SortOrder;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -141,7 +142,10 @@ public class RecordDeleteServices {
 		transaction.getRecordUpdateOptions().setSkipUSRMetadatasRequirementValidations(true);
 		transaction.getRecordUpdateOptions().setSkippingReferenceToLogicallyDeletedValidation(true);
 
-		for (Record hierarchyRecord : getAllRecordsInHierarchy(record)) {
+		for (Record hierarchyRecord : getAllRecordsInHierarchy(record, SortOrder.ASCENDING)) {
+			if (Boolean.FALSE.equals(hierarchyRecord.<Boolean>get(Schemas.LOGICALLY_DELETED_STATUS))) {
+				continue;
+			}
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_STATUS, false);
 			hierarchyRecord.set(Schemas.LOGICALLY_DELETED_ON, null);
 			if (!transaction.getRecordIds().contains(hierarchyRecord.getId())) {
@@ -154,7 +158,7 @@ public class RecordDeleteServices {
 			transaction.add(record);
 		}
 		try {
-			recordServices.execute(transaction);
+			recordServices.executeInBatch(transaction);
 		} catch (RecordServicesException e) {
 			throw new RecordDeleteServicesRuntimeException_RecordServicesErrorDuringOperation("restore", e);
 		}
@@ -387,7 +391,7 @@ public class RecordDeleteServices {
 			transaction.addAllRecordsToReindex(ids);
 
 			try {
-				recordServices.execute(transaction);
+				recordServices.executeInBatch(transaction);
 			} catch (RecordServicesException e) {
 				throw new RuntimeException(e);
 			}
@@ -419,7 +423,7 @@ public class RecordDeleteServices {
 		if (taxonomy != null && !includeRecords) {
 			return getAllTaxonomyRecordsInHierarchy(record, taxonomy);
 		} else {
-			return getAllRecordsInHierarchy(record);
+			return getAllRecordsInHierarchy(record, SortOrder.DESCENDING);
 		}
 	}
 
@@ -442,7 +446,7 @@ public class RecordDeleteServices {
 		if (taxonomy != null && !includeRecords) {
 			return getAllTaxonomyRecordsInHierarchy(record, taxonomy);
 		} else {
-			return getAllRecordsInHierarchy(record);
+			return getAllRecordsInHierarchy(record, SortOrder.DESCENDING);
 		}
 	}
 
@@ -571,7 +575,7 @@ public class RecordDeleteServices {
 		transaction.setUser(user);
 		try {
 			transaction.setRecordFlushing(options.getRecordsFlushing());
-			recordServices.execute(transaction);
+			recordServices.executeInBatch(transaction);
 		} catch (RecordServicesException e) {
 			throw new RecordDeleteServicesRuntimeException_RecordServicesErrorDuringOperation("logicallyDelete", e);
 		}
@@ -585,6 +589,10 @@ public class RecordDeleteServices {
 	}
 
 	List<Record> getAllRecordsInHierarchy(Record record) {
+		return getAllRecordsInHierarchy(record, SortOrder.NONE);
+	}
+
+	List<Record> getAllRecordsInHierarchy(Record record, SortOrder sortOrder) {
 
 		if (record.getList(Schemas.PATH).isEmpty()) {
 			return Arrays.asList(record);
@@ -593,6 +601,11 @@ public class RecordDeleteServices {
 			LogicalSearchQuery query = new LogicalSearchQuery();
 			List<String> paths = record.getList(Schemas.PATH);
 			query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+			if (sortOrder == SortOrder.ASCENDING) {
+				query.sortAsc(Schemas.PRINCIPAL_PATH);
+			} else if (sortOrder == SortOrder.DESCENDING) {
+				query.sortDesc(Schemas.PRINCIPAL_PATH);
+			}
 			return searchServices.search(query);
 		}
 	}

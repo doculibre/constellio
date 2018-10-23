@@ -22,6 +22,8 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.Map;
+
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentContentVersionWindowImpl extends VerticalLayout implements DocumentContentVersionWindow {
@@ -46,11 +48,11 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 
 	private DocumentContentVersionPresenter presenter;
 
-	public DocumentContentVersionWindowImpl(RecordVO recordVO, ContentVersionVO contentVersionVO) {
+
+	public DocumentContentVersionWindowImpl(RecordVO recordVO, ContentVersionVO contentVersionVO, Map<String,String> params) {
 		this.recordVO = recordVO;
 		this.contentVersionVO = contentVersionVO;
-
-		this.presenter = new DocumentContentVersionPresenter(this);
+		this.presenter = new DocumentContentVersionPresenter(this, params);
 
 		setSpacing(true);
 		setWidth("90%");

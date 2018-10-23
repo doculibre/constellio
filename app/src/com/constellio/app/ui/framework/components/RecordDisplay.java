@@ -21,9 +21,11 @@ public class RecordDisplay extends BaseDisplay {
 	private RecordVO recordVO;
 	private MetadataDisplayFactory metadataDisplayFactory;
 
+
 	public RecordDisplay(RecordVO recordVO) {
 		this(recordVO, new MetadataDisplayFactory(), STYLE_NAME);
 	}
+
 
 	public RecordDisplay(RecordVO recordVO, MetadataDisplayFactory metadataDisplayFactory) {
 		this(recordVO, metadataDisplayFactory, STYLE_NAME);

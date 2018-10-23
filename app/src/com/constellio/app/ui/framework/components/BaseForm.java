@@ -336,24 +336,26 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 					if (isSpecialContainerTitleCase) {
 						ValidationErrors newValidationErrors = new ValidationErrors();
-						for (Iterator<ValidationError> it = validationErrorsFromException.getValidationErrors().iterator(); it
-								.hasNext(); ) {
-							ValidationError validationError = it.next();
-							if (validationError.getValidatorErrorCode().equals(REQUIRED_VALUE_FOR_METADATA)
-								&& validationError.getParameters().size() > 0
-								&& validationError.getParameters().get(METADATA_CODE)
+						if (validationErrorsFromException != null) {
+							for (Iterator<ValidationError> it = validationErrorsFromException.getValidationErrors().iterator(); it
+									.hasNext(); ) {
+								ValidationError validationError = it.next();
+								if (validationError.getValidatorErrorCode().equals(REQUIRED_VALUE_FOR_METADATA)
+										&& validationError.getParameters().size() > 0
+										&& validationError.getParameters().get(METADATA_CODE)
 										.equals(CONTAINER_RECORD_DEFAULT_TITLE)) {
-								Map<String, Object> params = new HashMap<String, Object>();
+									Map<String, Object> params = new HashMap<String, Object>();
 
-								ValidationError newValidationError = new ValidationError(validatorClass,
-										REQUIRED_VALUE_FOR_METADATA, params);
-								newValidationErrors.add(newValidationError, newValidationError.getParameters());
+									ValidationError newValidationError = new ValidationError(validatorClass,
+											REQUIRED_VALUE_FOR_METADATA, params);
+									newValidationErrors.add(newValidationError, newValidationError.getParameters());
 
-							} else {
-								newValidationErrors.add(validationError, validationError.getParameters());
+								} else {
+									newValidationErrors.add(validationError, validationError.getParameters());
+								}
 							}
+							validationErrorsFromException = newValidationErrors;
 						}
-						validationErrorsFromException = newValidationErrors;
 					}
 
 					if (validationErrorsFromException != null) {
@@ -373,21 +375,23 @@ public abstract class BaseForm<T> extends CustomComponent {
 			for (Field<?> field : fieldGroup.getFields()) {
 				if (!field.isValid() && field.isRequired() && isEmptyValue(field.getValue())) {
 					field.setRequiredError($("requiredField"));
-					if (missingRequiredFields.length() != 0) {
-						missingRequiredFields.append("<br/>");
-					}
-					missingRequiredFields.append($("requiredFieldWithName", "\"" + field.getCaption() + "\""));
+					addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + field.getCaption() + "\""));
 					if (firstFieldWithError == null) {
 						firstFieldWithError = field;
 					}
-				} else if (!field.isValid()) {
-					if (missingRequiredFields.length() != 0) {
-						missingRequiredFields.append("<br/>");
-					}
-					missingRequiredFields.append($("invalidFieldWithName", "\"" + field.getCaption() + "\""));
-
-					if (firstFieldWithError == null) {
-						firstFieldWithError = field;
+				} else {
+					try {
+						field.validate();
+					} catch (Validator.EmptyValueException e) {
+						addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + e.getMessage() + "\""));
+						if (firstFieldWithError == null) {
+							firstFieldWithError = field;
+						}
+					} catch (Validator.InvalidValueException e) {
+						addErrorMessage(missingRequiredFields, $("invalidFieldWithName", "\"" + e.getMessage() + "\""));
+						if (firstFieldWithError == null) {
+							firstFieldWithError = field;
+						}
 					}
 				}
 			}
@@ -396,6 +400,13 @@ public abstract class BaseForm<T> extends CustomComponent {
 				showErrorMessage(missingRequiredFields.toString());
 			}
 		}
+	}
+
+	private void addErrorMessage(StringBuilder missingRequiredFields, String message) {
+		if (missingRequiredFields.length() != 0) {
+			missingRequiredFields.append("<br/>");
+		}
+		missingRequiredFields.append(message);
 	}
 
 	private boolean isEmptyValue(Object value) {

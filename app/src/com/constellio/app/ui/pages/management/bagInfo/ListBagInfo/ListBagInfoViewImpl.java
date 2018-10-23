@@ -4,10 +4,14 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Button;
@@ -16,6 +20,7 @@ import com.vaadin.ui.Table;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -25,7 +30,7 @@ public class ListBagInfoViewImpl extends BaseViewImpl implements ListBagInfoView
 
 	@Override
 	protected String getTitle() {
-		return super.getTitle();
+		return $("ListBagInfoViewImpl.title");
 	}
 
 	@Override
@@ -100,5 +105,15 @@ public class ListBagInfoViewImpl extends BaseViewImpl implements ListBagInfoView
 		Table table = new RecordVOTable("", tableContainer);
 		setTableProperty(table, tableContainer.size());
 		return table;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new TitleBreadcrumbTrail(this, getTitle()) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				return Arrays.asList(BreadcrumbTrailUtil.getArchiveManagementIntermediateBreadcrumb());
+			}
+		};
 	}
 }

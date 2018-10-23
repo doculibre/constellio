@@ -146,7 +146,7 @@ public class ConstellioEIMConfigs {
 		add(LOGO = others.createBinary("logo"));
 		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
 		add(AUTHENTIFICATION_IMAGE = others.createBinary("authentificationImage"));
-		add(PRIVACY_POLICY = others.createBinary("privacyPolicy").whichIsHidden());
+		add(PRIVACY_POLICY = others.createBinary("privacyPolicy"));
 		add(METADATA_POPULATE_PRIORITY = others.createEnum("metadataPopulatePriority", MetadataPopulatePriority.class)
 				.withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
@@ -355,7 +355,7 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isIncludingFromFieldWhenGeneratingEmails() {
-		return !Boolean.FALSE.equals(GROUP_AUTHORIZATIONS_INHERITANCE);
+		return !Boolean.FALSE.equals(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS);
 	}
 
 	public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {

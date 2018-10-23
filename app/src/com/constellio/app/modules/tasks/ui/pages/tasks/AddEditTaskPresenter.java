@@ -371,7 +371,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private void adjustProgressPercentageField() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
-		progressPercentageField.setVisible(editMode);
+		if(progressPercentageField != null) {
+			progressPercentageField.setVisible(editMode);
+		}
 	}
 
 	private void adjustDecisionField() {
@@ -498,10 +500,13 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	void reloadForm() {
 		view.getForm().reload();
-		adjustQuestionField();
-		adjustRequiredUSRMetadatasFields();
+		adjustProgressPercentageField();
 		adjustDecisionField();
+		adjustQuestionField();
 		adjustInclusiveDecisionField();
+		adjustRelativeDueDate();
+		adjustReasonField();
+		adjustRequiredUSRMetadatasFields();
 	}
 
 	void commitForm() {
@@ -653,7 +658,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private BetaWorkflowTask loadTask() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
-		progressPercentageField.setVisible(editMode);
+		if(progressPercentageField != null) {
+			progressPercentageField.setVisible(editMode);
+		}
+
 		return tasksSchemas.getBetaWorkflowTask(taskVO.getId());
 	}
 

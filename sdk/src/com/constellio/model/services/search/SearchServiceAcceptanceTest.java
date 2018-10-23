@@ -35,6 +35,7 @@ import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -3006,6 +3007,24 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		assertThat(searchServices.search(query)).extracting("id").containsExactly("r3", "r4", "r5", "r1", "r2");
 
+	}
+
+	@Test
+	public void whenSearchingWithFreeTextThenQfDoesNotContainDuplicateAnalyzedFields()
+			throws Exception {
+		defineSchemasManager().using(
+				schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata(whichIsSearchable).withADateMetadata()
+				.withAStringMetadataInAnotherSchema(whichIsSearchable).withANumberMetadataInAnotherSchema(whichIsSearchable));
+
+		condition = from(asList(zeSchema.typeCode(), anotherSchema.typeCode()), zeSchema.collection()).returnAll();
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery("myFreeText");
+		ModifiableSolrParams modifiableSolrParams = searchServices.addSolrModifiableParams(query);
+		String qf = modifiableSolrParams.get("qf");
+
+		List<String> analyzedFields = asList(qf.split(" "));
+		HashSet uniqueAnalyzedFields = new HashSet<>(analyzedFields);
+		assertThat(uniqueAnalyzedFields).hasSize(analyzedFields.size());
+		assertThat(uniqueAnalyzedFields).doesNotContain("dateMetadata.search_ss");
 	}
 
 	private void givenRecordsFromTwoSchemasTypesWithReferences()
