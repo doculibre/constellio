@@ -1,5 +1,13 @@
 package com.constellio.app.modules.rm.extensions.app;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
@@ -30,13 +38,6 @@ import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.UserSerializedContentFactory;
 import com.constellio.model.services.records.StructureImportContent;
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class RMRecordExportExtension extends RecordExportExtension {
 
@@ -322,7 +323,8 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		Map<String, String> map = new HashMap<>();
 
 		map.put(DecommissioningListImportExtension.FOLDER_ID, decomListFolderDetail.getFolderId());
-		map.put(DecommissioningListImportExtension.FOLDER_EXCLUDED, Boolean.toString(decomListFolderDetail.isFolderExcluded()));
+		map.put(DecommissioningListImportExtension.FOLDER_EXCLUDED,
+				decomListFolderDetail.getFolderDetailStatus().getDescription());
 		map.put(DecommissioningListImportExtension.CONTAINER_RECORD_ID, decomListFolderDetail.getContainerRecordId());
 		map.put(DecommissioningListImportExtension.REVERSED_SORT, Boolean.toString(decomListFolderDetail.isReversedSort()));
 		if (decomListFolderDetail.getFolderLinearSize() != null) {
