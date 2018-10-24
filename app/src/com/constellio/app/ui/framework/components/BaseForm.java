@@ -373,21 +373,23 @@ public abstract class BaseForm<T> extends CustomComponent {
 			for (Field<?> field : fieldGroup.getFields()) {
 				if (!field.isValid() && field.isRequired() && isEmptyValue(field.getValue())) {
 					field.setRequiredError($("requiredField"));
-					if (missingRequiredFields.length() != 0) {
-						missingRequiredFields.append("<br/>");
-					}
-					missingRequiredFields.append($("requiredFieldWithName", "\"" + field.getCaption() + "\""));
+					addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + field.getCaption() + "\""));
 					if (firstFieldWithError == null) {
 						firstFieldWithError = field;
 					}
-				} else if (!field.isValid()) {
-					if (missingRequiredFields.length() != 0) {
-						missingRequiredFields.append("<br/>");
-					}
-					missingRequiredFields.append($("invalidFieldWithName", "\"" + field.getCaption() + "\""));
-
-					if (firstFieldWithError == null) {
-						firstFieldWithError = field;
+				} else {
+					try {
+						field.validate();
+					} catch (Validator.EmptyValueException e) {
+						addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + e.getMessage() + "\""));
+						if (firstFieldWithError == null) {
+							firstFieldWithError = field;
+						}
+					} catch (Validator.InvalidValueException e) {
+						addErrorMessage(missingRequiredFields, $("invalidFieldWithName", "\"" + e.getMessage() + "\""));
+						if (firstFieldWithError == null) {
+							firstFieldWithError = field;
+						}
 					}
 				}
 			}
@@ -396,6 +398,13 @@ public abstract class BaseForm<T> extends CustomComponent {
 				showErrorMessage(missingRequiredFields.toString());
 			}
 		}
+	}
+
+	private void addErrorMessage(StringBuilder missingRequiredFields, String message) {
+		if (missingRequiredFields.length() != 0) {
+			missingRequiredFields.append("<br/>");
+		}
+		missingRequiredFields.append(message);
 	}
 
 	private boolean isEmptyValue(Object value) {
