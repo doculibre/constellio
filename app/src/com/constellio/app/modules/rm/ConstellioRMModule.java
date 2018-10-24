@@ -145,6 +145,7 @@ import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
+import com.constellio.app.modules.rm.navigation.DefaultFavoritesNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -354,6 +355,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	@Override
 	public void configureNavigation(NavigationConfig config) {
 		RMNavigationConfiguration.configureNavigation(config);
+		DefaultFavoritesNavigationConfiguration.configureNavigation(config);
 	}
 
 	@Override
