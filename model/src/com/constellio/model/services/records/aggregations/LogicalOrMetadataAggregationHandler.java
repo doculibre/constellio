@@ -1,35 +1,24 @@
 package com.constellio.model.services.records.aggregations;
 
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
-import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
-import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LogicalOrMetadataAggregationHandler implements MetadataAggregationHandler {
 
 	@Override
 	public Object calculate(SearchAggregatedValuesParams params) {
-		List<Metadata> inputMetadatas = params.getInputMetadatas();
-		LogicalSearchQuery query = new LogicalSearchQuery(params.getQuery());
-		query.setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(inputMetadatas));
-		SearchResponseIterator<Record> iterator = params.getSearchServices().recordsIterator(query, 10000);
+		List<DataStoreField> dataStoreFields = new ArrayList<DataStoreField>(params.getInputMetadatas());
 
-		while (iterator.hasNext()) {
-			Record record = iterator.next();
-			for (Metadata inputMetadata : inputMetadatas) {
-				for (Boolean value : record.<Boolean>getValues(inputMetadata)) {
-					if (Boolean.TRUE.equals(value)) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
+		LogicalSearchQuery query = new LogicalSearchQuery(params.getQuery());
+		query.setCondition(query.getCondition().andWhereAny(dataStoreFields).isTrue());
+
+		return params.getSearchServices().hasResults(query);
 	}
 
 	@Override

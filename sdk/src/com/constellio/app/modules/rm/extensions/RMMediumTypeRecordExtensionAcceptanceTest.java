@@ -772,6 +772,25 @@ public class RMMediumTypeRecordExtensionAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getMediaType()).isEqualTo(FolderMediaType.UNKNOWN);
 	}
 
+	@Test
+	public void givenTwoActivatedDigitalMediumTypesThenBothMediumTypesPropagated() throws Exception {
+		MediumType digitalMediumType2 = rm.newMediumTypeWithId("DM2").setCode("DM2").setTitle("title")
+				.setAnalogical(false).setActivatedOnContent(true);
+		recordServices.add(digitalMediumType2.getWrappedRecord());
+
+		Folder folder = newFolderWithId("parentFolder");
+		recordServices.add(folder);
+
+		Document document = newDigitalDocumentWithId("digitalDocument", folder);
+		recordServices.add(document);
+		waitForBatchProcess();
+
+		folder = rm.getFolder("parentFolder");
+		assertThat(folder.hasContent()).isTrue();
+		assertThat(folder.getMediumTypes()).contains(digitalMediumType.getId(), digitalMediumType2.getId());
+		assertThat(folder.getMediaType()).isEqualTo(FolderMediaType.ELECTRONIC);
+	}
+
 	private Folder newFolderWithId(String id) {
 		return rm.newFolderWithId(id).setAdministrativeUnitEntered(records.unitId_10a)
 				.setCategoryEntered(records.categoryId_X13).setRetentionRuleEntered(records.ruleId_1)
