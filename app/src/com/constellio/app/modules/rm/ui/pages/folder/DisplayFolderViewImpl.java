@@ -9,7 +9,6 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderFie
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
@@ -29,7 +28,6 @@ import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -52,7 +50,6 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
@@ -93,7 +90,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -310,7 +306,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				@Override
 				public String getRecordCaption() {
 					return getCaptionForRecordVO(recordVO, getSessionContext().getCurrentLocale());
-//					return recordDisplay.getCaption();
+					//					return recordDisplay.getCaption();
 				}
 			};
 

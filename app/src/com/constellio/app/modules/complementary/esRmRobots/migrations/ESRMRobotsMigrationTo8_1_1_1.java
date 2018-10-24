@@ -25,7 +25,7 @@ public class ESRMRobotsMigrationTo8_1_1_1 implements MigrationScript {
 	class SchemaAlterationFor8_1_1_1 extends MetadataSchemasAlterationHelper {
 
 		protected SchemaAlterationFor8_1_1_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-										   AppLayerFactory appLayerFactory) {
+											 AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

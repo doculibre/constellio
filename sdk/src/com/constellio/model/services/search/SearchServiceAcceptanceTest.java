@@ -3014,7 +3014,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(
 				schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata(whichIsSearchable).withADateMetadata()
-				.withAStringMetadataInAnotherSchema(whichIsSearchable).withANumberMetadataInAnotherSchema(whichIsSearchable));
+						.withAStringMetadataInAnotherSchema(whichIsSearchable).withANumberMetadataInAnotherSchema(whichIsSearchable));
 
 		condition = from(asList(zeSchema.typeCode(), anotherSchema.typeCode()), zeSchema.collection()).returnAll();
 		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery("myFreeText");

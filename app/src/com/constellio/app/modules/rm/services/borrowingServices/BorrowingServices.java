@@ -255,7 +255,7 @@ public class BorrowingServices {
 		Folder folder = rm.wrapFolder(folderRecord);
 		validateCanBorrow(currentUser, folder, borrowingDate);
 		LocalDateTime borrowingDateTime;
-		if(TimeProvider.getLocalDate().equals(borrowingDate)) {
+		if (TimeProvider.getLocalDate().equals(borrowingDate)) {
 			borrowingDateTime = TimeProvider.getLocalDateTime();
 		} else {
 			borrowingDateTime = borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime();
@@ -336,7 +336,7 @@ public class BorrowingServices {
 		recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 
 		LocalDateTime returnDateTime;
-		if(TimeProvider.getLocalDate().equals(returnDate)) {
+		if (TimeProvider.getLocalDate().equals(returnDate)) {
 			returnDateTime = TimeProvider.getLocalDateTime();
 		} else {
 			returnDateTime = returnDate.toDateTimeAtStartOfDay().toLocalDateTime();

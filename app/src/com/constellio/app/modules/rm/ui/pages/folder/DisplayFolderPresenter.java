@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;

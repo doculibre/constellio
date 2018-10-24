@@ -742,7 +742,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 											.getMetadata(splittedCode[1]);
 									String metadataProvidingReferenceValue = record.get(metadataProvidingReference);
 
-									if(metadataProvidingReferenceValue!=null){
+									if (metadataProvidingReferenceValue != null) {
 										sequenceCode = getDocumentById(metadataProvidingReferenceValue).get(metadataProvidingSequenceCode);
 									}
 								} else {

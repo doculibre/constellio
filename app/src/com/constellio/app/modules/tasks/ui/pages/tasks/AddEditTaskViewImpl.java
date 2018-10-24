@@ -43,7 +43,7 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 	@Override
 	public void adjustAcceptedField(boolean isVisible) {
 		BooleanOptionGroup field = (BooleanOptionGroup) getForm().getCustomField(BorrowRequest.ACCEPTED);
-		if(field != null) {
+		if (field != null) {
 			if (isVisible) {
 				field.setVisible(true);
 				field.setRequired(true);

@@ -14,16 +14,14 @@ import jxl.write.WritableFont;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.safety.Whitelist;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Locale;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.safety.Whitelist;
 
 public class SearchResultReportWriter implements ReportWriter {
 	private static final WritableFont.FontName FONT = WritableFont.TIMES;
@@ -118,7 +116,7 @@ public class SearchResultReportWriter implements ReportWriter {
 	private void addString(WritableSheet sheet, WritableCellFormat font, int column, int row, String rawText)
 			throws WriteException {
 		String htmlStripped = "";
-		if(rawText != null) {
+		if (rawText != null) {
 			StringBuilder sb = new StringBuilder();
 			final Document.OutputSettings outputSettings = new Document.OutputSettings().prettyPrint(false);
 			String textWithFixedAccents = Jsoup.clean(rawText, "", Whitelist.none(), outputSettings);

@@ -214,7 +214,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					} else if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assigner())) {
 						Field<?> field = getAssignerField();
 						task.setAssigner((String) field.getValue());
-						if(task.getAssignedOn() == null) {
+						if (task.getAssignedOn() == null) {
 							task.setAssignationDate(TimeProvider.getLocalDate());
 						}
 					}
@@ -369,7 +369,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private void adjustProgressPercentageField() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
-		if(progressPercentageField != null) {
+		if (progressPercentageField != null) {
 			progressPercentageField.setVisible(editMode);
 		}
 	}
@@ -484,7 +484,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustRelativeDueDate() {
 		TaskRelativeDueDateField field = (TaskRelativeDueDateField) view.getForm().getCustomField(Task.RELATIVE_DUE_DATE);
-		if(field != null) {
+		if (field != null) {
 			try {
 				Task task = loadTask();
 
@@ -532,16 +532,16 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		ListAddRemoveField priorite = (ListAddRemoveField) view.getForm().getField(ASSIGNATION_MODES);
 		boolean prioriteValue = priorite != null && CollectionUtils.isNotEmpty(priorite.getValue());
 
-		if(assignee != null) {
+		if (assignee != null) {
 			assignee.setReadOnly(groupValue || userValue || prioriteValue);
 		}
-		if(group != null) {
+		if (group != null) {
 			group.setReadOnly(assigneeValue);
 		}
-		if(user != null) {
+		if (user != null) {
 			user.setReadOnly(assigneeValue);
 		}
-		if(priorite != null) {
+		if (priorite != null) {
 			priorite.setReadOnly(assigneeValue);
 		}
 	}
@@ -641,7 +641,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private BetaWorkflowTask loadTask() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
-		if(progressPercentageField != null) {
+		if (progressPercentageField != null) {
 			progressPercentageField.setVisible(editMode);
 		}
 

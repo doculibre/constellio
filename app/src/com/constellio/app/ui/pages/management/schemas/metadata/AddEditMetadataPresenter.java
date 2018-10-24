@@ -15,7 +15,6 @@ import com.constellio.app.ui.entities.CollectionInfoVO;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
-import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
@@ -579,7 +578,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			if (!inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
 				displayType = MetadataDisplayType.VERTICAL;
 			}
-			if(formMetadataVO.getValueType() == ENUM && editMode) {
+			if (formMetadataVO.getValueType() == ENUM && editMode) {
 				enumClass = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(formMetadataVO.getCode()).getEnumClass();
 			}
 

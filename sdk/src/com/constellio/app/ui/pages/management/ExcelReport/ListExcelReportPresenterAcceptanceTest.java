@@ -2,7 +2,6 @@ package com.constellio.app.ui.pages.management.ExcelReport;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;

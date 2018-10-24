@@ -201,7 +201,8 @@ public class BatchProcessingPresenterService {
 			protected MetadataToVOBuilder newMetadataToVOBuilder() {
 				return new MetadataToVOBuilder() {
 					@Override
-					protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode, String datastoreCode,
+					protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode,
+													   String datastoreCode,
 													   MetadataValueType type, String collection,
 													   MetadataSchemaVO schemaVO, boolean required,
 													   boolean multivalue, boolean readOnly, boolean unmodifiable,
@@ -319,7 +320,8 @@ public class BatchProcessingPresenterService {
 			protected MetadataToVOBuilder newMetadataToVOBuilder() {
 				return new MetadataToVOBuilder() {
 					@Override
-					protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode, String datastoreCode,
+					protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode,
+													   String datastoreCode,
 													   MetadataValueType type, String collection,
 													   MetadataSchemaVO schemaVO, boolean required,
 													   boolean multivalue, boolean readOnly, boolean unmodifiable,

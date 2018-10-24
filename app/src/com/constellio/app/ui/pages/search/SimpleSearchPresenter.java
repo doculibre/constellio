@@ -2,18 +2,13 @@ package com.constellio.app.ui.pages.search;
 
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
-import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
 import com.constellio.model.services.records.RecordImpl;
@@ -31,11 +26,8 @@ import java.util.Set;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleSearchPresenter.class);
