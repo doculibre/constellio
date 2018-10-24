@@ -171,6 +171,21 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
+	public void executeInBatch(Transaction transaction)
+			throws RecordServicesException {
+		int size = transaction.getRecords().size();
+		if (size > 1000) {
+			for (int i = 0; i < size; i = i + 1000) {
+				Transaction embeddedTransaction = new Transaction();
+				embeddedTransaction.setOptions(transaction.getRecordUpdateOptions());
+				embeddedTransaction.addAll(transaction.getRecords().subList(i, Math.min(i + 1000, size)));
+				execute(embeddedTransaction);
+			}
+		} else {
+			execute(transaction);
+		}
+	}
+
 	public void execute(Transaction transaction)
 			throws RecordServicesException {
 		execute(transaction, 0);
@@ -727,9 +742,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 											.getMetadata(splittedCode[1]);
 									String metadataProvidingReferenceValue = record.get(metadataProvidingReference);
 
-									if (metadataProvidingReferenceValue != null) {
-										sequenceCode = getDocumentById(metadataProvidingReferenceValue)
-												.get(metadataProvidingSequenceCode);
+									if(metadataProvidingReferenceValue!=null){
+										sequenceCode = getDocumentById(metadataProvidingReferenceValue).get(metadataProvidingSequenceCode);
 									}
 								} else {
 									metadataProvidingReference = schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode());

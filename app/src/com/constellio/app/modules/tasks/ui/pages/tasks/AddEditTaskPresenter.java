@@ -214,6 +214,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					} else if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assigner())) {
 						Field<?> field = getAssignerField();
 						task.setAssigner((String) field.getValue());
+						if(task.getAssignedOn() == null) {
+							task.setAssignationDate(TimeProvider.getLocalDate());
+						}
 					}
 				}
 			}
@@ -366,7 +369,9 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private void adjustProgressPercentageField() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
-		progressPercentageField.setVisible(editMode);
+		if(progressPercentageField != null) {
+			progressPercentageField.setVisible(editMode);
+		}
 	}
 
 	private void adjustDecisionField() {
@@ -479,21 +484,26 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustRelativeDueDate() {
 		TaskRelativeDueDateField field = (TaskRelativeDueDateField) view.getForm().getCustomField(Task.RELATIVE_DUE_DATE);
-		try {
-			Task task = loadTask();
+		if(field != null) {
+			try {
+				Task task = loadTask();
 
-			field.setVisible(task.isModel());
-		} catch (NoSuchRecordWithId e) {
-			field.setVisible(false);
+				field.setVisible(task.isModel());
+			} catch (NoSuchRecordWithId e) {
+				field.setVisible(false);
+			}
 		}
 	}
 
 	void reloadForm() {
 		view.getForm().reload();
-		adjustQuestionField();
-		adjustRequiredUSRMetadatasFields();
+		adjustProgressPercentageField();
 		adjustDecisionField();
+		adjustQuestionField();
 		adjustInclusiveDecisionField();
+		adjustRelativeDueDate();
+		adjustReasonField();
+		adjustRequiredUSRMetadatasFields();
 	}
 
 	void commitForm() {
@@ -511,22 +521,29 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	public void fieldValueChanged(Field<?> customField) {
 
 		Field<String> assignee = (Field<String>) view.getForm().getField(Task.ASSIGNEE);
-		boolean assigneeValue = StringUtils.isNotBlank(assignee.getValue());
+		boolean assigneeValue = assignee != null && StringUtils.isNotBlank(assignee.getValue());
 
 		ListAddRemoveField group = (ListAddRemoveField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
-		boolean groupValue = CollectionUtils.isNotEmpty(group.getValue());
+		boolean groupValue = group != null && CollectionUtils.isNotEmpty(group.getValue());
 
 		ListAddRemoveField user = (ListAddRemoveField) view.getForm().getField(Task.ASSIGNEE_USERS_CANDIDATES);
-		boolean userValue = CollectionUtils.isNotEmpty(user.getValue());
+		boolean userValue = user != null && CollectionUtils.isNotEmpty(user.getValue());
 
 		ListAddRemoveField priorite = (ListAddRemoveField) view.getForm().getField(ASSIGNATION_MODES);
-		boolean prioriteValue = CollectionUtils.isNotEmpty(priorite.getValue());
+		boolean prioriteValue = priorite != null && CollectionUtils.isNotEmpty(priorite.getValue());
 
-		assignee.setReadOnly(groupValue || userValue || prioriteValue);
-		group.setReadOnly(assigneeValue);
-		user.setReadOnly(assigneeValue);
-		priorite.setReadOnly(assigneeValue);
-
+		if(assignee != null) {
+			assignee.setReadOnly(groupValue || userValue || prioriteValue);
+		}
+		if(group != null) {
+			group.setReadOnly(assigneeValue);
+		}
+		if(user != null) {
+			user.setReadOnly(assigneeValue);
+		}
+		if(priorite != null) {
+			priorite.setReadOnly(assigneeValue);
+		}
 	}
 
 	void adjustCustomFields(CustomTaskField<?> customField) {
@@ -624,7 +641,10 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private BetaWorkflowTask loadTask() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
-		progressPercentageField.setVisible(editMode);
+		if(progressPercentageField != null) {
+			progressPercentageField.setVisible(editMode);
+		}
+
 		return tasksSchemas.getBetaWorkflowTask(taskVO.getId());
 	}
 

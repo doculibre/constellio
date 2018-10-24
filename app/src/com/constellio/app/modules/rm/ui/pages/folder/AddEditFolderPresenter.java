@@ -168,8 +168,10 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 				record = decommissioningService().duplicateStructure(folder, getCurrentUser(), false).getWrappedRecord();
 			} catch (RecordServicesException.ValidationException e) {
 				view.showErrorMessage($(e.getErrors()));
+				view.navigate().to().home();
 			} catch (Exception e) {
 				view.showErrorMessage(e.getMessage());
+				view.navigate().to().home();
 			}
 
 		} else if (isDuplicateAction) {

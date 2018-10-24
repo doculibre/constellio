@@ -3109,6 +3109,35 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
 	}
 
+	@Test
+	public void givenNewParentAndChildFoldersThanValidatingTransactionShouldWork()
+			throws Exception {
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
+		folder.setDescription("Ze description");
+		folder.setCategoryEntered(records.categoryId_X110);
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle("Ze folder");
+		folder.setMediumTypes(Arrays.asList(PA, MV));
+		folder.setUniformSubdivisionEntered(records.subdivId_2);
+		folder.setOpenDate(november4_2009);
+		folder.setCloseDateEntered(december12_2009);
+
+
+		Folder childFolder = rm.newFolder();
+		childFolder.setParentFolder(folder);
+		childFolder.setOpenDate(november4_2009);
+		childFolder.setTitle("Ze child folder");
+
+		Transaction transaction = new Transaction();
+		transaction.addAll(folder, childFolder);
+
+		//CHANGE validateTransaction to reflect prepareTransaction
+		recordServices.validateTransaction(transaction);
+	}
+
 	// -------------------------------------------------------------------------
 
 	private LocalDate march1(int year) {

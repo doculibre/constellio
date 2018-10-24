@@ -53,10 +53,10 @@ public class ListExcelReportPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenGeneratingTabCheckIfAllReportTypeAreThereTest() {
 		Map<String, String> possibleReportType = presenter.initPossibleTab(Locale.FRENCH);
-		assertThat(possibleReportType.keySet())
+		assertThat(possibleReportType.values())
 				.contains("Contenant", "Document", "Document sur Internet", "Document sur un partage réseau", "Dossier",
 						"Emplacement", "Tâche", "Utilisateur Connecteur LDAP");
-		assertThat(possibleReportType.values())
+		assertThat(possibleReportType.keySet())
 				.contains("containerRecord", "document", "connectorHttpDocument", "connectorSmbDocument", "folder",
 						"storageSpace", "userTask", "connectorLdapUserDocument");
 	}
@@ -94,20 +94,5 @@ public class ListExcelReportPresenterAcceptanceTest extends ConstellioTest {
 
 		presenter.removeRecord(report.getId(), "folder");
 		assertThat(reportServices.getRecordById(report.getId())).isNull();
-	}
-
-	@Test
-	public void testGetRecordByIndex() {
-		String title = "test";
-		ReportServices reportServices = new ReportServices(getModelLayerFactory(), zeCollection);
-		Report report = rm.newReport();
-		report.setColumnsCount(1);
-		report.setLinesCount(2);
-		report.setTitle(title);
-		report.setSchemaTypeCode("folder");
-		reportServices.saveReport(records.getAdmin(), report);
-
-		RecordVO reportVO = presenter.getRecordsWithIndex("folder", "0");
-		assertThat(reportVO.getTitle()).isEqualTo(title);
 	}
 }
