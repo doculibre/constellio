@@ -193,7 +193,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	protected boolean isDeleteDocumentPossibleExtensively() {
 		return isDeleteDocumentPossible() && presenterUtils.recordServices()
-				.isLogicallyDeletable(currentDocument(), getCurrentUser());
+				.validateLogicallyDeletable(currentDocument(), getCurrentUser()).isEmpty();
 	}
 
 	private ComponentState getDeleteButtonState() {

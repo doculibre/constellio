@@ -14,6 +14,8 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -59,11 +61,17 @@ public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListR
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
-		if (isDeletable(recordVO)) {
+		ValidationErrors validationErrors = validateDeletable(recordVO);
+		if (validationErrors.isEmpty()) {
 			Record record = getRecord(recordVO.getId());
 			delete(record, false);
 			view.navigate().to(RMViews.class).listRetentionRules();
 		} else {
+			StringBuffer stringBuffer = new StringBuffer();
+			for (ValidationError validationError : validationErrors.getValidationErrors()) {
+				stringBuffer.append(validationError.getValidatorErrorCode() + "\n");
+			}
+			view.showErrorMessage(stringBuffer.toString());
 			view.showErrorMessage($("ListRetentionRulesView.cannotDelete"));
 		}
 	}
@@ -74,11 +82,11 @@ public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListR
 	}
 
 	@Override
-	public boolean isDeletable(RecordVO entity) {
+	public ValidationErrors validateDeletable(RecordVO entity) {
 		RecordServices recordService = modelLayerFactory.newRecordServices();
 		Record record = getRecord(entity.getId());
 		User user = getCurrentUser();
-		return recordService.isLogicallyDeletable(record, user);
+		return recordService.validateLogicallyDeletable(record, user);
 	}
 
 	public String getDefaultOrderField() {

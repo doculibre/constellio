@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.folder;
 
-import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
@@ -65,6 +64,8 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.frameworks.validation.ValidationError;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.icap.IcapException;
@@ -646,8 +647,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void deleteFolderButtonClicked(String reason) {
 		String parentId = folderVO.get(Folder.PARENT_FOLDER);
 		Record record = toRecord(folderVO);
-
-		if (recordServices.isLogicallyDeletable(record, getCurrentUser())) {
+		ValidationErrors validationErrors = recordServices.validateLogicallyDeletable(record, getCurrentUser());
+		if (validationErrors.isEmpty()) {
 			appLayerFactory.getExtensions().forCollection(collection)
 					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
 			delete(record, reason, false, WAIT_ONE_SECOND);
@@ -657,7 +658,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				navigate().to().home();
 			}
 		} else {
-			view.showErrorMessage($("ListSchemaRecordsView.cannotDelete"));
+			StringBuffer stringBuffer = new StringBuffer();
+			for (ValidationError validationError : validationErrors.getValidationErrors()) {
+				stringBuffer.append(validationError.getValidatorErrorCode() + "\n");
+			}
+			view.showErrorMessage(stringBuffer.toString());
+			//			view.showErrorMessage($("ListSchemaRecordsView.cannotDelete"));
 		}
 	}
 

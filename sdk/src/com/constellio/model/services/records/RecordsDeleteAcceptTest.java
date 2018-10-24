@@ -1600,7 +1600,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
-				return recordServices.isLogicallyDeletable(record, user);
+				return recordServices.validateLogicallyDeletable(record, user).isEmpty();
 			}
 		}.describedAs("logically deletable by " + user);
 	}
@@ -1657,7 +1657,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			@Override
 			public boolean matches(Record record) {
 
-				if (recordServices.isLogicallyDeletable(record, user)) {
+				if (recordServices.validateLogicallyDeletable(record, user).isEmpty()) {
 					return false;
 				} else {
 

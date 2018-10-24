@@ -30,6 +30,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -206,7 +207,8 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
-		if (isDeletable(recordVO)) {
+		ValidationErrors validationErrors = validateDeletable(recordVO);
+		if (validationErrors.isEmpty()) {
 			SchemaPresenterUtils utils = new SchemaPresenterUtils(recordVO.getSchema().getCode(), view.getConstellioFactories(),
 					view.getSessionContext());
 			utils.delete(utils.toRecord(recordVO), null, true);
@@ -312,10 +314,11 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		return appCollectionExtentions.getTaxonomyExtraFields(new GetTaxonomyExtraFieldsParam(taxonomy, record, view));
 	}
 
-	public boolean isDeletable(RecordVO entity) {
+	public ValidationErrors validateDeletable(RecordVO entity) {
 		Record record = presenterService().getRecord(entity.getId());
 		User user = getCurrentUser();
-		return recordServices().isLogicallyThenPhysicallyDeletable(record, user);
+		return new ValidationErrors();
+		//		return recordServices().isLogicallyThenPhysicallyDeletable(record, user);
 	}
 
 	public String getDefaultOrderField() {

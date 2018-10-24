@@ -23,6 +23,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
@@ -462,7 +463,8 @@ public class RecordDeleteServices {
 		return new ContentModificationsBuilder(types);
 	}
 
-	public boolean isLogicallyDeletable(final Record record, User user) {
+	public ValidationErrors isLogicallyDeletable(final Record record, User user) {
+		ValidationErrors validationErrors = new ValidationErrors();
 		ensureSameCollection(user, record);
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -470,7 +472,8 @@ public class RecordDeleteServices {
 
 		if (user != null && schemaType.hasSecurity() && !user.hasDeleteAccess().on(record)) {
 			//The record has security, before going further with validations, we check if the user can delete it
-			return false;
+			validationErrors.add(RecordDeleteServices.class, "The record has security or user does not have delete access");
+			return validationErrors;
 		}
 
 		final List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
@@ -481,6 +484,7 @@ public class RecordDeleteServices {
 
 		if (isReferencedByConfigs(record)) {
 			logicallyDeletable = false;
+			validationErrors.add(RecordDeleteServices.class, "The record is referenced by configs");
 		}
 
 		if (logicallyDeletable) {
@@ -493,9 +497,12 @@ public class RecordDeleteServices {
 			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced,
 					false);
 			logicallyDeletable = extensions.forCollectionOf(record).isLogicallyDeletable(event);
+			if (!logicallyDeletable) {
+				validationErrors.add(RecordDeleteServices.class, "The record is not logically deletable");
+			}
 		}
 
-		return logicallyDeletable;
+		return validationErrors;
 	}
 
 	private void removedDefaultValues(String collection, List<Record> records) {
@@ -549,7 +556,7 @@ public class RecordDeleteServices {
 	}
 
 	public void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options) {
-		if (!options.isSkipValidations() && !isLogicallyDeletable(record, user)) {
+		if (!options.isSkipValidations() && !isLogicallyDeletable(record, user).isEmpty()) {
 			throw new RecordServicesRuntimeException_CannotLogicallyDeleteRecord(record.getId());
 		}
 
@@ -793,6 +800,6 @@ public class RecordDeleteServices {
 
 	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user,
 														   RecordLogicalDeleteOptions options) {
-		return !options.isSkipValidations() && !isLogicallyDeletable(record, user);
+		return !options.isSkipValidations() && !isLogicallyDeletable(record, user).isEmpty();
 	}
 }

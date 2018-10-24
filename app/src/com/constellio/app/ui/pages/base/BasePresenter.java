@@ -24,6 +24,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManager.UploadOptions;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -284,10 +285,11 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 		return presenterUtils.getCollectionRoles();
 	}
 
-	public boolean isDeletable(RecordVO entity) {
+	public ValidationErrors validateDeletable(RecordVO entity) {
 		Record record = presenterService().getRecord(entity.getId());
 		User user = getCurrentUser();
-		return recordServices().isLogicallyThenPhysicallyDeletable(record, user);
+		return new ValidationErrors();
+		//		return recordServices().isLogicallyThenPhysicallyDeletable(record, user);
 	}
 
 	protected NavigationConfig navigationConfig() {

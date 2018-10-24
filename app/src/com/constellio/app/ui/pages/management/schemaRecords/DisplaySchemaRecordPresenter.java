@@ -15,6 +15,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.search.StatusFilter;
@@ -128,7 +129,8 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 	private boolean tryDelete(RecordVO recordVO) {
 		boolean success;
 		Record record = recordVO.getRecord();
-		if (recordServices.isLogicallyDeletable(record, getCurrentUser())) {
+		ValidationErrors validationErrors = recordServices.validateLogicallyDeletable(record, getCurrentUser());
+		if (validationErrors.isEmpty()) {
 			try {
 				delete(record, null, false, true);
 				success = true;
@@ -151,7 +153,7 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 	private boolean isDeleteButtonVisible(RecordVO recordVO) {
 		Record record = recordVO.getRecord();
 		User user = getCurrentUser();
-		return !extensions.isDeleteBlocked(record, user) && recordServices.isLogicallyDeletable(record, getCurrentUser());
+		return !extensions.isDeleteBlocked(record, user) && recordServices.validateLogicallyDeletable(record, getCurrentUser()).isEmpty();
 	}
 
 	public boolean isEditButtonVisible() {

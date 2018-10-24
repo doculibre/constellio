@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BaseRecordServices;
 import com.constellio.model.services.records.RecordImpl;
@@ -307,9 +308,9 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public boolean isLogicallyDeletable(Record record,
-										User user) {
-		return recordServices.isLogicallyDeletable(record, user);
+	public ValidationErrors validateLogicallyDeletable(Record record,
+													   User user) {
+		return recordServices.validateLogicallyDeletable(record, user);
 	}
 
 	@Override

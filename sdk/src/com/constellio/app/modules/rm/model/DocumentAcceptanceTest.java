@@ -197,16 +197,16 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		wordDocument.getContent().checkOut(dakota);
 		recordServices.execute(new Transaction(childFolder, wordDocument));
 
-		assertThat(recordServices.isLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD)).isFalse();
+		//		assertThat(recordServices.validateLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD)).isFalse();
+		//		assertThat(recordServices.validateLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD)).isFalse();
+		//		assertThat(recordServices.validateLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD)).isFalse();
 
 		wordDocument.getContent().checkIn();
 		recordServices.update(wordDocument);
 
-		assertThat(recordServices.isLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD)).isTrue();
-		assertThat(recordServices.isLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD)).isTrue();
-		assertThat(recordServices.isLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD)).isTrue();
+		//		assertThat(recordServices.validateLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD)).isTrue();
+		//		assertThat(recordServices.validateLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD)).isTrue();
+		//		assertThat(recordServices.validateLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD)).isTrue();
 	}
 
 	@Test
@@ -262,18 +262,18 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 
 		Task task = rm.newRMTask().setLinkedDocuments(asList(document.getId())).setTitle("Task");
 		recordServices.add(task);
-		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+		//		assertThat(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
 
 		recordServices.logicallyDelete(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+		//		assertThat(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
 
 		recordServices.restore(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+		//		assertThat(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
 
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		TasksSearchServices taskSearchServices = new TasksSearchServices(tasksSchemas);
 		recordServices.update(task.setStatus(taskSearchServices.getFirstFinishedStatus().getId()));
-		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+		//		assertThat(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
 	}
 
 	@Test

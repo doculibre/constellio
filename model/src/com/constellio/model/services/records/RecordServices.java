@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
@@ -147,7 +148,7 @@ public interface RecordServices {
 
 	void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options);
 
-	boolean isLogicallyDeletable(Record record, User user);
+	ValidationErrors validateLogicallyDeletable(Record record, User user);
 
 	boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user);
 

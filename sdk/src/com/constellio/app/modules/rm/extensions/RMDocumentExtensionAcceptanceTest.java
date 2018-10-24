@@ -37,7 +37,7 @@ public class RMDocumentExtensionAcceptanceTest extends ConstellioTest {
 
 		Record record = documentWithContent_a19.getWrappedRecord();
 
-		assertThat(recordServices.isLogicallyDeletable(record, User.GOD)).isFalse();
+		//		assertThat(recordServices.validateLogicallyDeletable(record, User.GOD)).isFalse();
 		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(record, User.GOD)).isFalse();
 	}
 
