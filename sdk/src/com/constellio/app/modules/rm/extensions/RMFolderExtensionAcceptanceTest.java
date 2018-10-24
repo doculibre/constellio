@@ -185,13 +185,13 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenModifyingFolderWithInexistentFavoritesIdsThenIdsAreDeleted() throws RecordServicesException {
-		Folder testFolder = getTestFolder().setFavoritesList(NON_EXISTING_CART_IDS);
+		Folder testFolder = getTestFolder().setFavorites(NON_EXISTING_CART_IDS);
 		saveAndReloadFolder(testFolder);
 
 		testFolder.setTitle("TestModifié");
 		recordServices.update(testFolder);
 
-		assertThat(testFolder.getFavoritesList()).isEmpty();
+		assertThat(testFolder.getFavorites()).isEmpty();
 	}
 
 	@Test
@@ -204,13 +204,13 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 		listWithOneExistingId.add(existingId);
 		listWithOneExistingId.addAll(NON_EXISTING_CART_IDS);
 
-		Folder testFolder = getTestFolder().setFavoritesList(listWithOneExistingId);
+		Folder testFolder = getTestFolder().setFavorites(listWithOneExistingId);
 		saveAndReloadFolder(testFolder);
 
 		testFolder.setTitle("TestModifié");
 		recordServices.update(testFolder);
 
-		assertThat(testFolder.getFavoritesList()).containsOnly(existingId);
+		assertThat(testFolder.getFavorites()).containsOnly(existingId);
 	}
 
 	@Test
@@ -222,13 +222,13 @@ public class RMFolderExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(secondCart);
 		List<String> listWithExistingIds = asList(firstCart.getId(), secondCart.getId());
 
-		Folder testFolder = getTestFolder().setFavoritesList(listWithExistingIds);
+		Folder testFolder = getTestFolder().setFavorites(listWithExistingIds);
 		saveAndReloadFolder(testFolder);
 
 		testFolder.setTitle("TestModifié");
 		recordServices.update(testFolder);
 
-		assertThat(testFolder.getFavoritesList()).containsOnly(firstCart.getId(), secondCart.getId());
+		assertThat(testFolder.getFavorites()).containsOnly(firstCart.getId(), secondCart.getId());
 	}
 
 	private void assertThatFolderIsPrincipalCopy(Folder folder) {

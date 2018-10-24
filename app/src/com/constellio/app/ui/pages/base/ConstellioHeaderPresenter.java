@@ -945,7 +945,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private boolean numberOfFoldersInFavoritesReachesLimit(String cartId) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(header.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(header.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
 		return searchServices.getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
@@ -953,7 +953,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private boolean numberOfContainersInFavoritesReachesLimit(String cartId) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(header.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(header.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
 		return searchServices.getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
@@ -961,7 +961,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private boolean numberOfDocumentsInFavoritesReachesLimit(String cartId) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
 		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(header.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(header.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
 		return searchServices.getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}

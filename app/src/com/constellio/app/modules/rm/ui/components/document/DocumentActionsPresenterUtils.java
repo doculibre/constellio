@@ -194,7 +194,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	public boolean documentInDefaultFavorites() {
 		Record record = presenterUtils.getRecord(documentVO.getId());
 		Document document = rmSchemasRecordsServices.wrapDocument(record);
-		return document.getFavoritesList().contains(getCurrentUser().getId());
+		return document.getFavorites().contains(getCurrentUser().getId());
 	}
 
 	public Document renameContentButtonClicked(String newName) {
@@ -1015,7 +1015,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	private boolean numberOfDocumentsInFavoritesReachesLimit(String cartId) {
-		final Metadata metadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(presenterUtils.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		final Metadata metadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(presenterUtils.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmSchemasRecordsServices.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
 		return presenterUtils.searchServices().getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}

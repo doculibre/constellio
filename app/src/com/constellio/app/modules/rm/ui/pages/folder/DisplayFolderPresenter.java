@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.ui.pages.folder;
 
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
-import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -1310,14 +1309,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	private boolean numberOfFoldersInFavoritesReachesLimit(String cartId) {
-		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmSchemasRecordsServices().folder.schemaType()).where(metadata).isContaining(asList(cartId)));
 		return searchServices().getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 
 	public boolean inDefaultFavorites() {
 		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
-		return folder.getFavoritesList().contains(getCurrentUser().getId());
+		return folder.getFavorites().contains(getCurrentUser().getId());
 	}
 
 	public void removeFromDefaultFavorites() {

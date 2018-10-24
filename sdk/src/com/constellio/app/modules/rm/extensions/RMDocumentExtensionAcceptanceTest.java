@@ -59,13 +59,13 @@ public class RMDocumentExtensionAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenModifyingDocumentWithInexistentFavoritesIdsThenIdsAreDeleted() throws RecordServicesException {
-		Document document = records.getDocumentWithContent_A19().setFavoritesList(NON_EXISTING_CART_IDS);
+		Document document = records.getDocumentWithContent_A19().setFavorites(NON_EXISTING_CART_IDS);
 		recordServices.add(document);
 
 		document.setTitle("TestModifié");
 		recordServices.update(document);
 
-		assertThat(document.getFavoritesList()).isEmpty();
+		assertThat(document.getFavorites()).isEmpty();
 	}
 
 	@Test
@@ -78,13 +78,13 @@ public class RMDocumentExtensionAcceptanceTest extends ConstellioTest {
 		listWithOneExistingId.add(existingId);
 		listWithOneExistingId.addAll(NON_EXISTING_CART_IDS);
 
-		Document document = records.getDocumentWithContent_A19().setFavoritesList(listWithOneExistingId);
+		Document document = records.getDocumentWithContent_A19().setFavorites(listWithOneExistingId);
 		recordServices.add(document);
 
 		document.setTitle("TestModifié");
 		recordServices.update(document);
 
-		assertThat(document.getFavoritesList()).containsOnly(existingId);
+		assertThat(document.getFavorites()).containsOnly(existingId);
 	}
 
 	@Test
@@ -96,13 +96,13 @@ public class RMDocumentExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(secondCart);
 		List<String> listWithExistingIds = asList(firstCart.getId(), secondCart.getId());
 
-		Document document = records.getDocumentWithContent_A19().setFavoritesList(listWithExistingIds);
+		Document document = records.getDocumentWithContent_A19().setFavorites(listWithExistingIds);
 		recordServices.add(document);
 
 		document.setTitle("TestModifié");
 		recordServices.update(document);
 
-		assertThat(document.getFavoritesList()).containsOnly(firstCart.getId(), secondCart.getId());
+		assertThat(document.getFavorites()).containsOnly(firstCart.getId(), secondCart.getId());
 	}
 
 }

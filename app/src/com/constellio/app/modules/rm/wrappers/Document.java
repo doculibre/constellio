@@ -62,7 +62,7 @@ public class Document extends RMObject {
 	public static final String ESSENTIAL = "essential";
 	public static final String CONFIDENTIAL = "confidential";
 	public static final String MIME_TYPE = "mimetype";
-	public static final String FAVORITES_LIST = "favoriteList";
+	public static final String FAVORITES = "favorites";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {
@@ -355,33 +355,33 @@ public class Document extends RMObject {
 		return get(CONTENT_CHECKED_OUT_BY);
 	}
 
-	public List<String> getFavoritesList() {
-		return getList(FAVORITES_LIST);
+	public List<String> getFavorites() {
+		return getList(FAVORITES);
 	}
 
-	public Document setFavoritesList(List<String> favoritesList) {
-		set(FAVORITES_LIST, favoritesList);
+	public Document setFavorites(List<String> favorites) {
+		set(FAVORITES, favorites);
 		return this;
 	}
 
 	public void removeFavorite(String favoriteToDelete) {
-		List<String> favoritesList = new ArrayList<>();
-		favoritesList.addAll(getFavoritesList());
-		favoritesList.remove(favoriteToDelete);
-		setFavoritesList(favoritesList);
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.remove(favoriteToDelete);
+		setFavorites(favorites);
 	}
 
 	public void addFavorite(String favoriteToAdd) {
-		List<String> favoritesList = new ArrayList<>();
-		favoritesList.addAll(getFavoritesList());
-		favoritesList.add(favoriteToAdd);
-		setFavoritesList(favoritesList);
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.add(favoriteToAdd);
+		setFavorites(favorites);
 	}
 
 	public void removeFavorites(List<String> favoritesToDelete) {
-		List<String> favoritesList = new ArrayList<>();
-		favoritesList.addAll(getFavoritesList());
-		favoritesList.removeAll(favoritesToDelete);
-		set(FAVORITES_LIST, favoritesList);
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.removeAll(favoritesToDelete);
+		set(FAVORITES, favorites);
 	}
 }

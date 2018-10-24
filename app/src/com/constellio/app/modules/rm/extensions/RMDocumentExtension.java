@@ -200,7 +200,7 @@ public class RMDocumentExtension extends RecordExtension {
 	private void deleteNonExistentFavoritesIds(Document document) {
 		List<String> removedIds = new ArrayList<>();
 		RecordsCaches recordsCaches = modelLayerFactory.getRecordsCaches();
-		for (String cartId : document.getFavoritesList()) {
+		for (String cartId : document.getFavorites()) {
 			if (!removedCartsIds.contains(cartId)) {
 				if (recordsCaches.getRecord(cartId) == null) {
 					removedIds.add(cartId);

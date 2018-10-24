@@ -394,11 +394,11 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 
 	public boolean containerInDefaultFavorites() {
 		ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
-		return container.getFavoritesList().contains(getCurrentUser().getId());
+		return container.getFavorites().contains(getCurrentUser().getId());
 	}
 
 	private boolean numberOfContainersInFavoritesReachesLimit(String cartId) {
-		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmRecordServices().folder.schemaType()).where(metadata).isContaining(asList(cartId)));
 		return searchServices().getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}

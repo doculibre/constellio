@@ -98,7 +98,7 @@ public class Folder extends RMObject {
 
 	public static final String TIME_RANGE = "timerange";
 
-	public static final String FAVORITES_LIST = "favoriteList";
+	public static final String FAVORITES = "favorites";
 
 	//public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
 	//public static final String CALENDAR_YEAR = "calendarYear";
@@ -839,34 +839,34 @@ public class Folder extends RMObject {
 		return record == null ? null : new Folder(record, types);
 	}
 
-	public List<String> getFavoritesList() {
-		return getList(FAVORITES_LIST);
+	public List<String> getFavorites() {
+		return getList(FAVORITES);
 	}
 
-	public Folder setFavoritesList(List<String> favoritesList) {
-		set(FAVORITES_LIST, favoritesList);
+	public Folder setFavorites(List<String> favorites) {
+		set(FAVORITES, favorites);
 		return this;
 	}
 
 	public void removeFavorite(String favoriteToDelete) {
-		List<String> favoritesList = new ArrayList<>();
-		favoritesList.addAll(getFavoritesList());
-		favoritesList.remove(favoriteToDelete);
-		setFavoritesList(favoritesList);
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.remove(favoriteToDelete);
+		setFavorites(favorites);
 	}
 
 	public void addFavorite(String favoriteToAdd) {
-		List<String> favoritesList = new ArrayList<>();
-		favoritesList.addAll(getFavoritesList());
-		favoritesList.add(favoriteToAdd);
-		setFavoritesList(favoritesList);
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.add(favoriteToAdd);
+		setFavorites(favorites);
 	}
 
 	public void removeFavorites(List<String> favoritesToDelete) {
-		List<String> favoritesList = new ArrayList<>();
-		favoritesList.addAll(getFavoritesList());
-		favoritesList.removeAll(favoritesToDelete);
-		setFavoritesList(favoritesList);
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.removeAll(favoritesToDelete);
+		setFavorites(favorites);
 	}
 }
 

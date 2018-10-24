@@ -307,7 +307,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	private List<Document> getCartDocuments(Cart cart) {
-		final Metadata metadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FAVORITES_LIST);
+		final Metadata metadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FAVORITES);
 		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.document.schemaType()).where(metadata).isContaining(asList(cart.getId())));
 		return rm.searchDocuments(logicalSearchQuery);
 	}

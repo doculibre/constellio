@@ -39,13 +39,13 @@ public class RMContainerRecordExtensionAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenModifyingContainerWithInexistentFavoritesIdsThenIdsAreDeleted() throws RecordServicesException {
-		ContainerRecord container = records.getContainerBac01().setFavoritesList(NON_EXISTING_CART_IDS);
+		ContainerRecord container = records.getContainerBac01().setFavorites(NON_EXISTING_CART_IDS);
 		recordServices.add(container);
 
 		container.setTitle("TestModifié");
 		recordServices.update(container);
 
-		assertThat(container.getFavoritesList()).isEmpty();
+		assertThat(container.getFavorites()).isEmpty();
 	}
 
 	@Test
@@ -58,13 +58,13 @@ public class RMContainerRecordExtensionAcceptanceTest extends ConstellioTest {
 		listWithOneExistingId.add(existingId);
 		listWithOneExistingId.addAll(NON_EXISTING_CART_IDS);
 
-		ContainerRecord containerRecord = records.getContainerBac01().setFavoritesList(listWithOneExistingId);
+		ContainerRecord containerRecord = records.getContainerBac01().setFavorites(listWithOneExistingId);
 		recordServices.add(containerRecord);
 
 		containerRecord.setTitle("TestModifié");
 		recordServices.update(containerRecord);
 
-		assertThat(containerRecord.getFavoritesList()).containsOnly(existingId);
+		assertThat(containerRecord.getFavorites()).containsOnly(existingId);
 	}
 
 	@Test
@@ -76,13 +76,13 @@ public class RMContainerRecordExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.add(secondCart);
 		List<String> listWithExistingIds = asList(firstCart.getId(), secondCart.getId());
 
-		ContainerRecord containerRecord = records.getContainerBac01().setFavoritesList(listWithExistingIds);
+		ContainerRecord containerRecord = records.getContainerBac01().setFavorites(listWithExistingIds);
 		recordServices.add(containerRecord);
 
 		containerRecord.setTitle("TestModifié");
 		recordServices.update(containerRecord);
 
-		assertThat(containerRecord.getFavoritesList()).containsOnly(firstCart.getId(), secondCart.getId());
+		assertThat(containerRecord.getFavorites()).containsOnly(firstCart.getId(), secondCart.getId());
 	}
 
 }

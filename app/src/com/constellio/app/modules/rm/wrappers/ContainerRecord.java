@@ -50,7 +50,7 @@ public class ContainerRecord extends RecordWrapper {
 	public static final String FIRST_TRANSFER_REPORT_DATE = "firstTransferReportDate";
 	public static final String FIRST_DEPOSIT_REPORT_DATE = "firstDepositReportDate";
 	public static final String DOCUMENT_RESPONSIBLE = "documentResponsible";
-	public static final String FAVORITES_LIST = "favoriteList";
+	public static final String FAVORITES = "favorites";
 
 	public ContainerRecord(Record record,
 						   MetadataSchemaTypes types) {
@@ -410,33 +410,33 @@ public class ContainerRecord extends RecordWrapper {
 		return record == null ? null : new ContainerRecord(record, types);
 	}
 
-	public List<String> getFavoritesList() {
-		return getList(FAVORITES_LIST);
+	public List<String> getFavorites() {
+		return getList(FAVORITES);
 	}
 
-	public ContainerRecord setFavoritesList(List<String> favoritesList) {
-		set(FAVORITES_LIST, favoritesList);
+	public ContainerRecord setFavorites(List<String> favorites) {
+		set(FAVORITES, favorites);
 		return this;
 	}
 
 	public void removeFavorite(String favoriteToDelete) {
-		List<String> favoritesList = new ArrayList<>();
-		favoritesList.addAll(getFavoritesList());
-		favoritesList.remove(favoriteToDelete);
-		setFavoritesList(favoritesList);
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.remove(favoriteToDelete);
+		setFavorites(favorites);
 	}
 
 	public void addFavorite(String favoriteToAdd) {
-		List<String> favoritesList = new ArrayList<>();
-		favoritesList.addAll(getFavoritesList());
-		favoritesList.add(favoriteToAdd);
-		setFavoritesList(favoritesList);
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.add(favoriteToAdd);
+		setFavorites(favorites);
 	}
 
 	public void removeFavorites(List<String> favoritesToDelete) {
-		List<String> favoritesList = new ArrayList<>();
-		favoritesList.addAll(getFavoritesList());
-		favoritesList.removeAll(favoritesToDelete);
-		setFavoritesList(favoritesList);
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.removeAll(favoritesToDelete);
+		setFavorites(favorites);
 	}
 }

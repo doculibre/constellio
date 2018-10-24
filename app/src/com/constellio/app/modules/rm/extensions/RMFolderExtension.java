@@ -104,7 +104,7 @@ public class RMFolderExtension extends RecordExtension {
 	private void deleteNonExistentFavoritesIds(Folder folder) {
 		List<String> removedIds = new ArrayList<>();
 		RecordsCaches recordsCaches = modelLayerFactory.getRecordsCaches();
-		for (String cartId : folder.getFavoritesList()) {
+		for (String cartId : folder.getFavorites()) {
 			if (!removedCartsIds.contains(cartId)) {
 				if (recordsCaches.getRecord(cartId) == null) {
 					removedIds.add(cartId);

@@ -42,7 +42,7 @@ public class DefaultFavoritesTable implements Serializable {
 		RecordVODataProvider documentVODataProvider = new RecordVODataProvider(documentSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				final Metadata documentFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FAVORITES_LIST);
+				final Metadata documentFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FAVORITES);
 				return new LogicalSearchQuery(from(documentSchemaType).where(documentFavoritesList).isContaining(asList(user.getId())));
 			}
 		};
@@ -52,7 +52,7 @@ public class DefaultFavoritesTable implements Serializable {
 		RecordVODataProvider folderVODataProvider = new RecordVODataProvider(folderSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				final Metadata folderFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES_LIST);
+				final Metadata folderFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
 				return new LogicalSearchQuery(from(folderSchemaType).where(folderFavoritesList).isContaining(asList(user.getId())));
 			}
 		};
@@ -62,7 +62,7 @@ public class DefaultFavoritesTable implements Serializable {
 		RecordVODataProvider containerVODataProvider = new RecordVODataProvider(containerSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				final Metadata containerFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FAVORITES_LIST);
+				final Metadata containerFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(ContainerRecord.DEFAULT_SCHEMA + "_" + ContainerRecord.FAVORITES);
 				return new LogicalSearchQuery(from(containerSchemaType).where(containerFavoritesList).isContaining(asList(user.getId())));
 			}
 		};

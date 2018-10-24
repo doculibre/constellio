@@ -38,7 +38,7 @@ public class RMContainerRecordExtension extends RecordExtension {
 	private void deleteNonExistentFavoritesIds(ContainerRecord container) {
 		List<String> removedIds = new ArrayList<>();
 		RecordsCaches recordsCaches = modelLayerFactory.getRecordsCaches();
-		for (String cartId : container.getFavoritesList()) {
+		for (String cartId : container.getFavorites()) {
 			if (!removedCartsIds.contains(cartId)) {
 				if (recordsCaches.getRecord(cartId) == null) {
 					removedIds.add(cartId);
