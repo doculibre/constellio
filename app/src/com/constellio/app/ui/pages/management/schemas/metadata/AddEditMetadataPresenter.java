@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.constellio.app.api.extensions.params.MetadataThatDontSupportRoleAccessParams;
+import com.constellio.app.ui.entities.RoleVO;
 import org.apache.commons.lang.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
