@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -361,7 +362,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustAssignerField() {
 		Field assignerField = getAssignerField();
-		if (assignerField != null && taskVO != null && !originalAssignedTo.equals(taskVO.getAssignee())) {
+		if (assignerField != null && taskVO != null && !Objects.equals(originalAssignedTo, taskVO.getAssignee())) {
 			assignerField.setValue(getCurrentUser().getId());
 		}
 	}
