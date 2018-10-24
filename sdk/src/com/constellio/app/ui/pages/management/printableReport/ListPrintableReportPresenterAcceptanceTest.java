@@ -257,14 +257,19 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 		RecordVODataProvider recordVODataProvider = presenter.getPrintableReportFolderDataProvider();
 		List<RecordVO> recordVOS = recordVODataProvider.listRecordVOs(0, recordVODataProvider.size());
 
-		presenter.removeRecord(0 + "", PrintableReportListPossibleType.FOLDER);
+		presenter.removeRecord(recordVOS.get(0));
 		try {
 			recordServices.getDocumentById(recordVOS.get(0).getId());
 			fail();
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) { /* OK ! */}
 
 
-		presenter.removeRecord(reportToRemoveById.getId(), PrintableReportListPossibleType.FOLDER);
+		for(RecordVO recordVO: recordVOS) {
+			if(recordVO.getId().equals(reportToRemoveById.getId())) {
+				presenter.removeRecord(recordVO);
+			}
+		}
+
 		try {
 			recordServices.getDocumentById(reportToRemoveById.getId());
 			fail();

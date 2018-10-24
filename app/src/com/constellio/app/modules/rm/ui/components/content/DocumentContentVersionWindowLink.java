@@ -27,7 +27,7 @@ public class DocumentContentVersionWindowLink extends WindowButton {
 
 	@Override
 	protected Component buildWindowContent() {
-		windowLayout = new DocumentContentVersionWindowImpl(recordVO, contentVersionVO);
+		windowLayout = new DocumentContentVersionWindowImpl(recordVO, contentVersionVO, null);
 		return windowLayout;
 	}
 

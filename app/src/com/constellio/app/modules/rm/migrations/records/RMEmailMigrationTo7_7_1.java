@@ -68,9 +68,11 @@ public class RMEmailMigrationTo7_7_1 extends RecordMigrationScript {
 		metadataSchemasManager.modify(collection, new MetadataSchemaTypesAlteration() {
 			@Override
 			public void alter(MetadataSchemaTypesBuilder types) {
-				MetadataSchemaBuilder emailSchema = types.getSchema(Email.SCHEMA);
-				if (emailSchema.hasMetadata(Email.EMAIL_CONTENT)) {
-					emailSchema.deleteMetadataWithoutValidation(Email.EMAIL_CONTENT);
+				if (types.hasSchemaType(Document.SCHEMA_TYPE) && types.getSchemaType(Document.SCHEMA_TYPE).hasSchema(Email.SCHEMA)) {
+					MetadataSchemaBuilder emailSchema = types.getSchema(Email.SCHEMA);
+					if (emailSchema.hasMetadata(Email.EMAIL_CONTENT)) {
+						emailSchema.deleteMetadataWithoutValidation(Email.EMAIL_CONTENT);
+					}
 				}
 			}
 		});

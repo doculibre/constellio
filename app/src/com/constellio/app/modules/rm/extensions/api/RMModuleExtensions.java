@@ -1,11 +1,16 @@
 package com.constellio.app.modules.rm.extensions.api;
 
+import com.constellio.app.api.extensions.DocumentFolderBreadCrumbExtention;
+import com.constellio.app.api.extensions.NavigateToFromAPageImportExtension;
+import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
+import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.extensions.ModuleExtensions;
 import com.constellio.app.modules.rm.extensions.api.DocumentExtension.DocumentExtensionAddMenuItemParams;
 import com.constellio.app.modules.rm.extensions.api.reports.RMReportBuilderFactories;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
 import com.constellio.data.frameworks.extensions.VaultBehaviorsList;
@@ -21,6 +26,8 @@ public class RMModuleExtensions implements ModuleExtensions {
 	private VaultBehaviorsList<DocumentExtension> documentExtensions;
 	private VaultBehaviorsList<FolderExtension> folderExtensions;
 	private VaultBehaviorsList<AdvancedSearchPresenterExtension> advancedSearchPresenterExtensions;
+	private VaultBehaviorsList<DocumentFolderBreadCrumbExtention> documentBreadcrumExtentions;
+	private VaultBehaviorsList<NavigateToFromAPageImportExtension> navigateToFromAPageExtensions;
 
 	private ModelLayerExtensions modelLayerExtensions;
 
@@ -31,6 +38,8 @@ public class RMModuleExtensions implements ModuleExtensions {
 		documentExtensions = new VaultBehaviorsList<>();
 		folderExtensions = new VaultBehaviorsList<>();
 		advancedSearchPresenterExtensions = new VaultBehaviorsList<>();
+		this.documentBreadcrumExtentions = new VaultBehaviorsList<>();
+		this.navigateToFromAPageExtensions = new VaultBehaviorsList<>();
 		this.modelLayerExtensions = appLayerFactory.getModelLayerFactory().getExtensions();
 	}
 
@@ -49,6 +58,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 	public void setDecommissioningListFolderTableExtension(
 			DecommissioningListFolderTableExtension decommissioningListFolderTableExtension) {
 		this.decommissioningListFolderTableExtension = decommissioningListFolderTableExtension;
+	}
+
+	public VaultBehaviorsList<NavigateToFromAPageImportExtension> getNavigateToFromAPageExtensions() {
+		return this.navigateToFromAPageExtensions;
 	}
 
 	public VaultBehaviorsList<DecommissioningListPresenterExtension> getDecommissioningListPresenterExtensions() {
@@ -71,6 +84,10 @@ public class RMModuleExtensions implements ModuleExtensions {
 
 	public VaultBehaviorsList<AdvancedSearchPresenterExtension> getAdvancedSearchPresenterExtensions() {
 		return advancedSearchPresenterExtensions;
+	}
+
+	public VaultBehaviorsList<DocumentFolderBreadCrumbExtention> getDocumentBreadcrumExtentions() {
+		return documentBreadcrumExtentions;
 	}
 
 	public boolean isCopyActionPossibleOnFolder(final Folder folder, final User user) {
@@ -185,4 +202,77 @@ public class RMModuleExtensions implements ModuleExtensions {
 		});
 	}
 
+	public BaseBreadcrumbTrail getBreadCrumbtrail(DocumentFolderBreadCrumbParams documentBreadcrumParams) {
+		BaseBreadcrumbTrail breadcrumbTrail = null;
+
+		for (DocumentFolderBreadCrumbExtention documentFolderBreadCrumbExtention : documentBreadcrumExtentions) {
+			breadcrumbTrail = documentFolderBreadCrumbExtention.getBreadcrumTrail(documentBreadcrumParams);
+
+			if (breadcrumbTrail != null) {
+				break;
+			}
+		}
+
+		return breadcrumbTrail;
+	}
+
+	public boolean navigateToDisplayDocumentWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
+		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
+			if (navigateToFromAPageImportExtension.navigateToDisplayDocumentWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean navigateToDisplayFolderWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
+		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
+			if (navigateToFromAPageImportExtension.navigateToDisplayFolderWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean navigateToEditFolderWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
+		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
+			if (navigateToFromAPageImportExtension.navigateToEditFolderWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
+		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
+			if (navigateToFromAPageImportExtension.navigateToDuplicateFolderWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean navigateToEditDocumentWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
+		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
+			if (navigateToFromAPageImportExtension.navigateToEditDocumentWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean navigateToAddDocumentWhileKeepingTraceOfPreviousView(NavigateToFromAPageParams navigateToFromAPageParams) {
+		for (NavigateToFromAPageImportExtension navigateToFromAPageImportExtension : getNavigateToFromAPageExtensions()) {
+			if (navigateToFromAPageImportExtension.navigateToAddDocumentWhileKeepingTraceOfPreviousView(navigateToFromAPageParams)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

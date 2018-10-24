@@ -1,6 +1,8 @@
 package com.constellio.app.modules.rm.ui.components.contextmenu;
 
+import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentView;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -24,6 +26,7 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.View;
@@ -37,6 +40,7 @@ import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.Nullable;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
@@ -70,6 +74,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 	private boolean publishButtonVisible;
 	private boolean addToOrRemoveFromSelectionButtonVisible;
 
+	private DocumentActionsPresenterUtils<DocumentContextMenu> presenterUtils;
 	protected DocumentContextMenuPresenter presenter;
 
 	public DocumentContextMenuImpl() {
@@ -82,6 +87,8 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		if (documentVO != null) {
 			presenter.setRecordVO(documentVO);
 		}
+
+
 	}
 
 	protected DocumentContextMenuPresenter newPresenter() {
@@ -158,7 +165,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 			editDocumentItem.addItemClickListener(new BaseContextMenuItemClickListener() {
 				@Override
 				public void contextMenuItemClicked(ContextMenuItemClickEvent event) {
-					presenter.editDocumentButtonClicked();
+					presenter.editDocumentButtonClicked(ParamUtils.getCurrentParams());
 				}
 			});
 		}
@@ -173,7 +180,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deleteDocumentButtonClicked();
+					presenter.deleteDocumentButtonClicked(ParamUtils.getCurrentParams());
 				}
 			});
 		}
@@ -198,7 +205,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.createPDFA();
+					presenter.createPDFA(ParamUtils.getCurrentParams());
 				}
 			});
 		}
@@ -288,6 +295,7 @@ public class DocumentContextMenuImpl extends RecordContextMenu implements Docume
 		View parentView = ConstellioUI.getCurrent().getCurrentView();
 		presenter.addItemsFromExtensions(this, (BaseViewImpl) parentView);
 	}
+
 
 	@Override
 	public ConstellioFactories getConstellioFactories() {

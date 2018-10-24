@@ -85,7 +85,14 @@ public abstract class DeleteWithJustificationButton extends WindowButton {
 		// Do nothing by default
 	}
 
+	public String getRecordCaption() {
+		return null;
+	}
+
 	protected String getConfirmDialogMessage() {
+		if(StringUtils.isNotBlank(getRecordCaption())) {
+			return $("DeleteWithJustificationButton.pleaseConfirmWithRecordCaption", getRecordCaption());
+		}
 		return $("DeleteWithJustificationButton.pleaseConfirm");
 	}
 }

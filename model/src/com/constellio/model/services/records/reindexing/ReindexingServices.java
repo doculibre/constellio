@@ -64,6 +64,8 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.model.conf.FoldersLocatorMode.PROJECT;
+import static com.constellio.model.entities.enums.MemoryConsumptionLevel.LEAST_MEMORY_CONSUMPTION;
+import static com.constellio.model.entities.enums.MemoryConsumptionLevel.LESS_MEMORY_CONSUMPTION;
 import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.WRITE_ZZRECORDS_IN_TLOG;
 import static com.constellio.model.services.records.BulkRecordTransactionImpactHandling.NO_IMPACT_HANDLING;
@@ -94,7 +96,19 @@ public class ReindexingServices {
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.dataLayerFactory = modelLayerFactory.getDataLayerFactory();
 		this.logManager = dataLayerFactory.getSecondTransactionLogManager();
-		this.mainThreadQueryRows = modelLayerFactory.getConfiguration().getReindexingQueryBatchSize();
+
+		if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LEAST_MEMORY_CONSUMPTION) {
+			this.mainThreadQueryRows = 50;
+
+		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
+			this.mainThreadQueryRows = 100;
+
+//		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == NORMAL) {
+			//			this.mainThreadQueryRows = 1000;
+
+		} else {
+			this.mainThreadQueryRows = modelLayerFactory.getConfiguration().getReindexingQueryBatchSize();
+		}
 	}
 
 	public static SystemReindexingInfos getReindexingInfos() {
@@ -288,7 +302,17 @@ public class ReindexingServices {
 			} else {
 				int batchSize = params.getBatchSize();
 				if (batchSize == 0) {
-					batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
+
+					if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LEAST_MEMORY_CONSUMPTION) {
+						batchSize = 20;
+
+					} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
+						batchSize = 20;
+
+					} else {
+						batchSize = modelLayerFactory.getConfiguration().getReindexingThreadBatchSize();
+					}
+
 				}
 				options.withRecordsPerBatch(batchSize);
 			}

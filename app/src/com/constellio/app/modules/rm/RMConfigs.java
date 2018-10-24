@@ -300,7 +300,7 @@ public class RMConfigs {
 
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG =
-				advanced.createBooleanFalseByDefault("showFolderUnicityAndFolderSummaryConfig").whichIsHidden());
+				advanced.createBooleanTrueByDefault("showFolderUnicityAndFolderSummaryConfig").whichIsHidden());
 	}
 
 	static void add(SystemConfiguration configuration) {

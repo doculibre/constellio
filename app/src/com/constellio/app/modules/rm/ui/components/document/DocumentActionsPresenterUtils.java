@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
+import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -12,6 +13,8 @@ import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingServ
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.DecommissionNavUtil;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -65,6 +68,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
@@ -151,9 +155,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 										&& extensions.isRecordModifiableBy(record, user) && !extensions.isModifyBlocked(record, user));
 	}
 
-	public void editDocumentButtonClicked() {
+	public void editDocumentButtonClicked(Map<String, String> params) {
 		if (isEditDocumentPossible()) {
-			actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
+
+			RMNavigationUtils.navigateToEditDocument(documentVO.getId(), params,
+					actionsComponent.getConstellioFactories().getAppLayerFactory(),
+					actionsComponent.getSessionContext().getCurrentCollection());
+
 			updateSearchResultClicked();
 		}
 	}
@@ -215,9 +223,18 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return null;
 	}
 
-	public void copyContentButtonClicked() {
+	public void copyContentButtonClicked(Map<String, String> params) {
 		if (isCopyDocumentPossible()) {
-			actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
+			boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+			if (areSearchTypeAndSearchIdPresent) {
+				actionsComponent.navigate().to(RMViews.class)
+						.addDocumentWithContentFromDecommission(documentVO.getId(), DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+			} else if (rmModuleExtensions
+					.navigateToAddDocumentWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, documentVO.getId()))) {
+			} else {
+				actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
+			}
 		}
 	}
 
@@ -272,7 +289,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return ComponentState.INVISIBLE;
 	}
 
-	public void deleteDocumentButtonClicked() {
+	public void deleteDocumentButtonClicked(Map<String, String> params) {
 		if (isDeleteDocumentPossibleExtensively()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
@@ -290,7 +307,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				return;
 			}
 			if (parentId != null) {
-				actionsComponent.navigate().to(RMViews.class).displayFolder(parentId);
+				navigateToDisplayFolder(parentId, params);
 			} else {
 				actionsComponent.navigate().to().recordsManagement();
 			}
@@ -465,7 +482,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 	}
 
-	public synchronized void createPDFA() {
+	public synchronized void createPDFA(Map<String, String> params) {
 		if (!isCreatePDFAPossible()) {
 			return;
 		}
@@ -483,7 +500,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 					decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
 
-					actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
+					navigateToDisplayDocument(document.getId(), params);
+
 					actionsComponent.showMessage($("DocumentActionsComponent.createPDFASuccess"));
 				} catch (Exception e) {
 					actionsComponent.showErrorMessage(
@@ -495,6 +513,18 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		} else {
 			actionsComponent.showMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
 		}
+	}
+
+	public void navigateToDisplayDocument(String documentId, Map<String, String> params) {
+		RMNavigationUtils.navigateToDisplayDocument(documentId, params,
+				actionsComponent.getConstellioFactories().getAppLayerFactory(),
+				actionsComponent.getSessionContext().getCurrentCollection());
+	}
+
+	public void navigateToDisplayFolder(String folderId, Map<String, String> params) {
+		RMNavigationUtils.navigateToDisplayFolder(folderId, params,
+				actionsComponent.getConstellioFactories().getAppLayerFactory(),
+				actionsComponent.getSessionContext().getCurrentCollection());
 	}
 
 	public void checkInButtonClicked() {
@@ -966,17 +996,21 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 			SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(),
 					presenterUtils.modelLayerFactory());
+
+
 			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 
-			searchEventServices.incrementClickCounter(searchEvent.getId());
+			if (searchEvent != null) {
+				searchEventServices.incrementClickCounter(searchEvent.getId());
 
-			String url = null;
-			try {
-				url = documentVO.get("url");
-			} catch (RecordVORuntimeException_NoSuchMetadata e) {
+				String url = null;
+				try {
+					url = documentVO.get("url");
+				} catch (RecordVORuntimeException_NoSuchMetadata e) {
+				}
+				String clicks = defaultIfBlank(url, documentVO.getId());
+				searchEventServices.updateClicks(searchEvent, clicks);
 			}
-			String clicks = defaultIfBlank(url, documentVO.getId());
-			searchEventServices.updateClicks(searchEvent, clicks);
 		}
 	}
 

@@ -13,7 +13,7 @@ public class ConnectorInstanceFieldFactory extends RecordFieldFactory {
 	@Override
 	public Field<?> build(RecordVO recordVO, MetadataVO metadata, Locale locale) {
 		if (metadata.getCode().contains(ConnectorInstance.CONNECTOR_TYPE)) {
-			Field<?> field = super.build(recordVO, metadata);
+			Field<?> field = super.build(recordVO, metadata, locale);
 			if (field != null) {
 				field.setReadOnly(true);
 			}

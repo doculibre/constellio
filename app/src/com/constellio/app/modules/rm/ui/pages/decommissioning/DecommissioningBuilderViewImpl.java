@@ -3,14 +3,17 @@ package com.constellio.app.modules.rm.ui.pages.decommissioning;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningListParams;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.SearchResultTable;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.fields.BaseTextArea;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
+import com.constellio.app.ui.pages.search.SaveSearchListener;
 import com.constellio.app.ui.pages.search.SearchViewImpl;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.model.frameworks.validation.ValidationException;
@@ -28,7 +31,9 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -39,10 +44,14 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 	public static final String SEARCH = "search";
 	public static final String CREATE_LIST = "create-list";
 
+	public static final String DECOMMISSIONING_BUILDER_TYPE = "decommissioning-builder-title";
+	public static final String SAVE_SEARCH_DECOMMISSIONING = "save-search-decommissioning";
+
 	private AdvancedSearchCriteriaComponent criteria;
 	private Button searchButton;
 	private Button addToListButton;
 	private LookupRecordField adminUnit;
+	private String saveEventId = null;
 
 	public DecommissioningBuilderViewImpl() {
 		presenter = new DecommissioningBuilderPresenter(this);
@@ -55,7 +64,26 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 				return presenter.isAddMode();
 			}
 		};
+
+		addSaveSearchListenerList(new SaveSearchListener() {
+			@Override
+			protected void save(Event event) {
+				saveEventId = event.getSavedSearch().getId();
+				getUIContext().setAttribute(DECOMMISSIONING_BUILDER_TYPE, presenter.getSearchType().toString());
+				getUIContext().setAttribute(SAVE_SEARCH_DECOMMISSIONING, saveEventId);
+				setExtraParameters(presenter.getSearchType().toString(), saveEventId);
+			}
+		});
+
 		addStyleName("search-decommissioning");
+	}
+
+	public void setExtraParameters(String searchType, String saveEventId) {
+		Map<String, String> extraParameters = new HashMap<>();
+		extraParameters.put(DECOMMISSIONING_BUILDER_TYPE, searchType);
+		extraParameters.put(SAVE_SEARCH_DECOMMISSIONING, saveEventId);
+
+		DecommissioningBuilderViewImpl.this.setExtraParameters(extraParameters);
 	}
 
 	@Override
@@ -63,6 +91,8 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		presenter.forParams(event.getParameters());
 		super.initBeforeCreateComponents(event);
 	}
+
+
 
 	@Override
 	protected String getTitle() {
@@ -111,6 +141,8 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		return criteria.getSearchCriteria();
 	}
 
+
+
 	@Override
 	protected Component buildSearchUI() {
 		Button addCriterion = new Button($("DecommissioningBuilderView.addCriterion"));
@@ -158,6 +190,7 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 		Button createList = new DecommissioningButton($("DecommissioningBuilderView.createDecommissioningList"));
 		createList.addStyleName(ValoTheme.BUTTON_LINK);
 		createList.addStyleName(CREATE_LIST);
+
 		return results.createSummary(buildSelectAllButton(), buildAddToSelectionButton(), createList, buildAddToListButton());
 	}
 
@@ -246,5 +279,10 @@ public class DecommissioningBuilderViewImpl extends SearchViewImpl<Decommissioni
 			}
 		});
 		return addToListButton;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new DecommissionBreadcrumbTrail(getTitle(),  presenter.getSearchType(), null, presenter.decommissioningListId, this);
 	}
 }
