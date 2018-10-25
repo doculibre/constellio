@@ -30,6 +30,9 @@ public class RecordProvider {
 		this.nestedRecordProvider = recordProvider;
 
 		if (transaction != null) {
+			for (Record transactionRecord : transaction.getRecords()) {
+				memoryList.put(transactionRecord.getId(), transactionRecord);
+			}
 			memoryList.putAll(transaction.getReferencedRecords());
 		}
 
