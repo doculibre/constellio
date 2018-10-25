@@ -635,11 +635,12 @@ public class MetadataList implements List<Metadata>, Serializable {
 		}
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
+
 	public List<Metadata> onlyAccessibleGloballyBy(User user) {
 		List<Metadata> metadataList = new ArrayList<>();
 
 		for(Metadata metadataListItem : nestedList) {
-				if (user.hasGlobalAccessToMetadata(metadataListItem)) {
+				if (user == null || user.hasGlobalAccessToMetadata(metadataListItem)) {
 					metadataList.add(metadataListItem);
 				}
 		}
