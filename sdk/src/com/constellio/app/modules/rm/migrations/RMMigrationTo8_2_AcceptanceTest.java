@@ -35,7 +35,7 @@ public class RMMigrationTo8_2_AcceptanceTest extends ConstellioTest {
 	private void givenSystemIn8_1() {
 		givenTransactionLogIsEnabled();
 		File statesFolder = new SDKFoldersLocator().getInitialStatesFolder();
-		File state = new File(statesFolder, "");
+		File state = new File(statesFolder, "systemstate-20181025.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
 	}
