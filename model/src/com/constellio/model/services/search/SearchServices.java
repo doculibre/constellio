@@ -789,7 +789,18 @@ public class SearchServices {
 		}
 
 		for (SearchBoost boost : boosts) {
-			String dataStoreValue = boost.getKey().substring(0, boost.getKey().lastIndexOf(":"));
+			String dataStoreValue;
+			int lastIndexOfSemiColumn = boost.getKey().lastIndexOf(":");
+
+			if(lastIndexOfSemiColumn == -1) {
+				dataStoreValue = boost.getKey();
+			} else {
+				dataStoreValue = boost.getKey().substring(0, lastIndexOfSemiColumn);
+			}
+
+			String[] dataStoreValueSplited = dataStoreValue.split("_");
+			dataStoreValue = dataStoreValueSplited[0] + "_" + dataStoreValueSplited[1];
+
 			if(!dataFieldCodeWithNoAccess.contains(dataStoreValue)) {
 				sb.append(boost.getKey());
 				sb.append("^");
