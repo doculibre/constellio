@@ -197,18 +197,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			super(schemaCode);
 		}
 
-		public Metadata containers() {
-			return metadata("containers");
-		}
-
-		public Metadata documents() {
-			return metadata("documents");
-		}
-
-		public Metadata folders() {
-			return metadata("folders");
-		}
-
 		public Metadata owner() {
 			return metadata("owner");
 		}
