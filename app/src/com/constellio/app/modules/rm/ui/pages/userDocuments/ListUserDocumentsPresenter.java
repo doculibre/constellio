@@ -400,8 +400,8 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		List<RecordVO> records = new ArrayList<>();
 		double usedSpace = 0;
 		int size = userContentContainer.size();
-		for (int i = 0; i < size; i++) {
-			records.add(userContentContainer.getRecordVO(i));
+		for (int recordNumber = 0; recordNumber < size; recordNumber++) {
+			records.add(userContentContainer.getRecordVO(recordNumber));
 		}
 		for (RecordVO recordVO : records) {
 			if (recordVO instanceof UserDocumentVO) {
