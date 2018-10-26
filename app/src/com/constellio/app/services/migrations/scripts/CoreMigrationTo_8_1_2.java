@@ -6,11 +6,15 @@ import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.calculators.GroupAncestorsCalculator;
+import com.constellio.model.services.search.SearchServices;
+import org.apache.poi.ss.formula.functions.T;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class CoreMigrationTo_8_1_2 implements MigrationScript {
 	@Override
@@ -22,14 +26,21 @@ public class CoreMigrationTo_8_1_2 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory)
 			throws Exception {
-		new CoreSchemaAlterationFor_8_0(collection, migrationResourcesProvider, appLayerFactory).migrate();
-		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+		new CoreSchemaAlterationFor_8_1_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
+
+		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		if (searchServices.hasResults(from(schemas.group.schemaType()).where(schemas.group.parent()).<T>isNotNull())) {
+			appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
+		}
 	}
 
-	class CoreSchemaAlterationFor_8_0 extends MetadataSchemasAlterationHelper {
+	class CoreSchemaAlterationFor_8_1_2 extends MetadataSchemasAlterationHelper {
 
-		protected CoreSchemaAlterationFor_8_0(String collection, MigrationResourcesProvider migrationResourcesProvider,
-											  AppLayerFactory appLayerFactory) {
+		protected CoreSchemaAlterationFor_8_1_2(String collection,
+												MigrationResourcesProvider migrationResourcesProvider,
+												AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
