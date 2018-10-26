@@ -40,9 +40,20 @@ public class Group extends RecordWrapper {
 		return get(CODE);
 	}
 
+	//TODO Replace this method in release 8.2
 	public List<String> getAncestors() {
-		return getList(ANCESTORS);
+		List<String> ancestors = getList(ANCESTORS);
+		if (ancestors.isEmpty()) {
+			return Collections.singletonList(wrappedRecord.getId());
+		} else {
+			return ancestors;
+		}
 	}
+
+	//TODO Use this version in release 8.2, with a forced full reindexing
+	//	public List<String> getAncestors() {
+	//		return getList(ANCESTORS);
+	//	}
 
 	public List<String> getRoles() {
 		return getList(ROLES);
