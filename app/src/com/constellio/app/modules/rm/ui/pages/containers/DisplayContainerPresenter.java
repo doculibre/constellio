@@ -30,7 +30,6 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.StatusFilter;
@@ -46,11 +45,9 @@ import java.util.List;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class DisplayContainerPresenter extends BasePresenter<DisplayContainerView> implements NewReportPresenter {
-	private static final long NUMBER_OF_FOLDERS_IN_CART_LIMIT = 1000;
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayContainerPresenter.class);
 	private transient RMSchemasRecordsServices rmRecordServices;
 	private transient DecommissioningService decommissioningService;
@@ -365,7 +362,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public void addToDefaultFavorite() {
-		if (numberOfContainersInFavoritesReachesLimit(getCurrentUser().getId())) {
+		if (rmRecordServices().numberOfContainersInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
 			view.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
 		} else {
 			ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
@@ -395,12 +392,6 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	public boolean containerInDefaultFavorites() {
 		ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
 		return container.getFavorites().contains(getCurrentUser().getId());
-	}
-
-	private boolean numberOfContainersInFavoritesReachesLimit(String cartId) {
-		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmRecordServices().folder.schemaType()).where(metadata).isContaining(asList(cartId)));
-		return searchServices().getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 
 }

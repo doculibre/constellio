@@ -100,7 +100,6 @@ import static java.util.Arrays.asList;
 
 public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
-	private static final long NUMBER_OF_FOLDERS_IN_CART_LIMIT = 1000;
 	Boolean allItemsSelected = true;
 
 	Boolean allItemsDeselected = false;
@@ -110,6 +109,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	private transient AppLayerFactory appLayerFactory;
 	private transient ModelLayerFactory modelLayerFactory;
 	private transient SchemasDisplayManager schemasDisplayManager;
+	private transient RMSchemasRecordsServices rm;
 	private boolean advancedSearchFormVisible;
 
 	private BasePresenterUtils presenterUtils;
@@ -459,6 +459,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		SessionContext sessionContext = header.getSessionContext();
 		appLayerFactory = constellioFactories.getAppLayerFactory();
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
+		rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
 		this.presenterUtils = new BasePresenterUtils(constellioFactories, sessionContext);
 		this.deselectedRecordsWithSchema = new HashMap<>();
 
@@ -716,19 +717,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
 		List<Record> records = getRecords(recordIds);
-		for (Record record : records) {
-			switch (record.getTypeCode()) {
-				case Folder.SCHEMA_TYPE:
-					addFolderToCart(cart.getId(), record);
-					break;
-				case Document.SCHEMA_TYPE:
-					addDocumentToCart(cart.getId(), record);
-					break;
-				case ContainerRecord.SCHEMA_TYPE:
-					addContainerToCart(cart.getId(), record);
-					break;
-			}
-		}
+		addRecordsToCart(records, cart.getId());
 
 		try {
 			modelLayerFactory.newRecordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
@@ -739,6 +728,28 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
+	}
+
+	private void addRecordsToCart(List<Record> records, String cartId) {
+		List<Folder> folders = new ArrayList<>();
+		List<Document> documents = new ArrayList<>();
+		List<ContainerRecord> containers = new ArrayList<>();
+		for (Record record : records) {
+			switch (record.getTypeCode()) {
+				case Folder.SCHEMA_TYPE:
+					folders.add(rm.wrapFolder(record));
+					break;
+				case Document.SCHEMA_TYPE:
+					documents.add(rm.wrapDocument(record));
+					break;
+				case ContainerRecord.SCHEMA_TYPE:
+					containers.add(rm.wrapContainerRecord(record));
+					break;
+			}
+		}
+		addFoldersToCart(cartId, folders);
+		addDocumentsToCart(cartId, documents);
+		addContainersToCart(cartId, containers);
 	}
 
 	private List<Record> getRecords(List<String> recordIds) {
@@ -775,19 +786,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 
 	public void addToDefaultFavoriteRequested(List<String> recordIds) {
 		List<Record> records = getRecords(recordIds);
-		for (Record record : records) {
-			switch (record.getTypeCode()) {
-				case Folder.SCHEMA_TYPE:
-					addFolderToCart(getCurrentUser().getId(), record);
-					break;
-				case Document.SCHEMA_TYPE:
-					addDocumentToCart(getCurrentUser().getId(), record);
-					break;
-				case ContainerRecord.SCHEMA_TYPE:
-					addContainerToCart(getCurrentUser().getId(), record);
-					break;
-			}
-		}
+		addRecordsToCart(records, getCurrentUser().getId());
 		try {
 			modelLayerFactory.newRecordServices().execute(new Transaction(records));
 			showMessage($("ConstellioHeader.selection.actions.actionCompleted", recordIds.size()));
@@ -796,25 +795,12 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		}
 	}
 
-
 	public void addToCartRequested(List<String> recordIds, RecordVO cartVO) {
 		// TODO: Create an extension for this
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
 		Cart cart = rm.getOrCreateCart(getCurrentUser(), cartVO.getId());
 		List<Record> records = getRecords(recordIds);
-		for (Record record : records) {
-			switch (record.getTypeCode()) {
-				case Folder.SCHEMA_TYPE:
-					addFolderToCart(cart.getId(), record);
-					break;
-				case Document.SCHEMA_TYPE:
-					addDocumentToCart(cart.getId(), record);
-					break;
-				case ContainerRecord.SCHEMA_TYPE:
-					addContainerToCart(cart.getId(), record);
-					break;
-			}
-		}
+		addRecordsToCart(records, cart.getId());
 		try {
 			modelLayerFactory.newRecordServices().add(cart);
 			modelLayerFactory.newRecordServices().execute(new Transaction(records));
@@ -824,30 +810,33 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		}
 	}
 
-	private void addFolderToCart(String cartId, Record record) {
-		if (numberOfFoldersInFavoritesReachesLimit(cartId)) {
+	private void addFoldersToCart(String cartId, List<Folder> folders) {
+		if (rm.numberOfFoldersInFavoritesReachesLimit(cartId, folders.size())) {
 			showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
 		} else {
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-			rm.wrapFolder(record).addFavorite(cartId);
+			for (Folder folder : folders) {
+				folder.addFavorite(cartId);
+			}
 		}
 	}
 
-	private void addDocumentToCart(String cartId, Record record) {
-		if (numberOfDocumentsInFavoritesReachesLimit(cartId)) {
+	private void addDocumentsToCart(String cartId, List<Document> documents) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(cartId, documents.size())) {
 			showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-			rm.wrapDocument(record).addFavorite(cartId);
+			for (Document document : documents) {
+				document.addFavorite(cartId);
+			}
 		}
 	}
 
-	private void addContainerToCart(String cartId, Record record) {
-		if (numberOfContainersInFavoritesReachesLimit(cartId)) {
+	private void addContainersToCart(String cartId, List<ContainerRecord> containers) {
+		if (rm.numberOfContainersInFavoritesReachesLimit(cartId, containers.size())) {
 			showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
 		} else {
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-			rm.wrapContainerRecord(record).addFavorite(cartId);
+			for (ContainerRecord container : containers) {
+				container.addFavorite(cartId);
+			}
 		}
 	}
 
@@ -940,29 +929,5 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
 		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
 		return modelLayerFactory.getSystemConfigs().getAutocompleteSize();
-	}
-
-	private boolean numberOfFoldersInFavoritesReachesLimit(String cartId) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(header.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
-		return searchServices.getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
-	}
-
-	private boolean numberOfContainersInFavoritesReachesLimit(String cartId) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(header.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
-		return searchServices.getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
-	}
-
-	private boolean numberOfDocumentsInFavoritesReachesLimit(String cartId) {
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(header.getCollection(), appLayerFactory);
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(header.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
-		return searchServices.getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 }

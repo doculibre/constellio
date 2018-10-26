@@ -10,7 +10,6 @@ import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPrese
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
@@ -68,7 +67,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
-	private static final long NUMBER_OF_FOLDERS_IN_CART_LIMIT = 1000;
 	private transient RecordServices recordServices;
 
 	protected DocumentToVOBuilder voBuilder;
@@ -416,7 +414,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void addToCartRequested(RecordVO recordVO) {
-		if (numberOfDocumentsInFavoritesReachesLimit(rm.getCart(recordVO.getId()).getId())) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(rm.getCart(recordVO.getId()).getId(), 1)) {
 			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {
 			presenterUtils.addToCartRequested(recordVO);
@@ -547,7 +545,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void addToDefaultFavorite() {
-		if (numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId())) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
 			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {
 			document.addFavorite(getCurrentUser().getId());
@@ -574,12 +572,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public boolean inDefaultFavorites() {
 		return document.getFavorites().contains(getCurrentUser().getId());
-	}
-
-	private boolean numberOfDocumentsInFavoritesReachesLimit(String cartId) {
-		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
-		return searchServices().getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 
 	public RMSelectionPanelReportPresenter buildReportPresenter() {

@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.ui.pages.home;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -52,8 +51,7 @@ public class DefaultFavoritesTable implements Serializable {
 		RecordVODataProvider folderVODataProvider = new RecordVODataProvider(folderSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
 			@Override
 			protected LogicalSearchQuery getQuery() {
-				final Metadata folderFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
-				return new LogicalSearchQuery(from(folderSchemaType).where(folderFavoritesList).isContaining(asList(user.getId())));
+				return new LogicalSearchQuery(from(folderSchemaType).where(rm.folder.favorites()).isContaining(asList(user.getId())));
 			}
 		};
 

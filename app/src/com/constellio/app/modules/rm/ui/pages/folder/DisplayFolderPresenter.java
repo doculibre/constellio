@@ -1077,7 +1077,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void addToCartRequested(RecordVO recordVO) {
 		Cart cart = rmSchemasRecordsServices.getCart(recordVO.getId());
-		if (numberOfFoldersInFavoritesReachesLimit(cart.getId())) {
+		if (rmSchemasRecordsServices.numberOfFoldersInFavoritesReachesLimit(cart.getId(), 1)) {
 			view.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
 		} else {
 			Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
@@ -1293,7 +1293,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void addToDefaultFavorite() {
-		if (numberOfFoldersInFavoritesReachesLimit(getCurrentUser().getId())) {
+		if (rmSchemasRecordsServices.numberOfFoldersInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
 			view.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
 		} else {
 			Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
@@ -1306,12 +1306,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 			}
 			view.showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
 		}
-	}
-
-	private boolean numberOfFoldersInFavoritesReachesLimit(String cartId) {
-		final Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmSchemasRecordsServices().folder.schemaType()).where(metadata).isContaining(asList(cartId)));
-		return searchServices().getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 
 	public boolean inDefaultFavorites() {

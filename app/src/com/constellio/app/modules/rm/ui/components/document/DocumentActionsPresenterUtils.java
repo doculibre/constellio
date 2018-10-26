@@ -43,7 +43,6 @@ import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
@@ -54,7 +53,6 @@ import com.constellio.model.services.logging.SearchEventServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.MenuBar.Command;
@@ -74,15 +72,12 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> implements Serializable {
 
 	private static final int WAIT_ONE_SECOND = 1;
-	private static final long NUMBER_OF_FOLDERS_IN_CART_LIMIT = 1000;
 
 	protected SchemaPresenterUtils presenterUtils;
 
@@ -169,7 +164,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void addDocumentToDefaultFavorite() {
 		Document document = rmSchemasRecordsServices.wrapDocument(presenterUtils.getRecord(documentVO.getId()));
-		if (numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId())) {
+		if (rmSchemasRecordsServices.numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
 			actionsComponent.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {
 			document.addFavorite(getCurrentUser().getId());
@@ -177,6 +172,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				presenterUtils.recordServices().update(document);
 			} catch (RecordServicesException e) {
 				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
 	}
@@ -188,6 +184,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			presenterUtils.recordServices().update(document);
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -863,7 +860,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	public void addToCartRequested(RecordVO cartVO) {
 		Cart cart = rmSchemasRecordsServices.getCart(cartVO.getId());
-		if (numberOfDocumentsInFavoritesReachesLimit(cart.getId())) {
+		if (rmSchemasRecordsServices.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
 			actionsComponent.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
@@ -1012,12 +1009,6 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				searchEventServices.updateClicks(searchEvent, clicks);
 			}
 		}
-	}
-
-	private boolean numberOfDocumentsInFavoritesReachesLimit(String cartId) {
-		final Metadata metadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(presenterUtils.getCollection()).getMetadata(Folder.DEFAULT_SCHEMA + "_" + Folder.FAVORITES);
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rmSchemasRecordsServices.folder.schemaType()).where(metadata).isContaining(asList(cartId)));
-		return presenterUtils.searchServices().getResultsCount(logicalSearchQuery) >= NUMBER_OF_FOLDERS_IN_CART_LIMIT;
 	}
 
 	//	public void addItemsFromExtensions(final MenuItem rootItem, final BaseViewImpl view) {

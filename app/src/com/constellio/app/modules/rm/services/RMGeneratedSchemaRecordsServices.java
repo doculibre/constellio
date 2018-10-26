@@ -205,7 +205,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("sharedWithUsers");
 		}
 	}
-
 	public Category wrapCategory(Record record) {
 		return record == null ? null : new Category(record, getTypes(), locale);
 	}
@@ -255,7 +254,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_category_default category
 			= new SchemaTypeShortcuts_category_default("category_default");
-
 	public class SchemaTypeShortcuts_category_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_category_default(String schemaCode) {
 			super(schemaCode);
@@ -297,7 +295,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("retentionRules");
 		}
 	}
-
 	public ContainerRecord wrapContainerRecord(Record record) {
 		return record == null ? null : new ContainerRecord(record, getTypes());
 	}
@@ -343,7 +340,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_containerRecord_default containerRecord
 			= new SchemaTypeShortcuts_containerRecord_default("containerRecord_default");
-
 	public class SchemaTypeShortcuts_containerRecord_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_containerRecord_default(String schemaCode) {
 			super(schemaCode);
@@ -395,6 +391,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata documentResponsible() {
 			return metadata("documentResponsible");
+		}
+
+		public Metadata favorites() {
+			return metadata("favorites");
 		}
 
 		public Metadata filingSpace() {
@@ -469,7 +469,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 	}
-
 	public DocumentType wrapDocumentType(Record record) {
 		return record == null ? null : new DocumentType(record, getTypes());
 	}
@@ -519,7 +518,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_ddvDocumentType_default ddvDocumentType
 			= new SchemaTypeShortcuts_ddvDocumentType_default("ddvDocumentType_default");
-
 	public class SchemaTypeShortcuts_ddvDocumentType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvDocumentType_default(String schemaCode) {
 			super(schemaCode);
@@ -533,7 +531,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("templates");
 		}
 	}
-
 	public FolderType wrapFolderType(Record record) {
 		return record == null ? null : new FolderType(record, getTypes());
 	}
@@ -583,7 +580,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_ddvFolderType_default ddvFolderType
 			= new SchemaTypeShortcuts_ddvFolderType_default("ddvFolderType_default");
-
 	public class SchemaTypeShortcuts_ddvFolderType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvFolderType_default(String schemaCode) {
 			super(schemaCode);
@@ -593,7 +589,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("linkedSchema");
 		}
 	}
-
 	public StorageSpaceType wrapStorageSpaceType(Record record) {
 		return record == null ? null : new StorageSpaceType(record, getTypes());
 	}
@@ -643,7 +638,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_ddvStorageSpaceType_default ddvStorageSpaceType
 			= new SchemaTypeShortcuts_ddvStorageSpaceType_default("ddvStorageSpaceType_default");
-
 	public class SchemaTypeShortcuts_ddvStorageSpaceType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvStorageSpaceType_default(String schemaCode) {
 			super(schemaCode);
@@ -653,7 +647,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("linkedSchema");
 		}
 	}
-
 	public YearType wrapYearType(Record record) {
 		return record == null ? null : new YearType(record, getTypes());
 	}
@@ -703,7 +696,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_ddvYearType_default ddvYearType
 			= new SchemaTypeShortcuts_ddvYearType_default("ddvYearType_default");
-
 	public class SchemaTypeShortcuts_ddvYearType_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_ddvYearType_default(String schemaCode) {
 			super(schemaCode);
@@ -713,7 +705,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("yearEnd");
 		}
 	}
-
 	public DecommissioningList wrapDecommissioningList(Record record) {
 		return record == null ? null : new DecommissioningList(record, getTypes());
 	}
@@ -759,7 +750,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_decommissioningList_default decommissioningList
 			= new SchemaTypeShortcuts_decommissioningList_default("decommissioningList_default");
-
 	public class SchemaTypeShortcuts_decommissioningList_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_decommissioningList_default(String schemaCode) {
 			super(schemaCode);
@@ -893,7 +883,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("validations");
 		}
 	}
-
 	public Document wrapDocument(Record record) {
 		return record == null ? null : new Document(record, getTypes());
 	}
@@ -939,7 +928,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_document_default document
 			= new SchemaTypeShortcuts_document_default("document_default");
-
 	public class SchemaTypeShortcuts_document_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_document_default(String schemaCode) {
 			super(schemaCode);
@@ -997,6 +985,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("category");
 		}
 
+		public Metadata categoryCode() {
+			return metadata("categoryCode");
+		}
+
 		public Metadata closingDate() {
 			return metadata("closingDate");
 		}
@@ -1047,6 +1039,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 		public Metadata expectedTransferDate() {
 			return metadata("expectedTransferDate");
+		}
+
+		public Metadata favorites() {
+			return metadata("favorites");
 		}
 
 		public Metadata filingSpace() {
@@ -1109,7 +1105,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("version");
 		}
 	}
-
 	public Email wrapEmail(Record record) {
 		return record == null ? null : new Email(record, getTypes());
 	}
@@ -1155,7 +1150,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_document_email document_email
 			= new SchemaTypeShortcuts_document_email("document_email");
-
 	public class SchemaTypeShortcuts_document_email extends SchemaTypeShortcuts_document_default {
 		protected SchemaTypeShortcuts_document_email(String schemaCode) {
 			super(schemaCode);
@@ -1205,7 +1199,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("subjectToBroadcastRule");
 		}
 	}
-
 	public Folder wrapFolder(Record record) {
 		return record == null ? null : new Folder(record, getTypes());
 	}
@@ -1413,6 +1406,10 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("expectedTransferDate");
 		}
 
+		public Metadata favorites() {
+			return metadata("favorites");
+		}
+
 		public Metadata filingSpace() {
 			return metadata("filingSpace");
 		}
@@ -1557,10 +1554,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 
-		public Metadata uniqueKey() {
-			return metadata("uniqueKey");
-		}
-
 		public Metadata uniformSubdivision() {
 			return metadata("uniformSubdivision");
 		}
@@ -1568,8 +1561,11 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		public Metadata uniformSubdivisionEntered() {
 			return metadata("uniformSubdivisionEntered");
 		}
-	}
 
+		public Metadata uniqueKey() {
+			return metadata("uniqueKey");
+		}
+	}
 	public PrintableLabel wrapPrintableLabel(Record record) {
 		return record == null ? null : new PrintableLabel(record, getTypes());
 	}
@@ -1615,7 +1611,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_printable_label printable_label
 			= new SchemaTypeShortcuts_printable_label("printable_label");
-
 	public class SchemaTypeShortcuts_printable_label extends SchemaTypeShortcuts_printable_default {
 		protected SchemaTypeShortcuts_printable_label(String schemaCode) {
 			super(schemaCode);
@@ -1633,7 +1628,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("typelabel");
 		}
 	}
-
 	public PrintableReport wrapPrintableReport(Record record) {
 		return record == null ? null : new PrintableReport(record, getTypes());
 	}
@@ -1679,7 +1673,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_printable_report printable_report
 			= new SchemaTypeShortcuts_printable_report("printable_report");
-
 	public class SchemaTypeShortcuts_printable_report extends SchemaTypeShortcuts_printable_default {
 		protected SchemaTypeShortcuts_printable_report(String schemaCode) {
 			super(schemaCode);
@@ -1693,7 +1686,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("recordType");
 		}
 	}
-
 	public RetentionRule wrapRetentionRule(Record record) {
 		return record == null ? null : new RetentionRule(record, getTypes(), locale);
 	}
@@ -1743,7 +1735,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_retentionRule_default retentionRule
 			= new SchemaTypeShortcuts_retentionRule_default("retentionRule_default");
-
 	public class SchemaTypeShortcuts_retentionRule_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_retentionRule_default(String schemaCode) {
 			super(schemaCode);
@@ -1849,7 +1840,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("yearTypesYearEnd");
 		}
 	}
-
 	public StorageSpace wrapStorageSpace(Record record) {
 		return record == null ? null : new StorageSpace(record, getTypes());
 	}
@@ -1899,7 +1889,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_storageSpace_default storageSpace
 			= new SchemaTypeShortcuts_storageSpace_default("storageSpace_default");
-
 	public class SchemaTypeShortcuts_storageSpace_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_storageSpace_default(String schemaCode) {
 			super(schemaCode);
@@ -1965,7 +1954,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("type");
 		}
 	}
-
 	public SIParchive wrapSIParchive(Record record) {
 		return record == null ? null : new SIParchive(record, getTypes());
 	}
@@ -2011,7 +1999,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_temporaryRecord_sipArchive temporaryRecord_sipArchive
 			= new SchemaTypeShortcuts_temporaryRecord_sipArchive("temporaryRecord_sipArchive");
-
 	public class SchemaTypeShortcuts_temporaryRecord_sipArchive extends SchemaTypeShortcuts_temporaryRecord_default {
 		protected SchemaTypeShortcuts_temporaryRecord_sipArchive(String schemaCode) {
 			super(schemaCode);
@@ -2029,7 +2016,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("user");
 		}
 	}
-
 	public UniformSubdivision wrapUniformSubdivision(Record record) {
 		return record == null ? null : new UniformSubdivision(record, getTypes());
 	}
@@ -2079,7 +2065,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_uniformSubdivision_default uniformSubdivision
 			= new SchemaTypeShortcuts_uniformSubdivision_default("uniformSubdivision_default");
-
 	public class SchemaTypeShortcuts_uniformSubdivision_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_uniformSubdivision_default(String schemaCode) {
 			super(schemaCode);
@@ -2101,7 +2086,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("retentionRule");
 		}
 	}
-
 	public RMUserFolder wrapRMUserFolder(Record record) {
 		return record == null ? null : new RMUserFolder(record, getTypes());
 	}
@@ -2147,7 +2131,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_userFolder_default userFolder
 			= new SchemaTypeShortcuts_userFolder_default("userFolder_default");
-
 	public class SchemaTypeShortcuts_userFolder_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_userFolder_default(String schemaCode) {
 			super(schemaCode);
@@ -2169,7 +2152,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("retentionRule");
 		}
 	}
-
 	public RMTask wrapRMTask(Record record) {
 		return record == null ? null : new RMTask(record, getTypes());
 	}
@@ -2215,7 +2197,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 
 	public final SchemaTypeShortcuts_userTask_default userTask
 			= new SchemaTypeShortcuts_userTask_default("userTask_default");
-
 	public class SchemaTypeShortcuts_userTask_default extends SchemaTypeShortcuts {
 		protected SchemaTypeShortcuts_userTask_default(String schemaCode) {
 			super(schemaCode);
