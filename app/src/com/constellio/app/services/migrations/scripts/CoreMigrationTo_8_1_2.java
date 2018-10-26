@@ -12,10 +12,10 @@ import com.constellio.model.services.schemas.calculators.GroupAncestorsCalculato
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
-public class CoreMigrationTo_8_1_888 implements MigrationScript {
+public class CoreMigrationTo_8_1_2 implements MigrationScript {
 	@Override
 	public String getVersion() {
-		return "8.1.888";
+		return "8.1.2";
 	}
 
 	@Override
