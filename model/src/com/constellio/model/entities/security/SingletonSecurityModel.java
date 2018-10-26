@@ -7,7 +7,6 @@ import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.records.RecordProvider;
 
@@ -57,6 +56,15 @@ public class SingletonSecurityModel implements SecurityModel {
 		this.recordProvider = recordProvider;
 		this.collection = collection;
 
+		Map<String, Object> groupsAndUsersMap = new HashMap<>();
+		for (final Group group : groups) {
+			groupsAndUsersMap.put(group.getId(), group);
+		}
+
+		for (final User user : users) {
+			groupsAndUsersMap.put(user.getId(), user);
+		}
+
 		for (AuthorizationDetails authorizationDetail : authorizationDetails) {
 			boolean conceptAuth = principalTaxonomy != null && principalTaxonomy.getSchemaTypes().contains(authorizationDetail.getTargetSchemaType());
 			SecurityModelAuthorization securityModelAuthorization = new SecurityModelAuthorization(
@@ -64,21 +72,17 @@ public class SingletonSecurityModel implements SecurityModel {
 			authorizations.add(securityModelAuthorization);
 			authorizationsById.put(authorizationDetail.getId(), securityModelAuthorization);
 			authorizationsByTargets.add(authorizationDetail.getTarget(), securityModelAuthorization);
-		}
 
-		for (final Group group : groups) {
-			for (String authId : group.<String>getList(Schemas.AUTHORIZATIONS)) {
-				SecurityModelAuthorization securityModelAuthorization = authorizationsById.get(authId);
-				securityModelAuthorization.addGroup(group);
+			for (String principalId : authorizationDetail.getPrincipals()) {
+				Object principalWrapper = groupsAndUsersMap.get(principalId);
+				if (principalWrapper instanceof User) {
+					securityModelAuthorization.addUser((User) principalWrapper);
+				} else if (principalWrapper instanceof Group) {
+					securityModelAuthorization.addGroup((Group) principalWrapper);
+				}
 			}
 		}
 
-		for (User user : users) {
-			for (String authId : user.<String>getList(Schemas.AUTHORIZATIONS)) {
-				SecurityModelAuthorization securityModelAuthorization = authorizationsById.get(authId);
-				securityModelAuthorization.addUser(user);
-			}
-		}
 	}
 
 	public String getCollection() {

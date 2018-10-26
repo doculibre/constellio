@@ -4,7 +4,6 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -13,10 +12,7 @@ import com.constellio.model.services.security.roles.Roles;
 import org.joda.time.LocalDateTime;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
@@ -273,52 +269,6 @@ public class User extends RecordWrapper {
 
 	public List<String> getAllRoles() {
 		return get(ALL_ROLES);
-	}
-
-	public List<String> getUserAuthorizations() {
-		return get(Schemas.AUTHORIZATIONS.getLocalCode());
-	}
-
-	public List<String> getAllUserAuthorizations() {
-
-		Set<String> allAuths = new HashSet<>();
-		allAuths.addAll(getUserAuthorizations());
-		for (String groupId : getUserGroups()) {
-			Group group = roles.getSchemasRecordsServices().getGroup(groupId);
-			if (group != null && roles.getSchemasRecordsServices().isGroupActive(group)) {
-				allAuths.addAll(group.getAllAuthorizations());
-			}
-		}
-
-		return Collections.unmodifiableList(new ArrayList<>(allAuths));
-	}
-
-	public List<String> getUserTokens() {
-		//		List<String> recordTokens = getList(USER_TOKENS);
-		//		List<String> tokens = new ArrayList<String>(recordTokens);
-		//		tokens.add("r_" + getId());
-		//		tokens.add("w_" + getId());
-		//		tokens.add("d_" + getId());
-		//		for (String groupId : getUserGroups()) {
-		//			tokens.add("r_" + groupId);
-		//			tokens.add("w_" + groupId);
-		//			tokens.add("d_" + groupId);
-		//		}
-		//		return tokens;
-
-		List<String> activeAuthsTokens = new ArrayList<>();
-
-		activeAuthsTokens.add("r_" + getId());
-		activeAuthsTokens.add("w_" + getId());
-		activeAuthsTokens.add("d_" + getId());
-
-		for (String groupId : getUserGroups()) {
-			activeAuthsTokens.add("r_" + groupId);
-			activeAuthsTokens.add("w_" + groupId);
-			activeAuthsTokens.add("d_" + groupId);
-		}
-
-		return activeAuthsTokens;
 	}
 
 	public String getCollection() {

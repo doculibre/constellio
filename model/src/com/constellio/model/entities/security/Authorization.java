@@ -33,10 +33,6 @@ public class Authorization {
 		return grantedToPrincipals;
 	}
 
-	public void setGrantedToPrincipals(List<String> grantedToPrincipals) {
-		this.grantedToPrincipals = grantedToPrincipals;
-	}
-
 	public String getGrantedOnRecord() {
 		return detail.getTarget();
 	}

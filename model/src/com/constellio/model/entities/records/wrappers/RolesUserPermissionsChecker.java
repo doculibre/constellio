@@ -132,7 +132,7 @@ public class RolesUserPermissionsChecker extends UserPermissionsChecker {
 			return false;
 		}
 		Set<String> allUserPermissions = new HashSet<>();
-		for (String authId : user.getAllUserAuthorizations()) {
+		for (String authId : UserAuthorizationsUtils.getAuthsReceivedBy(user)) {
 			try {
 				AuthorizationDetails details = user.getAuthorizationDetail(authId);
 				for (String roleOrAccess : details.getRoles()) {

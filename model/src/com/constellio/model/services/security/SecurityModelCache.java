@@ -7,8 +7,6 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
-import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
@@ -94,14 +92,9 @@ public class SecurityModelCache implements EventBusListener {
 			String schemaType = record.getTypeCode();
 
 			switch (schemaType) {
-				case User.SCHEMA_TYPE:
-					return modifiedMetadatas == null
-						   || modifiedMetadatas.containsMetadataWithLocalCode(Schemas.AUTHORIZATIONS.getLocalCode());
 
 				case Group.SCHEMA_TYPE:
-					return modifiedMetadatas == null
-						   || modifiedMetadatas.containsMetadataWithLocalCode(Schemas.AUTHORIZATIONS.getLocalCode())
-						   || modifiedMetadatas.containsMetadataWithLocalCode(Group.PARENT);
+					return modifiedMetadatas != null && modifiedMetadatas.containsMetadataWithLocalCode(Group.PARENT);
 
 				case SolrAuthorizationDetails.SCHEMA_TYPE:
 					return true;

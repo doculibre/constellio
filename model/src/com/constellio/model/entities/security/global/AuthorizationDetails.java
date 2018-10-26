@@ -10,6 +10,8 @@ import java.util.List;
  */
 public interface AuthorizationDetails extends Serializable {
 
+	public List<String> getPrincipals();
+
 	public List<String> getRoles();
 
 	public LocalDate getStartDate();

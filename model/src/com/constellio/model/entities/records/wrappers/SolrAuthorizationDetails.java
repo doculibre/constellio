@@ -16,6 +16,7 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 	public static final String IDENTIFIER = "identifier";
 	public static final String ROLES = "roles";
+	public static final String PRINCIPALS = "principals";
 	public static final String START_DATE = "startDate";
 	public static final String END_DATE = "endDate";
 	public static final String TARGET = "target";
@@ -43,6 +44,17 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 		set(IDENTIFIER, identifier);
 		return this;
 	}
+
+	@Override
+	public List<String> getPrincipals() {
+		return get(PRINCIPALS);
+	}
+
+	public SolrAuthorizationDetails setPrincipals(List<String> principals) {
+		set(PRINCIPALS, principals);
+		return this;
+	}
+
 
 	@Override
 	public List<String> getRoles() {

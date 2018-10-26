@@ -241,9 +241,6 @@ public class RecordAutomaticMetadataServices {
 			} else if (SpecialDependencies.PRINCIPAL_TAXONOMY_CODE.equals(dependency)) {
 				calculatorDependencyModified = true;
 
-			} else if (SpecialDependencies.ALL_PRINCIPALS.equals(dependency)) {
-				calculatorDependencyModified = true;
-
 			} else if (SpecialDependencies.AURHORIZATIONS_TARGETTING_RECORD.equals(dependency)) {
 				calculatorDependencyModified = true;
 

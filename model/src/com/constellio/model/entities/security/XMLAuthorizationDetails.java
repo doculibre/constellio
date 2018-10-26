@@ -103,6 +103,11 @@ public class XMLAuthorizationDetails implements AuthorizationDetails {
 		return new XMLAuthorizationDetails(collection, idBuilder.toString(), rolesCodes, startDate, endDate, synced);
 	}
 
+	@Override
+	public List<String> getPrincipals() {
+		return null;
+	}
+
 	public List<String> getRoles() {
 		return roles;
 	}

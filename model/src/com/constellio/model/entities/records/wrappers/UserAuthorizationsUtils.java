@@ -9,9 +9,11 @@ import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -22,7 +24,6 @@ import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
 import static com.constellio.model.entities.security.Role.WRITE;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static java.util.Arrays.asList;
 
 public class UserAuthorizationsUtils {
@@ -183,33 +184,106 @@ public class UserAuthorizationsUtils {
 		}
 	};
 
-	public static KeySetMap<String, String> retrieveUserTokens(User user,
-															   boolean includeSpecifics,
-															   AuthorizationDetailsFilter filter) {
-
+	private static List<String> getPrincipalsIdsGivingAuthsTo(User user) {
 		SchemasRecordsServices schemas = user.getRolesDetails().getSchemasRecordsServices();
 
 		GroupAuthorizationsInheritance inheritance = schemas.getModelLayerFactory().getSystemConfigs()
 				.getGroupAuthorizationsInheritance();
 
-		Set<String> authsId;
+		List<String> principalsIdsToInclude = new ArrayList<>();
+		principalsIdsToInclude.add(user.getId());
 		if (inheritance == GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT) {
-			authsId = new HashSet<>();
-			authsId.addAll(user.getUserAuthorizations());
 			for (String groupId : user.getUserGroups()) {
 				Group group = schemas.getGroup(groupId);
 				if (schemas.isGroupActive(group)) {
-					authsId.addAll(getAuthsOfGroupAndChildGroups(group, schemas));
+					principalsIdsToInclude.add(group.getId());
+					principalsIdsToInclude.addAll(getActiveChildrensIn(group, schemas));
 				}
 			}
-
 		} else {
-			authsId = new HashSet<>(user.getAllUserAuthorizations());
+			for (String groupId : user.getUserGroups()) {
+				Group group = schemas.getGroup(groupId);
+				if (schemas.isGroupActive(group)) {
+					principalsIdsToInclude.addAll(group.getAncestors());
+				}
+			}
 		}
 
+		return principalsIdsToInclude;
+	}
+
+	private static List<String> getPrincipalsIdsGivingAuthsTo(Group group, SchemasRecordsServices schemas) {
+
+		GroupAuthorizationsInheritance inheritance = schemas.getModelLayerFactory().getSystemConfigs()
+				.getGroupAuthorizationsInheritance();
+
+		List<String> principalsIdsToInclude = new ArrayList<>();
+		if (inheritance == GroupAuthorizationsInheritance.FROM_CHILD_TO_PARENT) {
+			if (schemas.isGroupActive(group)) {
+				principalsIdsToInclude.add(group.getId());
+				principalsIdsToInclude.addAll(getActiveChildrensIn(group, schemas));
+			}
+		} else {
+			if (schemas.isGroupActive(group)) {
+				principalsIdsToInclude.addAll(group.getAncestors());
+			}
+		}
+
+		return principalsIdsToInclude;
+	}
+
+	private static List<String> getActiveChildrensIn(Group group, SchemasRecordsServices schemas) {
+		List<String> ids = new ArrayList<>();
+
+		for (Group aGroup : schemas.getAllGroups()) {
+			if (group.getId().equals(aGroup.getParent())) {
+				if (schemas.isGroupActive(aGroup)) {
+					ids.add(aGroup.getId());
+					ids.addAll(getActiveChildrensIn(aGroup, schemas));
+				}
+			}
+		}
+
+		return ids;
+	}
+
+	public static Set<String> getAuthsReceivedBy(User user) {
+		List<String> principalsIdsToInclude = getPrincipalsIdsGivingAuthsTo(user);
+		Set<String> authsId = new HashSet<>();
+
+		//TODO Security model improvement
+		for (SolrAuthorizationDetails auth : user.getRolesDetails().getSchemasRecordsServices().getAllAuthorizationsInUnmodifiableState()) {
+			if (CollectionUtils.containsAny(auth.getPrincipals(), principalsIdsToInclude)) {
+				authsId.add(auth.getId());
+			}
+		}
+
+		return authsId;
+	}
+
+	public static Set<String> getAuthsReceivedBy(Group group, SchemasRecordsServices schemas) {
+		List<String> principalsIdsToInclude = getPrincipalsIdsGivingAuthsTo(group, schemas);
+		Set<String> authsId = new HashSet<>();
+
+		//TODO Security model improvement
+		for (SolrAuthorizationDetails auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
+			if (CollectionUtils.containsAny(auth.getPrincipals(), principalsIdsToInclude)) {
+				authsId.add(auth.getId());
+			}
+		}
+
+		return authsId;
+	}
+
+	public static KeySetMap<String, String> retrieveUserTokens(User user,
+															   boolean includeSpecifics,
+															   AuthorizationDetailsFilter filter) {
+
+		Set<String> authsId = getAuthsReceivedBy(user);
 		KeySetMap<String, String> tokens = new KeySetMap<>();
 
-		for (String authId : authsId) {
+		for (
+				String authId : authsId) {
 			try {
 				AuthorizationDetails authorizationDetails = user.getAuthorizationDetail(authId);
 
@@ -230,17 +304,6 @@ public class UserAuthorizationsUtils {
 		return tokens;
 	}
 
-	private static Set<String> getAuthsOfGroupAndChildGroups(Group group, SchemasRecordsServices schemas) {
-		Set<String> auths = new HashSet<>();
-		auths.addAll(group.<String>getList(Schemas.AUTHORIZATIONS));
-
-		for (Group childGroup : schemas.searchGroups(where(schemas.group.parent()).isEqualTo(group))) {
-			if (schemas.isGroupActive(childGroup)) {
-				auths.addAll(getAuthsOfGroupAndChildGroups(childGroup, schemas));
-			}
-		}
-		return auths;
-	}
 
 	public static Set<String> getRolesOnRecord(User user, Record record) {
 		Set<String> auths = getMatchingAuthorizationIncludingSpecifics(user, record, ROLE_AUTHS);
