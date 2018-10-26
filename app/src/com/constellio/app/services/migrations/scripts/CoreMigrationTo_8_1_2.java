@@ -23,6 +23,7 @@ public class CoreMigrationTo_8_1_2 implements MigrationScript {
 						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor_8_0(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 	}
 
 	class CoreSchemaAlterationFor_8_0 extends MetadataSchemasAlterationHelper {
