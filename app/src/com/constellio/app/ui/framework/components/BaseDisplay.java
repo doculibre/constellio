@@ -89,6 +89,7 @@ public class BaseDisplay extends CustomComponent {
 			addToDefaultLayoutOrTabSheet(captionLabel, displayComponent, tabCaption);
 		}
 	}
+	
 	private VerticalLayout newMainLayout() {
 		VerticalLayout mainLayout = new VerticalLayout();
 		mainLayout.setSizeUndefined();
@@ -132,6 +133,7 @@ public class BaseDisplay extends CustomComponent {
 	protected Resource getTabIcon(String tabCaption) {
 		return null;
 	}
+	
 	protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent, VerticalLayout layout) {
 		if (displayComponent.isVisible()) {
 			I18NHorizontalLayout captionAndComponentLayout = new I18NHorizontalLayout();

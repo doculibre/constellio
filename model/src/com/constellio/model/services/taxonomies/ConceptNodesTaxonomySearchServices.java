@@ -8,6 +8,8 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCaches;
@@ -45,12 +47,14 @@ public class ConceptNodesTaxonomySearchServices {
 	TaxonomySearchQueryConditionFactory queryFactory;
 	SchemaUtils schemaUtils = new SchemaUtils();
 	RecordsCaches recordsCaches;
+	ModelLayerExtensions extensions;
 
 	public ConceptNodesTaxonomySearchServices(ModelLayerFactory modelLayerFactory) {
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		this.recordsCaches = modelLayerFactory.getRecordsCaches();
+		this.extensions = modelLayerFactory.getExtensions();
 	}
 
 	public List<Record> getRootConcept(String collection, String taxonomyCode, TaxonomiesSearchOptions options) {
@@ -102,7 +106,12 @@ public class ConceptNodesTaxonomySearchServices {
 			}
 		}
 
-		query.sortAsc(CODE).sortAsc(TITLE);
+		ModelLayerCollectionExtensions collectionExtensions = extensions.forCollection(collection);
+		Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(taxonomy);
+		for (Metadata sortMetadata : sortMetadatas) {
+			query.sortAsc(sortMetadata);
+		}
+		
 		query.setName("TaxonomiesSearchServices.getRootConcepts(" + taxonomyCode + ")");
 		return query;
 	}
@@ -153,7 +162,7 @@ public class ConceptNodesTaxonomySearchServices {
 		return searchServices.query(childNodesQuery(record, options, types));
 	}
 
-	public static LogicalSearchQuery childNodesQuery(Record record, TaxonomiesSearchOptions options,
+	public LogicalSearchQuery childNodesQuery(Record record, TaxonomiesSearchOptions options,
 													 MetadataSchemaTypes types) {
 		String dataStore = types.getSchema(record.getSchemaCode()).getDataStore();
 		LogicalSearchCondition condition = fromTypesInCollectionOf(record, dataStore)
@@ -168,18 +177,24 @@ public class ConceptNodesTaxonomySearchServices {
 						returnedMetadatasForRecordsIn(record.getCollection(), options, types));
 	}
 
-	public static LogicalSearchQuery childConceptsQuery(Record record, Taxonomy taxonomy,
+	public LogicalSearchQuery childConceptsQuery(Record record, Taxonomy taxonomy,
 														TaxonomiesSearchOptions options,
 														MetadataSchemaTypes types) {
 		LogicalSearchCondition condition = fromTypeIn(taxonomy).where(directChildOf(record)).andWhere(visibleInTrees);
-		return new LogicalSearchQuery(condition)
+		LogicalSearchQuery query = new LogicalSearchQuery(condition)
 				.filteredByStatus(options.getIncludeStatus())
 				.setStartRow(options.getStartRow())
 				.setNumberOfRows(options.getRows())
-				.sortAsc(CODE).sortAsc(TITLE)
 				.setReturnedMetadatas(
 						returnedMetadatasForRecordsIn(record.getCollection(), options, types))
 				.setName("TaxonomySearchServices:getChildConcepts(" + taxonomy + ", " + record + ")");
+
+		ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(record);
+		Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(taxonomy);
+		for (Metadata sortMetadata : sortMetadatas) {
+			query.sortAsc(sortMetadata);
+		}
+		return query;
 	}
 
 	OngoingLogicalSearchCondition fromConceptsOf(Taxonomy taxonomy) {

@@ -1,16 +1,47 @@
 package com.constellio.model.services.taxonomies;
 
+import static com.constellio.data.utils.LangUtils.isTrueOrNull;
+import static com.constellio.model.entities.schemas.Schemas.LINKABLE;
+import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
+import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
+import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
+import static com.constellio.model.services.search.StatusFilter.ACTIVES;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsIn;
+import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsNotIn;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.childrenCondition;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.directChildOf;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.fromTypeIn;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.notDirectChildOf;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.recordInHierarchyOf;
+import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.visibleInTrees;
+import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
 import com.constellio.data.dao.services.records.DataStore;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
+import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.services.extensions.ModelLayerExtensions;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
@@ -32,35 +63,6 @@ import com.constellio.model.services.taxonomies.LinkableConceptFilter.LinkableCo
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesRuntimeException.TaxonomiesSearchServicesRuntimeException_CannotFilterNonPrincipalConceptWithWriteOrDeleteAccess;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import static com.constellio.data.utils.LangUtils.isTrueOrNull;
-import static com.constellio.model.entities.schemas.Schemas.LINKABLE;
-import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
-import static com.constellio.model.entities.schemas.Schemas.VISIBLE_IN_TREES;
-import static com.constellio.model.services.schemas.SchemaUtils.getSchemaTypeCode;
-import static com.constellio.model.services.search.StatusFilter.ACTIVES;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsIn;
-import static com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory.schemaTypeIsNotIn;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.childConceptsQuery;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.childrenCondition;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.directChildOf;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.fromTypeIn;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.notDirectChildOf;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.recordInHierarchyOf;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.visibleInTrees;
-import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
-import static java.util.Arrays.asList;
-
 public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements TaxonomiesSearchServices {
 
 	//private static final String CHILDREN_QUERY = "children";
@@ -74,6 +76,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 	ConceptNodesTaxonomySearchServices conceptNodesTaxonomySearchServices;
 	RecordsCaches caches;
 	TaxonomiesSearchServicesCache cache;
+	ModelLayerExtensions extensions;
 
 	public TaxonomiesSearchServicesBasedOnHierarchyTokensImpl(ModelLayerFactory modelLayerFactory) {
 		this.searchServices = modelLayerFactory.newSearchServices();
@@ -83,6 +86,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 		this.conceptNodesTaxonomySearchServices = new ConceptNodesTaxonomySearchServices(modelLayerFactory);
 		this.caches = modelLayerFactory.getRecordsCaches();
 		this.cache = modelLayerFactory.getTaxonomiesSearchServicesCache();
+		this.extensions = modelLayerFactory.getExtensions();
 	}
 
 	public List<TaxonomySearchRecord> getVisibleRootConcept(User user, String collection, String taxonomyCode,
@@ -499,7 +503,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 		int lastIteratedRecordIndex = 0;
 		methodResponse.records = new ArrayList<>();
 		if (context.isConceptOfNavigatedTaxonomy(context.record)) {
-			LogicalSearchQuery mainQuery = childConceptsQuery(context.record, context.taxonomy, context.options, types);
+			LogicalSearchQuery mainQuery = conceptNodesTaxonomySearchServices.childConceptsQuery(context.record, context.taxonomy, context.options, types);
 
 			FastContinueInfos continueInfos = context.options.getFastContinueInfos();
 			if (continueInfos != null) {
@@ -853,9 +857,14 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 		LogicalSearchQuery query = new LogicalSearchQuery(condition)
 				.filteredWithUser(user, options.getRequiredAccess())
 				.filteredByStatus(options.getIncludeStatus())
-				.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
 				.setReturnedMetadatas(
 						conceptNodesTaxonomySearchServices.returnedMetadatasForRecordsIn(usingTaxonomy.getCollection(), options));
+		
+		ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(usingTaxonomy);
+		Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(taxonomy);
+		for (Metadata sortMetadata : sortMetadatas) {
+			query.sortAsc(sortMetadata);
+		}
 
 		HasChildrenQueryHandler hasChildrenQueryHandler = newHasChildrenQueryHandler(user, cacheMode, query);
 
@@ -934,9 +943,14 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 					ctx.getCollection(), ctx.taxonomy.getCode(), ctx.options);
 
 			mainQuery.filteredByStatus(ctx.options.getIncludeStatus())
-					.sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE)
 					.setName("getRootConcepts")
 					.setReturnedMetadatas(returnedMetadatasForRecordsIn(ctx));
+
+			ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(ctx.taxonomy);
+			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.taxonomy);
+			for (Metadata sortMetadata : sortMetadatas) {
+				mainQuery.sortAsc(sortMetadata);
+			}
 
 			List<TaxonomySearchRecord> visibleRecords = new ArrayList<>();
 			int lastIteratedRecordIndex = 0;

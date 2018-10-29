@@ -1,7 +1,7 @@
 package com.constellio.app.ui.framework.components;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -23,8 +23,8 @@ import com.vaadin.server.Resource;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.TabSheet.Tab;
+import com.vaadin.ui.VerticalLayout;
 
 @SuppressWarnings("serial")
 public class RecordDisplay extends BaseDisplay {
@@ -117,15 +117,15 @@ public class RecordDisplay extends BaseDisplay {
 
 	public void refresh() {
 		setCaptionsAndComponents(toCaptionsAndComponents(this.recordVO, metadataDisplayFactory));
+		reorderTabs();
 	}
 
 	@Override
 	protected void addTab(TabSheet tabSheet, Component tabComponent, String caption, Resource icon) {
 		super.addTab(tabSheet, tabComponent, caption, icon);
 	}
-
-	@Override
-	public void attach() {
+	
+	private void reorderTabs() {
 		List<String> orderedTabCaptions = getOrderedTabCaptions(recordVO);
 		List<String> usedTabCaptions = new ArrayList<>();
 		for (String orderedTabCaption : orderedTabCaptions) {
@@ -142,7 +142,7 @@ public class RecordDisplay extends BaseDisplay {
 				usedTabCaptions.add(orderedTabCaption);
 			}
 		}
-		Map<Component, Integer> newTabOrders = new HashMap<>();
+		Map<Component, Integer> newTabOrders = new LinkedHashMap<>();
 		for (int i = 0; i < tabSheet.getComponentCount(); i++) {
 			Tab tab = tabSheet.getTab(i);
 			String tabCaption = tab.getCaption();
@@ -159,6 +159,11 @@ public class RecordDisplay extends BaseDisplay {
 		if (!newTabOrders.isEmpty()) {
 			tabSheet.setSelectedTab(0);
 		}
+	}
+
+	@Override
+	public void attach() {
+		reorderTabs();
 		super.attach();
 	}
 	

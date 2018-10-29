@@ -207,9 +207,10 @@ public abstract class BaseForm<T> extends CustomComponent {
 		buttonsLayout.addComponents(saveButton, cancelButton);
 		
 		if (useTabSheet) {
-			List<String> orderedTabCaptions = getOrderedTabCaptions(viewObject);
+			List<String> orderedTabGroupLabels = getOrderedTabCaptions(viewObject);
 			List<String> usedTabCaptions = new ArrayList<>();
-			for (String orderedTabCaption : orderedTabCaptions) {
+			for (String orderedTabGroupLabel : orderedTabGroupLabels) {
+				String orderedTabCaption = getTabCaption(orderedTabGroupLabel);
 				boolean usedTab = false;
 				usedTabsLoop: for (int i = 0; i < tabSheet.getComponentCount(); i++) {
 					Tab tab = tabSheet.getTab(i);
@@ -267,20 +268,25 @@ public abstract class BaseForm<T> extends CustomComponent {
 	protected String getCancelButtonCaption() {
 		return $("cancel");
 	}
+	
+	private String getTabCaption(String groupLabel) {
+		String tabCaption;
+		if (StringUtils.isBlank(groupLabel)) {
+			tabCaption = $("BaseForm.defaultTab");
+		} else if (!groupLabel.matches("\\w.*")) {
+			tabCaption = groupLabel;
+		} else {
+			tabCaption = $("BaseForm.defaultTabIcon") + " " + groupLabel;
+		}
+		return tabCaption;
+	}
 
 	private void addToDefaultLayoutOrTabSheet(Field<?> field) {
 		VerticalLayout fieldLayout;
 		if (useTabSheet) {
 			Object propertyId = fieldGroup.getPropertyId(field);
 			String groupLabel = getTabCaption(field, propertyId);
-			String tabCaption;
-			if (StringUtils.isBlank(groupLabel)) {
-				tabCaption = $("BaseForm.defaultTab");
-			} else if (!groupLabel.matches("\\w.*")) {
-				tabCaption = groupLabel;
-			} else {
-				tabCaption = $("BaseForm.defaultTabIcon") + " " + groupLabel;
-			}
+			String tabCaption = getTabCaption(groupLabel);
 			Resource tabIcon = getTabIcon(tabCaption);
 			fieldLayout = tabs.get(tabCaption);
 			if (fieldLayout == null) {
