@@ -62,6 +62,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPT
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE_TITLE;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_END_DATE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_GROUPS_CANDIDATES;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_REASON;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_EN;
@@ -69,6 +70,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_F
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_MODIFIED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_USERS_CANDIDATES;
 
 public class TaskRecordExtension extends RecordExtension {
 	private static final Logger LOGGER = LogManager.getLogger(TaskRecordExtension.class);
@@ -170,6 +172,26 @@ public class TaskRecordExtension extends RecordExtension {
 		String parentTaskTitle = "";
 		String assignerFullName = getUserFullNameById(task.getAssigner());
 		String assigneeFullName = getUserFullNameById(task.getAssignee());
+		StringBuilder assigneeUsersCandidatesAsString = new StringBuilder();
+		List<String> assigneeUsersCandidates = task.getAssigneeUsersCandidates();
+		if(assigneeUsersCandidates != null) {
+			String separator = "";
+			for(String userId: assigneeUsersCandidates) {
+				assigneeUsersCandidatesAsString.append(separator);
+				assigneeUsersCandidatesAsString.append(getUserFullNameById(userId));
+				separator = ", ";
+			}
+		}
+		StringBuilder assigneeGroupsCandidatesAsString = new StringBuilder();
+		List<String> assigneeGroupsCandidates = task.getAssigneeGroupsCandidates();
+		if(assigneeGroupsCandidates != null) {
+			String separator = "";
+			for(String groupId: assigneeGroupsCandidates) {
+				assigneeGroupsCandidatesAsString.append(separator);
+				assigneeGroupsCandidatesAsString.append(getGroupNameById(groupId));
+				separator = ", ";
+			}
+		}
 		if (task.getParentTask() != null) {
 			Task parentTask = tasksSchema.getTask(task.getParentTask());
 			parentTaskTitle = parentTask.getTitle();
@@ -183,6 +205,8 @@ public class TaskRecordExtension extends RecordExtension {
 		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assignerFullName)));
 		newParameters.add(TASK_ASSIGNED_ON + ":" + formatToParameter(task.getAssignedOn()));
 		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assigneeFullName)));
+		newParameters.add(TASK_USERS_CANDIDATES + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assigneeUsersCandidatesAsString.toString())));
+		newParameters.add(TASK_GROUPS_CANDIDATES + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assigneeGroupsCandidatesAsString.toString())));
 		if (task.getDueDate() != null) {
 			newParameters.add(TASK_DUE_DATE_TITLE + ":" + "(" + formatToParameter(task.getDueDate()) + ")");
 		} else {
@@ -431,6 +455,13 @@ public class TaskRecordExtension extends RecordExtension {
 		}
 		return tasksSchema.wrapUser(recordServices.getDocumentById(userId)).getFirstName() + " " +
 			   tasksSchema.wrapUser(recordServices.getDocumentById(userId)).getLastName();
+	}
+
+	private String getGroupNameById(String groupId) {
+		if (StringUtils.isBlank(groupId)) {
+			return "";
+		}
+		return tasksSchema.wrapGroup(recordServices.getDocumentById(groupId)).getTitle();
 	}
 
 	private void sendSubTasksModification(Task parentTask, Task task) {
