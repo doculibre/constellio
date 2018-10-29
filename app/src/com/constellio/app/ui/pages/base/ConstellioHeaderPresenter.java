@@ -44,6 +44,7 @@ import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.comparators.AbstractTextComparator;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -409,10 +410,16 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	protected void sort(List<MetadataVO> metadataVOs) {
-		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
+//		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
+//			@Override
+//			public int compare(MetadataVO o1, MetadataVO o2) {
+//				return o1.getLabel().toLowerCase().compareTo(o2.getLabel().toLowerCase());
+//			}
+//		});
+		Collections.sort(metadataVOs, new AbstractTextComparator<MetadataVO>() {
 			@Override
-			public int compare(MetadataVO o1, MetadataVO o2) {
-				return o1.getLabel().toLowerCase().compareTo(o2.getLabel().toLowerCase());
+			protected String getText(MetadataVO object) {
+				return object.getLabel();
 			}
 		});
 	}
