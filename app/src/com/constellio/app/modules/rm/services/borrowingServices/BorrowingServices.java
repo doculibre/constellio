@@ -365,7 +365,7 @@ public class BorrowingServices {
 	}
 
 	public void validateCanReturnFolder(User currentUser, Folder folder) {
-		boolean hasPermissionToReturnOtherUsersFolder = currentUser.has(RMPermissionsTo.RETURN_OTHER_USERS_FOLDER)
+		boolean hasPermissionToReturnOtherUsersFolder = currentUser.has(RMPermissionsTo.RETURN_OTHER_USERS_FOLDERS)
 				.on(folder);
 		if (currentUser.hasReadAccess().on(folder)) {
 			if (folder.getBorrowed() == null || !folder.getBorrowed()) {
