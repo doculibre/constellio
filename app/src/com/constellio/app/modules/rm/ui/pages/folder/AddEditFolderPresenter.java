@@ -28,6 +28,8 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderDisposalT
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderLinearSizeField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderOpeningDateField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderField;
+
+import com.constellio.app.modules.rm.ui.components.folder.fields.FolderParentFolderFieldImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewReturnDateField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionField;
@@ -489,13 +491,14 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustCustomFields(CustomFolderField<?> customField, boolean firstDraw) {
 		adjustTypeField();
 		boolean reload = isReloadRequiredAfterFolderTypeChange();
+		boolean wasParentRemoved = customField instanceof FolderParentFolderFieldImpl && customField.getFieldValue() == null;
 		if (reload) {
 			reloadFormAfterFolderTypeChange();
 		}
 		adjustParentFolderField();
 		adjustAdministrativeUnitField();
-		adjustCategoryField();
-		adjustUniformSubdivisionField();
+		adjustCategoryField(wasParentRemoved);
+		adjustUniformSubdivisionField(wasParentRemoved);
 		adjustRetentionRuleField();
 		adjustStatusCopyEnteredField(firstDraw);
 		adjustCopyRetentionRuleField();
@@ -529,10 +532,14 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 	}
 
-	void adjustCategoryField() {
+	void adjustCategoryField(boolean wasParentRemoved) {
 		FolderCategoryField categoryField = (FolderCategoryField) view.getForm().getCustomField(Folder.CATEGORY_ENTERED);
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
 		if (categoryField != null && parentFolderField != null) {
+			if(wasParentRemoved) {
+				folderVO.setCategory((String) null);
+				categoryField.setFieldValue(null);
+			}
 			String categoryId = categoryField.getFieldValue();
 			if (categoryId != null) {
 				// Discover what options are available
@@ -569,12 +576,15 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 	}
 
-	void adjustUniformSubdivisionField() {
+	void adjustUniformSubdivisionField(boolean wasParentRemoved) {
 		FolderUniformSubdivisionField uniformSubdivisionField = (FolderUniformSubdivisionField) view.getForm().getCustomField(
 				Folder.UNIFORM_SUBDIVISION_ENTERED);
 		FolderParentFolderField parentFolderField = (FolderParentFolderField) view.getForm().getCustomField(Folder.PARENT_FOLDER);
 		if (uniformSubdivisionField != null) {
-
+			if(wasParentRemoved) {
+				folderVO.setUniformSubdivision((String) null);
+				uniformSubdivisionField.setFieldValue(null);
+			}
 			if (new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).areUniformSubdivisionEnabled()) {
 				uniformSubdivisionField.setVisible(true);
 			} else {
