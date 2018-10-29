@@ -8,6 +8,14 @@ import java.util.List;
 public class VaultBehaviorsList<T> extends PriorityOrderedList<T> {
 
 
+	public VaultBehaviorsList() {
+	}
+
+	public VaultBehaviorsList(VaultBehaviorsList<T> nestedList) {
+		super(nestedList);
+	}
+
+
 	public List<T> getExtensions() {
 		return getItems();
 	}

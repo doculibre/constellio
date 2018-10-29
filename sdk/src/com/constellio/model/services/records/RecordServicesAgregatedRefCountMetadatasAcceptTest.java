@@ -12,6 +12,7 @@ import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.AnotherSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ThirdSchemaMetadatas;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
@@ -53,6 +54,8 @@ public class RecordServicesAgregatedRefCountMetadatasAcceptTest extends Constell
 		Metadata thirdSchema_refCount = thirdSchema.metadata("refCount");
 
 		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
+				Assertions.tuple("group_default_ancestors", "group_default_parent", 0),
+				Assertions.tuple("group_default_ancestors", "group_default_ancestors", 0),
 				tuple("aThirdSchemaType_default_refCount", "anotherSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_refCount", "anotherSchemaType_default_ref", 1),
 				tuple("anotherSchemaType_default_refCount", "zeSchemaType_default_ref", 1),

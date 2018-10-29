@@ -366,7 +366,6 @@ public class i18n {
 			File i18nFolder = new File(foldersLocator.getI18nFolder().getAbsolutePath());
 
 			for (File propertyFile : FileUtils.listFiles(i18nFolder, new String[]{"properties"}, true)) {
-				System.out.println(propertyFile.getAbsolutePath());
 
 				if (!propertyFile.getName().contains("_")) {
 					//String RessourceName = StringUtils.substringBefore(propertyFile.getAbsolutePath().replace(file.getAbsolutePath(), ""), ".");

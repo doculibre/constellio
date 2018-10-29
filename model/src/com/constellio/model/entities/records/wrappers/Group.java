@@ -17,6 +17,7 @@ public class Group extends RecordWrapper {
 	public static final String ROLES = "roles";
 	public static final String TITLE = Schemas.TITLE_CODE;
 	public static final String PARENT = "parent";
+	public static final String ANCESTORS = "ancestors";
 	public static final String ALL_AUTHORIZATIONS = "allauthorizations";
 
 	public Group(Record record, MetadataSchemaTypes types) {
@@ -40,6 +41,21 @@ public class Group extends RecordWrapper {
 	public String getCode() {
 		return get(CODE);
 	}
+
+	//TODO Replace this method in release 8.2
+	public List<String> getAncestors() {
+		List<String> ancestors = getList(ANCESTORS);
+		if (ancestors.isEmpty()) {
+			return Collections.singletonList(wrappedRecord.getId());
+		} else {
+			return ancestors;
+		}
+	}
+
+	//TODO Use this version in release 8.2, with a forced full reindexing
+	//	public List<String> getAncestors() {
+	//		return getList(ANCESTORS);
+	//	}
 
 	public List<String> getRoles() {
 		return getList(ROLES);

@@ -598,7 +598,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	void prepareRecords(final Transaction transaction, String onlyValidateRecord)
 			throws RecordServicesException.ValidationException {
 
-		TransactionExecutionContext context = new TransactionExecutionContext();
+		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		RecordPopulateServices recordPopulateServices = modelLayerFactory.newRecordPopulateServices();
 		RecordProvider recordProvider = newRecordProvider(null, transaction);
 		RecordValidationServices validationServices = newRecordValidationServices(recordProvider);

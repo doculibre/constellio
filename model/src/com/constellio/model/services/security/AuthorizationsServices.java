@@ -348,7 +348,7 @@ public class AuthorizationsServices {
 		}
 
 		SolrAuthorizationDetails details = newAuthorizationDetails(request.getCollection(), request.getId(), request.getRoles(),
-				request.getStart(), request.getEnd(), request.isOverridingInheritedAuths())
+				request.getStart(), request.getEnd(), request.isOverridingInheritedAuths(), request.isNegative())
 				.setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
 		return add(new Authorization(details, request.getPrincipals()), request.getExecutedBy());
 	}
@@ -682,6 +682,7 @@ public class AuthorizationsServices {
 	 * @return A mapping of previous authorization ids to the new authorizations created by this service
 	 */
 	public Map<String, String> detach(Record record) {
+		recordServices.refresh(record);
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
 		if (principalTaxonomy.getSchemaTypes().contains(record.getTypeCode())) {
 			throw new CannotDetachConcept(record.getId());
@@ -1022,10 +1023,26 @@ public class AuthorizationsServices {
 	}
 
 	private List<Record> findAllPrincipalsWithAuthorization(AuthTransaction transaction, AuthorizationDetails detail) {
-		SchemasRecordsServices schemas = schemas(detail.getCollection());
-		return searchServices.search(new LogicalSearchQuery(
-				from(asList(schemas.user.schemaType(), schemas.group.schemaType()))
-						.where(AUTHORIZATIONS).isEqualTo(detail.getId())));
+		//		SchemasRecordsServices schemas = schemas(detail.getCollection());
+		//		return searchServices.search(new LogicalSearchQuery(
+		//				from(asList(schemas.user.schemaType(), schemas.group.schemaType()))
+		//						.where(AUTHORIZATIONS).isEqualTo(detail.getId())));
+
+		List<Record> records = new ArrayList<>();
+
+		for (User user : schemas(transaction.getCollection()).getAllUsers()) {
+			if (user.getList(Schemas.AUTHORIZATIONS).contains(detail.getId())) {
+				records.add(user.getWrappedRecord().getCopyOfOriginalRecord());
+			}
+		}
+
+		for (Group group : schemas(transaction.getCollection()).getAllGroups()) {
+			if (group.getList(Schemas.AUTHORIZATIONS).contains(detail.getId())) {
+				records.add(group.getWrappedRecord().getCopyOfOriginalRecord());
+			}
+		}
+
+		return records;
 	}
 
 	private List<Role> getAllAuthorizationRoleForUser(User user) {
@@ -1207,11 +1224,7 @@ public class AuthorizationsServices {
 		}
 	}
 
-	Record getRecordWithAuth(String collection, String oldAuthCode) {
-		return recordServices.getDocumentById(schemas(collection).getSolrAuthorizationDetails(oldAuthCode).getTarget());
-	}
-
-	Map<String, String> setupAuthorizationsForDetachedRecord(AuthTransaction transaction, Record record) {
+	private Map<String, String> setupAuthorizationsForDetachedRecord(AuthTransaction transaction, Record record) {
 		Map<String, String> originalToCopyMap = new HashMap<>();
 		List<AuthorizationDetails> inheritedAuthorizations = getInheritedAuths(record);
 		List<String> removedAuthorizations = record.getList(REMOVED_AUTHORIZATIONS);
@@ -1231,10 +1244,11 @@ public class AuthorizationsServices {
 		return originalToCopyMap;
 	}
 
-	AuthorizationDetails inheritedToSpecific(AuthTransaction transaction, Record record, String collection, String id) {
-		AuthorizationDetails inherited = getDetails(collection, id);
+	private AuthorizationDetails inheritedToSpecific(AuthTransaction transaction, Record record, String collection,
+													 String oldAuthId) {
+		AuthorizationDetails inherited = getDetails(collection, oldAuthId);
 		SolrAuthorizationDetails detail = newAuthorizationDetails(collection, null, inherited.getRoles(),
-				inherited.getStartDate(), inherited.getEndDate(), false);
+				inherited.getStartDate(), inherited.getEndDate(), false, inherited.isNegative());
 		detail.setTarget(record.getId());
 
 		detail.setTargetSchemaType(record.getTypeCode());
@@ -1259,35 +1273,35 @@ public class AuthorizationsServices {
 		}
 	}
 
-	void addAuthorizationToPrincipal(String authorizationId, Record record) {
+	private void addAuthorizationToPrincipal(String authorizationId, Record record) {
 		List<Object> recordAuths = new ArrayList<>();
 		recordAuths.addAll(record.getList(AUTHORIZATIONS));
 		recordAuths.add(authorizationId);
 		record.set(AUTHORIZATIONS, recordAuths);
 	}
 
-	void removeAuthorizationToPrincipal(String authorizationId, Record record) {
+	private void removeAuthorizationToPrincipal(String authorizationId, Record record) {
 		List<Object> recordAuths = new ArrayList<>();
 		recordAuths.addAll(record.getList(AUTHORIZATIONS));
 		recordAuths.remove(authorizationId);
 		record.set(AUTHORIZATIONS, recordAuths);
 	}
 
-	void removeRemovedAuthorizationOnRecord(String authorizationId, Record record) {
+	private void removeRemovedAuthorizationOnRecord(String authorizationId, Record record) {
 		List<Object> recordAuths = new ArrayList<>();
 		recordAuths.addAll(record.getList(REMOVED_AUTHORIZATIONS));
 		recordAuths.remove(authorizationId);
 		record.set(REMOVED_AUTHORIZATIONS, recordAuths);
 	}
 
-	void removeInheritedAuthorizationOnRecord(String authorizationId, Record record) {
+	private void removeInheritedAuthorizationOnRecord(String authorizationId, Record record) {
 		List<Object> removedAuths = new ArrayList<>();
 		removedAuths.addAll(record.getList(REMOVED_AUTHORIZATIONS));
 		removedAuths.add(authorizationId);
 		record.set(REMOVED_AUTHORIZATIONS, removedAuths);
 	}
 
-	void validateDates(LocalDate startDate, LocalDate endDate) {
+	private void validateDates(LocalDate startDate, LocalDate endDate) {
 		LocalDate now = TimeProvider.getLocalDate();
 		if ((startDate != null && endDate != null) && startDate.isAfter(endDate)) {
 			throw new AuthorizationDetailsManagerRuntimeException.StartDateGreaterThanEndDate(startDate, endDate);
@@ -1303,11 +1317,11 @@ public class AuthorizationsServices {
 
 	private SolrAuthorizationDetails newAuthorizationDetails(String collection, String id, List<String> roles,
 															 LocalDate startDate, LocalDate endDate,
-															 boolean overrideInherited) {
+															 boolean overrideInherited, boolean negative) {
 		SolrAuthorizationDetails details = id == null ? schemas(collection).newSolrAuthorizationDetails()
 													  : schemas(collection).newSolrAuthorizationDetailsWithId(id);
 
-		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate).setOverrideInherited(overrideInherited);
+		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate).setOverrideInherited(overrideInherited).setNegative(negative);
 	}
 
 }

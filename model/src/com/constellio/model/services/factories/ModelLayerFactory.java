@@ -37,6 +37,7 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.SynonymsConfigurationsManager;
 import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.security.SecurityModelCache;
 import com.constellio.model.services.security.SecurityTokenManager;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.authentification.LDAPAuthenticationService;
@@ -174,5 +175,7 @@ public interface ModelLayerFactory extends LayerFactory {
 	TaxonomiesSearchServicesCache getTaxonomiesSearchServicesCache();
 
 	ThesaurusManager getThesaurusManager();
+
+	SecurityModelCache getSecurityModelCache();
 
 }

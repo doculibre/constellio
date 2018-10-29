@@ -132,6 +132,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
 
+	public static final SystemConfiguration NEGATIVE_AUTHORIZATION;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -251,6 +253,9 @@ public class ConstellioEIMConfigs {
 		add(ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY = advanced.createBooleanFalseByDefault("areMultiLangualValuesMandatory"));
 
 		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
+				.whichIsHidden());
+
+		add(NEGATIVE_AUTHORIZATION = others.createBooleanFalseByDefault("enableNegativeAuthorization")
 				.whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
@@ -490,5 +495,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isAdminPasswordChangeEnabled() {
 		return manager.getValue(ENABLE_ADMIN_USER_PASSWORD_CHANGE);
+	}
+
+	public boolean isNegativeAuthorizationEnabled() {
+		return manager.getValue(NEGATIVE_AUTHORIZATION);
 	}
 }

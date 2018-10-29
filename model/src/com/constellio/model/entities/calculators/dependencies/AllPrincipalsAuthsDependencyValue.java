@@ -17,7 +17,7 @@ public class AllPrincipalsAuthsDependencyValue {
 	private List<Group> groups;
 	private List<String> disabledGroupCodes;
 
-	public AllPrincipalsAuthsDependencyValue(List<Group> groups, List<User> users, List<String> disabledGroupCodes) {
+	private AllPrincipalsAuthsDependencyValue(List<Group> groups, List<User> users, List<String> disabledGroupCodes) {
 		this.groups = groups;
 		this.users = users;
 		this.disabledGroupCodes = disabledGroupCodes;

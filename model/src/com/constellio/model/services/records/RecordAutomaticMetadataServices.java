@@ -1,13 +1,10 @@
 package com.constellio.model.services.records;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
-import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
-import com.constellio.model.entities.calculators.dependencies.AllAuthorizationsTargettingRecordDependencyValue;
-import com.constellio.model.entities.calculators.dependencies.AllPrincipalsAuthsDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
@@ -16,6 +13,7 @@ import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.ReferenceDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.LocalisedRecordMetadataRetrieval;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -40,6 +38,9 @@ import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.entries.InMemoryAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParams;
 import com.constellio.model.entities.schemas.entries.TransactionAggregatedValuesParams;
+import com.constellio.model.entities.security.SecurityModel;
+import com.constellio.model.entities.security.SingletonSecurityModel;
+import com.constellio.model.entities.security.TransactionSecurityModel;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
@@ -47,12 +48,14 @@ import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.security.SecurityModelCache;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -70,7 +73,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import static com.constellio.data.utils.LangUtils.isFalseOrNull;
 import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -97,7 +99,7 @@ public class RecordAutomaticMetadataServices {
 
 	public void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
 										 TransactionRecordsReindexation reindexation, Transaction transaction) {
-		TransactionExecutionContext context = new TransactionExecutionContext();
+		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
 		for (Metadata automaticMetadata : schema.getAutomaticMetadatas()) {
@@ -107,7 +109,7 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	public void loadTransientEagerMetadatas(RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
-		TransactionExecutionContext context = new TransactionExecutionContext();
+		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
@@ -118,7 +120,7 @@ public class RecordAutomaticMetadataServices {
 	}
 
 	public void loadTransientLazyMetadatas(RecordImpl record, RecordProvider recordProvider, Transaction transaction) {
-		TransactionExecutionContext context = new TransactionExecutionContext();
+		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 		MetadataSchema schema = types.getSchema(record.getSchemaCode());
@@ -243,6 +245,9 @@ public class RecordAutomaticMetadataServices {
 				calculatorDependencyModified = true;
 
 			} else if (SpecialDependencies.AURHORIZATIONS_TARGETTING_RECORD.equals(dependency)) {
+				calculatorDependencyModified = true;
+
+			} else if (SpecialDependencies.SECURITY_MODEL.equals(dependency)) {
 				calculatorDependencyModified = true;
 
 			} else if (dependency instanceof DynamicLocalDependency) {
@@ -388,14 +393,18 @@ public class RecordAutomaticMetadataServices {
 		if (SpecialDependencies.HIERARCHY.equals(dependency)) {
 			addValueForTaxonomyDependency(record, recordProvider, values, dependency);
 
-		} else if (SpecialDependencies.ALL_PRINCIPALS.equals(dependency)) {
-			values.put(dependency, newPrincipalsAuthorizations(context, record, recordProvider));
+			//		} else if (SpecialDependencies.ALL_PRINCIPALS.equals(dependency)) {
+			//			values.put(dependency, newPrincipalsAuthorizations(context, record, recordProvider));
+			//
+			//		} else if (SpecialDependencies.AURHORIZATIONS_TARGETTING_RECORD.equals(dependency)) {
+			//			values.put(dependency, toAuthorizationsTargettingRecord(context, record, recordProvider));
 
-		} else if (SpecialDependencies.AURHORIZATIONS_TARGETTING_RECORD.equals(dependency)) {
-			values.put(dependency, toAuthorizationsTargettingRecord(context, record, recordProvider));
+		} else if (SpecialDependencies.SECURITY_MODEL.equals(dependency)) {
+			values.put(dependency, toSecurityModel(context, record, recordProvider));
 
 		} else if (SpecialDependencies.IDENTIFIER.equals(dependency)) {
 			values.put(dependency, record.getId());
+
 		} else if (SpecialDependencies.PRINCIPAL_TAXONOMY_CODE.equals(dependency)) {
 			Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(record.getCollection());
 			if (principalTaxonomy != null) {
@@ -403,6 +412,112 @@ public class RecordAutomaticMetadataServices {
 			}
 		}
 	}
+
+	private SecurityModel toSecurityModel(TransactionExecutionContext context, RecordImpl calculatedRecord,
+										  RecordProvider recordProvider) {
+
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
+		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
+		RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection());
+		if (type.hasSecurity() && recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)
+			&& recordsCache.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+
+			RolesManager rolesManager = modelLayerFactory.getRolesManager();
+			Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
+
+			TransactionSecurityModel securityModel = context.getTransactionSecurityModel();
+
+			if (securityModel == null) {
+
+				securityModel = buildTransactionSecurityModel(context.getTransaction(), roles, types, recordProvider);
+				context.setTransactionSecurityModel(securityModel);
+			}
+			return securityModel;
+			//			}
+		} else {
+			return SingletonSecurityModel.empty(context.getTransaction().getCollection());
+		}
+
+	}
+
+	private TransactionSecurityModel buildTransactionSecurityModel(Transaction tx, Roles roles,
+																   MetadataSchemaTypes types,
+																   RecordProvider recordProvider) {
+
+		SecurityModelCache cache = modelLayerFactory.getSecurityModelCache();
+		SingletonSecurityModel model = cache.getCached(tx.getCollection());
+
+		if (model == null) {
+
+			synchronized (SingletonSecurityModel.class) {
+
+				model = cache.getCached(tx.getCollection());
+				if (model == null) {
+					//TODO Put in singleton
+					model = buildSingletonSecurityModel(roles, types, recordProvider, tx.getCollection());
+					cache.insert(model);
+				}
+			}
+		}
+		return new TransactionSecurityModel(types, roles, model, tx);
+	}
+
+	private SingletonSecurityModel buildSingletonSecurityModel(Roles roles, MetadataSchemaTypes types,
+															   RecordProvider recordProvider, String collection) {
+
+		List<Group> groups = new ArrayList<>();
+		List<User> users = new ArrayList<>();
+		List<AuthorizationDetails> authorizationDetails = new ArrayList<>();
+		List<String> disabledGroups = new ArrayList<>();
+
+
+		RecordsCache systemCollectionCache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
+		SchemasRecordsServices systemCollectionSchemasRecordServices = new SchemasRecordsServices(
+				Collection.SYSTEM_COLLECTION, modelLayerFactory);
+		if (systemCollectionCache.isConfigured(SolrGlobalGroup.SCHEMA_TYPE)) {
+			for (Record record : searchServices.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
+					.getSchemaType(SolrGlobalGroup.SCHEMA_TYPE))) {
+				GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
+				if (record != null && GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus())) {
+					disabledGroups.add(globalGroup.getCode());
+				}
+			}
+		}
+
+		for (Record record : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
+			if (record != null) {
+				groups.add(Group.wrapNullable(record, types));
+			} else {
+				LOGGER.warn("Null record returned while getting all groups");
+			}
+		}
+
+		for (Record record : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(User.SCHEMA_TYPE))) {
+			if (record != null) {
+				users.add(User.wrapNullable(record, types, roles));
+			} else {
+				LOGGER.warn("Null record returned while getting all users");
+			}
+		}
+
+		for (Record record : searchServices
+				.getAllRecordsInUnmodifiableState(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))) {
+			if (record != null) {
+				authorizationDetails.add(SolrAuthorizationDetails.wrapNullable(record, types));
+			} else {
+				LOGGER.warn("Null record returned while getting all users");
+			}
+		}
+
+		GroupAuthorizationsInheritance groupInheritanceMode =
+				systemConfigurationsManager.getValue(ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE);
+
+		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(types.getCollection());
+
+		return new SingletonSecurityModel(authorizationDetails, users, groups, groupInheritanceMode, disabledGroups,
+				principalTaxonomy, recordProvider, collection);
+	}
+
 
 	boolean addValueForReferenceDependency(RecordImpl record, RecordProvider recordProvider,
 										   Map<Dependency, Object> values,
@@ -420,166 +535,166 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
-	AllPrincipalsAuthsDependencyValue newPrincipalsAuthorizations(TransactionExecutionContext context,
-																  RecordImpl calculatedRecord,
-																  RecordProvider recordProvider) {
-
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
-		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
-
-		if (type.hasSecurity()) {
-
-			AllPrincipalsAuthsDependencyValue allPrincipalsAuthsDependencyValue = context.getAllPrincipalsAuthsDependencyValue();
-			if (allPrincipalsAuthsDependencyValue == null) {
-
-				List<String> disabledGroups = new ArrayList<>();
-				List<Group> groups = new ArrayList<>();
-				List<User> users = new ArrayList<>();
-				Set<String> usersInTransaction = new HashSet<>();
-				Set<String> groupsInTransaction = new HashSet<>();
-
-				RolesManager rolesManager = modelLayerFactory.getRolesManager();
-				Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
-
-				RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection());
-				if (recordProvider.transaction != null
-					//&& recordProvider.transaction.isContainingAnySchemaTypeRecord(User.SCHEMA_TYPE, Group.SCHEMA_TYPE)
-					&& recordsCache.isConfigured(User.SCHEMA_TYPE)
-					&& recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
-					for (Record transactionRecord : recordProvider.transaction.getRecords()) {
-						if (User.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
-							User user = User.wrapNullable(transactionRecord, types, roles);
-							usersInTransaction.add(user.getId());
-							users.add(user);
-						}
-
-						if (Group.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
-							Group group = Group.wrapNullable(transactionRecord, types);
-							groupsInTransaction.add(group.getId());
-							groups.add(group);
-						}
-					}
-
-				}
-
-				if (recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
-					for (Record record : searchServices
-							.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
-						if (record != null) {
-							if (!groupsInTransaction.contains(record.getId())) {
-								groups.add(Group.wrapNullable(record, types));
-							}
-						} else {
-							LOGGER.warn("Null record returned while getting all groups");
-						}
-					}
-
-					for (Record record : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(User.SCHEMA_TYPE))) {
-						if (record != null) {
-							if (!usersInTransaction.contains(record.getId())) {
-								users.add(User.wrapNullable(record, types, roles));
-							}
-						} else {
-							LOGGER.warn("Null record returned while getting all users");
-						}
-					}
-				}
-
-				RecordsCache systemCollectionCache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
-				SchemasRecordsServices systemCollectionSchemasRecordServices = new SchemasRecordsServices(
-						Collection.SYSTEM_COLLECTION, modelLayerFactory);
-				if (systemCollectionCache.isConfigured(SolrGlobalGroup.SCHEMA_TYPE)) {
-					for (Record record : searchServices
-							.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
-									.getSchemaType(SolrGlobalGroup.SCHEMA_TYPE))) {
-						GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
-						if (record != null && GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus())) {
-							disabledGroups.add(globalGroup.getCode());
-						}
-					}
-				}
-
-				allPrincipalsAuthsDependencyValue = new AllPrincipalsAuthsDependencyValue(groups, users, disabledGroups);
-				context.setAllPrincipalsAuthsDependencyValue(allPrincipalsAuthsDependencyValue);
-			}
-			return allPrincipalsAuthsDependencyValue;
-
-		} else {
-			return new AllPrincipalsAuthsDependencyValue(new ArrayList<Group>(), new ArrayList<User>(), new ArrayList<String>());
-		}
-
-	}
-
-	AllAuthorizationsTargettingRecordDependencyValue toAuthorizationsTargettingRecord(
-			TransactionExecutionContext context,
-			RecordImpl calculatedRecord,
-			RecordProvider recordProvider) {
-
-		Set<String> authsInTransaction = new HashSet<>();
-		boolean overridedByMetadataProvidingSecurity = false;
-		List<AuthorizationDetails> authsReceivedFromMetadatasProvidingSecurity = new ArrayList<>();
-		List<AuthorizationDetails> returnedAuthorizationDetails = new ArrayList<>();
-
-		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
-		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
-		MetadataSchema schema = type.getSchema(calculatedRecord.getSchemaCode());
-
-		if (type.hasSecurity() && modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection())
-				.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
-
-			List<SolrAuthorizationDetails> authorizationDetails = context.getAllAuthorizationDetails();
-			if (authorizationDetails == null) {
-				authorizationDetails = new ArrayList<>();
-				if (recordProvider.transaction != null) {
-					for (Record transactionRecord : recordProvider.transaction.getRecords()) {
-						if (SolrAuthorizationDetails.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
-							SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(transactionRecord, types);
-							authsInTransaction.add(authorizationDetail.getId());
-							if (LangUtils.isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
-								authorizationDetails.add(authorizationDetail);
-							}
-						}
-					}
-				}
-
-				for (Record record : searchServices
-						.getAllRecordsInUnmodifiableState(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))) {
-					if (record != null) {
-						SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
-						if (!authsInTransaction.contains(authorizationDetail.getId())
-							&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
-							authorizationDetails.add(authorizationDetail);
-						}
-					} else {
-						LOGGER.warn("Null record returned while getting all authorizations");
-					}
-				}
-				context.setAllAuthorizationDetails(authorizationDetails);
-			}
-
-			Set<String> referencesProvidingSecurity = new HashSet<>();
-			for (Metadata metadata : schema.getMetadatas()) {
-				if (metadata.isRelationshipProvidingSecurity()) {
-					referencesProvidingSecurity.addAll(calculatedRecord.<String>getValues(metadata));
-				}
-			}
-
-			for (SolrAuthorizationDetails authorizationDetail : authorizationDetails) {
-				if (calculatedRecord.getId().equals(authorizationDetail.getTarget())) {
-					returnedAuthorizationDetails.add(authorizationDetail);
-				}
-
-				if (referencesProvidingSecurity.contains(authorizationDetail.getTarget())) {
-					authsReceivedFromMetadatasProvidingSecurity.add(authorizationDetail);
-					overridedByMetadataProvidingSecurity |=
-							authorizationDetail.isOverrideInherited() && authorizationDetail.isActiveAuthorization();
-				}
-			}
-
-		}
-		return new AllAuthorizationsTargettingRecordDependencyValue(returnedAuthorizationDetails,
-				authsReceivedFromMetadatasProvidingSecurity, overridedByMetadataProvidingSecurity);
-	}
+	//	AllPrincipalsAuthsDependencyValue newPrincipalsAuthorizations(TransactionExecutionContext context,
+	//																  RecordImpl calculatedRecord,
+	//																  RecordProvider recordProvider) {
+	//
+	//		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
+	//		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
+	//
+	//		if (type.hasSecurity()) {
+	//
+	//			AllPrincipalsAuthsDependencyValue allPrincipalsAuthsDependencyValue = context.getAllPrincipalsAuthsDependencyValue();
+	//			if (allPrincipalsAuthsDependencyValue == null) {
+	//
+	//				List<String> disabledGroups = new ArrayList<>();
+	//				List<Group> groups = new ArrayList<>();
+	//				List<User> users = new ArrayList<>();
+	//				Set<String> usersInTransaction = new HashSet<>();
+	//				Set<String> groupsInTransaction = new HashSet<>();
+	//
+	//				RolesManager rolesManager = modelLayerFactory.getRolesManager();
+	//				Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
+	//
+	//				RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection());
+	//				if (recordProvider.transaction != null
+	//					//&& recordProvider.transaction.isContainingAnySchemaTypeRecord(User.SCHEMA_TYPE, Group.SCHEMA_TYPE)
+	//					&& recordsCache.isConfigured(User.SCHEMA_TYPE)
+	//					&& recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
+	//					for (Record transactionRecord : recordProvider.transaction.getRecords()) {
+	//						if (User.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
+	//							User user = User.wrapNullable(transactionRecord, types, roles);
+	//							usersInTransaction.add(user.getId());
+	//							users.add(user);
+	//						}
+	//
+	//						if (Group.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
+	//							Group group = Group.wrapNullable(transactionRecord, types);
+	//							groupsInTransaction.add(group.getId());
+	//							groups.add(group);
+	//						}
+	//					}
+	//
+	//				}
+	//
+	//				if (recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)) {
+	//					for (Record record : searchServices
+	//							.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
+	//						if (record != null) {
+	//							if (!groupsInTransaction.contains(record.getId())) {
+	//								groups.add(Group.wrapNullable(record, types));
+	//							}
+	//						} else {
+	//							LOGGER.warn("Null record returned while getting all groups");
+	//						}
+	//					}
+	//
+	//					for (Record record : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(User.SCHEMA_TYPE))) {
+	//						if (record != null) {
+	//							if (!usersInTransaction.contains(record.getId())) {
+	//								users.add(User.wrapNullable(record, types, roles));
+	//							}
+	//						} else {
+	//							LOGGER.warn("Null record returned while getting all users");
+	//						}
+	//					}
+	//				}
+	//
+	//				RecordsCache systemCollectionCache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
+	//				SchemasRecordsServices systemCollectionSchemasRecordServices = new SchemasRecordsServices(
+	//						Collection.SYSTEM_COLLECTION, modelLayerFactory);
+	//				if (systemCollectionCache.isConfigured(SolrGlobalGroup.SCHEMA_TYPE)) {
+	//					for (Record record : searchServices
+	//							.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
+	//									.getSchemaType(SolrGlobalGroup.SCHEMA_TYPE))) {
+	//						GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
+	//						if (record != null && GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus())) {
+	//							disabledGroups.add(globalGroup.getCode());
+	//						}
+	//					}
+	//				}
+	//
+	//				allPrincipalsAuthsDependencyValue = new AllPrincipalsAuthsDependencyValue(groups, users, disabledGroups);
+	//				context.setAllPrincipalsAuthsDependencyValue(allPrincipalsAuthsDependencyValue);
+	//			}
+	//			return allPrincipalsAuthsDependencyValue;
+	//
+	//		} else {
+	//			return new AllPrincipalsAuthsDependencyValue(new ArrayList<Group>(), new ArrayList<User>(), new ArrayList<String>());
+	//		}
+	//
+	//	}
+	//
+	//	AllAuthorizationsTargettingRecordDependencyValue toAuthorizationsTargettingRecord(
+	//			TransactionExecutionContext context,
+	//			RecordImpl calculatedRecord,
+	//			RecordProvider recordProvider) {
+	//
+	//		Set<String> authsInTransaction = new HashSet<>();
+	//		boolean overridedByMetadataProvidingSecurity = false;
+	//		List<AuthorizationDetails> authsReceivedFromMetadatasProvidingSecurity = new ArrayList<>();
+	//		List<AuthorizationDetails> returnedAuthorizationDetails = new ArrayList<>();
+	//
+	//		MetadataSchemaTypes types = schemasManager.getSchemaTypes(calculatedRecord.getCollection());
+	//		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
+	//		MetadataSchema schema = type.getSchema(calculatedRecord.getSchemaCode());
+	//
+	//		if (type.hasSecurity() && modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection())
+	//				.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+	//
+	//			List<SolrAuthorizationDetails> authorizationDetails = context.getAllAuthorizationDetails();
+	//			if (authorizationDetails == null) {
+	//				authorizationDetails = new ArrayList<>();
+	//				if (recordProvider.transaction != null) {
+	//					for (Record transactionRecord : recordProvider.transaction.getRecords()) {
+	//						if (SolrAuthorizationDetails.SCHEMA_TYPE.equals(transactionRecord.getTypeCode())) {
+	//							SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(transactionRecord, types);
+	//							authsInTransaction.add(authorizationDetail.getId());
+	//							if (LangUtils.isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
+	//								authorizationDetails.add(authorizationDetail);
+	//							}
+	//						}
+	//					}
+	//				}
+	//
+	//				for (Record record : searchServices
+	//						.getAllRecordsInUnmodifiableState(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))) {
+	//					if (record != null) {
+	//						SolrAuthorizationDetails authorizationDetail = new SolrAuthorizationDetails(record, types);
+	//						if (!authsInTransaction.contains(authorizationDetail.getId())
+	//							&& isFalseOrNull(authorizationDetail.getLogicallyDeletedStatus())) {
+	//							authorizationDetails.add(authorizationDetail);
+	//						}
+	//					} else {
+	//						LOGGER.warn("Null record returned while getting all authorizations");
+	//					}
+	//				}
+	//				context.setAllAuthorizationDetails(authorizationDetails);
+	//			}
+	//
+	//			Set<String> referencesProvidingSecurity = new HashSet<>();
+	//			for (Metadata metadata : schema.getMetadatas()) {
+	//				if (metadata.isRelationshipProvidingSecurity()) {
+	//					referencesProvidingSecurity.addAll(calculatedRecord.<String>getValues(metadata));
+	//				}
+	//			}
+	//
+	//			for (SolrAuthorizationDetails authorizationDetail : authorizationDetails) {
+	//				if (calculatedRecord.getId().equals(authorizationDetail.getTarget())) {
+	//					returnedAuthorizationDetails.add(authorizationDetail);
+	//				}
+	//
+	//				if (referencesProvidingSecurity.contains(authorizationDetail.getTarget())) {
+	//					authsReceivedFromMetadatasProvidingSecurity.add(authorizationDetail);
+	//					overridedByMetadataProvidingSecurity |=
+	//							authorizationDetail.isOverrideInherited() && authorizationDetail.isActiveAuthorization();
+	//				}
+	//			}
+	//
+	//		}
+	//		return new AllAuthorizationsTargettingRecordDependencyValue(returnedAuthorizationDetails,
+	//				authsReceivedFromMetadatasProvidingSecurity, overridedByMetadataProvidingSecurity);
+	//	}
 
 	boolean addValueForTaxonomyDependency(RecordImpl record, RecordProvider recordProvider,
 										  Map<Dependency, Object> values,

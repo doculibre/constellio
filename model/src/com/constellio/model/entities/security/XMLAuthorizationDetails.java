@@ -141,6 +141,11 @@ public class XMLAuthorizationDetails implements AuthorizationDetails {
 	}
 
 	@Override
+	public boolean isOverrideInherited() {
+		return false;
+	}
+
+	@Override
 	public String getTarget() {
 		return null;
 	}
@@ -160,6 +165,11 @@ public class XMLAuthorizationDetails implements AuthorizationDetails {
 
 	public boolean isSynced() {
 		return synced;
+	}
+
+	@Override
+	public boolean isNegative() {
+		return false;
 	}
 
 	@Override
