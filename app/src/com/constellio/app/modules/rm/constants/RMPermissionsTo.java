@@ -57,6 +57,8 @@ public class RMPermissionsTo {
 
 	public static final String MANAGE_REQUEST_ON_FOLDER = permission(FOLDER_GROUP, "manageRequestOnFolder");
 
+	public static final String RETURN_OTHER_USERS_FOLDERS = permission(FOLDER_GROUP, "returnOtherUsersFolders");
+
 	// Documents
 	private static final String DOCUMENT_GROUP = "documents";
 

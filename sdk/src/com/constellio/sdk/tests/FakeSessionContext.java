@@ -167,7 +167,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		labels.put(Locale.ENGLISH, "Email");
 		String collection = userSchema.getCollection();
 
-		return new MetadataVO(User.EMAIL, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
+		return new MetadataVO(User.EMAIL, User.EMAIL, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null,
 				null, null, false, new HashSet<String>(), false,
 				null, new HashMap<String, Object>(), getCollectionInfoVO(collection));
@@ -179,7 +179,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		labels.put(Locale.ENGLISH, "Last name");
 		String collection = userSchema.getCollection();
 
-		return new MetadataVO(User.LASTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
+		return new MetadataVO(User.LASTNAME, User.LASTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null,
 				null, null, false,
 				new HashSet<String>(), false, null, new HashMap<String, Object>(), getCollectionInfoVO(collection));
@@ -191,7 +191,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		labels.put(Locale.ENGLISH, "First name");
 		String collection = userSchema.getCollection();
 
-		return new MetadataVO(User.FIRSTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
+		return new MetadataVO(User.FIRSTNAME, User.FIRSTNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null,
 				null, null, false, new HashSet<String>(), false, null,
 				new HashMap<String, Object>(), getCollectionInfoVO(collection));
@@ -203,7 +203,7 @@ public class FakeSessionContext extends BaseSessionContext {
 		labels.put(Locale.ENGLISH, "Username");
 		String collection = userSchema.getCollection();
 
-		return new MetadataVO(User.USERNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
+		return new MetadataVO(User.USERNAME, User.USERNAME, MetadataValueType.STRING, collection, userSchema, true, false, false, labels, null,
 				null, null, null, null, null, null,
 				null, false, new HashSet<String>(), false, null, new HashMap<String, Object>(), getCollectionInfoVO(collection));
 	}
