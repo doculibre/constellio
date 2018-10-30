@@ -471,7 +471,9 @@ public class ReindexingServices {
 						List<String> referencedRecordIds = record.getValues(refMetadata);
 
 						for (String referencedRecordId : referencedRecordIds) {
-							aggregatedValuesTempStorage.incrementReferenceCount(referencedRecordId);
+							if (refMetadata.getAllowedReferences().isAllowed(type)) {
+								aggregatedValuesTempStorage.incrementReferenceCount(referencedRecordId);
+							}
 							for (MetadataNetworkLink link : links) {
 								aggregatedValuesTempStorage.addOrReplace(referencedRecordId, record.getId(),
 										link.getToMetadata().getLocalCode(), record.getValues(link.getToMetadata()));
