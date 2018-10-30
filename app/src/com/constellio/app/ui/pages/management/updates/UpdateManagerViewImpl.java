@@ -111,7 +111,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		});
 		buttons.add(standardUpdate);
 
-		alternateUpdate = new Button($("UpdateManagerViewImpl.manual" + presenter.getAlternateUpdateName()));
+		alternateUpdate = new Button($("UpdateManagerViewImpl." + presenter.getAlternateUpdateName()));
 		alternateUpdate.addClickListener(new ClickListener() {
 			@Override
 			public void buttonClick(ClickEvent event) {
@@ -170,28 +170,28 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 
 		if (locator.getFoldersLocatorMode() != FoldersLocatorMode.WRAPPER) {
 			layout.addComponents(
+					buildInfoItemRed($("UpdateManagerViewImpl.diskUsageOpt"), $("UpdateManagerViewImpl.statut")),
+					buildInfoItemRed($("UpdateManagerViewImpl.diskUsageSolr"), $("UpdateManagerViewImpl.statut")),
 					buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"), $("UpdateManagerViewImpl.statut")),
 					buildInfoItemRed($("UpdateManagerViewImpl.privatedirectoryinstalled"), $("UpdateManagerViewImpl.statut")),
 					buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"), $("UpdateManagerViewImpl.statut")),
 					buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"), $("UpdateManagerViewImpl.statut")),
 					buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"), $("UpdateManagerViewImpl.statut")),
 					buildInfoItemRed($("UpdateManagerViewImpl.javaversionofwrapper"), $("UpdateManagerViewImpl.statut")),
-					buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"), $("UpdateManagerViewImpl.statut")),
-					buildInfoItemRed($("UpdateManagerViewImpl.diskUsageOpt"), $("UpdateManagerViewImpl.statut")),
-					buildInfoItemRed($("UpdateManagerViewImpl.diskUsageSolr"), $("UpdateManagerViewImpl.statut")));
+					buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"), $("UpdateManagerViewImpl.statut")));
 		} else {
 			String diskUsageOpt = presenter.getDiskUsage("/opt");
 			if (presenter.isDiskUsageProblematic(diskUsageOpt)) {
-				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"), diskUsageOpt));
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.diskUsageOpt"), diskUsageOpt));
 			} else {
-				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.versionofKernel"), diskUsageOpt));
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.diskUsageOpt"), diskUsageOpt));
 			}
 
 			String diskUsageSolr = presenter.getDiskUsage("/var/solr");
 			if (presenter.isDiskUsageProblematic(diskUsageSolr)) {
-				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofKernel"), diskUsageSolr));
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.diskUsageSolr"), diskUsageSolr));
 			} else {
-				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.versionofKernel"), diskUsageSolr));
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.diskUsageSolr"), diskUsageSolr));
 			}
 
 			String linuxVersion = presenter.getLinuxVersion();
@@ -209,47 +209,40 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 
 			String solrUser = presenter.getSolrUser();
 			if (presenter.isSolrUserRoot(solrUser)) {
-				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.UserrunningSolr"), presenter.getSolrUser()));
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.UserrunningSolr"), solrUser));
 			} else {
-				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"), presenter.getSolrUser()));
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningSolr"), solrUser));
 			}
 
 			String constellioUser = presenter.getConstellioUser();
 			if (presenter.isConstellioUserRoot(constellioUser)) {
-				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.UserrunningConstellio"), presenter.getConstellioUser()));
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.UserrunningConstellio"), constellioUser));
 			} else {
-				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"), presenter.getConstellioUser()));
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.UserrunningConstellio"), constellioUser));
 			}
 
 			String javaVersion = presenter.getJavaVersion();
 			if (presenter.isJavaVersionDeprecated(javaVersion)) {
-				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"), presenter.getJavaVersion()));
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionoflinux"), javaVersion));
 			} else {
-				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.javaversionoflinux"), presenter.getJavaVersion()));
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.javaversionoflinux"), javaVersion));
 			}
 
 			String wrapperJavaVersion = presenter.getWrapperJavaVersion();
 			if (presenter.isJavaVersionDeprecated(wrapperJavaVersion)) {
-				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionofwrapper"), presenter.getJavaVersion()));
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.javaversionofwrapper"), wrapperJavaVersion));
 			} else {
-				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.javaversionofwrapper"), presenter.getJavaVersion()));
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.javaversionofwrapper"), wrapperJavaVersion));
 			}
 
 			String solrVersion = presenter.getSolrVersion();
 			if (presenter.isSolrVersionDeprecated(solrVersion)) {
-				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"), presenter.getSolrVersion()));
+				layout.addComponents(buildInfoItemRed($("UpdateManagerViewImpl.versionofSolr"), solrVersion));
 			} else {
-				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.versionofSolr"), presenter.getSolrVersion()));
+				layout.addComponents(buildInfoItem($("UpdateManagerViewImpl.versionofSolr"), solrVersion));
 			}
 		}
 		return layout;
-	}
-
-	private String toPercentage(Double value) {
-		if (value == null) {
-			return null;
-		}
-		return Math.round(value) + "%";
 	}
 
 	private WindowButton buildAllocatedMemoryButton() {
@@ -386,7 +379,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 	}
 
 	private Component buildInfoItemRed(String caption, Object value) {
-		Label captionLabel = new Label("<p style=\"color:blackU\">" + caption + "</p>", ContentMode.HTML);
+		Label captionLabel = new Label(caption);
 		captionLabel.addStyleName(ValoTheme.LABEL_BOLD);
 
 		if (value == null || StringUtils.isEmpty(value.toString())) {
@@ -394,7 +387,8 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		}
 		Label valueLabel = value instanceof LocalDate ?
 						   new LocalDateLabel((LocalDate) value) :
-						   new Label("<p style=\"color:red\">" + value.toString() + "</p>", ContentMode.HTML);
+						   new Label(value.toString());
+		valueLabel.setStyleName("important-label");
 
 		HorizontalLayout layout = new HorizontalLayout(captionLabel, valueLabel);
 		layout.setSpacing(true);
