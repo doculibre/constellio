@@ -360,7 +360,7 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isIncludingFromFieldWhenGeneratingEmails() {
-		return !Boolean.FALSE.equals(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS);
+		return !Boolean.FALSE.equals(manager.getValue(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS));
 	}
 
 	public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
