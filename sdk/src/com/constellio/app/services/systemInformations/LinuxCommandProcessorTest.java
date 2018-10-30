@@ -31,9 +31,7 @@ public class LinuxCommandProcessorTest {
 	@Test
 	public void testGetJavaVersion() throws Exception {
 		when(commandExecutor.executeCommand(anyString()))
-				.thenReturn("java version \"1.7.0_101\"" +
-							"OpenJDK Runtime Environment (rhel-2.6.6.1.el7_2-x86_64 u101-b00)" +
-							"OpenJDK 64-Bit Server VM (build 24.95-b01, mixed mode)");
+				.thenReturn("java-1.7.0-openjdk-1.7.0.101-2.6.6.1.el7_2.x86_64");
 
 		String version = commandProcessor.getJavaVersion();
 		assertThat(version).isEqualTo("1.7.0");

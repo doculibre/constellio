@@ -8,7 +8,7 @@ public class LinuxCommandProcessor {
 	private LinuxCommandExecutor commandExecutor;
 
 	private final static String LINUX_VERSION_COMMAND = "uname -r";
-	private final static String JAVA_VERSION_COMMAND = "java -version";
+	private final static String JAVA_VERSION_COMMAND = "rpm -qa | grep 'jdk-1'";
 	private final static String REPOSITORY_COMMAND = "yum repolist 2>&1 | grep -c \"constellio_constellio-updates\"";
 	private final static String PID_CONSTELLIO_COMMAND = "/opt/constellio/startup status";
 	private final static String USER_COMMAND = "ps -u -p %s | cut -d \" \" -f 1";
@@ -27,8 +27,8 @@ public class LinuxCommandProcessor {
 
 	public String getJavaVersion() throws LinuxCommandExecutionFailedException {
 		String output = executeCommand(JAVA_VERSION_COMMAND);
-		String subString = StringUtils.substringAfter(output, "version \"");
-		return StringUtils.substringBefore(subString, "_");
+		String subString = StringUtils.substringAfter(output, "java-");
+		return StringUtils.substringBefore(subString, "-");
 	}
 
 	public String getRepository() throws LinuxCommandExecutionFailedException {
