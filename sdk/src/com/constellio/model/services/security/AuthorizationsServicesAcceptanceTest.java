@@ -64,6 +64,7 @@ import static com.constellio.model.entities.security.global.AuthorizationModific
 import static com.constellio.model.entities.security.global.GlobalGroupStatus.ACTIVE;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1;
@@ -664,6 +665,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithReadAccess().containsOnly(bob, alice, charles, dakota, chuck, robin, gandalf);
 			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
+
 
 		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, chuck);
@@ -2740,6 +2742,15 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth1 = add(authorizationForGroup(legends).on(TAXO1_CATEGORY1).givingReadWriteAccess());
 		auth2 = add(authorizationForGroup(legends).on(FOLDER4).givingReadAccess());
 		auth3 = add(authorizationForGroup(legends).on(FOLDER3).givingReadDeleteAccess());
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(setup.folderSchema.instance()).where(Schemas.IDENTIFIER).isEqualTo("folder4"));
+		query.filteredWithUser(users.aliceIn(zeCollection));
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+
+		//		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
+		//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+
+		assertThat(searchServices.hasResults(query)).isTrue();
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
 			verifyRecord.usersWithReadAccess().contains(edouard).doesNotContain(sasquatch);

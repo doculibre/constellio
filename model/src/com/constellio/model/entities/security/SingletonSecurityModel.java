@@ -163,4 +163,21 @@ public class SingletonSecurityModel implements SecurityModel {
 	public GroupAuthorizationsInheritance getGroupAuthorizationsInheritance() {
 		return groupAuthorizationsInheritance;
 	}
+
+	@Override
+	public Object getPrincipalById(String id) {
+		for (User user : users) {
+			if (user.getId().equals(id)) {
+				return user;
+			}
+		}
+
+		for (Group group : groups) {
+			if (group.getId().equals(id)) {
+				return group;
+			}
+		}
+
+		return null;
+	}
 }

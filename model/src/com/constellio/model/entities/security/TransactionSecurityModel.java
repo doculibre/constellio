@@ -6,7 +6,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.records.RecordProvider;
 import com.constellio.model.services.security.roles.Roles;
@@ -19,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.constellio.model.entities.security.SecurityModelAuthorization.wrapExistingAuthUsingModifiedUsersAndGroups;
-import static com.constellio.model.entities.security.SecurityModelAuthorization.wrapNewAuthUsingModifiedUsersAndGroups;
+import static com.constellio.model.entities.security.SecurityModelAuthorization.wrapNewAuthWithoutUsersAndGroups;
 
 public class TransactionSecurityModel implements SecurityModel {
 
@@ -79,10 +81,7 @@ public class TransactionSecurityModel implements SecurityModel {
 					Integer index = indexMap.get(solrAuthorizationDetails.getId());
 					ajustedAuths.add(id);
 					if (index == null) {
-						returnedAuths.add(wrapNewAuthUsingModifiedUsersAndGroups(
-								nestedSecurityModel.groupAuthorizationsInheritance,
-								nestedSecurityModel.principalTaxonomy,
-								solrAuthorizationDetails));
+						returnedAuths.add(wrap(solrAuthorizationDetails));
 					} else {
 
 						SecurityModelAuthorization newVersion = wrapExistingAuthUsingModifiedUsersAndGroups(
@@ -114,7 +113,35 @@ public class TransactionSecurityModel implements SecurityModel {
 			}
 		}
 
-		return returnedAuths;
+		List<SecurityModelAuthorization> nonDeletedReturnedAuths = new ArrayList<>();
+
+		for (SecurityModelAuthorization auth : returnedAuths) {
+			if (!Boolean.TRUE.equals(((SolrAuthorizationDetails) auth.getDetails()).get(Schemas.LOGICALLY_DELETED_STATUS))) {
+				nonDeletedReturnedAuths.add(auth);
+			}
+		}
+
+		return nonDeletedReturnedAuths;
+	}
+
+	private SecurityModelAuthorization wrap(AuthorizationDetails details) {
+		SecurityModelAuthorization authorization = wrapNewAuthWithoutUsersAndGroups(
+				nestedSecurityModel.groupAuthorizationsInheritance,
+				nestedSecurityModel.principalTaxonomy,
+				details);
+
+		for (String principalId : details.getPrincipals()) {
+			Object principal = getPrincipalById(principalId);
+
+			if (principal instanceof User) {
+				authorization.users.add((User) principal);
+
+			} else if (principal instanceof Group) {
+				authorization.groups.add((Group) principal);
+			}
+		}
+
+		return authorization;
 	}
 
 	@Override
@@ -126,10 +153,7 @@ public class TransactionSecurityModel implements SecurityModel {
 			if (record.getId().equals(authId)) {
 				AuthorizationDetails solrAuthorizationDetails = SolrAuthorizationDetails.wrapNullable(record, types);
 				if (nestedAuthorization == null) {
-					return wrapNewAuthUsingModifiedUsersAndGroups(
-							nestedSecurityModel.groupAuthorizationsInheritance,
-							nestedSecurityModel.principalTaxonomy,
-							solrAuthorizationDetails);
+					return wrap(solrAuthorizationDetails);
 
 				} else {
 					return wrapExistingAuthUsingModifiedUsersAndGroups(
@@ -177,6 +201,24 @@ public class TransactionSecurityModel implements SecurityModel {
 						return getAuthorizationWithId(authId);
 					}
 				});
+
+	}
+
+	@Override
+	public Object getPrincipalById(String id) {
+
+		Record record = transaction.getRecord(id);
+		if (record != null) {
+
+			if (User.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				return User.wrapNullable(record, types, roles);
+			} else {
+				return Group.wrapNullable(record, types);
+			}
+
+		} else {
+			return nestedSecurityModel.getPrincipalById(id);
+		}
 
 	}
 

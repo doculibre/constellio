@@ -158,6 +158,10 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 		return isActiveAuthorizationAtDate(TimeProvider.getLocalDate());
 	}
 
+	public String toString() {
+		return "Giving " + (isNegative() ? "negative " : "") + getRoles() + " to " + getPrincipals() + " on " + getTarget() + " (" + getTargetSchemaType() + ")";
+	}
+
 	private boolean isActiveAuthorizationAtDate(LocalDate date) {
 		LocalDate startDate = getStartDate();
 		LocalDate endDate = getEndDate();

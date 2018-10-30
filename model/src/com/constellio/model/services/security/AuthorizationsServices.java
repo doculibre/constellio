@@ -368,14 +368,17 @@ public class AuthorizationsServices {
 	private AuthorizationDetails execute(AuthorizationDeleteRequest request, AuthTransaction transaction) {
 
 		List<String> authId = asList(request.getAuthId());
+		Authorization auth = getAuthorization(request.getCollection(), request.getAuthId());
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(request.getCollection())
+				//TODO Really necessary Authorizations ?
 				.where(Schemas.AUTHORIZATIONS).isContaining(authId)
-				.orWhere(REMOVED_AUTHORIZATIONS).isContaining(authId));
+				.orWhere(REMOVED_AUTHORIZATIONS).isContaining(authId)
+				.orWhere(Schemas.ATTACHED_ANCESTORS).isEqualTo(auth.getGrantedOnRecord()));
 		List<Record> recordsWithRemovedAuth = searchServices.search(query);
 
 		if (request.getExecutedBy() != null) {
 			try {
-				Authorization auth = getAuthorization(request.getCollection(), request.getAuthId());
+
 				loggingServices.deletePermission(auth, request.getExecutedBy());
 			} catch (NoSuchAuthorizationWithId e) {
 				//No problemo
@@ -692,18 +695,13 @@ public class AuthorizationsServices {
 
 	public void reset(Record record, AuthTransaction transaction) {
 		SchemasRecordsServices schemas = schemas(record.getCollection());
-		List<AuthorizationDetails> authorizationDetailses = new ArrayList<>();
 		record.set(REMOVED_AUTHORIZATIONS, null);
 		record.set(IS_DETACHED_AUTHORIZATIONS, false);
+		transaction.add(record);
 
 		for (AuthorizationDetails authorizationDetails : schemas.searchSolrAuthorizationDetailss(
 				where(schemas.authorizationDetails.target()).isEqualTo(record.getId()))) {
 			execute(authorizationDeleteRequest(authorizationDetails), transaction);
-		}
-
-		boolean newRecordInTransaction = !transaction.getRecordIds().contains(record.getId());
-		if (newRecordInTransaction) {
-			transaction.add(record);
 		}
 
 		modelLayerFactory.getTaxonomiesSearchServicesCache().invalidateAll();
@@ -954,7 +952,7 @@ public class AuthorizationsServices {
 				inherited.getStartDate(), inherited.getEndDate(), false, inherited.isNegative());
 		detail.setTarget(record.getId());
 		detail.setTargetSchemaType(record.getTypeCode());
-		detail.setPrincipals(new ArrayList<String>(detail.getPrincipals()));
+		detail.setPrincipals(new ArrayList<>(inherited.getPrincipals()));
 		transaction.add(detail);
 
 		return detail;

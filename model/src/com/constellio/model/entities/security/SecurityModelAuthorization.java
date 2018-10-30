@@ -99,7 +99,7 @@ public class SecurityModelAuthorization {
 		return conceptAuth;
 	}
 
-	public static SecurityModelAuthorization wrapNewAuthUsingModifiedUsersAndGroups(
+	public static SecurityModelAuthorization wrapNewAuthWithoutUsersAndGroups(
 			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
 			Taxonomy principalTaxonomy,
 			AuthorizationDetails details) {
@@ -111,6 +111,7 @@ public class SecurityModelAuthorization {
 						   && principalTaxonomy.getSchemaTypes().contains(details.getTargetSchemaType());
 
 		auth.details = details;
+
 		return auth;
 	}
 
@@ -144,4 +145,17 @@ public class SecurityModelAuthorization {
 		return auth;
 	}
 
+
+	public String toString() {
+		List<String> printablePrincipals = new ArrayList<>();
+		for (Group group : groups) {
+			printablePrincipals.add(group.getCode());
+		}
+
+		for (User user : users) {
+			printablePrincipals.add(user.getUsername());
+		}
+
+		return "Giving " + (details.isNegative() ? "negative " : "") + details.getRoles() + " to " + printablePrincipals + " on " + details.getTarget() + " (" + details.getTargetSchemaType() + ")";
+	}
 }

@@ -17,4 +17,6 @@ public interface SecurityModel {
 
 	List<SecurityModelAuthorization> getAuthorizationDetailsOnMetadatasProvidingSecurity(
 			DynamicDependencyValues metadatasProvidingSecurity);
+
+	Object getPrincipalById(String id);
 }
