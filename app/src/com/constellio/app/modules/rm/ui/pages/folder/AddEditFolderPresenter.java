@@ -718,6 +718,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			boolean validEnteredCopyRule = false;
 			for (CopyRetentionRule applicableCopyRule : applicableCopyRules) {
 				if (applicableCopyRule.getId().equals(folder.getMainCopyRule().getId())) {
+					if(StringUtils.isBlank(field.getFieldValue())) {
+						field.setFieldValue(folder.getMainCopyRule().getId());
+					}
 					validEnteredCopyRule = true;
 					break;
 				}
