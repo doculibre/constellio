@@ -802,6 +802,10 @@ public class AuthorizationsServices {
 	private List<String> principalToRecordIds(SchemasRecordsServices schemas, List<String> principals) {
 		List<String> returnedRecordIds = new ArrayList<>();
 
+		if (principals == null || principals.isEmpty()) {
+			throw new AuthorizationsServicesRuntimeException.CannotAddUpdateWithoutPrincipalsAndOrTargetRecords();
+		}
+
 		for (String principal : principals) {
 			try {
 				returnedRecordIds.add(recordServices.getDocumentById(principal).getId());

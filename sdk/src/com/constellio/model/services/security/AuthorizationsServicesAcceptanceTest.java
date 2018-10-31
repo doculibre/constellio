@@ -22,8 +22,6 @@ import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
@@ -1006,7 +1004,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			auth1 = add(authorizationInCollection(zeCollection).givingReadAccess().forPrincipalsIds("inexistentId1")
 					.on(TAXO1_CATEGORY1));
 			fail("Exception expected");
-		} catch (InvalidPrincipalsIds e) {
+		} catch (AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername e) {
 			//OK
 		}
 
@@ -1014,7 +1012,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			List<String> roles = asList(READ);
 			addAuthorizationWithoutDetaching(roles, asList(users.aliceIn(zeCollection).getId()), "inexistentId2");
 			fail("Exception expected");
-		} catch (InvalidTargetRecordId e) {
+		} catch (AuthorizationsServicesRuntimeException.InvalidTargetRecordId e) {
 			//OK
 		}
 
