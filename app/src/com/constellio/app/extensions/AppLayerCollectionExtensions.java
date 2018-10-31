@@ -88,6 +88,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
@@ -696,5 +697,15 @@ public class AppLayerCollectionExtensions {
 			condition = extension.adjustSearchPageCondition(new SearchPageConditionParam(param.getMainComponent(), condition, param.getUser()));
 		}
 		return condition;
+	}
+
+	public Resource getIconFromContent(GetIconPathParams params) {
+		for(RecordAppExtension extension: recordAppExtensions) {
+			Resource calculatedResource = extension.getIconFromContent(params);
+			if(calculatedResource != null) {
+				return calculatedResource;
+			}
+		}
+		return null;
 	}
 }
