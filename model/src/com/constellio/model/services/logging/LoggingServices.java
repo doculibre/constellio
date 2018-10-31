@@ -5,6 +5,7 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
@@ -52,13 +53,17 @@ public class LoggingServices {
 		if (transaction.getUser() == null) {
 			return;
 		}
+		RecordUpdateOptions recordUpdateOptions = transaction.getRecordUpdateOptions();
+		if(recordUpdateOptions != null && !recordUpdateOptions.isOverwriteModificationDateAndUser()) {
+			return;
+		}
 
 		Transaction eventsTransaction = new Transaction().setRecordFlushing(RecordsFlushing.WITHIN_SECONDS(30));
 		for (Record record : transaction.getRecords()) {
-			Event event = eventFactory.logAddUpdateRecord(record, transaction.getUser());
-			if (event != null) {
-				eventsTransaction.addUpdate(event.getWrappedRecord());
-			}
+				Event event = eventFactory.logAddUpdateRecord(record, transaction.getUser());
+				if (event != null) {
+					eventsTransaction.addUpdate(event.getWrappedRecord());
+				}
 		}
 
 		try {
