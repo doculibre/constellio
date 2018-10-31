@@ -40,7 +40,7 @@ public class ReportConfigurationPanelPresenter {
 		boolean result;
 		List<Metadata> restrictedMetadata = Arrays.asList(Schemas.SCHEMA, Schemas.VERSION, Schemas.PATH, Schemas.PRINCIPAL_PATH,
 				Schemas.PARENT_PATH, Schemas.REMOVED_AUTHORIZATIONS, Schemas.IS_DETACHED_AUTHORIZATIONS, Schemas.TOKENS,
-				Schemas.COLLECTION, Schemas.FOLLOWERS, Schemas.LOGICALLY_DELETED_STATUS, Schemas.TITLE, Schemas.ALL_REMOVED_AUTHS,
+				Schemas.COLLECTION, Schemas.LOGICALLY_DELETED_STATUS, Schemas.TITLE, Schemas.ALL_REMOVED_AUTHS,
 				Schemas.ATTACHED_ANCESTORS);
 
 		List<MetadataValueType> restrictedType = Arrays.asList(MetadataValueType.STRUCTURE, MetadataValueType.CONTENT);

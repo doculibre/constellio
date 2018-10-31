@@ -51,7 +51,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +58,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
-import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.IS_DETACHED_AUTHORIZATIONS;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -267,8 +265,7 @@ public class AddEditRobotPresenterAcceptTest extends ConstellioTest {
 
 		assertThat(baseMetadatas).containsAll(presenter.getMetadataAllowedInCriteria());
 		recordServices.add(newFolder("testFolder").changeSchemaTo("folder_customSchema"));
-		recordServices.update(recordServices.getDocumentById("testFolder").set(IS_DETACHED_AUTHORIZATIONS, true)
-				.set(AUTHORIZATIONS, new ArrayList<>()));
+		recordServices.update(recordServices.getDocumentById("testFolder").set(IS_DETACHED_AUTHORIZATIONS, true));
 
 		List<MetadataVO> newMetadatas = presenter.getMetadataAllowedInCriteria();
 		newMetadatas.removeAll(baseMetadatas);

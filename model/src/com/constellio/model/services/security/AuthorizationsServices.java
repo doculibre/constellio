@@ -371,8 +371,7 @@ public class AuthorizationsServices {
 		Authorization auth = getAuthorization(request.getCollection(), request.getAuthId());
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(request.getCollection())
 				//TODO Really necessary Authorizations ?
-				.where(Schemas.AUTHORIZATIONS).isContaining(authId)
-				.orWhere(REMOVED_AUTHORIZATIONS).isContaining(authId)
+				.where(REMOVED_AUTHORIZATIONS).isContaining(authId)
 				.orWhere(Schemas.ATTACHED_ANCESTORS).isEqualTo(auth.getGrantedOnRecord()));
 		List<Record> recordsWithRemovedAuth = searchServices.search(query);
 

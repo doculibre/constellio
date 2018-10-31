@@ -4,7 +4,6 @@ import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionReposi
 import com.constellio.app.api.cmis.requests.CmisCollectionRequest;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
@@ -170,7 +169,6 @@ public class ApplyAclRequest extends CmisCollectionRequest<Acl> {
 		for (Ace ace : acesToRemove) {
 			List<String> permissions = toConstellioPermissions(ace.getPermissions());
 			Record principal = getPrincipalRecord(ace.getPrincipalId());
-			List<String> authorizationsIds = new ArrayList<>(principal.<String>getList(Schemas.AUTHORIZATIONS));
 			for (AuthorizationDetails authDetails : getObjectAuthorizationsWithPermission(objectId, permissions)) {
 
 				Authorization authorization = authorizationsServices.getAuthorization(collection, authDetails.getId());

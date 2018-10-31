@@ -38,7 +38,6 @@ import java.util.List;
 
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.INHERITED_AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.NON_TAXONOMY_AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
 import static java.util.Arrays.asList;
@@ -315,10 +314,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
-				.containsOnly("folderMetaWithTaxoDependency", ALL_REMOVED_AUTHS, INHERITED_AUTHORIZATIONS,
+				.containsOnly("folderMetaWithTaxoDependency", ALL_REMOVED_AUTHS,
 						ATTACHED_ANCESTORS, "path", NON_TAXONOMY_AUTHORIZATIONS, TOKENS);
 		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
-				.containsOnly("documentMetaWithTaxoDependency", ALL_REMOVED_AUTHS, INHERITED_AUTHORIZATIONS,
+				.containsOnly("documentMetaWithTaxoDependency", ALL_REMOVED_AUTHS,
 						ATTACHED_ANCESTORS, "path", NON_TAXONOMY_AUTHORIZATIONS, TOKENS);
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type()).whereAny(

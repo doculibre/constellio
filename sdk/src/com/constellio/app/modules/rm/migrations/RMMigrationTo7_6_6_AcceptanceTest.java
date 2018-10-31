@@ -13,8 +13,12 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
+import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.schemas.calculators.TokensCalculator2;
 import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.search.SearchServices;
@@ -87,6 +91,9 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 		assertThat(types.getSchemaType(Task.SCHEMA_TYPE).getSmallCode()).isEqualTo("t");
 		assertThat(types.getSchemaType(ContainerRecord.SCHEMA_TYPE).getSmallCode()).isEqualTo("c");
 		assertThat(types.getSchemaType(Facet.SCHEMA_TYPE).getSmallCode()).isNull();
+
+		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
+		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		//Administrative units
 		assertThat(getUsersWithReadAccess("unitId_10")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
@@ -209,6 +216,18 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 		assertThat(getUsersWithReadAccess("C55")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
 		assertThat(getUsersWithReadAccess("00000000394")).containsOnly("admin", "chuck", "alice");
 		assertThat(getUsersWithReadAccess("00000000397")).containsOnly("admin", "chuck", "alice", "edouard", "gandalf", "sasquatch");
+
+		SchemasRecordsServices schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
+		MetadataSchema userSchema = schemas.user.schema();
+		assertThat(userSchema.hasMetadataWithCode("authorizations")).isFalse();
+		assertThat(userSchema.hasMetadataWithCode("allauthorizations")).isFalse();
+		assertThat(userSchema.hasMetadataWithCode("alluserauthorizations")).isFalse();
+		assertThat(userSchema.hasMetadataWithCode("groupsauthorizations")).isFalse();
+
+
+		MetadataSchema groupSchema = schemas.group.schema();
+		assertThat(groupSchema.hasMetadataWithCode("authorizations")).isFalse();
+
 	}
 
 

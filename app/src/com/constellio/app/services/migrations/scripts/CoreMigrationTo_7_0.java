@@ -16,7 +16,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.entries.DataEntry;
 import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
@@ -45,7 +45,6 @@ import static com.constellio.model.entities.records.wrappers.SolrAuthorizationDe
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
-import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -128,13 +127,13 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 			KeySetMap<String, String> authCopies = buildSolrAuthorizationDetails(iterator, schemasRecordsServices,
 					appLayerFactory);
 
-			convertUsersAndGroupAuths(appLayerFactory, schemasRecordsServices, authCopies, convertedAuthDetails);
+			//convertUsersAndGroupAuths(appLayerFactory, schemasRecordsServices, authCopies, convertedAuthDetails);
 		} catch (Exception e) {
 			throw new RuntimeException("Migration failed", e);
 		}
 	}
 
-	private KeySetMap<String, String> getAuthsTargets(String collection, final AppLayerFactory appLayerFactory)
+	private KeySetMap<String, String> getAuthsTargets(final String collection, final AppLayerFactory appLayerFactory)
 			throws Exception {
 		final KeySetMap<String, String> authsTargets = new KeySetMap<>();
 
@@ -149,13 +148,16 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 				transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 				transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
 
+
 				for (Record record : records) {
+					MetadataSchema schema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
+							.getSchemaTypes(collection).getSchema(record.getSchemaCode());
 					if (!restrictedSchemaTypes.contains(record.getTypeCode())) {
-						for (String auth : record.<String>getList(Schemas.AUTHORIZATIONS)) {
+						for (String auth : record.<String>getList(schema.get("authorizations"))) {
 							authsTargets.add(auth, record.getId());
 						}
 
-						record.set(Schemas.AUTHORIZATIONS, new ArrayList<>());
+						record.set(schema.get("authorizations"), new ArrayList<>());
 						transaction.add(record);
 					}
 
@@ -163,65 +165,65 @@ public class CoreMigrationTo_7_0 implements MigrationScript {
 
 				appLayerFactory.getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(transaction);
 			}
-		}.execute(fromAllSchemasIn(collection).where(Schemas.AUTHORIZATIONS).isNotNull());
+		}.execute(fromAllSchemasIn(collection).returnAll());
 
 		return authsTargets;
 	}
 
-	private void convertUsersAndGroupAuths(final AppLayerFactory appLayerFactory,
-										   final SchemasRecordsServices schemasRecordsServices,
-										   final KeySetMap<String, String> authCopies,
-										   final Set<String> convertedAuthDetails)
-			throws Exception {
-
-		final Set<String> oldAuths = new HashSet<>();
-
-		new ActionExecutorInBatch(appLayerFactory.getModelLayerFactory().newSearchServices(), "Convert users/group auths", 1000) {
-			@Override
-			public void doActionOnBatch(List<Record> records)
-					throws Exception {
-
-				Transaction transaction = new Transaction();
-				transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-				transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
-
-				for (Record record : records) {
-					oldAuths.addAll(convertAuthsOf(record, authCopies, schemasRecordsServices, convertedAuthDetails));
-					transaction.add(record);
-				}
-
-				appLayerFactory.getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(transaction);
-			}
-		}.execute(from(schemasRecordsServices.group.schemaType(), schemasRecordsServices.user.schemaType()).returnAll());
-
-	}
-
-	private List<String> convertAuthsOf(Record record, KeySetMap<String, String> authCopies,
-										SchemasRecordsServices schemas,
-										Set<String> convertedAuthDetails) {
-		List<String> oldAuths = record.getList(Schemas.AUTHORIZATIONS);
-		List<String> newAuths = new ArrayList<>();
-
-		for (String oldAuth : oldAuths) {
-			Set<String> newCopies = authCopies.get(oldAuth);
-			newAuths.addAll(newCopies);
-
-			if (!convertedAuthDetails.contains(oldAuth)) {
-				String code = record.getTypeCode().equals(User.SCHEMA_TYPE) ? record.<String>get(schemas.user.username()) :
-							  ("group " + record.get(schemas.group.code()));
-				LOGGER.warn("No such authorization detail for auth id '" + oldAuth + "' on principal '" + code + "'");
-			}
-		}
-
-		record.set(Schemas.AUTHORIZATIONS, newAuths);
-		return oldAuths;
-	}
-
-	private List<String> findTargets(SearchServices searchServices, SchemasRecordsServices schemas,
-									 AuthorizationDetails details) {
-		return searchServices.searchRecordIds(
-				fromAllSchemasIn(details.getCollection()).where(AUTHORIZATIONS).isEqualTo(details.getId()));
-	}
+	//	private void convertUsersAndGroupAuths(final AppLayerFactory appLayerFactory,
+	//										   final SchemasRecordsServices schemasRecordsServices,
+	//										   final KeySetMap<String, String> authCopies,
+	//										   final Set<String> convertedAuthDetails)
+	//			throws Exception {
+	//
+	//		final Set<String> oldAuths = new HashSet<>();
+	//
+	//		new ActionExecutorInBatch(appLayerFactory.getModelLayerFactory().newSearchServices(), "Convert users/group auths", 1000) {
+	//			@Override
+	//			public void doActionOnBatch(List<Record> records)
+	//					throws Exception {
+	//
+	//				Transaction transaction = new Transaction();
+	//				transaction.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
+	//				transaction.getRecordUpdateOptions().setOptimisticLockingResolution(OptimisticLockingResolution.EXCEPTION);
+	//
+	//				for (Record record : records) {
+	//					oldAuths.addAll(convertAuthsOf(record, authCopies, schemasRecordsServices, convertedAuthDetails));
+	//					transaction.add(record);
+	//				}
+	//
+	//				appLayerFactory.getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(transaction);
+	//			}
+	//		}.execute(from(schemasRecordsServices.group.schemaType(), schemasRecordsServices.user.schemaType()).returnAll());
+	//
+	//	}
+	//
+	//	private List<String> convertAuthsOf(Record record, KeySetMap<String, String> authCopies,
+	//										SchemasRecordsServices schemas,
+	//										Set<String> convertedAuthDetails) {
+	//		List<String> oldAuths = record.getList(Schemas.AUTHORIZATIONS);
+	//		List<String> newAuths = new ArrayList<>();
+	//
+	//		for (String oldAuth : oldAuths) {
+	//			Set<String> newCopies = authCopies.get(oldAuth);
+	//			newAuths.addAll(newCopies);
+	//
+	//			if (!convertedAuthDetails.contains(oldAuth)) {
+	//				String code = record.getTypeCode().equals(User.SCHEMA_TYPE) ? record.<String>get(schemas.user.username()) :
+	//							  ("group " + record.get(schemas.group.code()));
+	//				LOGGER.warn("No such authorization detail for auth id '" + oldAuth + "' on principal '" + code + "'");
+	//			}
+	//		}
+	//
+	//		record.set(Schemas.AUTHORIZATIONS, newAuths);
+	//		return oldAuths;
+	//	}
+	//
+	//	private List<String> findTargets(SearchServices searchServices, SchemasRecordsServices schemas,
+	//									 AuthorizationDetails details) {
+	//		return searchServices.searchRecordIds(
+	//				fromAllSchemasIn(details.getCollection()).where(AUTHORIZATIONS).isEqualTo(details.getId()));
+	//	}
 
 	private static class AuthToConvert {
 

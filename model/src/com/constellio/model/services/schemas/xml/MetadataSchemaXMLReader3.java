@@ -11,7 +11,6 @@ import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
@@ -48,6 +47,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static com.constellio.model.entities.schemas.LegacyGlobalMetadatas.isLegacyGlobalMetadata;
+import static com.constellio.model.entities.schemas.Schemas.isGlobalMetadata;
 import static com.constellio.model.utils.EnumWithSmallCodeUtils.toEnum;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -225,7 +226,8 @@ public class MetadataSchemaXMLReader3 {
 		MetadataBuilder globalMetadataInCollectionSchema = null;
 
 		boolean inheriteGlobalMetadata = false;
-		if (Schemas.isGlobalMetadata(metadataBuilder.getLocalCode()) && collectionSchema != null
+		if ((isGlobalMetadata(metadataBuilder.getLocalCode()) || isLegacyGlobalMetadata(metadataBuilder.getLocalCode()))
+			&& collectionSchema != null
 			&& collectionSchema.hasMetadata(metadataBuilder.getLocalCode())) {
 			globalMetadataInCollectionSchema = collectionSchema.getMetadata(metadataBuilder.getLocalCode());
 			inheriteGlobalMetadata = true;

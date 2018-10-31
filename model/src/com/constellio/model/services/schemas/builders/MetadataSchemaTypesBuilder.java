@@ -357,18 +357,20 @@ public class MetadataSchemaTypesBuilder {
 
 	private void validateCopiedMetadatas() {
 		for (MetadataBuilder metadataBuilder : getAllCopiedMetadatas()) {
-			CopiedDataEntry copiedDataEntry = (CopiedDataEntry) metadataBuilder.getDataEntry();
-			String referenceMetadataCode = copiedDataEntry.getReferenceMetadata();
-			MetadataBuilder referenceMetadata = getMetadata(referenceMetadataCode);
-			String copiedMetadataCode = copiedDataEntry.getCopiedMetadata();
-			MetadataBuilder copiedMetadata = getMetadata(copiedMetadataCode);
+			if (!metadataBuilder.isMarkedForDeletion()) {
+				CopiedDataEntry copiedDataEntry = (CopiedDataEntry) metadataBuilder.getDataEntry();
+				String referenceMetadataCode = copiedDataEntry.getReferenceMetadata();
+				MetadataBuilder referenceMetadata = getMetadata(referenceMetadataCode);
+				String copiedMetadataCode = copiedDataEntry.getCopiedMetadata();
+				MetadataBuilder copiedMetadata = getMetadata(copiedMetadataCode);
 
-			referenceMetadata.markAsDependencyOfAutomaticMetadata();
-			copiedMetadata.markAsDependencyOfAutomaticMetadata();
+				referenceMetadata.markAsDependencyOfAutomaticMetadata();
+				copiedMetadata.markAsDependencyOfAutomaticMetadata();
 
-			validateCopiedMetadataMultiValues(metadataBuilder, referenceMetadataCode, referenceMetadata, copiedMetadataCode,
-					copiedMetadata);
-			validateCopiedMetadataType(metadataBuilder, copiedMetadata);
+				validateCopiedMetadataMultiValues(metadataBuilder, referenceMetadataCode, referenceMetadata, copiedMetadataCode,
+						copiedMetadata);
+				validateCopiedMetadataType(metadataBuilder, copiedMetadata);
+			}
 		}
 	}
 

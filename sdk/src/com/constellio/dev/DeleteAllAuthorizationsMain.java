@@ -86,7 +86,6 @@ public class DeleteAllAuthorizationsMain {
 			for (Record record : records) {
 
 				record.set(Schemas.REMOVED_AUTHORIZATIONS, Collections.emptyList());
-				record.set(Schemas.AUTHORIZATIONS, Collections.emptyList());
 				record.set(Schemas.IS_DETACHED_AUTHORIZATIONS, null);
 				if (record.isDirty()) {
 					transaction.add(record);

@@ -226,7 +226,7 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		recordServices.execute(transaction);
 
 		givenTimeIs(shishOClock);
-		Record record2 = new TestRecord(zeSchema, "record2").set(Schemas.FOLLOWERS, asList(aliceWonderland));
+		Record record2 = new TestRecord(zeSchema, "record2");
 		transaction = new Transaction().setUser(users.aliceIn(zeCollection));
 		transaction.add(record2);
 		transaction.add(new TestRecord(zeSchema, "record1"));
