@@ -36,6 +36,7 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
@@ -472,7 +473,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			content.checkIn();
 			getModelLayerFactory().newLoggingServices().returnRecord(record, getCurrentUser());
 			try {
-				presenterUtils.recordServices().update(record);
+				presenterUtils.recordServices().update(record, new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
 				currentDocument = record;
 				documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, actionsComponent.getSessionContext());
 
@@ -521,7 +522,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			content.checkOut(presenterUtils.getCurrentUser());
 			getModelLayerFactory().newLoggingServices().borrowRecord(record, getCurrentUser(), TimeProvider.getLocalDateTime());
 			try {
-				presenterUtils.recordServices().update(record);
+				presenterUtils.recordServices().update(record, new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
 				currentDocument = record;
 				documentVO = voBuilder.build(record, VIEW_MODE.DISPLAY, sessionContext);
 
