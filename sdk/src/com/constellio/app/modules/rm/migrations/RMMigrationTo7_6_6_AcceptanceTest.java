@@ -211,44 +211,6 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 		assertThat(getUsersWithReadAccess("00000000397")).containsOnly("admin", "chuck", "alice", "edouard", "gandalf", "sasquatch");
 	}
 
-	private void buildTest() {
-
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		System.out.println("//Administrative units");
-		for (AdministrativeUnit administrativeUnit : rm.getAllAdministrativeUnits()) {
-			List<String> usernames = getUsersWithReadAccess(administrativeUnit.getId());
-
-			String str = "";
-			for (String username : usernames) {
-				if (!str.isEmpty()) {
-					str += ", ";
-				}
-				str += "\"";
-				str += username;
-				str += "\"";
-			}
-
-			System.out.println("assertThat(getUsersWithReadAccess(\"" + administrativeUnit.getId() + "\")).containsOnly(" + str + ");");
-		}
-
-		System.out.println("//Administrative units");
-		for (Folder folder : rm.searchFolders(from(rm.folder.schemaType()).returnAll())) {
-			List<String> usernames = getUsersWithReadAccess(folder.getId());
-
-			String str = "";
-			for (String username : usernames) {
-				if (!str.isEmpty()) {
-					str += ", ";
-				}
-				str += "\"";
-				str += username;
-				str += "\"";
-			}
-
-			System.out.println("assertThat(getUsersWithReadAccess(\"" + folder.getId() + "\")).containsOnly(" + str + ");");
-		}
-
-	}
 
 	private List<String> getUsersWithReadAccess(String id) {
 
