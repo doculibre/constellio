@@ -20,6 +20,11 @@ public class CoreMigrationTo_8_1_999 implements MigrationScript {
 						AppLayerFactory appLayerFactory)
 			throws Exception {
 		new CoreSchemaAlterationFor_8_0(collection, migrationResourcesProvider, appLayerFactory).migrate();
+
+		//SchemasRecordsServices schemas = new SchemasRecordsServices(collection, mode);
+
+		//for (Authorization authorization :)
+
 	}
 
 	class CoreSchemaAlterationFor_8_0 extends MetadataSchemasAlterationHelper {
@@ -31,8 +36,11 @@ public class CoreMigrationTo_8_1_999 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			typesBuilder.getSchema(SolrAuthorizationDetails.DEFAULT_SCHEMA).create(SolrAuthorizationDetails.PRINCIPALS)
-					.setType(STRING).setMultivalue(true);
+
+			if (!typesBuilder.getSchema(SolrAuthorizationDetails.DEFAULT_SCHEMA).hasMetadata(SolrAuthorizationDetails.PRINCIPALS)) {
+				typesBuilder.getSchema(SolrAuthorizationDetails.DEFAULT_SCHEMA).create(SolrAuthorizationDetails.PRINCIPALS)
+						.setType(STRING).setMultivalue(true);
+			}
 		}
 	}
 }

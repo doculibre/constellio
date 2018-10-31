@@ -107,6 +107,8 @@ public class CoreMigrationTo_7_6_6 implements MigrationScript {
 				authorizationSchema.createUndeletable(SolrAuthorizationDetails.TARGET_SCHEMA_TYPE).setType(STRING);
 				authorizationSchema.createUndeletable(SolrAuthorizationDetails.LAST_TOKEN_RECALCULATE).setType(DATE);
 			}
+			typesBuilder.getSchema(SolrAuthorizationDetails.DEFAULT_SCHEMA).create(SolrAuthorizationDetails.PRINCIPALS)
+					.setType(STRING).setMultivalue(true);
 
 		}
 	}
