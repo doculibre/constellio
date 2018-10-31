@@ -24,6 +24,7 @@ import com.constellio.sdk.tests.SDKFoldersLocator;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
@@ -87,6 +88,143 @@ public class RMMigrationTo7_6_6_AcceptanceTest extends ConstellioTest {
 		assertThat(types.getSchemaType(ContainerRecord.SCHEMA_TYPE).getSmallCode()).isEqualTo("c");
 		assertThat(types.getSchemaType(Facet.SCHEMA_TYPE).getSmallCode()).isNull();
 
+		//Administrative units
+		assertThat(getUsersWithReadAccess("unitId_10")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("unitId_20")).containsOnly("admin", "chuck", "alice");
+		assertThat(getUsersWithReadAccess("unitId_30")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("unitId_10a")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("unitId_11")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("unitId_12")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("unitId_20d")).containsOnly("admin", "chuck", "alice");
+		assertThat(getUsersWithReadAccess("unitId_20e")).containsOnly("admin", "chuck", "alice");
+		assertThat(getUsersWithReadAccess("unitId_30c")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("unitId_11b")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("unitId_12b")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("unitId_12c")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		//Administrative units
+		assertThat(getUsersWithReadAccess("A01")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A02")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A03")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A04")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A05")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A06")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A07")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A08")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A09")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A10")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A11")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A12")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A13")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A14")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A15")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A16")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A17")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A18")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A19")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A20")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A21")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A22")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A23")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A24")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A25")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A26")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A27")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A42")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A43")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A44")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A45")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A46")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A47")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A48")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A49")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A50")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A51")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A52")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A53")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A54")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A55")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A56")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A57")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A58")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A59")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A79")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A80")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A81")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A82")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A83")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A84")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A85")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A86")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A87")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A88")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A89")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A90")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A91")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A92")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A93")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A94")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A95")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("A96")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "gandalf");
+		assertThat(getUsersWithReadAccess("B01")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B02")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B03")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B04")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B05")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B06")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B07")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B08")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B09")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B30")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B31")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B32")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B33")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B34")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B35")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B50")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B51")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B52")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B53")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B54")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("B55")).containsOnly("admin", "bob", "charles", "chuck", "dakota", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C01")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C02")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C03")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C04")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C05")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C06")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C07")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C08")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C09")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C30")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C31")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C32")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C33")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C34")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C35")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C50")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C51")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C52")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C53")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C54")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("C55")).containsOnly("admin", "bob", "chuck", "alice", "edouard", "gandalf");
+		assertThat(getUsersWithReadAccess("00000000394")).containsOnly("admin", "chuck", "alice");
+		assertThat(getUsersWithReadAccess("00000000397")).containsOnly("admin", "chuck", "alice", "edouard", "gandalf", "sasquatch");
+	}
+
+
+	private List<String> getUsersWithReadAccess(String id) {
+
+		Record record = record(id);
+
+		List<String> usersWithReadAccess = new ArrayList<>();
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		for (User user : rm.getAllUsers()) {
+			if (user.hasReadAccess().on(record)) {
+				usersWithReadAccess.add(user.getUsername());
+			}
+		}
+
+		return usersWithReadAccess;
 	}
 
 	private Class<?> calculatorOf(Metadata metadata) {
