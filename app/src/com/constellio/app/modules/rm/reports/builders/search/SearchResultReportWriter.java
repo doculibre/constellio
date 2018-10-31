@@ -1,33 +1,22 @@
 package com.constellio.app.modules.rm.reports.builders.search;
 
+import com.constellio.app.modules.rm.reports.builders.excel.BaseExcelReportWriter;
 import com.constellio.app.modules.rm.reports.model.search.SearchResultReportModel;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.conf.FoldersLocator;
-import jxl.CellView;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
-import jxl.write.Label;
-import jxl.write.Number;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableFont;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.Locale;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.safety.Whitelist;
+public class SearchResultReportWriter extends BaseExcelReportWriter implements ReportWriter {
 
-public class SearchResultReportWriter implements ReportWriter {
-	private static final WritableFont.FontName FONT = WritableFont.TIMES;
-	private static final int FONT_SIZE = 10;
 	SearchResultReportModel model;
 	FoldersLocator foldersLocator;
 	Locale locale;
@@ -71,68 +60,4 @@ public class SearchResultReportWriter implements ReportWriter {
 			throw new RuntimeException(e);
 		}
 	}
-
-	private void addHeader(WritableSheet sheet, List<String> columnsTitles)
-			throws WriteException {
-		WritableCellFormat boldFont = new WritableCellFormat(new WritableFont(FONT, FONT_SIZE, WritableFont.BOLD));
-
-		CellView cv = new CellView();
-		cv.setFormat(boldFont);
-		cv.setAutosize(true);
-		for (int i = 0; i < columnsTitles.size(); i++) {
-			String columnTitle = columnsTitles.get(i);
-			addString(sheet, boldFont, i, 0, columnTitle);
-		}
-	}
-
-	private void createContent(WritableSheet sheet, List<List<Object>> lines)
-			throws WriteException {
-		WritableCellFormat font = new WritableCellFormat(new WritableFont(FONT, FONT_SIZE));
-
-		for (int lineNumber = 0; lineNumber < lines.size(); lineNumber++) {
-			List<Object> currentLine = lines.get(lineNumber);
-			writeLine(sheet, currentLine, lineNumber + 1, font);
-		}
-	}
-
-	private void writeLine(WritableSheet sheet, List<Object> currentLine, int lineNumber, WritableCellFormat font)
-			throws WriteException {
-		CellView cv = new CellView();
-		cv.setFormat(font);
-		cv.setAutosize(true);
-		for (int columnNumber = 0; columnNumber < currentLine.size(); columnNumber++) {
-			Object cellObject = currentLine.get(columnNumber);
-			if (cellObject == null) {
-				continue;
-			}
-			if (cellObject instanceof Float ||
-				cellObject instanceof Integer ||
-				cellObject instanceof Double) {
-				addNumber(sheet, font, columnNumber, lineNumber, new Double(cellObject.toString()));
-			} else {
-				addString(sheet, font, columnNumber, lineNumber, cellObject.toString());
-			}
-		}
-	}
-
-	private void addString(WritableSheet sheet, WritableCellFormat font, int column, int row, String rawText)
-			throws WriteException {
-		String htmlStripped = "";
-		if(rawText != null) {
-			StringBuilder sb = new StringBuilder();
-			final Document.OutputSettings outputSettings = new Document.OutputSettings().prettyPrint(false);
-			String textWithFixedAccents = Jsoup.clean(rawText, "", Whitelist.none(), outputSettings);
-			htmlStripped = Jsoup.clean(textWithFixedAccents, "", Whitelist.none(), outputSettings);
-		}
-		Label label = new Label(column, row, htmlStripped, font);
-		sheet.addCell(label);
-	}
-
-	private void addNumber(WritableSheet sheet, WritableCellFormat font, int column, int row,
-						   double d)
-			throws WriteException {
-		Number number = new Number(column, row, d, font);
-		sheet.addCell(number);
-	}
-
 }
