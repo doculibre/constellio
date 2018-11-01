@@ -210,6 +210,9 @@ public class CoreViews {
 	public void advancedSearchReplay(String searchId) {
 		navigator.navigateTo(NavigatorConfigurationService.ADVANCED_SEARCH + "/s/" + searchId);
 	}
+	public void displaySystemInfos() {
+		navigator.navigateTo(NavigatorConfigurationService.DISPLAY_INFOS);
+	}
 
 	public void taxonomySearch(String taxonomyCode, String queryExpression) {
 		Map<String, String> params = new HashMap<>();

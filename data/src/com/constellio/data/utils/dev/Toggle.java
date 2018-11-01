@@ -61,6 +61,7 @@ public class Toggle {
 
 	public static AvailableToggle SHOW_UNREAD_TASKS = newToggle(false);
 
+	public static AvailableToggle RETURN_EMPTY_VALUE_WHEN_KEY_IS_MISSING = newToggle(false);
 
 	// ------------------------------------------------
 

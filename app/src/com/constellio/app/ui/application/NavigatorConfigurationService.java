@@ -233,6 +233,7 @@ public class NavigatorConfigurationService implements Serializable {
 	public static final String PROPERTIES_ANALYSER = "propertiesAnalyser";
 	public static final String SUMMARY_CONFIGURATOR = "summaryconfig";
 	public static final String FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR = "FolderUniqueKeyMetadataConfigurator";
+	public static final String DISPLAY_INFOS = "displayInfos";
 
 	private List<ViewProvider> viewProviders = new ArrayList<>();
 
@@ -365,6 +366,7 @@ public class NavigatorConfigurationService implements Serializable {
 		viewProviders.add(new ClassBasedViewProvider(THESAURUS_CONFIGURATION, ThesaurusConfigurationViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(SUMMARY_CONFIGURATOR, SummaryConfigViewImpl.class));
 		viewProviders.add(new ClassBasedViewProvider(FOLDER_UNIQUE_KEY_METADATA_CONFIGURATOR, FolderUniqueKeyConfiguratorViewImpl.class));
+
 	}
 
 	public void configure(Navigator navigator) {
