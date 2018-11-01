@@ -148,7 +148,7 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		transaction.add(aDocument);
 		recordServices.execute(transaction);
 
-		assertThat(deleteService.isLogicallyThenPhysicallyDeletable(childConcept, users.adminIn(zeCollection))).isFalse();
+		assertThat(deleteService.isLogicallyThenPhysicallyDeletable(childConcept, users.adminIn(zeCollection)).isEmpty()).isFalse();
 		//		assertThat(deleteService.isLogicallyDeletable(childConcept, users.adminIn(zeCollection))).isTrue();
 
 		//		newWebDriver();

@@ -25,8 +25,8 @@ public class RecordExtension {
 		return new ExtensionValidationErrors(ExtensionBooleanResult.NOT_APPLICABLE);
 	}
 
-	public ExtensionBooleanResult isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent event) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+	public ExtensionValidationErrors isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent event) {
+		return new ExtensionValidationErrors(ExtensionBooleanResult.NOT_APPLICABLE);
 	}
 
 	public void recordInCreationBeforeValidationAndAutomaticValuesCalculation(

@@ -265,9 +265,20 @@ public class ModelLayerCollectionExtensions {
 		return recordExtensions.getBooleanValue(true, new BooleanCaller<RecordExtension>() {
 			@Override
 			public ExtensionBooleanResult call(RecordExtension behavior) {
-				return behavior.isPhysicallyDeletable(event);
+				return behavior.isPhysicallyDeletable(event).getExtensionBooleanResult();
 			}
 		});
+	}
+
+	public ValidationErrors getPhysicalDeletionValidationErrors(RecordPhysicalDeletionValidationEvent event) {
+		ValidationErrors validationErrors = new ValidationErrors();
+		for (RecordExtension extension : recordExtensions.getExtensions()) {
+			ExtensionValidationErrors extensionValidationErrors = extension.isPhysicallyDeletable(event);
+			if (extensionValidationErrors.getExtensionBooleanResult() != null && extensionValidationErrors.getExtensionBooleanResult().equals(ExtensionBooleanResult.FALSE)) {
+				return extensionValidationErrors.getValidationErrors();
+			}
+		}
+		return validationErrors;
 	}
 
 	public boolean isPutInTrashBeforePhysicalDelete(final SchemaEvent event) {

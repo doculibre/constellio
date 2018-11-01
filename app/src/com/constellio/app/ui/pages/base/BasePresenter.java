@@ -288,8 +288,7 @@ public abstract class BasePresenter<T extends BaseView> extends Observable imple
 	public ValidationErrors validateDeletable(RecordVO entity) {
 		Record record = presenterService().getRecord(entity.getId());
 		User user = getCurrentUser();
-		return new ValidationErrors();
-		//		return recordServices().isLogicallyThenPhysicallyDeletable(record, user);
+		return recordServices().validateLogicallyThenPhysicallyDeletable(record, user);
 	}
 
 	protected NavigationConfig navigationConfig() {

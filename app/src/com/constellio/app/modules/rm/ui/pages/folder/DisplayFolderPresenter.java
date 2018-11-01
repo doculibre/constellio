@@ -51,6 +51,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
@@ -64,7 +65,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
-import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentFactory;
@@ -647,8 +647,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void deleteFolderButtonClicked(String reason) {
 		String parentId = folderVO.get(Folder.PARENT_FOLDER);
 		Record record = toRecord(folderVO);
-		ValidationErrors validationErrors = recordServices.validateLogicallyDeletable(record, getCurrentUser());
-		if (validationErrors.isEmpty()) {
+		ValidationErrors validateLogicallyDeletable = recordServices.validateLogicallyDeletable(record, getCurrentUser());
+		if (validateLogicallyDeletable.isEmpty()) {
 			appLayerFactory.getExtensions().forCollection(collection)
 					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
 			delete(record, reason, false, WAIT_ONE_SECOND);
@@ -658,12 +658,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				navigate().to().home();
 			}
 		} else {
-			StringBuffer stringBuffer = new StringBuffer();
-			for (ValidationError validationError : validationErrors.getValidationErrors()) {
-				stringBuffer.append(validationError.getValidatorErrorCode() + "\n");
-			}
-			view.showErrorMessage(stringBuffer.toString());
-			//			view.showErrorMessage($("ListSchemaRecordsView.cannotDelete"));
+			view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(validateLogicallyDeletable));
 		}
 	}
 

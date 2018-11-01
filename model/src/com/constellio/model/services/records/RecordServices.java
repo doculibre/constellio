@@ -140,7 +140,7 @@ public interface RecordServices {
 
 	void restore(Record record, User user);
 
-	boolean isPhysicallyDeletable(Record record, User user);
+	ValidationErrors validatePhysicallyDeletable(Record record, User user);
 
 	void physicallyDelete(Record record, User user);
 
@@ -152,7 +152,7 @@ public interface RecordServices {
 
 	boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user);
 
-	boolean isLogicallyThenPhysicallyDeletable(Record record, User user);
+	ValidationErrors validateLogicallyThenPhysicallyDeletable(Record record, User user);
 
 	void logicallyDelete(Record record, User user);
 

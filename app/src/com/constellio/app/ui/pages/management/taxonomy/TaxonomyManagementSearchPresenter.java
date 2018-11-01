@@ -173,8 +173,7 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 	public ValidationErrors validateDeletable(RecordVO entity) {
 		Record record = presenterService().getRecord(entity.getId());
 		User user = getCurrentUser();
-		return new ValidationErrors();
-		//		return recordServices().isLogicallyThenPhysicallyDeletable(record, user);
+		return recordServices().validateLogicallyThenPhysicallyDeletable(record, user);
 	}
 
 	public String getDefaultOrderField() {

@@ -136,7 +136,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	public void givenDeleteButtonClickedThenDeleteTheListAndReturnToMainPage() {
 		RecordServices recordServices = factories.getRecordServices();
 		when(factories.getModelLayerFactory().newLoggingServices()).thenReturn(mock(LoggingServices.class));
-		when(recordServices.isLogicallyThenPhysicallyDeletable(record, user)).thenReturn(true);
+		when(recordServices.validateLogicallyThenPhysicallyDeletable(record, user).isEmpty()).thenReturn(true);
 
 		presenter.deleteButtonClicked();
 		verify(factories.getRecordServices(), times(1))

@@ -173,17 +173,17 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 		//		assertThat(recordServices.validateLogicallyDeletable(records.getUnit30c().getWrappedRecord(), admin)).isFalse();
 		//		assertThat(recordServices.validateLogicallyDeletable(records.getUnit30().getWrappedRecord(), admin)).isFalse();
 
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit10().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit10a().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit11().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit11b().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit12().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit12b().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit12c().getWrappedRecord(), admin)).isTrue();
-
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit20().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit30c().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit30().getWrappedRecord(), admin)).isFalse();
+		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit10().getWrappedRecord(), admin)).isFalse();
+		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit10a().getWrappedRecord(), admin)).isFalse();
+		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit11().getWrappedRecord(), admin)).isFalse();
+		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit11b().getWrappedRecord(), admin)).isFalse();
+		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit12().getWrappedRecord(), admin)).isFalse();
+		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit12b().getWrappedRecord(), admin)).isFalse();
+		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit12c().getWrappedRecord(), admin)).isTrue();
+		//
+		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit20().getWrappedRecord(), admin)).isFalse();
+		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit30c().getWrappedRecord(), admin)).isFalse();
+		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit30().getWrappedRecord(), admin)).isFalse();
 	}
 
 	private org.assertj.core.api.BooleanAssert assertThatLogicallyDeletable(RecordWrapper recordWrapper,
@@ -195,7 +195,7 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 	private org.assertj.core.api.BooleanAssert assertThatLogicallyThenPhysicallyDeletable(RecordWrapper recordWrapper,
 																						  User user) {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-		return assertThat(recordServices.isLogicallyThenPhysicallyDeletable(recordWrapper.getWrappedRecord(), user));
+		return assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(recordWrapper.getWrappedRecord(), user).isEmpty());
 	}
 
 	@Test

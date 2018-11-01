@@ -285,9 +285,8 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public boolean isPhysicallyDeletable(Record record,
-										 User user) {
-		return recordServices.isPhysicallyDeletable(record, user);
+	public ValidationErrors validatePhysicallyDeletable(Record record, User user) {
+		return recordServices.validatePhysicallyDeletable(record, user);
 	}
 
 	@Override
@@ -319,9 +318,8 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public boolean isLogicallyThenPhysicallyDeletable(Record record,
-													  User user) {
-		return recordServices.isLogicallyThenPhysicallyDeletable(record, user);
+	public ValidationErrors validateLogicallyThenPhysicallyDeletable(Record record, User user) {
+		return recordServices.validateLogicallyThenPhysicallyDeletable(record, user);
 	}
 
 	@Override

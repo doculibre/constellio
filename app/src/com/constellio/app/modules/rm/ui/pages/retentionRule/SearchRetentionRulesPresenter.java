@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -19,7 +20,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class SearchRetentionRulesPresenter extends SingleSchemaBasePresenter<SearchRetentionRulesView> {
@@ -71,7 +71,7 @@ public class SearchRetentionRulesPresenter extends SingleSchemaBasePresenter<Sea
 			delete(record, false);
 			view.navigate().to(RMViews.class).listRetentionRules();
 		} else {
-			view.showErrorMessage($("ListRetentionRulesView.cannotDelete"));
+			view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(validationErrors));
 		}
 	}
 

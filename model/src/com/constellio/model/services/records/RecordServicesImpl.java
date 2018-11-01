@@ -1344,13 +1344,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 		newRecordDeleteServices().restore(record, user);
 	}
 
-	public boolean isPhysicallyDeletable(Record record, User user) {
+	public ValidationErrors validatePhysicallyDeletable(Record record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
 		return newRecordDeleteServices().isPhysicallyDeletable(record, user);
 	}
 
-	public boolean isPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
+	public ValidationErrors validatePhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
 		return newRecordDeleteServices().isPhysicallyDeletable(record, user, options);
@@ -1385,13 +1385,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return newRecordDeleteServices().isLogicallyDeletableAndIsSkipValidation(record, user, new RecordLogicalDeleteOptions());
 	}
 
-	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user) {
+	public ValidationErrors validateLogicallyThenPhysicallyDeletable(Record record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
 		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user);
 	}
 
-	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
+	public ValidationErrors isLogicallyThenPhysicallyDeletable(Record record, User user,
+															   RecordPhysicalDeleteOptions options) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
 		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user, options);
