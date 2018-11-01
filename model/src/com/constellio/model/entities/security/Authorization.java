@@ -1,24 +1,21 @@
 package com.constellio.model.entities.security;
 
+import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Authorization {
 
-	AuthorizationDetails detail;
-
-	List<String> grantedToPrincipals = new ArrayList<>();
+	SolrAuthorizationDetails detail;
 
 	public Authorization() {
 	}
 
-	public Authorization(AuthorizationDetails detail, List<String> grantedToPrincipals) {
+	public Authorization(SolrAuthorizationDetails detail) {
 		this.detail = detail;
-		this.grantedToPrincipals = grantedToPrincipals;
 	}
 
 	public AuthorizationDetails getDetail() {
@@ -27,7 +24,7 @@ public class Authorization {
 
 
 	public List<String> getGrantedToPrincipals() {
-		return grantedToPrincipals;
+		return detail.getPrincipals();
 	}
 
 	public String getGrantedOnRecord() {
@@ -46,6 +43,6 @@ public class Authorization {
 
 	@Override
 	public String toString() {
-		return "Authorization{ " + detail + " granted to" + grantedToPrincipals + " on " + detail.getTarget() + "}";
+		return "Authorization{ " + detail + " granted to" + detail.getPrincipals() + " on " + detail.getTarget() + "}";
 	}
 }

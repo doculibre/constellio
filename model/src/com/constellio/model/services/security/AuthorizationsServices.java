@@ -104,12 +104,11 @@ public class AuthorizationsServices {
 		if (id == null) {
 			throw new IllegalArgumentException("id is null");
 		}
-		AuthorizationDetails authDetails = getDetails(collection, id);
+		SolrAuthorizationDetails authDetails = getDetails(collection, id);
 		if (authDetails == null) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(id);
 		}
-		List<String> grantedToPrincipals = authDetails.getPrincipals();
-		return new Authorization(authDetails, grantedToPrincipals);
+		return new Authorization(authDetails);
 	}
 
 	public List<User> getUsersWithGlobalPermissionInCollection(String permission, String collection) {
@@ -273,7 +272,7 @@ public class AuthorizationsServices {
 				request.getStart(), request.getEnd(), request.isOverridingInheritedAuths(), request.isNegative())
 				.setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
 		details.setPrincipals(principalToRecordIds(schemas(record.getCollection()), request.getPrincipals()));
-		return add(new Authorization(details, request.getPrincipals()), request.getExecutedBy());
+		return add(new Authorization(details), request.getExecutedBy());
 	}
 
 	public String add(AuthorizationAddRequest request, User userAddingTheAuth) {
@@ -422,7 +421,7 @@ public class AuthorizationsServices {
 
 	}
 
-	private AuthorizationDetails getDetails(String collection, String id) {
+	private SolrAuthorizationDetails getDetails(String collection, String id) {
 		try {
 			return schemas(collection).getSolrAuthorizationDetails(id);
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
@@ -445,6 +444,7 @@ public class AuthorizationsServices {
 	 */
 	public AuthorizationModificationResponse execute(AuthorizationModificationRequest request) {
 
+		Authorization authorizationBefore = getAuthorization(request.getCollection(), request.getAuthorizationId());
 		Authorization authorization = getAuthorization(request.getCollection(), request.getAuthorizationId());
 		Record record = recordServices.getDocumentById(request.getRecordId());
 
@@ -460,7 +460,7 @@ public class AuthorizationsServices {
 			}
 
 			try {
-				loggingServices.modifyPermission(authorization, authorizationAfter, record, request.getExecutedBy());
+				loggingServices.modifyPermission(authorizationBefore, authorizationAfter, record, request.getExecutedBy());
 			} catch (NoSuchAuthorizationWithId e) {
 				//No problemo
 			}
@@ -636,10 +636,9 @@ public class AuthorizationsServices {
 
 		List<Authorization> authorizations = new ArrayList<>();
 		for (String authId : authIds) {
-			AuthorizationDetails authDetails = getDetails(record.getCollection(), authId);
+			SolrAuthorizationDetails authDetails = getDetails(record.getCollection(), authId);
 			if (authDetails != null) {
-				List<String> grantedToPrincipals = authDetails.getPrincipals();
-				authorizations.add(new Authorization(authDetails, grantedToPrincipals));
+				authorizations.add(new Authorization(authDetails));
 			} else {
 				LOGGER.error("Missing authorization '" + authId + "'");
 			}
