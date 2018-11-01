@@ -27,7 +27,7 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 
-public class User2AcceptanceTest extends ConstellioTest {
+public class UserMetadataSecurityAcceptanceTest extends ConstellioTest {
 
 	Users users = new Users();
 	RecordServices recordServices;

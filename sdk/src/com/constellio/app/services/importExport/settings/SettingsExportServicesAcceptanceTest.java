@@ -1,27 +1,5 @@
 package com.constellio.app.services.importExport.settings;
 
-import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.assertj.core.api.ListAssert;
-import org.assertj.core.groups.Tuple;
-import org.jdom2.Document;
-import org.jdom2.output.Format;
-import org.jdom2.output.XMLOutputter;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.importExport.settings.model.ImportedCollectionSettings;
@@ -31,6 +9,7 @@ import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedTab;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileReader;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
@@ -48,6 +27,31 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
+import org.assertj.core.api.ListAssert;
+import org.assertj.core.groups.Tuple;
+import org.jdom2.Document;
+import org.jdom2.input.DOMBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.sdk.tests.TestUtils.extractingSimpleCodeAndParameters;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.fail;
 
 public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 
@@ -371,13 +375,11 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
 			xmlOutputter.output(document, fileOutputStream);
 		}
-
-		System.out.println("File Saved!");
 	}
 
 	@Test
 	public void givenAccessRestrictionOnMetadataOFFolderDefaultSchemaWhenExportingThenAccessRestrictionAreOK()
-			throws ValidationException, IOException {
+			throws ValidationException, IOException, ParserConfigurationException, SAXException {
 
 		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
 			@Override
@@ -424,6 +426,28 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
 			xmlOutputter.output(document, fileOutputStream);
 		}
+
+		// Test read wrtie requiredReadRole.
+		org.w3c.dom.Document w3cDocument = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(outputFile);
+
+		document = new DOMBuilder().build(w3cDocument);
+
+		SettingsXMLFileReader settingsXMLFileReader = new SettingsXMLFileReader(document, zeCollection, getModelLayerFactory());
+		ImportedSettings importedSettings = settingsXMLFileReader.read();
+		List<ImportedType> importedTypesList = importedSettings.getCollectionsSettings().get(0).getTypes();
+
+		boolean typeFound = false;
+
+		for(ImportedType importedType : importedTypesList) {
+			if(importedType.getCode().equals(Folder.SCHEMA_TYPE))  {
+				typeFound = true;
+				ImportedMetadata importedMetadata = importedType.getDefaultSchema().getMetadata("custommetadata");
+				assertThat(importedMetadata.getRequiredReadRoles().get(0)).isEqualTo("RGI");
+				assertThat(importedMetadata.getRequiredReadRoles().get(1)).isEqualTo("ADM");
+			}
+		}
+
+		assertThat(typeFound).isTrue();
 
 		System.out.println("File Saved!");
 	}

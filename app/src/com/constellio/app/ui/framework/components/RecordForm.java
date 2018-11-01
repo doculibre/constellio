@@ -3,10 +3,8 @@ package com.constellio.app.ui.framework.components;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.items.RecordVOItem;
-import com.constellio.app.utils.MetadataUtil;
-import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.app.ui.util.SchemaVOUtils;
 import com.constellio.model.frameworks.validation.ValidationError;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.vaadin.data.Item;
@@ -50,21 +48,20 @@ public abstract class RecordForm extends BaseForm<RecordVO> {
 	private static List<FieldAndPropertyId> buildFields(RecordVO recordVO, RecordFieldFactory formFieldFactory) {
 		List<FieldAndPropertyId> fieldsAndPropertyIds = new ArrayList<FieldAndPropertyId>();
 		for (MetadataVO metadataVO : recordVO.getFormMetadatas()) {
-			if(!recordVO.getMetadataCodes().contains(metadataVO.getCode())) {
-				continue;
-			}
+			if(recordVO.getMetadataCodes().contains(metadataVO.getCode())) {
 
-			Field<?> field = formFieldFactory.build(recordVO, metadataVO);
-			if (field != null) {
-				if (!isVisibleField(metadataVO, recordVO) || !MetadataUtil.isMetadataVOAccessbile(metadataVO, recordVO.getExcludedMetadataCodeList())) {
-					field.setVisible(false);
+				Field<?> field = formFieldFactory.build(recordVO, metadataVO);
+				if (field != null) {
+					if (!isVisibleField(metadataVO, recordVO) || !SchemaVOUtils.isMetadataPresentInList(metadataVO, recordVO.getExcludedMetadataCodeList())) {
+						field.setVisible(false);
+					}
+					if (metadataVO.isUnmodifiable() && recordVO.isSaved()) {
+						field.setReadOnly(true);
+					}
+					field.addStyleName(STYLE_FIELD);
+					field.addStyleName(STYLE_FIELD + "-" + metadataVO.getCode());
+					fieldsAndPropertyIds.add(new FieldAndPropertyId(field, metadataVO));
 				}
-				if (metadataVO.isUnmodifiable() && recordVO.isSaved()) {
-					field.setReadOnly(true);
-				}
-				field.addStyleName(STYLE_FIELD);
-				field.addStyleName(STYLE_FIELD + "-" + metadataVO.getCode());
-				fieldsAndPropertyIds.add(new FieldAndPropertyId(field, metadataVO));
 			}
 		}
 		return fieldsAndPropertyIds;
