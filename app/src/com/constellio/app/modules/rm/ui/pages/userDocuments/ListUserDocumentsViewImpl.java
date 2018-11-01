@@ -101,7 +101,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 			@Override
 			public void drop(DragAndDropEvent event) {
-				if (presenter.isSpaceLimitReached(event, userContentContainer)) {
+				if (presenter.isSpaceLimitReached(event)) {
 					showErrorMessage($("ListUserDocumentsView.spaceLimitReached"));
 				} else {
 					super.drop(event);
@@ -230,11 +230,10 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 			}
 		};
 		deleteAllButton.addStyleName(ValoTheme.BUTTON_LINK);
-		if (presenter.quotaSpaceConfigIsActivated()) {
+		if (presenter.isQuotaSpaceConfigActivated()) {
 			quotaSpaceInfo = new Label(
-					"<p style=\"color:green\">" + $("ListUserDocumentsView.availableSpaceMessage", presenter.getAvailableSpace(userContentContainer))
-					+ "</p>",
-					ContentMode.HTML);
+					"<p style=\"color:green\">" + $("ListUserDocumentsView.availableSpaceMessage",
+							presenter.getAvailableSpace()) + "</p>", ContentMode.HTML);
 			mainLayout.addComponents(multiFileUpload, quotaSpaceInfo, deleteAllButton, userContentSelectTableAdapter);
 		} else {
 			mainLayout.addComponents(multiFileUpload, deleteAllButton, userContentSelectTableAdapter);
@@ -311,9 +310,9 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	}
 
 	private void refreshAvailableSpace() {
-		if (presenter.quotaSpaceConfigIsActivated()) {
+		if (presenter.isQuotaSpaceConfigActivated()) {
 			Label quotaSpaceInfoAferRefresh = new Label(
-					"<p style=\"color:green\">" + $("ListUserDocumentsView.availableSpaceMessage", presenter.getAvailableSpace(userContentContainer))
+					"<p style=\"color:green\">" + $("ListUserDocumentsView.availableSpaceMessage", presenter.getAvailableSpace())
 					+ "</p>",
 					ContentMode.HTML);
 			mainLayout.replaceComponent(quotaSpaceInfo, quotaSpaceInfoAferRefresh);

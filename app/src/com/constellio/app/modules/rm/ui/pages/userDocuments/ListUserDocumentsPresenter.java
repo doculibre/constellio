@@ -1,6 +1,5 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
@@ -18,7 +17,6 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserDocumentToVOBuilder;
 import com.constellio.app.ui.framework.builders.UserFolderToVOBuilder;
 import com.constellio.app.ui.framework.components.content.UpdatableContentVersionPresenter;
-import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -32,13 +30,13 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
-import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.icap.IcapException;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.constellio.model.services.users.UserDocumentsServices;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.ui.DragAndDropWrapper;
@@ -51,7 +49,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -396,54 +393,23 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		return updatedUserDocument.getContent();
 	}
 
-	public double getAvailableSpace(RecordVOLazyContainer userContentContainer) {
-		List<RecordVO> records = new ArrayList<>();
-		double usedSpace = 0;
-		int size = userContentContainer.size();
-		for (int recordNumber = 0; recordNumber < size; recordNumber++) {
-			records.add(userContentContainer.getRecordVO(recordNumber));
-		}
-		for (RecordVO recordVO : records) {
-			if (recordVO instanceof UserDocumentVO) {
-				UserDocumentVO userDocumentVO = (UserDocumentVO) recordVO;
-				ContentVersionVO contentVersionVO = userDocumentVO.getContent();
-				usedSpace = contentVersionVO.getLength() + usedSpace;
-			}
-		}
-		double availableSpace = getSpaceQuota() - convertToMegaByte(usedSpace);
-		if (availableSpace < 0) {
-			return 0;
-		}
-		return availableSpace;
+	public boolean isQuotaSpaceConfigActivated() {
+		return new UserDocumentsServices(modelLayerFactory).isQuotaSpaceConfigActivated();
 	}
 
-	public boolean quotaSpaceConfigIsActivated() {
-		return getSpaceQuota() >= 0;
+	public double getAvailableSpace() {
+		return new UserDocumentsServices(modelLayerFactory).getAvailableSpaceInMegaBytes(getCurrentUser().getUsername(), collection);
 	}
 
-	private int getSpaceQuota() {
-		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
-		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-		return rmConfigs.getSpaceQuotaForUserDocuments();
-	}
-
-	private double convertToMegaByte(double valueInBytes) {
-		return valueInBytes * Math.pow(10, -6);
-	}
-
-	public boolean isSpaceLimitReached(DragAndDropEvent event, RecordVOLazyContainer userContentContainer) {
-		Double totalLength = 0.0;
+	public boolean isSpaceLimitReached(DragAndDropEvent event) {
+		long totalLength = 0L;
 		DragAndDropWrapper.WrapperTransferable transferable = (DragAndDropWrapper.WrapperTransferable) event
 				.getTransferable();
 		Html5File[] files = transferable.getFiles();
 		for (Html5File file : files) {
 			totalLength = totalLength + file.getFileSize();
 		}
-		if (quotaSpaceConfigIsActivated()) {
-			if (convertToMegaByte(totalLength) > getAvailableSpace(userContentContainer)) {
-				return true;
-			}
-		}
-		return false;
+		return new UserDocumentsServices(modelLayerFactory)
+				.isSpaceLimitReached(getCurrentUser().getUsername(), collection, totalLength);
 	}
 }

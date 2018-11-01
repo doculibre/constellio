@@ -47,38 +47,11 @@ public class UserDocumentsServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenNoUserDocumentThenUserDocumentsSizeIsZero() {
-		double size = userDocumentsServices.getTotalSize(zeChuck.getUsername(), zeCollection);
-		assertThat(size).isEqualTo(0);
-	}
-
-	@Test
-	public void givenUserDocumentThenUserDocumentsSizeIsEqualsToUserDocumentSize() throws Exception {
-		recordServices.add(rm.newUserDocumentWithId("userDoc").setContent(content).setUser(zeChuck));
-		waitForBatchProcess();
-
-		double size = userDocumentsServices.getTotalSize(zeChuck.getUsername(), zeCollection);
-		assertThat(size).isEqualTo(content.getCurrentVersion().getLength());
-	}
-
-	@Test
-	public void givenMultipleUserDocumentsThenUserDocumentsSizeIsEqualsToSumOfUserDocuments() throws Exception {
-		Transaction transaction = new Transaction();
-		transaction.add(rm.newUserDocumentWithId("userDoc1").setContent(content).setUser(zeChuck));
-		transaction.add(rm.newUserDocumentWithId("userDoc2").setContent(content).setUser(zeChuck));
-		transaction.add(rm.newUserDocumentWithId("userDoc3").setContent(content).setUser(zeChuck));
-		recordServices.execute(transaction);
-		waitForBatchProcess();
-
-		double size = userDocumentsServices.getTotalSize(zeChuck.getUsername(), zeCollection);
-		assertThat(size).isEqualTo(3 * content.getCurrentVersion().getLength());
-	}
-
-	@Test
-	public void givenSpaceQuotaActivatedAndLimitReachedThenReturnsTrue() {
+	public void givenSpaceQuotaActivatedAndLimitReachedThenReturnsTrue() throws Exception {
 		givenConfig(ConstellioEIMConfigs.SPACE_QUOTA_FOR_USER_DOCUMENTS, 0);
+		waitForBatchProcess();
 
-		double newUserDocumentSize = 500_000;
+		long newUserDocumentSize = 500_000;
 		boolean limitReached =
 				userDocumentsServices.isSpaceLimitReached(zeChuck.getUsername(), zeCollection, newUserDocumentSize);
 		assertThat(limitReached).isTrue();
@@ -87,15 +60,72 @@ public class UserDocumentsServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenSpaceQuotaActivatedAndLimitNotReachedThenReturnFalse() throws Exception {
 		givenConfig(ConstellioEIMConfigs.SPACE_QUOTA_FOR_USER_DOCUMENTS, 1);
+		waitForBatchProcess();
 
 		recordServices.add(rm.newUserDocumentWithId("userDoc").setContent(content).setUser(zeChuck));
 		waitForBatchProcess();
 
-		double newUserDocumentSize = 500_000;
+		long newUserDocumentSize = 500_000;
 		boolean limitReached =
 				userDocumentsServices.isSpaceLimitReached(zeChuck.getUsername(), zeCollection, newUserDocumentSize);
 		assertThat(limitReached).isFalse();
 	}
 
+	@Test
+	public void givenSpaceQuotaIsEqualsToOneAndNoUserDocumentThenAvailableSpaceIsOne() throws Exception {
+		givenConfig(ConstellioEIMConfigs.SPACE_QUOTA_FOR_USER_DOCUMENTS, 1);
+		waitForBatchProcess();
+
+		double size = userDocumentsServices.getAvailableSpaceInMegaBytes(zeChuck.getUsername(), zeCollection);
+		assertThat(size).isEqualTo(1);
+	}
+
+	@Test
+	public void givenSpaceQuotaIsEqualsToOneAndOneUserDocumentThenAvailableSpaceIsCorrectlyComputed() throws Exception {
+		givenConfig(ConstellioEIMConfigs.SPACE_QUOTA_FOR_USER_DOCUMENTS, 1);
+		waitForBatchProcess();
+
+		recordServices.add(rm.newUserDocumentWithId("userDoc").setContent(content).setUser(zeChuck));
+		waitForBatchProcess();
+
+		double size = userDocumentsServices.getAvailableSpaceInMegaBytes(zeChuck.getUsername(), zeCollection);
+		assertThat(size).isEqualTo(1 - convertToMegaByte(content.getCurrentVersion().getLength()));
+	}
+
+	@Test
+	public void givenSpaceQuotaIsEqualsToOneAndMultipleUserDocumentThenAvailableSpaceIsCorrectlyComputed()
+			throws Exception {
+		givenConfig(ConstellioEIMConfigs.SPACE_QUOTA_FOR_USER_DOCUMENTS, 1);
+		waitForBatchProcess();
+
+		Transaction transaction = new Transaction();
+		transaction.add(rm.newUserDocumentWithId("userDoc1").setContent(content).setUser(zeChuck));
+		transaction.add(rm.newUserDocumentWithId("userDoc2").setContent(content).setUser(zeChuck));
+		transaction.add(rm.newUserDocumentWithId("userDoc3").setContent(content).setUser(zeChuck));
+		recordServices.execute(transaction);
+		waitForBatchProcess();
+
+		double size = userDocumentsServices.getAvailableSpaceInMegaBytes(zeChuck.getUsername(), zeCollection);
+		assertThat(size).isEqualTo(1 - (3 * convertToMegaByte(content.getCurrentVersion().getLength())));
+	}
+
+	@Test
+	public void givenSpaceQuotaIsNegativeThenActivatedReturnFalse() throws Exception {
+		givenConfig(ConstellioEIMConfigs.SPACE_QUOTA_FOR_USER_DOCUMENTS, -1);
+		waitForBatchProcess();
+
+		assertThat(userDocumentsServices.isQuotaSpaceConfigActivated()).isFalse();
+	}
+
+	@Test
+	public void givenSpaceQuotaIsPositiveThenActivatedReturnTrue() {
+		givenConfig(ConstellioEIMConfigs.SPACE_QUOTA_FOR_USER_DOCUMENTS, 0);
+
+		assertThat(userDocumentsServices.isQuotaSpaceConfigActivated()).isTrue();
+	}
+
+	private double convertToMegaByte(double valueInMegaBytes) {
+		return valueInMegaBytes * Math.pow(10, -6);
+	}
 
 }

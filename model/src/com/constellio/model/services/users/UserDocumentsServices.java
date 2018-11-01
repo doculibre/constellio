@@ -7,31 +7,31 @@ import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 
 public class UserDocumentsServices {
 
-	private UserServices userServices;
 	private SystemConfigurationsManager systemConfigurationsManager;
+	private UserServices userServices;
 
 	public UserDocumentsServices(ModelLayerFactory modelLayerFactory) {
-		userServices = modelLayerFactory.newUserServices();
 		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+		userServices = modelLayerFactory.newUserServices();
 	}
 
-	public double getTotalSize(String username, String collection) {
-		User user = userServices.getUserInCollection(username, collection);
-		return user.get(User.USER_DOCUMENT_SIZE_SUM);
-	}
-
-	public boolean isSpaceLimitReached(String username, String collection, double userDocumentSize) {
+	public boolean isSpaceLimitReached(String username, String collection, long userDocumentSize) {
 		return isQuotaSpaceConfigActivated() &&
 			   convertToMegaByte(userDocumentSize) > getAvailableSpaceInMegaBytes(username, collection);
 	}
 
 	public double getAvailableSpaceInMegaBytes(String username, String collection) {
-		double usedSpace = getTotalSize(username, collection);
+		if (!isQuotaSpaceConfigActivated()) {
+			return -1;
+		}
+
+		User user = userServices.getUserInCollection(username, collection);
+		double usedSpace = user.getUserDocumentSizeSum();
 		double availableSpace = getSpaceQuota() - convertToMegaByte(usedSpace);
 		return Math.max(0, availableSpace);
 	}
 
-	private boolean isQuotaSpaceConfigActivated() {
+	public boolean isQuotaSpaceConfigActivated() {
 		return getSpaceQuota() >= 0;
 	}
 
@@ -41,7 +41,7 @@ public class UserDocumentsServices {
 	}
 
 	private double convertToMegaByte(double valueInMegaBytes) {
-		return (valueInMegaBytes * Math.pow(10, 6));
+		return valueInMegaBytes * Math.pow(10, -6);
 	}
 
 }
