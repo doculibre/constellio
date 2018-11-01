@@ -20,7 +20,7 @@ public class MessageUtils {
 			return toMessage(errors);
 
 		} else if (e instanceof RecordServicesRuntimeException_CannotLogicallyDeleteRecord) {
-			return $("cannotLogicallyDelete");
+			return $(e.getMessage());
 
 		} else if (e instanceof RecordServicesRuntimeException_CannotPhysicallyDeleteRecord) {
 			return $("cannotPhysicallyDelete");
@@ -58,6 +58,17 @@ public class MessageUtils {
 
 		return stringBuilder.toString();
 
+	}
+
+	public static String getUserDisplayErrorMessage(ValidationErrors validationErrors) {
+		StringBuilder stringBuilder = new StringBuilder();
+
+		for (ValidationError validationError : validationErrors.getValidationErrors()) {
+			stringBuilder.append($(validationError.getCode()));
+			stringBuilder.append("\n");
+		}
+
+		return stringBuilder.toString();
 	}
 
 	private static String toMessage(ValidationErrors validationErrors) {

@@ -498,7 +498,7 @@ public class RecordDeleteServices {
 					false);
 			logicallyDeletable = extensions.forCollectionOf(record).isLogicallyDeletable(event);
 			if (!logicallyDeletable) {
-				validationErrors.add(RecordDeleteServices.class, "The record is not logically deletable");
+				validationErrors.addAll(extensions.forCollectionOf(record).getLogicalDeletionValidationErrors(event).getValidationErrors());
 			}
 		}
 
@@ -557,7 +557,7 @@ public class RecordDeleteServices {
 
 	public void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options) {
 		if (!options.isSkipValidations() && !isLogicallyDeletable(record, user).isEmpty()) {
-			throw new RecordServicesRuntimeException_CannotLogicallyDeleteRecord(record.getId());
+			throw new RecordServicesRuntimeException_CannotLogicallyDeleteRecord(isLogicallyDeletable(record, user).getValidationErrors().get(0).getCode());
 		}
 
 		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);

@@ -17,11 +17,12 @@ import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.extensions.params.GetCaptionForRecordParams;
+import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
 
 public class RecordExtension {
 
-	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
-		return ExtensionBooleanResult.NOT_APPLICABLE;
+	public ExtensionValidationErrors isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		return new ExtensionValidationErrors(ExtensionBooleanResult.NOT_APPLICABLE);
 	}
 
 	public ExtensionBooleanResult isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent event) {
@@ -91,8 +92,8 @@ public class RecordExtension {
 		}
 	}
 
-	public boolean isDeleteBlocked(Record record, User user) {
-		return false;
+	public ExtensionValidationErrors validateDeleteAuthorized(Record record, User user) {
+		return new ExtensionValidationErrors(ExtensionBooleanResult.NOT_APPLICABLE);
 	}
 
 	public boolean isModifyBlocked(Record record, User user) {

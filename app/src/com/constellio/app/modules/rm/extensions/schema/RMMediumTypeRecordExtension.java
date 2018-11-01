@@ -2,9 +2,9 @@ package com.constellio.app.modules.rm.extensions.schema;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
-import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
+import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 
 import static com.constellio.model.entities.schemas.Schemas.CODE;
@@ -27,10 +27,10 @@ public class RMMediumTypeRecordExtension extends RecordExtension {
 	}
 
 	@Override
-	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+	public ExtensionValidationErrors isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		if (MediumType.SCHEMA_TYPE.equals(event.getSchemaTypeCode())
 			&& event.getRecord().get(CODE).equals("DM")) {
-			return ExtensionBooleanResult.FALSE;
+			return super.isLogicallyDeletable(event);
 		}
 		return super.isLogicallyDeletable(event);
 	}

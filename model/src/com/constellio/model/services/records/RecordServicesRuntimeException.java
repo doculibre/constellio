@@ -121,8 +121,8 @@ public class RecordServicesRuntimeException extends RuntimeException {
 			super("Cannot logically delete record '" + recordId + "'", e);
 		}
 
-		public RecordServicesRuntimeException_CannotLogicallyDeleteRecord(String recordId) {
-			this(recordId, null);
+		public RecordServicesRuntimeException_CannotLogicallyDeleteRecord(String message) {
+			super(message);
 		}
 	}
 

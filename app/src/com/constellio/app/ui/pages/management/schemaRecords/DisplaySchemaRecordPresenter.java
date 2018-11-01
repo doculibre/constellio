@@ -153,7 +153,7 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 	private boolean isDeleteButtonVisible(RecordVO recordVO) {
 		Record record = recordVO.getRecord();
 		User user = getCurrentUser();
-		return !extensions.isDeleteBlocked(record, user) && recordServices.validateLogicallyDeletable(record, getCurrentUser()).isEmpty();
+		return extensions.isDeleteAuthorized(record, user) && recordServices.validateLogicallyDeletable(record, getCurrentUser()).isEmpty();
 	}
 
 	public boolean isEditButtonVisible() {
