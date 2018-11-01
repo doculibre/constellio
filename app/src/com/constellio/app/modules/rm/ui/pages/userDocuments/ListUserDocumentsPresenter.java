@@ -412,16 +412,16 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		}
 		double availableSpace = getSpaceQuota() - convertToMegaByte(usedSpace);
 		if (availableSpace < 0) {
-			throw new NegativeAvailableSpaceException();
+			return 0;
 		}
-		return getSpaceQuota() - convertToMegaByte(usedSpace);
+		return availableSpace;
 	}
 
 	public boolean quotaSpaceConfigIsActivated() {
 		return getSpaceQuota() >= 0;
 	}
 
-	private long getSpaceQuota() {
+	private int getSpaceQuota() {
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 		return rmConfigs.getSpaceQuotaForUserDocuments();
@@ -431,8 +431,7 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		return valueInBytes * Math.pow(10, -6);
 	}
 
-	public boolean spaceLimitReached(DragAndDropEvent event,
-									 RecordVOLazyContainer userContentContainer) {
+	public boolean isSpaceLimitReached(DragAndDropEvent event, RecordVOLazyContainer userContentContainer) {
 		Double totalLength = 0.0;
 		DragAndDropWrapper.WrapperTransferable transferable = (DragAndDropWrapper.WrapperTransferable) event
 				.getTransferable();

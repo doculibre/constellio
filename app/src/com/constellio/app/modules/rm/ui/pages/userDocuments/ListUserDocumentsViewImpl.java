@@ -101,7 +101,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 
 			@Override
 			public void drop(DragAndDropEvent event) {
-				if (presenter.spaceLimitReached(event, userContentContainer)) {
+				if (presenter.isSpaceLimitReached(event, userContentContainer)) {
 					showErrorMessage($("ListUserDocumentsView.spaceLimitReached"));
 				} else {
 					super.drop(event);
