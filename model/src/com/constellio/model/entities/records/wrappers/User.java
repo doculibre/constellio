@@ -58,6 +58,7 @@ public class User extends RecordWrapper {
 	public static final String ADDRESS = "address";
 	public static final String AGENT_ENABLED = "agentEnabled";
 	public static final String DEFAULT_PAGE_LENGTH = "defaultPageLength";
+	public static final String USER_DOCUMENT_SIZE_SUM = "userDocumentSizeSum";
 
 	private transient Roles roles;
 
@@ -558,5 +559,9 @@ public class User extends RecordWrapper {
 
 	public boolean isActiveUser() {
 		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
+	}
+
+	public Double getUserDocumentSizeSum() {
+		return get(USER_DOCUMENT_SIZE_SUM);
 	}
 }
