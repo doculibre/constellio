@@ -9,6 +9,7 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.records.preparation.AggregatedMetadataIncrementation;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +33,8 @@ public class Transaction {
 	Map<String, Record> referencedRecords = new HashMap<>();
 
 	Set<String> idsToReindex = new HashSet<>();
+
+	private List<AggregatedMetadataIncrementation> aggregatedMetadataIncrementations = new ArrayList<>();
 
 	String title;
 
@@ -77,6 +80,7 @@ public class Transaction {
 		this.title = transaction.title;
 		this.recordUpdateOptions = transaction.recordUpdateOptions;
 		this.idsToReindex.addAll(transaction.getIdsToReindex());
+		this.aggregatedMetadataIncrementations.addAll(transaction.aggregatedMetadataIncrementations);
 		this.recordUpdateOptions = new RecordUpdateOptions(transaction.recordUpdateOptions);
 	}
 
@@ -101,6 +105,12 @@ public class Transaction {
 
 	public Transaction addRecordToReindex(RecordWrapper record) {
 		idsToReindex.add(record.getId());
+		return this;
+	}
+
+	public Transaction addAggregatedMetadataIncrementations(
+			List<AggregatedMetadataIncrementation> aggregatedMetadataIncrementations) {
+		this.aggregatedMetadataIncrementations.addAll(aggregatedMetadataIncrementations);
 		return this;
 	}
 
@@ -393,6 +403,10 @@ public class Transaction {
 
 	public Set<String> getIdsToReindex() {
 		return Collections.unmodifiableSet(idsToReindex);
+	}
+
+	public List<AggregatedMetadataIncrementation> getAggregatedMetadataIncrementations() {
+		return Collections.unmodifiableList(aggregatedMetadataIncrementations);
 	}
 
 	public Map<String, ParsedContent> getParsedContentCache() {
