@@ -10,8 +10,8 @@ import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.users.GlobalGroupsManager;
-import com.constellio.model.services.users.UserCredentialsManager;
+import com.constellio.model.services.users.SolrGlobalGroupsManager;
+import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
@@ -37,8 +37,8 @@ public class LDAPUserSyncManagerAcceptanceTest extends ConstellioTest {
 	ModelLayerFactory modelLayerFactory;
 
 	UserServices userServices;
-	private UserCredentialsManager userCredentialsManager;
-	private GlobalGroupsManager globalGroupsManager;
+	private SolrUserCredentialsManager userCredentialsManager;
+	private SolrGlobalGroupsManager globalGroupsManager;
 	private LDAPConfigurationManager ldapConfigurationManager;
 
 	@Before

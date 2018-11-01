@@ -1379,7 +1379,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			auth7 = add(authorizationForUser(sasquatch).on(TAXO1_FOND1_1)
 					.during(date(2016, 4, 1), date(2016, 4, 3)).givingReadWriteAccess());
 			fail("Exception expected");
-		} catch (AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate e) {
+		} catch (AuthorizationsServicesRuntimeException.EndDateLessThanCurrentDate e) {
 			//OK
 		}
 
@@ -1454,7 +1454,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			auth7 = add(authorizationForUser(sasquatch).on(FOLDER4)
 					.during(date(2016, 4, 1), date(2016, 4, 3)).givingReadWriteAccess());
 			fail("Exception expected");
-		} catch (AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate e) {
+		} catch (AuthorizationsServicesRuntimeException.EndDateLessThanCurrentDate e) {
 			//OK
 		}
 
@@ -1529,7 +1529,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			auth7 = add(authorizationForUser(sasquatch).on(FOLDER4)
 					.during(date(2016, 4, 1), date(2016, 4, 3)).givingReadWriteAccess());
 			fail("Exception expected");
-		} catch (AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate e) {
+		} catch (AuthorizationsServicesRuntimeException.EndDateLessThanCurrentDate e) {
 			//OK
 		}
 

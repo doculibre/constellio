@@ -978,10 +978,10 @@ public class AuthorizationsServices {
 	private void validateDates(LocalDate startDate, LocalDate endDate) {
 		LocalDate now = TimeProvider.getLocalDate();
 		if ((startDate != null && endDate != null) && startDate.isAfter(endDate)) {
-			throw new AuthorizationDetailsManagerRuntimeException.StartDateGreaterThanEndDate(startDate, endDate);
+			throw new AuthorizationsServicesRuntimeException.StartDateGreaterThanEndDate(startDate, endDate);
 		}
 		if (endDate != null && endDate.isBefore(now)) {
-			throw new AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate(endDate.toString());
+			throw new AuthorizationsServicesRuntimeException.EndDateLessThanCurrentDate(endDate.toString());
 		}
 	}
 

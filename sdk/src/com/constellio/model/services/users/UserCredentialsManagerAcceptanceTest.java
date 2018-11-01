@@ -38,7 +38,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 	String edouardServiceKey = "myKey";
 
-	UserCredentialsManager manager;
+	SolrUserCredentialsManager manager;
 	UserCredential chuckUserCredential, edouardUserCredential, bobUserCredential;
 	CollectionsListManager collectionsListManager;
 	LocalDateTime endDate = new LocalDateTime().plusMinutes(30);
@@ -158,8 +158,8 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		Users users = new Users().setUp(getModelLayerFactory().newUserServices());
 
 		ModelLayerFactory otherInstanceModelLayer = getModelLayerFactory("other");
-		UserCredentialsManager otherInstanceUserCredentialsManager = otherInstanceModelLayer.getUserCredentialsManager();
-		GlobalGroupsManager otherInstanceGlobalGroupsManager = otherInstanceModelLayer.getGlobalGroupsManager();
+		SolrUserCredentialsManager otherInstanceUserCredentialsManager = otherInstanceModelLayer.getUserCredentialsManager();
+		SolrGlobalGroupsManager otherInstanceGlobalGroupsManager = otherInstanceModelLayer.getGlobalGroupsManager();
 
 		QueryCounter queryCounter = new QueryCounter(otherInstanceModelLayer.getDataLayerFactory(),
 				ON_COLLECTION(SYSTEM_COLLECTION));

@@ -28,4 +28,5 @@ public class GlobalGroupsManagerRuntimeException extends RuntimeException {
 			super("Invalid parent: " + parent);
 		}
 	}
+
 }

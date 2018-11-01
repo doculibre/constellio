@@ -195,7 +195,6 @@ public class CollectionsManager implements StatefulService {
 		CollectionInfo collectionInfo = getCollectionInfo(code);
 		modelLayerFactory.getMetadataSchemasManager().createCollectionSchemas(collectionInfo);
 		modelLayerFactory.getTaxonomiesManager().createCollectionTaxonomies(code);
-		modelLayerFactory.getAuthorizationDetailsManager().createCollectionAuthorizationDetail(code);
 		modelLayerFactory.getRolesManager().createCollectionRole(code);
 		modelLayerFactory.getSearchBoostManager().createCollectionSearchBoost(code);
 		modelLayerFactory.getSearchConfigurationsManager().createCollectionElevations(code);

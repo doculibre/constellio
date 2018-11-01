@@ -40,10 +40,7 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.XMLAuthorizationDetails;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -565,7 +562,6 @@ public class RMTestRecords {
 		createGroupsEvents();
 		createViewEvents();
 		createDecommissioningEvents();
-		createPermissionEvents();
 		createBorrowAndReturnEvents();
 		createLoginEvents();
 		recordServices.flush();
@@ -987,38 +983,6 @@ public class RMTestRecords {
 		decommissioningLoggingService.logDecommissioning(decommissioningList3, bob);
 	}
 
-	private void createPermissionEvents() {
-		modifyPermission();
-	}
-
-	private void modifyPermission() {
-		List<String> roles = new ArrayList<>();
-		String zRole = "MANAGER";
-		roles.add(zRole);
-		LocalDate startDate = new LocalDate();
-		LocalDate endDate = new LocalDate();
-		AuthorizationDetails detail = new XMLAuthorizationDetails(collection, "42", roles, startDate, endDate, false);
-		List<String> grantedToPrincipals = new ArrayList<>();
-		User dakota = users.gandalfLeblancIn(collection);
-		User bob = users.bobIn(collection);
-		grantedToPrincipals.add(dakota.getId());
-		grantedToPrincipals.add(bob.getId());
-		List<String> grantedOnRecords = new ArrayList<>();
-		/*AdministrativeUnit administrativeUnit = records.getUnit10();
-		Folder folder = createFolder(administrativeUnit);*/
-		grantedOnRecords.addAll(Arrays.asList(getFolder_A01().getId()));
-		Authorization authorization = new Authorization(detail, grantedToPrincipals);
-
-		List<String> grantedOnRecordsBefore = new ArrayList<>();
-		grantedOnRecordsBefore.addAll(
-				Arrays.asList(getFolder_A01().getId(), getFolder_A02().getId()));
-		AuthorizationDetails detailBefore = new XMLAuthorizationDetails(collection, "43", roles, startDate, endDate.minusDays(1),
-				false);
-		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals);
-
-		User charles = users.charlesIn(collection);
-		//loggingServices.modifyPermission(authorization, authorizationBefore, null, charles);
-	}
 
 	private void setupLists(Transaction transaction) {
 		transaction.add(rm.newDecommissioningListWithId(list_01))

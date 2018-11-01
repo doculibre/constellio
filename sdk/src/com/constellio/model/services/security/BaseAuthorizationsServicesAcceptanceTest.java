@@ -731,18 +731,6 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	protected ListAssert<String> assertThatAllAuthorizationIds() {
-
-		List<String> authorizations = new ArrayList<>();
-		for (AuthorizationDetails details : getModelLayerFactory().getAuthorizationDetailsManager()
-				.getAuthorizationsDetails(zeCollection).values()) {
-			authorizations.add(details.getId());
-		}
-
-		return assertThat(authorizations);
-
-	}
-
 	protected ListAssert<String> ensureNoRecordsHaveAnInvalidAuthorization() {
 		try {
 			waitForBatchProcess();
@@ -843,12 +831,6 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 		public AuthorizationVerifier(String authId) {
 			this.authId = authId;
-		}
-
-		public AuthorizationVerifier isDeleted() {
-			assertThat(getModelLayerFactory().getAuthorizationDetailsManager().get(zeCollection, authId))
-					.describedAs("Authorization supposed to be deleted").isNull();
-			return this;
 		}
 
 		public AuthorizationVerifier isTargetting(String recordId) {

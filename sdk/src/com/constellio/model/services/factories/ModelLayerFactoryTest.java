@@ -26,9 +26,8 @@ import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.parser.ForkParsers;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.users.GlobalGroupsManager;
+import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.schemas.FakeDataStoreTypeFactory;
 import org.jdom2.Document;
@@ -188,23 +187,13 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		assertThat(controler1).isNotNull().isSameAs(controler2);
 	}
 
-	@Test
-	public void whenGetAuthorizationDetailsManagerThenSameInstance()
-			throws Exception {
-
-		AuthorizationDetailsManager authorizationDetailsManager1 = modelLayerFactory.getAuthorizationDetailsManager();
-		AuthorizationDetailsManager authorizationDetailsManager2 = modelLayerFactory.getAuthorizationDetailsManager();
-
-		assertThat(authorizationDetailsManager1).isNotNull().isSameAs(authorizationDetailsManager2);
-
-	}
 
 	@Test
 	public void whenGetGlobalGroupsManagerThenSameInstance()
 			throws Exception {
 
-		GlobalGroupsManager globalGroupsManager1 = modelLayerFactory.getGlobalGroupsManager();
-		GlobalGroupsManager globalGroupsManager2 = modelLayerFactory.getGlobalGroupsManager();
+		SolrGlobalGroupsManager globalGroupsManager1 = modelLayerFactory.getGlobalGroupsManager();
+		SolrGlobalGroupsManager globalGroupsManager2 = modelLayerFactory.getGlobalGroupsManager();
 
 		assertThat(globalGroupsManager1).isNotNull().isSameAs(globalGroupsManager2);
 

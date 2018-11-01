@@ -18,9 +18,9 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
-import com.constellio.model.entities.security.global.XmlUserCredential;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactoryUtils;
@@ -86,8 +86,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	List<String> allCollections;
 	String collection1, collection2, collection3;
 	UserCredential user, anotherUser, thirdUser;
-	UserCredentialsManager userCredentialsManager;
-	GlobalGroupsManager globalGroupsManager;
+	SolrUserCredentialsManager userCredentialsManager;
+	SolrGlobalGroupsManager globalGroupsManager;
 	@Mock UserCredential userWithNoAccessToDeleteCollection;
 	@Mock Factory<EncryptionServices> encryptionServicesFactory;
 	AuthenticationService authenticationService;
@@ -617,7 +617,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		userServices = spy(userServices);
 		doThrow(new UserServicesRuntimeException_CannotExcuteTransaction(new RuntimeException()))
-				.when(userServices).sync(any(XmlUserCredential.class));
+				.when(userServices).sync(any(SolrUserCredential.class));
 
 		try {
 			userServices.addUserToCollection(user, collection1);

@@ -13,7 +13,6 @@ import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.XMLAuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -27,7 +26,6 @@ import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup.ZeSchemaMetadatas;
 import com.constellio.sdk.tests.setups.Users;
-import org.apache.commons.lang.StringUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
@@ -348,66 +346,6 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 		//assertThat(event.getEventPrincipalPath()).isEqualTo(folder.getWrappedRecord().get(Schemas.PRINCIPAL_PATH));
 	}
 
-	//TODO Nouha
-	//@Test
-	public void whenLoggingPermissionModificationThenReturnValidEvents()
-			throws Exception {
-		//List<Role> roles = getRolesWithReadPermissions();
-		List<String> roles = new ArrayList<>();
-		String zRole = "MANAGER";
-		roles.add(zRole);
-		LocalDate startDate = new LocalDate();
-		LocalDate endDate = new LocalDate();
-		XMLAuthorizationDetails detail = new XMLAuthorizationDetails(zeCollection, "42", roles, startDate, endDate, false);
-		List<String> grantedToPrincipals = new ArrayList<>();
-		User alice = users.aliceIn(zeCollection);
-		User bob = users.bobIn(zeCollection);
-		grantedToPrincipals.add(alice.getId());
-		grantedToPrincipals.add(bob.getId());
-		List<String> grantedOnRecords = new ArrayList<>();
-		/*AdministrativeUnit administrativeUnit = records.getUnit10();
-		Folder folder = createFolder(administrativeUnit);*/
-		grantedOnRecords.addAll(Arrays.asList(new String[]{records.getFolder_A01().getId()}));
-		Authorization authorization = new Authorization(detail, grantedToPrincipals);
-
-		List<String> grantedOnRecordsBefore = new ArrayList<>();
-		grantedOnRecordsBefore.addAll(
-				Arrays.asList(new String[]{records.getFolder_A01().getId(), records.getFolder_A02().getId()}));
-		XMLAuthorizationDetails detailBefore = new XMLAuthorizationDetails(zeCollection, "43", roles, startDate,
-				endDate.minusDays(1),
-				false);
-		Authorization authorizationBefore = new Authorization(detailBefore, grantedToPrincipals);
-
-		loggingServices.modifyPermission(authorization, authorizationBefore, null, alice);
-		recordServices.flush();
-
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(
-				LogicalSearchQueryOperators.from(rm.eventSchema()).where(
-						rm.eventSchema().getMetadata(Event.TYPE)).isEqualTo(EventType.MODIFY_PERMISSION_FOLDER));
-		SearchServices searchServices = getModelLayerFactory().newSearchServices();
-		List<Record> events = searchServices.search(query);
-
-		assertThat(events).hasSize(1);
-		Event event = rm.wrapEvent(events.get(0));
-		assertThat(event.getDelta().contains("-[" + records.getFolder_A02().getId() + "]"));
-		assertThat(event.getDelta().contains("[" + startDate + ", " + endDate.minusDays(1) + "]"));
-		assertThat(event.getUsername()).isEqualTo(alice.getUsername());
-		if (alice.getAllRoles() != null) {
-			assertThat(event.getUserRoles()).isNull();
-		} else {
-			assertThat(event.getUserRoles()).isEqualTo(StringUtils.join(alice.getAllRoles().toArray(), "; "));
-		}
-
-		assertThat(event.getPermissionUsers()).isEqualTo("Alice Wonderland; Bob 'Elvis' Gratton");
-		assertThat(event.getPermissionDateRange()).isEqualTo("[" + startDate + ", " + endDate + "]");
-		assertThat(event.getPermissionRoles()).isEqualTo(zRole);
-		assertThat(event.getRecordId()).isEqualTo(records.getFolder_A01().getId());
-		assertThat(event.getEventPrincipalPath())
-				.isEqualTo(records.getFolder_A01().getWrappedRecord().get(Schemas.PRINCIPAL_PATH));
-		assertThat(event.getType()).isEqualTo(EventType.MODIFY_PERMISSION_FOLDER);
-
-	}
 
 	@Test
 	public void whenCreateFolderThenCreateValidEvent()

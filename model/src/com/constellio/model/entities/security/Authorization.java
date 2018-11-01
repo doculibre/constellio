@@ -25,9 +25,6 @@ public class Authorization {
 		return detail;
 	}
 
-	public void setDetail(XMLAuthorizationDetails detail) {
-		this.detail = detail;
-	}
 
 	public List<String> getGrantedToPrincipals() {
 		return grantedToPrincipals;
