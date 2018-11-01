@@ -60,7 +60,7 @@ artifacts {
     testArtifacts jarTest
 }
 
-/*
+
 project.tasks["sonarqube"].dependsOn "build"
 
 sonarqube {
@@ -83,6 +83,7 @@ sourceSets {
     }
 }
 
+/*
 task buildSonarSourceset() {
     List projectsList = [":constellio:app", ":constellio:model", ":constellio:data"]
 
