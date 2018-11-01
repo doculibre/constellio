@@ -1,9 +1,9 @@
 package com.constellio.app.modules.rm.wrappers.structures;
 
+import java.io.Serializable;
+
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
-
-import java.io.Serializable;
 
 public class FolderDetailWithType implements Serializable {
 	private final DecomListFolderDetail detail;
@@ -48,10 +48,14 @@ public class FolderDetailWithType implements Serializable {
 	}
 
 	public boolean isIncluded() {
-		return detail.isFolderIncluded();
+		return FolderDetailStatus.INCLUDED.equals(detail.getFolderDetailStatus());
 	}
 
 	public boolean isExcluded() {
-		return detail.isFolderExcluded();
+		return FolderDetailStatus.EXCLUDED.equals(detail.getFolderDetailStatus());
+	}
+
+	public boolean isSelected() {
+		return FolderDetailStatus.SELECTED.equals(detail.getFolderDetailStatus());
 	}
 }

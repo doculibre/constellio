@@ -1,5 +1,28 @@
 package com.constellio.app.services.schemas.bulkImport;
 
+import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -14,6 +37,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;
@@ -28,28 +52,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.setups.Users;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
 
 public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
@@ -111,14 +113,14 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(decomListFolderDetails.get(0).getFolderId()).isEqualTo(rm.getFolderWithLegacyId("660").getId());
 		assertThat(decomListFolderDetails.get(0).getContainerRecordId())
 				.isEqualTo(rm.getContainerRecordWithLegacyId("412903").getId());
-		assertThat(decomListFolderDetails.get(0).isFolderExcluded()).isTrue();
+		assertThat(decomListFolderDetails.get(0).getFolderDetailStatus()).isEqualTo(FolderDetailStatus.EXCLUDED);
 		assertThat(decomListFolderDetails.get(0).isReversedSort()).isTrue();
 		assertThat(decomListFolderDetails.get(0).getFolderLinearSize()).isEqualTo(42.0);
 
 		assertThat(decomListFolderDetails.get(1).getFolderId()).isEqualTo(rm.getFolderWithLegacyId("670").getId());
 		assertThat(decomListFolderDetails.get(1).getContainerRecordId())
 				.isEqualTo(rm.getContainerRecordWithLegacyId("412904").getId());
-		assertThat(decomListFolderDetails.get(1).isFolderExcluded()).isFalse();
+		assertThat(decomListFolderDetails.get(1).getFolderDetailStatus()).isEqualTo(FolderDetailStatus.INCLUDED);
 		assertThat(decomListFolderDetails.get(1).isReversedSort()).isFalse();
 		assertThat(decomListFolderDetails.get(1).getFolderLinearSize()).isEqualTo(0.0);
 
