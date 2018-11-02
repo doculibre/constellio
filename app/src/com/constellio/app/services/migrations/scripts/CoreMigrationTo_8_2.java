@@ -26,17 +26,17 @@ import java.util.List;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-public class CoreMigrationTo_8_1_999 implements MigrationScript {
+public class CoreMigrationTo_8_2 implements MigrationScript {
 	@Override
 	public String getVersion() {
-		return "8.1.999";
+		return "8.2";
 	}
 
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory)
 			throws Exception {
-		new CoreSchemaAlterationFor_8_1_999(collection, migrationResourcesProvider, appLayerFactory).migrate();
+		new CoreSchemaAlterationFor_8_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
 		final SchemasRecordsServices schemas = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 
@@ -105,11 +105,11 @@ public class CoreMigrationTo_8_1_999 implements MigrationScript {
 
 	}
 
-	class CoreSchemaAlterationFor_8_1_999 extends MetadataSchemasAlterationHelper {
+	class CoreSchemaAlterationFor_8_2 extends MetadataSchemasAlterationHelper {
 
-		protected CoreSchemaAlterationFor_8_1_999(String collection,
-												  MigrationResourcesProvider migrationResourcesProvider,
-												  AppLayerFactory appLayerFactory) {
+		protected CoreSchemaAlterationFor_8_2(String collection,
+											  MigrationResourcesProvider migrationResourcesProvider,
+											  AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 

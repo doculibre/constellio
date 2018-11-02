@@ -5,8 +5,9 @@ import com.constellio.data.events.EventBus;
 import com.constellio.data.events.EventBusListener;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
@@ -68,33 +69,37 @@ public class SecurityModelCache implements EventBusListener {
 
 		@Override
 		public void recordCreated(RecordCreationEvent event) {
-			if (isRequiringSecurityModelInvalidation(event.getRecord(), null)) {
+			if (isRequiringSecurityModelInvalidation(event.getRecord(), null, true)) {
 				invalidateIfLoaded(event.getRecord().getCollection());
 			}
 		}
 
 		@Override
 		public void recordModified(RecordModificationEvent event) {
-			if (isRequiringSecurityModelInvalidation(event.getRecord(), event.getModifiedMetadatas())) {
+			if (isRequiringSecurityModelInvalidation(event.getRecord(), event.getModifiedMetadatas(), false)) {
 				invalidateIfLoaded(event.getRecord().getCollection());
 			}
 		}
 
 		@Override
 		public void recordPhysicallyDeleted(RecordPhysicalDeletionEvent event) {
-			if (isRequiringSecurityModelInvalidation(event.getRecord(), null)) {
+			if (isRequiringSecurityModelInvalidation(event.getRecord(), null, true)) {
 				invalidateIfLoaded(event.getRecord().getCollection());
 			}
 		}
 
-		private boolean isRequiringSecurityModelInvalidation(Record record, MetadataList modifiedMetadatas) {
+		private boolean isRequiringSecurityModelInvalidation(Record record, MetadataList modifiedMetadatas,
+															 boolean createdOrDeleted) {
 
 			String schemaType = record.getTypeCode();
 
 			switch (schemaType) {
+				case User.SCHEMA_TYPE:
+					return createdOrDeleted;
+
 
 				case Group.SCHEMA_TYPE:
-					return modifiedMetadatas != null && modifiedMetadatas.containsMetadataWithLocalCode(Group.PARENT);
+					return createdOrDeleted || (modifiedMetadatas != null && modifiedMetadatas.containsMetadataWithLocalCode(Group.PARENT));
 
 				case Authorization.SCHEMA_TYPE:
 					return true;
