@@ -36,6 +36,7 @@ import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
@@ -308,9 +309,8 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 
 				@Override
-				public String getRecordCaption() {
-					return getCaptionForRecordVO(recordVO, getSessionContext().getCurrentLocale());
-//					return recordDisplay.getCaption();
+				public Component getRecordCaption() {
+					return new ReferenceDisplay(recordVO);
 				}
 			};
 
