@@ -12,6 +12,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVORuntimeException;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -398,10 +399,12 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				Property loadContainerProperty = null;
 				if (itemId instanceof Integer && CommonMetadataBuilder.SUMMARY.equals(propertyId)) {
 					RecordVO recordVO = dataProvider.getRecordVO((int) itemId);
-					MetadataVO metadataVO = recordVO.getSchema().getMetadata(Folder.SUMMARY);
-					String value = recordVO.get(recordVO.getSchema().getMetadata(Folder.SUMMARY));
-					if (metadataVO != null && !Strings.isNullOrEmpty(value)) {
-						loadContainerProperty = new ObjectProperty(value, Component.class);
+					if(recordVO.getMetadataOrNull(recordVO.getSchema().getCode() + "_" + Folder.SUMMARY) != null) {
+						MetadataVO metadataVO = recordVO.getSchema().getMetadata(Folder.SUMMARY);
+						String value = recordVO.get(recordVO.getSchema().getMetadata(Folder.SUMMARY));
+						if (metadataVO != null && !Strings.isNullOrEmpty(value)) {
+							loadContainerProperty = new ObjectProperty(value, Component.class);
+						}
 					}
 				}
 

@@ -29,6 +29,9 @@ public class RecordVO implements Serializable {
 
 	private boolean saved;
 
+	private List<String> excludedMetadataCodeList;
+
+
 	final List<MetadataValueVO> metadataValues;
 
 	VIEW_MODE viewMode;
@@ -36,6 +39,13 @@ public class RecordVO implements Serializable {
 	private Record record;
 
 	public RecordVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
+		this(id, metadataValues, viewMode, new ArrayList<String>());
+
+	}
+
+	public RecordVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode,
+			List<String> excludedMetadataCodeList) {
+		this.excludedMetadataCodeList = excludedMetadataCodeList;
 		this.id = id;
 		LangUtils.ensureNoNullItems(metadataValues);
 		this.metadataValues = metadataValues;
@@ -44,6 +54,14 @@ public class RecordVO implements Serializable {
 
 	public Record getRecord() {
 		return record;
+	}
+
+	public List<String> getExcludedMetadataCodeList() {
+		return excludedMetadataCodeList;
+	}
+
+	public void setExcludedMetadataCodeList(List<String> excludedMetadataCodeList) {
+		this.excludedMetadataCodeList = excludedMetadataCodeList;
 	}
 
 	public void setRecord(Record record) {
@@ -154,10 +172,14 @@ public class RecordVO implements Serializable {
 			searchMetadataCodes = getMetadataCodes();
 		}
 		for (String tableMetadataCode : searchMetadataCodes) {
-			MetadataVO metadataVO = getMetadata(tableMetadataCode);
-			MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
-			if (metadataValueVO != null) {
-				searchMetadataValues.add(metadataValueVO);
+			try {
+				MetadataVO metadataVO = getMetadata(tableMetadataCode);
+				MetadataValueVO metadataValueVO = getMetadataValue(metadataVO);
+				if (metadataValueVO != null) {
+					searchMetadataValues.add(metadataValueVO);
+				}
+			} catch (RecordVORuntimeException_NoSuchMetadata e) {
+
 			}
 		}
 		return searchMetadataValues;

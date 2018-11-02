@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm;
 
+import com.constellio.app.entities.modules.*;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
 import static java.util.Arrays.asList;
@@ -32,6 +33,7 @@ import com.constellio.app.modules.rm.extensions.RMEventRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMFolderExtension;
 import com.constellio.app.modules.rm.extensions.RMGenericRecordPageExtension;
 import com.constellio.app.modules.rm.extensions.RMListSchemaTypeExtension;
+import com.constellio.app.modules.rm.extensions.RMMetadataThatDontSupportRoleAccessExtension;
 import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
 import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
@@ -48,24 +50,15 @@ import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
 import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
 import com.constellio.app.modules.rm.extensions.RemoveClickableNotificationsWhenChangingPage;
 import com.constellio.app.modules.rm.extensions.SessionContextRecordExtension;
+import com.constellio.app.modules.rm.extensions.*;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.extensions.app.BatchProcessingRecordFactoryExtension;
-import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingExtension;
-import com.constellio.app.modules.rm.extensions.app.RMBatchProcessingSpecialCaseExtension;
-import com.constellio.app.modules.rm.extensions.app.RMCmisExtension;
-import com.constellio.app.modules.rm.extensions.app.RMListSchemaExtention;
-import com.constellio.app.modules.rm.extensions.app.RMRecordDisplayFactoryExtension;
-import com.constellio.app.modules.rm.extensions.app.RMRecordExportExtension;
-import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.DocumentRuleImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.EventImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.FolderRuleImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.ReportImportExtension;
-import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
+import com.constellio.app.modules.rm.extensions.app.*;
+import com.constellio.app.modules.rm.extensions.imports.*;
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
+import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.*;
 import com.constellio.app.modules.rm.migrations.RMMigrationCombo;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
@@ -158,13 +151,7 @@ import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
-import com.constellio.app.modules.rm.wrappers.Category;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Printable;
-import com.constellio.app.modules.rm.wrappers.RMTaskType;
-import com.constellio.app.modules.rm.wrappers.RetentionRule;
-import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.modules.rm.wrappers.*;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.modules.tasks.TaskModule;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
@@ -173,11 +160,7 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Facet;
-import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
-import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.*;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
@@ -427,6 +410,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.schemaTypesPageExtensions.add(new RMSchemaTypesPageExtension());
 		extensions.recordDisplayFactoryExtensions.add(new RMRecordDisplayFactoryExtension(appLayerFactory, collection));
 		extensions.listSchemaCommandExtensions.add(new RMListSchemaExtention());
+		extensions.metadataThatDontSupportRoleAccessExtensions.add(new RMMetadataThatDontSupportRoleAccessExtension());
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
@@ -436,6 +420,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.lockedRecords.add(TaskStatus.SCHEMA_TYPE, TaskStatus.CLOSED_CODE);
 		extensions.lockedRecords.add(TaskStatus.SCHEMA_TYPE, TaskStatus.STANDBY_CODE);
 		extensions.lockedRecords.add(DocumentType.SCHEMA_TYPE, DocumentType.EMAIL_DOCUMENT_TYPE);
+
 
 	}
 

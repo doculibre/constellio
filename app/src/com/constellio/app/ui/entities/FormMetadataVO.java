@@ -9,6 +9,7 @@ import com.constellio.model.services.schemas.SchemaUtils;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,6 +41,7 @@ public class FormMetadataVO implements Serializable {
 	FormMetadataVO inheritance;
 	boolean uniqueValue;
 	boolean isMultiLingual;
+	List<String> readAccessRoles;
 
 	public FormMetadataVO(String code, MetadataValueType type, boolean required, MetadataSchemaVO schemaVO,
 						  String reference,
@@ -109,6 +111,18 @@ public class FormMetadataVO implements Serializable {
 		this.customAttributes = new HashSet<>();
 		this.inheritance = null;
 		this.isMultiLingual = false;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public List<String> getReadAccessRoles() {
+		return readAccessRoles;
+	}
+
+	public void setReadAccessRoles(List<String> readAccessRoles) {
+		this.readAccessRoles = readAccessRoles;
 	}
 
 	public boolean isUniqueValue() {

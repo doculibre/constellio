@@ -76,7 +76,7 @@ public class ShareContentViewImpl extends BaseViewImpl implements ShareContentVi
 
 	@Override
 	public void returnFromPage() {
-		presenter.backButtonClicked(record.getSchema().getCode());
+		presenter.backButtonClicked();
 	}
 
 	private void buildUsersAndGroupsField() {

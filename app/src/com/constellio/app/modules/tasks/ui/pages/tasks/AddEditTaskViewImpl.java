@@ -47,7 +47,7 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 			if (isVisible) {
 				field.setVisible(true);
 				field.setRequired(true);
-			} else if (field != null) {
+			} else {
 				field.setVisible(false);
 				field.setRequired(false);
 			}

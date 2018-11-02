@@ -216,6 +216,11 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 						return FilterUtils.userHierarchyFilter(user, securityTokenManager, options.getRequiredAccess(),
 								forSelectionOfSchemaType, options.isShowInvisibleRecordsInLinkingMode());
 					}
+
+					@Override
+					public User getUser() {
+						return user;
+					}
 				});
 
 			} else {
@@ -414,6 +419,11 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 				return FilterUtils.userHierarchyFilter(ctx.user, securityTokenManager, ctx.options.getRequiredAccess(),
 						ctx.forSelectionOfSchemaType, ctx.options.isShowInvisibleRecordsInLinkingMode());
+			}
+
+			@Override
+			public User getUser() {
+				return ctx.user;
 			}
 		});
 		query.setName("TaxonomiesSearchServices:getNonTaxonomyRecords(" + ctx.username() + ", " + ctx.record.getId() + ")");

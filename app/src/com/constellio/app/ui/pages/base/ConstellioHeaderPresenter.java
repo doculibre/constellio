@@ -349,7 +349,7 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 				}
 			} else {
 				for (Metadata metadata : schemaType.getAllMetadatas()) {
-					metadataCodes.add(metadata.getCode());
+						metadataCodes.add(metadata.getCode());
 				}
 			}
 		}
@@ -361,6 +361,10 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 		MetadataList allMetadatas = schemaType.getAllMetadatas();
 		for (Metadata metadata : allMetadatas) {
 			if (!schemaType.hasSecurity() || (metadataCodes.contains(metadata.getCode()))) {
+				if(!getCurrentUser().hasGlobalAccessToMetadata(metadata)) {
+					continue;
+				}
+
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(header.getCollection(), metadata.getCode());

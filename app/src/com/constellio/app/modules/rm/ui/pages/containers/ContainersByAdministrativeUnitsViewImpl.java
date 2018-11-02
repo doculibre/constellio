@@ -1,5 +1,10 @@
 package com.constellio.app.modules.rm.ui.pages.containers;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
@@ -20,11 +25,6 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.SelectedTabChangeEvent;
 import com.vaadin.ui.TabSheet.SelectedTabChangeListener;
 import com.vaadin.ui.TabSheet.Tab;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ContainersByAdministrativeUnitsViewImpl extends BaseViewImpl implements ContainersByAdministrativeUnitsView {
 	private List<ContainersViewTab> tabs = new ArrayList<>();
@@ -148,4 +148,6 @@ public class ContainersByAdministrativeUnitsViewImpl extends BaseViewImpl implem
 	protected String getTitle() {
 		return $("ContainersByAdministrativeUnitsView.viewTitle");
 	}
+
+
 }

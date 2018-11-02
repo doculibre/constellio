@@ -3,15 +3,22 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.Roles;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+
 
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
@@ -54,11 +61,15 @@ public class User extends RecordWrapper {
 	public static final String AGENT_ENABLED = "agentEnabled";
 	public static final String DEFAULT_PAGE_LENGTH = "defaultPageLength";
 
+	private Logger LOGGER = LoggerFactory.getLogger(User.class);
+
 	private transient Roles roles;
+	AuthorizationsServices authorizationsServices;
 
 	public User(Record record, MetadataSchemaTypes types, Roles roles) {
 		super(record, types, SCHEMA_TYPE);
 		this.roles = roles;
+		this.authorizationsServices = this.roles.getSchemasRecordsServices().getModelLayerFactory().newAuthorizationsServices();
 	}
 
 	@Override
@@ -248,6 +259,69 @@ public class User extends RecordWrapper {
 	public User setCollectionDeleteAccess(boolean access) {
 		set(COLLECTION_DELETE_ACCESS, access);
 		return this;
+	}
+
+	public boolean hasGlobalAccessToMetadata(Metadata m) {
+		if(m.getAccessRestrictions() == null || m.getAccessRestrictions().getRequiredReadRoles() == null || m.getAccessRestrictions().getRequiredReadRoles().size() <= 0) {
+			return true;
+		}
+
+		List<String> userAllRole = this.getAllRoles();
+
+		if(userAllRole != null) {
+			for (String roleCode : m.getAccessRestrictions().getRequiredReadRoles()) {
+				if(userAllRole.contains(roleCode)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private boolean isAccessRole(String role) {
+		return role.equals(Role.READ) || role.equals(Role.WRITE) || role.equals(Role.DELETE);
+	}
+
+	private boolean isGroupPresent(List<String> principal) {
+		for(String group : this.getUserGroups()) {
+			if(principal.contains(group)){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean hasAccessToMetadata(Metadata m, Record record) {
+
+		List<Authorization> authorizations = authorizationsServices.getRecordAuthorizations(record);
+		List<String> roleListFromAuthorization = new ArrayList<>();
+
+		boolean hasCollectionAcces = this.get(COLLECTION_READ_ACCESS);
+		boolean hasAtleastOneAuthorization = false;
+
+		for(Authorization authorization : authorizations) {
+			if(authorization.getGrantedToPrincipals().contains(this.getId()) || isGroupPresent(authorization.getGrantedToPrincipals())) {
+				hasAtleastOneAuthorization = true;
+				roleListFromAuthorization.addAll(authorization.getDetail().getRoles());
+			}
+		}
+
+		if(!hasCollectionAcces && !hasAtleastOneAuthorization) {
+			return false;
+		}
+
+		if(m.getAccessRestrictions().getRequiredReadRoles().size() > 0) {
+			for(String roleFromauthorization : roleListFromAuthorization) {
+				if(m.getAccessRestrictions().getRequiredReadRoles().contains(roleFromauthorization)) {
+					return true;
+				}
+			}
+
+				return hasGlobalAccessToMetadata(m);
+			}
+
+		return true;
 	}
 
 	public User setCollectionAllAccess(boolean access) {
@@ -508,4 +582,5 @@ public class User extends RecordWrapper {
 	public boolean isActiveUser() {
 		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
 	}
+
 }

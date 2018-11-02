@@ -295,6 +295,10 @@ public class SettingsExportServices {
 			importedMetadata.setUnique(metadata.isUniqueValue());
 
 			importedMetadata.setUnmodifiable(metadata.isUnmodifiable());
+
+			if(metadata.getAccessRestrictions() != null && metadata.getAccessRestrictions().getRequiredReadRoles() != null) {
+				importedMetadata.setRequiredReadRoles(metadata.getAccessRestrictions().getRequiredReadRoles());
+			}
 		}
 
 		importedMetadata.setTab(displayConfig.getMetadataGroupCode());

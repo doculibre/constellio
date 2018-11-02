@@ -48,6 +48,7 @@ public class DisplaySchemaRecordPresenter extends SingleSchemaBasePresenter<Disp
 		initTransientObjects();
 	}
 
+
 	private void initTransientObjects() {
 		ConstellioFactories constellioFactories = view.getConstellioFactories();
 		SessionContext sessionContext = view.getSessionContext();

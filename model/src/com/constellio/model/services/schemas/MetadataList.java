@@ -1,6 +1,8 @@
 package com.constellio.model.services.schemas;
 
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
@@ -632,5 +634,29 @@ public class MetadataList implements List<Metadata>, Serializable {
 			}
 		}
 		return new MetadataList(filteredMetadatasList).unModifiable();
+	}
+
+	public List<Metadata> onlyAccessibleGloballyBy(User user) {
+		List<Metadata> metadataList = new ArrayList<>();
+
+		for(Metadata metadataListItem : nestedList) {
+				if (user == null || user.hasGlobalAccessToMetadata(metadataListItem)) {
+					metadataList.add(metadataListItem);
+				}
+		}
+
+		return metadataList;
+	}
+
+	public List<Metadata> onlyAccessibleOnRecordBy(User user, Record record) {
+		List<Metadata> metadataList = new ArrayList<>();
+
+		for(Metadata metadataListItem : nestedList) {
+			if(user.hasAccessToMetadata(metadataListItem, record)) {
+				metadataList.add(metadataListItem);
+			}
+		}
+
+		return metadataList;
 	}
 }

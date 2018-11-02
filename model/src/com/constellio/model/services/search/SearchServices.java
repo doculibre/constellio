@@ -14,6 +14,7 @@ import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -108,6 +109,7 @@ public class SearchServices {
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+
 		this.systemConfigs = modelLayerFactory.getSystemConfigs();
 		this.disconnectableRecordsCaches = recordsCaches;
 		this.modelLayerFactory = modelLayerFactory;
@@ -476,7 +478,11 @@ public class SearchServices {
 			}
 		}
 		if (query.getFreeTextQuery() != null) {
-			String qf = getQfFor(language, query.getFieldBoosts(), searchedSchemaTypes);
+			User user = null;
+			if(query.getUserFilters() != null && query.getUserFilters().size() > 0) {
+				user = query.getUserFilters().get(0).getUser();
+			}
+			String qf = getQfFor(language, query.getFieldBoosts(), searchedSchemaTypes, user);
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
@@ -762,22 +768,56 @@ public class SearchServices {
 		return queryTerms.size();
 	}
 
-	private String getQfFor(String language, List<SearchBoost> boosts,
-							List<MetadataSchemaType> searchedSchemaTypes) {
-		StringBuilder sb = new StringBuilder();
+
+	protected String getQfFor(String language, List<SearchBoost> boosts,
+							List<MetadataSchemaType> searchedSchemaTypes, User user) {
+			StringBuilder sb = new StringBuilder();
 
 		Set<String> fields = new HashSet<>();
 
-		for (SearchBoost boost : boosts) {
-			sb.append(boost.getKey());
-			sb.append("^");
-			sb.append(boost.getValue());
-			sb.append(" ");
-			fields.add(boost.getKey());
+		List<String> localCodeWithNoAccess = new ArrayList<>();
+		List<String> dataFieldCodeWithNoAccess = new ArrayList<>();
+		if(user != null) {
+			for (MetadataSchemaType schemaType : searchedSchemaTypes) {
+				for (Metadata metadata : schemaType.getAllMetadatas()) {
+					if (!user.hasGlobalAccessToMetadata(metadata)) {
+						localCodeWithNoAccess.add(metadata.getLocalCode());
+						dataFieldCodeWithNoAccess.add(metadata.getDataStoreCode());
+					}
+				}
+			}
 		}
+
+		for (SearchBoost boost : boosts) {
+			String dataStoreValue;
+			int lastIndexOfSemiColumn = boost.getKey().lastIndexOf(":");
+
+			if(lastIndexOfSemiColumn == -1) {
+				dataStoreValue = boost.getKey();
+			} else {
+				dataStoreValue = boost.getKey().substring(0, lastIndexOfSemiColumn);
+			}
+
+			String[] dataStoreValueSplited = dataStoreValue.split("_");
+			dataStoreValue = dataStoreValueSplited[0] + "_" + dataStoreValueSplited[1];
+
+			if(!dataFieldCodeWithNoAccess.contains(dataStoreValue)) {
+				sb.append(boost.getKey());
+				sb.append("^");
+				sb.append(boost.getValue());
+				sb.append(" ");
+				fields.add(boost.getKey());
+			}
+		}
+
+
 
 		for (MetadataSchemaType schemaType : searchedSchemaTypes) {
 			for (Metadata metadata : schemaType.getAllMetadatas()) {
+				if(localCodeWithNoAccess.contains(metadata.getLocalCode())) {
+					continue;
+				}
+
 				if (metadata.isSearchable()) {
 					if (metadata.hasSameCode(Schemas.LEGACY_ID) && fields.add(Schemas.LEGACY_ID.getDataStoreCode())) {
 						sb.append(Schemas.LEGACY_ID.getDataStoreCode());

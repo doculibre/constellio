@@ -10,7 +10,7 @@ import java.util.List;
 
 public class BagInfoToVOBuilder extends RecordToVOBuilder {
 	@Override
-	protected BagInfoVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, RecordVO.VIEW_MODE viewMode) {
+	protected BagInfoVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, RecordVO.VIEW_MODE viewMode, List<String> excludedMetadata) {
 		return new BagInfoVO(id, metadataValueVOs, viewMode);
 	}
 

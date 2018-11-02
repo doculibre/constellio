@@ -32,6 +32,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.configs.SystemConfigurationType;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -43,6 +44,7 @@ import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilderRuntimeException;
@@ -606,6 +608,16 @@ public class SettingsImportServices {
 
 		if (importedMetadata.getUnmodifiable() != null) {
 			metadataBuilder.setUnmodifiable(importedMetadata.getUnmodifiable());
+		}
+
+		if(importedMetadata.getRequiredReadRoles() != null && importedMetadata.getRequiredReadRoles().size() > 0) {
+			final MetadataAccessRestrictionBuilder originalMetadataAccessRestrictionBuilder = metadataBuilder.defineAccessRestrictions();
+			final MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
+			MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(importedMetadata.getRequiredReadRoles(), originalMetadataAccessRestrictionBuilder.getRequiredWriteRoles(),
+					originalMetadataAccessRestrictionBuilder.getRequiredModificationRoles(), originalMetadataAccessRestrictionBuilder.getRequiredDeleteRoles());
+
+			metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
+			metadataBuilder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
 		}
 
 		if ("default".equals(schemaBuilder.getCode())) {

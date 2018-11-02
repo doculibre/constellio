@@ -2,8 +2,10 @@ package com.constellio.app.modules.rm.ui.pages.folder;
 
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.records.params.GetDynamicFieldMetadatasParams;
+import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
@@ -32,6 +34,7 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.FolderPreviewRe
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderRetentionRuleField;
 import com.constellio.app.modules.rm.ui.components.folder.fields.FolderUniformSubdivisionField;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -110,9 +113,14 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 	private transient BorrowingServices borrowingServices;
+	private Map<String, String> params;
+	private RMModuleExtensions rmModuleExtensions;
 
 	public AddEditFolderPresenter(AddEditFolderView view) {
 		super(view, Folder.DEFAULT_SCHEMA);
+		rmModuleExtensions = view.getConstellioFactories().getAppLayerFactory().getExtensions()
+				.forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
+
 		initTransientObjects();
 	}
 
@@ -137,11 +145,13 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		String id = paramsMap.get(ID);
 		String parentId = paramsMap.get(PARENT_ID);
 		userFolderId = paramsMap.get(USER_FOLDER_ID);
+		this.params = paramsMap;
 
 		Record record;
 		if (StringUtils.isNotBlank(id)) {
 			record = getRecord(id);
 			addView = false;
+
 		} else if (parentId == null) {
 			record = newRecord();
 			addView = true;
@@ -260,15 +270,23 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		if (addView) {
 			String parentId = folderVO.getParentFolder();
 			if (parentId != null) {
-				view.navigate().to(RMViews.class).displayFolder(parentId);
+				navigateToFolderDisplay(parentId);
 			} else if (userFolderId != null) {
 				view.navigate().to(RMViews.class).listUserDocuments();
 			} else {
 				view.navigate().to().recordsManagement();
 			}
 		} else {
-			view.navigate().to(RMViews.class).displayFolder(folderVO.getId());
+			if (!isDuplicateStructureAction) {
+				navigateToFolderDisplay(params.get("id"));
+			} else {
+				navigateToFolderDisplay(folderVO.getId());
+			}
 		}
+	}
+
+	private void navigateToFolderDisplay(String id) {
+		RMNavigationUtils.navigateToDisplayFolder(id, params, appLayerFactory, view.getCollection());
 	}
 
 	public FolderVO getFolderVO() {
@@ -335,7 +353,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 			}
 		}
 
-		view.navigate().to(RMViews.class).displayFolder(folder.getId());
+		navigateToFolderDisplay(folder.getId());
 	}
 
 	public void customFieldValueChanged(CustomFolderField<?> customField) {
@@ -422,7 +440,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	}
 
 	String getTypeFieldValue() {
-		return (String) view.getForm().getCustomField(Folder.TYPE).getFieldValue();
+		CustomFolderField field = view.getForm().getCustomField(Folder.TYPE);
+		if(field == null) {
+			return "";
+		}
+		return (String) field.getFieldValue();
 	}
 
 	private Metadata getNotEnteredMetadata(String metadataCode) {
@@ -607,7 +629,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		FolderUniformSubdivisionField uniformSubdivisionField = (FolderUniformSubdivisionField) view.getForm().getCustomField(
 				Folder.UNIFORM_SUBDIVISION_ENTERED);
 
-		if (retentionRuleField != null) {
+		if (retentionRuleField != null && uniformSubdivisionField != null && categoryField != null) {
 			if (folderVO.getParentFolder() != null) {
 				setFieldVisible(retentionRuleField, false, Folder.RETENTION_RULE_ENTERED);
 			} else {
@@ -644,6 +666,16 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 					if (retentionRuleField.isVisible()) {
 						setFieldVisible(retentionRuleField, false, Folder.RETENTION_RULE_ENTERED);
 					}
+				}
+			}
+		} else {
+			if (categoryField == null) {
+				if (retentionRuleField != null) {
+					retentionRuleField.setVisible(false);
+				}
+
+				if(uniformSubdivisionField != null) {
+					uniformSubdivisionField.setRequired(false);
 				}
 			}
 		}
@@ -743,8 +775,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustActualTransferDateField(CustomFolderField<?> changedCustomField) {
 		FolderActualTransferDateField actualTransferDateField = (FolderActualTransferDateField) view.getForm().getCustomField(
 				Folder.ACTUAL_TRANSFER_DATE);
-		customContainerDependencyFields.put(actualTransferDateField, actualTransferDateField.getFieldValue());
+
 		if (actualTransferDateField != null) {
+			customContainerDependencyFields.put(actualTransferDateField, actualTransferDateField.getFieldValue());
 			if (isTransferDateInputPossibleForUser()) {
 				if (!actualTransferDateField.isVisible()) {
 					setFieldVisible(actualTransferDateField, true, Folder.ACTUAL_TRANSFER_DATE);
@@ -760,6 +793,11 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	private void configureIgnoreContainerFieldWhenReloadForm(CustomFolderField<?> changedCustomField,
 															 CustomFolderField currentField) {
 		FolderContainerField containerField = (FolderContainerField) view.getForm().getCustomField(Folder.CONTAINER);
+
+		if(containerField == null) {
+			return;
+		}
+
 		boolean clearContainerField = true;
 		for (Map.Entry customContainerDependencyField : customContainerDependencyFields.entrySet()) {
 			if (customContainerDependencyField.getValue() != null) {
@@ -782,8 +820,8 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustActualDepositDateField(CustomFolderField<?> changedCustomField) {
 		FolderActualDepositDateField actualDepositDateField = (FolderActualDepositDateField) view.getForm().getCustomField(
 				Folder.ACTUAL_DEPOSIT_DATE);
-		customContainerDependencyFields.put(actualDepositDateField, actualDepositDateField.getFieldValue());
 		if (actualDepositDateField != null) {
+			customContainerDependencyFields.put(actualDepositDateField, actualDepositDateField.getFieldValue());
 			if (isDepositDateInputPossibleForUser()) {
 				if (!actualDepositDateField.isVisible()) {
 					setFieldVisible(actualDepositDateField, true, Folder.ACTUAL_DEPOSIT_DATE);
@@ -804,8 +842,9 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 	void adjustActualDestructionDateField(CustomFolderField<?> changedCustomField) {
 		FolderActualDestructionDateField actualDestructionDateField = (FolderActualDestructionDateField) view.getForm()
 				.getCustomField(Folder.ACTUAL_DESTRUCTION_DATE);
-		customContainerDependencyFields.put(actualDestructionDateField, actualDestructionDateField.getFieldValue());
+
 		if (actualDestructionDateField != null) {
+			customContainerDependencyFields.put(actualDestructionDateField, actualDestructionDateField.getFieldValue());
 			if (isDestructionDateInputPossibleForUser()) {
 				if (!actualDestructionDateField.isVisible()) {
 					setFieldVisible(actualDestructionDateField, true, Folder.ACTUAL_DESTRUCTION_DATE);

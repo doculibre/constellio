@@ -10,6 +10,8 @@ import com.constellio.app.api.extensions.GenericRecordPageExtension;
 import com.constellio.app.api.extensions.LabelTemplateExtension;
 import com.constellio.app.api.extensions.ListSchemaExtention;
 import com.constellio.app.api.extensions.MetadataFieldExtension;
+import com.constellio.app.api.extensions.MetadataThatDontSupportRoleAccessExtension;
+import com.constellio.app.api.extensions.MetadataThatDontSupportRoleAccessRetValue;
 import com.constellio.app.api.extensions.PageExtension;
 import com.constellio.app.api.extensions.PagesComponentsExtension;
 import com.constellio.app.api.extensions.RecordDisplayFactoryExtension;
@@ -32,6 +34,7 @@ import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindow
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandParams;
 import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnParams;
+import com.constellio.app.api.extensions.params.MetadataThatDontSupportRoleAccessParams;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
@@ -86,9 +89,11 @@ import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+import org.jsoup.helper.StringUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -152,6 +157,10 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<ListSchemaExtention> listSchemaCommandExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
+
+	public VaultBehaviorsList<MetadataThatDontSupportRoleAccessExtension> metadataThatDontSupportRoleAccessExtensions = new VaultBehaviorsList<>();
+
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -687,5 +696,32 @@ public class AppLayerCollectionExtensions {
 		}
 		return new ArrayList<>(unwantedTaxonomies);
 	}
+
+	public List<MetadataThatDontSupportRoleAccessRetValue> getMetadataThatDontSupportRoleAccessExtension(MetadataThatDontSupportRoleAccessParams params) {
+		List<MetadataThatDontSupportRoleAccessRetValue> metadataThatDontSupportRoleAccessRetValueListFirst = new ArrayList<>();
+		metadataThatDontSupportRoleAccessRetValueListFirst.add(new MetadataThatDontSupportRoleAccessRetValue(null, null, Schemas.TITLE_CODE));
+		for(MetadataThatDontSupportRoleAccessExtension metadataThatDontSupportRoleAccessRetParam : metadataThatDontSupportRoleAccessExtensions) {
+			metadataThatDontSupportRoleAccessRetValueListFirst.addAll(metadataThatDontSupportRoleAccessRetParam.getMetadataThatDontSupportRoleAccess());
+		}
+
+		List<MetadataThatDontSupportRoleAccessRetValue> metadataThatDontSupportRoleAccessRetValueListReturn = new ArrayList<>();
+
+		if(StringUtil.isBlank(params.getSchema() )) {
+			metadataThatDontSupportRoleAccessRetValueListReturn = metadataThatDontSupportRoleAccessRetValueListFirst;
+		} else {
+			String[] splitedSchema =  params.getSchema().split("_");
+			for (MetadataThatDontSupportRoleAccessRetValue metadataThatDontSupportRoleAccessRetValue : metadataThatDontSupportRoleAccessRetValueListFirst) {
+				if ((metadataThatDontSupportRoleAccessRetValue.getMetadataSchemaType() == null
+						||metadataThatDontSupportRoleAccessRetValue.getMetadataSchemaType().equals(splitedSchema[0]))
+						&& (metadataThatDontSupportRoleAccessRetValue.getMetadataSchema() == null
+						||metadataThatDontSupportRoleAccessRetValue.getMetadataSchema().equals(splitedSchema[1]))) {
+					metadataThatDontSupportRoleAccessRetValueListReturn.add(metadataThatDontSupportRoleAccessRetValue);
+				}
+			}
+		}
+
+		return metadataThatDontSupportRoleAccessRetValueListReturn;
+	}
+
 
 }

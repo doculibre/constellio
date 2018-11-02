@@ -5,9 +5,11 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
@@ -37,6 +39,8 @@ public class TableColumnsManager implements Serializable {
 
 	protected transient User currentUser;
 
+	protected transient MetadataSchemaTypes metadataSchemaTypes;
+
 	public TableColumnsManager() {
 		initTransientObjects();
 	}
@@ -59,12 +63,32 @@ public class TableColumnsManager implements Serializable {
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
 		recordServices = modelLayerFactory.newRecordServices();
 		userServices = modelLayerFactory.newUserServices();
-
+		metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection());
 		String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
 		String username = currentUserVO.getUsername();
 
 		currentUser = userServices.getUserInCollection(username, collection);
+	}
+
+	private void checkIfColumnIsMetadataAndAsAccessRestriction(List<String> visibleColumnForUser, String tableId) {
+		List<String> toRemove = new ArrayList<>();
+
+		for(String id : visibleColumnForUser) {
+			String[] parsedCode = SchemaUtils.underscoreSplitWithCache(id);
+			if (parsedCode.length == 3 && metadataSchemaTypes.hasMetadata(id) && !currentUser.hasGlobalAccessToMetadata(metadataSchemaTypes.getMetadata(id))) {
+				toRemove.add(id);
+			}
+		}
+
+
+		for(String itemToRemove : toRemove) {
+			visibleColumnForUser.remove(itemToRemove);
+		}
+
+		if(toRemove.size() > 0) {
+			currentUser.setVisibleTableColumns(tableId, visibleColumnForUser);
+		}
 	}
 
 	public void manage(final Table table, final String tableId) {
@@ -76,6 +100,7 @@ public class TableColumnsManager implements Serializable {
 			ArrayUtils.reverse(visibleColumns);
 			table.setVisibleColumns(visibleColumns);
 
+
 			for (Object propertyId : table.getContainerPropertyIds()) {
 				Align alignment = adjustAlignment(table.getColumnAlignment(propertyId));
 				table.setColumnAlignment(propertyId, alignment);
@@ -84,8 +109,11 @@ public class TableColumnsManager implements Serializable {
 
 		List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
 		Collection<?> propertyIds = table.getContainerPropertyIds();
+		checkIfColumnIsMetadataAndAsAccessRestriction(visibleColumnIdsForUser, tableId);
+
 		for (Object propertyId : propertyIds) {
 			String columnId = toColumnId(propertyId);
+
 			boolean collapsed = !visibleColumnIdsForUser.contains(columnId);
 			if (!collapsed || table.isColumnCollapsible(columnId)) {
 				table.setColumnCollapsed(propertyId, collapsed);

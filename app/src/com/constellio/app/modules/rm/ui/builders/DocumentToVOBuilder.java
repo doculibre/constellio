@@ -48,8 +48,8 @@ public class DocumentToVOBuilder extends RecordToVOBuilder {
 	}
 
 	@Override
-	protected DocumentVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode) {
-		return new DocumentVO(id, metadataValueVOs, viewMode);
+	protected DocumentVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode, List<String> excludedMetadata) {
+		return new DocumentVO(id, metadataValueVOs, viewMode, excludedMetadata);
 	}
 
 	@Override

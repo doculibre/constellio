@@ -1,8 +1,13 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
@@ -297,7 +302,46 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new FolderDocumentBreadcrumbTrail(documentVO.getId(), taxonomyCode, this);
+
+		String saveSearchDecommissioningId = null;
+		String searchTypeAsString = null;
+
+		if(presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
+			saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
+
+		}
+
+		if(presenter.getParams() != null && presenter.getParams().get("decommissioningType") != null) {
+			searchTypeAsString = presenter.getParams().get("decommissioningType");
+		}
+
+		SearchType searchType = null;
+		if(searchTypeAsString != null) {
+			searchType = SearchType.valueOf((searchTypeAsString));
+		}
+
+		BaseBreadcrumbTrail breadcrumbTrail;
+
+		RMModuleExtensions rmModuleExtensions = getConstellioFactories().getAppLayerFactory().getExtensions()
+				.forCollection(getCollection()).forModule(ConstellioRMModule.ID);
+		breadcrumbTrail = rmModuleExtensions.getBreadCrumbtrail(
+				new DocumentFolderBreadCrumbParams(presenter.getDocument().getId(), presenter.getParams(), this));
+
+
+
+		if (breadcrumbTrail != null) {
+			return breadcrumbTrail;
+		} else if (saveSearchDecommissioningId != null && searchType != null) {
+			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
+					saveSearchDecommissioningId, presenter.getRecord().getId(),this);
+		} else {
+			String containerId = null;
+			if(presenter.getParams() != null && presenter.getParams() instanceof Map) {
+				containerId = presenter.getParams().get("containerId");
+			}
+
+			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), taxonomyCode, containerId,this);
+		}
 	}
 
 	@Override
