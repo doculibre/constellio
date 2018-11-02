@@ -15,6 +15,7 @@ import com.constellio.app.ui.framework.data.AbstractDataProvider;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
+import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -35,6 +36,7 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
+import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
@@ -202,12 +204,23 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		return mainLayout;
 	}
 
+	protected String searchButtonMessageWhenDisabled() {
+		return i18n.$("readOnlyComponent");
+	}
+
 	@NotNull
 	public WindowButton createLookupWindowBouton() {
 		lookupWindowButton = new WindowButton(null, $("search")) {
 			@Override
 			protected Component buildWindowContent() {
-				return new LookupWindowContent(getWindow());
+				if(!LookupField.this.isReadOnly()) {
+					return new LookupWindowContent(getWindow());
+				} else {
+					VerticalLayout verticalLayout = new VerticalLayout();
+					Label label = new Label(searchButtonMessageWhenDisabled());
+					verticalLayout.addComponent(label);
+					return verticalLayout;
+				}
 			}
 		};
 		return lookupWindowButton;
