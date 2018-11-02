@@ -214,9 +214,6 @@ public class AuthorizationsServices {
 			if (auth.getRoles().contains(role)) {
 				List<String> principals = auth.getPrincipals();
 				List<Record> principalRecords = recordServices.getRecordsById(auth.getCollection(), principals);
-				if (principals.size() != principalRecords.size()) {
-					throw new InvalidPrincipalsIds(principalRecords, principals);
-				}
 				MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
 				Roles roles = rolesManager.getCollectionRoles(record.getCollection(), modelLayerFactory);
 				for (Record principalRecord : principalRecords) {
