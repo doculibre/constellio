@@ -141,8 +141,9 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 			}
 		};
 		Table table = new Table();
-		table.addContainerProperty($("title"), String.class, null);
+		table.addContainerProperty("title", String.class, null);
 		table.addContainerProperty("display", DisplayButton.class, null);
+		table.setColumnHeader("title", $("title"));
 		table.addItem(new Object[]{$("CartView.defaultFavorites"), displayButton}, 0);
 		table.setColumnHeader("display", "");
 		table.setColumnWidth("display", 90);

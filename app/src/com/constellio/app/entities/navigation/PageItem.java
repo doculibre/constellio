@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class PageItem implements CodedItem, Serializable {
-	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, RECORD_TREE, CUSTOM_ITEM, RECORD_FAVORITES}
+	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, RECORD_TREE, CUSTOM_ITEM, CUSTOM_SHEET}
 
 	private final String code;
 	private final Type type;
@@ -117,7 +117,7 @@ public abstract class PageItem implements CodedItem, Serializable {
 
 	public static abstract class RecordTabSheet extends PageItem {
 		public RecordTabSheet(String code) {
-			super(code, Type.RECORD_FAVORITES);
+			super(code, Type.CUSTOM_SHEET);
 		}
 
 		public abstract List<RecordVODataProvider> getDataProviders(

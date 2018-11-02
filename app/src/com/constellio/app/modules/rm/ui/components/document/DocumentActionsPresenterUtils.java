@@ -171,7 +171,6 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 			try {
 				presenterUtils.recordServices().update(document);
 			} catch (RecordServicesException e) {
-				e.printStackTrace();
 				throw new RuntimeException(e);
 			}
 		}
@@ -183,7 +182,6 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		try {
 			presenterUtils.recordServices().update(document);
 		} catch (RecordServicesException e) {
-			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}

@@ -152,8 +152,8 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return buildRecordTreeOrRecordMultiTree((RecordTree) tabSource);
 			case CUSTOM_ITEM:
 				return buildCustomComponent((CustomItem) tabSource);
-			case RECORD_FAVORITES:
-				return buildFavoritesSheet((PageItem.RecordTabSheet) tabSource);
+			case CUSTOM_SHEET:
+				return buildCustomSheet((PageItem.RecordTabSheet) tabSource);
 			default:
 				throw new RuntimeException("Unsupported tab type : " + tabSource.getType());
 		}
@@ -270,25 +270,25 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		};
 	}
 
-	private Component buildFavoritesSheet(PageItem.RecordTabSheet recordTabSheet) {
+	private Component buildCustomSheet(PageItem.RecordTabSheet recordTabSheet) {
 		List<RecordVODataProvider> providers = recordTabSheet.getDataProviders(
 				getConstellioFactories().getAppLayerFactory(), getSessionContext());
-		TabSheet favoritesSheet = new TabSheet();
+		TabSheet costumTabSheet = new TabSheet();
 		for (RecordVODataProvider provider : providers) {
 			switch (provider.getSchema().getTypeCode()) {
 				case Folder.SCHEMA_TYPE:
-					favoritesSheet.addTab(buildTable(provider), $("HomeView.Tab.defaultFavorites.folders"));
+					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.folders"));
 					break;
 				case Document.SCHEMA_TYPE:
-					favoritesSheet.addTab(buildTable(provider), $("HomeView.Tab.defaultFavorites.documents"));
+					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.documents"));
 					break;
 				case ContainerRecord.SCHEMA_TYPE:
-					favoritesSheet.addTab(buildTable(provider), $("HomeView.Tab.defaultFavorites.containers"));
+					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.containers"));
 					break;
 			}
 
 		}
-		return favoritesSheet;
+		return costumTabSheet;
 	}
 
 	private Component buildRecordTreeOrRecordMultiTree(RecordTree recordTree) {
