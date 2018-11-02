@@ -11,7 +11,7 @@ import com.constellio.model.entities.calculators.dependencies.ReferenceDependenc
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -90,9 +90,9 @@ public class ModificationImpactCalculator {
 
 		for (Record record : transaction.getRecords()) {
 
-			if (SolrAuthorizationDetails.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				MetadataSchema authSchema = metadataSchemaTypes.getSchema(SolrAuthorizationDetails.DEFAULT_SCHEMA);
-				Metadata authorizationPrincipals = authSchema.getMetadata(SolrAuthorizationDetails.PRINCIPALS);
+			if (Authorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				MetadataSchema authSchema = metadataSchemaTypes.getSchema(Authorization.DEFAULT_SCHEMA);
+				Metadata authorizationPrincipals = authSchema.getMetadata(Authorization.PRINCIPALS);
 				if (record.isModified(authorizationPrincipals)) {
 					LogicalSearchCondition condition = fromAllSchemasInCollectionOf(record, DataStore.RECORDS)
 							.where(Schemas.NON_TAXONOMY_AUTHORIZATIONS).isEqualTo(record.getId());

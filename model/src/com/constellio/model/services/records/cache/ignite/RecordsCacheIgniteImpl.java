@@ -5,7 +5,7 @@ import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCache;
 import com.constellio.data.dao.services.cache.ignite.ConstellioIgniteCacheManager;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -912,7 +912,7 @@ public class RecordsCacheIgniteImpl implements RecordsCache {
 			MetadataSchemaType schemaType = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(collection).getSchemaType(schemaTypeCode);
 			if (searchServices.getResultsCount(from(schemaType).returnAll()) < 100000 || asList(User.SCHEMA_TYPE,
-					Group.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE).contains(schemaTypeCode)) {
+					Group.SCHEMA_TYPE, Authorization.SCHEMA_TYPE).contains(schemaTypeCode)) {
 				searchServices.getAllRecords(schemaType);
 			}
 		}

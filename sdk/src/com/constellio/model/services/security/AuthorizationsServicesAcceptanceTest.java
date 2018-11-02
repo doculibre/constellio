@@ -4,7 +4,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
@@ -191,7 +191,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, getModelLayerFactory());
-			for (SolrAuthorizationDetails auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
+			for (Authorization auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
 				if (auth.hasModifiedStatusSinceLastTokenRecalculate()) {
 					fail("authorization '" + auth.getId() + "' on target '" + auth.getTarget() + "'");
 				}

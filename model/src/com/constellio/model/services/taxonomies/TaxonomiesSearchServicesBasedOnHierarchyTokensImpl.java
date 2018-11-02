@@ -5,12 +5,12 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
@@ -634,7 +634,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 	}
 
-	private boolean isAuthGivingRequiredAccess(AuthorizationDetails authorizationDetails, String requiredAccess) {
+	private boolean isAuthGivingRequiredAccess(Authorization authorizationDetails, String requiredAccess) {
 
 		if (Role.READ.equals(requiredAccess)) {
 			return authorizationDetails.getRoles().contains(Role.READ)

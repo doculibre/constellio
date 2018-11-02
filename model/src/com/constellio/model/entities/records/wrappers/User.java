@@ -5,7 +5,6 @@ import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
 import com.constellio.model.services.security.roles.Roles;
@@ -454,7 +453,7 @@ public class User extends RecordWrapper {
 
 	}
 
-	public AuthorizationDetails getAuthorizationDetail(String id) {
+	public Authorization getAuthorizationDetail(String id) {
 		return roles.getSchemasRecordsServices().getSolrAuthorizationDetails(id);
 	}
 

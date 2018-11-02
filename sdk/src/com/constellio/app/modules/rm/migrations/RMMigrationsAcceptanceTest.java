@@ -22,7 +22,7 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Metadata;
@@ -161,7 +161,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 		if (testCase.contains("rm") && !testCase.contains("es")) {
 			assertThat(allSchemaTypesWithSecurity()).containsOnly(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
-					AdministrativeUnit.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE, Printable.SCHEMA_TYPE);
+					AdministrativeUnit.SCHEMA_TYPE, Authorization.SCHEMA_TYPE, Printable.SCHEMA_TYPE);
 		} else {
 			assertThat(allSchemaTypesWithSecurity()).doesNotContain(ContainerRecord.SCHEMA_TYPE, Category.SCHEMA_TYPE);
 		}

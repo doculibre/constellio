@@ -3,12 +3,11 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import org.joda.time.LocalDate;
 
 import java.util.List;
 
-public class SolrAuthorizationDetails extends RecordWrapper implements AuthorizationDetails {
+public class Authorization extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "authorizationDetails";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 	public static final String IDENTIFIER = "identifier";
@@ -23,12 +22,12 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 	public static final String SYNCED = "synced";
 	public static final String NEGATIVE = "negative";
 
-	public SolrAuthorizationDetails(Record record,
-									MetadataSchemaTypes types) {
+	public Authorization(Record record,
+						 MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
 	}
 
-	public SolrAuthorizationDetails setTitle(String title) {
+	public Authorization setTitle(String title) {
 		super.setTitle(title);
 		return this;
 	}
@@ -37,38 +36,35 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 		return get(IDENTIFIER);
 	}
 
-	public SolrAuthorizationDetails setIdentifier(String identifier) {
+	public Authorization setIdentifier(String identifier) {
 		set(IDENTIFIER, identifier);
 		return this;
 	}
 
-	@Override
 	public List<String> getPrincipals() {
 		return get(PRINCIPALS);
 	}
 
-	public SolrAuthorizationDetails setPrincipals(List<String> principals) {
+	public Authorization setPrincipals(List<String> principals) {
 		set(PRINCIPALS, principals);
 		return this;
 	}
 
 
-	@Override
 	public List<String> getRoles() {
 		return get(ROLES);
 	}
 
-	public SolrAuthorizationDetails setRoles(List<String> roles) {
+	public Authorization setRoles(List<String> roles) {
 		set(ROLES, roles);
 		return this;
 	}
 
-	@Override
 	public LocalDate getStartDate() {
 		return get(START_DATE);
 	}
 
-	public SolrAuthorizationDetails setStartDate(LocalDate startDate) {
+	public Authorization setStartDate(LocalDate startDate) {
 		set(START_DATE, startDate);
 		return this;
 	}
@@ -77,17 +73,16 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 		return get(LAST_TOKEN_RECALCULATE);
 	}
 
-	public SolrAuthorizationDetails setLastTokenRecalculate(LocalDate lastTokenRecalculate) {
+	public Authorization setLastTokenRecalculate(LocalDate lastTokenRecalculate) {
 		set(LAST_TOKEN_RECALCULATE, lastTokenRecalculate);
 		return this;
 	}
 
-	@Override
 	public LocalDate getEndDate() {
 		return get(END_DATE);
 	}
 
-	public SolrAuthorizationDetails setEndDate(LocalDate endDate) {
+	public Authorization setEndDate(LocalDate endDate) {
 		set(END_DATE, endDate);
 		return this;
 	}
@@ -96,7 +91,7 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 		return get(TARGET_SCHEMA_TYPE);
 	}
 
-	public SolrAuthorizationDetails setTargetSchemaType(String targetSchemaType) {
+	public Authorization setTargetSchemaType(String targetSchemaType) {
 		set(TARGET_SCHEMA_TYPE, targetSchemaType);
 		return this;
 	}
@@ -105,7 +100,7 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 		return getBooleanWithDefaultValue(OVERRIDE_INHERITED, false);
 	}
 
-	public SolrAuthorizationDetails setOverrideInherited(boolean overrideInherited) {
+	public Authorization setOverrideInherited(boolean overrideInherited) {
 		set(OVERRIDE_INHERITED, overrideInherited ? true : null);
 		return this;
 	}
@@ -114,43 +109,38 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 		return get(TARGET);
 	}
 
-	public SolrAuthorizationDetails setTarget(String target) {
+	public Authorization setTarget(String target) {
 		set(TARGET, target);
 		return this;
 	}
 
-	@Override
 	public boolean isSynced() {
 		return Boolean.TRUE.equals(get(SYNCED));
 	}
 
-	@Override
-	public AuthorizationDetails withNewEndDate(LocalDate endate) {
+	public Authorization withNewEndDate(LocalDate endate) {
 		setEndDate(endate);
 		return this;
 	}
 
-	@Override
 	public boolean isFutureAuthorization() {
 		return getStartDate() != null && TimeProvider.getLocalDate().isBefore(getStartDate());
 	}
 
-	public SolrAuthorizationDetails setSynced(Boolean isSynced) {
+	public Authorization setSynced(Boolean isSynced) {
 		set(SYNCED, isSynced);
 		return this;
 	}
 
-	@Override
 	public boolean isNegative() {
 		return getBooleanWithDefaultValue(NEGATIVE, false);
 	}
 
-	public SolrAuthorizationDetails setNegative(boolean negative) {
+	public Authorization setNegative(boolean negative) {
 		set(NEGATIVE, Boolean.TRUE.equals(negative) ? true : null);
 		return this;
 	}
 
-	@Override
 	public boolean isActiveAuthorization() {
 		return isActiveAuthorizationAtDate(TimeProvider.getLocalDate());
 	}
@@ -196,15 +186,15 @@ public class SolrAuthorizationDetails extends RecordWrapper implements Authoriza
 		}
 	}
 
-	public static SolrAuthorizationDetails wrapNullable(Record record, MetadataSchemaTypes types) {
-		return record == null ? null : new SolrAuthorizationDetails(record, types);
+	public static Authorization wrapNullable(Record record, MetadataSchemaTypes types) {
+		return record == null ? null : new Authorization(record, types);
 	}
 
-	public SolrAuthorizationDetails getCopyOfOriginalRecord() {
-		return SolrAuthorizationDetails.wrapNullable(wrappedRecord.getCopyOfOriginalRecord(), types);
+	public Authorization getCopyOfOriginalRecord() {
+		return Authorization.wrapNullable(wrappedRecord.getCopyOfOriginalRecord(), types);
 	}
 
-	public SolrAuthorizationDetails getUnmodifiableCopyOfOriginalRecord() {
-		return SolrAuthorizationDetails.wrapNullable(wrappedRecord.getUnmodifiableCopyOfOriginalRecord(), types);
+	public Authorization getUnmodifiableCopyOfOriginalRecord() {
+		return Authorization.wrapNullable(wrappedRecord.getUnmodifiableCopyOfOriginalRecord(), types);
 	}
 }

@@ -1,7 +1,7 @@
 package com.constellio.model.entities.security.global;
 
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
 
 public class AuthorizationDeleteRequest {
 
@@ -33,11 +33,7 @@ public class AuthorizationDeleteRequest {
 		return new AuthorizationDeleteRequest(authId, collection, null, true);
 	}
 
-	public static AuthorizationDeleteRequest authorizationDeleteRequest(Authorization authorization) {
-		return authorizationDeleteRequest(authorization.getDetail());
-	}
-
-	public static AuthorizationDeleteRequest authorizationDeleteRequest(AuthorizationDetails authorizationDetails) {
+	public static AuthorizationDeleteRequest authorizationDeleteRequest(Authorization authorizationDetails) {
 		return authorizationDeleteRequest(authorizationDetails.getId(), authorizationDetails.getCollection());
 	}
 

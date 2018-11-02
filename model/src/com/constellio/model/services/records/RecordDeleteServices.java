@@ -12,7 +12,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -285,15 +285,15 @@ public class RecordDeleteServices {
 		List<Record> records = getAllRecordsInHierarchyForPhysicalDeletion(record, options);
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(record.getCollection(), modelLayerFactory);
-		if (schemas.getTypes().hasType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+		if (schemas.getTypes().hasType(Authorization.SCHEMA_TYPE)) {
 			for (Record recordInHierarchy : records) {
-				for (SolrAuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(
+				for (Authorization details : schemas.searchSolrAuthorizationDetailss(
 						where(schemas.authorizationDetails.target()).isEqualTo(recordInHierarchy.getId()))) {
 
 					authorizationsServices.execute(authorizationDeleteRequest(details));
 				}
 			}
-			for (SolrAuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(
+			for (Authorization details : schemas.searchSolrAuthorizationDetailss(
 					where(schemas.authorizationDetails.target()).isEqualTo(record.getId()))) {
 				authorizationsServices.execute(authorizationDeleteRequest(details));
 			}

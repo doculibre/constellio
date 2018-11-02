@@ -3,8 +3,8 @@ package com.constellio.model.entities.security;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,7 @@ public class SecurityModelAuthorization {
 
 	List<Group> groups = new ArrayList<>();
 
-	AuthorizationDetails details;
+	Authorization details;
 
 	GroupAuthorizationsInheritance groupAuthorizationsInheritance;
 
@@ -25,7 +25,7 @@ public class SecurityModelAuthorization {
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
 	}
 
-	public SecurityModelAuthorization(AuthorizationDetails details,
+	public SecurityModelAuthorization(Authorization details,
 									  boolean conceptAuth,
 									  GroupAuthorizationsInheritance groupAuthorizationsInheritance) {
 		this.details = details;
@@ -73,7 +73,7 @@ public class SecurityModelAuthorization {
 		return groups;
 	}
 
-	public AuthorizationDetails getDetails() {
+	public Authorization getDetails() {
 		return details;
 	}
 
@@ -102,7 +102,7 @@ public class SecurityModelAuthorization {
 	public static SecurityModelAuthorization wrapNewAuthWithoutUsersAndGroups(
 			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
 			Taxonomy principalTaxonomy,
-			AuthorizationDetails details) {
+			Authorization details) {
 
 		SecurityModelAuthorization auth = new SecurityModelAuthorization(groupAuthorizationsInheritance);
 		auth.users = new ArrayList<>();
@@ -118,7 +118,7 @@ public class SecurityModelAuthorization {
 	public static SecurityModelAuthorization wrapExistingAuthUsingModifiedUsersAndGroups(
 			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
 			Taxonomy principalTaxonomy,
-			AuthorizationDetails details,
+			Authorization details,
 			List<User> existingUsers,
 			List<Group> existingGroups) {
 

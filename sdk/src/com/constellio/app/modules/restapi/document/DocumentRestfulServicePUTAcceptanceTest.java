@@ -37,7 +37,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.utils.MimeTypes;
 import com.google.common.collect.Lists;

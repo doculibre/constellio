@@ -51,7 +51,7 @@ import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
@@ -113,7 +113,7 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 		wrappers.put(EmailToSend.DEFAULT_SCHEMA, EmailToSend.class);
 		wrappers.put(Facet.DEFAULT_SCHEMA, Facet.class);
 		wrappers.put(UserDocument.DEFAULT_SCHEMA, UserDocument.class);
-		wrappers.put(SolrAuthorizationDetails.DEFAULT_SCHEMA, SolrAuthorizationDetails.class);
+		wrappers.put(Authorization.DEFAULT_SCHEMA, Authorization.class);
 		wrappers.put(Report.DEFAULT_SCHEMA, Report.class);
 		wrappers.put(Printable.DEFAULT_SCHEMA, Printable.class);
 		wrappers.put(UserFolder.DEFAULT_SCHEMA, UserFolder.class);

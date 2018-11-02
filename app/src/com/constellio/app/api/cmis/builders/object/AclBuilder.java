@@ -2,8 +2,8 @@ package com.constellio.app.api.cmis.builders.object;
 
 import com.constellio.app.api.cmis.binding.collection.ConstellioCollectionRepository;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -49,20 +49,20 @@ public class AclBuilder {
 		AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
 		for (Authorization authorization : authorizationsServices.getRecordAuthorizations(record)) {
 			List<String> cmisPermissions = new ArrayList<>();
-			if (authorization.getDetail().getRoles().contains(Role.READ)) {
+			if (authorization.getRoles().contains(Role.READ)) {
 				cmisPermissions.add(CMIS_READ);
 			}
 
-			if (authorization.getDetail().getRoles().contains(Role.WRITE)) {
+			if (authorization.getRoles().contains(Role.WRITE)) {
 				cmisPermissions.add(CMIS_WRITE);
 			}
 
-			if (authorization.getDetail().getRoles().contains(Role.DELETE)) {
+			if (authorization.getRoles().contains(Role.DELETE)) {
 				cmisPermissions.add(CMIS_DELETE);
 			}
 
-			boolean direct = authorization.getGrantedOnRecord().equals(record.getId());
-			for (String principalId : authorization.getGrantedToPrincipals()) {
+			boolean direct = authorization.getTarget().equals(record.getId());
+			for (String principalId : authorization.getPrincipals()) {
 				AccessControlPrincipalDataImpl principal = toPrincipal(principalId);
 				AccessControlEntryImpl ace = new AccessControlEntryImpl(principal, cmisPermissions);
 				ace.setDirect(direct);

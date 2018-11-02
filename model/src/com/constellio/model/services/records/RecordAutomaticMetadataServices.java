@@ -21,7 +21,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -41,7 +41,6 @@ import com.constellio.model.entities.schemas.entries.TransactionAggregatedValues
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.entities.security.TransactionSecurityModel;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
@@ -417,7 +416,7 @@ public class RecordAutomaticMetadataServices {
 		MetadataSchemaType type = types.getSchemaType(calculatedRecord.getTypeCode());
 		RecordsCache recordsCache = modelLayerFactory.getRecordsCaches().getCache(calculatedRecord.getCollection());
 		if (type.hasSecurity() && recordsCache.isConfigured(User.SCHEMA_TYPE) && recordsCache.isConfigured(Group.SCHEMA_TYPE)
-			&& recordsCache.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+			&& recordsCache.isConfigured(Authorization.SCHEMA_TYPE)) {
 
 			RolesManager rolesManager = modelLayerFactory.getRolesManager();
 			Roles roles = rolesManager.getCollectionRoles(calculatedRecord.getCollection(), modelLayerFactory);
@@ -464,7 +463,7 @@ public class RecordAutomaticMetadataServices {
 
 		List<Group> groups = new ArrayList<>();
 		List<User> users = new ArrayList<>();
-		List<AuthorizationDetails> authorizationDetails = new ArrayList<>();
+		List<Authorization> authorizationDetails = new ArrayList<>();
 		List<String> disabledGroups = new ArrayList<>();
 
 
@@ -498,9 +497,9 @@ public class RecordAutomaticMetadataServices {
 		}
 
 		for (Record record : searchServices
-				.getAllRecordsInUnmodifiableState(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))) {
+				.getAllRecordsInUnmodifiableState(types.getSchemaType(Authorization.SCHEMA_TYPE))) {
 			if (record != null) {
-				authorizationDetails.add(SolrAuthorizationDetails.wrapNullable(record, types));
+				authorizationDetails.add(Authorization.wrapNullable(record, types));
 			} else {
 				LOGGER.warn("Null record returned while getting all users");
 			}

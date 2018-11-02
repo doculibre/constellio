@@ -10,7 +10,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.LegacyGlobalMetadatas;
 import com.constellio.model.entities.schemas.Metadata;
@@ -65,7 +65,7 @@ public class CoreMigrationTo_8_1_999 implements MigrationScript {
 			@Override
 			public void doActionOnBatch(List<Record> records) throws Exception {
 				Transaction tx = new Transaction();
-				for (SolrAuthorizationDetails detail : schemas.wrapSolrAuthorizationDetailss(records)) {
+				for (Authorization detail : schemas.wrapSolrAuthorizationDetailss(records)) {
 					tx.add(detail.setPrincipals(authsPrincipals.get(detail.getId())));
 				}
 
@@ -116,8 +116,8 @@ public class CoreMigrationTo_8_1_999 implements MigrationScript {
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 
-			if (!typesBuilder.getSchema(SolrAuthorizationDetails.DEFAULT_SCHEMA).hasMetadata(SolrAuthorizationDetails.PRINCIPALS)) {
-				typesBuilder.getSchema(SolrAuthorizationDetails.DEFAULT_SCHEMA).create(SolrAuthorizationDetails.PRINCIPALS)
+			if (!typesBuilder.getSchema(Authorization.DEFAULT_SCHEMA).hasMetadata(Authorization.PRINCIPALS)) {
+				typesBuilder.getSchema(Authorization.DEFAULT_SCHEMA).create(Authorization.PRINCIPALS)
 						.setType(STRING).setMultivalue(true);
 			}
 

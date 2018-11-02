@@ -4,7 +4,7 @@ import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -535,7 +535,7 @@ public class RecordsCacheImpl implements RecordsCache {
 					.getSchemaTypes(collection).getSchemaType(cacheConfig.getSchemaType());
 			long resultCount = searchServices.getResultsCount(from(schemaType).returnAll());
 			if (resultCount > 0 && (resultCount < 10000 || asList(User.SCHEMA_TYPE,
-					Group.SCHEMA_TYPE, SolrAuthorizationDetails.SCHEMA_TYPE).contains(cacheConfig.getSchemaType()))) {
+					Group.SCHEMA_TYPE, Authorization.SCHEMA_TYPE).contains(cacheConfig.getSchemaType()))) {
 
 				LOGGER.info("Loading cache of type '" + cacheConfig.getSchemaType() + "' of collection '" + collection + "'");
 				searchServices.getAllRecords(schemaType);

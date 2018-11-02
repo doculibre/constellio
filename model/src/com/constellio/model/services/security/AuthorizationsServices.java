@@ -6,20 +6,18 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.TransactionRecordsReindexation;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -104,11 +102,11 @@ public class AuthorizationsServices {
 		if (id == null) {
 			throw new IllegalArgumentException("id is null");
 		}
-		SolrAuthorizationDetails authDetails = getDetails(collection, id);
+		Authorization authDetails = getDetails(collection, id);
 		if (authDetails == null) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId(id);
 		}
-		return new Authorization(authDetails);
+		return authDetails;
 	}
 
 	public List<User> getUsersWithGlobalPermissionInCollection(String permission, String collection) {
@@ -213,9 +211,9 @@ public class AuthorizationsServices {
 		List<User> users = new ArrayList<>();
 		List<Authorization> recordAuths = getRecordAuthorizations(record);
 		for (Authorization auth : recordAuths) {
-			if (auth.getDetail().getRoles().contains(role)) {
-				List<String> principals = auth.getGrantedToPrincipals();
-				List<Record> principalRecords = recordServices.getRecordsById(auth.getDetail().getCollection(), principals);
+			if (auth.getRoles().contains(role)) {
+				List<String> principals = auth.getPrincipals();
+				List<Record> principalRecords = recordServices.getRecordsById(auth.getCollection(), principals);
 				if (principals.size() != principalRecords.size()) {
 					throw new InvalidPrincipalsIds(principalRecords, principals);
 				}
@@ -268,11 +266,11 @@ public class AuthorizationsServices {
 			throw new InvalidTargetRecordId(request.getTarget());
 		}
 
-		SolrAuthorizationDetails details = newAuthorizationDetails(request.getCollection(), request.getId(), request.getRoles(),
+		Authorization details = newAuthorizationDetails(request.getCollection(), request.getId(), request.getRoles(),
 				request.getStart(), request.getEnd(), request.isOverridingInheritedAuths(), request.isNegative())
 				.setTarget(request.getTarget()).setTargetSchemaType(record.getTypeCode());
 		details.setPrincipals(principalToRecordIds(schemas(record.getCollection()), request.getPrincipals()));
-		return add(new Authorization(details), request.getExecutedBy());
+		return add(details, request.getExecutedBy());
 	}
 
 	public String add(AuthorizationAddRequest request, User userAddingTheAuth) {
@@ -290,18 +288,18 @@ public class AuthorizationsServices {
 
 		AuthTransaction transaction = new AuthTransaction();
 
-		SolrAuthorizationDetails authorizationDetail = (SolrAuthorizationDetails) authorization.getDetail();
-		authorizationDetail.setTarget(authorization.getGrantedOnRecord());
-		Record record = recordServices.getDocumentById(authorization.getGrantedOnRecord());
+		Authorization authorizationDetail = (Authorization) authorization;
+		authorizationDetail.setTarget(authorization.getTarget());
+		Record record = recordServices.getDocumentById(authorization.getTarget());
 		authorizationDetail.setTargetSchemaType(record.getTypeCode());
-		authorizationDetail.setPrincipals(authorization.getGrantedToPrincipals());
+		authorizationDetail.setPrincipals(authorization.getPrincipals());
 		transaction.add(authorizationDetail);
 		String authId = authorizationDetail.getId();
 
 		validateDates(authorizationDetail.getStartDate(), authorizationDetail.getEndDate());
-		authorizationDetail.setPrincipals(authorization.getGrantedToPrincipals());
+		authorizationDetail.setPrincipals(authorization.getPrincipals());
 
-		if (!transaction.getRecordIds().contains(authorization.getGrantedOnRecord())) {
+		if (!transaction.getRecordIds().contains(authorization.getTarget())) {
 			transaction.add(record);
 		}
 		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
@@ -319,7 +317,7 @@ public class AuthorizationsServices {
 
 	public void execute(AuthorizationDeleteRequest request) {
 		AuthTransaction transaction = new AuthTransaction();
-		AuthorizationDetails removedAuthorization = execute(request, transaction);
+		Authorization removedAuthorization = execute(request, transaction);
 		String grantedOnRecord = removedAuthorization.getTarget();
 		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		if (!transaction.getRecordIds().contains(grantedOnRecord)) {
@@ -348,7 +346,7 @@ public class AuthorizationsServices {
 
 		Set<String> recordsToResetIfNoAuths = new HashSet<>();
 
-		List<SolrAuthorizationDetails> authsDetailsToDelete = new ArrayList<>();
+		List<Authorization> authsDetailsToDelete = new ArrayList<>();
 
 		@Override
 		public Record add(Record addUpdateRecord) {
@@ -364,14 +362,14 @@ public class AuthorizationsServices {
 		}
 	}
 
-	private AuthorizationDetails execute(AuthorizationDeleteRequest request, AuthTransaction transaction) {
+	private Authorization execute(AuthorizationDeleteRequest request, AuthTransaction transaction) {
 
 		List<String> authId = asList(request.getAuthId());
 		Authorization auth = getAuthorization(request.getCollection(), request.getAuthId());
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemasIn(request.getCollection())
 				//TODO Really necessary Authorizations ?
 				.where(REMOVED_AUTHORIZATIONS).isContaining(authId)
-				.orWhere(Schemas.ATTACHED_ANCESTORS).isEqualTo(auth.getGrantedOnRecord()));
+				.orWhere(Schemas.ATTACHED_ANCESTORS).isEqualTo(auth.getTarget()));
 		List<Record> recordsWithRemovedAuth = searchServices.search(query);
 
 		if (request.getExecutedBy() != null) {
@@ -395,12 +393,12 @@ public class AuthorizationsServices {
 
 		}
 
-		AuthorizationDetails removedAuthorization = null;
+		Authorization removedAuthorization = null;
 		try {
 			removedAuthorization = getDetails(request.getCollection(), request.getAuthId());
 			if (removedAuthorization != null) {
-				transaction.authsDetailsToDelete.add((SolrAuthorizationDetails) removedAuthorization);
-				transaction.add(((SolrAuthorizationDetails) removedAuthorization).getWrappedRecord()
+				transaction.authsDetailsToDelete.add((Authorization) removedAuthorization);
+				transaction.add(((Authorization) removedAuthorization).getWrappedRecord()
 						.set(Schemas.LOGICALLY_DELETED_STATUS, true));
 
 			}
@@ -421,7 +419,7 @@ public class AuthorizationsServices {
 
 	}
 
-	private SolrAuthorizationDetails getDetails(String collection, String id) {
+	private Authorization getDetails(String collection, String id) {
 		try {
 			return schemas(collection).getSolrAuthorizationDetails(id);
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
@@ -429,8 +427,8 @@ public class AuthorizationsServices {
 		}
 	}
 
-	private void remove(AuthorizationDetails details) {
-		Record record = ((SolrAuthorizationDetails) details).getWrappedRecord();
+	private void remove(Authorization details) {
+		Record record = ((Authorization) details).getWrappedRecord();
 		recordServices.logicallyDelete(record, User.GOD);
 		recordServices.physicallyDelete(record, User.GOD);
 	}
@@ -456,7 +454,7 @@ public class AuthorizationsServices {
 			if (response.getIdOfAuthorizationCopy() != null) {
 				authorizationAfter = getAuthorization(request.getCollection(), response.getIdOfAuthorizationCopy());
 			} else {
-				authorizationAfter = getAuthorization(request.getCollection(), authorization.getDetail().getId());
+				authorizationAfter = getAuthorization(request.getCollection(), authorization.getId());
 			}
 
 			try {
@@ -471,10 +469,10 @@ public class AuthorizationsServices {
 		return response;
 	}
 
-	private List<AuthorizationDetails> getInheritedAuths(Record record) {
+	private List<Authorization> getInheritedAuths(Record record) {
 		SchemasRecordsServices schemas = schemas(record.getCollection());
 
-		List<AuthorizationDetails> authorizationDetails = new ArrayList<>();
+		List<Authorization> authorizationDetails = new ArrayList<>();
 
 		Set<String> recordsIdsWithPosibleAuths = new HashSet<>();
 		recordsIdsWithPosibleAuths.addAll(record.<String>getList(ATTACHED_ANCESTORS));
@@ -493,7 +491,7 @@ public class AuthorizationsServices {
 			}
 		}
 
-		for (SolrAuthorizationDetails authorizationDetail : schemas.getAllAuthorizationsInUnmodifiableState()) {
+		for (Authorization authorizationDetail : schemas.getAllAuthorizationsInUnmodifiableState()) {
 			if (recordsIdsWithPosibleAuths.contains(authorizationDetail.getTarget())) {
 				authorizationDetails.add(authorizationDetail.getCopyOfOriginalRecord());
 			}
@@ -503,24 +501,15 @@ public class AuthorizationsServices {
 		return authorizationDetails;
 	}
 
-	private List<String> toIds(List<AuthorizationDetails> authorizationDetailses) {
-		List<String> ids = new ArrayList<>();
-
-		for (AuthorizationDetails authorizationDetails : authorizationDetailses) {
-			ids.add(authorizationDetails.getId());
-		}
-
-		return ids;
-	}
-
 	private AuthorizationModificationResponse executeWithoutLogging(AuthorizationModificationRequest request,
-																	Authorization authorization, Record record) {
+																	Authorization authorization,
+																	Record record) {
 
 		AuthTransaction transaction = new AuthTransaction();
 		transaction.getRecordUpdateOptions().setForcedReindexationOfMetadatas(TransactionRecordsReindexation.ALL());
 		transaction.add(record);
-		String authTarget = authorization.getDetail().getTarget();
-		String authId = authorization.getDetail().getId();
+		String authTarget = authorization.getTarget();
+		String authId = authorization.getId();
 		boolean directlyTargetted = authTarget.equals(record.getId());
 		boolean inherited = !directlyTargetted && record.getList(ATTACHED_ANCESTORS).contains(authTarget);
 		boolean nonTaxonomyAuth = record.<String>getList(Schemas.NON_TAXONOMY_AUTHORIZATIONS).contains(authId);
@@ -531,7 +520,7 @@ public class AuthorizationsServices {
 		AuthorizationModificationResponse response;
 		if (request.isRemovedOnRecord()) {
 			if (directlyTargetted) {
-				execute(authorizationDeleteRequest(authorization.getDetail()).setExecutedBy(request.getExecutedBy()),
+				execute(authorizationDeleteRequest(authorization).setExecutedBy(request.getExecutedBy()),
 						transaction);
 
 			} else {
@@ -543,17 +532,17 @@ public class AuthorizationsServices {
 		} else {
 
 			if (directlyTargetted) {
-				transaction.add((SolrAuthorizationDetails) authorization.getDetail());
-				executeOnAuthorization(transaction, request, authorization.getDetail(), record,
-						authorization.getGrantedToPrincipals());
+				transaction.add((Authorization) authorization);
+				executeOnAuthorization(transaction, request, authorization, record,
+						authorization.getPrincipals());
 				response = new AuthorizationModificationResponse(false, null, Collections.<String, String>emptyMap());
 
 			} else {
-				AuthorizationDetails copy = inheritedToSpecific(transaction, record, record.getCollection(),
-						authorization.getDetail().getId());
-				record.addValueToList(REMOVED_AUTHORIZATIONS, authorization.getDetail().getId());
+				Authorization copy = inheritedToSpecific(transaction, record, record.getCollection(),
+						authorization.getId());
+				record.addValueToList(REMOVED_AUTHORIZATIONS, authorization.getId());
 
-				executeOnAuthorization(transaction, request, copy, record, authorization.getGrantedToPrincipals());
+				executeOnAuthorization(transaction, request, copy, record, authorization.getPrincipals());
 
 				response = new AuthorizationModificationResponse(false, copy.getId(), singletonMap(authId, copy.getId()));
 
@@ -620,7 +609,7 @@ public class AuthorizationsServices {
 
 		} else {
 			authIds = new ArrayList<>();
-			for (AuthorizationDetails authorizationDetails : schemas.getAllAuthorizationsInUnmodifiableState()) {
+			for (Authorization authorizationDetails : schemas.getAllAuthorizationsInUnmodifiableState()) {
 
 				boolean targettingRecordOrAncestor =
 						(record.getList(ATTACHED_ANCESTORS).contains(authorizationDetails.getTarget())
@@ -636,9 +625,9 @@ public class AuthorizationsServices {
 
 		List<Authorization> authorizations = new ArrayList<>();
 		for (String authId : authIds) {
-			SolrAuthorizationDetails authDetails = getDetails(record.getCollection(), authId);
+			Authorization authDetails = getDetails(record.getCollection(), authId);
 			if (authDetails != null) {
-				authorizations.add(new Authorization(authDetails));
+				authorizations.add(authDetails);
 			} else {
 				LOGGER.error("Missing authorization '" + authId + "'");
 			}
@@ -673,7 +662,7 @@ public class AuthorizationsServices {
 			}
 		}
 
-		for (AuthorizationDetails details : transaction.authsDetailsToDelete) {
+		for (Authorization details : transaction.authsDetailsToDelete) {
 			remove(details);
 		}
 		AuthTransaction transaction2 = new AuthTransaction();
@@ -697,7 +686,7 @@ public class AuthorizationsServices {
 		record.set(IS_DETACHED_AUTHORIZATIONS, false);
 		transaction.add(record);
 
-		for (AuthorizationDetails authorizationDetails : schemas.searchSolrAuthorizationDetailss(
+		for (Authorization authorizationDetails : schemas.searchSolrAuthorizationDetailss(
 				where(schemas.authorizationDetails.target()).isEqualTo(record.getId()))) {
 			execute(authorizationDeleteRequest(authorizationDetails), transaction);
 		}
@@ -756,7 +745,7 @@ public class AuthorizationsServices {
 	}
 
 	private void executeOnAuthorization(AuthTransaction transaction, AuthorizationModificationRequest request,
-										AuthorizationDetails authorizationDetails, Record record,
+										Authorization authorizationDetails, Record record,
 										List<String> actualPrincipals) {
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(record.getCollection(), modelLayerFactory);
@@ -768,7 +757,7 @@ public class AuthorizationsServices {
 			}
 
 			List<String> newPrincipalIds = principalToRecordIds(schemas, request.getNewPrincipalIds());
-			((SolrAuthorizationDetails) authorizationDetails).setPrincipals(newPrincipalIds);
+			((Authorization) authorizationDetails).setPrincipals(newPrincipalIds);
 
 		}
 		if (request.getNewAccessAndRoles() != null) {
@@ -780,7 +769,7 @@ public class AuthorizationsServices {
 				accessAndRoles.add(0, Role.READ);
 			}
 
-			transaction.add((SolrAuthorizationDetails) authorizationDetails).setRoles(accessAndRoles);
+			transaction.add((Authorization) authorizationDetails).setRoles(accessAndRoles);
 		}
 
 		if (request.getNewStartDate() != null || request.getNewEndDate() != null) {
@@ -788,11 +777,11 @@ public class AuthorizationsServices {
 								  authorizationDetails.getStartDate() : request.getNewStartDate();
 			LocalDate endDate = request.getNewEndDate() == null ? authorizationDetails.getEndDate() : request.getNewEndDate();
 			validateDates(startDate, endDate);
-			transaction.add((SolrAuthorizationDetails) authorizationDetails).setStartDate(startDate).setEndDate(endDate);
+			transaction.add((Authorization) authorizationDetails).setStartDate(startDate).setEndDate(endDate);
 		}
 
 		if (request.getNewOverridingInheritedAuths() != null) {
-			transaction.add(((SolrAuthorizationDetails) authorizationDetails))
+			transaction.add(((Authorization) authorizationDetails))
 					.setOverrideInherited(request.getNewOverridingInheritedAuths());
 		}
 	}
@@ -870,15 +859,15 @@ public class AuthorizationsServices {
 	}
 
 	private List<Record> getAuthorizationGrantedToPrincipals(Authorization authorization) {
-		if (authorization.getGrantedToPrincipals() == null) {
+		if (authorization.getPrincipals() == null) {
 			throw new CannotAddUpdateWithoutPrincipalsAndOrTargetRecords();
 		}
 
-		List<String> principalIds = withoutDuplicatesAndNulls(authorization.getGrantedToPrincipals());
-		if (principalIds.isEmpty() && !authorization.getDetail().isSynced()) {
+		List<String> principalIds = withoutDuplicatesAndNulls(authorization.getPrincipals());
+		if (principalIds.isEmpty() && !authorization.isSynced()) {
 			throw new CannotAddUpdateWithoutPrincipalsAndOrTargetRecords();
 		}
-		List<Record> records = recordServices.getRecordsById(authorization.getDetail().getCollection(), principalIds);
+		List<Record> records = recordServices.getRecordsById(authorization.getCollection(), principalIds);
 		if (principalIds.size() != records.size()) {
 			throw new InvalidPrincipalsIds(records, principalIds);
 		}
@@ -918,7 +907,7 @@ public class AuthorizationsServices {
 		for (String collection : collections) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 
-			for (AuthorizationDetails authToDelete : schemas.searchSolrAuthorizationDetailss(
+			for (Authorization authToDelete : schemas.searchSolrAuthorizationDetailss(
 					where(schemas.authorizationDetails.endDate()).isLessThan(TimeProvider.getLocalDate()))) {
 
 				execute(authorizationDeleteRequest(authToDelete));
@@ -929,12 +918,12 @@ public class AuthorizationsServices {
 
 	private Map<String, String> setupAuthorizationsForDetachedRecord(AuthTransaction transaction, Record record) {
 		Map<String, String> originalToCopyMap = new HashMap<>();
-		List<AuthorizationDetails> inheritedAuthorizations = getInheritedAuths(record);
+		List<Authorization> inheritedAuthorizations = getInheritedAuths(record);
 		List<String> removedAuthorizations = record.getList(REMOVED_AUTHORIZATIONS);
 
-		for (AuthorizationDetails inheritedAuthorization : inheritedAuthorizations) {
+		for (Authorization inheritedAuthorization : inheritedAuthorizations) {
 			if (!removedAuthorizations.contains(inheritedAuthorization.getId())) {
-				AuthorizationDetails copy = inheritedToSpecific(transaction, record, record.getCollection(),
+				Authorization copy = inheritedToSpecific(transaction, record, record.getCollection(),
 						inheritedAuthorization.getId());
 				if (copy != null) {
 					originalToCopyMap.put(inheritedAuthorization.getId(), copy.getId());
@@ -947,10 +936,10 @@ public class AuthorizationsServices {
 		return originalToCopyMap;
 	}
 
-	private AuthorizationDetails inheritedToSpecific(AuthTransaction transaction, Record record, String collection,
-													 String oldAuthId) {
-		AuthorizationDetails inherited = getDetails(collection, oldAuthId);
-		SolrAuthorizationDetails detail = newAuthorizationDetails(collection, null, inherited.getRoles(),
+	private Authorization inheritedToSpecific(AuthTransaction transaction, Record record, String collection,
+											  String oldAuthId) {
+		Authorization inherited = getDetails(collection, oldAuthId);
+		Authorization detail = newAuthorizationDetails(collection, null, inherited.getRoles(),
 				inherited.getStartDate(), inherited.getEndDate(), false, inherited.isNegative());
 		detail.setTarget(record.getId());
 		detail.setTargetSchemaType(record.getTypeCode());
@@ -988,11 +977,11 @@ public class AuthorizationsServices {
 		return new SchemaUtils();
 	}
 
-	private SolrAuthorizationDetails newAuthorizationDetails(String collection, String id, List<String> roles,
-															 LocalDate startDate, LocalDate endDate,
-															 boolean overrideInherited, boolean negative) {
-		SolrAuthorizationDetails details = id == null ? schemas(collection).newSolrAuthorizationDetails()
-													  : schemas(collection).newSolrAuthorizationDetailsWithId(id);
+	private Authorization newAuthorizationDetails(String collection, String id, List<String> roles,
+												  LocalDate startDate, LocalDate endDate,
+												  boolean overrideInherited, boolean negative) {
+		Authorization details = id == null ? schemas(collection).newSolrAuthorizationDetails()
+										   : schemas(collection).newSolrAuthorizationDetailsWithId(id);
 
 		return details.setRoles(roles).setStartDate(startDate).setEndDate(endDate).setOverrideInherited(overrideInherited).setNegative(negative);
 	}

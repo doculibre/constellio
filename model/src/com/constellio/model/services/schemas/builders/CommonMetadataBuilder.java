@@ -4,7 +4,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
@@ -181,7 +181,7 @@ public class CommonMetadataBuilder {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
 						.setMultivalue(true);
 				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-					&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+					&& types.hasSchemaType(Authorization.SCHEMA_TYPE)) {
 					metadataBuilder.defineDataEntry().asCalculated(TokensCalculator4.class);
 
 				} else {
@@ -459,9 +459,9 @@ public class CommonMetadataBuilder {
 				//SolrAuthorizationDetails always exist, except for test migrating old savestates which we want to keep as long as possible
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(NON_TAXONOMY_AUTHORIZATIONS);
 				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-					&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+					&& types.hasSchemaType(Authorization.SCHEMA_TYPE)) {
 
-					metadataBuilder.defineReferencesTo(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))
+					metadataBuilder.defineReferencesTo(types.getSchemaType(Authorization.SCHEMA_TYPE))
 							.setMultivalue(true).defineDataEntry().asCalculated(NonTaxonomyAuthorizationsCalculator.class);
 
 				} else {

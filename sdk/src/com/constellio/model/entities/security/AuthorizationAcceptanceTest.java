@@ -2,7 +2,7 @@ package com.constellio.model.entities.security;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -49,7 +49,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SolrAuthorizationDetailsAcceptanceTest extends ConstellioTest {
+public class AuthorizationAcceptanceTest extends ConstellioTest {
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
 	Users users = new Users();
@@ -109,7 +109,7 @@ public class SolrAuthorizationDetailsAcceptanceTest extends ConstellioTest {
 		);
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
-		SolrAuthorizationDetails auth = schemas.newSolrAuthorizationDetails();
+		Authorization auth = schemas.newSolrAuthorizationDetails();
 
 		givenTimeIs(date(2017, 11, 16));
 
