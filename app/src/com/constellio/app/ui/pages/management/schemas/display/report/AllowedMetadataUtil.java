@@ -13,7 +13,7 @@ public class AllowedMetadataUtil {
 	public static boolean isAllowedMetadata(MetadataVO metadataVO) {
 		boolean result;
 		List<Metadata> restrictedMetadata = Arrays.asList(Schemas.SCHEMA, Schemas.VERSION, Schemas.PATH, Schemas.PRINCIPAL_PATH,
-				Schemas.PARENT_PATH, Schemas.ATTACHED_ANCESTORS, Schemas.REMOVED_AUTHORIZATIONS,
+				Schemas.ATTACHED_ANCESTORS, Schemas.REMOVED_AUTHORIZATIONS,
 				Schemas.ALL_REMOVED_AUTHS, Schemas.IS_DETACHED_AUTHORIZATIONS, Schemas.TOKENS, Schemas.COLLECTION,
 				Schemas.LOGICALLY_DELETED_STATUS, Schemas.TITLE);
 

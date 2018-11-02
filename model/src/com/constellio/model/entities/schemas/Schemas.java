@@ -34,7 +34,6 @@ Schemas {
 	public static final Metadata PATH = add(new Metadata("path_ss", STRING, true));
 	public static final Metadata PATH_PARTS = add(new Metadata("pathParts_ss", STRING, true));
 	public static final Metadata PRINCIPAL_PATH = add(new Metadata("principalpath_s", STRING, false));
-	public static final Metadata PARENT_PATH = add(new Metadata("parentpath_ss", STRING, true));
 	public static final Metadata REMOVED_AUTHORIZATIONS = add(new Metadata("removedauthorizations_ss", STRING, true));
 	public static final Metadata NON_TAXONOMY_AUTHORIZATIONS = add(
 			new Metadata("nonTaxonomyAuthorizationsId_ss", REFERENCE, true));

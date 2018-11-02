@@ -17,6 +17,7 @@ public class LegacyGlobalMetadatas {
 	public static final Metadata ALL_AUTHORIZATIONS = add(new Metadata("allauthorizations_ss", STRING, true));
 	public static final Metadata FOLLOWERS = add(new Metadata("followers_ss", STRING, true));
 	public static final Metadata SEARCHABLE = add(new Metadata("searchable_s", BOOLEAN, false));
+	public static final Metadata PARENT_PATH = add(new Metadata("parentpath_ss", STRING, true));
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();

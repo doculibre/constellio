@@ -2,9 +2,9 @@ package com.constellio.model.services.schemas.builders;
 
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
@@ -14,7 +14,6 @@ import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalcul
 import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
 import com.constellio.model.services.schemas.calculators.DefaultTokensOfHierarchyCalculator;
 import com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator;
-import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
 import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
@@ -35,7 +34,6 @@ public class CommonMetadataBuilder {
 	public static final String ID = "id";
 	public static final String SCHEMA = "schema";
 	public static final String PATH = "path";
-	public static final String PARENT_PATH = "parentpath";
 	public static final String REMOVED_AUTHORIZATIONS = "removedauthorizations";
 	public static final String DETACHED_AUTHORIZATIONS = "detachedauthorizations";
 	public static final String TOKENS = "tokens";
@@ -53,7 +51,6 @@ public class CommonMetadataBuilder {
 	public static final String MODIFIED_ON = "modifiedOn";
 	public static final String TITLE = "title";
 	public static final String SUMMARY = "summary";
-	public static final String FOLLOWERS = "followers";
 	public static final String LEGACY_ID = "legacyIdentifier";
 	public static final String VISIBLE_IN_TREES = "visibleInTrees";
 	public static final String LOGICALLY_DELETED_ON = "logicallyDeletedOn";
@@ -137,17 +134,6 @@ public class CommonMetadataBuilder {
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(PRINCIPAL_PATH).setType(STRING)
 						.defineDataEntry().asCalculated(PrincipalPathCalculator.class);
-				for (Language language : types.getLanguages()) {
-					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-				}
-			}
-		});
-		metadata.put(PARENT_PATH, new MetadataCreator() {
-			@Override
-			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(PARENT_PATH).setType(STRING)
-						.setMultivalue(true)
-						.defineDataEntry().asCalculated(ParentPathCalculator.class);
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -312,16 +298,6 @@ public class CommonMetadataBuilder {
 			}
 		});
 
-		metadata.put(FOLLOWERS, new MetadataCreator() {
-			@Override
-			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(FOLLOWERS).setType(STRING).setMultivalue(true)
-						.setSearchable(true);
-				for (Language language : types.getLanguages()) {
-					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-				}
-			}
-		});
 
 		metadata.put(VISIBLE_IN_TREES, new MetadataCreator() {
 			@Override

@@ -9,8 +9,8 @@ import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.LegacyGlobalMetadatas;
 import com.constellio.model.entities.schemas.Metadata;
@@ -122,18 +122,18 @@ public class CoreMigrationTo_8_1_999 implements MigrationScript {
 			}
 
 			for (MetadataSchemaTypeBuilder schemaBuilder : typesBuilder.getTypes()) {
-				if (schemaBuilder.getDefaultSchema().hasMetadata("authorizations")) {
-					schemaBuilder.getDefaultSchema().get("authorizations")
+				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.AUTHORIZATIONS.getLocalCode())) {
+					schemaBuilder.getDefaultSchema().get(LegacyGlobalMetadatas.AUTHORIZATIONS.getLocalCode())
 							.setEnabled(false).setMarkedForDeletion(true).defineDataEntry().asManual();
 				}
 
-				if (schemaBuilder.getDefaultSchema().hasMetadata("allauthorizations")) {
-					schemaBuilder.getDefaultSchema().get("allauthorizations")
+				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.ALL_AUTHORIZATIONS.getLocalCode())) {
+					schemaBuilder.getDefaultSchema().get(LegacyGlobalMetadatas.ALL_AUTHORIZATIONS.getLocalCode())
 							.setEnabled(false).setMarkedForDeletion(true).defineDataEntry().asManual();
 				}
 
-				if (schemaBuilder.getDefaultSchema().hasMetadata("inheritedauthorizations")) {
-					schemaBuilder.getDefaultSchema().get("inheritedauthorizations")
+				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.INHERITED_AUTHORIZATIONS.getLocalCode())) {
+					schemaBuilder.getDefaultSchema().get(LegacyGlobalMetadatas.INHERITED_AUTHORIZATIONS.getLocalCode())
 							.setEnabled(false).setMarkedForDeletion(true).defineDataEntry().asManual();
 				}
 
@@ -142,6 +142,10 @@ public class CoreMigrationTo_8_1_999 implements MigrationScript {
 							.setEnabled(false).setMarkedForDeletion(true).defineDataEntry().asManual();
 				}
 
+				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.PARENT_PATH.getLocalCode())) {
+					schemaBuilder.getDefaultSchema().get(LegacyGlobalMetadatas.PARENT_PATH.getLocalCode())
+							.setEnabled(false).setMarkedForDeletion(true).defineDataEntry().asManual();
+				}
 
 
 			}

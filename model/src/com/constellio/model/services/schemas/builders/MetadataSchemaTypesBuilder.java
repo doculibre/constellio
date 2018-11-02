@@ -383,8 +383,8 @@ public class MetadataSchemaTypesBuilder {
 				List<? extends Dependency> dependencies = calculatedDataEntry.getCalculator().getDependencies();
 				boolean needToBeInitialized = calculatedDataEntry.getCalculator() instanceof InitializedMetadataValueCalculator;
 				if (!needToBeInitialized && (dependencies == null || dependencies.size() == 0)) {
-					throw new MetadataSchemaTypesBuilderRuntimeException.NoDependenciesInCalculator(calculatedDataEntry
-							.getCalculator().getClass().getName());
+//					throw new MetadataSchemaTypesBuilderRuntimeException.NoDependenciesInCalculator(calculatedDataEntry
+					//							.getCalculator().getClass().getName());
 				}
 				if (metadataBuilder.getType() != valueTypeMetadataCalculated) {
 					throw new MetadataSchemaTypesBuilderRuntimeException.CannotCalculateDifferentValueTypeInValueMetadata(
