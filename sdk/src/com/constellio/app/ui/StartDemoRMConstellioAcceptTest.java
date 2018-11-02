@@ -48,7 +48,7 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		//givenBackgroundThreadsEnabled();
+		givenBackgroundThreadsEnabled();
 
 		givenTransactionLogIsEnabled();
 		prepareSystem(

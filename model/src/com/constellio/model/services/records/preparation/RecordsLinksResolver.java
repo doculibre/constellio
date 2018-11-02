@@ -78,7 +78,7 @@ public class RecordsLinksResolver {
 
 			List<MetadataNetworkLink> reverseLinks = types.getMetadataNetwork().getLinksFrom(metadataToIncrement);
 			for (MetadataNetworkLink reverseLink : reverseLinks) {
-				if (isNumberManualMetadata(reverseLink.getToMetadata()) &&
+				if (isNumberMetadata(reverseLink.getToMetadata()) &&
 					isSumAggregationMetadata(reverseLink.getFromMetadata()) &&
 					schema.hasMetadataWithCode(reverseLink.getToMetadata().getCode())) {
 
@@ -147,8 +147,8 @@ public class RecordsLinksResolver {
 		return false;
 	}
 
-	private boolean isNumberManualMetadata(Metadata metadata) {
-		return metadata.getType() == NUMBER && metadata.getDataEntry().getType() == DataEntryType.MANUAL;
+	private boolean isNumberMetadata(Metadata metadata) {
+		return metadata.getType() == NUMBER;
 	}
 
 	private boolean isRecordInCurrentTransaction(Transaction transaction, String referenceRecordId) {
