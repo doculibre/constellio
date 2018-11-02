@@ -208,6 +208,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		return i18n.$("readOnlyComponent");
 	}
 
+
 	@NotNull
 	public WindowButton createLookupWindowBouton() {
 		lookupWindowButton = new WindowButton(null, $("search")) {
