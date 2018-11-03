@@ -124,9 +124,9 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public boolean isRoleAccessSupportedOnThisMetadata() {
 		List<MetadataFilter> metadataThatDontSupportRoleAccessRetValueList = view.getConstellioFactories().getAppLayerFactory()
-				.getExtensions().forCollection(view.getCollection()).getMetadatasFilterNotSupportingRoleAccess();
+				.getExtensions().forCollection(view.getCollection()).getMetadataAccessExclusionFilters();
 
-		return !metadata.isMetedataFilteredOut(metadataThatDontSupportRoleAccessRetValueList);
+		return !metadata.isFilteredByAny(metadataThatDontSupportRoleAccessRetValueList);
 	}
 
 	public FormMetadataVO getFormMetadataVO() {

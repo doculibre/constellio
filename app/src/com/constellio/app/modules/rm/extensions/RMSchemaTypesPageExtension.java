@@ -34,7 +34,7 @@ public class RMSchemaTypesPageExtension extends SchemaTypesPageExtension {
 	}
 
 	@Override
-	public List<MetadataFilter> getMetadataFiltersOfNotSupportingRoleAccess() {
+	public List<MetadataFilter> getMetadataAccessExclusionFilters() {
 		return Arrays.asList(MetadataFilterFactory.excludeMetadataOfSchemaType(Document.SCHEMA_TYPE, Document.FOLDER),
 				MetadataFilterFactory.excludeMetadataOfSchemaType(Folder.SCHEMA_TYPE, Folder.PARENT_FOLDER),
 				MetadataFilterFactory.excludeMetadataOfSchemaType(AdministrativeUnit.SCHEMA_TYPE, AdministrativeUnit.PARENT),

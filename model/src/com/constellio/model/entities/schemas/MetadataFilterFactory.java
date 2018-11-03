@@ -2,7 +2,7 @@ package com.constellio.model.entities.schemas;
 
 public class MetadataFilterFactory {
 
-	public static MetadataFilter excludeLocaleMetadata(final String locale) {
+	public static MetadataFilter excludeMetadataWithLocalCode(final String locale) {
 		return new MetadataFilter() {
 			@Override
 			public boolean isFiltered(Metadata metadata) {
@@ -20,7 +20,7 @@ public class MetadataFilterFactory {
 		};
 	}
 
-	public static MetadataFilter excludeMetadata(final String metadataCode) {
+	public static MetadataFilter excludeMetadataWithCode(final String metadataCode) {
 		return new MetadataFilter() {
 			@Override
 			public boolean isFiltered(Metadata metadata) {

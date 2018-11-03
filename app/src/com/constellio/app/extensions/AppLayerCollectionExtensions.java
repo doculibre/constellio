@@ -157,7 +157,6 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
 
 
-
 	//Key : schema type code
 	//Values : record's code
 	public KeyListMap<String, String> lockedRecords = new KeyListMap<>();
@@ -693,11 +692,11 @@ public class AppLayerCollectionExtensions {
 		return new ArrayList<>(unwantedTaxonomies);
 	}
 
-	public List<MetadataFilter> getMetadatasFilterNotSupportingRoleAccess() {
+	public List<MetadataFilter> getMetadataAccessExclusionFilters() {
 		List<MetadataFilter> metadataFilter = new ArrayList<>();
-		metadataFilter.add(MetadataFilterFactory.excludeLocaleMetadata(Schemas.TITLE_CODE));
-		for(SchemaTypesPageExtension schemaTypesPageExtension : schemaTypesPageExtensions) {
-			metadataFilter.addAll(schemaTypesPageExtension.getMetadataFiltersOfNotSupportingRoleAccess());
+		metadataFilter.add(MetadataFilterFactory.excludeMetadataWithLocalCode(Schemas.TITLE_CODE));
+		for (SchemaTypesPageExtension schemaTypesPageExtension : schemaTypesPageExtensions) {
+			metadataFilter.addAll(schemaTypesPageExtension.getMetadataAccessExclusionFilters());
 		}
 
 		return metadataFilter;

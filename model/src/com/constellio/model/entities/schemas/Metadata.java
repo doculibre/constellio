@@ -136,7 +136,7 @@ public class Metadata implements DataStoreField {
 		this.customParameter = Collections.unmodifiableMap(new HashMap<String, Object>());
 	}
 
-	public boolean isMetedataFilteredOut(List<MetadataFilter> metadataFilterList) {
+	public boolean isFilteredByAny(List<MetadataFilter> metadataFilterList) {
 		for(MetadataFilter metadataFilter : metadataFilterList) {
 			if(metadataFilter.isFiltered(this)) {
 				return true;

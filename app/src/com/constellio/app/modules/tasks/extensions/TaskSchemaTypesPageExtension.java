@@ -10,7 +10,7 @@ import java.util.List;
 
 public class TaskSchemaTypesPageExtension extends SchemaTypesPageExtension {
 	@Override
-	public List<MetadataFilter> getMetadataFiltersOfNotSupportingRoleAccess() {
+	public List<MetadataFilter> getMetadataAccessExclusionFilters() {
 		return Arrays.asList(MetadataFilterFactory.excludeMetadataOfSchemaType(RMTask.SCHEMA_TYPE, RMTask.PARENT_TASK));
 	}
 }

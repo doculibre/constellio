@@ -33,7 +33,7 @@ public class SchemaTypesPageExtension {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
-	public List<MetadataFilter> getMetadataFiltersOfNotSupportingRoleAccess() {
+	public List<MetadataFilter> getMetadataAccessExclusionFilters() {
 		return new ArrayList<>();
 	}
 }
