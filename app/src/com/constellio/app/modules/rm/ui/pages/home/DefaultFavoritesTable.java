@@ -3,25 +3,41 @@ package com.constellio.app.modules.rm.ui.pages.home;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
+import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.table.RecordVOSelectionTableAdapter;
+import com.constellio.app.ui.framework.components.table.RecordVOTable;
+import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.vaadin.event.ItemClickEvent;
+import com.vaadin.shared.MouseEventDetails;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.TabSheet;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
@@ -35,7 +51,105 @@ public class DefaultFavoritesTable implements Serializable {
 		init(appLayerFactory, sessionContext);
 	}
 
-	public List<RecordVODataProvider> getDataProviders() {
+	public Component builtCustomSheet() {
+		List<RecordVODataProvider> providers = getDataProviders();
+		TabSheet costumTabSheet = new TabSheet();
+		for (RecordVODataProvider provider : providers) {
+			switch (provider.getSchema().getTypeCode()) {
+				case Folder.SCHEMA_TYPE:
+					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.folders"));
+					break;
+				case Document.SCHEMA_TYPE:
+					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.documents"));
+					break;
+				case ContainerRecord.SCHEMA_TYPE:
+					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.containers"));
+					break;
+			}
+
+		}
+		return costumTabSheet;
+	}
+
+	private Component buildTable(RecordVODataProvider dataProvider) {
+		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
+		final RecordVOTable table = new RecordVOTable(container);
+		table.addStyleName("record-table");
+		table.setSizeFull();
+		for (Object item : table.getContainerPropertyIds()) {
+			if (item instanceof MetadataVO) {
+				MetadataVO property = (MetadataVO) item;
+				if (property.getCode() != null && property.getCode().contains(Schemas.MODIFIED_ON.getLocalCode())) {
+					table.setColumnWidth(property, 180);
+				}
+			}
+		}
+		table.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				if (event.getButton() == MouseEventDetails.MouseButton.LEFT) {
+					RecordVOItem recordItem = (RecordVOItem) event.getItem();
+					RecordVO recordVO = recordItem.getRecord();
+					//					recordClicked(recordVO.getId(), null);
+				}
+			}
+		});
+		return new RecordVOSelectionTableAdapter(table) {
+			@Override
+			public void selectAll() {
+				selectAllByItemId();
+			}
+
+			@Override
+			public void deselectAll() {
+				deselectAllByItemId();
+			}
+
+			@Override
+			public boolean isAllItemsSelected() {
+				return isAllItemsSelectedByItemId();
+			}
+
+			@Override
+			public boolean isAllItemsDeselected() {
+				return isAllItemsDeselectedByItemId();
+			}
+
+			@Override
+			public boolean isSelected(Object itemId) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				String recordId = item.getRecord().getId();
+				return isRecordSelected(recordId);
+			}
+
+			@Override
+			public void setSelected(Object itemId, boolean selected) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				String recordId = item.getRecord().getId();
+				selectionChanged(recordId, selected);
+				adjustSelectAllButton(selected);
+			}
+		};
+	}
+
+	private boolean isRecordSelected(String recordId) {
+		return sessionContext.getSelectedRecordIds().contains(recordId);
+	}
+
+	void selectionChanged(String recordId, Boolean selected) {
+		SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
+		Record record = searchServices
+				.searchSingleResult(LogicalSearchQueryOperators.fromAllSchemasIn(sessionContext.getCurrentCollection())
+						.where(Schemas.IDENTIFIER).isEqualTo(recordId));
+		String schemaTypeCode = record == null ? null : record.getTypeCode();
+		if (selected) {
+			sessionContext.addSelectedRecordId(recordId, schemaTypeCode);
+		} else {
+			sessionContext.removeSelectedRecordId(recordId, schemaTypeCode);
+		}
+	}
+
+	private List<RecordVODataProvider> getDataProviders() {
 		final MetadataSchemaType documentSchemaType = rm.documentSchemaType();
 		MetadataSchemaVO documentSchema = new MetadataSchemaToVOBuilder().build(documentSchemaType.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext);
 		RecordVODataProvider documentVODataProvider = new RecordVODataProvider(documentSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {

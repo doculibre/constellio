@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class PageItem implements CodedItem, Serializable {
-	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, RECORD_TREE, CUSTOM_ITEM, CUSTOM_SHEET}
+	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, RECORD_TREE, CUSTOM_ITEM}
 
 	private final String code;
 	private final Type type;
@@ -112,16 +112,6 @@ public abstract class PageItem implements CodedItem, Serializable {
 				AppLayerFactory appLayerFactory, SessionContext sessionContext);
 
 		public abstract BaseContextMenu getContextMenu();
-
-	}
-
-	public static abstract class RecordTabSheet extends PageItem {
-		public RecordTabSheet(String code) {
-			super(code, Type.CUSTOM_SHEET);
-		}
-
-		public abstract List<RecordVODataProvider> getDataProviders(
-				AppLayerFactory appLayerFactory, SessionContext sessionContext);
 
 	}
 

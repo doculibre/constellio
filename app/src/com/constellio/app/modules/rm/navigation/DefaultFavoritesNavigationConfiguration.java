@@ -1,28 +1,27 @@
 package com.constellio.app.modules.rm.navigation;
 
 import com.constellio.app.entities.navigation.NavigationConfig;
-import com.constellio.app.entities.navigation.PageItem;
+import com.constellio.app.entities.navigation.PageItem.CustomItem;
 import com.constellio.app.modules.rm.ui.pages.home.DefaultFavoritesTable;
-import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.ui.framework.data.RecordVODataProvider;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.home.HomeView;
+import com.vaadin.ui.Component;
 
-import java.util.List;
+import java.io.Serializable;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
-public class DefaultFavoritesNavigationConfiguration {
+public class DefaultFavoritesNavigationConfiguration implements Serializable {
 	public static void configureNavigation(NavigationConfig config) {
 		configureHomeFragments(config);
 	}
 
 	private static void configureHomeFragments(NavigationConfig config) {
-		config.add(HomeView.TABS, new PageItem.RecordTabSheet($("defaultFavorites")) {
+		config.add(HomeView.TABS, new CustomItem($("defaultFavorites")) {
 			@Override
-			public List<RecordVODataProvider> getDataProviders(AppLayerFactory appLayerFactory,
-															   SessionContext sessionContext) {
-				return new DefaultFavoritesTable(appLayerFactory, sessionContext).getDataProviders();
+			public Component buildCustomComponent(ConstellioFactories factories, SessionContext context) {
+				return new DefaultFavoritesTable(factories.getAppLayerFactory(), context).builtCustomSheet();
 			}
 		});
 	}
