@@ -636,7 +636,7 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return new MetadataList(filteredMetadatasList).unModifiable();
 	}
 
-	public List<Metadata> onlyAccessibleGloballyBy(User user) {
+	public MetadataList onlyAccessibleGloballyBy(User user) {
 		List<Metadata> metadataList = new ArrayList<>();
 
 		for(Metadata metadataListItem : nestedList) {
@@ -645,10 +645,10 @@ public class MetadataList implements List<Metadata>, Serializable {
 				}
 		}
 
-		return metadataList;
+		return new MetadataList(metadataList).unModifiable();
 	}
 
-	public List<Metadata> onlyAccessibleOnRecordBy(User user, Record record) {
+	public MetadataList onlyAccessibleOnRecordBy(User user, Record record) {
 		List<Metadata> metadataList = new ArrayList<>();
 
 		for(Metadata metadataListItem : nestedList) {
@@ -657,6 +657,6 @@ public class MetadataList implements List<Metadata>, Serializable {
 			}
 		}
 
-		return metadataList;
+		return new MetadataList(metadataList).unModifiable();
 	}
 }

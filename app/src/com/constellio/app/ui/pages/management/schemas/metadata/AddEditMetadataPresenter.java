@@ -1,24 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.entities.schemas.MetadataAttribute.REQUIRED;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import com.constellio.app.api.extensions.params.MetadataThatDontSupportRoleAccessParams;
-import com.constellio.app.ui.entities.RoleVO;
-import org.apache.commons.lang.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import com.constellio.app.api.extensions.MetadataThatDontSupportRoleAccessRetValue;
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
@@ -30,13 +11,13 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
-import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.entities.CollectionInfoVO;
+import com.constellio.app.ui.entities.FormMetadataSchemaVO;
 import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToFormVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataToFormVOBuilder;
-import com.constellio.app.ui.framework.builders.MetadataToVOBuilder;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.dao.dto.records.FacetValue;
@@ -52,6 +33,7 @@ import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataAttribute;
+import com.constellio.model.entities.schemas.MetadataFilter;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -98,6 +80,8 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	private String schemaTypeCode;
 	private Map<String, String> parameters;
 	private String metadataCode;
+	private MetadataSchemaTypes types;
+	private Metadata metadata;
 
 	public AddEditMetadataPresenter(AddEditMetadataView view) {
 		super(view);
@@ -112,7 +96,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		this.parameters = params;
 		this.schemaCode = parameters.get("schemaCode");
 		this.schemaTypeCode = parameters.get("schemaTypeCode");
-
+		this.types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 	}
 
 	public String getParamSchemaCode() {
@@ -135,32 +119,14 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public void setMetadataCode(String metadataCode) {
 		this.metadataCode = metadataCode;
+		this.metadata = types.getMetadata(metadataCode);
 	}
 
 	public boolean isRoleAccessSupportedOnThisMetadata() {
-		String[] schemaCodeSplited = getSchemaCode().split("_");
-		String schemaType = schemaCodeSplited[0];
-		String schema = schemaCodeSplited[1];
-		String metadataLocalCode = null;
-		if(Strings.isNotBlank(metadataCode)) {
-			metadataLocalCode = metadataCode.split("_")[2];
-		}
-		List<MetadataThatDontSupportRoleAccessRetValue> metadataThatDontSupportRoleAccessRetValueList = view.getConstellioFactories().getAppLayerFactory()
-				.getExtensions().forCollection(view.getCollection()).getMetadataThatDontSupportRoleAccessExtension(new MetadataThatDontSupportRoleAccessParams(getSchemaCode()));
+		List<MetadataFilter> metadataThatDontSupportRoleAccessRetValueList = view.getConstellioFactories().getAppLayerFactory()
+				.getExtensions().forCollection(view.getCollection()).getMetadatasFilterNotSupportingRoleAccess();
 
-
-
-		for(MetadataThatDontSupportRoleAccessRetValue currentMetadataThatDontSupportRoleAccessRetValue : metadataThatDontSupportRoleAccessRetValueList) {
-			if(currentMetadataThatDontSupportRoleAccessRetValue.getMetadataCode().equals(metadataLocalCode)
-					&& (currentMetadataThatDontSupportRoleAccessRetValue.getMetadataSchemaType() == null || currentMetadataThatDontSupportRoleAccessRetValue
-					.getMetadataSchemaType().equals(schemaType))
-					&& (currentMetadataThatDontSupportRoleAccessRetValue.getMetadataSchema() == null || currentMetadataThatDontSupportRoleAccessRetValue
-					.getMetadataSchema().equals(schema))) {
-				return false;
-			}
-		}
-
-		return true;
+		return !metadata.isMetedataFilteredOut(metadataThatDontSupportRoleAccessRetValueList);
 	}
 
 	public FormMetadataVO getFormMetadataVO() {
