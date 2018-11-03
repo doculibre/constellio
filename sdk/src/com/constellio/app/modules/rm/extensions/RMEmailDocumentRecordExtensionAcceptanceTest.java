@@ -1,10 +1,14 @@
 package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RMEmailDocumentRecordExtensionAcceptanceTest extends ConstellioTest {
 
@@ -17,8 +21,8 @@ public class RMEmailDocumentRecordExtensionAcceptanceTest extends ConstellioTest
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
 		Record emailDocumentType = rm.emailDocumentType().getWrappedRecord();
-		//		assertThat(recordServices.validateLogicallyDeletable(emailDocumentType, User.GOD)).isFalse();
-		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(emailDocumentType, User.GOD)).isFalse();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(emailDocumentType, User.GOD))).isEqualTo("Vous ne pouvez pas supprimer cet enregistrement car il est verouillé\n");
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(emailDocumentType, User.GOD))).isEqualTo("Vous ne pouvez pas supprimer cet enregistrement car il est verouillé\n");
 
 	}
 }

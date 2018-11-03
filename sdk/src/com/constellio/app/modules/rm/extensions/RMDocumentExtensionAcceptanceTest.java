@@ -3,10 +3,14 @@ package com.constellio.app.modules.rm.extensions;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Created by constellios on 2017-04-03.
@@ -34,8 +38,8 @@ public class RMDocumentExtensionAcceptanceTest extends ConstellioTest {
 
 		Record record = documentWithContent_a19.getWrappedRecord();
 
-		//		assertThat(recordServices.validateLogicallyDeletable(record, User.GOD)).isFalse();
-		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(record, User.GOD)).isFalse();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(record, User.GOD))).isEqualTo("Ce document ne peut pas être supprimé car il est emprunté\n");
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(record, User.GOD))).isEqualTo("Ce document ne peut pas être supprimé car il est emprunté\n");
 	}
 
 }

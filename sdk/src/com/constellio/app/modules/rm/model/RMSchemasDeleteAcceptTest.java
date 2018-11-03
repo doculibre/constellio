@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -160,30 +161,32 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 		//unitId_11b : 11
 		//unitId_12b : 10
 		//unitId_20d : 0
+		String referencedAndContainsRecordsErrorMessage = "Cette unité administrative ne peut pas être supprimée car elle est référenciée\nCette unité administrative ne peut pas être supprimée car elle contient un enregistrement\n";
+		String referencedRecordErrorMessage = "Cette unité administrative ne peut pas être supprimée car elle est référenciée\n";
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit10().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit10a().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit11().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit11b().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit12().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit12b().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(recordServices.validateLogicallyDeletable(records.getUnit12c().getWrappedRecord(), admin).isEmpty()).isTrue();
 
-		//		assertThat(recordServices.validateLogicallyDeletable(records.getUnit10().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyDeletable(records.getUnit10a().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyDeletable(records.getUnit11().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyDeletable(records.getUnit11b().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyDeletable(records.getUnit12().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyDeletable(records.getUnit12b().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyDeletable(records.getUnit12c().getWrappedRecord(), admin)).isTrue();
-		//
-		//		assertThat(recordServices.validateLogicallyDeletable(records.getUnit20().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyDeletable(records.getUnit30c().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyDeletable(records.getUnit30().getWrappedRecord(), admin)).isFalse();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit20().getWrappedRecord(), admin))).isEqualTo(referencedRecordErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit30c().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit30().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
 
-		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit10().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit10a().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit11().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit11b().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit12().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit12b().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit12c().getWrappedRecord(), admin)).isTrue();
+		//		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit10().getWrappedRecord(), admin))).isEqualTo(referencedRecordErrorMessage);
+		//		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit10a().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		//		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit11().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		//		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit11b().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		//		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit12().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		//		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit12b().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit12c().getWrappedRecord(), admin).isEmpty()).isTrue();
 		//
-		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit20().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit30c().getWrappedRecord(), admin)).isFalse();
-		//		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit30().getWrappedRecord(), admin)).isFalse();
+		//		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit20().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		//		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit30c().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		//		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit30().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+
 	}
 
 	private org.assertj.core.api.BooleanAssert assertThatLogicallyDeletable(RecordWrapper recordWrapper,
