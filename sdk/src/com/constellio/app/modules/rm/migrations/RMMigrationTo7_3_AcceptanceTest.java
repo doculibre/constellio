@@ -23,17 +23,6 @@ public class RMMigrationTo7_3_AcceptanceTest extends ConstellioTest {
 	RMTestRecords records = new RMTestRecords(zeCollection);
 
 	@Test
-	public void givenSystemMigratedButBackgroundScriptsHaveNotBeenExecutedThenContainersAreUnmodified()
-			throws Exception {
-		givenSystemWithContainers();
-
-		assertThatContainerAdmUnits("00000000078").isEqualTo(asList("u1", asList()));
-		assertThatContainerAdmUnits("00000000081").isEqualTo(asList("u2", asList("u3")));
-		assertThatContainerAdmUnits("00000000084").isEqualTo(asList(null, asList()));
-		assertThatContainerAdmUnits("00000000086").isEqualTo(asList("u2", asList("u1", "u2", "u3")));
-	}
-
-	@Test
 	public void givenSystemMigratedAndBackgroundScriptsHaveBeenExecutedThenContainersModified()
 			throws Exception {
 		givenSystemWithContainers();

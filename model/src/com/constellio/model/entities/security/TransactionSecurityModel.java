@@ -4,8 +4,8 @@ import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
@@ -221,4 +221,23 @@ public class TransactionSecurityModel implements SecurityModel {
 
 	}
 
+	protected void addActiveAuthorizations(List<String> returnedIds,
+										   List<SecurityModelAuthorization> metadataAuths) {
+		for (SecurityModelAuthorization auth : metadataAuths) {
+			Authorization authorizationDetails = (Authorization) auth.getDetails();
+			if (authorizationDetails.isActiveAuthorization()) {
+				returnedIds.add(authorizationDetails.getId());
+			}
+		}
+	}
+
+
+	public static boolean hasActiveOverridingAuth(List<SecurityModelAuthorization> authorizations) {
+		for (SecurityModelAuthorization auth : authorizations) {
+			if (auth.getDetails().isActiveAuthorization() && auth.getDetails().isOverrideInherited()) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

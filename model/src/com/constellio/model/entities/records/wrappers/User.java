@@ -5,8 +5,6 @@ import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
@@ -18,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
@@ -262,15 +259,15 @@ public class User extends RecordWrapper {
 	}
 
 	public boolean hasGlobalAccessToMetadata(Metadata m) {
-		if(m.getAccessRestrictions() == null || m.getAccessRestrictions().getRequiredReadRoles() == null || m.getAccessRestrictions().getRequiredReadRoles().size() <= 0) {
+		if (m.getAccessRestrictions() == null || m.getAccessRestrictions().getRequiredReadRoles() == null || m.getAccessRestrictions().getRequiredReadRoles().size() <= 0) {
 			return true;
 		}
 
 		List<String> userAllRole = this.getAllRoles();
 
-		if(userAllRole != null) {
+		if (userAllRole != null) {
 			for (String roleCode : m.getAccessRestrictions().getRequiredReadRoles()) {
-				if(userAllRole.contains(roleCode)) {
+				if (userAllRole.contains(roleCode)) {
 					return true;
 				}
 			}
@@ -284,8 +281,8 @@ public class User extends RecordWrapper {
 	}
 
 	private boolean isGroupPresent(List<String> principal) {
-		for(String group : this.getUserGroups()) {
-			if(principal.contains(group)){
+		for (String group : this.getUserGroups()) {
+			if (principal.contains(group)) {
 				return true;
 			}
 		}
@@ -300,26 +297,26 @@ public class User extends RecordWrapper {
 		boolean hasCollectionAcces = this.get(COLLECTION_READ_ACCESS);
 		boolean hasAtleastOneAuthorization = false;
 
-		for(Authorization authorization : authorizations) {
-			if(authorization.getGrantedToPrincipals().contains(this.getId()) || isGroupPresent(authorization.getGrantedToPrincipals())) {
+		for (Authorization authorization : authorizations) {
+			if (authorization.getPrincipals().contains(this.getId()) || isGroupPresent(authorization.getPrincipals())) {
 				hasAtleastOneAuthorization = true;
-				roleListFromAuthorization.addAll(authorization.getDetail().getRoles());
+				roleListFromAuthorization.addAll(authorization.getRoles());
 			}
 		}
 
-		if(!hasCollectionAcces && !hasAtleastOneAuthorization) {
+		if (!hasCollectionAcces && !hasAtleastOneAuthorization) {
 			return false;
 		}
 
-		if(m.getAccessRestrictions().getRequiredReadRoles().size() > 0) {
-			for(String roleFromauthorization : roleListFromAuthorization) {
-				if(m.getAccessRestrictions().getRequiredReadRoles().contains(roleFromauthorization)) {
+		if (m.getAccessRestrictions().getRequiredReadRoles().size() > 0) {
+			for (String roleFromauthorization : roleListFromAuthorization) {
+				if (m.getAccessRestrictions().getRequiredReadRoles().contains(roleFromauthorization)) {
 					return true;
 				}
 			}
 
-				return hasGlobalAccessToMetadata(m);
-			}
+			return hasGlobalAccessToMetadata(m);
+		}
 
 		return true;
 	}

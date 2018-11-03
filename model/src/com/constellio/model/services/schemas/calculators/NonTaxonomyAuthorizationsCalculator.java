@@ -22,6 +22,7 @@ import static java.util.Arrays.asList;
 /**
  * This calculator is used to feed a list of authorizations that are placed directly on records in a taxonomy.
  * Since a modification to the auth requires the indexing of the records, the metadata is used to calculate impacts
+ * Also, it is required to copy auth received by metadatas to children records
  */
 public class NonTaxonomyAuthorizationsCalculator extends ReferenceListMetadataValueCalculator {
 

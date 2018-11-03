@@ -19,4 +19,5 @@ public interface SecurityModel {
 			DynamicDependencyValues metadatasProvidingSecurity);
 
 	Object getPrincipalById(String id);
+
 }
