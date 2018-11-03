@@ -103,7 +103,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	@Override
 	protected String getTitle() {
-		return $("CartView.viewTitle");
+		if (presenter.isDefaultCart()) {
+			return $("CartView.defaultFavoritesViewTitle");
+		} else {
+			return $("CartView.viewTitle");
+		}
 	}
 
 	@Override
@@ -118,7 +122,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildContainersLabelsButton());
 		buttons.add(buildBatchDeleteButton());
 		buttons.add(buildEmptyButton());
-		buttons.add(buildShareButton());
+		if (!presenter.isDefaultCart()) {
+			buttons.add(buildShareButton());
+		}
 		buttons.add(buildDecommissionButton());
 		buttons.add(buildPrintMetadataReportButton());
 		buttons.add(buildCreateSIPArchivesButton());
@@ -199,7 +205,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildShareButton() {
-		return new WindowButton($("CartView.share"), $("CartView.shareWindow")) {
+		Button shareButton = new WindowButton($("CartView.share"), $("CartView.shareWindow")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
@@ -222,6 +228,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				return layout;
 			}
 		};
+		shareButton.setEnabled(presenter.cartHasRecords());
+		shareButton.setVisible(presenter.cartHasRecords());
+		return shareButton;
 	}
 
 	private HorizontalLayout buildFolderFilterComponent() {
@@ -278,7 +287,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				super.buttonClick(event);
 			}
 		};
-
+		reportGeneratorButton.setEnabled(presenter.cartHasRecords());
+		reportGeneratorButton.setVisible(presenter.cartHasRecords());
 		return reportGeneratorButton;
 	}
 
@@ -584,6 +594,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				super.buttonClick(event);
 			}
 		};
+		siPbutton.setEnabled(presenter.cartHasRecords());
+		siPbutton.setVisible(presenter.cartHasRecords());
 		return siPbutton;
 	}
 
@@ -604,6 +616,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 
 		};
+		consolidatedPdfButton.setEnabled(presenter.cartHasRecords());
+		consolidatedPdfButton.setVisible(presenter.cartHasRecords());
 		return consolidatedPdfButton;
 	}
 

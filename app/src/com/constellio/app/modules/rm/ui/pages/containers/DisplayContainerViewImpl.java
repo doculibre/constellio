@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.ui.breadcrumb.ContainerByAdministrativeUnit
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -79,7 +80,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		layout.setWidth("100%");
 		layout.setSpacing(true);
 
-		final RecordVO container = presenter.getContainer();
+		final RecordVO recordVO = presenter.getContainer();
 		borrowedLabel = new Label();
 		borrowedLabel.setVisible(false);
 		borrowedLabel.addStyleName(ValoTheme.LABEL_COLORED);
@@ -98,7 +99,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			public Component buildSingleValue(RecordVO recordVO, MetadataVO metadata, Object displayValue) {
 				if (metadata.getLocalCode().equals(ContainerRecord.FILL_RATIO_ENTRED)) {
 					try {
-						Double fillRatio = presenter.getFillRatio(container);
+						Double fillRatio = presenter.getFillRatio(recordVO);
 						return new Label(fillRatio.toString());
 					} catch (ContainerWithoutCapacityException e) {
 						return new Label($("ContainerWithoutCapacityException"));
@@ -110,7 +111,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				}
 			}
 		};
-		layout.addComponents(borrowedLabel, new RecordDisplay(container, metadataDisplayFactory) {
+		layout.addComponents(borrowedLabel, new RecordDisplay(recordVO, metadataDisplayFactory) {
 			@Override
 			protected void addCaptionAndDisplayComponent(Label captionLabel, Component displayComponent) {
 				super.addCaptionAndDisplayComponent(captionLabel, displayComponent);
@@ -173,6 +174,19 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
+
+		DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
+			@Override
+			public void addToDefaultFavorites() {
+				presenter.addToDefaultFavorite();
+			}
+			@Override
+			public void removeFromDefaultFavorites() {
+				presenter.removeFromDefaultFavorites();
+			}
+		};
+		favoriteStar.setStarred(presenter.containerInDefaultFavorites());
+		buttons.add(favoriteStar);
 
 		Button edit = new EditButton($("DisplayContainerView.edit")) {
 			@Override

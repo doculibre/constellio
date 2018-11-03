@@ -92,6 +92,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 	public static final String LAST_VIEWED_FOLDERS = "lastViewedFolders";
 	public static final String LAST_VIEWED_DOCUMENTS = "lastViewedDocuments";
+	public static final String DEFAULT_FAVORITES = "defaultFavorites";
 	public static final String CHECKED_OUT_DOCUMENTS = "checkedOutDocuments";
 	public static final String TAXONOMIES = "taxonomies";
 
@@ -139,7 +140,6 @@ public class RMNavigationConfiguration implements Serializable {
 	public static final String LIST_RETENTION_RULES = "listRetentionRules";
 	public static final String RETENTION_RULES_SEARCH = "retentionRuleSearch";
 	public static final String LIST_USER_DOCUMENTS = "listUserDocuments";
-
 
 	public static void configureNavigation(NavigationConfig config) {
 		configureHeaderActionMenu(config);

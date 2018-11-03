@@ -65,7 +65,6 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickListener;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -160,6 +159,37 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 			updateSearchResultClicked();
 		}
+	}
+
+
+	public void addDocumentToDefaultFavorite() {
+		Document document = rmSchemasRecordsServices.wrapDocument(presenterUtils.getRecord(documentVO.getId()));
+		if (rmSchemasRecordsServices.numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
+			actionsComponent.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			document.addFavorite(getCurrentUser().getId());
+			try {
+				presenterUtils.recordServices().update(document);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	public void removeDocumentFromDefaultFavorites() {
+		Document document = rmSchemasRecordsServices.wrapDocument(presenterUtils.getRecord(documentVO.getId()));
+		document.removeFavorite(getCurrentUser().getId());
+		try {
+			presenterUtils.recordServices().update(document);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public boolean documentInDefaultFavorites() {
+		Record record = presenterUtils.getRecord(documentVO.getId());
+		Document document = rmSchemasRecordsServices.wrapDocument(record);
+		return document.getFavorites().contains(getCurrentUser().getId());
 	}
 
 	public Document renameContentButtonClicked(String newName) {
@@ -827,9 +857,15 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void addToCartRequested(RecordVO cartVO) {
-		Cart cart = rmSchemasRecordsServices.getCart(cartVO.getId()).addDocuments(Arrays.asList(documentVO.getId()));
-		presenterUtils.addOrUpdate(cart.getWrappedRecord());
-		actionsComponent.showMessage($("DocumentActionsComponent.addedToCart"));
+		Cart cart = rmSchemasRecordsServices.getCart(cartVO.getId());
+		if (rmSchemasRecordsServices.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
+			actionsComponent.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
+			document.addFavorite(cart.getId());
+			presenterUtils.addOrUpdate(document.getWrappedRecord());
+			actionsComponent.showMessage($("DocumentActionsComponent.addedToCart"));
+		}
 	}
 
 	public Document publishButtonClicked() {

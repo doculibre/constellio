@@ -2,7 +2,6 @@ package com.constellio.app.modules.rm.ui.pages.folder;
 
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
-import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.api.extensions.taxonomies.FolderDeletionEvent;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
@@ -112,6 +111,7 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFolderView> {
 
 	private static final int WAIT_ONE_SECOND = 1;
+	private static final long NUMBER_OF_FOLDERS_IN_CART_LIMIT = 1000;
 	private static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderPresenter.class);
 	private RecordVODataProvider documentsDataProvider;
 	private RecordVODataProvider tasksDataProvider;
@@ -1076,9 +1076,20 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public void addToCartRequested(RecordVO recordVO) {
-		Cart cart = rmSchemasRecordsServices.getCart(recordVO.getId()).addFolders(Arrays.asList(folderVO.getId()));
-		addOrUpdate(cart.getWrappedRecord());
-		view.showMessage($("DisplayFolderView.addedToCart"));
+		Cart cart = rmSchemasRecordsServices.getCart(recordVO.getId());
+		if (rmSchemasRecordsServices.numberOfFoldersInFavoritesReachesLimit(cart.getId(), 1)) {
+			view.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
+		} else {
+			Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
+			folder.addFavorite(cart.getId());
+			try {
+				recordServices().update(folder);
+				view.showMessage($("DisplayFolderView.addedToCart"));
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+		}
 	}
 
 	public RecordVODataProvider getOwnedCartsDataProvider() {
@@ -1124,11 +1135,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void createNewCartAndAddToItRequested(String title) {
 		Cart cart = rmSchemasRecordsServices.newCart();
+		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
 		try {
-			cart.addFolders(Arrays.asList(folderVO.getId()));
+			folder.addFavorite(cart.getId());
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			recordServices().update(folder);
 			view.showMessage($("DisplayFolderView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
@@ -1277,6 +1290,39 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		LogicalSearchQuerySort sortField = new FunctionLogicalSearchQuerySort(
 				"termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
 		query.sortFirstOn(sortField);
+	}
+
+	public void addToDefaultFavorite() {
+		if (rmSchemasRecordsServices.numberOfFoldersInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
+			view.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
+		} else {
+			Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
+			folder.addFavorite(getCurrentUser().getId());
+			try {
+				recordServices.update(folder);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+			view.showMessage($("DisplayFolderViewImpl.folderAddedToDefaultFavorites"));
+		}
+	}
+
+	public boolean inDefaultFavorites() {
+		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
+		return folder.getFavorites().contains(getCurrentUser().getId());
+	}
+
+	public void removeFromDefaultFavorites() {
+		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
+		folder.removeFavorite(getCurrentUser().getId());
+		try {
+			recordServices.update(folder);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+		view.showMessage($("DisplayFolderViewImpl.folderRemovedFromDefaultFavorites"));
 	}
 
 	public RMSelectionPanelReportPresenter buildReportPresenter() {

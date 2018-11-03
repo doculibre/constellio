@@ -360,4 +360,38 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		ContainerRecord record = rmRecordServices().getContainerRecord(containerId);
 		return getCurrentUser().hasWriteAccess().on(record);
 	}
+
+	public void addToDefaultFavorite() {
+		if (rmRecordServices().numberOfContainersInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
+			view.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
+		} else {
+			ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
+			container.addFavorite(getCurrentUser().getId());
+			try {
+				recordServices().update(container);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+			view.showMessage($("DisplayContainerViewImpl.containerAddedToDefaultFavorites"));
+		}
+	}
+
+	public void removeFromDefaultFavorites() {
+		ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
+		container.removeFavorite(getCurrentUser().getId());
+		try {
+			recordServices().update(container);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+		view.showMessage($("DisplayContainerViewImpl.containerRemovedFromDefaultFavorites"));
+	}
+
+	public boolean containerInDefaultFavorites() {
+		ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
+		return container.getFavorites().contains(getCurrentUser().getId());
+	}
+
 }

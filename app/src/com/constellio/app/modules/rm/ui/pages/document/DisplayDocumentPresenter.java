@@ -10,7 +10,6 @@ import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPrese
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
@@ -43,6 +42,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.StatusFilter;
@@ -67,6 +67,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
+	private transient RecordServices recordServices;
 
 	protected DocumentToVOBuilder voBuilder;
 	protected ContentVersionToVOBuilder contentVersionVOBuilder;
@@ -87,6 +88,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, boolean popup) {
 		super(view);
+		initTransientObjects();
 		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
 			@Override
 			public void updateActionsComponent() {
@@ -103,6 +105,10 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		if (recordVO != null && params == null) {
 			forParams(recordVO.getId());
 		}
+	}
+
+	private void initTransientObjects() {
+		recordServices = modelLayerFactory.newRecordServices();
 	}
 
 	public Document getDocument() {
@@ -408,7 +414,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void addToCartRequested(RecordVO recordVO) {
-		presenterUtils.addToCartRequested(recordVO);
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(rm.getCart(recordVO.getId()).getId(), 1)) {
+			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			presenterUtils.addToCartRequested(recordVO);
+		}
 	}
 
 	public InputStream getSignatureInputStream(String certificate, String password) {
@@ -445,13 +455,13 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
+		document.addFavorite(cart.getId());
 		try {
-			cart.addDocuments(Arrays.asList(presenterUtils.getDocumentVO().getId()));
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			recordServices().update(document);
 			view.showMessage($("DocumentActionsComponent.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
-			throw new RuntimeException(e);
 		}
 	}
 
@@ -532,6 +542,36 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		LogicalSearchQuerySort sortField = new FunctionLogicalSearchQuerySort(
 				"termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
 		query.sortFirstOn(sortField);
+	}
+
+	public void addToDefaultFavorite() {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
+			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			document.addFavorite(getCurrentUser().getId());
+			try {
+				recordServices.update(document);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+			view.showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
+		}
+	}
+
+	public void removeFromDefaultFavorites() {
+		document.removeFavorite(getCurrentUser().getId());
+		try {
+			recordServices.update(document);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+		view.showMessage($("DisplayDocumentView.documentRemovedFromDefaultFavorites"));
+	}
+
+	public boolean inDefaultFavorites() {
+		return document.getFavorites().contains(getCurrentUser().getId());
 	}
 
 	public RMSelectionPanelReportPresenter buildReportPresenter() {
