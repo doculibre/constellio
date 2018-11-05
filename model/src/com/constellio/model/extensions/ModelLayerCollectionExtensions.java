@@ -377,7 +377,7 @@ public class ModelLayerCollectionExtensions {
 	}
 
 	public Metadata[] getSortMetadatas(Taxonomy taxonomy) {
-		Metadata[] sortMetadatas = null;
+		Metadata[] sortMetadatas = new TaxonomyExtension().getSortMetadatas(taxonomy);
 		for (TaxonomyExtension extension : taxonomyExtensions) {
 			sortMetadatas = extension.getSortMetadatas(taxonomy);
 		}

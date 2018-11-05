@@ -214,7 +214,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		service = new SearchPresenterService(collection, modelLayerFactory);
+		
+		User user = getCurrentUser();
+		List<MetadataSchemaType> types = Arrays.asList(getFoldersSchemaType(), getDocumentsSchemaType());
+		service = new SearchPresenterService(collection, user, modelLayerFactory, types);
 	}
 
 	protected void setTaxonomyCode(String taxonomyCode) {

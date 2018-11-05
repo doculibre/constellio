@@ -1,5 +1,16 @@
 package com.constellio.app.ui.pages.search;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.jetbrains.annotations.Nullable;
+import org.vaadin.dialogs.ConfirmDialog;
+
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.FacetVO;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -53,14 +64,6 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-import org.jetbrains.annotations.Nullable;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchView>> extends BaseViewImpl implements SearchView {
 

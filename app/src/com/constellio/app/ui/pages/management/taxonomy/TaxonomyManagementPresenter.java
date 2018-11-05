@@ -46,15 +46,6 @@ import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServic
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.RecordUtils.parentPaths;
-import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.childNodesQuery;
-
 public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagementView> {
 
 	public static final String TAXONOMY_CODE = "taxonomyCode";

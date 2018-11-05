@@ -161,7 +161,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 	}
 
     public static Resource createPreviewResource(String recordId, String metadataCode, String version, String filename) {
-		returncreateResource(recordId, metadataCode, version, filename, ResourceType.PREVIEW);
+		return createResource(recordId, metadataCode, version, filename, ResourceType.PREVIEW);
     }
 
     public static Resource createThumbnailResource(String recordId, String metadataCode, String version, String filename) {
@@ -179,12 +179,8 @@ public class ConstellioResourceHandler implements RequestHandler {
 	}
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
-										  ResourceType resourceType, boolean useBrowserCache) {
-    return createResource(recordId, metadataCode, version, filename, preview, false);
-	}
-
-	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
-										  boolean preview, boolean useBrowserCache) {	Map<String, String> params = new LinkedHashMap<>();
+			ResourceType resourceType, boolean useBrowserCache) {	
+		Map<String, String> params = new LinkedHashMap<>();
     	params.put("recordId", recordId);
     	params.put("metadataCode", metadataCode);
     	params.put("preview", "" + (resourceType == ResourceType.PREVIEW));

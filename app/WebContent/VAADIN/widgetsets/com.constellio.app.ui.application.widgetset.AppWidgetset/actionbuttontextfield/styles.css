@@ -1,0 +1,85 @@
+.actionbuttontextfield-textfield {
+    padding-right: 16pt !important;
+}
+
+.actionbuttontextfield-resetbutton {
+    position: relative;
+    display: inline-block;
+    vertical-align: bottom;
+    right: 15pt;
+    top: -3pt;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    background-image: url(resetbutton-default.svg);
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.actionbuttontextfield-search {
+    position: relative;
+    display: inline-block;
+    vertical-align: bottom;
+    right: 15pt;
+    top: -3pt;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    background-image: url(search.svg);
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.actionbuttontextfield-upload {
+    position: relative;
+    display: inline-block;
+    vertical-align: bottom;
+    right: 15pt;
+    top: -3pt;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    background-image: url(upload.svg);
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.actionbuttontextfield-resetbutton:hover {
+    background-image: url(resetbutton-hover.svg);
+    cursor: pointer;
+}
+
+.actionbuttontextfield-search:hover {
+    background-image: url(search-hover.svg);
+    cursor: pointer;
+}
+
+.actionbuttontextfield-upload:hover {
+    background-image: url(upload-hover.svg);
+    cursor: pointer;
+}
+
+.v-ie8 .actionbuttontextfield-resetbutton {
+    background-image: url(resetbutton-default.png);
+}
+
+.v-ie8 .actionbuttontextfield-search {
+    background-image: url(search.png.png);
+}
+
+.v-ie8 .actionbuttontextfield-upload {
+    background-image: url(upload.png.png);
+}
+
+.v-ie8 .actionbuttontextfield-resetbutton:hover {
+    background-image: url(resetbutton-hover.png);
+}
+
+.v-ie8 .actionbuttontextfield-search:hover {
+    background-image: url(search-hover.png);
+}
+
+.v-ie8 .actionbuttontextfield-upload:hover {
+    background-image: url(upload-hover.png);
+}
+

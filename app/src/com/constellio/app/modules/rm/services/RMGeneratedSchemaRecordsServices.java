@@ -1561,10 +1561,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 		public Metadata uniformSubdivisionEntered() {
 			return metadata("uniformSubdivisionEntered");
 		}
-
-		public Metadata uniqueKey() {
-			return metadata("uniqueKey");
-		}
 	}
 	public PrintableLabel wrapPrintableLabel(Record record) {
 		return record == null ? null : new PrintableLabel(record, getTypes());

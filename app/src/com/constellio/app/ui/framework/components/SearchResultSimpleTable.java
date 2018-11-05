@@ -82,7 +82,6 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	private boolean allItemsSelected;
 	private RecordVOTable adaptee;
 	private SearchPresenter<? extends SearchView> presenter;
-	RecordVOTable adaptee;
 
 	public SearchResultSimpleTable(Container container, final SearchPresenter<? extends SearchView> presenter) {
 		super();

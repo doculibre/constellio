@@ -1,5 +1,9 @@
 package com.constellio.app.ui.framework.components;
 
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -7,9 +11,6 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.vaadin.ui.Button.ClickListener;
-
-import java.io.Serializable;
-import java.util.Map;
 
 @SuppressWarnings("serial")
 public class RecordDisplayFactory implements Serializable {
@@ -24,14 +25,18 @@ public class RecordDisplayFactory implements Serializable {
 	}
 
 	public RecordDisplayFactory(UserVO currentUser, Map<String,String> extraParameters) {
-		this(currentUser, new MetadataDisplayFactory(),extraParameters);
+		this(currentUser, new MetadataDisplayFactory(), extraParameters);
+	}
+
+	public RecordDisplayFactory(UserVO currentUser) {
+		this(currentUser, new MetadataDisplayFactory(), new HashMap<>());
 	}
 
 	public RecordDisplay build(RecordVO recordVO) {
 		return build(recordVO, false);
 	}
 
-public RecordDisplay build(RecordVO recordVO, boolean useTabSheet) {
+	public RecordDisplay build(RecordVO recordVO, boolean useTabSheet) {
 		return new RecordDisplay(recordVO, componentFactory, useTabSheet);
 	}	public SearchResultDisplay build(SearchResultVO searchResultVO, String query, ClickListener clickListener, ClickListener elevationClickListener, ClickListener exclusionClickListener) {
 		SearchResultDisplay result;

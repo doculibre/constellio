@@ -13910,8 +13910,8 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-title {
 	padding-top: 8px;
 	text-align: left;
-	font-weight: bold;
 	color: #197de1;
+	font-weight: bold;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .document-search-result-title {
