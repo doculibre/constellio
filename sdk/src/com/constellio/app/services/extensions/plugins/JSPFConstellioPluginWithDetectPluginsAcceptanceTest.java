@@ -1,5 +1,6 @@
 package com.constellio.app.services.extensions.plugins;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
@@ -54,6 +55,8 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 
 	@Test
 	public void givenInvalidModuleWhenDetectPluginsThenPluginWithAdequateErrorStatus() {
+		givenConfig(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, false);
+
 		pluginManager.detectPluginsInDirectory(new SDKFoldersLocator().getPluginsJarsFolder());
 		List<ConstellioPluginInfo> invalidPlugins = pluginManager.getPlugins(INVALID);
 

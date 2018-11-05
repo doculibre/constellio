@@ -448,7 +448,6 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
 		assertThat(folder.getOpenDate()).isEqualTo(february2_2015);
 		assertThat(folder.getCloseDate()).isEqualTo(march31_2016);
-		assertThat(folder.getDecommissioningDate()).isEqualTo(march31_2016);
 		assertThat(folder.getActualTransferDate()).isNull();
 		assertThat(folder.getActualDepositDate()).isNull();
 		assertThat(folder.getActualDestructionDate()).isNull();
@@ -491,7 +490,6 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
 		assertThat(folder.getOpenDate()).isEqualTo(february2_2015);
 		assertThat(folder.getCloseDate()).isEqualTo(march31_2016);
-		assertThat(folder.getDecommissioningDate()).isEqualTo(march31_2016);
 		assertThat(folder.getActualTransferDate()).isNull();
 		assertThat(folder.getActualDepositDate()).isNull();
 		assertThat(folder.getActualDestructionDate()).isNull();
@@ -947,7 +945,6 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
 		assertThat(folder.getOpenDate()).isEqualTo(february2_2015);
 		assertThat(folder.getCloseDate()).isEqualTo(february11_2015);
-		assertThat(folder.getDecommissioningDate()).isEqualTo(march31_2016);
 		assertThat(folder.getActualTransferDate()).isNull();
 		assertThat(folder.getActualDepositDate()).isNull();
 		assertThat(folder.getActualDestructionDate()).isNull();

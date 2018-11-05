@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.model.calculators;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
+import com.constellio.app.modules.rm.model.calculators.AbstractFolderCopyRulesExpectedDatesCalculator.AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
@@ -25,7 +26,7 @@ import static org.mockito.Mockito.when;
 public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends ConstellioTest {
 
 	@Mock DynamicDependencyValues dynamicDependencyValues;
-	@Spy FolderCopyRulesExpectedDestructionDatesCalculator calculator;
+	@Spy FolderCopyRulesExpectedDestructionDatesCalculator2 calculator;
 	@Mock CalculatorParameters params;
 
 	FolderStatus archivisticStatus;
@@ -192,11 +193,12 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 		when(params.get(calculator.configInactiveNumberOfYearWhenVariableDelayPeriodParam))
 				.thenReturn(inactiveConfigNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.copyRulesExpectedTransferDateParam)).thenReturn(copyRulesExpectedTransferDate);
-		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
 		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam))
 				.thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		when(params.get(calculator.configAddYearIfCalculationDateIsEndOfYearParam)).thenReturn(true);
+		doReturn(decommissioningDate).when(calculator).calculateDecommissioningDate(any(CopyRetentionRule.class),
+				any(AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput.class));
 		return calculator.calculateForCopyRule(index, copy, new CalculatorParametersValidatingDependencies(params, calculator));
 	}
 
@@ -209,13 +211,15 @@ public class FolderCopyRulesExpectedDestructionDatesCalculatorTest extends Const
 		when(params.get(calculator.configInactiveNumberOfYearWhenVariableDelayPeriodParam))
 				.thenReturn(inactiveConfigNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.copyRulesExpectedTransferDateParam)).thenReturn(copyRulesExpectedTransferDate);
-		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
 		when(params.get(calculator.configRequiredDaysBeforeYearEndParam)).thenReturn(confiRequiredDaysBeforeYearEnd);
 		when(params.get(calculator.datesAndDateTimesParam)).thenReturn(dynamicDependencyValues);
 		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam))
 				.thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		when(params.get(calculator.configAddYearIfCalculationDateIsEndOfYearParam)).thenReturn(true);
+		doReturn(decommissioningDate).when(calculator)
+				.calculateDecommissioningDate(any(CopyRetentionRule.class),
+						any(AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput.class));
 		return calculator.calculate(new CalculatorParametersValidatingDependencies(params, calculator));
 	}
 }

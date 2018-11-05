@@ -62,7 +62,6 @@ public class Folder extends RMObject {
 	public static final String RETENTION_RULE = "retentionRule";
 	public static final String RETENTION_RULE_ENTERED = "retentionRuleEntered";
 
-	public static final String DECOMMISSIONING_DATE = "decommissioningDate";
 	public static final String ACTIVE_RETENTION_TYPE = "activeRetentionType";
 	public static final String ACTIVE_RETENTION_CODE = "activeRetentionPeriodCode";
 	public static final String SEMIACTIVE_RETENTION_TYPE = "semiactiveRetentionType";
@@ -521,10 +520,6 @@ public class Folder extends RMObject {
 
 	public List<CopyRetentionRule> getApplicableCopyRules() {
 		return getList(APPLICABLE_COPY_RULES);
-	}
-
-	public LocalDate getDecommissioningDate() {
-		return get(DECOMMISSIONING_DATE);
 	}
 
 	public FolderMediaType getMediaType() {
