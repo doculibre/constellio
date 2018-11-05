@@ -1,5 +1,7 @@
 package com.constellio.app.api.admin.services;
 
+import com.constellio.app.entities.system.SystemMemory;
+import com.constellio.app.entities.system.SystemMemory.Memory;
 import com.constellio.model.conf.FoldersLocator;
 
 import java.io.BufferedReader;
@@ -14,24 +16,18 @@ public class SystemAnalysisUtils {
 	private static final String SOLR_CURRENT_CONF_PATH = "/opt/solr-current/bin/solr.in.sh";
 	private static final String SOLR_MEMORY_PARAMETER = "SOLR_JAVA_MEM";
 
-	public static String getTotalSystemMemory() {
+	public static Memory getTotalSystemMemory() {
 		String memTotal = findValueOfParameter(MEMINFO_PATH, MEMTOTAL_PARAMETER, ":");
-		if (memTotal != null) {
-			memTotal = toHumanReadleNumbers(memTotal, "kB");
-		}
-		return memTotal;
+		return SystemMemory.Memory.build(memTotal, "KB");
 	}
 
-	public static String getAllocatedMemoryForConstellio() {
+	public static Memory getAllocatedMemoryForConstellio() {
 		FoldersLocator foldersLocator = new FoldersLocator();
 		String allocatedMemory = findValueOfParameter(foldersLocator.getWrapperConf().getAbsolutePath(), CONSTELLIO_MEMORY_PARAMETER, "=");
-		if (allocatedMemory != null) {
-			allocatedMemory = toHumanReadleNumbers(allocatedMemory, "MB");
-		}
-		return allocatedMemory;
+		return SystemMemory.Memory.build(allocatedMemory, "MB");
 	}
 
-	public static String getAllocatedMemoryForSolr() {
+	public static Memory getAllocatedMemoryForSolr() {
 		String allocatedMemory = findValueOfParameter(SOLR_CONF_PATH, SOLR_MEMORY_PARAMETER, "=");
 		if (allocatedMemory == null) {
 			allocatedMemory = findValueOfParameter(SOLR_CURRENT_CONF_PATH, SOLR_MEMORY_PARAMETER, "=");
@@ -40,59 +36,10 @@ public class SystemAnalysisUtils {
 			allocatedMemory = allocatedMemory.replaceAll("\"", "");
 			String[] splittedValue = allocatedMemory.split("Xmx");
 			if (splittedValue.length == 2) {
-				allocatedMemory = toHumanReadleNumbers(splittedValue[1], "m");
-			} else {
-				return null;
+				allocatedMemory = splittedValue[1];
 			}
 		}
-		return allocatedMemory;
-	}
-
-	public static Double getPercentageOfAllocatedMemory(String totalSystemMemory, String allocatedMemoryForConstellio,
-														String allocatedMemoryForSolr) {
-		if (totalSystemMemory != null && allocatedMemoryForConstellio != null && allocatedMemoryForSolr != null &&
-			totalSystemMemory.endsWith(" GB") && allocatedMemoryForConstellio.endsWith(" GB") && allocatedMemoryForSolr.endsWith(" GB")) {
-			return roundToTwoDecimals(
-					(Double.parseDouble(allocatedMemoryForConstellio.replace(" GB", "")) + Double.parseDouble(allocatedMemoryForSolr.replace(" GB", "")))
-					/ Double.parseDouble(totalSystemMemory.replace(" GB", ""))
-			);
-		} else {
-			return null;
-		}
-	}
-
-	private static String toHumanReadleNumbers(String totalMemory, String currentUnit) {
-		String memoryWithoutUnit = totalMemory;
-		memoryWithoutUnit = totalMemory.trim();
-		if (memoryWithoutUnit.endsWith(currentUnit)) {
-			memoryWithoutUnit = memoryWithoutUnit.replace(currentUnit, "");
-		}
-
-		int divisionFactor = 0;
-		currentUnit = currentUnit.toLowerCase();
-		if (currentUnit.equals("kb") || currentUnit.equals("k")) {
-			divisionFactor = 1024 * 1024;
-		} else if (currentUnit.equals("mb") || currentUnit.equals("m")) {
-			divisionFactor = 1024;
-		} else if (currentUnit.equals("gb") || currentUnit.equals("g")) {
-			divisionFactor = 1;
-		}
-
-		if (divisionFactor > 0) {
-			try {
-				double totalMemoryInGB = Double.parseDouble(memoryWithoutUnit.trim()) / (divisionFactor);
-				totalMemoryInGB = roundToTwoDecimals(totalMemoryInGB);
-				return totalMemoryInGB + " GB";
-			} catch (Exception e) {
-				return totalMemory;
-			}
-		} else {
-			return totalMemory;
-		}
-	}
-
-	private static double roundToTwoDecimals(double value) {
-		return Math.round(value * 100.0) / 100.0;
+		return SystemMemory.Memory.build(allocatedMemory, "MB");
 	}
 
 	private static String findValueOfParameter(String fileUrl, String parameter, String separator) {
