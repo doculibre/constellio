@@ -3,6 +3,10 @@ package com.constellio.app.modules.rm.migrations;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDepositDatesCalculator2;
+import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDestructionDatesCalculator2;
+import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator2;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -15,7 +19,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -31,6 +37,7 @@ public class RMMigrationTo8_2 implements MigrationScript {
 	private static final String DOCUMENTS = "documents";
 	private static final String CONTAINERS = "containers";
 	KeySetMap<String, String> FAVORITES_LIST_MAP = new KeySetMap<>();
+	private static final String FOLDER_DECOMMISSIONING_DATE = "decommissioningDate";
 
 	@Override
 	public String getVersion() {
@@ -110,6 +117,25 @@ public class RMMigrationTo8_2 implements MigrationScript {
 					.createUndeletable(Document.FAVORITES).setType(MetadataValueType.STRING).setMultivalue(true).setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true);
 			builder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE)
 					.createUndeletable(ContainerRecord.FAVORITES).setType(MetadataValueType.STRING).setMultivalue(true).setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true);
+
+			MetadataSchemaBuilder folderSchema = types().getSchema(Folder.DEFAULT_SCHEMA);
+			if (folderSchema.hasMetadata(FOLDER_DECOMMISSIONING_DATE)) {
+				folderSchema.get(FOLDER_DECOMMISSIONING_DATE).setEssential(false).setEnabled(false)
+						.defineDataEntry().asManual();
+			}
+
+			boolean defaultDateCalculators = ((CalculatedDataEntry) folderSchema
+					.get(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).getDataEntry()).getCalculator()
+					instanceof FolderCopyRulesExpectedTransferDatesCalculator;
+
+			if (defaultDateCalculators) {
+				folderSchema.get(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).defineDataEntry()
+						.asCalculated(FolderCopyRulesExpectedTransferDatesCalculator2.class);
+				folderSchema.get(Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES).defineDataEntry()
+						.asCalculated(FolderCopyRulesExpectedDepositDatesCalculator2.class);
+				folderSchema.get(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).defineDataEntry()
+						.asCalculated(FolderCopyRulesExpectedDestructionDatesCalculator2.class);
+			}
 		}
 	}
 }
