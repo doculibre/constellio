@@ -3,8 +3,8 @@ package com.constellio.app.modules.rm.ui.pages.document;
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
-import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -28,7 +28,6 @@ import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -47,7 +46,6 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.vaadin.event.ItemClickEvent;
@@ -310,17 +308,17 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		String saveSearchDecommissioningId = null;
 		String searchTypeAsString = null;
 
-		if(presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
+		if (presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
 			saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
 
 		}
 
-		if(presenter.getParams() != null && presenter.getParams().get("decommissioningType") != null) {
+		if (presenter.getParams() != null && presenter.getParams().get("decommissioningType") != null) {
 			searchTypeAsString = presenter.getParams().get("decommissioningType");
 		}
 
 		SearchType searchType = null;
-		if(searchTypeAsString != null) {
+		if (searchTypeAsString != null) {
 			searchType = SearchType.valueOf((searchTypeAsString));
 		}
 
@@ -332,19 +330,18 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				new DocumentFolderBreadCrumbParams(presenter.getDocument().getId(), presenter.getParams(), this));
 
 
-
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;
 		} else if (saveSearchDecommissioningId != null && searchType != null) {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
-					saveSearchDecommissioningId, presenter.getRecord().getId(),this);
+					saveSearchDecommissioningId, presenter.getRecord().getId(), this);
 		} else {
 			String containerId = null;
-			if(presenter.getParams() != null && presenter.getParams() instanceof Map) {
+			if (presenter.getParams() != null && presenter.getParams() instanceof Map) {
 				containerId = presenter.getParams().get("containerId");
 			}
 
-			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), taxonomyCode, containerId,this);
+			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), taxonomyCode, containerId, this);
 		}
 	}
 
@@ -520,7 +517,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		Button labels = new LabelButtonV2($("DisplayFolderView.printLabel"),
 				$("DisplayFolderView.printLabel"), customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(), presenter.getDocument());
+				getSessionContext().getCurrentCollection(), presenter.getDocumentVO());
 
 		addToCartButton = buildAddToCartButton();
 

@@ -136,7 +136,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void forParams(String params) {
 		String id;
 
-		if(params.contains("id")) {
+		if (params.contains("id")) {
 			this.params = ParamUtils.getParamsMap(params);
 			id = this.params.get("id");
 		} else {
@@ -204,7 +204,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return view.getConstellioFactories().getAppLayerFactory().getLabelTemplateManager().listExtensionTemplates(Document.SCHEMA_TYPE);
 	}
 
-	public RecordVO getDocument() {
+	public RecordVO getDocumentVO() {
 		return new RecordToVOBuilder()
 				.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
