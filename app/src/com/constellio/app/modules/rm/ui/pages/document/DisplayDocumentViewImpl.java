@@ -4,6 +4,7 @@ import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -26,6 +27,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
+import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
@@ -47,6 +49,7 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.utils.Factory;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -500,6 +503,25 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 
+		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getCustomTemplates();
+			}
+		};
+
+		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getDefaultTemplates();
+			}
+		};
+
+		Button labels = new LabelButtonV2($("DisplayFolderView.printLabel"),
+				$("DisplayFolderView.printLabel"), customLabelTemplatesFactory,
+				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
+				getSessionContext().getCurrentCollection(), presenter.getDocument());
+
 		addToCartButton = buildAddToCartButton();
 
 		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO, getSessionContext().getSelectedRecordIds().contains(documentVO.getId()));
@@ -699,6 +721,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		}
 		startWorkflowButton = new StartWorkflowButton();
 		startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
+
+		actionMenuButtons.add(labels);
 
 		actionMenuButtons.add(deleteDocumentButton);
 		actionMenuButtons.add(linkToDocumentButton);

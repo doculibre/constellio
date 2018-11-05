@@ -557,6 +557,9 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 				return !cartFoldersIsEmpty();
 			case ContainerRecord.SCHEMA_TYPE:
 				return !cartContainerIsEmpty();
+			case Document.SCHEMA_TYPE:
+				return !cartDocumentIsEmpty();
+
 			default:
 				throw new RuntimeException("No labels for type : " + schemaType);
 		}
