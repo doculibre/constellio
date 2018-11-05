@@ -33,6 +33,7 @@ import java.util.List;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.records.cache.CacheConfig.volatileCache;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -49,7 +50,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 	Transaction transaction;
 	User adminInZeCollection, adminInAnotherCollection;
 
-	TestRecord uncachedRecord1, uncachedRecord2, permanentRecord1, permanentRecord2, volatileRecord3, volatileRecord4, volatileRecord1, volatileRecord2;
+	TestRecord uncachedRecord1, uncachedRecord2, permanentRecord1, permanentRecord2, permanentRecord3, volatileRecord3, volatileRecord4, volatileRecord1, volatileRecord2;
 
 	TestsSchemasSetup zeCollectionSchemas = new TestsSchemasSetup(zeCollection).withSecurityFlag(false);
 	ZeSchemaMetadatas zeCollectionSchemaWithVolatileCache = zeCollectionSchemas.new ZeSchemaMetadatas();
@@ -64,6 +65,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 	RecordsCaches recordsCaches;
 	RecordsCaches otherInstanceRecordsCaches;
 	RecordsCache zeCollectionRecordsCache;
+	RecordsCache otherInstanceZeCollectionRecordsCache;
 	RecordsCache anotherCollectionRecordsCache;
 
 	UserServices userServices;
@@ -108,6 +110,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		anotherCollectionRecordsCache = getModelLayerFactory().getRecordsCaches().getCache(anotherCollection);
 
 		otherInstanceRecordsCaches = otherModelLayerFactory.getRecordsCaches();
+		otherInstanceZeCollectionRecordsCache = otherModelLayerFactory.getRecordsCaches().getCache(zeCollection);
 
 		for (ModelLayerFactory aModelLayerFactory : asList(getModelLayerFactory(), otherModelLayerFactory)) {
 			RecordsCache collection1Cache = aModelLayerFactory.getRecordsCaches().getCache(zeCollection);
@@ -176,28 +179,28 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		recordsCaches.invalidateAll();
 
 		recordsCaches.getCache(record.getCollection()).insert(record, WAS_MODIFIED);
-		record.set(Schemas.TITLE, "modified title");
-		record.set(Schemas.TITLE, "modified title");
-		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
+		record.set(TITLE, "modified title");
+		record.set(TITLE, "modified title");
+		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(TITLE, "modified title");
 
-		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
+		assertThat(recordsCaches.getRecord(record.getId()).get(TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getCache(record.getCollection())
 				.getByMetadata(zeCollectionSchemaWithPermanentCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
-				.get(Schemas.TITLE)).isEqualTo("original title");
+				.get(TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
 
 		String type = zeCollectionSchemaWithPermanentCache.typeCode();
 		assertThat(recordsCaches.getCache(zeCollection).getAllValues(type)).extracting("id").containsOnly("un1");
-		recordsCaches.getCache(zeCollection).getAllValues(type).get(0).set(Schemas.TITLE, "test");
+		recordsCaches.getCache(zeCollection).getAllValues(type).get(0).set(TITLE, "test");
 
 		assertThat(recordsCaches.getCache(zeCollection).getAllValuesInUnmodifiableState(type)).extracting("id")
 				.containsOnly("un1");
 		try {
-			recordsCaches.getCache(zeCollection).getAllValuesInUnmodifiableState(type).get(0).set(Schemas.TITLE, "test");
+			recordsCaches.getCache(zeCollection).getAllValuesInUnmodifiableState(type).get(0).set(TITLE, "test");
 			fail("Record should be unmodifiable");
 		} catch (RecordImplRuntimeException.RecordImplException_RecordIsUnmodifiable e) {
 			//OK
@@ -217,17 +220,17 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.getCache(record.getCollection()).insert(record, WAS_MODIFIED);
 
-		record.set(Schemas.TITLE, "modified title");
-		record.set(Schemas.TITLE, "modified title");
-		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
+		record.set(TITLE, "modified title");
+		record.set(TITLE, "modified title");
+		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(TITLE, "modified title");
 
-		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
+		assertThat(recordsCaches.getRecord(record.getId()).get(TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getCache(record.getCollection())
 				.getByMetadata(zeCollectionSchemaWithVolatileCache.metadata(Schemas.LEGACY_ID.getLocalCode()), "zeLegacyId")
-				.get(Schemas.TITLE)).isEqualTo("original title");
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+				.get(TITLE)).isEqualTo("original title");
+		assertThat(record.get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
 
 	}
@@ -245,15 +248,15 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		recordsCaches.getCache(record.getCollection()).insert(record, WAS_OBTAINED);
 
-		record.set(Schemas.TITLE, "modified title");
-		record.set(Schemas.TITLE, "modified title");
-		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(Schemas.TITLE, "modified title");
+		record.set(TITLE, "modified title");
+		record.set(TITLE, "modified title");
+		recordsCaches.getCache(record.getCollection()).get(record.getId()).set(TITLE, "modified title");
 
-		assertThat(recordsCaches.getRecord(record.getId()).get(Schemas.TITLE)).isEqualTo("original title");
+		assertThat(recordsCaches.getRecord(record.getId()).get(TITLE)).isEqualTo("original title");
 		assertThat(recordsCaches.getRecord(record.getId()).isDirty()).isFalse();
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
-		assertThat(record.get(Schemas.TITLE)).isEqualTo("modified title");
+		assertThat(record.get(TITLE)).isEqualTo("modified title");
 		assertThat(record.isDirty()).isTrue();
 
 	}
@@ -359,7 +362,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThatRecords("un1", "un2").areNotIn(otherInstanceRecordsCaches);
 
 		long versionBeforeModification = recordServices.getDocumentById("p2").getVersion();
-		recordServices.update(recordServices.getDocumentById("p2").set(Schemas.TITLE, "test"), adminInZeCollection);
+		recordServices.update(recordServices.getDocumentById("p2").set(TITLE, "test"), adminInZeCollection);
 		assertThatRecords("p2", "v3", "v4").areIn(recordsCaches);
 		assertThatRecords("p2", "v3", "v4").areIn(otherInstanceRecordsCaches);
 		assertThatRecords("un1", "un2").areNotIn(recordsCaches);
@@ -368,7 +371,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 				.isEqualTo(recordsCaches.getRecord("p2").getVersion())
 				.isNotEqualTo(versionBeforeModification);
 
-		recordServices.update(recordServices.getDocumentById("v3").set(Schemas.TITLE, "test"), adminInZeCollection);
+		recordServices.update(recordServices.getDocumentById("v3").set(TITLE, "test"), adminInZeCollection);
 
 		assertThatRecords("p2", "v3", "v4").areIn(recordsCaches);
 		assertThatRecords("p2", "v4").areIn(otherInstanceRecordsCaches);
@@ -390,7 +393,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThatRecords("un1", "un2").areNotIn(otherInstanceRecordsCaches);
 
 		long versionBeforeModification = recordServices.getDocumentById("p2").getVersion();
-		recordServices.update(getPartiallyLoadedRecord("p2").set(Schemas.TITLE, "test"), adminInZeCollection);
+		recordServices.update(getPartiallyLoadedRecord("p2").set(TITLE, "test"), adminInZeCollection);
 
 		assertThatRecords("p2", "v3", "v4").areIn(recordsCaches);
 		assertThatRecords("p2", "v3", "v4").areIn(otherInstanceRecordsCaches);
@@ -400,13 +403,13 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(recordsCaches.getRecord("p2").get(zeCollectionSchemaWithPermanentCache.stringMetadata())).isEqualTo("p2Code");
 		assertThat(otherInstanceRecordsCaches.getRecord("p2").get(zeCollectionSchemaWithPermanentCache.stringMetadata()))
 				.isEqualTo("p2Code");
-		assertThat(recordsCaches.getRecord("p2").get(Schemas.TITLE)).isEqualTo("test");
-		assertThat(otherInstanceRecordsCaches.getRecord("p2").get(Schemas.TITLE)).isEqualTo("test");
+		assertThat(recordsCaches.getRecord("p2").get(TITLE)).isEqualTo("test");
+		assertThat(otherInstanceRecordsCaches.getRecord("p2").get(TITLE)).isEqualTo("test");
 		assertThat(otherInstanceRecordsCaches.getRecord("p2").getVersion())
 				.isEqualTo(recordsCaches.getRecord("p2").getVersion())
 				.isNotEqualTo(versionBeforeModification);
 
-		recordServices.update(getPartiallyLoadedRecord("v3").set(Schemas.TITLE, "test"), adminInZeCollection);
+		recordServices.update(getPartiallyLoadedRecord("v3").set(TITLE, "test"), adminInZeCollection);
 
 		assertThatRecords("p2", "v4").areInBothCache();
 		assertThatRecords("un1", "un2", "v3").areNotInBothCache();
@@ -449,13 +452,13 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(queriesListener.byIds).containsOnlyOnce("un1", "un2");
 
 		transaction = new Transaction();
-		transaction.add(uncachedRecord1.set(Schemas.TITLE, "a2"));
-		transaction.add(permanentRecord2.set(Schemas.TITLE, "b2"));
-		transaction.add(volatileRecord3.set(Schemas.TITLE, "c2"));
+		transaction.add(uncachedRecord1.set(TITLE, "a2"));
+		transaction.add(permanentRecord2.set(TITLE, "b2"));
+		transaction.add(volatileRecord3.set(TITLE, "c2"));
 		recordServices.execute(transaction);
 
-		recordServices.add(volatileRecord4.set(Schemas.TITLE, "d2"));
-		recordServices.add(uncachedRecord2.set(Schemas.TITLE, "e2"));
+		recordServices.add(volatileRecord4.set(TITLE, "d2"));
+		recordServices.add(uncachedRecord2.set(TITLE, "e2"));
 
 		queriesListener.clear();
 		assertThatGetDocumentsByIdReturnEqualRecord(uncachedRecord1, permanentRecord2, volatileRecord3, volatileRecord4,
@@ -831,7 +834,7 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 		assertThat(queriesListener.queries).isEmpty();
 		assertThat(queriesListener.byIds).isEmpty();
 
-		Record modifiedRecord1 = record1.getCopyOfOriginalRecord().set(Schemas.TITLE, "modified title");
+		Record modifiedRecord1 = record1.getCopyOfOriginalRecord().set(TITLE, "modified title");
 		recordServices.update(modifiedRecord1);
 
 		assertThatGetDocumentsByIdReturnEqualRecord(modifiedRecord1);
@@ -844,6 +847,71 @@ public class EventRecordsCacheAcceptanceTest extends ConstellioTest {
 
 		assertThat(recordServices.getDocumentById(record1.getId()).getVersion())
 				.isNotEqualTo(record1.getVersion()).isEqualTo(modifiedRecord1.getVersion());
+	}
+
+	@Test
+	public void givenRecordsModifiedThenCachedSearchResultsAreInvalidated()
+			throws Exception {
+
+		Transaction tx = new Transaction();
+		tx.add(permanentRecord1 = newRecordOf("p1", zeCollectionSchemaWithPermanentCache).withTitle("1"));
+		tx.add(permanentRecord2 = newRecordOf("p2", zeCollectionSchemaWithPermanentCache).withTitle("2"));
+		tx.add(permanentRecord3 = newRecordOf("p3", zeCollectionSchemaWithPermanentCache).withTitle("3"));
+		recordServices.execute(tx);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(zeCollectionSchemaWithPermanentCache.type()).returnAll()).sortAsc(TITLE);
+
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+
+		recordServices.update(permanentRecord2.set(TITLE, "4"));
+
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "3", "4");
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "3", "4");
+
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "3", "4");
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "3", "4");
+
+	}
+
+	@Test
+	public void givenRecordsAddedThenCachedSearchResultsAreInvalidated()
+			throws Exception {
+
+
+		Transaction tx = new Transaction();
+		tx.add(permanentRecord1 = newRecordOf("p1", zeCollectionSchemaWithPermanentCache).withTitle("1"));
+		tx.add(permanentRecord2 = newRecordOf("p2", zeCollectionSchemaWithPermanentCache).withTitle("2"));
+		tx.add(permanentRecord3 = newRecordOf("p3", zeCollectionSchemaWithPermanentCache).withTitle("3"));
+		recordServices.execute(tx);
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(zeCollectionSchemaWithPermanentCache.type()).returnAll()).sortAsc(TITLE);
+
+		assertThat(zeCollectionRecordsCache.getQueryResults(query)).isNull();
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+
+		assertThat(zeCollectionRecordsCache.getQueryResults(query)).isNotNull();
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+
+		assertThat(otherInstanceZeCollectionRecordsCache.getQueryResults(query)).isNull();
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+
+		assertThat(otherInstanceZeCollectionRecordsCache.getQueryResults(query)).isNotNull();
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3");
+
+		recordServices.update(newRecordOf("p4", zeCollectionSchemaWithPermanentCache).withTitle("4"));
+
+		assertThat(zeCollectionRecordsCache.getQueryResults(query)).isNull();
+		assertThat(searchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3", "4");
+		assertThat(zeCollectionRecordsCache.getQueryResults(query)).isNotNull();
+
+		assertThat(otherInstanceZeCollectionRecordsCache.getQueryResults(query)).isNull();
+		assertThat(otherInstanceSearchServices.cachedSearch(query)).extracting("title").containsOnly("1", "2", "3", "4");
+		assertThat(otherInstanceZeCollectionRecordsCache.getQueryResults(query)).isNotNull();
+
 	}
 
 	//-----------------------------------------------------------------
