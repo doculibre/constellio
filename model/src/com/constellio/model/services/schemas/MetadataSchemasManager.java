@@ -79,7 +79,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.modulesManagerDelayed = modulesManagerDelayed;
 		this.modelLayerFactory = modelLayerFactory;
-		this.cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
+		this.cacheManager = modelLayerFactory.getDataLayerFactory().getLocalCacheManager();
 	}
 
 	@Override

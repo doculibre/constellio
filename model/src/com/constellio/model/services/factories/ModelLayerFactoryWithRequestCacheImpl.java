@@ -12,6 +12,7 @@ import com.constellio.model.services.background.ModelLayerBackgroundThreadsManag
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.batch.state.StoredBatchProcessProgressionServices;
+import com.constellio.model.services.caches.ModelLayerCachesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -347,6 +348,11 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	@Override
 	public SecurityModelCache getSecurityModelCache() {
 		return modelLayerFactory.getSecurityModelCache();
+	}
+
+	@Override
+	public ModelLayerCachesManager getCachesManager() {
+		return modelLayerFactory.getCachesManager();
 	}
 
 	@Override

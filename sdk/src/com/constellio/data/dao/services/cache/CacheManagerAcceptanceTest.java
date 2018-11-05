@@ -18,8 +18,8 @@ public class CacheManagerAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setup() {
 		// May or may not be Ignite
-		settingsCacheManager = getDataLayerFactory().getSettingsCacheManager();
-		recordsCacheManager = getDataLayerFactory().getRecordsCacheManager();
+		settingsCacheManager = getDataLayerFactory().getLocalCacheManager();
+		recordsCacheManager = getDataLayerFactory().getDistributedCacheManager();
 	}
 
 	private void insertDataInCacheThenClear(ConstellioCacheManager cacheManager) {
