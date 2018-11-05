@@ -119,14 +119,16 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public void setMetadataCode(String metadataCode) {
 		this.metadataCode = metadataCode;
-		this.metadata = types.getMetadata(metadataCode);
+		if (StringUtils.isNotBlank(metadataCode)) {
+			this.metadata = types.getMetadata(metadataCode);
+		}
 	}
 
 	public boolean isRoleAccessSupportedOnThisMetadata() {
 		List<MetadataFilter> metadataThatDontSupportRoleAccessRetValueList = view.getConstellioFactories().getAppLayerFactory()
 				.getExtensions().forCollection(view.getCollection()).getMetadataAccessExclusionFilters();
 
-		return !metadata.isFilteredByAny(metadataThatDontSupportRoleAccessRetValueList);
+		return metadata == null || !metadata.isFilteredByAny(metadataThatDontSupportRoleAccessRetValueList);
 	}
 
 	public FormMetadataVO getFormMetadataVO() {
