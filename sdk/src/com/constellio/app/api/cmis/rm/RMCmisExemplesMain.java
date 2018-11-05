@@ -26,8 +26,12 @@ import static org.apache.chemistry.opencmis.commons.enums.VersioningState.MAJOR;
 public class RMCmisExemplesMain {
 
 	static String url = "http://167.114.79.166:9080/constellio";
-	static String user = "admin";
-	static String password = "password";
+
+	//Les informations de connexions peuvent être obtenues dans "Pilotage > Gérer les utilisateurs > Générer jeton"
+	static String user = "adminServiceKey";
+	static String password = "adminToken";
+
+	//Code de la collection, qui peut être obtenu dans "Pilotage > Gestion des collections"
 	static String collectionName = "collection";
 
 	static Session session;
