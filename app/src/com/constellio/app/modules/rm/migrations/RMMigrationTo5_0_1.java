@@ -296,7 +296,6 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 				Folder.EXPECTED_DEPOSIT_DATE,
 				Folder.ACTUAL_DESTRUCTION_DATE,
 				Folder.EXPECTED_DESTRUCTION_DATE,
-				Schemas.FOLLOWERS.getLocalCode(),
 				Folder.COMMENTS);
 		transaction.add(
 				schemaDisplayFolderConfig.withFormMetadataCodes(schemaFormFolderConfig.getFormMetadataCodes()));

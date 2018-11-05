@@ -14,7 +14,25 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 
 		DecomListFolderDetail decomListFolderDetail = new DecomListFolderDetail();
 		decomListFolderDetail.setFolderId(readString(stringTokenizer));
-		decomListFolderDetail.folderExcluded = Boolean.valueOf(readString(stringTokenizer));
+		String folderDetailStatus = readString(stringTokenizer);
+		switch (folderDetailStatus) {
+			case "true":
+				decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.INCLUDED);
+				break;
+			case "false":
+				decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.EXCLUDED);
+				break;
+			case "e":
+			decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.EXCLUDED);
+			break;
+			case "i":
+			decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.INCLUDED);
+			break;
+			case "s":
+			decomListFolderDetail.setFolderDetailStatus(FolderDetailStatus.SELECTED);
+			break;
+		}
+
 		// Skip deprecated fields validationUserId, validationUserName and ValidationDate
 		readString(stringTokenizer);
 		readString(stringTokenizer);
@@ -37,7 +55,7 @@ public class DecomListFolderDetailFactory implements StructureFactory {
 		DecomListFolderDetail decomListFolderDetail = (DecomListFolderDetail) structure;
 		StringBuilder stringBuilder = new StringBuilder();
 		writeString(stringBuilder, decomListFolderDetail.getFolderId());
-		writeString(stringBuilder, String.valueOf(decomListFolderDetail.isFolderExcluded()));
+		writeString(stringBuilder, decomListFolderDetail.getFolderDetailStatus().getDescription());
 		// Skip deprecated fields validationUserId, validationUserName and ValidationDate
 		writeString(stringBuilder, null);
 		writeString(stringBuilder, null);

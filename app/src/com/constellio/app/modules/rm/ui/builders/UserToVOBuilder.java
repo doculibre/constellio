@@ -17,7 +17,7 @@ public class UserToVOBuilder extends RecordToVOBuilder {
 	}
 
 	@Override
-	protected UserVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode) {
+	protected UserVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode, List<String> excludedMetdataCode) {
 		return new UserVO(id, metadataValueVOs, viewMode);
 	}
 

@@ -191,6 +191,12 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
+	public void executeInBatch(Transaction transaction)
+			throws RecordServicesException {
+		recordServices.executeInBatch(transaction);
+	}
+
+	@Override
 	public void execute(Transaction transaction)
 			throws RecordServicesException {
 		recordServices.execute(transaction);

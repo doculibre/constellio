@@ -44,6 +44,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	RMTestRecords records;
 
 	protected List<String> missingKeys = new ArrayList<>();
+	protected List<String> duplicatedKeys = new ArrayList<>();
 	Locale locale;
 	Locale defaultLocale;
 
@@ -52,6 +53,22 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 	static {
 		keysWithSameFrenchEnglishValue.add("SystemConfigurationGroup.agent");
 	}
+
+	@Test
+	public void whenUsingI18nThenAllBundlesFound() {
+		givenEnglishSystem();
+
+		assertThat(i18n.getDefaultBundle()).extracting("bundleName")
+				.containsOnly("baseView", "imports", "managementViews", "model", "schemasManagementViews", "search", "security", "usersAndGroupsManagementViews", "userViews", "webservices", "i18n", "i18n", "audits", "decommissioningViews", "demo", "foldersAndDocuments", "managementViews", "model", "reports", "storageAndContainers", "userViews", "i18n", "model", "views", "workflowBeta");
+	}
+	@Test
+	public void whenDetectDuplicatedKeyThenReturnTrue() {
+		givenEnglishSystem();
+		assertThat(duplicatedKeys).isEmpty();
+
+
+	}
+
 
 	@Test
 	public void givenEnglishSystemEnsureAllObjectsHasATitle()

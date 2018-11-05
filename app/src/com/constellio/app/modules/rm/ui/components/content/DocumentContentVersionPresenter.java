@@ -1,10 +1,13 @@
 package com.constellio.app.modules.rm.ui.components.content;
 
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.services.factories.AppLayerFactory;
@@ -31,7 +34,17 @@ import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_
 import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
+import static com.constellio.app.ui.pages.search.SearchPresenter.SEARCH_EVENT_DWELL_TIME;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+
 public class DocumentContentVersionPresenter implements Serializable {
+
 
 	private DocumentContentVersionWindow window;
 
@@ -51,10 +64,13 @@ public class DocumentContentVersionPresenter implements Serializable {
 	private transient AppLayerFactory appLayerFactory;
 
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
+	private RMModuleExtensions rmModuleExtensions;
 
-	public DocumentContentVersionPresenter(DocumentContentVersionWindow window) {
+	private Map<String, String> params;
+
+	public DocumentContentVersionPresenter(DocumentContentVersionWindow window, Map<String, String> params) {
 		this.window = window;
-
+		this.params = params;
 		initTransientObjects();
 
 		RecordVO recordVO = window.getRecordVO();
@@ -67,6 +83,9 @@ public class DocumentContentVersionPresenter implements Serializable {
 
 		boolean checkOutLinkVisible = isCheckOutLinkVisible();
 		window.setCheckOutLinkVisible(checkOutLinkVisible);
+
+		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(window.getSessionContext().getCurrentCollection())
+				.forModule(ConstellioRMModule.ID);
 
 		String readOnlyMessage;
 		if (!hasWritePermission()) {
@@ -141,7 +160,8 @@ public class DocumentContentVersionPresenter implements Serializable {
 			window.displayInWindow();
 		} else {
 			window.closeWindow();
-			window.navigate().to(RMViews.class).displayDocument(documentId);
+			RMNavigationUtils.navigateToDisplayDocument(documentId, params, appLayerFactory,
+					window.getSessionContext().getCurrentCollection());
 		}
 		updateSearchResultClicked();
 	}
@@ -174,11 +194,12 @@ public class DocumentContentVersionPresenter implements Serializable {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
+			SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(),
+					presenterUtils.modelLayerFactory());
 			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 			if (searchEvent != null) {
-				SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(), presenterUtils.modelLayerFactory());
 				searchEventServices.incrementClickCounter(searchEvent.getId());
-	
+
 				String url = null;
 				try {
 					url = documentVO.get("url");
@@ -187,6 +208,6 @@ public class DocumentContentVersionPresenter implements Serializable {
 				String clicks = defaultIfBlank(url, documentVO.getId());
 				searchEventServices.updateClicks(searchEvent, clicks);
 			}
-		}	
+		}
 	}
 }

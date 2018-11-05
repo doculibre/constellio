@@ -9,9 +9,11 @@ import com.constellio.data.utils.comparators.AbstractTextComparator;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Facet;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.FacetOrderType;
 import com.constellio.model.entities.records.wrappers.structure.FacetType;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -43,12 +45,23 @@ public class SearchPresenterService {
 	private SearchServices searchServices;
 	private RecordServices recordServices;
 	private MetadataSchemasManager metadataSchemasManager;
+	private List<MetadataSchemaType> metadataSchemaTypesList;
+	private String collection;
+	private User user;
 
-	public SearchPresenterService(final String collection, ModelLayerFactory modelLayerFactory) {
+	public SearchPresenterService(final String collection, User user, ModelLayerFactory modelLayerFactory, List<MetadataSchemaType> metadataSchemaTypesList) {
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.recordServices = modelLayerFactory.newRecordServices();
 		this.schemas = new SchemasRecordsServices(collection, modelLayerFactory);
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		this.metadataSchemaTypesList = metadataSchemaTypesList;
+		this.collection = collection;
+		this.user = user;
+	}
+
+	public SearchPresenterService setMetadataSchemaTypesList(List<MetadataSchemaType> metadataSchemaTypesList) {
+		this.metadataSchemaTypesList = metadataSchemaTypesList;
+		return this;
 	}
 
 	public List<FacetVO> getFacets(LogicalSearchQuery query, Map<String, Boolean> facetStatus, Locale locale) {
@@ -116,10 +129,33 @@ public class SearchPresenterService {
 		return facetQuery;
 	}
 
+	public boolean isFacetVisisble(Facet facet) {
+		List<MetadataSchemaType> metadataSchemaTypeList = metadataSchemaTypesList;
+
+		if(metadataSchemaTypeList == null || metadataSchemaTypeList.isEmpty()) {
+			metadataSchemaTypeList = metadataSchemasManager.getSchemaTypes(collection).getSchemaTypes();
+		}
+
+
+		for(MetadataSchemaType metadataSchemaType : metadataSchemaTypeList) {
+			for(Metadata metadata : metadataSchemaType.getAllMetadatas()) {
+				if(metadata.getDataStoreCode().equals(facet.getFieldDataStoreCode()) && !user.hasGlobalAccessToMetadata(metadata)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
 	public void configureQueryToComputeFacets(LogicalSearchQuery facetQuery) {
 
 		for (Facet facet : getActiveFacets()) {
 			if (facet.getFacetType() == FacetType.FIELD) {
+				if(!isFacetVisisble(facet)) {
+					continue;
+				}
+
 				facetQuery.addFieldFacet(facet.getFieldDataStoreCode());
 			} else {
 				for (Entry<String, String> entry : facet.getListQueries().entrySet()) {

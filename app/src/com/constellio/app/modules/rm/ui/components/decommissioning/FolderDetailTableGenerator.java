@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.ui.entities.ContainerVO;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListPresenter;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningListViewImpl;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.ui.framework.components.display.EnumWithSmallCodeDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BooleanOptionGroup;
@@ -24,7 +25,11 @@ import com.vaadin.ui.Table.Align;
 import com.vaadin.ui.Table.ColumnGenerator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -51,6 +56,8 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 	private boolean displaySort;
 	private boolean displayValidation;
 	private boolean displayOrderNumber;
+	private Map<FolderDetailVO, Component> checkBoxMap;
+	private Set<FolderDetailVO> selected;
 
 	public FolderDetailTableGenerator(DecommissioningListPresenter presenter, DecommissioningListViewImpl view,
 									  boolean packageable) {
@@ -61,6 +68,8 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		displayCategory = true;
 		displaySort = false;
 		displayValidation = false;
+		checkBoxMap = new HashMap<>();
+		selected = new HashSet<>();
 	}
 
 	public FolderDetailTableGenerator withExtension(DecommissioningListFolderTableExtension extension) {
@@ -173,7 +182,6 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 		} else {
 			table.sort(new String[]{CATEGORY_CODE}, new boolean[]{true});
 		}
-
 		return table;
 	}
 
@@ -221,9 +229,20 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			@Override
 			public void valueChange(ValueChangeEvent event) {
 				detail.setSelected(checkBox.getValue());
+				if (checkBox.getValue()) {
+					selected.add(detail);
+				} else {
+					selected.remove(detail);
+				}
+				view.refreshButtons(selected.size(), detail);
 			}
 		});
+		checkBoxMap.put(detail, checkBox);
 		return checkBox;
+	}
+
+	public Component getCheckBox(FolderDetailVO folderDetailVO) {
+		return checkBoxMap.get(folderDetailVO);
 	}
 
 	private Component buildSort(FolderDetailVO detail) {
@@ -279,7 +298,12 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 
 	private Component buildValidationColumn(final FolderDetailVO detail) {
 		final BooleanOptionGroup included = new BooleanOptionGroup();
-		included.setValue(detail.isFolderIncluded());
+		if (FolderDetailStatus.INCLUDED.equals(detail.getFolderDetailStatus())) {
+			included.setValue(true);
+		}
+		if (FolderDetailStatus.EXCLUDED.equals(detail.getFolderDetailStatus())) {
+			included.setValue(false);
+		}
 		included.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {

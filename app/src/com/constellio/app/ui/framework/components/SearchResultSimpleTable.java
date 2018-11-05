@@ -82,6 +82,7 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	private boolean allItemsSelected;
 	private RecordVOTable adaptee;
 	private SearchPresenter<? extends SearchView> presenter;
+	RecordVOTable adaptee;
 
 	public SearchResultSimpleTable(Container container, final SearchPresenter<? extends SearchView> presenter) {
 		super();
@@ -240,6 +241,10 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	}
 
 	protected void searchResultClicked(Object itemId) {
+	}
+
+	public void addItemClickListener(final ItemClickListener listener) {
+		adaptee.addItemClickListener(listener);
 	}
 
 	public List<String> getSelectedRecordIds() {

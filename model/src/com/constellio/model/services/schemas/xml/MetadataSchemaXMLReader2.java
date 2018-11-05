@@ -9,7 +9,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
@@ -37,6 +36,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import static com.constellio.model.entities.schemas.LegacyGlobalMetadatas.isLegacyGlobalMetadata;
+import static com.constellio.model.entities.schemas.Schemas.isGlobalMetadata;
 
 public class MetadataSchemaXMLReader2 {
 
@@ -189,7 +191,7 @@ public class MetadataSchemaXMLReader2 {
 		MetadataBuilder globalMetadataInCollectionSchema = null;
 
 		boolean inheriteGlobalMetadata = false;
-		if (Schemas.isGlobalMetadata(metadataBuilder.getLocalCode()) && collectionSchema != null
+		if ((isGlobalMetadata(metadataBuilder.getLocalCode()) || isLegacyGlobalMetadata(metadataBuilder.getLocalCode())) && collectionSchema != null
 			&& collectionSchema.hasMetadata(metadataBuilder.getLocalCode())) {
 			globalMetadataInCollectionSchema = collectionSchema.getMetadata(metadataBuilder.getLocalCode());
 			inheriteGlobalMetadata = true;

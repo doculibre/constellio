@@ -168,6 +168,14 @@ public class SchemaDisplayConfig implements Serializable {
 		return withTableMetadataCodes(tableMetadatas);
 	}
 
+	public SchemaDisplayConfig withNewTableMetadatasBefore(String metadataCode, String before) {
+		int index = tableMetadataCodes.indexOf(before);
+		List<String> tableMetadatas = new ArrayList<>();
+		tableMetadatas.addAll(this.tableMetadataCodes);
+		tableMetadatas.add(index, metadataCode);
+		return withTableMetadataCodes(tableMetadatas);
+	}
+
 	public SchemaDisplayConfig withCode(String toCode) {
 
 		List<String> displayMetadataCodes = listForCode(this.displayMetadataCodes, toCode);

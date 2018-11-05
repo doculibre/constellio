@@ -1,7 +1,6 @@
 package com.constellio.app.ui.pages.management.labels;
 
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.ui.application.Navigation;
@@ -104,10 +103,8 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		final SchemaTypeVODataProvider dataProvider = presenter.getDataProvider();
 		Container folderContainer = new RecordVOLazyContainer(presenter.getLabelFolderDataProvider());
 		Container conteneurContainer = new RecordVOLazyContainer(presenter.getLabelContainerDataProvider());
-		Container documentContainer = new RecordVOLazyContainer(presenter.getLabelDocumentDataProvider());
 		ButtonsContainer buttonsContainerForContainer = new ButtonsContainer(conteneurContainer, "buttons");
 		ButtonsContainer buttonsContainerForFolder = new ButtonsContainer(folderContainer, "buttons");
-		ButtonsContainer buttonsContainerForDocument = new ButtonsContainer(documentContainer, "buttons");
 		buttonsContainerForContainer.addButton(new ButtonsContainer.ContainerButton() {
 
 			@Override
@@ -115,7 +112,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						presenter.displayButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""));
+						presenter.displayButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""), ContainerRecord.SCHEMA_TYPE);
 					}
 				};
 			}
@@ -128,7 +125,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 				return new DisplayButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						presenter.displayButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""));
+						presenter.displayButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""), Folder.SCHEMA_TYPE);
 					}
 				};
 			}
@@ -139,56 +136,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 				return new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						presenter.editButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""));
-					}
-
-					@Override
-					public boolean isVisible() {
-						RecordVO ret = presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + "");
-						return !(super.isVisible() && ret != null) || ret.get(Printable.ISDELETABLE).equals(true);
-					}
-				};
-			}
-		});
-
-		buttonsContainerForDocument.addButton(new ButtonsContainer.ContainerButton() {
-
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new DisplayButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.displayButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""));
-					}
-				};
-			}
-		});
-		buttonsContainerForDocument.addButton(new ButtonsContainer.ContainerButton() {
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new EditButton() {
-					@Override
-					protected void buttonClick(ClickEvent event) {
-						presenter.editButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""));
-					}
-
-					@Override
-					public boolean isVisible() {
-						RecordVO ret = presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + "");
-						return !(super.isVisible() && ret != null) || ret.get(Printable.ISDELETABLE).equals(true);
-					}
-				};
-			}
-		});
-
-		buttonsContainerForDocument.addButton(new ButtonsContainer.ContainerButton() {
-
-			@Override
-			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new DeleteButton() {
-					@Override
-					protected void confirmButtonClick(ConfirmDialog dialog) {
-						presenter.removeRecord(itemId + "", ListLabelViewImpl.this.currentSchema);
+						presenter.editButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""), Folder.SCHEMA_TYPE);
 					}
 
 					@Override
@@ -206,7 +154,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 				return new EditButton() {
 					@Override
 					protected void buttonClick(ClickEvent event) {
-						presenter.editButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""));
+						presenter.editButtonClicked(presenter.getRecordsWithIndex(ListLabelViewImpl.this.currentSchema, itemId + ""), ContainerRecord.SCHEMA_TYPE);
 					}
 
 					@Override
@@ -258,7 +206,6 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 
 		folderContainer = buttonsContainerForFolder;
 		conteneurContainer = buttonsContainerForContainer;
-		documentContainer = buttonsContainerForDocument;
 
 		final Table tableFolder = new RecordVOTable($("ListSchemaTypeView.tableTitle"), folderContainer);
 		tableFolder.setSizeFull();
@@ -269,7 +216,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		tableFolder.addStyleName(TYPE_TABLE);
 		setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelFolderDataProvider(), tableFolder);
 
-		final Table tableContainer = new RecordVOTable($("ListSchemaTypeView.tableTitle"), conteneurContainer);
+		Table tableContainer = new RecordVOTable($("ListSchemaTypeView.tableTitle"), conteneurContainer);
 		tableContainer.setSizeFull();
 		tableContainer.setPageLength(Math.min(15, conteneurContainer.size()));
 		tableContainer.setColumnHeader("buttons", "");
@@ -278,36 +225,16 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		tableContainer.addStyleName(TYPE_TABLE);
 		setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelContainerDataProvider(), tableContainer);
 
-		final Table tableDocument = new RecordVOTable($("ListSchemaTypeView.tableTitle"), documentContainer);
-		tableDocument.setSizeFull();
-		tableDocument.setPageLength(Math.min(15, documentContainer.size()));
-		tableDocument.setColumnHeader("buttons", "");
-		tableDocument.setColumnHeader("caption", $("ListSchemaTypeView.caption"));
-		tableDocument.setColumnExpandRatio("caption", 1);
-		tableDocument.addStyleName(TYPE_TABLE);
-		setDefaultOrderBy(Schemas.TITLE.getLocalCode(), presenter.getLabelDocumentDataProvider(), tableDocument);
-
-
 		tabSheet = new TabSheet();
 		tabSheet.addTab(tableFolder, $("DisplayLabelViewImpl.tabs.folder"));
 		tabSheet.addTab(tableContainer, $("DisplayLabelViewImpl.tabs.container"));
-		tabSheet.addTab(tableDocument, $("DisplayLabelViewImpl.tabs.document"));
 		System.out.println(tabSheet.getTabIndex());
 		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
 			@Override
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
-				String schemaType;
-
-				if(tabSheet.getSelectedTab().equals(tableFolder)) {
-					schemaType = Folder.SCHEMA_TYPE;
-				} else if (tabSheet.getSelectedTab().equals(tableContainer)) {
-					schemaType = ContainerRecord.SCHEMA_TYPE;
-				} else {
-					schemaType = Document.SCHEMA_TYPE;
-				}
-
-				getXMLButton.setCurrentSchema(schemaType);
+				getXMLButton.setCurrentSchema(tabSheet.getSelectedTab().equals(tableFolder) ? Folder.SCHEMA_TYPE : ContainerRecord.SCHEMA_TYPE);
 				ListLabelViewImpl.this.currentSchema = getXMLButton.getCurrentSchema();
+				System.out.println(ListLabelViewImpl.this.currentSchema);
 			}
 		});
 

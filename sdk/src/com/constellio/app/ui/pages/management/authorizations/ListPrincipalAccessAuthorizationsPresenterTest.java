@@ -8,10 +8,9 @@ import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -53,7 +52,6 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 	@Mock AuthorizationVO own2;
 	@Mock Authorization authorization;
 	@Mock
-	AuthorizationDetails details;
 	MockedFactories factories = new MockedFactories();
 
 	ListAuthorizationsPresenter presenter;
@@ -62,7 +60,7 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 	public void setUp()
 			throws Exception {
 		when(authorizationVO.getAuthId()).thenReturn("zeAuth");
-		when(details.getId()).thenReturn("zeAuth");
+		when(authorization.getId()).thenReturn("zeAuth");
 		navigator = new MockedNavigation();
 
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
@@ -127,10 +125,10 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 		Authorization authorization3 = mock(Authorization.class, "Authorization3");
 		Authorization authorization4 = mock(Authorization.class, "Authorization4");
 
-		when(authorization1.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
-		when(authorization2.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZENOTHER_PRINCIPAL));
-		when(authorization3.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
-		when(authorization4.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZENOTHER_PRINCIPAL));
+		when(authorization1.getPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
+		when(authorization2.getPrincipals()).thenReturn(Arrays.asList(ZENOTHER_PRINCIPAL));
+		when(authorization3.getPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
+		when(authorization4.getPrincipals()).thenReturn(Arrays.asList(ZENOTHER_PRINCIPAL));
 
 		Record record = mock(Record.class, "Record");
 		when(presenterService.getRecord(ZE_PRINCIPAL)).thenReturn(record);
@@ -150,9 +148,8 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 	private void givenAuthorizationWithId(String authId, boolean multiPrincipal) {
 		when(authorizationVO.getAuthId()).thenReturn(authId);
 		when(authorizationsServices.getAuthorization(zeCollection, authId)).thenReturn(authorization);
-		when(authorization.getGrantedToPrincipals()).thenReturn(multiPrincipal ?
-																new ArrayList<>(Arrays.asList(ZE_PRINCIPAL, ZENOTHER_PRINCIPAL)) :
-																Arrays.asList(ZE_PRINCIPAL));
-		when(authorization.getDetail()).thenReturn(details);
+		when(authorization.getPrincipals()).thenReturn(multiPrincipal ?
+																   new ArrayList<>(Arrays.asList(ZE_PRINCIPAL, ZENOTHER_PRINCIPAL)) :
+																   Arrays.asList(ZE_PRINCIPAL));
 	}
 }

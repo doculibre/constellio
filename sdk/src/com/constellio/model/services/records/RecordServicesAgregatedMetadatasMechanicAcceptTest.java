@@ -154,6 +154,8 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 		setUpWithAgregatedSumMetadatas();
 
 		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
+				tuple("group_default_ancestors", "group_default_parent", 0),
+				tuple("group_default_ancestors", "group_default_ancestors", 0),
 				tuple("aThirdSchemaType_default_sum", "anotherSchemaType_default_ref", 1),
 				tuple("aThirdSchemaType_default_sum", "anotherSchemaType_default_sum", 1),
 				tuple("aThirdSchemaType_default_sumX10", "anotherSchemaType_default_ref", 1),
@@ -568,6 +570,8 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 		Metadata agregated = zeSchema.metadata("agregated");
 
 		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
+				tuple("group_default_ancestors", "group_default_parent", 0),
+				tuple("group_default_ancestors", "group_default_ancestors", 0),
 				tuple("zeSchemaType_default_agregated", "zeSchemaType_default_parent", 1),
 				tuple("zeSchemaType_default_agregated", "zeSchemaType_default_value", 1),
 				tuple("zeSchemaType_default_agregated", "zeSchemaType_default_agregated", 1));
@@ -643,6 +647,8 @@ public class RecordServicesAgregatedMetadatasMechanicAcceptTest extends Constell
 		Metadata agregated = zeSchema.metadata("agregated");
 
 		assertThat(getNetworkLinksOf(zeCollection)).containsOnly(
+				tuple("group_default_ancestors", "group_default_parent", 0),
+				tuple("group_default_ancestors", "group_default_ancestors", 0),
 				tuple("zeSchemaType_default_agregated", "zeSchemaType_default_parent", 1),
 				tuple("zeSchemaType_default_agregated", "zeSchemaType_default_value", 1),
 				tuple("zeSchemaType_default_agregated", "zeSchemaType_default_agregated", 1));

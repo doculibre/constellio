@@ -92,6 +92,7 @@ public class RMNavigationConfiguration implements Serializable {
 
 	public static final String LAST_VIEWED_FOLDERS = "lastViewedFolders";
 	public static final String LAST_VIEWED_DOCUMENTS = "lastViewedDocuments";
+	public static final String DEFAULT_FAVORITES = "defaultFavorites";
 	public static final String CHECKED_OUT_DOCUMENTS = "checkedOutDocuments";
 	public static final String TAXONOMIES = "taxonomies";
 

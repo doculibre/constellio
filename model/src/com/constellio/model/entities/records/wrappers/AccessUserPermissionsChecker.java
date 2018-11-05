@@ -8,6 +8,7 @@ import com.constellio.model.entities.security.global.UserCredentialStatus;
 
 import static com.constellio.model.entities.records.Record.PUBLIC_TOKEN;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.containsAnyUserGroupTokens;
+import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.containsNoNegativeUserGroupTokens;
 import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.hasMatchingAuthorizationIncludingSpecifics;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.security.Role.DELETE;
@@ -106,35 +107,42 @@ public class AccessUserPermissionsChecker extends UserPermissionsChecker {
 	}
 
 	private boolean hasDeleteAccessOn(Record record) {
-		return containsAnyUserGroupTokens(user, record, DELETE)
-			   || hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.DELETE_ACCESS)
-			   || user.hasGlobalTypeAccess(record.getTypeCode(), Role.DELETE);
+		return containsNoNegativeUserGroupTokens(user, record, DELETE)
+			   && (containsAnyUserGroupTokens(user, record, DELETE)
+				   || hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.DELETE_ACCESS)
+				   || user.hasGlobalTypeAccess(record.getTypeCode(), Role.DELETE));
 	}
 
 	private boolean hasWriteAccessOn(Record record) {
-		return containsAnyUserGroupTokens(user, record, WRITE)
-			   || hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.WRITE_ACCESS)
-			   || user.hasGlobalTypeAccess(record.getTypeCode(), Role.WRITE);
+		return containsNoNegativeUserGroupTokens(user, record, WRITE)
+			   && (containsAnyUserGroupTokens(user, record, WRITE)
+				   || hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.WRITE_ACCESS)
+				   || user.hasGlobalTypeAccess(record.getTypeCode(), Role.WRITE));
 	}
 
 	private boolean hasReadAccessOn(Record record) {
-		return containsAnyUserGroupTokens(user, record, READ)
-			   || record.getList(Schemas.TOKENS).contains(PUBLIC_TOKEN)
-			   || UserAuthorizationsUtils.containsAUserToken(user, record)
-			   || hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.READ_ACCESS)
-			   || user.hasGlobalTypeAccess(record.getTypeCode(), Role.READ);
+		return
+				containsNoNegativeUserGroupTokens(user, record, READ)
+				&& (containsAnyUserGroupTokens(user, record, READ)
+					|| record.getList(Schemas.TOKENS).contains(PUBLIC_TOKEN)
+					|| UserAuthorizationsUtils.containsAUserToken(user, record)
+					|| hasMatchingAuthorizationIncludingSpecifics(user, record, UserAuthorizationsUtils.READ_ACCESS)
+					|| user.hasGlobalTypeAccess(record.getTypeCode(), Role.READ));
 	}
 
 	private boolean hasDeleteAccessSpecificallyOn(Record record) {
-		return containsAnyUserGroupTokens(user, record, DELETE);
+		return containsNoNegativeUserGroupTokens(user, record, DELETE)
+			   && containsAnyUserGroupTokens(user, record, DELETE);
 	}
 
 	private boolean hasWriteAccessSpecificallyOn(Record record) {
-		return containsAnyUserGroupTokens(user, record, WRITE);
+		return containsNoNegativeUserGroupTokens(user, record, WRITE)
+			   && containsAnyUserGroupTokens(user, record, WRITE);
 	}
 
 	private boolean hasReadAccessSpecificallyOn(Record record) {
-		return containsAnyUserGroupTokens(user, record, READ);
+		return containsNoNegativeUserGroupTokens(user, record, READ)
+			   && containsAnyUserGroupTokens(user, record, READ);
 	}
 
 	@Override

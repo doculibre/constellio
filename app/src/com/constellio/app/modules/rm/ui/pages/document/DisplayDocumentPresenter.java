@@ -1,27 +1,12 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
-import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-import static java.util.Arrays.asList;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.ObjectUtils;
-
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
@@ -43,8 +28,10 @@ import com.constellio.app.ui.framework.builders.ContentVersionToVOBuilder;
 import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
+import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -57,6 +44,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.StatusFilter;
@@ -65,8 +53,23 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuerySort;
 import com.constellio.model.services.trash.TrashServices;
 import com.vaadin.ui.Button;
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.modules.tasks.model.wrappers.Task.STARRED_BY_USERS;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
+	private transient RecordServices recordServices;
 
 	protected DocumentToVOBuilder voBuilder;
 	protected ContentVersionToVOBuilder contentVersionVOBuilder;
@@ -83,9 +86,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private String lastKnownCheckoutUserId;
 	private Long lastKnownLength;
 	private Document document;
+	private Map<String, String> params = null;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, boolean popup) {
 		super(view);
+		initTransientObjects();
 		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
 			@Override
 			public void updateActionsComponent() {
@@ -99,9 +104,25 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
-		if (recordVO != null) {
+		if (recordVO != null && params == null) {
 			forParams(recordVO.getId());
 		}
+	}
+
+	private void initTransientObjects() {
+		recordServices = modelLayerFactory.newRecordServices();
+	}
+
+	public Document getDocument() {
+		return document;
+	}
+
+	public void setDocument(Document document) {
+		this.document = document;
+	}
+
+	public Record getRecord() {
+		return record;
 	}
 
 	@Override
@@ -109,9 +130,22 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return true;
 	}
 
+	public Map<String, String> getParams() {
+		return params;
+	}
+
 	public void forParams(String params) {
-		String id = params;
-		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
+		String id;
+
+		if(params.contains("id")) {
+			this.params = ParamUtils.getParamsMap(params);
+			id = this.params.get("id");
+		} else {
+			id = params;
+		}
+
+
+		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
 
 		this.record = getRecord(id);
@@ -294,12 +328,12 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		if (view.isInWindow()) {
 			view.editInWindow();
 		} else {
-			presenterUtils.editDocumentButtonClicked();
+			presenterUtils.editDocumentButtonClicked(params);
 		}
 	}
 
 	public void deleteDocumentButtonClicked() {
-		presenterUtils.deleteDocumentButtonClicked();
+		presenterUtils.deleteDocumentButtonClicked(params);
 	}
 
 	public void linkToDocumentButtonClicked() {
@@ -317,7 +351,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void createPDFAButtonClicked() {
 		if (!presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDF") && !presenterUtils.getDocumentVO()
 				.getExtension().toUpperCase().equals("PDFA")) {
-			presenterUtils.createPDFA();
+			presenterUtils.createPDFA(params);
 		} else {
 			this.view.showErrorMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
 		}
@@ -353,7 +387,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void copyContentButtonClicked() {
-		presenterUtils.copyContentButtonClicked();
+		presenterUtils.copyContentButtonClicked(params);
 	}
 
 	public String getContentTitle() {
@@ -364,7 +398,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		Document document = presenterUtils.renameContentButtonClicked(newContentTitle);
 		if (document != null) {
 			addOrUpdate(document.getWrappedRecord());
-			view.navigate().to(RMViews.class).displayDocument(document.getId());
+			presenterUtils.navigateToDisplayDocument(document.getId(), params);
 		}
 	}
 
@@ -399,7 +433,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void addToCartRequested(RecordVO recordVO) {
-		presenterUtils.addToCartRequested(recordVO);
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(rm.getCart(recordVO.getId()).getId(), 1)) {
+			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			presenterUtils.addToCartRequested(recordVO);
+		}
 	}
 
 	public InputStream getSignatureInputStream(String certificate, String password) {
@@ -436,13 +474,13 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
+		document.addFavorite(cart.getId());
 		try {
-			cart.addDocuments(Arrays.asList(presenterUtils.getDocumentVO().getId()));
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			recordServices().update(document);
 			view.showMessage($("DocumentActionsComponent.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
-			throw new RuntimeException(e);
 		}
 	}
 
@@ -523,5 +561,53 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		LogicalSearchQuerySort sortField = new FunctionLogicalSearchQuerySort(
 				"termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
 		query.sortFirstOn(sortField);
+	}
+
+	public void addToDefaultFavorite() {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
+			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			document.addFavorite(getCurrentUser().getId());
+			try {
+				recordServices.update(document);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+			view.showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
+		}
+	}
+
+	public void removeFromDefaultFavorites() {
+		document.removeFavorite(getCurrentUser().getId());
+		try {
+			recordServices.update(document);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+		view.showMessage($("DisplayDocumentView.documentRemovedFromDefaultFavorites"));
+	}
+
+	public boolean inDefaultFavorites() {
+		return document.getFavorites().contains(getCurrentUser().getId());
+	}
+
+	public RMSelectionPanelReportPresenter buildReportPresenter() {
+		return new RMSelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
+			@Override
+			public String getSelectedSchemaType() {
+				return Document.SCHEMA_TYPE;
+			}
+
+			@Override
+			public List<String> getSelectedRecordIds() {
+				return asList(presenterUtils.getDocumentVO().getId());
+			}
+		};
+	}
+
+	public AppLayerFactory getApplayerFactory() {
+		return appLayerFactory;
 	}
 }

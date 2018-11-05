@@ -25,8 +25,8 @@ public class TaskVO extends RecordVO {
 		super(recordVO.getId(), recordVO.getMetadataValues(), recordVO.getViewMode());
 	}
 
-	public TaskVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
-		super(id, metadataValues, viewMode);
+	public TaskVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode, List<String> excludedMetadata) {
+		super(id, metadataValues, viewMode, excludedMetadata);
 	}
 
 	public String getAssignee() {

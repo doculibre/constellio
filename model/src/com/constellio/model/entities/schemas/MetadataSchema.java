@@ -136,7 +136,13 @@ public class MetadataSchema implements Serializable {
 
 		metadataCode = StringUtils.substringBefore(metadataCode, ".");
 
-		Metadata metadata = indexByLocalCode.get(metadataCode);
+		String localCode = metadataCode;
+		if (localCode.contains("_")) {
+			String[] codes = SchemaUtils.underscoreSplitWithCache(metadataCode);
+			localCode = codes[codes.length - 1];
+		}
+
+		Metadata metadata = indexByLocalCode.get(localCode);
 
 		if (metadata == null) {
 			metadata = indexByCode.get(metadataCode);

@@ -92,6 +92,9 @@ public class RMConfigs {
 	// other
 	public static final SystemConfiguration OPEN_HOLDER, MAJOR_VERSION_FOR_NEW_FILE;
 
+	// advanced
+	public static final SystemConfiguration SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG;
+
 	static {
 		//SystemConfigurationGroup beta = new SystemConfigurationGroup(ID, "beta");
 
@@ -294,6 +297,10 @@ public class RMConfigs {
 
 		add(ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE = decommissioning
 				.createBooleanFalseByDefault("allowTransferDateFieldWhenCopyRuleHasNoSemiActiveState"));
+
+		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
+		add(SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG =
+				advanced.createBooleanTrueByDefault("showFolderUnicityAndFolderSummaryConfig").whichIsHidden());
 	}
 
 	static void add(SystemConfiguration configuration) {

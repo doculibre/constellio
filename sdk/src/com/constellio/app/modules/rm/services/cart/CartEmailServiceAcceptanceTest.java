@@ -8,8 +8,10 @@ import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.emails.EmailServices;
@@ -17,6 +19,7 @@ import com.constellio.model.services.emails.EmailServices.MessageAttachment;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.apache.chemistry.opencmis.commons.impl.MimeTypes;
@@ -37,6 +40,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -112,14 +116,21 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 		transaction.add(documentWithoutContent.setTitle("withoutContent"));
 
 		cart = rm.getOrCreateUserCart(users.aliceIn(zeCollection));
-		transaction.add(cart.setDocuments(asList(document11WithContent1HavingTitle1.getId(),
-				document12WithContent1HavingTitle2.getId(),
-				document21WithContent2HavingTitle1.getId(),
-				document22WithContent2HavingTitle2.getId(),
-				documentWithoutContent.getId())));
-
+		List<Record> documents = asList(document11WithContent1HavingTitle1.getWrappedRecord(),
+				document12WithContent1HavingTitle2.getWrappedRecord(),
+				document21WithContent2HavingTitle1.getWrappedRecord(),
+				document22WithContent2HavingTitle2.getWrappedRecord(),
+				documentWithoutContent.getWrappedRecord());
+		addDocumentsToCart(cart, documents);
+		transaction.add(cart);
 		recordServices.execute(transaction);
+		recordServices.execute(new Transaction(documents));
+	}
 
+	private void addDocumentsToCart(Cart cart, List<Record> documents) {
+		for (Record record : documents) {
+			rm.wrapDocument(record).addFavorite(cart.getId());
+		}
 	}
 
 	@Test
@@ -163,7 +174,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenCartWithTestDocumentsWhenGetAttachmentsThenOk()
 			throws Exception {
-		List<MessageAttachment> attachments = cartEmlService.getAttachments(cart, users.adminIn(zeCollection));
+		List<MessageAttachment> attachments = cartEmlService.getAttachments(getCartDocumentIds(cart), users.adminIn(zeCollection));
 		validateAttachments(attachments);
 	}
 
@@ -195,7 +206,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenCartWithTestDocumentsWhenCreateEmlForCartThenOk()
 			throws Exception {
-		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart, users.adminIn(zeCollection)).getInputStream();
+		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart.getOwner(), getCartDocumentIds(cart), users.adminIn(zeCollection)).getInputStream();
 		validateEml(emlStreamFactory);
 		IOUtils.closeQuietly(emlStreamFactory);
 	}
@@ -203,7 +214,7 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenCartWithTestDocumentsWhenCreateEmlForCartThenHasAdequateMimeType()
 			throws Exception {
-		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart, users.adminIn(zeCollection)).getInputStream();
+		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart.getOwner(), getCartDocumentIds(cart), users.adminIn(zeCollection)).getInputStream();
 		File tempFolder = newTempFolder();
 		File file = new File(tempFolder, "test.eml");
 		FileUtils.copyInputStreamToFile(emlStreamFactory, file);
@@ -216,8 +227,10 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenEmptyCartWithTestDocumentsWhenCreateEmlForCartThenOk()
 			throws Exception {
-		recordServices.add(cart.setDocuments(new ArrayList<String>()));
-		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart, users.adminIn(zeCollection)).getInputStream();
+		for (Document document : getCartDocuments(cart)) {
+			document.removeFavorite(cart.getId());
+		}
+		InputStream emlStreamFactory = cartEmlService.createEmailForCart(cart.getOwner(), getCartDocumentIds(cart), users.adminIn(zeCollection)).getInputStream();
 		IOUtils.closeQuietly(emlStreamFactory);
 	}
 
@@ -282,5 +295,20 @@ public class CartEmailServiceAcceptanceTest extends ConstellioTest {
 		} finally {
 			ioServices.closeQuietly(inputStream);
 		}
+	}
+
+	public List<String> getCartDocumentIds(Cart cart) {
+		List<Document> documents = getCartDocuments(cart);
+		List<String> documentsIds = new ArrayList<>();
+		for (Document document : documents) {
+			documentsIds.add(document.getId());
+		}
+		return documentsIds;
+	}
+
+	private List<Document> getCartDocuments(Cart cart) {
+		final Metadata metadata = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection).getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FAVORITES);
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(rm.document.schemaType()).where(metadata).isContaining(asList(cart.getId())));
+		return rm.searchDocuments(logicalSearchQuery);
 	}
 }

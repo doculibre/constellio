@@ -396,7 +396,6 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 
 	List<SkosConcept> getUnusedConcepts() {
 		try {List<SkosConcept> result = new ArrayList<>();
-
 		// Tous les concepts du thesaurusManager MOINS résultat de la facette : facet.field=thesaurusMatch_ss facet.limit=100000
 		ESSchemasRecordsServices es = new ESSchemasRecordsServices(collection, appLayerFactory);
 		SearchServices searchService = modelLayerFactory.newSearchServices();
@@ -412,11 +411,11 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 
 		Map<String, SkosConcept> allConcept = thesaurusManager.get(collection).getAllConcepts();
 
-		for (FacetValue value: usedConcept) {
+		for (FacetValue value : usedConcept) {
 			allConcept.remove(value.getValue());
 		}
 
-		for(String conceptKey: allConcept.keySet()) {
+		for (String conceptKey : allConcept.keySet()) {
 			SkosConcept concept = allConcept.get(conceptKey);
 			result.add(concept);
 		}

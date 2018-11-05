@@ -194,7 +194,6 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		assertThat(collectionsInVersionProperties).contains("constellio_version");
 		recordServices.flush();
 		assertThat(searchServices.getResultsCount(fromAllSchemasIn("_system_").returnAll())).isEqualTo(21);
-		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/authorizations.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/schemas.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/roles.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/_system_/taxonomies.xml")).isTrue();
@@ -204,7 +203,6 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		recordServices.flush();
 		assertThat(searchServices.getResultsCount(fromAllSchemasIn("constellio").returnAll())).isEqualTo(37);
 		assertThat(searchServices.getResultsCount(fromAllSchemasIn("doculibre").returnAll())).isEqualTo(38);
-		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/authorizations.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/schemas.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/roles.xml")).isTrue();
 		assertThat(getDataLayerFactory().getConfigManager().exist("/constellio/taxonomies.xml")).isTrue();

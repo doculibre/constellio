@@ -272,10 +272,6 @@ public class RecordWrapper implements Serializable, CollectionObject {
 		return this;
 	}
 
-	public List<String> getFollowers() {
-		return wrappedRecord.getList(Schemas.FOLLOWERS);
-	}
-
 	public String getTitle() {
 		return wrappedRecord.get(Schemas.TITLE, locale);
 	}

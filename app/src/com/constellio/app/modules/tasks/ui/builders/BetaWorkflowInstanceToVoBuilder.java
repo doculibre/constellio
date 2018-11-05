@@ -24,7 +24,7 @@ public class BetaWorkflowInstanceToVoBuilder extends RecordToVOBuilder {
 	}
 
 	@Override
-	protected RecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode) {
+	protected RecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode, List<String> excludedMetadata) {
 		return new BetaWorkflowInstanceVO(id, metadataValueVOs, viewMode);
 	}
 }

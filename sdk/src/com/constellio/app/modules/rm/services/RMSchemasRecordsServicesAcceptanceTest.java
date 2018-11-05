@@ -9,7 +9,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
-import com.constellio.sdk.tests.annotations.InDevelopmentTest;
 import com.constellio.sdk.tests.setups.Users;
 import org.junit.Test;
 
@@ -92,12 +91,5 @@ public class RMSchemasRecordsServicesAcceptanceTest extends ConstellioTest {
 		assertThat(frenchRM.getCategory(records.categoryId_X).getTitle()).isEqualTo("{fr} Xe category");
 		assertThat(englishRM.getCategory(records.categoryId_X).getTitle()).isEqualTo("{en} Xe category");
 
-	}
-
-	@Test
-	@InDevelopmentTest
-	public void testRmUserFolder() {
-		assertThat(rm.newUserFolder()).isNotNull();
-		assertThat(rm.newUserFolderWithId("test1").getId()).isEqualTo("test1");
 	}
 }

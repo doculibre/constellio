@@ -13,7 +13,7 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.ImportAudit;
 import com.constellio.model.entities.records.wrappers.Report;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.ValueListItem;
@@ -450,12 +450,12 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		getModelLayerFactory().newRecordServices().executeWithoutImpactHandling(tx);
 	}
 
-	public List<SolrAuthorizationDetails> getAllAuthorizations() {
+	public List<Authorization> getAllAuthorizations() {
 		return wrapSolrAuthorizationDetailss(
 				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(authorizationDetails.schemaType()));
 	}
 
-	public List<SolrAuthorizationDetails> getAllAuthorizationsInUnmodifiableState() {
+	public List<Authorization> getAllAuthorizationsInUnmodifiableState() {
 		return wrapSolrAuthorizationDetailss(
 				getModelLayerFactory().newSearchServices().getAllRecordsInUnmodifiableState(authorizationDetails.schemaType()));
 	}
@@ -476,7 +476,7 @@ public class SchemasRecordsServices extends GeneratedSchemasRecordsServices {
 		return wrapReports(getModelLayerFactory().newSearchServices().getAllRecords(report.schemaType()));
 	}
 
-	public SolrAuthorizationDetails getSolrAuthorizationDetails(String id) {
+	public Authorization getSolrAuthorizationDetails(String id) {
 		return wrapSolrAuthorizationDetails(get(id));
 	}
 

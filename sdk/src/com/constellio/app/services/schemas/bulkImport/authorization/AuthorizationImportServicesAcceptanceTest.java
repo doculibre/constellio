@@ -9,9 +9,8 @@ import com.constellio.app.services.schemas.bulkImport.BulkImportResults;
 import com.constellio.app.services.schemas.bulkImport.ImportError;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -166,9 +165,9 @@ public class AuthorizationImportServicesAcceptanceTest extends ConstellioTest {
 
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 
-		SolrAuthorizationDetails auth1 = rm.getSolrAuthorizationDetailsWithLegacyId("1");
-		SolrAuthorizationDetails auth2 = rm.getSolrAuthorizationDetailsWithLegacyId("2");
-		SolrAuthorizationDetails auth3 = rm.getSolrAuthorizationDetailsWithLegacyId("3");
+		Authorization auth1 = rm.getSolrAuthorizationDetailsWithLegacyId("1");
+		Authorization auth2 = rm.getSolrAuthorizationDetailsWithLegacyId("2");
+		Authorization auth3 = rm.getSolrAuthorizationDetailsWithLegacyId("3");
 
 		assertThat(auth1).isNotNull();
 		assertThat(auth1.getTarget()).isEqualTo(rm.getCategoryWithCode("Z100").getId());

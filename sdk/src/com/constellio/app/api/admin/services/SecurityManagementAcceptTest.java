@@ -27,7 +27,7 @@ import com.constellio.model.services.security.authentification.AuthenticationSer
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.users.GlobalGroupsManager;
+import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -49,7 +49,7 @@ public class SecurityManagementAcceptTest extends ConstellioTest {
 
 	UserServices userServices;
 	AuthenticationService authService;
-	GlobalGroupsManager globalGroupsManager;
+	SolrGlobalGroupsManager globalGroupsManager;
 	RecordServices recordServices;
 
 	SecurityManagementDriver securityManagementDriver;

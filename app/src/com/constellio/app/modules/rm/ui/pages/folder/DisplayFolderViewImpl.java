@@ -16,13 +16,13 @@ import org.slf4j.LoggerFactory;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -44,10 +44,10 @@ import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
@@ -75,9 +75,8 @@ import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
-import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
@@ -112,6 +111,8 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+
+import static com.constellio.app.ui.util.SchemaCaptionUtils.getCaptionForRecordVO;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
@@ -157,6 +158,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		if (event != null) {
 			presenter.forParams(event.getParameters());
 		}
+	}
+
+	public String getTaxonomyCode() {
+		return taxonomyCode;
 	}
 
 	@Override
@@ -249,18 +254,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new FolderDocumentBreadcrumbTrail(recordVO.getId(), taxonomyCode, this);
+		return presenter.getBreadCrumbTrail();
 	}
 
-	//	@Override
-	//	protected ClickListener getBackButtonClickListener() {
-	//		return new ClickListener() {
-	//			@Override
-	//			public void buttonClick(ClickEvent event) {
-	//				presenter.backButtonClicked();
-	//			}
-	//		};
-	//	}
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
@@ -323,6 +319,12 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				@Override
 				protected void deletionConfirmed(String reason) {
 					presenter.deleteFolderButtonClicked(reason);
+				}
+
+				@Override
+				public String getRecordCaption() {
+					return getCaptionForRecordVO(recordVO, getSessionContext().getCurrentLocale());
+//					return recordDisplay.getCaption();
 				}
 			};
 
@@ -433,9 +435,14 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			};
 
-			reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
-					$("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(),
-					PrintableReportListPossibleType.FOLDER, getRecord());
+			reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), presenter.getApplayerFactory(),
+					getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					setRecordVoList(recordVO);
+					super.buttonClick(event);
+				}
+			};
 
 			startWorkflowButton = new StartWorkflowButton();
 			startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
@@ -445,7 +452,19 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
 											 && ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
+			DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
+				@Override
+				public void addToDefaultFavorites() {
+					presenter.addToDefaultFavorite();
+				}
 
+				@Override
+				public void removeFromDefaultFavorites() {
+					presenter.removeFromDefaultFavorites();
+				}
+			};
+			favoriteStar.setStarred(presenter.inDefaultFavorites());
+			actionMenuButtons.add(favoriteStar);
 			actionMenuButtons.add(editFolderButton);
 
 			if (!isAFolderAndDestroyed) {
@@ -645,7 +664,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 							if (presenter.isDocument(record)) {
 								presenter.displayDocumentButtonClicked(record);
 							} else {
-								presenter.subFolderClicked(record);
+								presenter.navigateToFolder(record.getId());
 							}
 						}
 					};
@@ -666,7 +685,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 							if (presenter.isDocument(recordVO)) {
 								presenter.documentClicked(recordVO);
 							} else {
-								presenter.subFolderClicked(recordVO);
+								presenter.navigateToFolder(recordVO.getId());
 							}
 						}
 					}
@@ -697,17 +716,20 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 				@Override
 				public boolean isSelected(Object itemId) {
+
 					RecordVO recordVO = recordVOContainer.getRecordVO((int) itemId);
 					return presenter.isSelected(recordVO);
 				}
 
 				@Override
 				public void setSelected(Object itemId, boolean selected) {
+
 					RecordVO recordVO = recordVOContainer.getRecordVO((int) itemId);
 					presenter.recordSelectionChanged(recordVO, selected);
 					adjustSelectAllButton(selected);
 				}
 			};
+
 
 			if (Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
 				folderContentTable.addStyleName("search-result-title");
@@ -1138,7 +1160,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void openDocumentContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO) {
-		documentVersionWindow.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO));
+		documentVersionWindow.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO, presenter.getParams()));
 		UI.getCurrent().addWindow(documentVersionWindow);
 	}
 
@@ -1162,6 +1184,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setTaxonomyCode(String taxonomyCode) {
+		this.presenter.setTaxonomyCode(taxonomyCode);
 		this.taxonomyCode = taxonomyCode;
 	}
 

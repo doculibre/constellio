@@ -1,14 +1,5 @@
 package com.constellio.app.modules.rm.ui.components.menuBar;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.pages.document.AddEditDocumentViewImpl;
 import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
@@ -36,6 +27,7 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.data.Container;
@@ -48,6 +40,14 @@ import com.vaadin.ui.Notification;
 import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Window;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar {
 
@@ -152,7 +152,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 			editDocumentItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
-					presenter.editDocumentButtonClicked();
+					presenter.editDocumentButtonClicked(ParamUtils.getCurrentParams());
 				}
 			});
 		}
@@ -167,7 +167,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deleteDocumentButtonClicked();
+					presenter.deleteDocumentButtonClicked(ParamUtils.getCurrentParams());
 				}
 			});
 		}
@@ -192,7 +192,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.createPDFA();
+					presenter.createPDFA(ParamUtils.getCurrentParams());
 				}
 			});
 		}
@@ -261,6 +261,28 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
 					presenter.finalizeButtonClicked();
+				}
+			});
+		}
+
+		if (presenter.documentInDefaultFavorites()) {
+			MenuItem addToDefaultCartItem = rootItem.addItem($("DocumentContextMenu.removeFromDefaultCart"), FontAwesome.STAR, null);
+			addToDefaultCartItem.setCommand(new Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+					presenter.removeDocumentFromDefaultFavorites();
+					refreshParent();
+					showMessage($("DisplayDocumentView.documentRemovedFromDefaultFavorites"));
+				}
+			});
+		} else {
+			MenuItem addToDefaultCartItem = rootItem.addItem($("DocumentContextMenu.addToDefaultCart"), FontAwesome.STAR_O, null);
+			addToDefaultCartItem.setCommand(new Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+					presenter.addDocumentToDefaultFavorite();
+					refreshParent();
+					showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
 				}
 			});
 		}
@@ -481,7 +503,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 	public boolean isInViewer() {
 		return ComponentTreeUtils.findParent(this, ViewableRecordTablePanel.class) != null;
 	}
-	
+
 	private BaseWindow newWindow() {
 		BaseWindow window = new BaseWindow();
 		window.setHeight("95%");

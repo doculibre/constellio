@@ -29,6 +29,7 @@ import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.jensjansson.pagedtable.PagedTable.PagedTableChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeEvent;
 import com.vaadin.data.Container.ItemSetChangeListener;
@@ -69,6 +70,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	public static final String SORT_TITLE_STYLE = "sort-title";
 	public static final String SAVE_SEARCH = "save-search";
 
+
 	protected T presenter;
 	private VerticalLayout thesaurusDisambiguation;
 	private VerticalLayout spellCheckerSuggestions;
@@ -83,6 +85,12 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	private SelectDeselectAllButton selectDeselectAllButton;
 	private Button addToSelectionButton;
 	private HashMap<Integer, Boolean> hashMapAllSelection = new HashMap<>();
+	private List<SaveSearchListener> saveSearchListenerList = new ArrayList<>();
+	private Map<String, String> extraParameters = null;
+
+	public void addSaveSearchListenerList(SaveSearchListener saveSearchListener) {
+		saveSearchListenerList.add(saveSearchListener);
+	}
 
 	@Override
 	protected boolean isFullWidthIfActionMenuAbsent() {
@@ -115,6 +123,14 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			refreshSearchResultsAndFacets(false);
 		}
 		return layout;
+	}
+
+	protected Map<String, String> getExtraParameters() {
+		return extraParameters;
+	}
+
+	protected void setExtraParameters(Map<String, String> extraParameters) {
+		this.extraParameters = extraParameters;
 	}
 
 	private void buildThesaurusDisambiguation(List<String> disambiguationSuggestions) {
@@ -225,13 +241,16 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	@Override
 	public SearchResultVODataProvider refreshSearchResults(boolean temporarySave, boolean includeFacets) {
 		if (temporarySave) {
-			presenter.saveTemporarySearch(false);
+			SavedSearch savedSearch = presenter.saveTemporarySearch(false);
+
+			for(SaveSearchListener saveSearchListener : saveSearchListenerList) {
+				saveSearchListener.save(new SaveSearchListener.Event(savedSearch));
+			}
 		}
 
 		SearchResultVODataProvider dataProvider = presenter.getSearchResults(includeFacets);
 		spellCheckerSuggestions.removeAllComponents();
 		resultsTable = buildResultTable(dataProvider);
-		
 
 		List<String> disambiguationSuggestions = presenter.getDisambiguationSuggestions();
 		buildThesaurusDisambiguation(disambiguationSuggestions);
@@ -504,6 +523,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 		});
 
 		srTable.setWidth("100%");
+
 		return srTable;
 	}
 
@@ -512,7 +532,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 	}
 
 	protected SearchResultContainer buildResultContainer(SearchResultVODataProvider dataProvider) {
-		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser());
+		RecordDisplayFactory displayFactory = new RecordDisplayFactory(getSessionContext().getCurrentUser(), extraParameters);
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(dataProvider);
 		SearchResultContainer container = new SearchResultContainer(results, displayFactory,
 				presenter.getSearchQuery().getFreeTextQuery()) {
@@ -522,7 +542,6 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 					@Override
 					public void buttonClick(ClickEvent event) {
 						presenter.searchResultClicked(searchResultVO.getRecordVO());
-
 					}
 				};
 			}

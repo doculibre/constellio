@@ -24,7 +24,6 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.validators.EmailValidator;
 import com.constellio.model.services.security.authentification.AuthenticationService;
-import com.constellio.model.services.users.UserCredentialAndGlobalGroupsMigration;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
 
@@ -62,10 +61,6 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 				cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
 			}
 
-			UserCredentialAndGlobalGroupsMigration migration = new UserCredentialAndGlobalGroupsMigration(modelLayerFactory);
-			if (migration.isMigrationRequired()) {
-				migration.migrateUserAndGroups();
-			}
 			try {
 				modelLayerFactory.newUserServices().getUser("admin");
 			} catch (UserServicesRuntimeException_NoSuchUser e) {

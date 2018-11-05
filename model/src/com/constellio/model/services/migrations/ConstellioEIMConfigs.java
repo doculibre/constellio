@@ -132,6 +132,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
 
+	public static final SystemConfiguration NEGATIVE_AUTHORIZATION;
+
 	public static final SystemConfiguration ENABLE_THUMBNAIL_GENERATION;
 
 	static {
@@ -148,7 +150,7 @@ public class ConstellioEIMConfigs {
 		add(LOGO = others.createBinary("logo"));
 		add(LOGO_LINK = others.createString("logoLink", "http://www.constellio.com"));
 		add(AUTHENTIFICATION_IMAGE = others.createBinary("authentificationImage"));
-		add(PRIVACY_POLICY = others.createBinary("privacyPolicy").whichIsHidden());
+		add(PRIVACY_POLICY = others.createBinary("privacyPolicy"));
 		add(METADATA_POPULATE_PRIORITY = others.createEnum("metadataPopulatePriority", MetadataPopulatePriority.class)
 				.withDefaultValue(MetadataPopulatePriority.STYLES_REGEX_PROPERTIES));
 		add(TITLE_METADATA_POPULATE_PRIORITY = others
@@ -253,6 +255,9 @@ public class ConstellioEIMConfigs {
 		add(ARE_ALL_MULTI_LANGUAL_VALUES_MANDATORY = advanced.createBooleanFalseByDefault("areMultiLangualValuesMandatory"));
 
 		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
+				.whichIsHidden());
+
+		add(NEGATIVE_AUTHORIZATION = others.createBooleanFalseByDefault("enableNegativeAuthorization")
 				.whichIsHidden());
 
 		add(ENABLE_THUMBNAIL_GENERATION = others.createBooleanFalseByDefault("enableThumbnailGeneration")
@@ -360,7 +365,7 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isIncludingFromFieldWhenGeneratingEmails() {
-		return !Boolean.FALSE.equals(GROUP_AUTHORIZATIONS_INHERITANCE);
+		return !Boolean.FALSE.equals(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS);
 	}
 
 	public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
@@ -495,6 +500,10 @@ public class ConstellioEIMConfigs {
 
 	public boolean isAdminPasswordChangeEnabled() {
 		return manager.getValue(ENABLE_ADMIN_USER_PASSWORD_CHANGE);
+	}
+
+	public boolean isNegativeAuthorizationEnabled() {
+		return manager.getValue(NEGATIVE_AUTHORIZATION);
 	}
 
 	public boolean isThumbnailGenerationEnabled() { return manager.getValue(ENABLE_THUMBNAIL_GENERATION); }

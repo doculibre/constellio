@@ -13,6 +13,10 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+
 public class TaxonomyPageExtension implements Serializable {
 
 	public ExtensionBooleanResult canManageTaxonomy(User user, Taxonomy taxonomy) {

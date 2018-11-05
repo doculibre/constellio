@@ -192,6 +192,10 @@ public class RetentionRuleVO extends RecordVO {
 	}
 
 	public final boolean hasCopyRetentionRuleWithSortDispositionType() {
+		if(this.getMetadataOrNull(COPY_RETENTION_RULES) == null) {
+			return false;
+		}
+
 		for (CopyRetentionRule copyRetentionRule : getCopyRetentionRules()) {
 			if (DisposalType.SORT == copyRetentionRule.getInactiveDisposalType()) {
 				return true;

@@ -180,7 +180,7 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		};
-		Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
+Runnable scanVaultContentsInBackgroundRunnable = new Runnable() {
 			@Override
 			public void run() {
 				boolean isInScanVaultContentsSchedule = new ConstellioEIMConfigs(modelLayerFactory).isInScanVaultContentsSchedule();

@@ -22,6 +22,7 @@ import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobots
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo7_3_1;
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo7_5;
 import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo8_1_1;
+import com.constellio.app.modules.complementary.esRmRobots.migrations.ESRMRobotsMigrationTo8_1_1_1;
 import com.constellio.app.modules.es.ConstellioESModule;
 import com.constellio.app.modules.es.extensions.api.ESModuleExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
@@ -72,6 +73,7 @@ public class ESRMRobotsModule implements InstallableModule, ModuleWithComboMigra
 		migrations.add(new ESRMRobotsMigrationTo7_3_1());
 		migrations.add(new ESRMRobotsMigrationTo7_5());
 		migrations.add(new ESRMRobotsMigrationTo8_1_1());
+		migrations.add(new ESRMRobotsMigrationTo8_1_1_1());
 
 		return migrations;
 	}

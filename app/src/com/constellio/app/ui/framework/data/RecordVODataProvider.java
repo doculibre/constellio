@@ -96,12 +96,20 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		init(ConstellioFactories.getInstance().getModelLayerFactory());
 	}
 
+	public SessionContext getSessionContext() {
+		return sessionContext;
+	}
+
 	void init(ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
 
 		query = getQuery();
 		query.setLanguage(sessionContext.getCurrentLocale());
 		cache = new HashMap<>();
+	}
+
+	public ModelLayerFactory getModelLayerFactory() {
+		return modelLayerFactory;
 	}
 
 	private List<RecordVOFilter> filters = new ArrayList<>();
@@ -220,7 +228,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 		}
 		return recordVOs;
 	}
-	
+
 	private RecordToVOBuilder getVOBuilder(Record record) {
 		String schemaCode = record.getSchemaCode();
 		String typeCode = record.getTypeCode();

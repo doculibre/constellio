@@ -22,7 +22,7 @@ import com.constellio.app.ui.framework.components.converters.CollectionCodeToLab
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
-import com.constellio.app.ui.framework.components.fields.autocomplete.BaseAutocompleteField;
+import com.constellio.app.ui.framework.components.fields.autocomplete.StringAutocompleteField;
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.components.menuBar.BaseMenuBar;
 import com.constellio.app.ui.framework.components.table.BaseTable;
@@ -31,9 +31,7 @@ import com.constellio.app.ui.framework.components.table.SelectionTableAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.SessionContext.SelectedRecordIdsChangeListener;
-import com.constellio.app.ui.pages.search.AdvancedSearchCriteriaComponent;
-import com.constellio.app.ui.pages.search.AdvancedSearchView;
-import com.constellio.app.ui.pages.search.SimpleSearchView;
+import com.constellio.app.ui.pages.search.*;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.Language;
@@ -46,6 +44,7 @@ import com.vaadin.event.FieldEvents.FocusListener;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.MouseEvents;
 import com.vaadin.navigator.Navigator;
+import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
@@ -99,7 +98,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private final ConstellioHeaderPresenter presenter;
 
-	private BaseAutocompleteField<String> searchField;
+	private StringAutocompleteField<String> searchField;
 	private WindowButton selectionButton;
 
 	private BasePopupView popupView;
@@ -142,7 +141,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			}
 		});
 
-		searchField = new BaseAutocompleteField<String>(new BaseAutocompleteField.AutocompleteSuggestionsProvider<String>() {
+		searchField = new StringAutocompleteField<String>(new StringAutocompleteField.AutocompleteSuggestionsProvider<String>() {
 			@Override
 			public List<String> suggest(String text) {
 				return presenter.getAutocompleteSuggestions(text);
@@ -427,8 +426,12 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		selectionButton.addCloseListener(new CloseListener() {
 			@Override
 			public void windowClose(CloseEvent e) {
-				Navigator navigator = ConstellioUI.getCurrent().getNavigator();
-				navigator.navigateTo(navigator.getState());
+				//Move to an extension if more cases are to be added
+				View currentView = ConstellioUI.getCurrent().getCurrentView();
+				if(currentView != null && !(currentView instanceof SearchView)) {
+					Navigator navigator = ConstellioUI.getCurrent().getNavigator();
+					navigator.navigateTo(navigator.getState());
+				}
 			}
 		});
 
@@ -581,9 +584,28 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private void buildSelectionPanelButtons(VerticalLayout actionMenuLayout) {
 		WindowButton addToCartButton = buildAddToCartButton(actionMenuLayout);
+		Button addToDefaultFavorites = addToDefaultFavoritesButton();
 		SelectionPanelExtension.setStyles(addToCartButton);
-		actionMenuLayout.addComponents(addToCartButton);
+		SelectionPanelExtension.setStyles(addToDefaultFavorites);
+		actionMenuLayout.addComponents(addToDefaultFavorites, addToCartButton);
 		presenter.buildSelectionPanelActionButtons(actionMenuLayout);
+	}
+
+	private Button addToDefaultFavoritesButton() {
+		final AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
+		Button addToDefaultFavoritesButton = new Button();
+		addToDefaultFavoritesButton.addClickListener(new ClickListener() {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				presenter.addToDefaultFavoriteRequested(param.getIds());
+			}
+		});
+		addToDefaultFavoritesButton.setCaption($("ConstellioHeader.selection.addToDefaultFavorites"));
+		addToDefaultFavoritesButton.setEnabled(
+				presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(param.getSchemaTypeCodes(),
+						asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE)));
+		addToDefaultFavoritesButton.setVisible(isEnabled());
+		return addToDefaultFavoritesButton;
 	}
 
 	private WindowButton buildAddToCartButton(final VerticalLayout actionMenuLayout) {

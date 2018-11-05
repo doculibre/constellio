@@ -77,8 +77,8 @@ public class UserServices {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserServices.class);
 	public static final String ADMIN = "admin";
-	private final UserCredentialsManager userCredentialsManager;
-	private final GlobalGroupsManager globalGroupsManager;
+	private final SolrUserCredentialsManager userCredentialsManager;
+	private final SolrGlobalGroupsManager globalGroupsManager;
 	private final CollectionsListManager collectionsListManager;
 	private final RecordServices recordServices;
 	private final SearchServices searchServices;

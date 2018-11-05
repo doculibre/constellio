@@ -439,6 +439,10 @@ $popup-view-z-index: 3;
 		font-weight: bold;
 	}
 
+	.v-table-cell-content-important {
+		font-weight: bold;
+	}
+
 	.v-table-cell-content-disabled {
 		/* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#eeeeee+0,cccccc+100;Gren+3D */
 		background: rgb(238,238,238); /* Old browsers */
@@ -538,6 +542,10 @@ $popup-view-z-index: 3;
 		border: 1px solid red;
 	}
 
+	.important-label {
+		color: red;
+	}
+
     .lookup-window-content, .document-window-content {
     	padding-top: 10px;
     	padding-left: 10px;
@@ -548,25 +556,25 @@ $popup-view-z-index: 3;
     		}
     	}
     }
-   
+
     .viewable-record-window {
    		width: 100%;
-   		
+
    		.main-component-wrapper {
    			//overflow-y: auto;
-   			
+
    			.base-display-tab-panel {
-   				
+
    				.v-panel-content {
    					height: calc(100% - 170px);
    				}
-   				
+
    			}
    		}
-   		
+
    		.list-add-remove-comment {
    			width: 100%;
-   			
+
    			.v-slot-list-add-remove {
    				width: 100%;
 	   			.v-has-caption {
@@ -574,7 +582,7 @@ $popup-view-z-index: 3;
 	   				width: 100%;
 	   			}
    			}
-	   		
+
 	   		.record-comments-editor {
 	   		}
    		}
@@ -624,7 +632,7 @@ $popup-view-z-index: 3;
     		}
     	}
     }
-    
+
     .filters-panel {
     	.v-filterselect {
     		height: 23px;
@@ -811,11 +819,11 @@ $popup-view-z-index: 3;
 				max-height: 30px;
 				vertical-align: center;
 			}
-		
+
 			.action-menu-wrapper {
-				
+
 			}
-		
+
 			.action-menu {
 		        position: absolute;
 		        top: $header-height;
@@ -864,16 +872,16 @@ $popup-view-z-index: 3;
 		    	top: -40px;
 		    	right: 30px;
 			}
-				
+
 			.action-menu-wrapper {
 				overflow: auto;
 	            padding-right: 260px;
 	            padding-left: 10px;
-	            
+
 			    width: 225px;
 			    border: 1px solid #3a434d;
 			    border-radius: 4px;
-	
+
 				.back-button {
 					position: fixed;
 				}
@@ -1235,7 +1243,7 @@ $popup-view-z-index: 3;
 					padding: 5px;
 				}
 			}
-			
+
 			.v-context-menu-item-basic-text {
 				float: left;
 				height: 26px;
@@ -1378,19 +1386,19 @@ $popup-view-z-index: 3;
 	.v-slot-button-toggle-facets {
 		height: 100%;
 		line-height: 100%;
-		
+
 		.button-toggle-facets {
 			height: 100%;
 			line-height: 100%;
 		}
 	}
-	
+
 	.collapsible-horizontal-splitpanel {
 		padding-bottom: 2px;
-		
+
 		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel {
 			width: 10px;
-			
+
 		    text-align: center;
 		    white-space: nowrap;
 		    outline: medium none;
@@ -1413,41 +1421,41 @@ $popup-view-z-index: 3;
 		    /* box-shadow: 0px 1px 0px white inset, 0px -1px 0px rgb(231, 231, 231) inset, 0px 2px 3px rgba(0, 0, 0, 0.05); */
 		    text-shadow: 0px 1px 0px rgba(255, 255, 255, 0.05);
 		}
-		
+
 		.v-splitpanel-second-container-collapsible-horizontal-splitpanel {
 			padding-left: 20px;
 		}
-		
+
 		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel:before {
 	    	position: absolute;
 			top: 50%;
 	     	margin-left: -4px;
 		}
-		
+
 		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel-second-visible:before {
 		    content: "\f101";
 		}
-		
+
 		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel-second-hidden:before {
 		    content: "\f100";
 		}
-	   
+
 	    .viewable-record-table-panel {
-	  
+
 	  		.close-button-viewer-metadata-layout {
 			    position: absolute;
-	  		} 	
-	  	
+	  		}
+
 	  		.folder-content-table.viewable-record-table-compressed {
-	  			
+
 	  			.v-table-body {
 	  				border: none;
-	  			
+
 		  			.v-table-cell-content {
 		  				border: none;
 		  			}
 	  			}
-	  			
+
 	  			.search-result-record {
 	  				// padding-right: 45px;
 
@@ -1457,7 +1465,7 @@ $popup-view-z-index: 3;
 						text-align: left;
 						font-weight: bold;
 					}
-					
+
 					.document-search-result-title {
 						padding-top: 10px;
 					}
@@ -1469,9 +1477,9 @@ $popup-view-z-index: 3;
 							font-weight: bold;
 						}
 					}
-	  			} 
+	  			}
 	  		}
-	  	
+
 	  		.folder-content-table.viewable-record-table-uncompressed {
 
 				.search-result-table {
@@ -1485,7 +1493,7 @@ $popup-view-z-index: 3;
 							.v-checkbox {
 								margin-top: 13px;
 							}
-							
+
 							.v-spacing {
 								height: 5px;
 							}
@@ -1493,32 +1501,32 @@ $popup-view-z-index: 3;
 					}
 				}
 	  		}
-	   	
+
 	    }
 	}
-		
+
 	.collapsible-horizontal-splitpanel-second-visible2 {
 	    .viewable-search-results-panel {
 	  		.close-button-viewer-metadata-layout {
 			    width: calc(100% - 960px);
-			    
+
 			    .viewer-metadata-panel {
 			    }
-	  		} 	 
+	  		}
 	    }
 	}
-	
+
 	.collapsible-horizontal-splitpanel-second-hidden2 {
 	    .viewable-search-results-panel {
 	  		.close-button-viewer-metadata-layout {
 			    width: calc(100% - 660px);
-			    
+
 			    .viewer-metadata-panel {
 			    }
-	  		} 	
+	  		}
 	    }
 	}
-	
+
     .constellio-layout {
 
 	    .sidebar {
@@ -1716,7 +1724,7 @@ $popup-view-z-index: 3;
 								}
 							
 							} 
-							
+
 							.search-result-detailed-table {
 								* {
 									border: none;
@@ -1724,7 +1732,7 @@ $popup-view-z-index: 3;
 
 								.v-table-table {
 									box-shadow: none;
-								}	
+								}
 
 								.v-table-row-odd {
 									background-color: #fff;
@@ -1732,7 +1740,7 @@ $popup-view-z-index: 3;
 							}
 
 							.search-result-table {
-	  			
+
 					  			.v-table-body {
 					  				border: none;
 					  			}
@@ -1747,7 +1755,7 @@ $popup-view-z-index: 3;
 										.v-checkbox {
 											margin-top: 13px;
 										}
-										
+
 										.v-spacing {
 											height: 5px;
 										}
@@ -1758,6 +1766,7 @@ $popup-view-z-index: 3;
 									padding-top: 8px;
 									//font-size: 18px;
 									text-align: left;
+									color: rgb(25, 125, 225);
 									font-weight: bold;
 								}
 								
@@ -1802,21 +1811,21 @@ $popup-view-z-index: 3;
 									text-decoration: none;
 								}
 							}
-						
+
 							.viewable-record-table-compressed {
-								
+
 								.search-result-title {
 									width: 350px;
 								}
-	  			
+
 					  			.search-result-elevation-buttons {
 					  				border: none;
 					  				margin-top: inherit;
-					  				
+
 					  				.v-button-caption {
 					  					display: none;
 					  				}
-					  			}	
+					  			}
 							}
 					    }
 
@@ -1879,7 +1888,7 @@ $popup-view-z-index: 3;
 							.v-table-body {
 								border: none;
 							}
-							
+
 							.v-table-cell-content {
 								height: auto;
 								padding-top: 2px;
@@ -2750,7 +2759,7 @@ $popup-view-z-index: 3;
 			.gwt-MenuBar {
 				overflow-y: auto;
 			}
-		
+
 			.action-menu {
 		        right: inherit;
 		        left: 20px;
@@ -2770,7 +2779,7 @@ $popup-view-z-index: 3;
 		    	top: -40px;
 		    	right: 30px;
 			}
-				
+
 			.action-menu-wrapper {
 	            padding-right: 10px;
 	            padding-left: 260px;

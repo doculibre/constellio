@@ -9,7 +9,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -279,7 +279,7 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 	private List<Authorization> filterInherited(List<Authorization> authorizations) {
 		List<Authorization> filteredAuthorizations = Lists.newArrayList();
 		for (Authorization authorization : authorizations) {
-			if (authorization.getGrantedOnRecord().equals(document.getId())) {
+			if (authorization.getTarget().equals(document.getId())) {
 				filteredAuthorizations.add(authorization);
 			}
 		}

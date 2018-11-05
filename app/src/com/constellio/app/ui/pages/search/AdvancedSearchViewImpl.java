@@ -382,8 +382,8 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
     	} else {
     		table = super.buildSimpleResultsTable(dataProvider);
 		}
-        return table;
-    }
+		return table;
+	}
 
 	private WindowButton buildAddToCartButton() {
 		WindowButton windowButton = new WindowButton($("SearchView.addToCart"), $("SearchView.selectCart")) {

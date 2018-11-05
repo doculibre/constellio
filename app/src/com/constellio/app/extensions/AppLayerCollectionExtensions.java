@@ -84,8 +84,11 @@ import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataFilter;
+import com.constellio.model.entities.schemas.MetadataFilterFactory;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
@@ -152,6 +155,7 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<ListSchemaExtention> listSchemaCommandExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -693,7 +697,14 @@ public class AppLayerCollectionExtensions {
 				unwantedTaxonomies.addAll(unwantedTaxonomiesFromExtension);
 			}
 		}
-		return new ArrayList<>(unwantedTaxonomies);
-	}
+        return new ArrayList<>(unwantedTaxonomies);
+    }public List<MetadataFilter> getMetadataAccessExclusionFilters() {
+		List<MetadataFilter> metadataFilter = new ArrayList<>();
+		metadataFilter.add(MetadataFilterFactory.excludeMetadataWithLocalCode(Schemas.TITLE_CODE));
+		for (SchemaTypesPageExtension schemaTypesPageExtension : schemaTypesPageExtensions) {
+			metadataFilter.addAll(schemaTypesPageExtension.getMetadataAccessExclusionFilters());
+		}
 
+		return metadataFilter;
+	}
 }

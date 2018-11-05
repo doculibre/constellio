@@ -35,9 +35,7 @@ public interface BaseView extends ViewComponent {
 	void updateUI();
 
 	void invalidate();
-	
 	boolean isInWindow();
-
 	void closeAllWindows();
 
 	MainLayout getMainLayout();

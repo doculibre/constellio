@@ -48,10 +48,14 @@ public class FolderDetailWithType implements Serializable {
 	}
 
 	public boolean isIncluded() {
-		return detail.isFolderIncluded();
+		return FolderDetailStatus.INCLUDED.equals(detail.getFolderDetailStatus());
 	}
 
 	public boolean isExcluded() {
-		return detail.isFolderExcluded();
+		return FolderDetailStatus.EXCLUDED.equals(detail.getFolderDetailStatus());
+	}
+
+	public boolean isSelected() {
+		return FolderDetailStatus.SELECTED.equals(detail.getFolderDetailStatus());
 	}
 }

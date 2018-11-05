@@ -21,7 +21,6 @@ public class ConstellioErrorHandler extends DefaultErrorHandler {
 	public void error(ErrorEvent event) {
 		Throwable throwable = event.getThrowable();
 		LOGGER.error(throwable.getMessage(), throwable);
-		throwable.printStackTrace();
 
 		UI ui = UI.getCurrent();
 		BaseViewImpl view = ComponentTreeUtils.getFirstChild(ui, BaseViewImpl.class);

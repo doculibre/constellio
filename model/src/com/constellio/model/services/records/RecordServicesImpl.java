@@ -171,6 +171,21 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
+	public void executeInBatch(Transaction transaction)
+			throws RecordServicesException {
+		int size = transaction.getRecords().size();
+		if (size > 1000) {
+			for (int i = 0; i < size; i = i + 1000) {
+				Transaction embeddedTransaction = new Transaction();
+				embeddedTransaction.setOptions(transaction.getRecordUpdateOptions());
+				embeddedTransaction.addAll(transaction.getRecords().subList(i, Math.min(i + 1000, size)));
+				execute(embeddedTransaction);
+			}
+		} else {
+			execute(transaction);
+		}
+	}
+
 	public void execute(Transaction transaction)
 			throws RecordServicesException {
 		execute(transaction, 0);
@@ -583,7 +598,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	void prepareRecords(final Transaction transaction, String onlyValidateRecord)
 			throws RecordServicesException.ValidationException {
 
-		TransactionExecutionContext context = new TransactionExecutionContext();
+		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		RecordPopulateServices recordPopulateServices = modelLayerFactory.newRecordPopulateServices();
 		RecordProvider recordProvider = newRecordProvider(null, transaction);
 		RecordValidationServices validationServices = newRecordValidationServices(recordProvider);

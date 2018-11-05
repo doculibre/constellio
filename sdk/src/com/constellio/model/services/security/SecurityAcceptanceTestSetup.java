@@ -12,6 +12,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.schemas.SchemasSetup;
 import com.constellio.sdk.tests.setups.SchemaShortcuts;
@@ -104,19 +105,23 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		Map<Language, String> labelTitle1 = new HashMap<>();
 		labelTitle1.put(Language.French, "taxo");
 
-		MetadataSchemaTypeBuilder documentFondType = typesBuilder.createNewSchemaType("documentFond");
-		MetadataSchemaTypeBuilder categoryType = typesBuilder.createNewSchemaType("category");
-		MetadataSchemaTypeBuilder administrativeUnitType = typesBuilder.createNewSchemaType("administrativeUnit");
-		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("folder");
-		MetadataSchemaTypeBuilder folderTypeType = new ValueListItemSchemaTypeBuilder(typesBuilder)
-				.createValueListItemSchema("folderType", labelTitle1, codeMetadataFacultative());
-		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("document");
+		if (typesBuilder != null && !typesBuilder.hasSchemaType("documentFond")) {
 
-		setupTaxonomy1(documentFondType, categoryType);
-		setupTaxonomy2(administrativeUnitType);
+			MetadataSchemaTypeBuilder documentFondType = typesBuilder.createNewSchemaType("documentFond");
+			MetadataSchemaTypeBuilder categoryType = typesBuilder.createNewSchemaType("category");
+			MetadataSchemaTypeBuilder administrativeUnitType = typesBuilder.createNewSchemaType("administrativeUnit");
+			MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("folder");
+			MetadataSchemaTypeBuilder folderTypeType = new ValueListItemSchemaTypeBuilder(typesBuilder)
+					.createValueListItemSchema("folderType", labelTitle1, codeMetadataFacultative());
+			MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("document");
 
-		setupFolderType(folderType, categoryType, administrativeUnitType, folderTypeType);
-		setupDocumentType(documentType, folderType);
+			setupTaxonomy1(documentFondType, categoryType);
+			setupTaxonomy2(administrativeUnitType);
+
+			setupFolderType(folderType, categoryType, administrativeUnitType, folderTypeType);
+			setupDocumentType(documentType, folderType);
+
+		}
 
 		Map<Language, String> labelTitle2 = new HashMap<>();
 		labelTitle2.put(Language.French, "taxo1");
@@ -127,6 +132,15 @@ public class SecurityAcceptanceTestSetup extends SchemasSetup {
 		Taxonomy firstTaxonomy = Taxonomy
 				.createPublic("taxo1", labelTitle2, collection, Arrays.asList("documentFond", "category"));
 		Taxonomy secondTaxonomy = Taxonomy.createPublic("taxo2", labelTitle3, collection, Arrays.asList("administrativeUnit"));
+
+		taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
+	}
+
+
+	public void loadTaxonomies(TaxonomiesManager taxonomiesManager) {
+
+		Taxonomy firstTaxonomy = taxonomiesManager.getTaxonomyFor(collection, "taxo1");
+		Taxonomy secondTaxonomy = taxonomiesManager.getTaxonomyFor(collection, "taxo2");
 
 		taxonomies = Arrays.asList(firstTaxonomy, secondTaxonomy);
 	}

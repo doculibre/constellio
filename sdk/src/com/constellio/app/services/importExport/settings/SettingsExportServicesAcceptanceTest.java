@@ -9,27 +9,37 @@ import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.model.ImportedTab;
 import com.constellio.app.services.importExport.settings.model.ImportedTaxonomy;
 import com.constellio.app.services.importExport.settings.model.ImportedType;
+import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileReader;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.groups.Tuple;
 import org.jdom2.Document;
+import org.jdom2.input.DOMBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -311,6 +321,135 @@ public class SettingsExportServicesAcceptanceTest extends ConstellioTest {
 
 			return assertThat(extractingSimpleCodeAndParameters(e, parameters));
 		}
+	}
+
+	@Test
+	public void givenAccessRestrictionOnMetadataWhenExportingThenAccessRestrictionAreOK()
+			throws ValidationException, IOException {
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaBuilder metadataSchemaBuilder = types.getSchemaType(Folder.SCHEMA_TYPE).createCustomSchema("USRtest1");
+				MetadataBuilder metadataBuilder = metadataSchemaBuilder.create("USRcustommetadata");
+				metadataBuilder.setType(MetadataValueType.BOOLEAN);
+
+				final MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
+				MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(asList("RGI", "ADM"), new ArrayList<String>(),
+						new ArrayList<String>(), new ArrayList<String>());
+
+				metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
+				metadataBuilder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
+			}
+		});
+
+		ImportedSettings settings = services.exportSettings(asList(zeCollection), options);
+
+		ImportedCollectionSettings zeCollectionSettings = settings.getCollectionsSettings().get(0);
+
+		zeCollectionSettings.getTypes();
+
+		MetadataSchemaType folderSchemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+		assertThat(folderSchemaType).isNotNull();
+
+		List<MetadataSchema> customSchemata = folderSchemaType.getAllSchemas();
+		assertThat(customSchemata).isNotNull();
+
+		ImportedType importedFolderType = zeCollectionSettings.getType("folder");
+		assertThat(importedFolderType).isNotNull();
+
+		List<ImportedMetadataSchema> importedTypeCustomSchemata = importedFolderType.getCustomSchemata();
+		assertThat(importedTypeCustomSchemata).extracting("code").containsOnly("USRtest1");
+
+
+		ImportedMetadata importMetadata = importedFolderType.getSchema("USRtest1").getMetadata("USRcustommetadata");
+
+		assertThat(importMetadata.getRequiredReadRoles()).contains("RGI", "ADM");
+
+		String outputFilePath = "settings-export-output.xml";
+		File outputFile = new File(newTempFolder(), outputFilePath);
+
+		Document document = new SettingsXMLFileWriter().writeSettings(settings);
+
+		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
+	}
+
+	@Test
+	public void givenAccessRestrictionOnMetadataOFFolderDefaultSchemaWhenExportingThenAccessRestrictionAreOK()
+			throws ValidationException, IOException, ParserConfigurationException, SAXException {
+
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaBuilder metadataSchemaBuilder = types.getSchemaType(Folder.SCHEMA_TYPE).getDefaultSchema();
+				MetadataBuilder metadataBuilder = metadataSchemaBuilder.create("custommetadata");
+				metadataBuilder.setType(MetadataValueType.BOOLEAN);
+
+				final MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
+				MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(asList("RGI", "ADM"), new ArrayList<String>(),
+						new ArrayList<String>(), new ArrayList<String>());
+
+				metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
+				metadataBuilder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
+			}
+		});
+
+		ImportedSettings settings = services.exportSettings(asList(zeCollection), options);
+
+		ImportedCollectionSettings zeCollectionSettings = settings.getCollectionsSettings().get(0);
+
+		zeCollectionSettings.getTypes();
+
+		MetadataSchemaType folderSchemaType = metadataSchemasManager.getSchemaTypes(zeCollection).getSchemaType("folder");
+		assertThat(folderSchemaType).isNotNull();
+
+		List<MetadataSchema> customSchemata = folderSchemaType.getAllSchemas();
+		assertThat(customSchemata).isNotNull();
+
+		ImportedType importedFolderType = zeCollectionSettings.getType("folder");
+		assertThat(importedFolderType).isNotNull();
+
+
+		ImportedMetadata importMetadata = importedFolderType.getDefaultSchema().getMetadata("custommetadata");
+
+		assertThat(importMetadata.getRequiredReadRoles()).contains("RGI", "ADM");
+
+		String outputFilePath = "settings-export-output.xml";
+		File outputFile = new File(newTempFolder(), outputFilePath);
+
+		Document document = new SettingsXMLFileWriter().writeSettings(settings);
+
+		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
+		try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
+			xmlOutputter.output(document, fileOutputStream);
+		}
+
+		// Test read wrtie requiredReadRole.
+		org.w3c.dom.Document w3cDocument = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(outputFile);
+
+		document = new DOMBuilder().build(w3cDocument);
+
+		SettingsXMLFileReader settingsXMLFileReader = new SettingsXMLFileReader(document, zeCollection, getModelLayerFactory());
+		ImportedSettings importedSettings = settingsXMLFileReader.read();
+		List<ImportedType> importedTypesList = importedSettings.getCollectionsSettings().get(0).getTypes();
+
+		boolean typeFound = false;
+
+		for(ImportedType importedType : importedTypesList) {
+			if(importedType.getCode().equals(Folder.SCHEMA_TYPE))  {
+				typeFound = true;
+				ImportedMetadata importedMetadata = importedType.getDefaultSchema().getMetadata("custommetadata");
+				assertThat(importedMetadata.getRequiredReadRoles().get(0)).isEqualTo("RGI");
+				assertThat(importedMetadata.getRequiredReadRoles().get(1)).isEqualTo("ADM");
+			}
+		}
+
+		assertThat(typeFound).isTrue();
+
+		System.out.println("File Saved!");
 	}
 
 	@Before

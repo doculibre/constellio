@@ -148,4 +148,6 @@ public class ContainersByAdministrativeUnitsViewImpl extends BaseViewImpl implem
 	protected String getTitle() {
 		return $("ContainersByAdministrativeUnitsView.viewTitle");
 	}
+
+
 }

@@ -1,5 +1,9 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -21,10 +25,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -40,10 +44,10 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
-import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.UpdateContentVersionWindowImpl;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -59,7 +63,6 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.dev.Toggle;
@@ -79,18 +82,34 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.PasswordField;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.Upload;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.Upload.Receiver;
 import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
@@ -194,7 +213,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		addStyleName("display-document-view");
-		
+
 		mainLayout = new VerticalLayout();
 		mainLayout.setSizeFull();
 
@@ -211,7 +230,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		recordDisplay = new RecordDisplay(documentVO, new RMMetadataDisplayFactory(), Toggle.SEARCH_RESULTS_VIEWER.isEnabled());
 		recordDisplay.setSizeFull();
-		
+
 		versionTable = new ContentVersionVOTable("DocumentVersions", presenter.getAppLayerFactory(), presenter.hasCurrentUserPermissionToViewFileSystemName()) {
 			@Override
 			protected boolean isSelectionColumn() {
@@ -275,19 +294,18 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			splitPanel.setSecondComponent(tabSheet);
 			splitPanel.setSecondComponentWidth(700, Unit.PIXELS);
 			contentMetadataComponent = splitPanel;
-			
+
 //			tabSheet.setWidth("700px");
 //			I18NHorizontalLayout contentMetadataLayout = new I18NHorizontalLayout();
 //			contentMetadataLayout.setSizeFull();
 //			contentMetadataLayout.setSpacing(true);
 //			contentMetadataLayout.addComponents(tabSheet);
-//			contentMetadataLayout.addComponents(contentViewer, tabSheet);
-//			contentMetadataLayout.setExpandRatio(contentViewer, 1);
+//			contentMetadataLayout.addComponents( contentViewer, tabSheet);
+		//			contentMetadataLayout.setExpandRatio(contentViewer, 1);
 		} else {
 			contentMetadataComponent = tabSheet;
 		}
 		mainLayout.addComponents(borrowedLabel, contentMetadataComponent);
-
 		for (TabSheetDecorator tabSheetDecorator : tabSheetDecorators) {
 			tabSheetDecorator.decorate(this, tabSheet);
 		}
@@ -330,7 +348,46 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new FolderDocumentBreadcrumbTrail(documentVO.getId(), taxonomyCode, this);
+
+		String saveSearchDecommissioningId = null;
+		String searchTypeAsString = null;
+
+		if(presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
+			saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
+
+		}
+
+		if(presenter.getParams() != null && presenter.getParams().get("decommissioningType") != null) {
+			searchTypeAsString = presenter.getParams().get("decommissioningType");
+		}
+
+		SearchType searchType = null;
+		if(searchTypeAsString != null) {
+			searchType = SearchType.valueOf((searchTypeAsString));
+		}
+
+		BaseBreadcrumbTrail breadcrumbTrail;
+
+		RMModuleExtensions rmModuleExtensions = getConstellioFactories().getAppLayerFactory().getExtensions()
+				.forCollection(getCollection()).forModule(ConstellioRMModule.ID);
+		breadcrumbTrail = rmModuleExtensions.getBreadCrumbtrail(
+				new DocumentFolderBreadCrumbParams(presenter.getDocument().getId(), presenter.getParams(), this));
+
+
+
+		if (breadcrumbTrail != null) {
+			return breadcrumbTrail;
+		} else if (saveSearchDecommissioningId != null && searchType != null) {
+			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
+					saveSearchDecommissioningId, presenter.getRecord().getId(),this);
+		} else {
+			String containerId = null;
+			if(presenter.getParams() != null && presenter.getParams() instanceof Map) {
+				containerId = presenter.getParams().get("containerId");
+			}
+
+			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), taxonomyCode, containerId,this);
+		}
 	}
 
 	@Override
@@ -553,6 +610,20 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		finalizeButton.addStyleName(ValoTheme.BUTTON_LINK);
 
+		DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
+			@Override
+			public void addToDefaultFavorites() {
+				presenter.addToDefaultFavorite();
+			}
+
+			@Override
+			public void removeFromDefaultFavorites() {
+				presenter.removeFromDefaultFavorites();
+			}
+		};
+		favoriteStar.setStarred(presenter.inDefaultFavorites());
+		actionMenuButtons.add(favoriteStar);
+
 		actionMenuButtons.add(editDocumentButton);
 
 		copyContentButton = new LinkButton($("DocumentContextMenu.copyContent")) {
@@ -564,7 +635,12 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		actionMenuButtons.add(copyContentButton);
 
-		reportGeneratorButton = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"), $("ReportGeneratorButton.windowText"), this, getConstellioFactories().getAppLayerFactory(), getCollection(), PrintableReportListPossibleType.DOCUMENT, getDocumentVO());
+		reportGeneratorButton = new ReportTabButton($("SearchView.metadataReportTitle"), $("SearchView.metadataReportTitle"), presenter.getApplayerFactory(), getCollection(), false, false, presenter.buildReportPresenter(), getSessionContext()) {
+			@Override
+			public void buttonClick(ClickEvent event) {
+				setRecordVoList(  getDocumentVO());super.buttonClick(event);
+			}
+		};
 
 		if (presenter.hasContent()) {
 			renameContentButton = new WindowButton($("DocumentContextMenu.renameContent"), $("DocumentContextMenu.renameContent"),

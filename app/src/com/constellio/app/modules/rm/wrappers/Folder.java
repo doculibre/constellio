@@ -98,6 +98,8 @@ public class Folder extends RMObject {
 
 	public static final String TIME_RANGE = "timerange";
 
+	public static final String FAVORITES = "favorites";
+
 	//public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
 	//public static final String CALENDAR_YEAR = "calendarYear";
 	//TO DELETE
@@ -835,6 +837,36 @@ public class Folder extends RMObject {
 
 	public static Folder wrap(Record record, MetadataSchemaTypes types) {
 		return record == null ? null : new Folder(record, types);
+	}
+
+	public List<String> getFavorites() {
+		return getList(FAVORITES);
+	}
+
+	public Folder setFavorites(List<String> favorites) {
+		set(FAVORITES, favorites);
+		return this;
+	}
+
+	public void removeFavorite(String favoriteToDelete) {
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.remove(favoriteToDelete);
+		setFavorites(favorites);
+	}
+
+	public void addFavorite(String favoriteToAdd) {
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.add(favoriteToAdd);
+		setFavorites(favorites);
+	}
+
+	public void removeFavorites(List<String> favoritesToDelete) {
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.removeAll(favoritesToDelete);
+		setFavorites(favorites);
 	}
 }
 

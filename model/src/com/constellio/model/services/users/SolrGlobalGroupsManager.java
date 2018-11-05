@@ -1,5 +1,6 @@
 package com.constellio.model.services.users;
 
+import com.constellio.data.dao.managers.StatefulService;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
@@ -28,7 +29,7 @@ import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EX
 import static com.constellio.data.utils.LangUtils.valueOrDefault;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemCollectionListener {
+public class SolrGlobalGroupsManager implements StatefulService, SystemCollectionListener {
 	private final ModelLayerFactory modelLayerFactory;
 	private final SearchServices searchServices;
 	private final SchemasRecordsServices schemas;
@@ -40,7 +41,6 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 		schemas = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
-	@Override
 	public GlobalGroup create(String code, String name, List<String> collections, String parent,
 							  GlobalGroupStatus status,
 							  boolean locallyCreated) {
@@ -53,12 +53,10 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 				.withLocallyCreated(locallyCreated);
 	}
 
-	@Override
 	public GlobalGroup create(String code, String parent, GlobalGroupStatus status, boolean locallyCreated) {
 		return create(code, code, Collections.<String>emptyList(), parent, status, locallyCreated);
 	}
 
-	@Override
 	public void addUpdate(GlobalGroup group) {
 		SolrGlobalGroup groupRecord = (SolrGlobalGroup) group;
 		validateHierarchy(groupRecord);
@@ -70,7 +68,6 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 		}
 	}
 
-	@Override
 	public void logicallyRemoveGroup(GlobalGroup group) {
 		Transaction transaction = new Transaction();
 		for (GlobalGroup each : getGroupHierarchy((SolrGlobalGroup) group)) {
@@ -86,7 +83,6 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 		}
 	}
 
-	@Override
 	public void activateGlobalGroupHierarchy(GlobalGroup group) {
 		Transaction transaction = new Transaction();
 		for (GlobalGroup each : getGroupHierarchy((SolrGlobalGroup) group)) {
@@ -100,14 +96,12 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 		}
 	}
 
-	@Override
 	public GlobalGroup getGlobalGroupWithCode(String code) {
 		Record record = modelLayerFactory.newRecordServices()
 				.getRecordByMetadata(schemas.globalGroupCode(), code);
 		return record != null ? schemas.wrapGlobalGroup(record) : null;
 	}
 
-	@Override
 	public GlobalGroup getActiveGlobalGroupWithCode(String code) {
 		GlobalGroup group = getGlobalGroupWithCode(code);
 		return group != null && group.getStatus() == GlobalGroupStatus.ACTIVE ? group : null;
@@ -117,12 +111,10 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 		return new LogicalSearchQuery(from(schemas.globalGroupSchemaType()).returnAll()).sortAsc(schemas.globalGroupCode());
 	}
 
-	@Override
 	public List<GlobalGroup> getAllGroups() {
 		return schemas.wrapGlobalGroups(searchServices.search(getAllGroupsQuery()));
 	}
 
-	@Override
 	public List<GlobalGroup> getHierarchy(String code) {
 		SolrGlobalGroup group = (SolrGlobalGroup) getGlobalGroupWithCode(code);
 		return group != null ? getGroupHierarchy(group) : Collections.<GlobalGroup>emptyList();
@@ -134,7 +126,6 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 				.sortAsc(schemas.globalGroupCode());
 	}
 
-	@Override
 	public List<GlobalGroup> getActiveGroups() {
 		return schemas.wrapGlobalGroups(searchServices.search(getActiveGroupsQuery()));
 	}
@@ -145,7 +136,6 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 				.sortAsc(schemas.globalGroupCode());
 	}
 
-	@Override
 	public void removeCollection(final String collection) {
 		try {
 			new ActionExecutorInBatch(searchServices, "Remove collection in global groups", 100) {
@@ -178,7 +168,6 @@ public class SolrGlobalGroupsManager implements GlobalGroupsManager, SystemColle
 		// Nothing to be done
 	}
 
-	@Override
 	public void systemCollectionCreated() {
 
 	}

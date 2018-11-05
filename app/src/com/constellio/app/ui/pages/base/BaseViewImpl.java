@@ -24,6 +24,7 @@ import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrai
 import com.constellio.app.ui.framework.components.layouts.I18NHorizontalLayout;
 import com.constellio.app.ui.framework.decorators.base.ActionMenuButtonsDecorator;
 import com.constellio.app.ui.pages.home.HomeViewImpl;
+import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.constellio.model.entities.records.wrappers.RecordWrapperRuntimeException;
 import com.vaadin.event.UIEvents.PollEvent;
@@ -331,7 +332,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
 	protected String getTitle() {
 		return getClass().getSimpleName();
 	}
-	
+
 	protected String getActionMenuBarCaption() {
 		return null;
 	}
@@ -357,7 +358,7 @@ public abstract class BaseViewImpl extends VerticalLayout implements View, BaseV
             	if (menuBarCaption == null) {
             		menuBarCaption = "";
             	}
-            	
+
                 MenuBar menuBar = new MenuBar();
                 menuBar.addStyleName("action-menu-bar");
                 menuBar.setAutoOpen(false);

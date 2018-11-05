@@ -15,13 +15,8 @@ import com.constellio.app.utils.ReportGeneratorUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.TabSheet;
-import com.vaadin.ui.VerticalLayout;
+import com.vaadin.server.Page;
+import com.vaadin.ui.*;
 
 import java.util.List;
 
@@ -163,9 +158,12 @@ public class ReportTabButton extends WindowButton {
 			if (newReportPresenter.getSupportedReports().isEmpty()) {
 				buttonPresenter.setNeedToRemoveExcelTab(true);
 			}
+			else {
+				buttonPresenter.setNeedToRemoveExcelTab(false);
+			}
 			verticalLayout.addComponent(new ReportSelector(newReportPresenter));
 		} catch (UnsupportedReportException unsupportedReport) {
-			view.showErrorMessage($("ReportTabButton.noExcelReport"));
+			showErrorMessage($("ReportTabButton.noExcelReport"));
 		}
 		return verticalLayout;
 	}
@@ -278,7 +276,7 @@ public class ReportTabButton extends WindowButton {
 				getWindow().setContent(ReportGeneratorUtils
 						.saveButtonClick(factory, collection, selectedSchema.getTypeCode(), template, 1,
 								buttonPresenter.getRecordVOIdFilteredList(selectedSchema),
-								getLogicalSearchQuery(selectedSchema.getCode()), view.getSessionContext().getCurrentLocale()));
+								getLogicalSearchQuery(selectedSchema.getCode()), sessionContext.getCurrentLocale()));
 			}
 		});
 		return button;
@@ -334,5 +332,9 @@ public class ReportTabButton extends WindowButton {
 		return null;
 	}
 
-
+	public void showErrorMessage(String errorMessage) {
+		Notification notification = new Notification(errorMessage + "<br/><br/>" + $("clickToClose"), Notification.Type.WARNING_MESSAGE);
+		notification.setHtmlContentAllowed(true);
+		notification.show(Page.getCurrent());
+	}
 }

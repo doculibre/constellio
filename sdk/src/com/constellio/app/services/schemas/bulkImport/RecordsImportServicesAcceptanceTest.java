@@ -14,6 +14,7 @@ import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataProvider;
 import com.constellio.app.services.schemas.bulkImport.data.excel.Excel2003ImportDataProvider;
@@ -111,14 +112,14 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		assertThat(decomListFolderDetails.get(0).getFolderId()).isEqualTo(rm.getFolderWithLegacyId("660").getId());
 		assertThat(decomListFolderDetails.get(0).getContainerRecordId())
 				.isEqualTo(rm.getContainerRecordWithLegacyId("412903").getId());
-		assertThat(decomListFolderDetails.get(0).isFolderExcluded()).isTrue();
+		assertThat(decomListFolderDetails.get(0).getFolderDetailStatus()).isEqualTo(FolderDetailStatus.EXCLUDED);
 		assertThat(decomListFolderDetails.get(0).isReversedSort()).isTrue();
 		assertThat(decomListFolderDetails.get(0).getFolderLinearSize()).isEqualTo(42.0);
 
 		assertThat(decomListFolderDetails.get(1).getFolderId()).isEqualTo(rm.getFolderWithLegacyId("670").getId());
 		assertThat(decomListFolderDetails.get(1).getContainerRecordId())
 				.isEqualTo(rm.getContainerRecordWithLegacyId("412904").getId());
-		assertThat(decomListFolderDetails.get(1).isFolderExcluded()).isFalse();
+		assertThat(decomListFolderDetails.get(1).getFolderDetailStatus()).isEqualTo(FolderDetailStatus.INCLUDED);
 		assertThat(decomListFolderDetails.get(1).isReversedSort()).isFalse();
 		assertThat(decomListFolderDetails.get(1).getFolderLinearSize()).isEqualTo(0.0);
 

@@ -40,7 +40,7 @@ public class Criterion implements Serializable, ModifiableStructure {
 	public Criterion() {
 	}
 
-	public Criterion(String schemaType) {
+	public  Criterion(String schemaType) {
 		setSchemaType(schemaType);
 	}
 

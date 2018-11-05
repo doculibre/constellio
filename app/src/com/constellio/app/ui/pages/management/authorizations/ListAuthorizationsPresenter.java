@@ -7,18 +7,25 @@ import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.security.AuthorizationsServices;
+import com.constellio.model.services.taxonomies.TaxonomiesManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +33,7 @@ import java.util.List;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
 
 public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuthorizationsView> {
+	private static final String DISABLE = $("AuthorizationsView.disable");
 	private transient AuthorizationsServices authorizationsServices;
 	private transient List<Authorization> authorizations;
 	private transient List<AuthorizationReceivedFromMetadata> authorizationsReceivedFromMetadatas;
@@ -59,7 +67,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 
 		List<AuthorizationVO> results = new ArrayList<>();
 		for (Authorization authorization : getAllAuthorizations()) {
-			if (!(isOwnAuthorization(authorization) || authorization.getGrantedToPrincipals().isEmpty()) && isSameRoleType(
+			if (!(isOwnAuthorization(authorization) || authorization.getPrincipals().isEmpty()) && isSameRoleType(
 					authorization)) {
 				results.add(builder.build(authorization));
 			}
@@ -85,7 +93,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 
 		List<AuthorizationVO> results = new ArrayList<>();
 		for (Authorization authorization : getAllAuthorizations()) {
-			if (isOwnAuthorization(authorization) && !authorization.getGrantedToPrincipals().isEmpty() && isSameRoleType(
+			if (isOwnAuthorization(authorization) && !authorization.getPrincipals().isEmpty() && isSameRoleType(
 					authorization)) {
 				results.add(builder.build(authorization));
 			}
@@ -154,7 +162,8 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		principals.addAll(authorizationVO.getGroups());
 		return AuthorizationAddRequest.authorizationInCollection(collection).giving(roles)
 				.forPrincipalsIds(principals).on(authorizationVO.getRecord())
-				.startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate());
+				.startingOn(authorizationVO.getStartDate()).endingOn(authorizationVO.getEndDate())
+				.andNegative(DISABLE.equals(authorizationVO.getNegative()));
 	}
 
 	private AuthorizationModificationRequest toAuthorizationModificationRequest(AuthorizationVO authorizationVO) {
@@ -188,6 +197,16 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		authorizations = authorizationsServices().getRecordAuthorizations(record);
 		//}
 		return authorizations;
+	}
+
+	public boolean isNegativeAuthorizationConfigEnabledAndRecordIsNotATaxonomy() {
+		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+		Record record = presenterService().getRecord(recordId);
+		return new ConstellioEIMConfigs(modelLayerFactory).isNegativeAuthorizationEnabled() && taxonomiesManager.getTaxonomyOf(record) == null;
+	}
+
+	public boolean hasManageSecurityPermission() {
+		return getCurrentUser().has(CorePermissions.MANAGE_SECURITY).globally();
 	}
 
 	private static class AuthorizationReceivedFromMetadata {
@@ -234,7 +253,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		boolean hasOverridenSecurityFromMetadatas = false;
 
 		for (AuthorizationReceivedFromMetadata authorization : getAuthorizationsReceivedFromMetadatas()) {
-			hasOverridenSecurityFromMetadatas |= ((SolrAuthorizationDetails) authorization.authorization.getDetail())
+			hasOverridenSecurityFromMetadatas |= ((Authorization) authorization.authorization)
 					.isOverrideInherited();
 		}
 
@@ -247,7 +266,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	}
 
 	protected boolean isAccessAuthorization(Authorization auth) {
-		for (String role : auth.getDetail().getRoles()) {
+		for (String role : auth.getRoles()) {
 			if (isAccessRole(role)) {
 				return true;
 			}
@@ -256,7 +275,7 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 	}
 
 	protected boolean isRoleAuthorization(Authorization auth) {
-		for (String role : auth.getDetail().getRoles()) {
+		for (String role : auth.getRoles()) {
 			if (!isAccessRole(role)) {
 				return true;
 			}

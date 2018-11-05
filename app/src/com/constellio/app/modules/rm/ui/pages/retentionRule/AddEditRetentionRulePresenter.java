@@ -86,13 +86,15 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 		view.setRetentionRule(rule);
 
 		if (configs().areDocumentRetentionRulesEnabled()) {
-			if (rule.getScope() == null) {
+			if (isScopeAvaliable() && rule.getScope() == null) {
 				rule.setScope(RetentionRuleScope.DOCUMENTS_AND_FOLDER);
 			}
 		}
 
 		boolean sortDisposal = false;
-		if (!addView) {
+
+
+		if (!addView && isCopyRetentionRulesAvalible()) {
 			List<CopyRetentionRule> copyRetentionRules = rule.getCopyRetentionRules();
 			for (CopyRetentionRule copyRetentionRule : copyRetentionRules) {
 				if (copyRetentionRule.canSort()) {
@@ -102,6 +104,10 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 			}
 		}
 		updateDisposalTypeForDocumentTypes(sortDisposal);
+	}
+
+	private boolean isCopyRetentionRulesAvalible() {
+		return rule.getMetadataOrNull(RetentionRule.COPY_RETENTION_RULES) != null;
 	}
 
 	public void viewAssembled() {
@@ -129,14 +135,20 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 	}
 
 	public void saveButtonClicked() {
-		if (rule.getScope() == RetentionRuleScope.DOCUMENTS) {
+		if (isScopeAvaliable() && rule.getScope() == RetentionRuleScope.DOCUMENTS && isCopyRetentionRulesAvalible()) {
 			rule.getCopyRetentionRules().clear();
 		}
 		Record record = toRecord(rule);
 		try {
 			addOrUpdate(record);
-			saveCategories(record.getId(), rule.getCategories());
-			saveUniformSubdivisions(record.getId(), rule.getUniformSubdivisions());
+
+			if(rule.getMetadataOrNull(RetentionRuleVO.CATEGORIES) != null) {
+				saveCategories(record.getId(), rule.getCategories());
+			}
+			if(rule.getMetadataOrNull(RetentionRuleVO.UNIFORM_SUBDIVISIONS) != null) {
+				saveUniformSubdivisions(record.getId(), rule.getUniformSubdivisions());
+			}
+
 			view.navigate().to(RMViews.class).listRetentionRules();
 		} catch (ValidationRuntimeException e) {
 			view.showErrorMessage($(e.getValidationErrors()));
@@ -203,11 +215,13 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 			sortPossible = true;
 		} else {
 			sortPossible = false;
-			List<CopyRetentionRule> copyRetentionRules = rule.getCopyRetentionRules();
-			for (CopyRetentionRule existingCopyRetentionRule : copyRetentionRules) {
-				if (!existingCopyRetentionRule.equals(copyRetentionRule) && existingCopyRetentionRule.canSort()) {
-					sortPossible = true;
-					break;
+			if(isCopyRetentionRulesAvalible()) {
+				List<CopyRetentionRule> copyRetentionRules = rule.getCopyRetentionRules();
+				for (CopyRetentionRule existingCopyRetentionRule : copyRetentionRules) {
+					if (!existingCopyRetentionRule.equals(copyRetentionRule) && existingCopyRetentionRule.canSort()) {
+						sortPossible = true;
+						break;
+					}
 				}
 			}
 		}
@@ -226,15 +240,23 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 	}
 
 	public boolean isFoldersCopyRetentionRulesVisible() {
-		boolean foldersCopyRetentionRulesVisible;
+		boolean foldersCopyRetentionRulesVisible = false;
 		boolean documentRetentionRulesEnabled = configs().areDocumentRetentionRulesEnabled();
-		if (documentRetentionRulesEnabled) {
-			RetentionRuleScope scope = rule.getScope();
-			foldersCopyRetentionRulesVisible = scope == RetentionRuleScope.DOCUMENTS_AND_FOLDER;
-		} else {
-			foldersCopyRetentionRulesVisible = true;
+
+			if (documentRetentionRulesEnabled) {
+				if(isScopeAvaliable()) {
+					RetentionRuleScope scope = rule.getScope();
+					foldersCopyRetentionRulesVisible = scope == RetentionRuleScope.DOCUMENTS_AND_FOLDER;
+				}
+			} else {
+				foldersCopyRetentionRulesVisible = true;
 		}
+
 		return foldersCopyRetentionRulesVisible;
+	}
+
+	private boolean isScopeAvaliable() {
+		return rule.getMetadataOrNull(RetentionRule.SCOPE) == null;
 	}
 
 	public boolean isDocumentsCopyRetentionRulesVisible() {
@@ -243,11 +265,13 @@ public class AddEditRetentionRulePresenter extends SingleSchemaBasePresenter<Add
 	}
 
 	public boolean isDefaultDocumentsCopyRetentionRulesVisible() {
-		boolean defaultDocumentsCopyRetentionRulesVisible;
+		boolean defaultDocumentsCopyRetentionRulesVisible = false;
 		boolean documentRetentionRulesEnabled = configs().areDocumentRetentionRulesEnabled();
 		if (documentRetentionRulesEnabled) {
-			RetentionRuleScope scope = rule.getScope();
-			defaultDocumentsCopyRetentionRulesVisible = scope == RetentionRuleScope.DOCUMENTS;
+			if(isScopeAvaliable()) {
+				RetentionRuleScope scope = rule.getScope();
+				defaultDocumentsCopyRetentionRulesVisible = scope == RetentionRuleScope.DOCUMENTS;
+			}
 		} else {
 			defaultDocumentsCopyRetentionRulesVisible = false;
 		}

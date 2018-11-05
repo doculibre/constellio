@@ -13,10 +13,9 @@ import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuth
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_InvalidTargetType;
 import com.constellio.app.services.schemas.bulkImport.authorization.ImportedAuthorizationValidatorRuntimeException.ImportedAuthorizationValidatorRuntimeException_UseOfAccessAndRole;
 import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -106,7 +105,7 @@ public class AuthorizationImportServices {
 		} else {
 			try {
 				AuthorizationAddRequest authorizationAddRequest = builder.buildAddRequest(importedAuthorization);
-				AuthorizationDetails details = schemas.getSolrAuthorizationDetailsWithLegacyId(importedAuthorization.getId());
+				Authorization details = schemas.getSolrAuthorizationDetailsWithLegacyId(importedAuthorization.getId());
 				if (details != null) {
 					authorizationServices.execute(authorizationDeleteRequest(details.getId(), collection));
 				}
@@ -133,7 +132,7 @@ public class AuthorizationImportServices {
 
 	private void deleteAuthorizationIfExists(AuthorizationsServices authorizationServices, String collection,
 											 String id) {
-		SolrAuthorizationDetails authorization = schemas
+		Authorization authorization = schemas
 				.getSolrAuthorizationDetailsWithLegacyId(id);// getAuthorizationIdByIdWithoutPrefix(collection, id);
 
 		if (authorization == null) {

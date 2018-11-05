@@ -16,6 +16,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.extensions.behaviors.BatchProcessingSpecialCaseExtension;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -45,20 +46,35 @@ import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ModelLayerCollectionExtensions {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ModelLayerCollectionExtensions.class);
 
+	ModelLayerSystemExtensions systemExtensions;
+
 	//------------ Extension points -----------
 
 	public VaultBehaviorsList<RecordImportExtension> recordImportExtensions = new VaultBehaviorsList<>();
 
-	public VaultBehaviorsList<RecordExtension> recordExtensions = new VaultBehaviorsList<>();
+	public VaultBehaviorsList<RecordExtension> recordExtensions;
 
 	public VaultBehaviorsList<SchemaExtension> schemaExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<BatchProcessingSpecialCaseExtension> batchProcessingSpecialCaseExtensions = new VaultBehaviorsList<>();
+
+	public ModelLayerCollectionExtensions(ModelLayerSystemExtensions systemExtensions) {
+		this.systemExtensions = systemExtensions;
+		this.recordExtensions = new VaultBehaviorsList<>(systemExtensions.recordExtensions);
+	}
 
 	public VaultBehaviorsList<TaxonomyExtension> taxonomyExtensions = new VaultBehaviorsList<>();
 
@@ -95,6 +111,23 @@ public class ModelLayerCollectionExtensions {
 	}
 
 	public void callTransactionExecutionBeforeSave(TransactionExecutionBeforeSaveEvent event,
+												   RecordUpdateOptions options) {
+		for (RecordExtension extension : recordExtensions) {
+			try {
+				extension.transactionExecutionBeforeSave(event);
+
+			} catch (RuntimeException e) {
+				if (options.isCatchExtensionsExceptions()) {
+					LOGGER.warn("Exception while calling extension of class '" + extension.getClass().getName()
+								+ "' on transaction ", e);
+				} else {
+					throw e;
+				}
+			}
+		}
+	}
+
+	public void callTransactionExecuted(TransactionExecutionBeforeSaveEvent event,
 												   RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
 			try {
@@ -343,5 +376,4 @@ public class ModelLayerCollectionExtensions {
 		}
 		return sortMetadatas;
 	}
-	
 }

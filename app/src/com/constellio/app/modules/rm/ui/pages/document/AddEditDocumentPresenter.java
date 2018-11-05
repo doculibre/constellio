@@ -19,6 +19,7 @@ import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeF
 import com.constellio.app.modules.rm.ui.components.document.newFile.NewFileWindow.NewFileCreatedListener;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -84,6 +85,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	private boolean newFile;
 	private boolean newFileAtStart;
 	ConstellioEIMConfigs eimConfigs;
+	private Map<String, String> params;
 
 	public AddEditDocumentPresenter(AddEditDocumentView view, RecordVO recordVO) {
 		super(view, Document.DEFAULT_SCHEMA);
@@ -115,16 +117,14 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	public void forParams(String params) {
 		String idCopy;
 		String parentId;
-		
-		if (params != null) {
-			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
-			id = paramsMap.get("id");
-			idCopy = paramsMap.get("idCopy");
-			parentId = paramsMap.get("parentId");
-			userDocumentId = paramsMap.get("userDocumentId");
-			newFile = false;
-			newFileAtStart = "true".equals(paramsMap.get("newFile"));
-		} else {
+
+		if (params != null) {Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
+		 id = paramsMap.get("id");
+		 idCopy = paramsMap.get("idCopy");
+		 parentId = paramsMap.get("parentId");
+		userDocumentId = paramsMap.get("userDocumentId");
+		this.params = paramsMap;newFile = false;
+		newFileAtStart = "true".equals(paramsMap.get("newFile"));} else {
 			idCopy = null;
 			parentId = null;
 			userDocumentId = null;
@@ -305,15 +305,24 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 		} else if (addView) {
 			String parentId = documentVO.getFolder();
 			if (parentId != null) {
-				view.navigate().to(RMViews.class).displayFolder(parentId);
+				navigateToFolderDisplay(parentId);
 			} else if (userDocumentId != null) {
 				view.navigate().to(RMViews.class).listUserDocuments();
 			} else {
 				view.navigate().to().home();
 			}
 		} else {
-			view.navigate().to(RMViews.class).displayDocument(documentVO.getId());
+			view.navigate().to().previousView();
 		}
+	}
+
+	private void navigateToDocumentDisplay(String id) {
+		RMNavigationUtils.navigateToDisplayDocument(id, params, appLayerFactory, view.getCollection());
+
+	}
+
+	private void navigateToFolderDisplay(String id) {
+		RMNavigationUtils.navigateToDisplayFolder(id, params, appLayerFactory, view.getCollection());
 	}
 
 	private void setAsNewVersionOfContent(Document document) {
@@ -392,11 +401,11 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 			User userDocumentUser = userServices.getUserInCollection(currentUser.getUsername(), userDocumentCollection);
 			userDocumentPresenterUtils.delete(userDocumentRecord, null, userDocumentUser);
 		}
-		
+
 		if (view.isInWindow()) {
 			view.closeAllWindows();
 		} else {
-			view.navigate().to(RMViews.class).displayDocument(record.getId());
+			navigateToDocumentDisplay(record.getId());
 		}
 		if (newFile && rmConfigs.areDocumentCheckedOutAfterCreation()) {
 			String agentURL = ConstellioAgentUtils.getAgentURL(documentVO, documentVO.getContent());
@@ -744,32 +753,31 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 											.newEmail(filename, inputStream);
 									document = rmSchemas().wrapEmail(document.changeSchemaTo(Email.SCHEMA));
 
-									((Email) document).setSubject(email.getSubject());
-									((Email) document).setEmailObject(email.getEmailObject());
-									((Email) document).setEmailSentOn(email.getEmailSentOn());
-									((Email) document).setEmailReceivedOn(email.getEmailReceivedOn());
-									((Email) document).setEmailFrom(email.getEmailFrom());
-									((Email) document).setEmailTo(email.getEmailTo());
-									((Email) document).setEmailCCTo(email.getEmailCCTo());
-									((Email) document).setEmailBCCTo(email.getEmailBCCTo());
-									((Email) document).setEmailAttachmentsList(email.getEmailAttachmentsList());
-								} finally {
-									ioServices.closeQuietly(inputStream);
-								}
+								((Email) document).setSubject(email.getSubject());
+								((Email) document).setEmailObject(email.getEmailObject());
+								((Email) document).setEmailSentOn(email.getEmailSentOn());
+								((Email) document).setEmailReceivedOn(email.getEmailReceivedOn());
+								((Email) document).setEmailFrom(email.getEmailFrom());
+								((Email) document).setEmailTo(email.getEmailTo());
+								((Email) document).setEmailCCTo(email.getEmailCCTo());
+								((Email) document).setEmailBCCTo(email.getEmailBCCTo());
+								((Email) document).setEmailAttachmentsList(email.getEmailAttachmentsList());
+							} finally {
+								ioServices.closeQuietly(inputStream);
 							}
-							modelLayerFactory.newRecordPopulateServices().populate(documentRecord, documentVO.getRecord());
-							documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
-							documentVO.getContent().setMajorVersion(null);
-							documentVO.getContent().setHash(null);
-							if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
-								filename = FilenameUtils.removeExtension(filename);
-							}
-							documentVO.setTitle(filename);
-							view.setRecord(documentVO);
-							view.getForm().reload();
-							addContentFieldListeners();
-						} catch (final IcapException e) {
-							view.showErrorMessage(e.getMessage());
+						}
+						modelLayerFactory.newRecordPopulateServices().populate(documentRecord, documentVO.getRecord());
+						documentVO = voBuilder.build(documentRecord, VIEW_MODE.FORM, view.getSessionContext());
+						documentVO.getContent().setMajorVersion(null);
+						documentVO.getContent().setHash(null);
+						if (eimConfigs.isRemoveExtensionFromRecordTitle()) {
+							filename = FilenameUtils.removeExtension(filename);
+						}
+						documentVO.setTitle(filename);
+						view.setRecord(documentVO);
+						view.getForm().reload();addContentFieldListeners();
+					} catch (final IcapException e) {
+						view.showErrorMessage(e.getMessage());
 
 							documentVO.setContent(null);
 							getContentField().setFieldValue(null);
@@ -793,7 +801,7 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 
 			DocumentCopyRuleField copyRuleField = getCopyRuleField();
 			if (copyRuleField != null) {
-				boolean copyRuleFieldVisible = areDocumentRetentionRulesEnabled() && documentVO.getList(Document.APPLICABLE_COPY_RULES).size() > 1; 
+				boolean copyRuleFieldVisible = areDocumentRetentionRulesEnabled() && documentVO.getList(Document.APPLICABLE_COPY_RULES).size() > 1;
 				copyRuleField.setVisible(copyRuleFieldVisible);
 				if (copyRuleFieldVisible) {
 					copyRuleField.setFieldChoices(documentVO.<CopyRetentionRuleInRule>getList(Document.APPLICABLE_COPY_RULES));

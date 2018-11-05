@@ -9,6 +9,8 @@ import com.vaadin.ui.VerticalLayout;
 
 import java.util.Locale;
 
+import java.util.Locale;
+
 public class RetentionRuleDisplay extends RecordDisplay {
 
 	public RetentionRuleDisplay(RetentionRuleDisplayPresenter presenter, RetentionRuleVO retentionRuleVO,

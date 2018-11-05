@@ -5,7 +5,6 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
@@ -42,7 +41,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 	private transient RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions extensions;
 	protected RecordVO container;
-	private RecordVODataProvider folderDataProvider, containerDataProvider, documentDataProvider;
+	private RecordVODataProvider folderDataProvider, containerDataProvider;
 
 
 	public AddEditLabelPresenter(AddEditLabelView view) {
@@ -87,23 +86,6 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 			};
 		}
 		return folderDataProvider;
-	}
-
-	public RecordVODataProvider getLabelDocumentDataProvider() {
-		if (documentDataProvider == null) {
-			final MetadataSchemaVO labelSchemaVo = schemaVOBuilder
-					.build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-			documentDataProvider = new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-				@Override
-				protected LogicalSearchQuery getQuery() {
-					MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
-					return new LogicalSearchQuery(
-							from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
-									.where(schema.getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(Document.SCHEMA_TYPE));
-				}
-			};
-		}
-		return documentDataProvider;
 	}
 
 	public RecordVODataProvider getLabelContainerDataProvider() {
@@ -158,26 +140,17 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 		return new SchemaTypeVODataProvider(new MetadataSchemaTypeToVOBuilder(), appLayerFactory, collection);
 	}
 
-	public void editButtonClicked(RecordVO record) {
+	public void editButtonClicked(RecordVO record, String schema) {
 		view.navigate().to().editLabel(record.getId());
 	}
 
 	public RecordVO getRecordsWithIndex(String schema, String itemId) {
-		RecordVODataProvider dataProvider;
-
-		if(schema.equals(Folder.SCHEMA_TYPE)) {
-			dataProvider = this.getLabelFolderDataProvider();
-		} else if (schema.equals(ContainerRecord.SCHEMA_TYPE)) {
-			dataProvider = this.getLabelContainerDataProvider();
-		} else {
-			dataProvider = this.getLabelDocumentDataProvider();
-		}
-
+		RecordVODataProvider dataProvider = schema.equals(Folder.SCHEMA_TYPE) ? this.getLabelFolderDataProvider() : this.getLabelContainerDataProvider();
 		RecordVO records = dataProvider.getRecordVO(Integer.parseInt(itemId));
 		return records;
 	}
 
-	public void displayButtonClicked(RecordVO record) {
+	public void displayButtonClicked(RecordVO record, String schema) {
 		view.navigate().to().viewLabel(record.getId());
 	}
 

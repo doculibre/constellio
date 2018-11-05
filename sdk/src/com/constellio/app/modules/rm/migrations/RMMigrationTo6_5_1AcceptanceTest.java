@@ -7,7 +7,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
-import org.apache.solr.common.params.ModifiableSolrParams;
 import org.junit.Test;
 
 import java.io.File;
@@ -36,37 +35,6 @@ public class RMMigrationTo6_5_1AcceptanceTest extends ConstellioTest {
 		types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		folderSchema = types.getDefaultSchema(Folder.SCHEMA_TYPE);
 		assertMetadataDeleted("ruleAdminUnit", folderSchema);
-	}
-
-	@Test
-	public void givenPreviousSystemWithMetadataToDeleteHavingValuesWhenMigratingThenAllMetadataToDeleteAreDisabled()
-			throws Exception {
-		givenPreviousSystemWithMetadtaToDeleteHavingValues();
-
-		ModifiableSolrParams params = new ModifiableSolrParams();
-		params.add("q", "ruleAdminUnitId_ss:*");
-		params.add("rows", "1");
-		assertThat(getDataLayerFactory().newRecordDao().query(params).getNumFound()).isNotEqualTo(0);
-
-		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		MetadataSchema folderSchema = types.getDefaultSchema(Folder.SCHEMA_TYPE);
-		MetadataSchema documentSchema = types.getDefaultSchema(Document.SCHEMA_TYPE);
-		assertMetadataDisabledAndMarkForDeletion("calendarYearEntered", folderSchema);
-		assertMetadataDisabledAndMarkForDeletion("calendarYear", folderSchema);
-		//		assertMetadataDisabledAndMarkForDeletion("calendarYearEntered", documentSchema);
-		//		assertMetadataDisabledAndMarkForDeletion("calendarYear", documentSchema);
-		assertMetadataDisabledAndMarkForDeletion("ruleAdminUnit", folderSchema);
-		assertFolderRangeDatesCreatedCorrectly();
-		assertThat(getDataLayerFactory().newRecordDao().query(params).getNumFound()).isNotEqualTo(0);
-
-		getModelLayerFactory().newReindexingServices().reindexCollections(RECALCULATE_AND_REWRITE);
-
-		types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		folderSchema = types.getDefaultSchema(Folder.SCHEMA_TYPE);
-		documentSchema = types.getDefaultSchema(Document.SCHEMA_TYPE);
-		assertMetadataDeleted("ruleAdminUnit", folderSchema);
-
-		assertThat(getDataLayerFactory().newRecordDao().query(params).getNumFound()).isEqualTo(0);
 	}
 
 	private void assertMetadataDisabledAndMarkForDeletion(String metadataLocalCode, MetadataSchema schema) {

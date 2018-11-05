@@ -1,11 +1,16 @@
 package com.constellio.app.modules.rm.ui.pages.retentionRule;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleDisplay;
 import com.constellio.app.modules.rm.ui.entities.RetentionRuleVO;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.components.BaseDisplay;
 import com.constellio.app.ui.framework.components.BaseDisplay.CaptionAndComponent;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
+import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
@@ -17,6 +22,7 @@ import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -115,6 +121,31 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 		actionMenuButtons.add(deleteButton);
 
 		return actionMenuButtons;
+	}
+
+	@Override
+	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
+		return new TitleBreadcrumbTrail(this, getTitle()) {
+			@Override
+			public List<? extends IntermediateBreadCrumbTailItem> getIntermediateItems() {
+				return Arrays.asList(new IntermediateBreadCrumbTailItem() {
+					@Override
+					public String getTitle() {
+						return $("ListRetentionRulesView.viewTitle");
+					}
+
+					@Override
+					public void activate(Navigation navigate) {
+						navigate.to(RMViews.class).listRetentionRules();
+					}
+
+					@Override
+					public boolean isEnabled() {
+						return true;
+					}
+				});
+			}
+		};
 	}
 
 }

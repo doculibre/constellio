@@ -2,6 +2,11 @@ package com.constellio.model.services.security;
 
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.services.records.RecordUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,6 +112,20 @@ public class AuthorizationsServicesRuntimeException extends RuntimeException {
 
 		public AuthServices_RecordServicesException(Throwable cause) {
 			super("Record service exception", cause);
+		}
+	}
+
+	public static class StartDateGreaterThanEndDate extends AuthorizationsServicesRuntimeException {
+
+		public StartDateGreaterThanEndDate(LocalDate startDate, LocalDate endDate) {
+			super("start date " + startDate.toString() + " is greater than end date" + endDate.toString());
+		}
+	}
+
+	public static class EndDateLessThanCurrentDate extends AuthorizationsServicesRuntimeException {
+
+		public EndDateLessThanCurrentDate(String endDate) {
+			super("end date " + endDate + " is less than current date" + new LocalDateTime().toString());
 		}
 	}
 }

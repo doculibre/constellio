@@ -39,6 +39,8 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 
 	private transient DecommissioningService decommissioningService;
 
+	private String tab;
+
 	public ContainersByAdministrativeUnitsPresenter(ContainersByAdministrativeUnitsView view) {
 		super(view);
 		init();
@@ -99,6 +101,7 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 		}
 
 		String tabName = params;
+		this.tab = params;
 		ContainersViewTab initialTab;
 		if (TAB_TRANSFER_NO_STORAGE_SPACE.equals(tabName)) {
 			initialTab = transferNoStorageSpace;
@@ -114,6 +117,10 @@ public class ContainersByAdministrativeUnitsPresenter extends BasePresenter<Cont
 		if (initialTab != null) {
 			view.selectTab(initialTab);
 		}
+	}
+
+	public String getTab() {
+		return tab;
 	}
 
 	@Override

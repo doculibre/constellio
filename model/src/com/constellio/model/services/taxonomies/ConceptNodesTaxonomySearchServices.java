@@ -111,7 +111,7 @@ public class ConceptNodesTaxonomySearchServices {
 		for (Metadata sortMetadata : sortMetadatas) {
 			query.sortAsc(sortMetadata);
 		}
-		
+
 		query.setName("TaxonomiesSearchServices.getRootConcepts(" + taxonomyCode + ")");
 		return query;
 	}

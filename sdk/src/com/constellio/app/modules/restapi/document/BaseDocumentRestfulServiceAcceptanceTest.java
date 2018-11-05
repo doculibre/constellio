@@ -19,7 +19,7 @@ import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -152,7 +152,7 @@ public class BaseDocumentRestfulServiceAcceptanceTest extends ConstellioTest {
 	protected List<Authorization> filterInheritedAuthorizations(List<Authorization> authorizations, String recordId) {
 		List<Authorization> filteredAuthorizations = Lists.newArrayList();
 		for (Authorization authorization : authorizations) {
-			if (authorization.getGrantedOnRecord().equals(recordId)) {
+			if (authorization.getTarget().equals(recordId)) {
 				filteredAuthorizations.add(authorization);
 			}
 		}

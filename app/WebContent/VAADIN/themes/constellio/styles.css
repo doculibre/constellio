@@ -12782,6 +12782,10 @@ div.v-layout.v-horizontal.v-widget {
 	font-weight: bold;
 }
 
+.constellio .v-table-cell-content-important {
+	font-weight: bold;
+}
+
 .constellio .v-table-cell-content-disabled {
 	background: #eeeeee;
 	background: -moz-linear-gradient(top, #eeeeee 0%, #cccccc 100%);
@@ -12873,6 +12877,10 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .error-label {
 	color: red;
 	border: 1px solid red;
+}
+
+.constellio .important-label {
+	color: red;
 }
 
 .constellio .lookup-window-content, .constellio .document-window-content {
@@ -13903,6 +13911,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding-top: 8px;
 	text-align: left;
 	font-weight: bold;
+	color: #197de1;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .document-search-result-title {

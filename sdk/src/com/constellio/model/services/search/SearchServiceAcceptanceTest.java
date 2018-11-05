@@ -5,22 +5,30 @@ import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
+import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataBuilder_EnumClassTest.AValidEnum;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
+import com.constellio.model.services.search.entities.SearchBoost;
 import com.constellio.model.services.search.moreLikeThis.MoreLikeThisClustering;
 import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -29,12 +37,15 @@ import com.constellio.model.services.search.query.logical.condition.LogicalSearc
 import com.constellio.model.services.search.query.logical.criteria.MeasuringUnitTime;
 import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchConditionWithDataStoreFields;
 import com.constellio.model.services.search.query.logical.valueCondition.ConditionTemplateFactory;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.TestRecord;
 import com.constellio.sdk.tests.TestUtils;
 import com.constellio.sdk.tests.annotations.SlowTest;
 import com.constellio.sdk.tests.schemas.MetadataBuilderConfigurator;
 import com.constellio.sdk.tests.schemas.MetadataSchemaTypesConfigurator;
+import com.constellio.sdk.tests.setups.Users;
+import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -42,6 +53,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import com.constellio.app.modules.tasks.model.wrappers.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -106,7 +118,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	SearchServiceAcceptanceTestSchemas.AnotherSchemaMetadatas anotherSchema = schema.new AnotherSchemaMetadatas();
 	SearchServiceAcceptanceTestSchemas otherSchema = new SearchServiceAcceptanceTestSchemas("collection2");
 	SearchServiceAcceptanceTestSchemas.OtherSchemaMetadatasInCollection2 otherSchemaInCollection2 = otherSchema.new OtherSchemaMetadatasInCollection2();
-
+	Users users = new Users();
 	LogicalSearchCondition condition;
 
 	ConditionTemplateFactory factory;
@@ -121,7 +133,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	public void setUp() {
 
 		prepareSystem(
-				withZeCollection(),
+				withZeCollection().withAllTestUsers().withTasksModule(),
 				withCollection("collection2")
 		);
 		//givenCollection(zeCollection, Arrays.asList(Language.French.getCode(), Language.English.getCode()));
@@ -131,6 +143,9 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		transaction = new Transaction();
 		factory = new ConditionTemplateFactory(getModelLayerFactory(), zeCollection);
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		users.setUp(userServices);
 	}
 
 	@Test
@@ -788,6 +803,136 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		assertThat(searchServices.search(new LogicalSearchQuery(whereStringMetadata.isEqualTo("Chuck Norris")
 				.andWhere(zeSchema.anotherStringMetadata()).isEqualTo("Dakota")).setPreferAnalyzedFields(true)))
 				.isEmpty();
+	}
+
+	@Test
+	public void givenMetadataWithRoleRestrictionThenSearchDoesNotIncludeThatBoost() throws OptimisticLocking {
+		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		List<MetadataSchemaType> metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
+
+		User user = users.adminIn(zeCollection);
+
+		SearchBoost searchBoost = createRegexBoost("description_t", "Kiwi", "My boost", 12.0);
+
+		String qfResult1 = searchServices.getQfFor(Language.French.getCode(), asList(searchBoost), metadataSchemaTypeList, user);
+
+		assertThat(qfResult1.contains("description_t:Kiwi^12.0")).isTrue();
+
+		addRoleToTaskDefaultTitleMetadata("M");
+
+		metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
+
+		String qfResult2 = searchServices.getQfFor(Language.French.getCode(), asList(searchBoost), metadataSchemaTypeList, user);
+
+		assertThat(qfResult2.contains("description_t:Kiwi^12.0")).isFalse();
+	}
+
+	@Test
+	public void givenMetadataWithRoleRestrictionWithAllSchemaThatDoesNotIncludeThatMetadataThenSearchIncludeThatField() throws OptimisticLocking {
+		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		List<MetadataSchemaType> metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
+
+		User user = users.adminIn(zeCollection);
+
+
+		String qfResult1 = searchServices.getQfFor(Language.French.getCode(), new ArrayList<SearchBoost>(), metadataSchemaTypeList, user);
+
+		assertThat(qfResult1.contains("description_t")).isTrue();
+
+		addRoleToTaskDefaultTitleMetadata("M");
+
+		metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
+
+		metadataSchemaTypeList = removeSchemaTypeFromSchemaTypeList(metadataSchemaTypeList, Task.SCHEMA_TYPE);
+
+		String qfResult2 = searchServices.getQfFor(Language.French.getCode(), new ArrayList<SearchBoost>(), metadataSchemaTypeList, user);
+
+		assertThat(qfResult2.contains("description_t")).isTrue();
+	}
+
+	@Test
+	public void givenMetadataWithRoleRestrictionAndSchemaThatDoesNotIncludeThatMetadataThenSearchIncludeThatBoost() throws OptimisticLocking {
+		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		List<MetadataSchemaType> metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
+
+		User user = users.adminIn(zeCollection);
+
+		SearchBoost searchBoost = createRegexBoost("description_t", "Kiwi", "My boost", 12.0);
+
+		String qfResult1 = searchServices.getQfFor(Language.French.getCode(), asList(searchBoost), metadataSchemaTypeList, user);
+
+		assertThat(qfResult1.contains("description_t:Kiwi^12.0")).isTrue();
+
+		addRoleToTaskDefaultTitleMetadata("M");
+
+		metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
+
+		metadataSchemaTypeList = removeSchemaTypeFromSchemaTypeList(metadataSchemaTypeList, Task.SCHEMA_TYPE);
+
+		String qfResult2 = searchServices.getQfFor(Language.French.getCode(), asList(searchBoost), metadataSchemaTypeList, user);
+
+		assertThat(qfResult2.contains("description_t:Kiwi^12.0")).isTrue();
+	}
+
+	private List<MetadataSchemaType> removeSchemaTypeFromSchemaTypeList(List<MetadataSchemaType> metadataSchemaTypes, String code) {
+		Iterator iterator = metadataSchemaTypes.iterator();
+		List<MetadataSchemaType> metadataSchemaTypeList = new ArrayList<>();
+
+		while(iterator.hasNext()) {
+			MetadataSchemaType metadataSchemaType = (MetadataSchemaType) iterator.next();
+
+			if(!metadataSchemaType.getCode().equals(code)) {
+				metadataSchemaTypeList.add(metadataSchemaType);
+			}
+		}
+
+		return metadataSchemaTypeList;
+	}
+
+	@Test
+	public void givenBoostWithCorrespondingMetadataWithRoleRestrictionThenSearchDoesNotIncludeThatField() throws OptimisticLocking {
+		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		List<MetadataSchemaType> metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
+
+		String descriptionCode = metadataSchemaTypes.getSchemaType(Task.SCHEMA_TYPE).getDefaultSchema().getMetadata(Task.DESCRIPTION).getDataStoreCode();
+		User user = users.adminIn(zeCollection);
+		String qfResult1 = searchServices.getQfFor(Language.French.getCode(), new ArrayList<SearchBoost>(), metadataSchemaTypeList, user);
+
+		assertThat(qfResult1.contains(descriptionCode)).isTrue();
+
+		addRoleToTaskDefaultTitleMetadata("M");
+
+		metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
+		metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
+
+		String qfResult2 = searchServices.getQfFor(Language.French.getCode(), new ArrayList<SearchBoost>(), metadataSchemaTypeList, user);
+
+		assertThat(qfResult2.contains(descriptionCode)).isFalse();
+	}
+
+	private void addRoleToTaskDefaultTitleMetadata(String role)
+			throws OptimisticLocking {
+		final MetadataSchemasManager schemasManager = getModelLayerFactory().getMetadataSchemasManager();
+		final MetadataSchemaTypesBuilder types = schemasManager.modify(zeCollection);
+		final MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
+		final MetadataBuilder builder;
+
+		builder = types.getSchema(Task.DEFAULT_SCHEMA).get(Task.DESCRIPTION);
+
+		MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(Arrays.asList(role), new ArrayList<String>(),
+				new ArrayList<String>(), new ArrayList<String>());
+
+		metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
+		builder.setAccessRestrictionBuilder(metadataAccessRestrictionBuilder);
+
+		schemasManager.saveUpdateSchemaTypes(types);
 	}
 
 	//Broken multilingual @Test
@@ -3006,6 +3151,24 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		assertThat(searchServices.search(query)).extracting("id").containsExactly("r3", "r4", "r5", "r1", "r2");
 
+	}
+
+	@Test
+	public void whenSearchingWithFreeTextThenQfDoesNotContainDuplicateAnalyzedFields()
+			throws Exception {
+		defineSchemasManager().using(
+				schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata(whichIsSearchable).withADateMetadata()
+				.withAStringMetadataInAnotherSchema(whichIsSearchable).withANumberMetadataInAnotherSchema(whichIsSearchable));
+
+		condition = from(asList(zeSchema.typeCode(), anotherSchema.typeCode()), zeSchema.collection()).returnAll();
+		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery("myFreeText");
+		ModifiableSolrParams modifiableSolrParams = searchServices.addSolrModifiableParams(query);
+		String qf = modifiableSolrParams.get("qf");
+
+		List<String> analyzedFields = asList(qf.split(" "));
+		HashSet uniqueAnalyzedFields = new HashSet<>(analyzedFields);
+		assertThat(uniqueAnalyzedFields).hasSize(analyzedFields.size());
+		assertThat(uniqueAnalyzedFields).doesNotContain("dateMetadata.search_ss");
 	}
 
 	private void givenRecordsFromTwoSchemasTypesWithReferences()

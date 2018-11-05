@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.components.document;
 
+import com.constellio.app.api.extensions.params.NavigateToFromAPageParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
@@ -12,6 +13,8 @@ import com.constellio.app.modules.rm.services.logging.DecommissioningLoggingServ
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
+import com.constellio.app.modules.rm.util.DecommissionNavUtil;
+import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -62,8 +65,8 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuItemClickListener;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.pages.search.SearchPresenter.CURRENT_SEARCH_EVENT;
@@ -147,11 +150,46 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 										&& extensions.isRecordModifiableBy(record, user) && !extensions.isModifyBlocked(record, user));
 	}
 
-	public void editDocumentButtonClicked() {
+	public void editDocumentButtonClicked(Map<String, String> params) {
 		if (isEditDocumentPossible()) {
-			actionsComponent.navigate().to(RMViews.class).editDocument(documentVO.getId());
+
+			RMNavigationUtils.navigateToEditDocument(documentVO.getId(), params,
+					actionsComponent.getConstellioFactories().getAppLayerFactory(),
+					actionsComponent.getSessionContext().getCurrentCollection());
+
 			updateSearchResultClicked();
 		}
+	}
+
+
+	public void addDocumentToDefaultFavorite() {
+		Document document = rmSchemasRecordsServices.wrapDocument(presenterUtils.getRecord(documentVO.getId()));
+		if (rmSchemasRecordsServices.numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
+			actionsComponent.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			document.addFavorite(getCurrentUser().getId());
+			try {
+				presenterUtils.recordServices().update(document);
+			} catch (RecordServicesException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	public void removeDocumentFromDefaultFavorites() {
+		Document document = rmSchemasRecordsServices.wrapDocument(presenterUtils.getRecord(documentVO.getId()));
+		document.removeFavorite(getCurrentUser().getId());
+		try {
+			presenterUtils.recordServices().update(document);
+		} catch (RecordServicesException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public boolean documentInDefaultFavorites() {
+		Record record = presenterUtils.getRecord(documentVO.getId());
+		Document document = rmSchemasRecordsServices.wrapDocument(record);
+		return document.getFavorites().contains(getCurrentUser().getId());
 	}
 
 	public Document renameContentButtonClicked(String newName) {
@@ -180,9 +218,18 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return null;
 	}
 
-	public void copyContentButtonClicked() {
+	public void copyContentButtonClicked(Map<String, String> params) {
 		if (isCopyDocumentPossible()) {
-			actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
+			boolean areSearchTypeAndSearchIdPresent = DecommissionNavUtil.areTypeAndSearchIdPresent(params);
+
+			if (areSearchTypeAndSearchIdPresent) {
+				actionsComponent.navigate().to(RMViews.class)
+						.addDocumentWithContentFromDecommission(documentVO.getId(), DecommissionNavUtil.getSearchId(params), DecommissionNavUtil.getSearchType(params));
+			} else if (rmModuleExtensions
+					.navigateToAddDocumentWhileKeepingTraceOfPreviousView(new NavigateToFromAPageParams(params, documentVO.getId()))) {
+			} else {
+				actionsComponent.navigate().to(RMViews.class).addDocumentWithContent(documentVO.getId());
+			}
 		}
 	}
 
@@ -237,7 +284,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return ComponentState.INVISIBLE;
 	}
 
-	public void deleteDocumentButtonClicked() {
+	public void deleteDocumentButtonClicked(Map<String, String> params) {
 		if (isDeleteDocumentPossibleExtensively()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
@@ -255,7 +302,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				return;
 			}
 			if (parentId != null) {
-				actionsComponent.navigate().to(RMViews.class).displayFolder(parentId);
+				navigateToDisplayFolder(parentId, params);
 			} else {
 				actionsComponent.navigate().to().recordsManagement();
 			}
@@ -430,7 +477,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 	}
 
-	public synchronized void createPDFA() {
+	public synchronized void createPDFA(Map<String, String> params) {
 		if (!isCreatePDFAPossible()) {
 			return;
 		}
@@ -448,7 +495,8 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 					decommissioningLoggingService.logPdfAGeneration(document, getCurrentUser());
 
-					actionsComponent.navigate().to(RMViews.class).displayDocument(document.getId());
+					navigateToDisplayDocument(document.getId(), params);
+
 					actionsComponent.showMessage($("DocumentActionsComponent.createPDFASuccess"));
 				} catch (Exception e) {
 					actionsComponent.showErrorMessage(
@@ -460,6 +508,18 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		} else {
 			actionsComponent.showMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
 		}
+	}
+
+	public void navigateToDisplayDocument(String documentId, Map<String, String> params) {
+		RMNavigationUtils.navigateToDisplayDocument(documentId, params,
+				actionsComponent.getConstellioFactories().getAppLayerFactory(),
+				actionsComponent.getSessionContext().getCurrentCollection());
+	}
+
+	public void navigateToDisplayFolder(String folderId, Map<String, String> params) {
+		RMNavigationUtils.navigateToDisplayFolder(folderId, params,
+				actionsComponent.getConstellioFactories().getAppLayerFactory(),
+				actionsComponent.getSessionContext().getCurrentCollection());
 	}
 
 	public void checkInButtonClicked() {
@@ -797,9 +857,15 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void addToCartRequested(RecordVO cartVO) {
-		Cart cart = rmSchemasRecordsServices.getCart(cartVO.getId()).addDocuments(Arrays.asList(documentVO.getId()));
-		presenterUtils.addOrUpdate(cart.getWrappedRecord());
-		actionsComponent.showMessage($("DocumentActionsComponent.addedToCart"));
+		Cart cart = rmSchemasRecordsServices.getCart(cartVO.getId());
+		if (rmSchemasRecordsServices.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
+			actionsComponent.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
+			document.addFavorite(cart.getId());
+			presenterUtils.addOrUpdate(document.getWrappedRecord());
+			actionsComponent.showMessage($("DocumentActionsComponent.addedToCart"));
+		}
 	}
 
 	public Document publishButtonClicked() {
@@ -923,22 +989,25 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
-		SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
-		if (searchEvent != null) {SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(), presenterUtils.modelLayerFactory());
+			SearchEventServices searchEventServices = new SearchEventServices(presenterUtils.getCollection(),
+					presenterUtils.modelLayerFactory());
 
 
-		searchEventServices.incrementClickCounter(searchEvent.getId());
+			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 
-			String url = null;
-			try {
-				url = documentVO.get("url");
-			} catch (RecordVORuntimeException_NoSuchMetadata e) {
+			if (searchEvent != null) {
+				searchEventServices.incrementClickCounter(searchEvent.getId());
+
+				String url = null;
+				try {
+					url = documentVO.get("url");
+				} catch (RecordVORuntimeException_NoSuchMetadata e) {
+				}
+				String clicks = defaultIfBlank(url, documentVO.getId());
+				searchEventServices.updateClicks(searchEvent, clicks);
 			}
-			String clicks = defaultIfBlank(url, documentVO.getId());
-			searchEventServices.updateClicks(searchEvent, clicks);
 		}
 	}
-}
 
 	//	public void addItemsFromExtensions(final MenuItem rootItem, final BaseViewImpl view) {
 	//

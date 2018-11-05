@@ -39,12 +39,10 @@ import java.util.UUID;
 
 public class ConstellioResourceHandler implements RequestHandler {
 
-	public enum ResourceType {
+    public enum ResourceType {
 		NORMAL, PREVIEW, THUMBNAIL, JPEG_CONVERSION;
-	}
-
-	private static final long serialVersionUID = 1L;
-	private static final String PATH = UUID.randomUUID().toString();
+	}private static final long serialVersionUID = 1L;
+    private static final String PATH = UUID.randomUUID().toString();
 
 	@Override
 	public boolean handleRequest(VaadinSession session, VaadinRequest request, VaadinResponse response)
@@ -162,8 +160,8 @@ public class ConstellioResourceHandler implements RequestHandler {
 		return createResource(recordId, metadataCode, version, filename, ResourceType.NORMAL);
 	}
 
-	public static Resource createPreviewResource(String recordId, String metadataCode, String version, String filename) {
-		return createResource(recordId, metadataCode, version, filename, ResourceType.PREVIEW);
+    public static Resource createPreviewResource(String recordId, String metadataCode, String version, String filename) {
+		returncreateResource(recordId, metadataCode, version, filename, ResourceType.PREVIEW);
     }
 
     public static Resource createThumbnailResource(String recordId, String metadataCode, String version, String filename) {
@@ -182,39 +180,42 @@ public class ConstellioResourceHandler implements RequestHandler {
 
 	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
 										  ResourceType resourceType, boolean useBrowserCache) {
-		Map<String, String> params = new LinkedHashMap<>();
-		params.put("recordId", recordId);
-		params.put("metadataCode", metadataCode);
-		params.put("preview", "" + (resourceType == ResourceType.PREVIEW));
+    return createResource(recordId, metadataCode, version, filename, preview, false);
+	}
+
+	public static Resource createResource(String recordId, String metadataCode, String version, String filename,
+										  boolean preview, boolean useBrowserCache) {	Map<String, String> params = new LinkedHashMap<>();
+    	params.put("recordId", recordId);
+    	params.put("metadataCode", metadataCode);
+    	params.put("preview", "" + (resourceType == ResourceType.PREVIEW));
 		params.put("thumbnail", "" + (resourceType == ResourceType.THUMBNAIL));
 		params.put("jpegConversion", "" + (resourceType == ResourceType.JPEG_CONVERSION));
-		params.put("version", version);
-		params.put("z-filename", filename);
-		if (!useBrowserCache) {
+    	params.put("version", version);
+    	params.put("z-filename", filename);if (!useBrowserCache) {
 			Random random = new Random();
 			params.put("cacheRandomizer", String.valueOf(random.nextLong()));
 		}
-		String resourcePath = ParamUtils.addParams(PATH, params);
-		return new ExternalResource(resourcePath);
-	}
+    	String resourcePath = ParamUtils.addParams(PATH , params);
+        return new ExternalResource(resourcePath);
+    }
+    
+    public static Resource createResource(File file) {
+    	Map<String, String> params = new LinkedHashMap<>();
+    	params.put("file", file.getAbsolutePath());
+    	String resourcePath = ParamUtils.addParams(PATH, params);
+        return new ExternalResource(resourcePath);
+    }
 
-	public static Resource createResource(File file) {
-		Map<String, String> params = new LinkedHashMap<>();
-		params.put("file", file.getAbsolutePath());
-		String resourcePath = ParamUtils.addParams(PATH, params);
-		return new ExternalResource(resourcePath);
-	}
-
-	public static Resource createResource(String hash, String filename) {
-		Map<String, String> params = new LinkedHashMap<>();
-		params.put("hash", hash);
-		params.put("z-filename", filename);
-		String resourcePath = ParamUtils.addParams(PATH, params);
-		return new ExternalResource(resourcePath);
-	}
-
-	public static boolean hasContentPreview(String recordId, String metadataCode, String version) {
-		Content content = getContent(recordId, metadataCode);
+    public static Resource createResource(String hash, String filename) {
+    	Map<String, String> params = new LinkedHashMap<>();
+    	params.put("hash", hash);
+    	params.put("z-filename", filename);
+    	String resourcePath = ParamUtils.addParams(PATH , params);
+        return new ExternalResource(resourcePath);
+    }
+    
+    public static boolean hasContentPreview(String recordId, String metadataCode, String version) {
+    	Content content = getContent(recordId, metadataCode);
 		if (content != null) {
 			ContentVersion contentVersion = content.getVersion(version);
 			String hash = contentVersion.getHash();
@@ -265,6 +266,7 @@ public class ConstellioResourceHandler implements RequestHandler {
 			String schemaCode = record.getSchemaCode();
 			Metadata metadata = types.getMetadata(schemaCode + "_" + metadataCode);
 			return record.get(metadata);
+
 		}
 		return null;
 	}

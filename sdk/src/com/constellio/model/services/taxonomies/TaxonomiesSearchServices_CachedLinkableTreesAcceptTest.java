@@ -63,11 +63,14 @@ import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIV
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
+import static com.constellio.model.entities.schemas.Schemas.TOKENS_OF_HIERARCHY;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
+import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.createFoldersAndDocumentsWithNegativeAuths;
+import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.createFoldersAndSubFoldersWithNegativeAuths;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -508,6 +511,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 	}
 
+
 	@Test
 	public void givenSpecialConditionWhenSelectingASecondaryConceptThenReturnRecordsBasedOnCondition()
 			throws Exception {
@@ -722,6 +726,231 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(noItemsWithChildren())
 				.has(solrQueryCounts(2, 1, 1))
 				.has(secondSolrQueryCounts(2, 1, 1));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(subFolder.getId())
+				.is(empty())
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
+
+	}
+
+	private ListAssert<String> assertThatTokensOf(String id) {
+
+		List<String> tokens = record(id).getList(TOKENS_OF_HIERARCHY);
+
+		List<String> transformedTokensReplacingIdsByNames = new ArrayList<>();
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		for (String token : tokens) {
+			String transformedToken = token;
+
+			for (User user : userServices.getAllUsersInCollection(zeCollection)) {
+				transformedToken = transformedToken.replace(user.getId(), user.getUsername());
+			}
+
+			for (Record group : getModelLayerFactory().newSearchServices().getAllRecords(rm.group.schemaType())) {
+				transformedToken = transformedToken.replace(group.getId(), group.<String>get(Schemas.CODE));
+			}
+
+			transformedTokensReplacingIdsByNames.add(transformedToken);
+		}
+
+		return assertThat(transformedTokensReplacingIdsByNames);
+
+	}
+
+	@Test
+	public void givenUserHavePositiveAuthorizationsOnFoldersAndSubFoldersThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+
+		createFoldersAndSubFoldersWithNegativeAuths(records.getUnit20(), records.getCategory_X13());
+		waitForBatchProcess();
+
+		//		assertThatTokensOf("f11").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f1").isEmpty();
+		//
+		//		assertThatTokensOf("f21").containsOnly("nd_heroes", "nr_heroes", "nw_sidekicks", "nw_heroes", "nd_sidekicks", "nr_sidekicks");
+		//		assertThatTokensOf("f2").containsOnly("nd_heroes", "nr_heroes", "nw_sidekicks", "nw_heroes", "nd_sidekicks", "nr_sidekicks");
+		//
+		//		assertThatTokensOf("f31").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f32").containsOnly("nd_heroes", "nr_heroes", "nw_sidekicks", "nw_heroes", "nd_sidekicks", "nr_sidekicks");
+		//		assertThatTokensOf("f3").isEmpty();
+		//
+		//		assertThatTokensOf("f41").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks",
+		//				"nd_legends", "nr_legends", "nw_rumors", "nw_legends", "nd_rumors", "nr_rumors");
+		//		assertThatTokensOf("f4").isEmpty();
+
+		//		assertThatTokensOf("f51").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f5").isEmpty();
+		//
+		//		assertThatTokensOf("f61").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f62").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f6").isEmpty();
+		//
+		//		assertThatTokensOf("f71").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f72").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f7").isEmpty();
+
+		//		assertThatTokensOf("f81").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
+		//		assertThatTokensOf("f8").isEmpty();
+
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(true));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, users.aliceIn(zeCollection))
+				.has(linkable("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10"))
+				.has(numFound(10));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f9", users.aliceIn(zeCollection)).has(linkable("f91"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f10", users.aliceIn(zeCollection)).has(linkable("f101"));
+
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(false));
+
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, users.aliceIn(zeCollection))
+				.has(linkable("f1", "f2", "f3", "f4", "f5", "f6"))
+				.has(unlinkable("f7", "f8"))
+				.has(numFound(8));
+		//				.has(solrQueryCounts(3, 4, 4))
+		//				.has(secondSolrQueryCounts(1, 0, 0));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f1", users.aliceIn(zeCollection)).has(linkable("f11"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f2", users.aliceIn(zeCollection)).has(linkable("f21"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f3", users.aliceIn(zeCollection)).has(linkable("f31", "f32"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f4", users.aliceIn(zeCollection)).has(noItemsWithChildren());
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f5", users.aliceIn(zeCollection)).has(linkable("f51"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f6", users.aliceIn(zeCollection)).has(linkable("f62")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f7", users.aliceIn(zeCollection)).has(linkable("f72")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f8", users.aliceIn(zeCollection)).has(linkable("f81"));
+
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, users.charlesIn(zeCollection))
+				.has(linkable("f6", "f7", "f8"))
+				.has(unlinkable("f1", "f3", "f4", "f5"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f1", users.charlesIn(zeCollection)).has(linkable("f11")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f3", users.charlesIn(zeCollection)).has(linkable("f31")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f4", users.charlesIn(zeCollection)).has(linkable("f41")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f5", users.charlesIn(zeCollection)).has(linkable("f51")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f6", users.charlesIn(zeCollection)).has(linkable("f61", "f62")).has(numFound(2));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f7", users.charlesIn(zeCollection)).has(linkable("f71", "f72")).has(numFound(2));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f8", users.charlesIn(zeCollection)).has(noItemsWithChildren());
+
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, users.gandalfIn(zeCollection))
+				.has(linkable("f6"))
+				.has(unlinkable("f1", "f3", "f4", "f5", "f7", "f8"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f1", users.gandalfIn(zeCollection)).has(linkable("f11")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f3", users.gandalfIn(zeCollection)).has(linkable("f31")).has(numFound(1));
+
+		//This is an accepted problem (f41 should not be returned)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f4", users.gandalfIn(zeCollection)).has(noItemsWithChildren());
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f5", users.gandalfIn(zeCollection)).has(linkable("f51")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f6", users.gandalfIn(zeCollection)).has(linkable("f62")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f7", users.gandalfIn(zeCollection)).has(linkable("f72")).has(numFound(1));
+
+		//This is an accepted problem (f81 should not be returned)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f8", users.gandalfIn(zeCollection)).has(noItemsWithChildren());
+
+	}
+
+
+	@Test
+	public void givenUserHavePositiveAuthorizationsOnFoldersAndDocumentsThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+
+		createFoldersAndDocumentsWithNegativeAuths(records.getUnit20(), records.getCategory_X13());
+		waitForBatchProcess();
+
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(true));
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X13, users.aliceIn(zeCollection))
+				.has(unlinkable("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10"))
+				.has(numFound(10));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f9", users.aliceIn(zeCollection)).has(linkable("d91"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f10", users.aliceIn(zeCollection)).has(linkable("d101"));
+
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(false));
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X13, users.aliceIn(zeCollection))
+				.has(unlinkable("f1", "f2", "f3", "f5", "f6", "f7", "f8"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f1", users.aliceIn(zeCollection)).has(linkable("d11"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f2", users.aliceIn(zeCollection)).has(linkable("d21"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f3", users.aliceIn(zeCollection)).has(linkable("d31", "d32"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f4", users.aliceIn(zeCollection)).has(noItemsWithChildren());
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f5", users.aliceIn(zeCollection)).has(linkable("d51"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f6", users.aliceIn(zeCollection)).has(linkable("d62")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f7", users.aliceIn(zeCollection)).has(linkable("d72")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f8", users.aliceIn(zeCollection)).has(linkable("d81"));
+
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X13, users.charlesIn(zeCollection))
+				.has(unlinkable("f1", "f3", "f4", "f5", "f6", "f7", "f8"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f1", users.charlesIn(zeCollection)).has(linkable("d11")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f3", users.charlesIn(zeCollection)).has(linkable("d31")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f4", users.charlesIn(zeCollection)).has(linkable("d41")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f5", users.charlesIn(zeCollection)).has(linkable("d51")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f6", users.charlesIn(zeCollection)).has(linkable("d61", "d62")).has(numFound(2));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f7", users.charlesIn(zeCollection)).has(linkable("d71", "d72")).has(numFound(2));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f8", users.charlesIn(zeCollection)).has(noItemsWithChildren());
+
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X13, users.gandalfIn(zeCollection))
+				.has(unlinkable("f1", "f3", "f4", "f5", "f6", "f7", "f8"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f1", users.gandalfIn(zeCollection)).has(linkable("d11")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f3", users.gandalfIn(zeCollection)).has(linkable("d31")).has(numFound(1));
+
+		//This is an accepted problem (f41 should not be returned)
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f4", users.gandalfIn(zeCollection)).has(noItemsWithChildren());
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f5", users.gandalfIn(zeCollection)).has(linkable("d51")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f6", users.gandalfIn(zeCollection)).has(linkable("d62")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f7", users.gandalfIn(zeCollection)).has(linkable("d72")).has(numFound(1));
+
+		//This is an accepted problem (f81 should not be returned)
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f8", users.gandalfIn(zeCollection)).has(noItemsWithChildren());
+
+	}
+
+	@Test
+	public void givenUserHaveNegativeAuthorizationsOnASubFolderAndPositiveAuthorizationOnItsParentThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+		Folder subFolder = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
+		getModelLayerFactory().newRecordServices().add(subFolder);
+
+		givenUserHasReadAccessTo(records.getFolder_A20().getId());
+		givenUserHasNegativeReadAccessTo(subFolder.getId());
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy()
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_Z))
+				.has(solrQueryCounts(2, 2, 2))
+				.has(secondSolrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z100))
+				.has(itemsWithChildren(records.categoryId_Z100))
+				.has(solrQueryCounts(3, 4, 4))
+				.has(secondSolrQueryCounts(1, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z100)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z120))
+				.has(itemsWithChildren(records.categoryId_Z120))
+				.has(solrQueryCounts(3, 2, 2))
+				.has(secondSolrQueryCounts(1, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z120)
+				.has(numFoundAndListSize(1))
+				.has(linkable(records.folder_A20))
+				.has(solrQueryCounts(3, 1, 1))
+				.has(secondSolrQueryCounts(2, 1, 1));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20)
+				.has(numFoundAndListSize(0))
+				.has(noItemsWithChildren())
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(subFolder.getId())
 				.is(empty())
@@ -3054,6 +3283,18 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
 	}
 
+	private void givenUserHasNegativeReadAccessTo(String... ids) {
+		for (String id : ids) {
+			getModelLayerFactory().newAuthorizationsServices().add(authorizationForUsers(alice).on(id).givingNegativeReadAccess());
+		}
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
+	}
+
 	private void givenUserHasWriteAccessTo(String... ids) {
 		for (String id : ids) {
 			getModelLayerFactory().newAuthorizationsServices()
@@ -3136,6 +3377,30 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				LinkableTaxonomySearchResponse response = service.getLinkableChildConceptResponse(alice, inRecord,
 						CLASSIFICATION_PLAN, Folder.SCHEMA_TYPE, options);
 				return response;
+			}
+		});
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(
+			final String category, final User user) {
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+				return service.getLinkableChildConceptResponse(user, inRecord,
+						CLASSIFICATION_PLAN, Folder.SCHEMA_TYPE, new TaxonomiesSearchOptions());
+			}
+		});
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(
+			final String category, final User user) {
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+				return service.getLinkableChildConceptResponse(user, inRecord,
+						CLASSIFICATION_PLAN, Document.SCHEMA_TYPE, new TaxonomiesSearchOptions());
 			}
 		});
 	}

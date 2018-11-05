@@ -50,6 +50,21 @@ import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 @SuppressWarnings("serial")
 public abstract class BaseForm<T> extends CustomComponent {
@@ -205,7 +220,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 		}
 		formLayout.addComponent(buttonsLayout);
 		buttonsLayout.addComponents(saveButton, cancelButton);
-		
+
 		if (useTabSheet) {
 			List<String> orderedTabGroupLabels = getOrderedTabCaptions(viewObject);
 			List<String> usedTabCaptions = new ArrayList<>();
@@ -219,7 +234,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 						usedTab = true;
 						break usedTabsLoop;
 					}
-				}	
+				}
 				if (usedTab) {
 					usedTabCaptions.add(orderedTabCaption);
 				}
@@ -243,7 +258,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 			}
 		}
 	}
-	
+
 	protected List<String> getOrderedTabCaptions(T viewObject) {
 		return new ArrayList<>();
 	}
@@ -268,7 +283,7 @@ public abstract class BaseForm<T> extends CustomComponent {
 	protected String getCancelButtonCaption() {
 		return $("cancel");
 	}
-	
+
 	private String getTabCaption(String groupLabel) {
 		String tabCaption;
 		if (StringUtils.isBlank(groupLabel)) {
@@ -387,24 +402,25 @@ public abstract class BaseForm<T> extends CustomComponent {
 
 					if (isSpecialContainerTitleCase) {
 						ValidationErrors newValidationErrors = new ValidationErrors();
-						for (Iterator<ValidationError> it = validationErrorsFromException.getValidationErrors().iterator(); it
+						if (validationErrorsFromException != null) {for (Iterator<ValidationError> it = validationErrorsFromException.getValidationErrors().iterator(); it
 								.hasNext(); ) {
 							ValidationError validationError = it.next();
 							if (validationError.getValidatorErrorCode().equals(REQUIRED_VALUE_FOR_METADATA)
-								&& validationError.getParameters().size() > 0
-								&& validationError.getParameters().get(METADATA_CODE)
-										.equals(CONTAINER_RECORD_DEFAULT_TITLE)) {
+									&& validationError.getParameters().size() > 0
+									&& validationError.getParameters().get(METADATA_CODE)
+									.equals(CONTAINER_RECORD_DEFAULT_TITLE)) {
 								Map<String, Object> params = new HashMap<String, Object>();
 
-								ValidationError newValidationError = new ValidationError(validatorClass,
-										REQUIRED_VALUE_FOR_METADATA, params);
-								newValidationErrors.add(newValidationError, newValidationError.getParameters());
+									ValidationError newValidationError = new ValidationError(validatorClass,
+											REQUIRED_VALUE_FOR_METADATA, params);
+									newValidationErrors.add(newValidationError, newValidationError.getParameters());
 
-							} else {
-								newValidationErrors.add(validationError, validationError.getParameters());
+								} else {
+									newValidationErrors.add(validationError, validationError.getParameters());
+								}
 							}
+							validationErrorsFromException = newValidationErrors;
 						}
-						validationErrorsFromException = newValidationErrors;
 					}
 
 					if (validationErrorsFromException != null) {
@@ -424,21 +440,23 @@ public abstract class BaseForm<T> extends CustomComponent {
 			for (Field<?> field : fieldGroup.getFields()) {
 				if (!field.isValid() && field.isRequired() && isEmptyValue(field.getValue())) {
 					field.setRequiredError($("requiredField"));
-					if (missingRequiredFields.length() != 0) {
-						missingRequiredFields.append("<br/>");
-					}
-					missingRequiredFields.append($("requiredFieldWithName", "\"" + field.getCaption() + "\""));
+					addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + field.getCaption() + "\""));
 					if (firstFieldWithError == null) {
 						firstFieldWithError = field;
 					}
-				} else if (!field.isValid()) {
-					if (missingRequiredFields.length() != 0) {
-						missingRequiredFields.append("<br/>");
-					}
-					missingRequiredFields.append($("invalidFieldWithName", "\"" + field.getCaption() + "\""));
-
-					if (firstFieldWithError == null) {
-						firstFieldWithError = field;
+				} else {
+					try {
+						field.validate();
+					} catch (Validator.EmptyValueException e) {
+						addErrorMessage(missingRequiredFields, $("requiredFieldWithName", "\"" + e.getMessage() + "\""));
+						if (firstFieldWithError == null) {
+							firstFieldWithError = field;
+						}
+					} catch (Validator.InvalidValueException e) {
+						addErrorMessage(missingRequiredFields, $("invalidFieldWithName", "\"" + e.getMessage() + "\""));
+						if (firstFieldWithError == null) {
+							firstFieldWithError = field;
+						}
 					}
 				}
 			}
@@ -447,6 +465,13 @@ public abstract class BaseForm<T> extends CustomComponent {
 				showErrorMessage(missingRequiredFields.toString());
 			}
 		}
+	}
+
+	private void addErrorMessage(StringBuilder missingRequiredFields, String message) {
+		if (missingRequiredFields.length() != 0) {
+			missingRequiredFields.append("<br/>");
+		}
+		missingRequiredFields.append(message);
 	}
 
 	private boolean isEmptyValue(Object value) {

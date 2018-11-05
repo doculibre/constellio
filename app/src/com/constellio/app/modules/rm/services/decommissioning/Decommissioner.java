@@ -1,5 +1,19 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
@@ -15,6 +29,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.io.services.facades.FileService;
@@ -44,19 +59,6 @@ import com.constellio.model.services.records.RecordServicesWrapperRuntimeExcepti
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public abstract class Decommissioner {
 	private final static Logger LOGGER = LoggerFactory.getLogger(Decommissioner.class);
@@ -216,7 +218,7 @@ public abstract class Decommissioner {
 
 	protected void approveFolders() {
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-			if (detail.isFolderExcluded()) {
+			if (!FolderDetailStatus.INCLUDED.equals(detail.getFolderDetailStatus())) {
 				continue;
 			}
 			Folder folder = rm.getFolder(detail.getFolderId());
@@ -291,7 +293,7 @@ public abstract class Decommissioner {
 	private void processFolders() {
 		DecommissioningListType decommissioningListType = decommissioningList.getDecommissioningListType();
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-			if (detail.isFolderExcluded()) {
+			if (!FolderDetailStatus.INCLUDED.equals(detail.getFolderDetailStatus())) {
 				continue;
 			}
 			Folder folder = rm.getFolder(detail.getFolderId());
@@ -458,7 +460,7 @@ public abstract class Decommissioner {
 		List<String> containerIdUsed = new ArrayList<>();
 		Map<String, DecomListContainerDetail> detailsToProcess = new HashMap<>();
 		for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-			if (detail.isFolderExcluded()) {
+			if (!FolderDetailStatus.INCLUDED.equals(detail.getFolderDetailStatus())) {
 				continue;
 			}
 			containerIdUsed.add(detail.getContainerRecordId());
@@ -523,7 +525,8 @@ public abstract class Decommissioner {
 			empty = true;
 			// Current transaction folders would not be taken into account otherwise
 			for (DecomListFolderDetail detail : decommissioningList.getFolderDetails()) {
-				if (detail.isFolderExcluded() || destroyedFolders.contains(detail.getFolderId())) {
+				if (!FolderDetailStatus.INCLUDED.equals(detail.getFolderDetailStatus()) || destroyedFolders
+						.contains(detail.getFolderId())) {
 					continue;
 				}
 				if (container.getId().equals(detail.getContainerRecordId())) {

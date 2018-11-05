@@ -254,7 +254,13 @@ public class BorrowingServices {
 		Record folderRecord = recordServices.getDocumentById(folderId);
 		Folder folder = rm.wrapFolder(folderRecord);
 		validateCanBorrow(currentUser, folder, borrowingDate);
-		setBorrowedMetadatasToFolder(folder, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime(),
+		LocalDateTime borrowingDateTime;
+		if(TimeProvider.getLocalDate().equals(borrowingDate)) {
+			borrowingDateTime = TimeProvider.getLocalDateTime();
+		} else {
+			borrowingDateTime = borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime();
+		}
+		setBorrowedMetadatasToFolder(folder, borrowingDateTime,
 				previewReturnDate,
 				currentUser.getId(), borrowerEntered.getId(),
 				borrowingType);
@@ -263,11 +269,11 @@ public class BorrowingServices {
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
 				loggingServices
-						.borrowRecord(folderRecord, borrowerEntered, borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+						.borrowRecord(folderRecord, borrowerEntered, borrowingDateTime);
 			} else {
 				loggingServices
 						.consultingRecord(folderRecord, borrowerEntered,
-								borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime());
+								borrowingDateTime);
 			}
 		}
 	}
@@ -329,9 +335,16 @@ public class BorrowingServices {
 		setReturnedMetadatasToFolder(folder);
 		recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 
+		LocalDateTime returnDateTime;
+		if(TimeProvider.getLocalDate().equals(returnDate)) {
+			returnDateTime = TimeProvider.getLocalDateTime();
+		} else {
+			returnDateTime = returnDate.toDateTimeAtStartOfDay().toLocalDateTime();
+		}
+
 		if (isCreateEvent) {
 			if (borrowingType == BorrowingType.BORROW) {
-				loggingServices.returnRecord(folderRecord, currentUser, returnDate.toDateTimeAtStartOfDay().toLocalDateTime());
+				loggingServices.returnRecord(folderRecord, currentUser, returnDateTime);
 			}
 		}
 	}

@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
+import com.constellio.app.modules.rm.ui.entities.FolderComponent;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
@@ -78,7 +79,7 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 		folderDetailVOs = new HashMap<>();
 
 		for (FolderDetailWithType folderDetail : getLimitedFolderDetailsWithType()) {
-			FolderDetailVO folderDetailVO = folderDetailToVOBuilder().build(folderDetail);
+			FolderDetailVO folderDetailVO = folderDetailToVOBuilder().build(folderDetail, FolderComponent.NONE);
 			folderDetailVOs.put(folderDetail.getFolderId(), folderDetailVO);
 			codeTitles.add(folderDetail.getFolderId());
 		}
@@ -153,14 +154,14 @@ public class OrderDecommissioningListPresenter extends BasePresenter<OrderDecomm
 			FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
 			List<FolderDetailVO> result = new ArrayList<>();
 			for (FolderDetailWithType folder : getLimitedFolderDetailsWithType()) {
-				result.add(builder.build(folder));
+				result.add(builder.build(folder, FolderComponent.NONE));
 			}
 			return result;
 		} else {
 			FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
 			List<FolderDetailVO> result = new ArrayList<>();
 			for (FolderDetailWithType folder : getLimitedFolderDetailsWithType()) {
-				result.add(builder.build(folder));
+				result.add(builder.build(folder, FolderComponent.NONE));
 			}
 
 			List<FolderDetailVO> sortedResult = new ArrayList<>();

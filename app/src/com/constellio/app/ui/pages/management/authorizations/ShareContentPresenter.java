@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.management.authorizations;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.ui.application.CoreViews;
 import com.constellio.app.ui.entities.AuthorizationVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -10,6 +11,7 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
@@ -50,12 +52,8 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 		view.returnFromPage();
 	}
 
-	public void backButtonClicked(String schemaCode) {
-		if (schemaCode.startsWith(Folder.SCHEMA_TYPE)) {
-			view.navigate().to(RMViews.class).displayFolder(recordId);
-		} else if (schemaCode.startsWith(Document.SCHEMA_TYPE)) {
-			view.navigate().to(RMViews.class).displayDocument(recordId);
-		}
+	public void backButtonClicked() {
+		view.navigate().to(CoreViews.class).previousView();
 	}
 
 	public List<String> getAllowedAccesses() {
@@ -85,7 +83,7 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 	}
 
 	private AuthorizationAddRequest toAuthorization(AuthorizationVO authorizationVO) {
-		AuthorizationDetails details;
+		Authorization details;
 
 		ArrayList<String> roles = new ArrayList<>();
 		roles.addAll(authorizationVO.getAccessRoles());

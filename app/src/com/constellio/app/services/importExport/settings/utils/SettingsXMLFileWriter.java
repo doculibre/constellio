@@ -359,6 +359,10 @@ public class SettingsXMLFileWriter implements SettingsXMLFileConstants {
 			metadataElem.addContent(writePopulateConfigElement(importedMetadata.getPopulateConfigs()));
 		}
 
+		if(importedMetadata.getRequiredReadRoles() != null && importedMetadata.getRequiredReadRoles().size() > 0) {
+			metadataElem.setAttribute(REQUIRED_READ_ROLES, join(importedMetadata.getRequiredReadRoles(), ","));
+		}
+
 		if (importedMetadata.getDataEntry() != null) {
 
 			ImportedDataEntry dataEntry = importedMetadata.getDataEntry();
