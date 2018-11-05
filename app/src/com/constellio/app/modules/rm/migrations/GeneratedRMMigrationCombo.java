@@ -1,5 +1,9 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+
 import com.constellio.app.entities.calculators.SummaryCalculator;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
@@ -129,10 +133,6 @@ import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.schemas.validators.metadatas.IntegerStringValidator;
 import com.constellio.model.services.security.roles.RolesManager;
-
-import java.util.ArrayList;
-
-import static java.util.Arrays.asList;
 
 public final class GeneratedRMMigrationCombo {
 	String collection;
@@ -1698,7 +1698,7 @@ public final class GeneratedRMMigrationCombo {
 		ddvYearType_code.setEnabled(false);
 		ddvYearType_code.setSchemaAutocomplete(true);
 		ddvYearType_code.setSearchable(true);
-		MetadataBuilder ddvYearType_comments = ddvYearTypeSchema.create("comments").setType(MetadataValueType.ENUM);
+		MetadataBuilder ddvYearType_comments = ddvYearTypeSchema.create("comments").setType(MetadataValueType.STRUCTURE);
 		ddvYearType_comments.setMultivalue(true);
 		ddvYearType_comments.defineStructureFactory(CommentFactory.class);
 		MetadataBuilder ddvYearType_createdBy = ddvYearTypeSchema.create("createdBy").setType(MetadataValueType.REFERENCE);

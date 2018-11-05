@@ -1,5 +1,12 @@
 package com.constellio.app.modules.rm.services;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.constellio.app.modules.rm.wrappers.structures.CommentFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
@@ -10,13 +17,6 @@ import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ValueListItemSchemaTypeBuilder {
 
@@ -77,7 +77,7 @@ public class ValueListItemSchemaTypeBuilder {
 		}
 
 		defaultSchemaBuilder.create(ValueListItem.COMMENTS).setMultivalue(true)
-				.setType(MetadataValueType.ENUM).defineStructureFactory(CommentFactory.class);
+				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
 
 		MetadataBuilder titleMetadata = defaultSchemaBuilder.getMetadata(Schemas.TITLE.getLocalCode()).setSearchable(true);
 		for (Language language : languages) {

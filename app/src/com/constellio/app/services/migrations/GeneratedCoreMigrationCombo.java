@@ -1,5 +1,9 @@
 package com.constellio.app.services.migrations;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -50,10 +54,6 @@ import com.constellio.model.services.schemas.validators.JasperFilePrintableValid
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.schemas.validators.TemporaryRecordValidator;
 import com.constellio.model.services.security.roles.RolesManager;
-
-import java.util.ArrayList;
-
-import static java.util.Arrays.asList;
 
 public final class GeneratedCoreMigrationCombo {
 	String collection;
@@ -2431,7 +2431,8 @@ public final class GeneratedCoreMigrationCombo {
 		ddvCapsuleLanguage_code.setSchemaAutocomplete(true);
 		ddvCapsuleLanguage_code.setSearchable(true);
 		ddvCapsuleLanguage_code.setUniqueValue(true);
-		MetadataBuilder ddvCapsuleLanguage_comments = ddvCapsuleLanguageSchema.create("comments").setType(MetadataValueType.ENUM);
+		MetadataBuilder ddvCapsuleLanguage_comments = ddvCapsuleLanguageSchema.create("comments")
+				.setType(MetadataValueType.STRUCTURE);
 		ddvCapsuleLanguage_comments.setMultivalue(true);
 		ddvCapsuleLanguage_comments.defineStructureFactory(CommentFactory.class);
 		MetadataBuilder ddvCapsuleLanguage_createdBy = ddvCapsuleLanguageSchema.create("createdBy").setType(MetadataValueType.REFERENCE);
