@@ -54,6 +54,8 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 import com.constellio.model.services.security.SecurityModelCache;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
@@ -129,6 +131,17 @@ public class RecordAutomaticMetadataServices {
 
 	}
 
+	public void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
+										 List<String> automaticMetadatas, Transaction transaction) {
+		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
+		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
+		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		for (String metadata : automaticMetadatas) {
+			updateAutomaticMetadata(context, record, recordProvider, schema.get(metadata), reindexation, types, transaction);
+		}
+	}
+
 	void updateAutomaticMetadata(TransactionExecutionContext context, RecordImpl record, RecordProvider recordProvider,
 								 Metadata metadata,
 								 TransactionRecordsReindexation reindexation, MetadataSchemaTypes types,
@@ -150,21 +163,18 @@ public class RecordAutomaticMetadataServices {
 				setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(context, record, metadata, transaction, types);
 
 			} else if (transaction.getRecordUpdateOptions().isUpdateAggregatedMetadatas()) {
-				setAggregatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
+				setAggregatedValuesInRecords(record, metadata, types);
 			}
 
 		}
 	}
 
-	private void setAggregatedValuesInRecords(RecordImpl record, Metadata metadata, RecordProvider recordProvider,
-											  TransactionRecordsReindexation reindexation, MetadataSchemaTypes types) {
+	private void setAggregatedValuesInRecords(RecordImpl record, Metadata metadata, MetadataSchemaTypes types) {
 
 		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
-		Metadata referenceMetadata = types.getMetadata(aggregatedDataEntry.getReferenceMetadata());
-		MetadataSchemaType schemaType = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(referenceMetadata));
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(schemaType).where(referenceMetadata).isEqualTo(record));
+		Map<String, List<String>> inputMetadatasByReferenceMetadata = aggregatedDataEntry.getInputMetadatasByReferenceMetadata();
+		LogicalSearchQuery query = buildAggregatedQuery(record, types, inputMetadatasByReferenceMetadata);
 
 		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
 		if (agregationType != null) {
@@ -175,15 +185,29 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
+	private LogicalSearchQuery buildAggregatedQuery(Record record, MetadataSchemaTypes types,
+													Map<String, List<String>> inputMetadatasByReferenceMetadata) {
+		List<MetadataSchemaType> schemaTypes = new ArrayList<>();
+		for (String referenceMetadata : inputMetadatasByReferenceMetadata.keySet()) {
+			MetadataSchemaType schemaType = types.getSchemaType(SchemaUtils.getSchemaTypeCode(referenceMetadata));
+			schemaTypes.add(schemaType);
+		}
+		OngoingLogicalSearchCondition ongoingCondition = from(schemaTypes);
+
+		List<LogicalSearchCondition> conditions = new ArrayList<>();
+		for (String referenceMetadata : inputMetadatasByReferenceMetadata.keySet()) {
+			Metadata metadata = types.getMetadata(referenceMetadata);
+			conditions.add(ongoingCondition.where(metadata).isEqualTo(record));
+		}
+		return new LogicalSearchQuery().setCondition(ongoingCondition.whereAnyCondition(conditions));
+	}
+
 	private void setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(TransactionExecutionContext context,
 																			 RecordImpl record, Metadata metadata,
 																			 Transaction transaction,
 																			 MetadataSchemaTypes types) {
 
 		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
-
-		Metadata referenceMetadata = types.getMetadata(aggregatedDataEntry.getReferenceMetadata());
-		MetadataSchemaType schemaType = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(referenceMetadata));
 
 		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
 		if (agregationType != null) {

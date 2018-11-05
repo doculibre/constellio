@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.ui.pages.document;
 import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -94,22 +95,6 @@ import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.dialogs.ConfirmDialog;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocumentView, DropHandler {
 
@@ -352,17 +337,17 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		String saveSearchDecommissioningId = null;
 		String searchTypeAsString = null;
 
-		if(presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
+		if (presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
 			saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
 
 		}
 
-		if(presenter.getParams() != null && presenter.getParams().get("decommissioningType") != null) {
+		if (presenter.getParams() != null && presenter.getParams().get("decommissioningType") != null) {
 			searchTypeAsString = presenter.getParams().get("decommissioningType");
 		}
 
 		SearchType searchType = null;
-		if(searchTypeAsString != null) {
+		if (searchTypeAsString != null) {
 			searchType = SearchType.valueOf((searchTypeAsString));
 		}
 
@@ -374,19 +359,18 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				new DocumentFolderBreadCrumbParams(presenter.getDocument().getId(), presenter.getParams(), this));
 
 
-
 		if (breadcrumbTrail != null) {
 			return breadcrumbTrail;
 		} else if (saveSearchDecommissioningId != null && searchType != null) {
 			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
-					saveSearchDecommissioningId, presenter.getRecord().getId(),this);
+					saveSearchDecommissioningId, presenter.getRecord().getId(), this);
 		} else {
 			String containerId = null;
-			if(presenter.getParams() != null && presenter.getParams() instanceof Map) {
+			if (presenter.getParams() != null && presenter.getParams() instanceof Map) {
 				containerId = presenter.getParams().get("containerId");
 			}
 
-			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), taxonomyCode, containerId,this);
+			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), taxonomyCode, containerId, this);
 		}
 	}
 
@@ -562,8 +546,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		Button labels = new LabelButtonV2($("DisplayFolderView.printLabel"),
 				$("DisplayFolderView.printLabel"), customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(), presenter.getDocument());
-
+				getSessionContext().getCurrentCollection(), presenter.getDocumentVO());
 
 		addToCartButton = buildAddToCartButton();
 

@@ -1,12 +1,9 @@
 package com.constellio.app.ui.pages.search;
 
+import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
-import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -15,11 +12,11 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
 import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -193,24 +190,9 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		} else {
 			logicalSearchCondition = from(allowedSchemaTypes()).returnAll();
 		}
-		//TODO RM Module extension
-		if (isRMModuleActivated()) {
-			User user = getCurrentUser();
-			if (Boolean.TRUE.equals(user.get(RMUser.HIDE_NOT_ACTIVE))) {
-				List<String> notActiveCodes = new ArrayList<>();
-				notActiveCodes.add(FolderStatus.SEMI_ACTIVE.getCode());
-				notActiveCodes.add(FolderStatus.INACTIVE_DEPOSITED.getCode());
-				notActiveCodes.add(FolderStatus.INACTIVE_DESTROYED.getCode());
 
-				MetadataSchema folderSchema = schema(Folder.DEFAULT_SCHEMA);
-				logicalSearchCondition = logicalSearchCondition.andWhere(folderSchema.getMetadata(Folder.ARCHIVISTIC_STATUS)).isNotIn(notActiveCodes);
-			}
-		}
+		logicalSearchCondition = appCollectionExtentions.adjustSearchPageCondition(new SearchPageConditionParam((Component) view, logicalSearchCondition, getCurrentUser()));
 		return logicalSearchCondition;
-	}
-
-	private boolean isRMModuleActivated() {
-		return appLayerFactory.getModulesManager().isModuleEnabled(collection, new ConstellioRMModule());
 	}
 
 	@Override

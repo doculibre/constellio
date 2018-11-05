@@ -2,8 +2,10 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.SearchPageExtension;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
+import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.components.DocumentSearchResultDisplay;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerPresenter;
@@ -13,10 +15,22 @@ import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
+import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
+import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
+import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class RMSearchPageExtension extends SearchPageExtension {
 
@@ -68,5 +82,27 @@ public class RMSearchPageExtension extends SearchPageExtension {
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
+		Component mainComponent = param.getMainComponent();
+		LogicalSearchCondition logicalSearchCondition = param.getCondition();
+		if (mainComponent instanceof SimpleSearchViewImpl || mainComponent instanceof AdvancedSearchViewImpl) {
+			User user = param.getUser();
+			if (Boolean.TRUE.equals(user.get(RMUser.HIDE_NOT_ACTIVE))) {
+				List<String> notActiveCodes = new ArrayList<>();
+				notActiveCodes.add(FolderStatus.SEMI_ACTIVE.getCode());
+				notActiveCodes.add(FolderStatus.INACTIVE_DEPOSITED.getCode());
+				notActiveCodes.add(FolderStatus.INACTIVE_DESTROYED.getCode());
+
+				LogicalSearchCondition activesOnlyCondition = anyConditions(
+						where(rm.folder.archivisticStatus()).isNotIn(notActiveCodes),
+						where(rm.folder.archivisticStatus()).isNull()
+				);
+				logicalSearchCondition = allConditions(logicalSearchCondition, activesOnlyCondition);
+			}
+		}
+		return logicalSearchCondition;
 	}
 }

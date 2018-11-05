@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.migrations;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -33,5 +34,7 @@ public class RMMigrationTo6_1_3_AcceptanceTest extends ConstellioTest {
 		File state = new File(statesFolder, "given_system_in_6.1.2_with_tasks,rm_modules_with_manual_modifications.zip");
 
 		getCurrentTestSession().getFactoriesTestFeatures().givenSystemInState(state);
+
+		givenConfig(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, false);
 	}
 }

@@ -19,6 +19,7 @@ import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.collections.CollectionsListManagerRuntimeException.CollectionsListManagerRuntimeException_NoSuchCollection;
@@ -54,7 +55,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,6 +67,7 @@ import java.util.Set;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_OBTAINED;
 import static com.constellio.model.services.records.RecordUtils.splitByCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
 
 public class SearchServices {
 
@@ -387,15 +388,16 @@ public class SearchServices {
 		return getResultsCount(condition) != 0;
 	}
 
-	public String getLanguage(LogicalSearchQuery query) {
+	public List<String> getLanguages(LogicalSearchQuery query) {
 		if (query.getLanguage() != null) {
-			return query.getLanguage();
+			//return Collections.singletonList(query.getLanguage());
+			return getLanguageCodes(query.getCondition().getCollection());
 
 		} else if (query.getCondition().isCollectionSearch()) {
-			return getLanguageCode(query.getCondition().getCollection());
+			return getLanguageCodes(query.getCondition().getCollection());
 
 		} else {
-			return mainDataLanguage;
+			return Collections.singletonList(mainDataLanguage);
 		}
 	}
 
@@ -431,6 +433,22 @@ public class SearchServices {
 		return metadataSchemaTypes;
 	}
 
+	public List<String> getLanguageCodes(String collection) {
+		List<String> languages = new ArrayList<>();
+		try {
+			List<String> languageCodes = collectionsListManager.getCollectionLanguages(collection);
+			if (languageCodes == null || languageCodes.size() == 0) {
+				languages = Collections.singletonList(mainDataLanguage);
+			} else {
+				languages = Collections.unmodifiableList(languageCodes);
+			}
+		} catch (CollectionsListManagerRuntimeException_NoSuchCollection e) {
+			languages = Collections.singletonList(mainDataLanguage);
+		}
+		return languages;
+	}
+
+	@Deprecated
 	public String getLanguageCode(String collection) {
 		String language;
 		try {
@@ -465,8 +483,9 @@ public class SearchServices {
 
 		List<MetadataSchemaType> searchedSchemaTypes = getSearchedTypes(query, types);
 
-		String language = getLanguage(query);
-		params.add(CommonParams.FQ, "" + query.getQuery(language, types));
+		List<String> languages = getLanguages(query);
+		String queryLanguage = query.getLanguage() == null ? mainDataLanguage : query.getLanguage();
+		params.add(CommonParams.FQ, "" + query.getQuery(queryLanguage, types));
 
 		if (DataStore.RECORDS.equals(query.getDataStore()) || query.getDataStore() == null) {
 			if (query.isMoreLikeThis()) {
@@ -479,10 +498,10 @@ public class SearchServices {
 		}
 		if (query.getFreeTextQuery() != null) {
 			User user = null;
-			if(query.getUserFilters() != null && query.getUserFilters().size() > 0) {
+			if (query.getUserFilters() != null && query.getUserFilters().size() > 0) {
 				user = query.getUserFilters().get(0).getUser();
 			}
-			String qf = getQfFor(language, query.getFieldBoosts(), searchedSchemaTypes, user);
+			String qf = getQfFor(languages, query.getLanguage(), query.getFieldBoosts(), searchedSchemaTypes, user);
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
@@ -592,7 +611,9 @@ public class SearchServices {
 		if (query.isHighlighting() && types != null) {
 			HashSet<String> highligthedMetadatas = new HashSet<>();
 			for (Metadata metadata : types.getSearchableMetadatas()) {
-				highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
+				for (String language : languages) {
+					highligthedMetadatas.add(metadata.getAnalyzedField(language).getDataStoreCode());
+				}
 			}
 
 			params.add(HighlightParams.HIGHLIGHT, "true");
@@ -629,7 +650,7 @@ public class SearchServices {
 
 			List<String> moreLikeThisFields = query.getMoreLikeThisFields();
 			if (moreLikeThisFields.isEmpty()) {
-				moreLikeThisFields.addAll(Arrays.asList("content_txt_fr", "content_txt_en", "content_txt_ar"));
+				moreLikeThisFields.addAll(asList("content_txt_fr", "content_txt_en", "content_txt_ar"));
 			}
 
 			StringBuilder similarityFields = new StringBuilder();
@@ -763,21 +784,20 @@ public class SearchServices {
 	 * @return
 	 */
 	private int calcMM(String userQuery) {
-		HashSet queryTerms = new HashSet(Arrays.asList(StringUtils.split(StringUtils.lowerCase(userQuery))));
-		queryTerms.removeAll(Arrays.asList(STOP_WORDS_FR));
+		HashSet queryTerms = new HashSet(asList(StringUtils.split(StringUtils.lowerCase(userQuery))));
+		queryTerms.removeAll(asList(STOP_WORDS_FR));
 		return queryTerms.size();
 	}
 
-
-	protected String getQfFor(String language, List<SearchBoost> boosts,
-							List<MetadataSchemaType> searchedSchemaTypes, User user) {
-			StringBuilder sb = new StringBuilder();
+	String getQfFor(List<String> languages, String queryLanguage, List<SearchBoost> boosts,
+					List<MetadataSchemaType> searchedSchemaTypes, User user) {
+		StringBuilder sb = new StringBuilder();
 
 		Set<String> fields = new HashSet<>();
 
 		List<String> localCodeWithNoAccess = new ArrayList<>();
 		List<String> dataFieldCodeWithNoAccess = new ArrayList<>();
-		if(user != null) {
+		if (user != null) {
 			for (MetadataSchemaType schemaType : searchedSchemaTypes) {
 				for (Metadata metadata : schemaType.getAllMetadatas()) {
 					if (!user.hasGlobalAccessToMetadata(metadata)) {
@@ -792,7 +812,7 @@ public class SearchServices {
 			String dataStoreValue;
 			int lastIndexOfSemiColumn = boost.getKey().lastIndexOf(":");
 
-			if(lastIndexOfSemiColumn == -1) {
+			if (lastIndexOfSemiColumn == -1) {
 				dataStoreValue = boost.getKey();
 			} else {
 				dataStoreValue = boost.getKey().substring(0, lastIndexOfSemiColumn);
@@ -801,7 +821,7 @@ public class SearchServices {
 			String[] dataStoreValueSplited = dataStoreValue.split("_");
 			dataStoreValue = dataStoreValueSplited[0] + "_" + dataStoreValueSplited[1];
 
-			if(!dataFieldCodeWithNoAccess.contains(dataStoreValue)) {
+			if (!dataFieldCodeWithNoAccess.contains(dataStoreValue)) {
 				sb.append(boost.getKey());
 				sb.append("^");
 				sb.append(boost.getValue());
@@ -811,10 +831,9 @@ public class SearchServices {
 		}
 
 
-
 		for (MetadataSchemaType schemaType : searchedSchemaTypes) {
 			for (Metadata metadata : schemaType.getAllMetadatas()) {
-				if(localCodeWithNoAccess.contains(metadata.getLocalCode())) {
+				if (localCodeWithNoAccess.contains(metadata.getLocalCode())) {
 					continue;
 				}
 
@@ -823,10 +842,21 @@ public class SearchServices {
 						sb.append(Schemas.LEGACY_ID.getDataStoreCode());
 						sb.append("^20 ");
 					} else {
-						String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? language : mainDataLanguage)
-								.getDataStoreCode();
-						if (fields.add(analyzedField)) {
-							sb.append(analyzedField + " ");
+						if (metadata.getType() == MetadataValueType.CONTENT) {
+							for (String language : languages) {
+								String analyzedField = metadata.getAnalyzedField(language).getDataStoreCode();
+								if (!fields.contains(analyzedField)) {
+									sb.append(analyzedField + " ");
+									fields.add(analyzedField);
+								}
+							}
+						} else {
+							String analyzedField = metadata.getAnalyzedField(metadata.isMultiLingual() ? queryLanguage : mainDataLanguage).getDataStoreCode();
+							if (!fields.contains(analyzedField)) {
+								sb.append(analyzedField + " ");
+								fields.add(analyzedField);
+							}
+
 						}
 					}
 				}
@@ -836,6 +866,7 @@ public class SearchServices {
 		String idAnalyzedField = Schemas.IDENTIFIER.getAnalyzedField(mainDataLanguage).getDataStoreCode();
 		if (!fields.contains(idAnalyzedField)) {
 			sb.append(idAnalyzedField + " ");
+			fields.add(idAnalyzedField);
 		}
 		return sb.toString();
 	}

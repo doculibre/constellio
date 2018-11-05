@@ -34,7 +34,7 @@ public class Excel2007FileImportDataIteratorAcceptanceTest extends ImportDataIte
 
 		importDataIterator = excelImportDataProvider.newDataIterator("datas");
 
-		assertThat(excelImportDataProvider.size("datas")).isEqualTo(3);
+		assertThat(excelImportDataProvider.size("datas")).isEqualTo(5);
 
 		assertThat(importDataIterator.next()).has(id("1")).has(index(2)).has(schema("default"))
 				.has(noField("id")).has(noField("schema"))
@@ -59,6 +59,8 @@ public class Excel2007FileImportDataIteratorAcceptanceTest extends ImportDataIte
 				.has(field("zeNullField", null))
 				.has(field("title", "A third title"));
 
+		assertThat(importDataIterator.next()).has(id("32")).has(field("referenceToAThirdSchema", "10-9"));
+		assertThat(importDataIterator.next()).has(id("8-10"));
 	}
 
 	@Test

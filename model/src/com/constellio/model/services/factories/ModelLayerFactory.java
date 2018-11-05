@@ -12,6 +12,7 @@ import com.constellio.model.services.background.ModelLayerBackgroundThreadsManag
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.batch.state.StoredBatchProcessProgressionServices;
+import com.constellio.model.services.caches.ModelLayerCachesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -174,5 +175,7 @@ public interface ModelLayerFactory extends LayerFactory {
 	ThesaurusManager getThesaurusManager();
 
 	SecurityModelCache getSecurityModelCache();
+
+	ModelLayerCachesManager getCachesManager();
 
 }

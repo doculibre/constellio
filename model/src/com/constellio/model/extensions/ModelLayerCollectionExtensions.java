@@ -34,6 +34,7 @@ import com.constellio.model.extensions.events.records.RecordLogicalDeletionValid
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
+import com.constellio.model.extensions.events.records.RecordReindexationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
@@ -244,6 +245,12 @@ public class ModelLayerCollectionExtensions {
 	public void callRecordRestored(RecordRestorationEvent event) {
 		for (RecordExtension extension : recordExtensions) {
 			extension.recordRestored(event);
+		}
+	}
+
+	public void callRecordReindexed(RecordReindexationEvent event) {
+		for (RecordExtension extension : recordExtensions) {
+			extension.recordReindexed(event);
 		}
 	}
 

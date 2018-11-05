@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.search;
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.BatchProcessFeededByIdsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.BatchProcessFeededByQueryParams;
+import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncTask;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
@@ -88,6 +89,8 @@ import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.ui.Component;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
 public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView> implements BatchProcessingPresenter {
@@ -321,6 +324,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		condition = (view.getSearchCriteria().isEmpty()) ?
 					from(type).returnAll() :
 					new ConditionBuilder(type, languageCode).build(view.getSearchCriteria());
+		condition = appCollectionExtentions.adjustSearchPageCondition(new SearchPageConditionParam((Component) view, condition, getCurrentUser()));
+	}
+
+	private boolean isRMModuleActivated() {
+		return appLayerFactory.getModulesManager().isModuleEnabled(collection, new ConstellioRMModule());
 	}
 
 	private boolean isBatchEditable(Metadata metadata) {

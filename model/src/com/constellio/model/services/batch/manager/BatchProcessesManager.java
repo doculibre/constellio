@@ -56,7 +56,7 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 		this.searchServices = modelLayerFactory.newSearchServices();
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 		this.modelLayerFactory = modelLayerFactory;
-		statusCache = modelLayerFactory.getDataLayerFactory().getRecordsCacheManager().getCache("batchProcessesStatus");
+		statusCache = modelLayerFactory.getDataLayerFactory().getDistributedCacheManager().getCache("batchProcessesStatus");
 		configManager.keepInCache(BATCH_PROCESS_LIST_PATH);
 	}
 

@@ -134,6 +134,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration NEGATIVE_AUTHORIZATION;
 
+	public static final SystemConfiguration SPACE_QUOTA_FOR_USER_DOCUMENTS;
+
 	public static final SystemConfiguration ENABLE_THUMBNAIL_GENERATION;
 
 	static {
@@ -257,6 +259,8 @@ public class ConstellioEIMConfigs {
 		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
 				.whichIsHidden());
 
+		add(SPACE_QUOTA_FOR_USER_DOCUMENTS = others.createInteger("spaceQuotaForUserDocuments").withDefaultValue(-1));
+
 		add(NEGATIVE_AUTHORIZATION = others.createBooleanFalseByDefault("enableNegativeAuthorization")
 				.whichIsHidden());
 
@@ -365,7 +369,7 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isIncludingFromFieldWhenGeneratingEmails() {
-		return !Boolean.FALSE.equals(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS);
+		return !Boolean.FALSE.equals(manager.getValue(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS));
 	}
 
 	public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
@@ -500,6 +504,10 @@ public class ConstellioEIMConfigs {
 
 	public boolean isAdminPasswordChangeEnabled() {
 		return manager.getValue(ENABLE_ADMIN_USER_PASSWORD_CHANGE);
+	}
+
+	public int getSpaceQuotaForUserDocuments() {
+		return manager.getValue(SPACE_QUOTA_FOR_USER_DOCUMENTS);
 	}
 
 	public boolean isNegativeAuthorizationEnabled() {

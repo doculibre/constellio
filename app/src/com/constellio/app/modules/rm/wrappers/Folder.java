@@ -62,7 +62,6 @@ public class Folder extends RMObject {
 	public static final String RETENTION_RULE = "retentionRule";
 	public static final String RETENTION_RULE_ENTERED = "retentionRuleEntered";
 
-	public static final String DECOMMISSIONING_DATE = "decommissioningDate";
 	public static final String ACTIVE_RETENTION_TYPE = "activeRetentionType";
 	public static final String ACTIVE_RETENTION_CODE = "activeRetentionPeriodCode";
 	public static final String SEMIACTIVE_RETENTION_TYPE = "semiactiveRetentionType";
@@ -117,6 +116,7 @@ public class Folder extends RMObject {
 	public static final String DOCUMENTS_TOKENS = "documentsTokens";
 	public static final String UNIQUE_KEY = "uniqueKey";
 	public static final String SUMMARY = "summary";
+	public static final String HAS_CONTENT = "hasContent";
 
 	public Folder(Record record,
 				  MetadataSchemaTypes types) {
@@ -523,10 +523,6 @@ public class Folder extends RMObject {
 		return getList(APPLICABLE_COPY_RULES);
 	}
 
-	public LocalDate getDecommissioningDate() {
-		return get(DECOMMISSIONING_DATE);
-	}
-
 	public FolderMediaType getMediaType() {
 		return get(MEDIA_TYPE);
 	}
@@ -867,6 +863,10 @@ public class Folder extends RMObject {
 		favorites.addAll(getFavorites());
 		favorites.removeAll(favoritesToDelete);
 		setFavorites(favorites);
+	}
+
+	public boolean hasContent() {
+		return getBooleanWithDefaultValue(HAS_CONTENT, false);
 	}
 }
 

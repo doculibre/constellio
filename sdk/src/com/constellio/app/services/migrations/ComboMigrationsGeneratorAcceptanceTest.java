@@ -996,14 +996,16 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 							AggregatedDataEntry dataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
 							if (dataEntry.getAgregationType().equals(AggregationType.REFERENCE_COUNT)) {
-								Metadata referenceMetadata = types.getMetadata(dataEntry.getReferenceMetadata());
+								List<Metadata> referenceMetadatas = types.getMetadatas(dataEntry.getReferenceMetadatas());
+								Metadata referenceMetadata = !referenceMetadatas.isEmpty() ? referenceMetadatas.get(0) : null;
 								main.addStatement("$L.get($S).defineDataEntry().asReferenceCount(typesBuilder.getMetadata($S))",
 										variableOf(schema),
 										metadata.getLocalCode(),
 										referenceMetadata.getCode());
 							}
 							if (dataEntry.getAgregationType().equals(AggregationType.SUM)) {
-								Metadata referenceMetadata = types.getMetadata(dataEntry.getReferenceMetadata());
+								List<Metadata> referenceMetadatas = types.getMetadatas(dataEntry.getReferenceMetadatas());
+								Metadata referenceMetadata = !referenceMetadatas.isEmpty() ? referenceMetadatas.get(0) : null;
 
 								List<String> inputMetadatasCalls = new ArrayList<>();
 								//types.getMetadata($S)
@@ -1020,7 +1022,8 @@ public class ComboMigrationsGeneratorAcceptanceTest extends ConstellioTest {
 							}
 
 							if (dataEntry.getAgregationType().equals(AggregationType.VALUES_UNION)) {
-								Metadata referenceMetadata = types.getMetadata(dataEntry.getReferenceMetadata());
+								List<Metadata> referenceMetadatas = types.getMetadatas(dataEntry.getReferenceMetadatas());
+								Metadata referenceMetadata = !referenceMetadatas.isEmpty() ? referenceMetadatas.get(0) : null;
 
 								List<String> inputMetadatasCalls = new ArrayList<>();
 								//types.getMetadata($S)

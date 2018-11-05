@@ -165,14 +165,14 @@ public class FactoriesTestFeatures {
 	private void deleteFromCaches() {
 		try {
 			ConstellioCacheManager settingsCacheManager = getConstellioFactories().getDataLayerFactory()
-					.getSettingsCacheManager();
+					.getLocalCacheManager();
 			if (settingsCacheManager != null) {
 				for (String cacheName : settingsCacheManager.getCacheNames()) {
 					ConstellioCache cache = settingsCacheManager.getCache(cacheName);
 					cache.clear();
 				}
 			}
-			ConstellioCacheManager recordsCacheManager = getConstellioFactories().getDataLayerFactory().getRecordsCacheManager();
+			ConstellioCacheManager recordsCacheManager = getConstellioFactories().getDataLayerFactory().getDistributedCacheManager();
 			if (recordsCacheManager != null) {
 				for (String cacheName : recordsCacheManager.getCacheNames()) {
 					ConstellioCache cache = recordsCacheManager.getCache(cacheName);

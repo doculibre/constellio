@@ -255,7 +255,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 		DragAndDropWrapper.WrapperTransferable transferable = (WrapperTransferable) event
 				.getTransferable();
 		Html5File[] files = transferable.getFiles();
-		if(files != null) {
+		if (files != null) {
 			for (final Html5File html5File : files) {
 				final ProgressIndicator pi = new ProgressIndicator();
 				pi.setCaption(html5File.getFileName());
@@ -276,7 +276,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 
 					public void onProgress(StreamingProgressEvent event) {
 						float p = (float) event.getBytesReceived()
-								/ (float) event.getContentLength();
+								  / (float) event.getContentLength();
 						pi.setValue(p);
 					}
 

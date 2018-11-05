@@ -692,10 +692,18 @@ public class MetadataSchemaXMLWriter3 {
 		} else if (dataEntryValue.getType() == DataEntryType.AGGREGATED) {
 			AggregatedDataEntry agregatedDataEntry = (AggregatedDataEntry) dataEntryValue;
 			dataEntry.setAttribute("agregationType", agregatedDataEntry.getAgregationType().getCode());
-			dataEntry.setAttribute("referenceMetadata", agregatedDataEntry.getReferenceMetadata());
 
-			if (agregatedDataEntry.getInputMetadatas() != null && !agregatedDataEntry.getInputMetadatas().isEmpty()) {
-				String inputMetadatasStr = StringUtils.join(agregatedDataEntry.getInputMetadatas(), ",");
+			Map<String, List<String>> metadatasByRefMetadata = agregatedDataEntry.getInputMetadatasByReferenceMetadata();
+
+			String referenceMetadata = StringUtils.join(metadatasByRefMetadata.keySet(), ";");
+			dataEntry.setAttribute("referenceMetadata", referenceMetadata);
+
+			List<String> inputMetadataStr = new ArrayList<>();
+			for (List<String> inputMetadatas : metadatasByRefMetadata.values()) {
+				inputMetadataStr.add(StringUtils.join(inputMetadatas, ","));
+			}
+			if (!inputMetadataStr.isEmpty()) {
+				String inputMetadatasStr = StringUtils.join(inputMetadataStr, ";");
 				dataEntry.setAttribute("inputMetadata", inputMetadatasStr);
 			}
 			if (agregatedDataEntry.getAggregatedCalculator() != null) {

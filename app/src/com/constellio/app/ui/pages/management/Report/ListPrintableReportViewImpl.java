@@ -1,6 +1,5 @@
 package com.constellio.app.ui.pages.management.Report;
 
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.PrintableReportVO;
@@ -20,13 +19,11 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Container;
-import com.vaadin.data.Item;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FileDownloader;
 import com.vaadin.server.StreamResource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
-import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
@@ -143,7 +140,7 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 				return new PrintableReportDeleteButton(report);
 			}
 		});
-//		container = buttonsContainerForFolder;
+		//		container = buttonsContainerForFolder;
 		Table tableFolder = new RecordVOTable(buttonsContainerForFolder);
 		tableFolder = setTableProperty(tableFolder, buttonsContainerForFolder.size());
 		return tableFolder;
@@ -175,7 +172,7 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 				return new PrintableReportDeleteButton(report);
 			}
 		});
-//		container = buttonsContainerForFolder;
+		//		container = buttonsContainerForFolder;
 		Table tableFolder = new RecordVOTable(buttonsContainerForFolder);
 		tableFolder = setTableProperty(tableFolder, buttonsContainerForFolder.size());
 		return tableFolder;
@@ -207,9 +204,9 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 				return new PrintableReportDeleteButton(report);
 			}
 		});
-//		container = buttonsContainerForFolder;
-//		HorizontalLayout buttonLayout = new HorizontalLayout();
-//		buttonLayout.addComponents();
+		//		container = buttonsContainerForFolder;
+		//		HorizontalLayout buttonLayout = new HorizontalLayout();
+		//		buttonLayout.addComponents();
 		Table tableFolder = new RecordVOTable(buttonsContainerForFolder);
 		tableFolder = setTableProperty(tableFolder, buttonsContainerForFolder.size());
 		return tableFolder;
@@ -299,8 +296,8 @@ public class ListPrintableReportViewImpl extends BaseViewImpl implements ListPri
 
 		@Override
 		public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
-			for(TabWithTable tab: tabs) {
-				if(tab.getTabLayout().equals(event.getTabSheet().getSelectedTab())) {
+			for (TabWithTable tab : tabs) {
+				if (tab.getTabLayout().equals(event.getTabSheet().getSelectedTab())) {
 					tab.refreshTable();
 					currentSchema = (PrintableReportListPossibleType) tab.getId();
 					break;

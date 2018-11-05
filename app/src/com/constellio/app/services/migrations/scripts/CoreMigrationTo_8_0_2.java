@@ -45,11 +45,10 @@ public class CoreMigrationTo_8_0_2 implements MigrationScript {
 			schemas = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
 			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
-			if(!hasAlreadyCreatedDefaultCapsuleLanguages) {
+			if (!hasAlreadyCreatedDefaultCapsuleLanguages) {
 				createDefaultCapsuleLanguages(migrationResourcesProvider, transaction, schemas);
 				recordServices.execute(transaction);
 			}
-
 
 
 			SchemasDisplayManager schemaDisplaysManager = appLayerFactory.getMetadataSchemasDisplayManager();

@@ -33,22 +33,12 @@ import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Set;
-
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
@@ -71,9 +61,13 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 	private MetadataSchema customTaskSchema;
 	private Metadata zMeta;
 
+	private Folder folder, folder2;
+	private Document document, document2, document3;
+
 	@Before
 	public void setUp()
 			throws Exception {
+		givenBackgroundThreadsEnabled();
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withDocumentsHavingContent()
@@ -92,6 +86,17 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		createCustomTaskSchema();
 		initTests();
 
+		folder = records.newFolderWithValuesAndId("fakeFolder");
+		recordServices.add(folder);
+		folder2 = records.newFolderWithValuesAndId("fakeFolder2");
+		recordServices.add(folder2);
+
+		document = records.newDocumentWithIdIn("fakeDocument2", folder2);
+		recordServices.add(document);
+		document2 = records.newDocumentWithIdIn("fakeDocument2b", folder2);
+		recordServices.add(document2);
+		document3 = records.newDocumentWithIdIn("fakeDocument2bb", folder2);
+		recordServices.add(document3);
 	}
 
 	private void createCustomTaskSchema() {
@@ -124,8 +129,6 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		taskReferencesFolderB = tasks.wrapTask(tasks.create(customTaskSchema, "taskReferencesFolderB"));
 		transaction.add(taskReferencesFolderB.set(zMeta.getLocalCode(), subFolder_B).setTitle("zTask"));
 		recordServices.execute(transaction);
-
-		//Nouha : Le record 'parentFolderInCategory_A' n'était pas sauvegardé
 	}
 
 	@Test
@@ -158,93 +161,20 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(deleteService.isLogicallyThenPhysicallyDeletable(childConcept, users.adminIn(zeCollection))).isFalse();
 		assertThat(deleteService.isLogicallyDeletable(childConcept, users.adminIn(zeCollection))).isTrue();
-
-		//		newWebDriver();
-		//		waitUntilICloseTheBrowsers();
-
-		//
-		//		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
-		//		recordServices.refresh(parentFolderInCategory_A);
-		//		try {
-		//			deleteService.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
-		//					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
-		//			fail("should find dependent references");
-		//		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
-		//			Set<String> relatedRecords = e.getRecordsIdsWithUnremovableReferences();
-		//			assertThat(relatedRecords).contains(taskReferencesFolderB.getId())
-		//					.doesNotContain(subFolder_B.getId(), category.getId());
-		//
-		//			recordServices.refresh(parentFolderInCategory_A);
-		//
-		//			//TODO Nouha, pourquoi la catégorie serait nulle, c'est un champ obligatoire??
-		//			assertThat(parentFolderInCategory_A.getCategory()).isNull();
-		//		}
 	}
 
-	//@Test
-	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk()
-			throws Exception {
-		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
-		recordServices.refresh(parentFolderInCategory_A);
-		try {
-			deleteService.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
-					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
-			fail("should find dependent references");
-		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
-			Set<String> relatedRecords = e.getRecordsIdsWithUnremovableReferences();
-			assertThat(relatedRecords).contains(taskReferencesFolderB.getId())
-					.doesNotContain(subFolder_B.getId(), category.getId());
+	@Test
+	public void givenRecordsWithSimilarNamesThenMakeSureThatOnlyCorrectRecordsAreDeleted() {
+		recordServices.logicallyDelete(folder.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(folder.getWrappedRecord(), User.GOD);
 
-			recordServices.refresh(parentFolderInCategory_A);
+		assertThat(rm.getFolder("fakeFolder2")).isNotNull();
 
-			//TODO Nouha, pourquoi la catégorie serait nulle, c'est un champ obligatoire??
-			assertThat(parentFolderInCategory_A.getCategory()).isNull();
-		}
-	}
+		recordServices.logicallyDelete(document.getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(document.getWrappedRecord(), User.GOD);
 
-	//@Test
-	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk2()
-			throws Exception {
-
-		recordServices.refresh(parentFolderInCategory_A);
-		assertThat(parentFolderInCategory_A.getCategoryEntered()).isEqualTo(category.getId());
-
-		deleteService.logicallyDelete(category.getWrappedRecord(), null);
-		recordServices.refresh(category);
-		try {
-			deleteService.physicallyDelete(category.getWrappedRecord(), null,
-					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
-			recordServices.refresh(parentFolderInCategory_A);
-			assertThat(parentFolderInCategory_A.getCategoryEntered()).isNull();
-			fail("should find dependent references");
-		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
-			Set<String> relatedRecords = e.getRecordsIdsWithUnremovableReferences();
-
-			//TODO Nouha : Pourquoi subFolder_B? Ce dossier n'a pas de référence vers category
-			assertThat(relatedRecords).contains(parentFolderInCategory_A.getId(), subFolder_B.getId());
-			assertThat(relatedRecords).doesNotContain(taskReferencesFolderB.getId());
-		}
-	}
-
-	//@Test
-	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk3()
-			throws Exception {
-
-		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
-		deleteService.logicallyDelete(category.getWrappedRecord(), null);
-		deleteService.logicallyDelete(taskReferencesFolderB.getWrappedRecord(), null);
-
-		recordServices.refresh(category);
-
-		//TODO Nouha : On ne peut pas faire ça, car des dossiers se retrouvent sans catégorie, ce qui cause une erreur de validation
-		deleteService
-				.physicallyDelete(category.getWrappedRecord(), null,
-						new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
-
-		parentFolderInCategory_A = rm.getFolder(parentFolderInCategory_A.getId());
-		deleteService
-				.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
-						new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+		assertThat(rm.getFolder("fakeDocument2b")).isNotNull();
+		assertThat(rm.getFolder("fakeDocument2bb")).isNotNull();
 	}
 
 	@Test

@@ -218,6 +218,8 @@ public class DataLayerLogger {
 			}
 		}
 
+		// TODO incrementedFields
+
 		return log.toString();
 	}
 

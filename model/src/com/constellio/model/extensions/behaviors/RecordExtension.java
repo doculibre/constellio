@@ -13,6 +13,7 @@ import com.constellio.model.extensions.events.records.RecordLogicalDeletionValid
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
+import com.constellio.model.extensions.events.records.RecordReindexationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
@@ -55,6 +56,9 @@ public class RecordExtension {
 	}
 
 	public void recordRestored(RecordRestorationEvent event) {
+	}
+
+	public void recordReindexed(RecordReindexationEvent event) {
 	}
 
 	public void setRecordCategory(RecordSetCategoryEvent event) {

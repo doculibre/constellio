@@ -1,5 +1,9 @@
 package com.constellio.app.modules.rm.migrations;
 
+import static java.util.Arrays.asList;
+
+import java.util.ArrayList;
+
 import com.constellio.app.entities.calculators.SummaryCalculator;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
@@ -14,11 +18,10 @@ import com.constellio.app.modules.rm.model.calculators.FolderActiveRetentionType
 import com.constellio.app.modules.rm.model.calculators.FolderApplicableCopyRuleCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderArchivisticStatusCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderClosingDateCalculator2;
-import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDepositDatesCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDestructionDatesCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator;
+import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDepositDatesCalculator2;
+import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDestructionDatesCalculator2;
+import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyStatusCalculator3;
-import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderExpectedDestructionDateCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderExpectedTransferDateCalculator2;
@@ -130,10 +133,6 @@ import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.schemas.validators.metadatas.IntegerStringValidator;
 import com.constellio.model.services.security.roles.RolesManager;
-
-import java.util.ArrayList;
-
-import static java.util.Arrays.asList;
 
 public final class GeneratedRMMigrationCombo {
 	String collection;
@@ -567,11 +566,10 @@ public final class GeneratedRMMigrationCombo {
 		folderSchema.get("categoryCode").defineDataEntry().asCopied(folderSchema.get("category"), typesBuilder.getMetadata("category_default_code"));
 		folderSchema.get("closingDate").defineDataEntry().asCalculated(FolderClosingDateCalculator2.class);
 		folderSchema.get("confidential").defineDataEntry().asCalculated(FolderConfidentialCalculator.class);
-		folderSchema.get("copyRulesExpectedDepositDates").defineDataEntry().asCalculated(FolderCopyRulesExpectedDepositDatesCalculator.class);
-		folderSchema.get("copyRulesExpectedDestructionDates").defineDataEntry().asCalculated(FolderCopyRulesExpectedDestructionDatesCalculator.class);
-		folderSchema.get("copyRulesExpectedTransferDates").defineDataEntry().asCalculated(FolderCopyRulesExpectedTransferDatesCalculator.class);
+		folderSchema.get("copyRulesExpectedDepositDates").defineDataEntry().asCalculated(FolderCopyRulesExpectedDepositDatesCalculator2.class);
+		folderSchema.get("copyRulesExpectedDestructionDates").defineDataEntry().asCalculated(FolderCopyRulesExpectedDestructionDatesCalculator2.class);
+		folderSchema.get("copyRulesExpectedTransferDates").defineDataEntry().asCalculated(FolderCopyRulesExpectedTransferDatesCalculator2.class);
 		folderSchema.get("copyStatus").defineDataEntry().asCalculated(FolderCopyStatusCalculator3.class);
-		folderSchema.get("decommissioningDate").defineDataEntry().asCalculated(FolderDecommissioningDateCalculator2.class);
 		folderSchema.get("documentsTokens").defineDataEntry().asUnion(typesBuilder.getMetadata("document_default_folder"), typesBuilder.getMetadata("document_default_tokensHierarchy"));
 		folderSchema.get("essential").defineDataEntry().asCalculated(FolderEssentialCalculator.class);
 		folderSchema.get("expectedDepositDate").defineDataEntry().asCalculated(FolderExpectedDepositDateCalculator2.class);
@@ -1700,7 +1698,7 @@ public final class GeneratedRMMigrationCombo {
 		ddvYearType_code.setEnabled(false);
 		ddvYearType_code.setSchemaAutocomplete(true);
 		ddvYearType_code.setSearchable(true);
-		MetadataBuilder ddvYearType_comments = ddvYearTypeSchema.create("comments").setType(MetadataValueType.ENUM);
+		MetadataBuilder ddvYearType_comments = ddvYearTypeSchema.create("comments").setType(MetadataValueType.STRUCTURE);
 		ddvYearType_comments.setMultivalue(true);
 		ddvYearType_comments.defineStructureFactory(CommentFactory.class);
 		MetadataBuilder ddvYearType_createdBy = ddvYearTypeSchema.create("createdBy").setType(MetadataValueType.REFERENCE);
@@ -5416,9 +5414,6 @@ public final class GeneratedRMMigrationCombo {
 		folder_createdOn.setEssential(true);
 		folder_createdOn.setMultiLingual(false);
 		folder_createdOn.setSortable(true);
-		MetadataBuilder folder_decommissioningDate = folderSchema.create("decommissioningDate").setType(MetadataValueType.DATE);
-		folder_decommissioningDate.setUndeletable(true);
-		folder_decommissioningDate.setEssential(true);
 		MetadataBuilder folder_deleted = folderSchema.create("deleted").setType(MetadataValueType.BOOLEAN);
 		folder_deleted.setSystemReserved(true);
 		folder_deleted.setUndeletable(true);
@@ -7463,7 +7458,6 @@ public final class GeneratedRMMigrationCombo {
 		transaction.add(manager.getMetadata(collection, "folder_default_copyRulesExpectedDestructionDates").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_copyRulesExpectedTransferDates").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_copyStatus").withMetadataGroup("").withInputType(MetadataInputType.RADIO_BUTTONS).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
-		transaction.add(manager.getMetadata(collection, "folder_default_decommissioningDate").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_description").withMetadataGroup("").withInputType(MetadataInputType.TEXTAREA).withHighlightStatus(true).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_expectedDepositDate").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
 		transaction.add(manager.getMetadata(collection, "folder_default_expectedDestructionDate").withMetadataGroup("").withInputType(MetadataInputType.FIELD).withHighlightStatus(false).withVisibleInAdvancedSearchStatus(true));
