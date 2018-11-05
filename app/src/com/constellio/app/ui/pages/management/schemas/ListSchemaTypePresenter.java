@@ -5,6 +5,7 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
+import com.constellio.app.ui.framework.data.writter.SchemaTypeExcelGenerator;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.io.IOServicesFactory;
@@ -13,10 +14,15 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.apache.solr.schema.SchemaManager;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,10 +30,12 @@ import java.util.Map;
 public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchemaTypeView> {
 
 	private IOServices ioServices;
+	MetadataSchemasManager schemaManager;
 
 	public ListSchemaTypePresenter(ListSchemaTypeView view) {
 		super(view);
 		ioServices = view.getConstellioFactories().getIoServicesFactory().newIOServices();
+		schemaManager = modelLayerFactory.getMetadataSchemasManager();
 	}
 
 	@Override
@@ -59,17 +67,16 @@ public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchem
 		view.navigate().to().listTabDisplayForm(params);
 	}
 
-	public void generateExcelWithMetadataInfo(MetadataSchemaTypeVO schemaTypeVO) {
+	public void generateExcelWithMetadataInfo(MetadataSchemaTypeVO schemaTypeVO)
+ 	{
 		String titre = schemaTypeVO.getLabel(Language
 				.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
-		File temporaryFile = ioServices.newTemporaryFile(ListSchemaTypePresenter.class.getName());
+		SchemaTypeExcelGenerator schemaTypeExcelGenerator = new SchemaTypeExcelGenerator(schemaManager.getSchemaTypes(collection).getSchemaType(schemaTypeVO.getCode()), appLayerFactory, getCurrentLocale());
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		schemaTypeExcelGenerator.write(byteArrayOutputStream);
 
 
-		try {
-			view.startDownload(titre, new FileInputStream(temporaryFile), "xls");
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
+		view.startDownload(titre +".xls", new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), "xls");
 	}
 
 	public void backButtonClicked() {
