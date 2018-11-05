@@ -560,4 +560,5 @@ public class RMConfigs {
 	public boolean isDecommissioningTypeRequiredInContainers() {
 		return manager.getValue(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS);
 	}
+
 }
