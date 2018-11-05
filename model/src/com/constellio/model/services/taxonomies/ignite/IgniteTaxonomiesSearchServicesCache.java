@@ -25,7 +25,7 @@ public class IgniteTaxonomiesSearchServicesCache implements TaxonomiesSearchServ
 
 	public IgniteTaxonomiesSearchServicesCache(ModelLayerFactory modelLayerFactory) {
 		ConstellioIgniteCacheManager recordsCacheManager = (ConstellioIgniteCacheManager) modelLayerFactory.getDataLayerFactory()
-				.getRecordsCacheManager();
+				.getDistributedCacheManager();
 
 		CacheConfiguration<String, Object> cacheCfg = new CacheConfiguration<>("TaxonomiesSearchServicesCache");
 		cacheCfg.setCacheMode(CacheMode.PARTITIONED); // Default.

@@ -57,7 +57,7 @@ public class RecordMigrationsManager implements StatefulService,
 		backgroundThreadsManager = modelLayerFactory.getDataLayerFactory().getBackgroundThreadsManager();
 		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		collectionsListManager = modelLayerFactory.getCollectionsListManager();
-		cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
+		cacheManager = modelLayerFactory.getDataLayerFactory().getLocalCacheManager();
 		searchServices = modelLayerFactory.newSearchServices();
 		this.modelLayerFactory = modelLayerFactory;
 

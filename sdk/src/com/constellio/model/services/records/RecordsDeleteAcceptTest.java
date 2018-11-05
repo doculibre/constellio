@@ -1943,7 +1943,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		public void hasRemovedDeletePermissionOn(Record record)
 				throws InterruptedException {
 			recordServices.refresh(record);
-			String authorizationDetailId = authorizationsServices.getRecordAuthorizations(record).get(0).getDetail().getId();
+			String authorizationDetailId = authorizationsServices.getRecordAuthorizations(record).get(0).getId();
 			authorizationsServices.execute(modifyAuthorizationOnRecord(authorizationDetailId, record).removingItOnRecord());
 			waitForBatchProcess();
 		}

@@ -7,6 +7,8 @@ import com.constellio.app.modules.rm.services.borrowingServices.BorrowingService
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
@@ -18,6 +20,8 @@ import org.joda.time.LocalDate;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+
+import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,9 +63,11 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 
 		Cart cart = rm.newCart();
 		cart.setOwner(users.adminIn(zeCollection));
-		cart.setFolders(asList(records.folder_A10, records.folder_C04, records.folder_C07));
+		List<Record> folders = asList(records.getFolder_A10().getWrappedRecord(), records.getFolder_C04().getWrappedRecord(), records.getFolder_C07().getWrappedRecord());
+		addFoldersToCart(cart, folders);
 		cart.setTitle("ze cart");
 		recordServices.add(cart);
+		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
 		assertThat(cartPresenter.getCommonAdministrativeUnit(cartPresenter.getCartFolders())).isNull();
@@ -74,9 +80,11 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 
 		Cart cart = rm.newCart();
 		cart.setOwner(users.adminIn(zeCollection));
-		cart.setFolders(asList(records.folder_A14, records.folder_A15, records.folder_A16, records.folder_A17));
+		List<Record> folders = asList(records.getFolder_A14().getWrappedRecord(), records.getFolder_A15().getWrappedRecord(), records.getFolder_A16().getWrappedRecord(), records.getFolder_A17().getWrappedRecord());
+		addFoldersToCart(cart, folders);
 		cart.setTitle("ze cart");
 		recordServices.add(cart);
+		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
 		assertThat(cartPresenter.getCommonAdministrativeUnit(cartPresenter.getCartFolders())).isEqualTo(records.unitId_10a);
@@ -89,9 +97,11 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 
 		Cart cart = rm.newCart();
 		cart.setOwner(users.adminIn(zeCollection));
-		cart.setFolders(asList(records.folder_A10, records.folder_A48, records.folder_A16, records.folder_A17));
+		List<Record> folders = asList(records.getFolder_A10().getWrappedRecord(), records.getFolder_A48().getWrappedRecord(), records.getFolder_A16().getWrappedRecord(), records.getFolder_A17().getWrappedRecord());
+		addFoldersToCart(cart, folders);
 		cart.setTitle("ze cart");
 		recordServices.add(cart);
+		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
 		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).isEmpty();
@@ -103,9 +113,11 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 
 		Cart cart = rm.newCart();
 		cart.setOwner(users.adminIn(zeCollection));
-		cart.setFolders(asList(records.folder_A17, records.folder_A18, records.folder_A19, records.folder_A20));
+		List<Record> folders = asList(records.getFolder_A17().getWrappedRecord(), records.getFolder_A18().getWrappedRecord(), records.getFolder_A19().getWrappedRecord(), records.getFolder_A20().getWrappedRecord());
+		addFoldersToCart(cart, folders);
 		cart.setTitle("ze cart");
 		recordServices.add(cart);
+		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
 		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).containsOnly(
@@ -121,9 +133,11 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 
 		Cart cart = rm.newCart();
 		cart.setOwner(users.adminIn(zeCollection));
-		cart.setFolders(asList(records.folder_A08, records.folder_A09, records.folder_A10, records.folder_A11));
+		List<Record> folders = asList(records.getFolder_A08().getWrappedRecord(), records.getFolder_A09().getWrappedRecord(), records.getFolder_A10().getWrappedRecord(), records.getFolder_A11().getWrappedRecord());
+		addFoldersToCart(cart, folders);
 		cart.setTitle("ze cart");
 		recordServices.add(cart);
+		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
 		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).isEmpty();
@@ -133,18 +147,18 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenCartWithActivOpenedFoldersWithDifferentDisposalTypeWhenFindCommonDecomListTypeThenReturnOneChoice()
 			throws Exception {
-
 		Cart cart = rm.newCart();
 		cart.setOwner(users.adminIn(zeCollection));
-		cart.setFolders(asList(records.folder_A07, records.folder_A08));
+		List<Record> folders = asList(records.getFolder_A07().getWrappedRecord(), records.getFolder_A08().getWrappedRecord());
+		addFoldersToCart(cart, folders);
 		cart.setTitle("ze cart");
 		recordServices.add(cart);
+		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
 		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).containsOnly(
 				DecommissioningListType.FOLDERS_TO_CLOSE
 		);
-
 	}
 
 	@Test
@@ -153,9 +167,11 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 
 		Cart cart = rm.newCart();
 		cart.setOwner(users.adminIn(zeCollection));
-		cart.setFolders(asList(records.folder_A17, records.folder_A18, records.folder_A19, records.folder_A20));
+		List<Record> folders = asList(records.getFolder_A17().getWrappedRecord(), records.getFolder_A18().getWrappedRecord(), records.getFolder_A19().getWrappedRecord(), records.getFolder_A20().getWrappedRecord());
+		addFoldersToCart(cart, folders);
 		cart.setTitle("ze cart");
 		recordServices.add(cart);
+		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
 		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).containsOnly(
@@ -171,9 +187,11 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 
 		Cart cart = rm.newCart();
 		cart.setOwner(users.adminIn(zeCollection));
-		cart.setFolders(asList(records.folder_A54, records.folder_A55, records.folder_A56, records.folder_C34));
+		List<Record> folders = asList(records.getFolder_A54().getWrappedRecord(), records.getFolder_A55().getWrappedRecord(), records.getFolder_A56().getWrappedRecord(), records.getFolder_C34().getWrappedRecord());
+		addFoldersToCart(cart, folders);
 		cart.setTitle("ze cart");
 		recordServices.add(cart);
+		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
 		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).containsOnly(
@@ -188,9 +206,11 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 
 		Cart cart = rm.newCart();
 		cart.setOwner(users.adminIn(zeCollection));
-		cart.setFolders(asList(records.folder_A47, records.folder_A48));
+		List<Record> folders = asList(records.getFolder_A47().getWrappedRecord(), records.getFolder_A48().getWrappedRecord());
+		addFoldersToCart(cart, folders);
 		cart.setTitle("ze cart");
 		recordServices.add(cart);
+		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
 		assertThat(cartPresenter.getCommonDecommissioningListTypes(cartPresenter.getCartFolders())).isEmpty();
@@ -209,11 +229,19 @@ public class CartPresenterAcceptanceTest extends ConstellioTest {
 
 		Cart cart = rm.newCart();
 		cart.setOwner(users.adminIn(zeCollection));
-		cart.setFolders(asList(records.folder_A47, records.folder_A48));
+		List<Record> folders = asList(records.getFolder_A47().getWrappedRecord(), records.getFolder_A48().getWrappedRecord());
+		addFoldersToCart(cart, folders);
 		cart.setTitle("ze cart");
 		recordServices.add(cart);
+		recordServices.execute(new Transaction(folders));
 		cartPresenter.forParams(cart.getId());
 
 		assertThat(cartPresenter.isAnyFolderBorrowed()).isTrue();
+	}
+
+	private void addFoldersToCart(Cart cart, List<Record> folders) {
+		for (Record record : folders) {
+			rm.wrapFolder(record).addFavorite(cart.getId());
+		}
 	}
 }

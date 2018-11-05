@@ -95,9 +95,9 @@ public class SearchDisplayConfigPresenter extends SingleSchemaBasePresenter<Sear
 	private boolean isAllowedMetadata(FormMetadataVO metadataVO) {
 		boolean result;
 		List<Metadata> restrictedMetadata = Arrays.asList(Schemas.SCHEMA, Schemas.VERSION, Schemas.PATH, Schemas.PRINCIPAL_PATH,
-				Schemas.PARENT_PATH, Schemas.REMOVED_AUTHORIZATIONS, Schemas.ALL_REMOVED_AUTHS,
+				Schemas.REMOVED_AUTHORIZATIONS, Schemas.ALL_REMOVED_AUTHS,
 				Schemas.ATTACHED_ANCESTORS, Schemas.IS_DETACHED_AUTHORIZATIONS, Schemas.TOKENS, Schemas.COLLECTION,
-				Schemas.FOLLOWERS, Schemas.LOGICALLY_DELETED_STATUS, Schemas.TITLE);
+				Schemas.LOGICALLY_DELETED_STATUS, Schemas.TITLE);
 
 		List<MetadataValueType> restrictedType = Arrays.asList(MetadataValueType.STRUCTURE, MetadataValueType.CONTENT);
 

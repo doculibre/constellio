@@ -13,18 +13,9 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
-import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.*;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
-import com.constellio.model.entities.security.global.SolrUserCredential;
-import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.entities.security.global.UserCredentialStatus;
+import com.constellio.model.entities.security.global.*;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -42,15 +33,7 @@ import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.authentification.AuthenticationService;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotExcuteTransaction;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_CannotRemoveAdmin;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidGroup;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidToken;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_InvalidUserNameOrPassword;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchGroup;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
-import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserPermissionDeniedToDelete;
+import com.constellio.model.services.users.UserServicesRuntimeException.*;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import org.apache.commons.lang3.StringUtils;
@@ -59,12 +42,7 @@ import org.joda.time.ReadableDuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
@@ -77,8 +55,8 @@ public class UserServices {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserServices.class);
 	public static final String ADMIN = "admin";
-	private final UserCredentialsManager userCredentialsManager;
-	private final GlobalGroupsManager globalGroupsManager;
+	private final SolrUserCredentialsManager userCredentialsManager;
+	private final SolrGlobalGroupsManager globalGroupsManager;
 	private final CollectionsListManager collectionsListManager;
 	private final RecordServices recordServices;
 	private final SearchServices searchServices;
@@ -680,7 +658,7 @@ public class UserServices {
 		return new Group(record, schemaTypes(collection));
 	}
 
-	List<Group> getAllGroupsInCollections(String collection) {
+	public List<Group> getAllGroupsInCollections(String collection) {
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
 		LogicalSearchQuery query = new LogicalSearchQuery(allGroups(collectionTypes).returnAll());
 		query.filteredByStatus(StatusFilter.ACTIVES);
@@ -694,7 +672,7 @@ public class UserServices {
 		return Group.wrap(searchServices.search(query), collectionTypes);
 	}
 
-	List<Group> getGlobalGroupsInCollections(String collection) {
+	public List<Group> getGlobalGroupsInCollections(String collection) {
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
 		LogicalSearchQuery query = new LogicalSearchQuery(allGroupsWhereGlobalGroupFlag(collectionTypes).isTrue());
 		return Group.wrap(searchServices.search(query), collectionTypes);
@@ -1161,5 +1139,25 @@ public class UserServices {
 		} else {
 			return true;
 		}
+	}
+
+	public List<User> getUserForEachCollection(UserCredential userCredential) {
+
+		List<User> users = new ArrayList<>();
+		for (String collection : userCredential.getCollections()) {
+			users.add(getUserInCollection(userCredential.getUsername(), collection));
+		}
+
+		return users;
+	}
+
+	public List<Group> getGroupForEachCollection(GlobalGroup globalGroup) {
+
+		List<Group> groups = new ArrayList<>();
+		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
+			groups.add(getGroupInCollection(globalGroup.getCode(), collection));
+		}
+
+		return groups;
 	}
 }

@@ -193,8 +193,6 @@ public class RecordExportServices {
 							.setImportAsLegacyId(!options.isForSameSystem()));
 		}
 
-		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-
 		for (String exportedSchemaType : schemaTypeList) {
 
 			logicalSearchQuery.setCondition(from(metadataSchemaTypes.getSchemaType(exportedSchemaType)).where(Schemas.IDENTIFIER).isIn(recordsToExport));
@@ -295,8 +293,6 @@ public class RecordExportServices {
 
 				ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, exportedSchemaType,
 						record.getId(), metadataSchema.getLocalCode());
-
-				RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
 				writeRecord(collection, record, modifiableImportRecord, options, contentPaths);
 

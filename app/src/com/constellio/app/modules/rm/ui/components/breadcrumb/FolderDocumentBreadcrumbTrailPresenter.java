@@ -41,7 +41,9 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private String collection;
 
-	private FolderDocumentBreadcrumbTrail breadcrumbTrail;
+	private String containerId;
+
+	private FolderDocumentContainerBreadcrumbTrail breadcrumbTrail;
 
 	private transient TaxonomiesManager taxonomiesManager;
 
@@ -50,10 +52,11 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 	private transient RMSchemasRecordsServices rmSchemasRecordsServices;
 
 	public FolderDocumentBreadcrumbTrailPresenter(String recordId, String taxonomyCode,
-												  FolderDocumentBreadcrumbTrail breadcrumbTrail) {
+												  FolderDocumentContainerBreadcrumbTrail breadcrumbTrail, String containerId) {
 		this.recordId = recordId;
 		this.taxonomyCode = taxonomyCode;
 		this.breadcrumbTrail = breadcrumbTrail;
+		this.containerId = containerId;
 		initTransientObjects();
 		addBreadcrumbItems();
 	}
@@ -78,26 +81,14 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 
 	private void addBreadcrumbItems() {
 		List<BreadcrumbItem> breadcrumbItems = new ArrayList<>();
-
-		String currentRecordId = recordId;
-		while (currentRecordId != null) {
-			Record currentRecord = folderPresenterUtils.getRecord(currentRecordId);
-			String currentSchemaCode = currentRecord.getSchemaCode();
-			String currentSchemaTypeCode = SchemaUtils.getSchemaTypeCode(currentSchemaCode);
-			if (Folder.SCHEMA_TYPE.equals(currentSchemaTypeCode)) {
-				breadcrumbItems.add(0, new FolderBreadcrumbItem(currentRecordId));
-
-				Folder folder = rmSchemasRecordsServices.wrapFolder(currentRecord);
-				currentRecordId = folder.getParentFolder();
-			} else if (Document.SCHEMA_TYPE.equals(currentSchemaTypeCode)) {
-				breadcrumbItems.add(new DocumentBreadcrumbItem(currentRecordId));
-
-				Document document = rmSchemasRecordsServices.wrapDocument(currentRecord);
-				currentRecordId = document.getFolder();
-			} else {
-				throw new RuntimeException("Unrecognized schema type code : " + currentSchemaTypeCode);
-			}
+		int folderOffSet = 0;
+		if(containerId != null) {
+			breadcrumbItems.add(new ContainerBreadcrumbItem(containerId));
+			folderOffSet = 1;
 		}
+
+		breadcrumbItems.addAll(getGetFolderDocumentBreadCrumbItems(recordId, folderPresenterUtils,
+				rmSchemasRecordsServices));
 
 		UIContext uiContext = breadcrumbTrail.getUIContext();
 		String searchId = uiContext.getAttribute(BaseBreadcrumbTrail.SEARCH_ID);
@@ -178,15 +169,45 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		}
 	}
 
+	public static List<BreadcrumbItem> getGetFolderDocumentBreadCrumbItems(String currentRecordId,
+			SchemaPresenterUtils schemaPresenterUtils, RMSchemasRecordsServices rmSchemasRecordsServices) {
+
+		String baseRecordId = currentRecordId;
+
+		List<BreadcrumbItem> breadcrumbItems = new ArrayList<>();
+		while (currentRecordId != null) {
+			Record currentRecord = schemaPresenterUtils.getRecord(currentRecordId);
+			String currentSchemaCode = currentRecord.getSchemaCode();
+			String currentSchemaTypeCode = SchemaUtils.getSchemaTypeCode(currentSchemaCode);
+			if (Folder.SCHEMA_TYPE.equals(currentSchemaTypeCode)) {
+				FolderBreadCrumbItem folderBreadCrumbItem = new FolderBreadCrumbItem(currentRecordId, schemaPresenterUtils,
+						baseRecordId);
+				breadcrumbItems.add(0, folderBreadCrumbItem);
+
+				Folder folder = rmSchemasRecordsServices.wrapFolder(currentRecord);
+				currentRecordId = folder.getParentFolder();
+			} else if (Document.SCHEMA_TYPE.equals(currentSchemaTypeCode)) {
+				breadcrumbItems.add(new DocumentBreadCrumbItem(currentRecordId));
+
+				Document document = rmSchemasRecordsServices.wrapDocument(currentRecord);
+				currentRecordId = document.getFolder();
+			} else {
+				throw new RuntimeException("Unrecognized schema type code : " + currentSchemaTypeCode);
+			}
+		}
+
+		return breadcrumbItems;
+	}
+
 	public boolean itemClicked(BreadcrumbItem item) {
 		boolean handled;
-		if (item instanceof FolderBreadcrumbItem) {
+		if (item instanceof FolderBreadCrumbItem) {
 			handled = true;
-			String folderId = ((FolderBreadcrumbItem) item).getFolderId();
+			String folderId = ((FolderBreadCrumbItem) item).getFolderId();
 			breadcrumbTrail.navigate().to(RMViews.class).displayFolder(folderId);
-		} else if (item instanceof DocumentBreadcrumbItem) {
+		} else if (item instanceof DocumentBreadCrumbItem) {
 			handled = true;
-			String documentId = ((DocumentBreadcrumbItem) item).getDocumentId();
+			String documentId = ((DocumentBreadCrumbItem) item).getDocumentId();
 			breadcrumbTrail.navigate().to(RMViews.class).displayDocument(documentId);
 		} else if (item instanceof TaxonomyElementBreadcrumbItem) {
 			handled = true;
@@ -206,10 +227,44 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 			} else {
 				breadcrumbTrail.navigate().to().simpleSearchReplay(searchId);
 			}
+		} else if (item instanceof ContainerBreadcrumbItem) {
+			handled = true;
+			ContainerBreadcrumbItem containerBreadcrumbItem = (ContainerBreadcrumbItem) item;
+			breadcrumbTrail.navigate().to(RMViews.class).displayContainer(containerBreadcrumbItem.getContainerId());
 		} else {
 			handled = false;
 		}
 		return handled;
+	}
+
+	class ContainerBreadcrumbItem implements BreadcrumbItem {
+		private String folderId;
+
+		public ContainerBreadcrumbItem(String containerId) {
+			this.folderId = containerId;
+		}
+
+		public final String getContainerId() {
+			return folderId;
+		}
+
+		@Override
+		public String getLabel() {
+			return SchemaCaptionUtils.getCaptionForRecordId(folderId);
+		}
+
+		@Override
+		public boolean isEnabled() {
+			boolean enabled;
+			if (folderId.equals(recordId)) {
+				enabled = false;
+			} else {
+				Record record = folderPresenterUtils.getRecord(folderId);
+				User user = folderPresenterUtils.getCurrentUser();
+				enabled = user.hasReadAccess().on(record);
+			}
+			return enabled;
+		}
 	}
 
 	class TaxonomyBreadcrumbItem implements BreadcrumbItem {
@@ -262,62 +317,4 @@ public class FolderDocumentBreadcrumbTrailPresenter implements Serializable {
 		}
 
 	}
-
-	class FolderBreadcrumbItem implements BreadcrumbItem {
-
-		private String folderId;
-
-		FolderBreadcrumbItem(String folderId) {
-			this.folderId = folderId;
-		}
-
-		public final String getFolderId() {
-			return folderId;
-		}
-
-		@Override
-		public String getLabel() {
-			return SchemaCaptionUtils.getCaptionForRecordId(folderId);
-		}
-
-		@Override
-		public boolean isEnabled() {
-			boolean enabled;
-			if (folderId.equals(recordId)) {
-				enabled = false;
-			} else {
-				Record record = folderPresenterUtils.getRecord(folderId);
-				User user = folderPresenterUtils.getCurrentUser();
-				enabled = user.hasReadAccess().on(record);
-			}
-			return enabled;
-		}
-
-	}
-
-	class DocumentBreadcrumbItem implements BreadcrumbItem {
-
-		private String documentId;
-
-		DocumentBreadcrumbItem(String documentId) {
-			this.documentId = documentId;
-		}
-
-		public final String getDocumentId() {
-			return documentId;
-		}
-
-		@Override
-		public String getLabel() {
-			return SchemaCaptionUtils.getCaptionForRecordId(documentId);
-		}
-
-		@Override
-		public boolean isEnabled() {
-			// Always last item
-			return false;
-		}
-
-	}
-
 }

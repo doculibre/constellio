@@ -14,8 +14,8 @@ import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
 
 public class DocumentVO extends RecordVO {
 
-	public DocumentVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
-		super(id, metadataValues, viewMode);
+	public DocumentVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode, List<String> excludedMetadata) {
+		super(id, metadataValues, viewMode, excludedMetadata);
 	}
 
 	public DocumentVO(RecordVO recordVO) {

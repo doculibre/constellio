@@ -8,7 +8,7 @@ import com.constellio.app.ui.framework.builders.UserCredentialToVOBuilder;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.users.UserCredentialsManager;
+import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -38,7 +38,7 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 	@Mock DisplayUserCredentialView userCredentialView;
 	@Mock UserServices userServices;
 	@Mock CoreViews navigator;
-	@Mock UserCredentialsManager userCredentialsManager;
+	@Mock SolrUserCredentialsManager userCredentialsManager;
 	@Mock UserCredential dakotaCredential, newDakotaCredential;
 	@Mock GlobalGroup heroesGlobalGroup;
 	@Mock GlobalGroupVODataProvider globalGroupVODataProvider;

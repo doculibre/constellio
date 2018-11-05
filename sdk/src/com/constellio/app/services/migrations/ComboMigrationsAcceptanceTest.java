@@ -5,7 +5,7 @@ import com.constellio.data.conf.IdGeneratorType;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration.InMemoryDataLayerConfiguration;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
@@ -47,7 +47,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			public void setupCollection() {
 				givenCollection(zeCollection);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						SolrAuthorizationDetails.DEFAULT_SCHEMA);
+						Authorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 			}
@@ -65,7 +65,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			public void setupCollection() {
 				givenCollection(zeCollection).withTaskModule();
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						SolrAuthorizationDetails.DEFAULT_SCHEMA);
+						Authorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 			}
@@ -83,7 +83,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			public void setupCollection() {
 				givenCollection(zeCollection).withConstellioRMModule();
 				getAppLayerFactory().getMetadataSchemasDisplayManager()
-						.resetSchema(zeCollection, SolrAuthorizationDetails.DEFAULT_SCHEMA);
+						.resetSchema(zeCollection, Authorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
@@ -104,7 +104,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			public void setupCollection() {
 				givenCollection(zeCollection).withRobotsModule();
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						SolrAuthorizationDetails.DEFAULT_SCHEMA);
+						Authorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 			}
@@ -122,7 +122,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 			public void setupCollection() {
 				givenCollection(zeCollection).withConstellioESModule();
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						SolrAuthorizationDetails.DEFAULT_SCHEMA);
+						Authorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 			}
@@ -144,7 +144,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 					}
 				});
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						SolrAuthorizationDetails.DEFAULT_SCHEMA);
+						Authorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
@@ -170,7 +170,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 					}
 				});
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						SolrAuthorizationDetails.DEFAULT_SCHEMA);
+						Authorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);
@@ -199,7 +199,7 @@ public class ComboMigrationsAcceptanceTest extends ConstellioTest {
 				givenCollection(zeCollection).withMockedAvailableModules(false).withConstellioRMModule().withConstellioESModule()
 						.withRobotsModule();
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection,
-						SolrAuthorizationDetails.DEFAULT_SCHEMA);
+						Authorization.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserFolder.DEFAULT_SCHEMA);
 				getAppLayerFactory().getMetadataSchemasDisplayManager().resetSchema(zeCollection, UserDocument.DEFAULT_SCHEMA);
 				getAppLayerFactory().getSystemGlobalConfigsManager().setReindexingRequired(false);

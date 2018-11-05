@@ -5,7 +5,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -18,7 +17,6 @@ public class Group extends RecordWrapper {
 	public static final String TITLE = Schemas.TITLE_CODE;
 	public static final String PARENT = "parent";
 	public static final String ANCESTORS = "ancestors";
-	public static final String ALL_AUTHORIZATIONS = "allauthorizations";
 
 	public Group(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -85,10 +83,6 @@ public class Group extends RecordWrapper {
 
 	public boolean isDirty() {
 		return wrappedRecord.isDirty();
-	}
-
-	public Collection<? extends String> getAllAuthorizations() {
-		return get(ALL_AUTHORIZATIONS);
 	}
 
 	@Override

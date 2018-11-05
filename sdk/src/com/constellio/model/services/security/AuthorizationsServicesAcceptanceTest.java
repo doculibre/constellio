@@ -4,7 +4,7 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
@@ -22,8 +22,6 @@ import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidPrincipalsIds;
-import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.InvalidTargetRecordId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithId;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord;
 import com.constellio.model.services.security.AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername;
@@ -64,6 +62,7 @@ import static com.constellio.model.entities.security.global.AuthorizationModific
 import static com.constellio.model.entities.security.global.GlobalGroupStatus.ACTIVE;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.FOLDER1;
@@ -192,7 +191,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(collection, getModelLayerFactory());
-			for (SolrAuthorizationDetails auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
+			for (Authorization auth : schemas.getAllAuthorizationsInUnmodifiableState()) {
 				if (auth.hasModifiedStatusSinceLastTokenRecalculate()) {
 					fail("authorization '" + auth.getId() + "' on target '" + auth.getTarget() + "'");
 				}
@@ -665,6 +664,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.detachedAuthorizationFlag().isFalse();
 		}
 
+
 		for (RecordVerifier verifyRecord : $(FOLDER1, FOLDER1_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(sasquatch, chuck);
 			verifyRecord.usersWithReadAccess().containsOnly(sasquatch, chuck);
@@ -1004,7 +1004,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			auth1 = add(authorizationInCollection(zeCollection).givingReadAccess().forPrincipalsIds("inexistentId1")
 					.on(TAXO1_CATEGORY1));
 			fail("Exception expected");
-		} catch (InvalidPrincipalsIds e) {
+		} catch (AuthorizationsServicesRuntimeException.NoSuchPrincipalWithUsername e) {
 			//OK
 		}
 
@@ -1012,7 +1012,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			List<String> roles = asList(READ);
 			addAuthorizationWithoutDetaching(roles, asList(users.aliceIn(zeCollection).getId()), "inexistentId2");
 			fail("Exception expected");
-		} catch (InvalidTargetRecordId e) {
+		} catch (AuthorizationsServicesRuntimeException.InvalidTargetRecordId e) {
 			//OK
 		}
 
@@ -1379,7 +1379,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			auth7 = add(authorizationForUser(sasquatch).on(TAXO1_FOND1_1)
 					.during(date(2016, 4, 1), date(2016, 4, 3)).givingReadWriteAccess());
 			fail("Exception expected");
-		} catch (AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate e) {
+		} catch (AuthorizationsServicesRuntimeException.EndDateLessThanCurrentDate e) {
 			//OK
 		}
 
@@ -1454,7 +1454,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			auth7 = add(authorizationForUser(sasquatch).on(FOLDER4)
 					.during(date(2016, 4, 1), date(2016, 4, 3)).givingReadWriteAccess());
 			fail("Exception expected");
-		} catch (AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate e) {
+		} catch (AuthorizationsServicesRuntimeException.EndDateLessThanCurrentDate e) {
 			//OK
 		}
 
@@ -1529,7 +1529,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			auth7 = add(authorizationForUser(sasquatch).on(FOLDER4)
 					.during(date(2016, 4, 1), date(2016, 4, 3)).givingReadWriteAccess());
 			fail("Exception expected");
-		} catch (AuthorizationDetailsManagerRuntimeException.EndDateLessThanCurrentDate e) {
+		} catch (AuthorizationsServicesRuntimeException.EndDateLessThanCurrentDate e) {
 			//OK
 		}
 
@@ -2740,6 +2740,15 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth1 = add(authorizationForGroup(legends).on(TAXO1_CATEGORY1).givingReadWriteAccess());
 		auth2 = add(authorizationForGroup(legends).on(FOLDER4).givingReadAccess());
 		auth3 = add(authorizationForGroup(legends).on(FOLDER3).givingReadDeleteAccess());
+
+		LogicalSearchQuery query = new LogicalSearchQuery(from(setup.folderSchema.instance()).where(Schemas.IDENTIFIER).isEqualTo("folder4"));
+		query.filteredWithUser(users.aliceIn(zeCollection));
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
+
+		//		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
+		//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
+
+		assertThat(searchServices.hasResults(query)).isTrue();
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
 			verifyRecord.usersWithReadAccess().contains(edouard).doesNotContain(sasquatch);

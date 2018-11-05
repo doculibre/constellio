@@ -2,21 +2,18 @@ package com.constellio.model.services.schemas.builders;
 
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.calculators.UserTitleCalculator;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType;
-import com.constellio.model.services.schemas.calculators.AllAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.AllReferencesCalculator;
 import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculator;
 import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
 import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
 import com.constellio.model.services.schemas.calculators.DefaultTokensOfHierarchyCalculator;
-import com.constellio.model.services.schemas.calculators.InheritedAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator;
-import com.constellio.model.services.schemas.calculators.ParentPathCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
 import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
@@ -37,12 +34,8 @@ public class CommonMetadataBuilder {
 	public static final String ID = "id";
 	public static final String SCHEMA = "schema";
 	public static final String PATH = "path";
-	public static final String PARENT_PATH = "parentpath";
-	public static final String AUTHORIZATIONS = "authorizations";
 	public static final String REMOVED_AUTHORIZATIONS = "removedauthorizations";
-	public static final String INHERITED_AUTHORIZATIONS = "inheritedauthorizations";
 	public static final String DETACHED_AUTHORIZATIONS = "detachedauthorizations";
-	public static final String ALL_AUTHORIZATIONS = "allauthorizations";
 	public static final String TOKENS = "tokens";
 	public static final String TOKENS_OF_HIERARCHY = "tokensHierarchy";
 	public static final String DENY_TOKENS = "denyTokens";
@@ -58,9 +51,7 @@ public class CommonMetadataBuilder {
 	public static final String MODIFIED_ON = "modifiedOn";
 	public static final String TITLE = "title";
 	public static final String SUMMARY = "summary";
-	public static final String FOLLOWERS = "followers";
 	public static final String LEGACY_ID = "legacyIdentifier";
-	public static final String SEARCHABLE = "searchable";
 	public static final String VISIBLE_IN_TREES = "visibleInTrees";
 	public static final String LOGICALLY_DELETED_ON = "logicallyDeletedOn";
 	public static final String ERROR_ON_PHYSICAL_DELETION = "errorOnPhysicalDeletion";
@@ -148,47 +139,12 @@ public class CommonMetadataBuilder {
 				}
 			}
 		});
-		metadata.put(PARENT_PATH, new MetadataCreator() {
-			@Override
-			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(PARENT_PATH).setType(STRING)
-						.setMultivalue(true)
-						.defineDataEntry().asCalculated(ParentPathCalculator.class);
-				for (Language language : types.getLanguages()) {
-					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-				}
-			}
-		});
 
-		metadata.put(AUTHORIZATIONS, new MetadataCreator() {
-			@Override
-			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(AUTHORIZATIONS).setType(STRING)
-						.setMultivalue(true);
-				for (Language language : types.getLanguages()) {
-					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-				}
-			}
-		});
 		metadata.put(REMOVED_AUTHORIZATIONS, new MetadataCreator() {
 			@Override
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(REMOVED_AUTHORIZATIONS)
 						.setType(STRING).setMultivalue(true);
-				for (Language language : types.getLanguages()) {
-					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-				}
-			}
-		});
-		metadata.put(INHERITED_AUTHORIZATIONS, new MetadataCreator() {
-			@Override
-			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(INHERITED_AUTHORIZATIONS)
-						.setType(STRING)
-						.setMultivalue(true);
-				if (!schema.getCode().equals(Group.DEFAULT_SCHEMA)) {
-					metadataBuilder.defineDataEntry().asCalculated(InheritedAuthorizationsCalculator.class);
-				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}
@@ -204,17 +160,6 @@ public class CommonMetadataBuilder {
 				}
 			}
 		});
-		metadata.put(ALL_AUTHORIZATIONS, new MetadataCreator() {
-			@Override
-			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(ALL_AUTHORIZATIONS)
-						.setType(STRING).setMultivalue(true)
-						.defineDataEntry().asCalculated(AllAuthorizationsCalculator.class);
-				for (Language language : types.getLanguages()) {
-					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-				}
-			}
-		});
 
 		metadata.put(TOKENS, new MetadataCreator() {
 			@Override
@@ -222,7 +167,7 @@ public class CommonMetadataBuilder {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(TOKENS).setType(STRING)
 						.setMultivalue(true);
 				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-					&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+					&& types.hasSchemaType(Authorization.SCHEMA_TYPE)) {
 					metadataBuilder.defineDataEntry().asCalculated(TokensCalculator4.class);
 
 				} else {
@@ -283,15 +228,6 @@ public class CommonMetadataBuilder {
 			}
 		});
 
-		metadata.put(SEARCHABLE, new MetadataCreator() {
-			@Override
-			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(SEARCHABLE).setType(BOOLEAN);
-				for (Language language : types.getLanguages()) {
-					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-				}
-			}
-		});
 
 		metadata.put(CREATED_BY, new MetadataCreator() {
 			@Override
@@ -362,16 +298,6 @@ public class CommonMetadataBuilder {
 			}
 		});
 
-		metadata.put(FOLLOWERS, new MetadataCreator() {
-			@Override
-			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(FOLLOWERS).setType(STRING).setMultivalue(true)
-						.setSearchable(true);
-				for (Language language : types.getLanguages()) {
-					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-				}
-			}
-		});
 
 		metadata.put(VISIBLE_IN_TREES, new MetadataCreator() {
 			@Override
@@ -509,9 +435,9 @@ public class CommonMetadataBuilder {
 				//SolrAuthorizationDetails always exist, except for test migrating old savestates which we want to keep as long as possible
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(NON_TAXONOMY_AUTHORIZATIONS);
 				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-					&& types.hasSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+					&& types.hasSchemaType(Authorization.SCHEMA_TYPE)) {
 
-					metadataBuilder.defineReferencesTo(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE))
+					metadataBuilder.defineReferencesTo(types.getSchemaType(Authorization.SCHEMA_TYPE))
 							.setMultivalue(true).defineDataEntry().asCalculated(NonTaxonomyAuthorizationsCalculator.class);
 
 				} else {

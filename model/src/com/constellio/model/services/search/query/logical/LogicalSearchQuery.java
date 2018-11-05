@@ -492,6 +492,7 @@ public class LogicalSearchQuery implements SearchQuery {
 
 	public interface UserFilter {
 		String buildFQ(SecurityTokenManager securityTokenManager);
+		User getUser();
 	}
 
 	public static class DefaultUserFilter implements UserFilter {

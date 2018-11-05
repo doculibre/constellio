@@ -1,10 +1,17 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
+import com.constellio.app.api.extensions.params.DocumentFolderBreadCrumbParams;
+import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -20,7 +27,7 @@ import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
-import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
+import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
@@ -39,8 +46,8 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.tabs.TabSheetDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.data.utils.Factory;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.event.dd.DragAndDropEvent;
@@ -297,7 +304,45 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new FolderDocumentBreadcrumbTrail(documentVO.getId(), taxonomyCode, this);
+
+		String saveSearchDecommissioningId = null;
+		String searchTypeAsString = null;
+
+		if (presenter.getParams() != null && presenter.getParams().get("decommissioningSearchId") != null) {
+			saveSearchDecommissioningId = presenter.getParams().get("decommissioningSearchId");
+
+		}
+
+		if (presenter.getParams() != null && presenter.getParams().get("decommissioningType") != null) {
+			searchTypeAsString = presenter.getParams().get("decommissioningType");
+		}
+
+		SearchType searchType = null;
+		if (searchTypeAsString != null) {
+			searchType = SearchType.valueOf((searchTypeAsString));
+		}
+
+		BaseBreadcrumbTrail breadcrumbTrail;
+
+		RMModuleExtensions rmModuleExtensions = getConstellioFactories().getAppLayerFactory().getExtensions()
+				.forCollection(getCollection()).forModule(ConstellioRMModule.ID);
+		breadcrumbTrail = rmModuleExtensions.getBreadCrumbtrail(
+				new DocumentFolderBreadCrumbParams(presenter.getDocument().getId(), presenter.getParams(), this));
+
+
+		if (breadcrumbTrail != null) {
+			return breadcrumbTrail;
+		} else if (saveSearchDecommissioningId != null && searchType != null) {
+			return new DecommissionBreadcrumbTrail($("DecommissioningBuilderView.viewTitle." + searchType.name()), searchType,
+					saveSearchDecommissioningId, presenter.getRecord().getId(), this);
+		} else {
+			String containerId = null;
+			if (presenter.getParams() != null && presenter.getParams() instanceof Map) {
+				containerId = presenter.getParams().get("containerId");
+			}
+
+			return new FolderDocumentContainerBreadcrumbTrail(documentVO.getId(), taxonomyCode, containerId, this);
+		}
 	}
 
 	@Override
@@ -455,6 +500,25 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 
+		Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getCustomTemplates();
+			}
+		};
+
+		Factory<List<LabelTemplate>> defaultLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
+			@Override
+			public List<LabelTemplate> get() {
+				return presenter.getDefaultTemplates();
+			}
+		};
+
+		Button labels = new LabelButtonV2($("DisplayFolderView.printLabel"),
+				$("DisplayFolderView.printLabel"), customLabelTemplatesFactory,
+				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
+				getSessionContext().getCurrentCollection(), presenter.getDocumentVO());
+
 		addToCartButton = buildAddToCartButton();
 
 		addToOrRemoveFromSelectionButton = new AddToOrRemoveFromSelectionButton(documentVO, getSessionContext().getSelectedRecordIds().contains(documentVO.getId()));
@@ -499,6 +563,20 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 			}
 		};
 		finalizeButton.addStyleName(ValoTheme.BUTTON_LINK);
+
+		DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
+			@Override
+			public void addToDefaultFavorites() {
+				presenter.addToDefaultFavorite();
+			}
+
+			@Override
+			public void removeFromDefaultFavorites() {
+				presenter.removeFromDefaultFavorites();
+			}
+		};
+		favoriteStar.setStarred(presenter.inDefaultFavorites());
+		actionMenuButtons.add(favoriteStar);
 
 		actionMenuButtons.add(editDocumentButton);
 
@@ -640,6 +718,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		}
 		startWorkflowButton = new StartWorkflowButton();
 		startWorkflowButton.setVisible(presenter.hasPermissionToStartWorkflow());
+
+		actionMenuButtons.add(labels);
 
 		actionMenuButtons.add(deleteDocumentButton);
 		actionMenuButtons.add(linkToDocumentButton);

@@ -92,6 +92,7 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 
 	public static final String EMAIL_MIME_TYPES = "mimeTypes";
 	public static final String EMAIL_ATTACHMENTS = "attachments";
+	private static final long NUMBER_OF_RECORDS_IN_CART_LIMIT = 1000;
 
 	public RMSchemasRecordsServices(String collection, SessionContextProvider sessionContextProvider) {
 		this(collection, sessionContextProvider.getConstellioFactories().getModelLayerFactory(),
@@ -1169,11 +1170,29 @@ public class RMSchemasRecordsServices extends RMGeneratedSchemaRecordsServices {
 				from(printable_report.schemaType()).where(SCHEMA).isEqualTo(PrintableReport.SCHEMA_NAME))));
 	}
 
-
 	public List<Folder> getFolderByUnicity(String unicity) {
 		List<Folder> resultListFolder = wrapFolders(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery(
 				from(folder.schemaType()).where(folder.uniqueKey()).isEqualTo(unicity))));
 
 		return resultListFolder;
 	}
+
+	public boolean numberOfFoldersInFavoritesReachesLimit(String cartId, int size) {
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(folder.schemaType()).where(folder.favorites()).isEqualTo(cartId));
+		return searchServices.getResultsCount(logicalSearchQuery) + size > NUMBER_OF_RECORDS_IN_CART_LIMIT;
+	}
+
+	public boolean numberOfContainersInFavoritesReachesLimit(String cartId, int size) {
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(containerRecord.schemaType()).where(containerRecord.favorites()).isEqualTo(cartId));
+		return searchServices.getResultsCount(logicalSearchQuery) + size > NUMBER_OF_RECORDS_IN_CART_LIMIT;
+	}
+
+	public boolean numberOfDocumentsInFavoritesReachesLimit(String cartId, int size) {
+		SearchServices searchServices = modelLayerFactory.newSearchServices();
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(from(document.schemaType()).where(document.favorites()).isEqualTo(cartId));
+		return searchServices.getResultsCount(logicalSearchQuery) + size > NUMBER_OF_RECORDS_IN_CART_LIMIT;
+	}
+
 }

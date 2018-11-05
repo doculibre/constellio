@@ -165,7 +165,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 	public void givenRootFolderWithAReferenceToAConceptWithoutTaxonomyRelationshipWhenPreparingParentPathsThenEmpty() {
 
 		records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1
-				.updateAutomaticValue(taxonomy1SecondSchema.allAuthorizations(), authorizations);
+				.updateAutomaticValue(taxonomy1SecondSchema.tokens(), authorizations);
 
 		services.addValueForTaxonomyDependency((RecordImpl) rootFolderWithTaxonomy, recordProvider, values,
 				SpecialDependencies.HIERARCHY);
@@ -181,7 +181,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 	public void givenRootFolderUsingTaxonomiesWhenPreparingParentPathsThenReturnPathsOfTaxonomyElements() {
 
 		records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1
-				.updateAutomaticValue(taxonomy1SecondSchema.allAuthorizations(), authorizations);
+				.updateAutomaticValue(taxonomy1SecondSchema.tokens(), authorizations);
 
 		services.addValueForTaxonomyDependency((RecordImpl) rootFolderWithTaxonomy, recordProvider, values,
 				SpecialDependencies.HIERARCHY);
@@ -197,9 +197,9 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 	public void givenChildFolderUsingTaxonomiesWhenPreparingParentPathsThenReturnPathsOfParentUsingIsChildOfRelationshipAndPathsOfTaxonomyElements() {
 
 		records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem2
-				.updateAutomaticValue(taxonomy1SecondSchema.allAuthorizations(), Arrays.asList("a", "b"));
+				.updateAutomaticValue(taxonomy1SecondSchema.tokens(), Arrays.asList("a", "b"));
 		rootFolderWithTaxonomy
-				.updateAutomaticValue(folderSchema.allAuthorizations(), Arrays.asList("c"));
+				.updateAutomaticValue(folderSchema.tokens(), Arrays.asList("c"));
 
 		services.addValueForTaxonomyDependency((RecordImpl) subFolderWithTaxonomy, recordProvider, values,
 				SpecialDependencies.HIERARCHY);
@@ -218,7 +218,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 	public void givenDocumentNotUsingTaxonomiesWhenPreparingParentPathsThenReturnPathsOfParentUsingIsChildOfRelationship() {
 
 		subFolderWithTaxonomy
-				.updateAutomaticValue(folderSchema.allAuthorizations(), authorizations);
+				.updateAutomaticValue(folderSchema.tokens(), authorizations);
 
 		services.addValueForTaxonomyDependency((RecordImpl) document, recordProvider, values,
 				SpecialDependencies.HIERARCHY);
@@ -236,7 +236,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 	@Test
 	public void givenFirstTypeTaxonomyElementWhenPreparingParentPathThenReturnPathsOfParentWithChildOfRelation() {
 
-		records.taxo1_firstTypeItem2.updateAutomaticValue(taxonomy1FirstSchema.allAuthorizations(), authorizations);
+		records.taxo1_firstTypeItem2.updateAutomaticValue(taxonomy1FirstSchema.tokens(), authorizations);
 
 		services.addValueForTaxonomyDependency((RecordImpl) records.taxo1_firstTypeItem2_firstTypeItem2, recordProvider, values,
 				SpecialDependencies.HIERARCHY);
@@ -252,7 +252,7 @@ public class RecordAutomaticMetadataServices_TaxonomiesRealTest extends Constell
 	public void givenSecondTypeTaxonomyElementWhenPreparingParentPathThenReturnPathsOfParentWithChildOfRelation() {
 
 		records.taxo1_firstTypeItem2_firstTypeItem2
-				.updateAutomaticValue(taxonomy1FirstSchema.allAuthorizations(), authorizations);
+				.updateAutomaticValue(taxonomy1FirstSchema.tokens(), authorizations);
 
 		services.addValueForTaxonomyDependency((RecordImpl) records.taxo1_firstTypeItem2_firstTypeItem2_secondTypeItem1,
 				recordProvider, values, SpecialDependencies.HIERARCHY);

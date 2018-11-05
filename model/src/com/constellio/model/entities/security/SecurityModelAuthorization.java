@@ -3,14 +3,11 @@ package com.constellio.model.entities.security;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class SecurityModelAuthorization {
 
@@ -18,7 +15,7 @@ public class SecurityModelAuthorization {
 
 	List<Group> groups = new ArrayList<>();
 
-	AuthorizationDetails details;
+	Authorization details;
 
 	GroupAuthorizationsInheritance groupAuthorizationsInheritance;
 
@@ -28,7 +25,7 @@ public class SecurityModelAuthorization {
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
 	}
 
-	public SecurityModelAuthorization(AuthorizationDetails details,
+	public SecurityModelAuthorization(Authorization details,
 									  boolean conceptAuth,
 									  GroupAuthorizationsInheritance groupAuthorizationsInheritance) {
 		this.details = details;
@@ -76,7 +73,7 @@ public class SecurityModelAuthorization {
 		return groups;
 	}
 
-	public AuthorizationDetails getDetails() {
+	public Authorization getDetails() {
 		return details;
 	}
 
@@ -102,42 +99,28 @@ public class SecurityModelAuthorization {
 		return conceptAuth;
 	}
 
-	public static SecurityModelAuthorization wrapNewAuthUsingModifiedUsersAndGroups(
+	public static SecurityModelAuthorization wrapNewAuthWithoutUsersAndGroups(
 			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
 			Taxonomy principalTaxonomy,
-			AuthorizationDetails details,
-			List<User> modifiedUsersInTransaction,
-			List<Group> modifiedGroupsInTransaction) {
+			Authorization details) {
 
 		SecurityModelAuthorization auth = new SecurityModelAuthorization(groupAuthorizationsInheritance);
 		auth.users = new ArrayList<>();
 		auth.groups = new ArrayList<>();
 		auth.conceptAuth = principalTaxonomy != null
 						   && principalTaxonomy.getSchemaTypes().contains(details.getTargetSchemaType());
-		for (User user : modifiedUsersInTransaction) {
-			if (user.getUserAuthorizations().contains(details.getId())) {
-				auth.users.add(user);
-			}
-		}
-
-		for (Group group : modifiedGroupsInTransaction) {
-			if (group.getList(Schemas.AUTHORIZATIONS).contains(details.getId())) {
-				auth.groups.add(group);
-			}
-		}
 
 		auth.details = details;
+
 		return auth;
 	}
 
 	public static SecurityModelAuthorization wrapExistingAuthUsingModifiedUsersAndGroups(
 			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
 			Taxonomy principalTaxonomy,
-			AuthorizationDetails details,
+			Authorization details,
 			List<User> existingUsers,
-			List<Group> existingGroups,
-			List<User> modifiedUsersInTransaction,
-			List<Group> modifiedGroupsInTransaction) {
+			List<Group> existingGroups) {
 
 		SecurityModelAuthorization auth = new SecurityModelAuthorization(groupAuthorizationsInheritance);
 		auth.users = new ArrayList<>();
@@ -145,32 +128,16 @@ public class SecurityModelAuthorization {
 		auth.conceptAuth = principalTaxonomy != null
 						   && principalTaxonomy.getSchemaTypes().contains(details.getTargetSchemaType());
 
-		Set<String> modifiedPrincipals = new HashSet<>();
-		for (User user : modifiedUsersInTransaction) {
-			if (user.getUserAuthorizations().contains(details.getId())) {
-				auth.users.add(user);
-			}
-			modifiedPrincipals.add(user.getId());
-		}
-
-		for (Group group : modifiedGroupsInTransaction) {
-			if (group.getList(Schemas.AUTHORIZATIONS).contains(details.getId())) {
-				auth.groups.add(group);
-			}
-			modifiedPrincipals.add(group.getId());
-		}
 
 		for (User user : existingUsers) {
-			if (!modifiedPrincipals.contains(user.getId()) && user.getUserAuthorizations().contains(details.getId())) {
+			if (details.getPrincipals().contains(user.getId())) {
 				auth.users.add(user);
 			}
 		}
 
 		for (Group group : existingGroups) {
-			if (!modifiedPrincipals.contains(group.getId())
-				&& group.getList(Schemas.AUTHORIZATIONS).contains(details.getId())) {
+			if (details.getPrincipals().contains(group.getId())) {
 				auth.groups.add(group);
-
 			}
 		}
 
@@ -178,30 +145,17 @@ public class SecurityModelAuthorization {
 		return auth;
 	}
 
-	public static SecurityModelAuthorization cloneWithModifiedUserAndGroups(
-			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
-			SecurityModelAuthorization cloned,
-			List<User> modifiedUsersInTransaction,
-			List<Group> modifiedGroupsInTransaction) {
 
-		SecurityModelAuthorization auth = new SecurityModelAuthorization(groupAuthorizationsInheritance);
-		auth.users = new ArrayList<>(cloned.users);
-		auth.groups = new ArrayList<>(cloned.groups);
-		auth.details = cloned.details;
-		auth.conceptAuth = cloned.conceptAuth;
-
-		for (User user : modifiedUsersInTransaction) {
-			if (user.getUserAuthorizations().contains(auth.details.getId())) {
-				auth.users.add(user);
-			}
+	public String toString() {
+		List<String> printablePrincipals = new ArrayList<>();
+		for (Group group : groups) {
+			printablePrincipals.add(group.getCode());
 		}
 
-		for (Group group : modifiedGroupsInTransaction) {
-			if (group.getList(Schemas.AUTHORIZATIONS).contains(auth.details.getId())) {
-				auth.groups.add(group);
-			}
+		for (User user : users) {
+			printablePrincipals.add(user.getUsername());
 		}
 
-		return auth;
+		return "Giving " + (details.isNegative() ? "negative " : "") + details.getRoles() + " to " + printablePrincipals + " on " + details.getTarget() + " (" + details.getTargetSchemaType() + ")";
 	}
 }

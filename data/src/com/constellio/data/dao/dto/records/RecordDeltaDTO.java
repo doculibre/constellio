@@ -16,6 +16,8 @@ public class RecordDeltaDTO implements RecordsOperationDTO {
 
 	private final Map<String, Object> copyfields;
 
+	private final Map<String, Double> incrementedFields;
+
 	//TODO Remove initialFields param, replacing it with recordDTO
 	public RecordDeltaDTO(RecordDTO recordDTO, Map<String, Object> modifiedFields) {
 		this(recordDTO, modifiedFields, recordDTO.getFields(), new HashMap<String, Object>());
@@ -29,12 +31,21 @@ public class RecordDeltaDTO implements RecordsOperationDTO {
 	//TODO Remove initialFields param, replacing it with recordDTO
 	public RecordDeltaDTO(RecordDTO recordDTO, Map<String, Object> modifiedFields, Map<String, Object> initialFields,
 						  Map<String, Object> copyfields) {
-		super();
-		this.initialFields = initialFields;
-		this.copyfields = copyfields;
-		this.id = recordDTO.getId();
-		this.fromVersion = recordDTO.getVersion();
-		this.modifiedFields = Collections.unmodifiableMap(modifiedFields);
+		this(recordDTO, modifiedFields, initialFields, copyfields, new HashMap<String, Double>());
+	}
+
+	public RecordDeltaDTO(RecordDTO recordDTO, Map<String, Object> modifiedFields,
+						  Map<String, Object> initialFields, Map<String, Object> copyfields,
+						  Map<String, Double> incrementedFields) {
+		this(recordDTO.getId(), recordDTO.getVersion(), modifiedFields, initialFields, copyfields, incrementedFields);
+	}
+
+	public RecordDeltaDTO(String id, long fromVersion) {
+		this(id, fromVersion, new HashMap<String, Object>());
+	}
+
+	public RecordDeltaDTO(String id, long fromVersion, Map<String, Object> modifiedFields) {
+		this(id, fromVersion, modifiedFields, null);
 	}
 
 	public RecordDeltaDTO(String id, long fromVersion, Map<String, Object> modifiedFields,
@@ -42,23 +53,21 @@ public class RecordDeltaDTO implements RecordsOperationDTO {
 		this(id, fromVersion, modifiedFields, initialFields, new HashMap<String, Object>());
 	}
 
-	public RecordDeltaDTO(String id, long fromVersion, Map<String, Object> modifiedFields) {
-		this(id, fromVersion, modifiedFields, null, new HashMap<String, Object>());
-	}
-
-	public RecordDeltaDTO(String id, Map<String, Object> modifiedFields) {
-		this(id, 0, modifiedFields, null, new HashMap<String, Object>());
+	public RecordDeltaDTO(String id, long fromVersion, Map<String, Object> modifiedFields,
+						  Map<String, Object> initialFields, Map<String, Object> copyfields) {
+		this(id, fromVersion, modifiedFields, initialFields, copyfields, new HashMap<String, Double>());
 	}
 
 	public RecordDeltaDTO(String id, long fromVersion, Map<String, Object> modifiedFields,
-						  Map<String, Object> initialFields,
-						  Map<String, Object> copyfields) {
+						  Map<String, Object> initialFields, Map<String, Object> copyfields,
+						  Map<String, Double> incrementedFields) {
 		super();
 		this.id = id;
 		this.copyfields = copyfields;
 		this.fromVersion = fromVersion;
 		this.initialFields = initialFields;
 		this.modifiedFields = Collections.unmodifiableMap(modifiedFields);
+		this.incrementedFields = incrementedFields;
 	}
 
 	public String getId() {
@@ -81,6 +90,10 @@ public class RecordDeltaDTO implements RecordsOperationDTO {
 		return copyfields;
 	}
 
+	public Map<String, Double> getIncrementedFields() {
+		return incrementedFields;
+	}
+
 	public <T> T get(String field) {
 
 		if (modifiedFields.containsKey(field)) {
@@ -91,6 +104,9 @@ public class RecordDeltaDTO implements RecordsOperationDTO {
 
 		} else if (copyfields.containsKey(field)) {
 			return (T) copyfields.get(field);
+
+		} else if (incrementedFields.containsKey(field)) {
+			return (T) incrementedFields.get(field);
 
 		} else {
 			return null;

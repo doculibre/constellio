@@ -5,7 +5,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
@@ -48,16 +48,16 @@ public class ListPrincipalAccessAuthorizationsPresenter extends ListAuthorizatio
 
 	@Override
 	protected boolean isOwnAuthorization(Authorization authorization) {
-		return authorization.getGrantedToPrincipals().contains(recordId);
+		return authorization.getPrincipals().contains(recordId);
 	}
 
 	@Override
 	protected void removeAuthorization(Authorization authorization) {
 
-		if (authorization.getGrantedToPrincipals().size() == 1) {
+		if (authorization.getPrincipals().size() == 1) {
 			authorizationsServices().execute(authorizationDeleteRequest(authorization).setExecutedBy(getCurrentUser()));
 		} else {
-			List<String> principals = authorization.getGrantedToPrincipals();
+			List<String> principals = authorization.getPrincipals();
 			principals.remove(recordId);
 			authorizationsServices()
 					.execute(modifyAuthorization(authorization).withNewPrincipalIds(principals).setExecutedBy(getCurrentUser()));

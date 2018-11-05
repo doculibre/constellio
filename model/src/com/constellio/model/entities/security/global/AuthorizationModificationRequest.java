@@ -3,7 +3,7 @@ package com.constellio.model.entities.security.global;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import org.joda.time.LocalDate;
 
 import java.util.List;
@@ -114,8 +114,8 @@ public class AuthorizationModificationRequest {
 		if (authorization == null) {
 			throw new IllegalArgumentException("Authorization required");
 		}
-		return new AuthorizationModificationRequest(authorization.getDetail().getId(), authorization.getDetail().getCollection(),
-				authorization.getGrantedOnRecord());
+		return new AuthorizationModificationRequest(authorization.getId(), authorization.getCollection(),
+				authorization.getTarget());
 	}
 
 	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(Authorization authorization,
@@ -126,7 +126,7 @@ public class AuthorizationModificationRequest {
 		if (record == null) {
 			throw new IllegalArgumentException("Record required");
 		}
-		return new AuthorizationModificationRequest(authorization.getDetail().getId(), record.getCollection(), record.getId());
+		return new AuthorizationModificationRequest(authorization.getId(), record.getCollection(), record.getId());
 	}
 
 	public static AuthorizationModificationRequest modifyAuthorizationOnRecord(Authorization authorization,
@@ -137,7 +137,7 @@ public class AuthorizationModificationRequest {
 		if (record == null) {
 			throw new IllegalArgumentException("Record required");
 		}
-		return new AuthorizationModificationRequest(authorization.getDetail().getId(), authorization.getDetail().getCollection(),
+		return new AuthorizationModificationRequest(authorization.getId(), authorization.getCollection(),
 				record);
 	}
 

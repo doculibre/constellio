@@ -25,6 +25,7 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -76,6 +77,11 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	@Override
 	public List<VariableRetentionPeriodVO> getOpenActivePeriodsDDVList() {
 		List<String> variablePeriodCodes = new ArrayList<>();
+
+		if(retentionRuleVO.getMetadataOrNull(RetentionRule.COPY_RETENTION_RULES) == null) {
+			return Collections.emptyList();
+		}
+
 		for (CopyRetentionRule copyRetentionRule : retentionRuleVO.getCopyRetentionRules()) {
 			if (!variablePeriodCodes.contains("" + copyRetentionRule.getActiveRetentionPeriod().getValue())) {
 				variablePeriodCodes.add("" + copyRetentionRule.getActiveRetentionPeriod().getValue());

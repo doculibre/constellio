@@ -21,6 +21,7 @@ import com.constellio.model.services.background.ModelLayerBackgroundThreadsManag
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
 import com.constellio.model.services.batch.state.StoredBatchProcessProgressionServices;
+import com.constellio.model.services.caches.ModelLayerCachesManager;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
@@ -52,7 +53,6 @@ import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.SynonymsConfigurationsManager;
-import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.SecurityModelCache;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -69,10 +69,8 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesBasedOnH
 import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.services.thesaurus.ThesaurusManager;
 import com.constellio.model.services.trash.TrashQueueManager;
-import com.constellio.model.services.users.GlobalGroupsManager;
 import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.model.services.users.SolrUserCredentialsManager;
-import com.constellio.model.services.users.UserCredentialsManager;
 import com.constellio.model.services.users.UserPhotosServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
@@ -99,11 +97,10 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	private final BatchProcessController batchProcessesController;
 	private final BatchProcessesManager batchProcessesManager;
 	private final TaxonomiesManager taxonomiesManager;
-	private final AuthorizationDetailsManager authorizationDetailsManager;
 	private final RolesManager rolesManager;
 	private final EmailConfigurationsManager emailConfigurationsManager;
 	private final CollectionsListManager collectionsListManager;
-	private final GlobalGroupsManager globalGroupsManager;
+	private final SolrGlobalGroupsManager globalGroupsManager;
 	private final SystemConfigurationsManager systemConfigurationsManager;
 	private final LanguageDetectionManager languageDetectionManager;
 	private final ModelLayerConfiguration modelLayerConfiguration;
@@ -136,6 +133,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	private final TaxonomiesSearchServicesCache taxonomiesSearchServicesCache;
 
+	private final ModelLayerCachesManager modelLayerCachesManager;
 
 	public ModelLayerFactoryImpl(DataLayerFactory dataLayerFactory, FoldersLocator foldersLocator,
 								 ModelLayerConfiguration modelLayerConfiguration,
@@ -147,7 +145,8 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
 
-		systemCollectionListeners = new ArrayList<>();
+		this.modelLayerCachesManager = new ModelLayerCachesManager();
+		this.systemCollectionListeners = new ArrayList<>();
 
 		this.dataLayerFactory = dataLayerFactory;
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
@@ -170,11 +169,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.securityModelCache = new SecurityModelCache(this);
 
 		ConfigManager configManager = dataLayerFactory.getConfigManager();
-		ConstellioCacheManager cacheManager = dataLayerFactory.getSettingsCacheManager();
+		ConstellioCacheManager cacheManager = dataLayerFactory.getLocalCacheManager();
 		this.securityTokenManager = add(new SecurityTokenManager(this));
 		this.systemConfigurationsManager = add(
 				new SystemConfigurationsManager(this, configManager, modulesManagerDelayed,
-						dataLayerFactory.getRecordsCacheManager()));
+						dataLayerFactory.getDistributedCacheManager()));
 		this.ioServicesFactory = dataLayerFactory.getIOServicesFactory();
 
 		this.forkParsers = add(new ForkParsers(modelLayerConfiguration.getForkParsersPoolSize()));
@@ -189,12 +188,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		this.recordMigrationsManager = add(new RecordMigrationsManager(this));
 		this.batchProcessesController = add(
 				new BatchProcessController(this, modelLayerConfiguration.getNumberOfRecordsPerTask()));
-		//		this.userCredentialsManager = add(
-		//				new XmlUserCredentialsManager(dataLayerFactory, this, modelLayerConfiguration));
-		//this.globalGroupsManager = add(new XmlGlobalGroupsManager(configManager));
 		this.globalGroupsManager = add(new SolrGlobalGroupsManager(this));
-		this.authorizationDetailsManager = add(
-				new AuthorizationDetailsManager(configManager, collectionsListManager, cacheManager));
 		this.rolesManager = add(new RolesManager(this));
 
 		languageDetectionManager = add(new LanguageDetectionManager(getFoldersLocator().getLanguageProfiles()));
@@ -231,6 +225,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	}
 
+
 	public RecordMigrationsManager getRecordMigrationsManager() {
 		return recordMigrationsManager;
 	}
@@ -261,6 +256,11 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 	@Override
 	public SecurityModelCache getSecurityModelCache() {
 		return securityModelCache;
+	}
+
+	@Override
+	public ModelLayerCachesManager getCachesManager() {
+		return modelLayerCachesManager;
 	}
 
 	public RecordServicesImpl newCachelessRecordServices(RecordsCaches recordsCaches) {
@@ -321,10 +321,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return rolesManager;
 	}
 
-	public AuthorizationDetailsManager getAuthorizationDetailsManager() {
-		return authorizationDetailsManager;
-	}
-
 	public AuthorizationsServices newAuthorizationsServices() {
 		return new AuthorizationsServices(this);
 	}
@@ -338,7 +334,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return collectionsListManager;
 	}
 
-	public UserCredentialsManager getUserCredentialsManager() {
+	public SolrUserCredentialsManager getUserCredentialsManager() {
 		return new SolrUserCredentialsManager(this);
 	}
 
@@ -346,7 +342,7 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		return storedBatchProcessProgressionServices;
 	}
 
-	public GlobalGroupsManager getGlobalGroupsManager() {
+	public SolrGlobalGroupsManager getGlobalGroupsManager() {
 		return globalGroupsManager;
 	}
 

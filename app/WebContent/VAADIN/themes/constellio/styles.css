@@ -12825,6 +12825,10 @@ div.v-layout.v-horizontal.v-widget {
 	border: 1px solid red;
 }
 
+.constellio .important-label {
+	color: red;
+}
+
 .constellio .lookup-window-content, .constellio .document-window-content {
 	padding-top: 10px;
 	padding-left: 10px;

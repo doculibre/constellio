@@ -20,6 +20,7 @@ import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -86,7 +87,8 @@ import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.records.populators.SortFieldsPopulator;
-import com.constellio.model.services.records.preparation.RecordsToReindexResolver;
+import com.constellio.model.services.records.preparation.AggregatedMetadataIncrementation;
+import com.constellio.model.services.records.preparation.RecordsLinksResolver;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
 import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
@@ -626,7 +628,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		for (Record record : transaction.getRecords()) {
 			if (record.get(Schemas.MIGRATION_DATA_VERSION) == null) {
 				if (record.isSaved()) {
-					record.set(Schemas.MIGRATION_DATA_VERSION, 0);
+					record.set(Schemas.MIGRATION_DATA_VERSION, 0.0);
 				} else {
 					record.set(Schemas.MIGRATION_DATA_VERSION, modelLayerFactory.getRecordMigrationsManager()
 							.getCurrentDataVersion(record.getCollection(), record.getTypeCode()));
@@ -809,7 +811,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 
 		if (!transaction.getRecordUpdateOptions().isSkipFindingRecordsToReindex()) {
-			new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
+			new RecordsLinksResolver(types).resolveRecordsLinks(transaction);
 		}
 
 		boolean singleRecordTransaction = transaction.getRecords().size() == 1;
@@ -919,13 +921,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	void refreshRecordsAndCaches(String collection, List<Record> records, Set<String> idsMarkedForReindexing,
+								 List<AggregatedMetadataIncrementation> aggregationMetadatasIncremented,
 								 TransactionResponseDTO transactionResponseDTO,
 								 MetadataSchemaTypes types, RecordProvider recordProvider) {
 
 		invalidateTaxonomiesCache(records, types, recordProvider, modelLayerFactory.getTaxonomiesSearchServicesCache());
 
-		List<Record> recordsToInsert = new ArrayList<>();
-		Set<String> recordIdsInTransaction = new HashSet<>();
+		Map<String, Record> recordsToInsertById = new HashMap<>();
 		for (Record record : records) {
 			RecordImpl recordImpl = (RecordImpl) record;
 			if (transactionResponseDTO != null) {
@@ -935,27 +937,35 @@ public class RecordServicesImpl extends BaseRecordServices {
 					MetadataSchema schema = types.getSchema(record.getSchemaCode());
 
 					recordImpl.markAsSaved(version, schema);
-					recordsToInsert.add(record);
-					recordIdsInTransaction.add(record.getId());
+					recordsToInsertById.put(record.getId(), record);
 				}
 			}
 		}
 
 		for (String idMarkedForReindexing : idsMarkedForReindexing) {
-			if (transactionResponseDTO != null && !recordIdsInTransaction.contains(idMarkedForReindexing)) {
+			if (transactionResponseDTO != null && !recordsToInsertById.containsKey(idMarkedForReindexing)) {
 				Long version = transactionResponseDTO.getNewDocumentVersion(idMarkedForReindexing);
 				if (version != null) {
 
 					Record record = recordsCaches.getRecord(idMarkedForReindexing);
 					if (record != null) {
 						((RecordImpl) record).markAsSaved(version, metadataSchemasManager.getSchemaOf(record));
-						recordsToInsert.add(record);
+						recordsToInsertById.put(record.getId(), record);
 					}
 				}
 			}
 		}
 
-		insertInCache(collection, recordsToInsert, WAS_MODIFIED);
+		for (AggregatedMetadataIncrementation incrementation : aggregationMetadatasIncremented) {
+			if (transactionResponseDTO != null) {
+				Record record = getDocumentById(incrementation.getRecordId());
+				if (record != null) {
+					recordsToInsertById.put(record.getId(), record);
+				}
+			}
+		}
+
+		insertInCache(collection, new ArrayList<>(recordsToInsertById.values()), WAS_MODIFIED);
 
 	}
 
@@ -1011,8 +1021,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 						throw new ImpossibleRuntimeException("Unsupported datastore : " + transactionDTOEntry.getKey());
 					}
 
-					refreshRecordsAndCaches(transaction.getCollection(), modifiedOrUnsavedRecords, transaction.getIdsToReindex(), transactionResponseDTO,
-							metadataSchemaTypes, newRecordProvider(null, transaction));
+					refreshRecordsAndCaches(transaction.getCollection(), modifiedOrUnsavedRecords,
+							transaction.getIdsToReindex(), transaction.getAggregatedMetadataIncrementations(),
+							transactionResponseDTO, metadataSchemaTypes, newRecordProvider(null, transaction));
 
 					if (modificationImpactHandler != null) {
 						modificationImpactHandler.handle();
@@ -1088,7 +1099,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			List<RecordDeltaDTO> modifiedRecordDTOs = new ArrayList<>();
 			LanguageDetectionManager languageDetectionManager = modelFactory.getLanguageDetectionManager();
 			ContentManager contentManager = modelFactory.getContentManager();
-			List<String> collectionLanguages = modelFactory.getCollectionsListManager().getCollectionLanguages(collection);
+			CollectionInfo collectionInfo = modelFactory.getCollectionsListManager().getCollectionInfo(collection);
 			List<FieldsPopulator> fieldsPopulators = new ArrayList<>();
 			MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 			ConstellioEIMConfigs systemConfigs = modelFactory.getSystemConfigs();
@@ -1096,7 +1107,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					transaction.getParsedContentCache());
 
 			fieldsPopulators
-					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages,
+					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionInfo,
 							systemConfigs, modelLayerFactory.getExtensions()));
 
 			fieldsPopulators.add(new SortFieldsPopulator(types, options.isFullRewrite(), modelFactory,
@@ -1119,6 +1130,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 
+			Map<String, RecordDeltaDTO> modifiedRecordDTOById = new HashMap<>();
 			for (Record record : modifiedOrUnsavedRecords) {
 				MetadataSchemaType type = modelFactory.getMetadataSchemasManager().getSchemaTypeOf(record);
 				MetadataSchema schema = type.getSchema(record.getSchemaCode());
@@ -1128,7 +1140,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 					} else {
 						RecordImpl recordImpl = (RecordImpl) record;
 						if (recordImpl.isDirty() && !transaction.getRecordUpdateOptions().isFullRewrite()) {
-							modifiedRecordDTOs.add(recordImpl.toRecordDeltaDTO(schema, fieldsPopulators));
+							RecordDeltaDTO modifiedRecordDto = recordImpl.toRecordDeltaDTO(schema, fieldsPopulators);
+							modifiedRecordDTOById.put(modifiedRecordDto.getId(), modifiedRecordDto);
 						} else if (transaction.getRecordUpdateOptions().isFullRewrite()) {
 							addedRecords.add(((RecordImpl) record).toDocumentDTO(schema, fieldsPopulators));
 						}
@@ -1136,15 +1149,35 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 
+			if (dataStore.equals("records") && !transaction.getAggregatedMetadataIncrementations().isEmpty()) {
+				for (AggregatedMetadataIncrementation incrementation : transaction.getAggregatedMetadataIncrementations()) {
+					if (!modifiedRecordDTOById.containsKey(incrementation.getRecordId())) {
+						modifiedRecordDTOById.put(incrementation.getRecordId(),
+								new RecordDeltaDTO(incrementation.getRecordId(), 1L));
+					}
+					String field = incrementation.getMetadata().getDataStoreCode();
+					Map<String, Double> incrementedFields = modifiedRecordDTOById.get(incrementation.getRecordId())
+							.getIncrementedFields();
+					if (incrementedFields.containsKey(field)) {
+						incrementedFields.put(field, incrementedFields.get(field) + incrementation.getAmount());
+					} else {
+						incrementedFields.put(field, incrementation.getAmount());
+					}
+				}
+			}
+			modifiedRecordDTOs = new ArrayList<>(modifiedRecordDTOById.values());
+
 			boolean isSupportingReindexing = DataStore.RECORDS.equals(dataStore);
 
 			boolean isChangingSomething = !addedRecords.isEmpty() || !modifiedRecordDTOs.isEmpty() ||
 										  (isSupportingReindexing && !markedForReindexing.isEmpty());
 
 			if (isChangingSomething) {
-				TransactionDTO datastoreTransaction = new TransactionDTO(transaction.getId(), options.getRecordsFlushing(),
-						addedRecords, modifiedRecordDTOs).withSkippingReferenceToLogicallyDeletedValidation(
-						transaction.isSkippingReferenceToLogicallyDeletedValidation()).withFullRewrite(options.isFullRewrite());
+				TransactionDTO datastoreTransaction =
+						new TransactionDTO(transaction.getId(), options.getRecordsFlushing(), addedRecords, modifiedRecordDTOs)
+								.withSkippingReferenceToLogicallyDeletedValidation(
+										transaction.isSkippingReferenceToLogicallyDeletedValidation())
+								.withFullRewrite(options.isFullRewrite());
 
 				if (isSupportingReindexing && !markedForReindexing.isEmpty()) {
 					datastoreTransaction = datastoreTransaction.withMarkedForReindexing(markedForReindexing);
@@ -1448,8 +1481,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public void flush() {
 		try {
 			recordDao.flush();
-			eventsDao.flush();
+			if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+				eventsDao.flush();
+			}
 			notificationsDao.flush();
+
 		} catch (RecordDaoRuntimeException_RecordsFlushingFailed e) {
 			throw new RecordServicesRuntimeException_RecordsFlushingFailed(e);
 		}

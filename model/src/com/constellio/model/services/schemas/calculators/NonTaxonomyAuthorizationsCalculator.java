@@ -7,7 +7,7 @@ import com.constellio.model.entities.calculators.dependencies.HierarchyDependenc
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
@@ -22,6 +22,7 @@ import static java.util.Arrays.asList;
 /**
  * This calculator is used to feed a list of authorizations that are placed directly on records in a taxonomy.
  * Since a modification to the auth requires the indexing of the records, the metadata is used to calculate impacts
+ * Also, it is required to copy auth received by metadatas to children records
  */
 public class NonTaxonomyAuthorizationsCalculator extends ReferenceListMetadataValueCalculator {
 
@@ -70,7 +71,7 @@ public class NonTaxonomyAuthorizationsCalculator extends ReferenceListMetadataVa
 	protected void addActiveAuthorizations(List<String> returnedIds,
 										   List<SecurityModelAuthorization> metadataAuths) {
 		for (SecurityModelAuthorization auth : metadataAuths) {
-			SolrAuthorizationDetails authorizationDetails = (SolrAuthorizationDetails) auth.getDetails();
+			Authorization authorizationDetails = (Authorization) auth.getDetails();
 			if (authorizationDetails.isActiveAuthorization()) {
 				returnedIds.add(authorizationDetails.getId());
 			}

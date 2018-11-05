@@ -32,7 +32,7 @@ public class RolesManager implements StatefulService, OneXMLConfigPerCollectionM
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 		this.modelLayerFactory = modelLayerFactory;
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
-		this.cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
+		this.cacheManager = modelLayerFactory.getDataLayerFactory().getLocalCacheManager();
 	}
 
 	@Override

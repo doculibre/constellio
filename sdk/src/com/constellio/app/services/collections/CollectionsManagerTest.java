@@ -25,11 +25,10 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchBoostManager;
 import com.constellio.model.services.search.SearchConfigurationsManager;
 import com.constellio.model.services.search.SynonymsConfigurationsManager;
-import com.constellio.model.services.security.AuthorizationDetailsManager;
 import com.constellio.model.services.security.roles.RolesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.users.GlobalGroupsManager;
-import com.constellio.model.services.users.UserCredentialsManager;
+import com.constellio.model.services.users.SolrGlobalGroupsManager;
+import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.solr.common.params.ModifiableSolrParams;
@@ -66,10 +65,9 @@ public class CollectionsManagerTest extends ConstellioTest {
 	@Mock SynonymsConfigurationsManager synonymsConfigurationsManager;
 
 	@Mock SystemGlobalConfigsManager systemGlobalConfigsManager;
-	@Mock GlobalGroupsManager globalGroupsManager;
+	@Mock SolrGlobalGroupsManager globalGroupsManager;
 	@Mock MetadataSchemasManager metadataSchemasManager;
 	@Mock TaxonomiesManager taxonomiesManager;
-	@Mock AuthorizationDetailsManager authorizationDetailsManager;
 	@Mock RolesManager rolesManager;
 	@Mock MigrationServices migrationServices;
 	@Mock ConstellioModulesManagerImpl modulesManager;
@@ -81,7 +79,7 @@ public class CollectionsManagerTest extends ConstellioTest {
 	@Mock RecordDao recordDao;
 	@Mock TransactionDTO transactionDTO;
 	@Mock ModifiableSolrParams params;
-	@Mock UserCredentialsManager userCredentialsManager;
+	@Mock SolrUserCredentialsManager userCredentialsManager;
 	@Mock ConfigManager configManager;
 	@Mock Record aNewCollection, anotherNewCollection;
 
@@ -94,7 +92,6 @@ public class CollectionsManagerTest extends ConstellioTest {
 		when(appLayerFactory.getModelLayerFactory()).thenReturn(modelLayerFactory);
 		when(modelLayerFactory.getMetadataSchemasManager()).thenReturn(metadataSchemasManager);
 		when(modelLayerFactory.getTaxonomiesManager()).thenReturn(taxonomiesManager);
-		when(modelLayerFactory.getAuthorizationDetailsManager()).thenReturn(authorizationDetailsManager);
 		when(modelLayerFactory.getRolesManager()).thenReturn(rolesManager);
 		when(modelLayerFactory.getGlobalGroupsManager()).thenReturn(globalGroupsManager);
 		when(modelLayerFactory.newUserServices()).thenReturn(userServices);
@@ -172,7 +169,6 @@ public class CollectionsManagerTest extends ConstellioTest {
 
 		verify(metadataSchemasManager).createCollectionSchemas(zeCollectionInfo);
 		verify(taxonomiesManager).createCollectionTaxonomies(zeCollection);
-		verify(authorizationDetailsManager).createCollectionAuthorizationDetail(zeCollection);
 		verify(rolesManager).createCollectionRole(zeCollection);
 		verify(searchBoostManager).createCollectionSearchBoost(zeCollection);
 		verify(searchConfigurationsManager).createCollectionElevations(zeCollection);

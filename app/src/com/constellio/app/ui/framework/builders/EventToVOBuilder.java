@@ -84,7 +84,7 @@ public class EventToVOBuilder extends RecordToVOBuilder {
 			metadataValueVOs.add(metadataValueVO);
 		}
 
-		RecordVO recordVO = newRecordVO(id, metadataValueVOs, viewMode);
+		RecordVO recordVO = newRecordVO(id, metadataValueVOs, viewMode, new ArrayList<String>());
 		recordVO.setSaved(saved);
 		recordVO.setRecord(record);
 		BuildRecordVOParams buildRecordVOParams = new BuildRecordVOParams(record, recordVO);

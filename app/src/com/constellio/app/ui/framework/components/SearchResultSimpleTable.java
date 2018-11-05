@@ -52,13 +52,14 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	private RecordVOLazyContainer recordVOContainer;
 	private boolean allItemsSelected;
 	private AdvancedSearchPresenter presenter;
+	RecordVOTable adaptee;
 
 	public SearchResultSimpleTable(RecordVOLazyContainer container, final AdvancedSearchPresenter presenter) {
 		super();
 		this.recordVOContainer = container;
 		this.presenter = presenter;
 
-		RecordVOTable adaptee = new RecordVOTable(container);
+		adaptee = new RecordVOTable(container);
 		adaptee.setWidth("100%");
 
 		adaptee.setColumnCollapsingAllowed(true);
@@ -101,6 +102,10 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 
 		setTable(adaptee);
 		getToggleButton().setVisible(false);
+	}
+
+	public void addItemClickListener(final ItemClickListener listener) {
+		adaptee.addItemClickListener(listener);
 	}
 
 	public List<String> getSelectedRecordIds() {

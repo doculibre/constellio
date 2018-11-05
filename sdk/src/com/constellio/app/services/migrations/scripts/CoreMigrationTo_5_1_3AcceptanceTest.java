@@ -1,5 +1,6 @@
 package com.constellio.app.services.migrations.scripts;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.model.conf.email.EmailServerConfiguration;
 import com.constellio.model.services.emails.OldSmtpServerTestConfig;
@@ -67,6 +68,7 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 			throws OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
 
 		givenSystemWithEncryptedTokens();
+		givenConfig(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, false);
 
 		String validToken = "c84e2c14-f933-4399-aed2-95c538b2b7dd";
 		assertThat(

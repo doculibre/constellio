@@ -3,13 +3,13 @@ package com.constellio.app.modules.rm.ui.pages.folder;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersionWindowImpl;
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -137,6 +137,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		}
 	}
 
+	public String getTaxonomyCode() {
+		return taxonomyCode;
+	}
+
 	@Override
 	protected void afterViewAssembled(ViewChangeEvent event) {
 		presenter.viewAssembled();
@@ -227,18 +231,9 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
-		return new FolderDocumentBreadcrumbTrail(recordVO.getId(), taxonomyCode, this);
+		return presenter.getBreadCrumbTrail();
 	}
 
-	//	@Override
-	//	protected ClickListener getBackButtonClickListener() {
-	//		return new ClickListener() {
-	//			@Override
-	//			public void buttonClick(ClickEvent event) {
-	//				presenter.backButtonClicked();
-	//			}
-	//		};
-	//	}
 
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
@@ -434,7 +429,19 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
 											 && ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
+			DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
+				@Override
+				public void addToDefaultFavorites() {
+					presenter.addToDefaultFavorite();
+				}
 
+				@Override
+				public void removeFromDefaultFavorites() {
+					presenter.removeFromDefaultFavorites();
+				}
+			};
+			favoriteStar.setStarred(presenter.inDefaultFavorites());
+			actionMenuButtons.add(favoriteStar);
 			actionMenuButtons.add(editFolderButton);
 
 			if (!isAFolderAndDestroyed) {
@@ -618,7 +625,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 							if (presenter.isDocument(record)) {
 								presenter.displayDocumentButtonClicked(record);
 							} else {
-								presenter.subFolderClicked(record);
+								presenter.navigateToFolder(record.getId());
 							}
 						}
 					};
@@ -637,7 +644,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 						if (presenter.isDocument(recordVO)) {
 							presenter.documentClicked(recordVO);
 						} else {
-							presenter.subFolderClicked(recordVO);
+							presenter.navigateToFolder(recordVO.getId());
 						}
 					}
 				}
@@ -666,20 +673,20 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 
 				@Override
-				public boolean isSelected(Object itemId) {
-					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-					RecordVO recordVO = item.getRecord();
-					return presenter.isSelected(recordVO);
-				}
+			public boolean isSelected(Object itemId) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				return presenter.isSelected(recordVO);
+			}
 
-				@Override
-				public void setSelected(Object itemId, boolean selected) {
-					RecordVOItem item = (RecordVOItem) table.getItem(itemId);
-					RecordVO recordVO = item.getRecord();
-					presenter.recordSelectionChanged(recordVO, selected);
-					adjustSelectAllButton(selected);
-				}
-			};
+			@Override
+			public void setSelected(Object itemId, boolean selected) {
+				RecordVOItem item = (RecordVOItem) table.getItem(itemId);
+				RecordVO recordVO = item.getRecord();
+				presenter.recordSelectionChanged(recordVO, selected);
+				adjustSelectAllButton(selected);
+			}
+		};
 			tabSheet.replaceComponent(folderContentComponent, tableAdapter);
 			folderContentComponent = tableAdapter;
 
@@ -1050,7 +1057,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void openDocumentContentVersiontWindow(DocumentVO documentVO, ContentVersionVO contentVersionVO) {
-		documentVersionWindow.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO));
+		documentVersionWindow.setContent(new DocumentContentVersionWindowImpl(documentVO, contentVersionVO, presenter.getParams()));
 		UI.getCurrent().addWindow(documentVersionWindow);
 	}
 
@@ -1074,6 +1081,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setTaxonomyCode(String taxonomyCode) {
+		this.presenter.setTaxonomyCode(taxonomyCode);
 		this.taxonomyCode = taxonomyCode;
 	}
 

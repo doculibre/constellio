@@ -2,13 +2,11 @@ package com.constellio.app.modules.rm.model.calculators;
 
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.calculators.folder.FolderDecomDatesDynamicLocalDependency;
 import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.calculators.CalculatorParameters;
-import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
@@ -24,8 +22,6 @@ import static com.constellio.app.modules.rm.model.enums.DisposalType.SORT;
 public abstract class AbstractFolderExpectedInactiveDatesCalculator extends AbstractFolderCopyRulesExpectedDatesCalculator {
 
 	LocalDependency<FolderStatus> archivisticStatusParam = LocalDependency.toAnEnum(Folder.ARCHIVISTIC_STATUS);
-	LocalDependency<LocalDate> decommissioningDateParam = LocalDependency.toADate(Folder.DECOMMISSIONING_DATE);
-
 	LocalDependency<List<LocalDate>> copyRulesExpectedTransferDateParam = LocalDependency
 			.toADate(Folder.COPY_RULES_EXPECTED_TRANSFER_DATES).whichIsMultivalue();
 
@@ -34,17 +30,12 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 	ConfigDependency<Integer> configInactiveNumberOfYearWhenVariableDelayPeriodParam =
 			RMConfigs.CALCULATED_INACTIVE_DATE_NUMBER_OF_YEAR_WHEN_VARIABLE_PERIOD.dependency();
 
-	ConfigDependency<String> configYearEndParam = RMConfigs.YEAR_END_DATE.dependency();
-
-	FolderDecomDatesDynamicLocalDependency datesAndDateTimesParam = new FolderDecomDatesDynamicLocalDependency();
-	ConfigDependency<Boolean> calculatedMetadatasBasedOnFirstTimerangePartParam = RMConfigs.CALCULATED_METADATAS_BASED_ON_FIRST_TIMERANGE_PART
-			.dependency();
-
 	@Override
 	protected List<? extends Dependency> getCopyRuleDateCalculationDependencies() {
-		return Arrays.asList(decommissioningDateParam, archivisticStatusParam, datesAndDateTimesParam,
-				copyRulesExpectedTransferDateParam, configSemiActiveNumberOfYearWhenVariableDelayPeriodParam,
-				configInactiveNumberOfYearWhenVariableDelayPeriodParam, calculatedMetadatasBasedOnFirstTimerangePartParam);
+		return Arrays.asList(archivisticStatusParam, datesAndDateTimesParam, copyRulesExpectedTransferDateParam,
+				configSemiActiveNumberOfYearWhenVariableDelayPeriodParam,
+				configInactiveNumberOfYearWhenVariableDelayPeriodParam,
+				calculatedMetadatasBasedOnFirstTimerangePartParam);
 	}
 
 	@Override
@@ -59,11 +50,12 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 
 		LocalDate baseTransferDate;
 		LocalDate expectedTransferDate = null;
+		LocalDate decommissioningDate = calculateDecommissioningDate(copyRule, input);
 		if (copyRule.getInactiveDisposalType() != SORT && copyRule.getInactiveDisposalType() != disposalType) {
 			return null;
 
 		} else if (input.archivisticStatus.isSemiActive()) {
-			baseTransferDate = input.decommissioningDate;
+			baseTransferDate = decommissioningDate;
 			LocalDate dateSpecifiedInCopyRule = input
 					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
 			baseTransferDate = LangUtils.min(baseTransferDate, dateSpecifiedInCopyRule);
@@ -75,14 +67,14 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 
 			LocalDate dateSpecifiedInCopyRule = input
 					.getAdjustedBaseDateFromSemiActiveDelay(copyRule, parameters.get(configYearEndParam));
-			if (dateSpecifiedInCopyRule != null && input.decommissioningDate != null) {
+			if (dateSpecifiedInCopyRule != null && decommissioningDate != null) {
 				baseTransferDate = dateSpecifiedInCopyRule;
 
 			} else if (expectedTransferDate == null && input.inactiveNumberOfYearWhenVariableDelayPeriod != -1) {
-				baseTransferDate = input.decommissioningDate;
+				baseTransferDate = decommissioningDate;
 
 			} else if (expectedTransferDate == null && copyRule.getActiveRetentionPeriod().isFixed()) {
-				baseTransferDate = input.decommissioningDate;
+				baseTransferDate = decommissioningDate;
 
 			} else {
 				baseTransferDate = expectedTransferDate;
@@ -97,7 +89,7 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 			return null;
 
 		} else if (input.archivisticStatus.isSemiActive()) {
-			return LangUtils.max(calculatedInactiveDate, input.decommissioningDate);
+			return LangUtils.max(calculatedInactiveDate, decommissioningDate);
 
 		} else {
 			return LangUtils.max(calculatedInactiveDate, expectedTransferDate);
@@ -110,25 +102,18 @@ public abstract class AbstractFolderExpectedInactiveDatesCalculator extends Abst
 	private class CalculatorInput extends AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput {
 
 		FolderStatus archivisticStatus;
-		LocalDate decommissioningDate;
-
 		List<LocalDate> copyRulesExpectedTransferDate;
-
-		Integer semiActiveNumberOfYearWhenVariableDelayPeriod, inactiveNumberOfYearWhenVariableDelayPeriod;
-		DynamicDependencyValues datesAndDateTimes;
-		boolean calculatedMetadatasBasedOnFirstTimerangePart;
+		Integer semiActiveNumberOfYearWhenVariableDelayPeriod;
+		Integer inactiveNumberOfYearWhenVariableDelayPeriod;
 
 		public CalculatorInput(CalculatorParameters parameters) {
 			super(parameters);
 			this.archivisticStatus = parameters.get(archivisticStatusParam);
-			this.decommissioningDate = parameters.get(decommissioningDateParam);
 			this.copyRulesExpectedTransferDate = parameters.get(copyRulesExpectedTransferDateParam);
 			this.semiActiveNumberOfYearWhenVariableDelayPeriod = parameters
 					.get(configSemiActiveNumberOfYearWhenVariableDelayPeriodParam);
 			this.inactiveNumberOfYearWhenVariableDelayPeriod = parameters
 					.get(configInactiveNumberOfYearWhenVariableDelayPeriodParam);
-			this.datesAndDateTimes = parameters.get(datesAndDateTimesParam);
-			this.calculatedMetadatasBasedOnFirstTimerangePart = parameters.get(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		}
 
 		public LocalDate getAdjustedBaseDateFromSemiActiveDelay(CopyRetentionRule copy, String yearEnd) {

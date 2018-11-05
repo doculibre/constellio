@@ -9,7 +9,9 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
@@ -85,10 +87,29 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		searchExpression = search.getFreeTextSearch();
 		facetSelections.putAll(search.getSelectedFacets());
 		sortCriterion = search.getSortField();
-		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		if(search.getSortOrder() != null) {
+			sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		}
 		pageNumber = search.getPageNumber();
 		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode() : SearchResultsViewMode.DETAILED;
 		setSelectedPageLength(search.getPageLength());
+	}
+
+	@Override
+	void init(ConstellioFactories constellioFactories, SessionContext sessionContext) {
+		super.init(constellioFactories, sessionContext);
+
+		User user = view.getConstellioFactories().getAppLayerFactory()
+				.getModelLayerFactory().newUserServices().getUserInCollection(
+						view.getSessionContext().getCurrentUser().getUsername(),
+						collection);
+
+		if (allowedSchemaTypes().isEmpty()) {
+			service = new SearchPresenterService(collection, user, modelLayerFactory,null);
+		} else {
+			service = new SearchPresenterService(collection, user, modelLayerFactory,allowedSchemaTypes());
+		}
+
 	}
 
 	@Override
@@ -166,6 +187,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		}
 		return true;
 	}
+
 
 	@Override
 	protected LogicalSearchCondition getSearchCondition() {

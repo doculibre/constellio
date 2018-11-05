@@ -3,20 +3,19 @@ package com.constellio.model.entities.records.wrappers;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
+import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.Roles;
 import org.joda.time.LocalDateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import static com.constellio.model.entities.security.Role.DELETE;
 import static com.constellio.model.entities.security.Role.READ;
@@ -58,12 +57,17 @@ public class User extends RecordWrapper {
 	public static final String ADDRESS = "address";
 	public static final String AGENT_ENABLED = "agentEnabled";
 	public static final String DEFAULT_PAGE_LENGTH = "defaultPageLength";
+	public static final String USER_DOCUMENT_SIZE_SUM = "userDocumentSizeSum";
+
+	private Logger LOGGER = LoggerFactory.getLogger(User.class);
 
 	private transient Roles roles;
+	AuthorizationsServices authorizationsServices;
 
 	public User(Record record, MetadataSchemaTypes types, Roles roles) {
 		super(record, types, SCHEMA_TYPE);
 		this.roles = roles;
+		this.authorizationsServices = this.roles.getSchemasRecordsServices().getModelLayerFactory().newAuthorizationsServices();
 	}
 
 	@Override
@@ -255,6 +259,69 @@ public class User extends RecordWrapper {
 		return this;
 	}
 
+	public boolean hasGlobalAccessToMetadata(Metadata m) {
+		if (m.getAccessRestrictions() == null || m.getAccessRestrictions().getRequiredReadRoles() == null || m.getAccessRestrictions().getRequiredReadRoles().size() <= 0) {
+			return true;
+		}
+
+		List<String> userAllRole = this.getAllRoles();
+
+		if (userAllRole != null) {
+			for (String roleCode : m.getAccessRestrictions().getRequiredReadRoles()) {
+				if (userAllRole.contains(roleCode)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private boolean isAccessRole(String role) {
+		return role.equals(Role.READ) || role.equals(Role.WRITE) || role.equals(Role.DELETE);
+	}
+
+	private boolean isGroupPresent(List<String> principal) {
+		for (String group : this.getUserGroups()) {
+			if (principal.contains(group)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean hasAccessToMetadata(Metadata m, Record record) {
+
+		List<Authorization> authorizations = authorizationsServices.getRecordAuthorizations(record);
+		List<String> roleListFromAuthorization = new ArrayList<>();
+
+		boolean hasCollectionAcces = this.get(COLLECTION_READ_ACCESS);
+		boolean hasAtleastOneAuthorization = false;
+
+		for (Authorization authorization : authorizations) {
+			if (authorization.getPrincipals().contains(this.getId()) || isGroupPresent(authorization.getPrincipals())) {
+				hasAtleastOneAuthorization = true;
+				roleListFromAuthorization.addAll(authorization.getRoles());
+			}
+		}
+
+		if (!hasCollectionAcces && !hasAtleastOneAuthorization) {
+			return false;
+		}
+
+		if (m.getAccessRestrictions().getRequiredReadRoles().size() > 0) {
+			for (String roleFromauthorization : roleListFromAuthorization) {
+				if (m.getAccessRestrictions().getRequiredReadRoles().contains(roleFromauthorization)) {
+					return true;
+				}
+			}
+
+			return hasGlobalAccessToMetadata(m);
+		}
+
+		return true;
+	}
+
 	public User setCollectionAllAccess(boolean access) {
 		setCollectionReadAccess(access);
 		setCollectionWriteAccess(access);
@@ -273,52 +340,6 @@ public class User extends RecordWrapper {
 
 	public List<String> getAllRoles() {
 		return get(ALL_ROLES);
-	}
-
-	public List<String> getUserAuthorizations() {
-		return get(Schemas.AUTHORIZATIONS.getLocalCode());
-	}
-
-	public List<String> getAllUserAuthorizations() {
-
-		Set<String> allAuths = new HashSet<>();
-		allAuths.addAll(getUserAuthorizations());
-		for (String groupId : getUserGroups()) {
-			Group group = roles.getSchemasRecordsServices().getGroup(groupId);
-			if (group != null && roles.getSchemasRecordsServices().isGroupActive(group)) {
-				allAuths.addAll(group.getAllAuthorizations());
-			}
-		}
-
-		return Collections.unmodifiableList(new ArrayList<>(allAuths));
-	}
-
-	public List<String> getUserTokens() {
-		//		List<String> recordTokens = getList(USER_TOKENS);
-		//		List<String> tokens = new ArrayList<String>(recordTokens);
-		//		tokens.add("r_" + getId());
-		//		tokens.add("w_" + getId());
-		//		tokens.add("d_" + getId());
-		//		for (String groupId : getUserGroups()) {
-		//			tokens.add("r_" + groupId);
-		//			tokens.add("w_" + groupId);
-		//			tokens.add("d_" + groupId);
-		//		}
-		//		return tokens;
-
-		List<String> activeAuthsTokens = new ArrayList<>();
-
-		activeAuthsTokens.add("r_" + getId());
-		activeAuthsTokens.add("w_" + getId());
-		activeAuthsTokens.add("d_" + getId());
-
-		for (String groupId : getUserGroups()) {
-			activeAuthsTokens.add("r_" + groupId);
-			activeAuthsTokens.add("w_" + groupId);
-			activeAuthsTokens.add("d_" + groupId);
-		}
-
-		return activeAuthsTokens;
 	}
 
 	public String getCollection() {
@@ -504,7 +525,7 @@ public class User extends RecordWrapper {
 
 	}
 
-	public AuthorizationDetails getAuthorizationDetail(String id) {
+	public Authorization getAuthorizationDetail(String id) {
 		return roles.getSchemasRecordsServices().getSolrAuthorizationDetails(id);
 	}
 
@@ -559,4 +580,9 @@ public class User extends RecordWrapper {
 	public boolean isActiveUser() {
 		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
 	}
+
+	public Double getUserDocumentSizeSum() {
+		return get(USER_DOCUMENT_SIZE_SUM);
+	}
+
 }

@@ -30,8 +30,10 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.ComponentListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnComponentEvent;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class ReferenceDisplay extends Button {
 
@@ -40,14 +42,21 @@ public class ReferenceDisplay extends Button {
 	private String recordId;
 	private RecordContextMenu contextMenu;
 	private boolean openLinkInNewTab = false;
+	private Map<String,String> extraParameters = new HashMap<>();
 
 	public ReferenceDisplay(RecordVO recordVO) {
 		this(recordVO, true);
 	}
 
 	public ReferenceDisplay(RecordVO recordVO, boolean link) {
+		this(recordVO, link,  null);
+	}
+
+	public ReferenceDisplay(RecordVO recordVO, boolean link, Map<String, String> extraParameters) {
 		this.recordVO = recordVO;
 		String caption = new RecordVOToCaptionConverter().convertToPresentation(recordVO, String.class, getLocale());
+		this.extraParameters = extraParameters;
+
 		Resource icon = FileIconUtils.getIcon(recordVO);
 		if (icon != null) {
 			setIcon(icon);
@@ -75,6 +84,14 @@ public class ReferenceDisplay extends Button {
 		}
 		setCaption(caption);
 		init(recordId, link);
+	}
+
+	public Map<String, String> getExtraParameters() {
+		return extraParameters;
+	}
+
+	public void setExtraParameters(Map<String, String> extraParameters) {
+		this.extraParameters = extraParameters;
 	}
 
 	@Override

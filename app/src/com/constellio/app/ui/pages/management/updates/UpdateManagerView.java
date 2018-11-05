@@ -16,4 +16,5 @@ public interface UpdateManagerView extends BaseView {
 	ProgressInfo openProgressPopup();
 
 	void closeProgressPopup();
+
 }

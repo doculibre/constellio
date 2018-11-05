@@ -6,11 +6,10 @@ import com.constellio.app.ui.entities.RoleAuthVO;
 import com.constellio.app.ui.entities.RoleVO;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
 import org.apache.commons.lang.StringUtils;
@@ -144,15 +143,14 @@ public class CollectionUserRolesPresenter extends SingleSchemaBasePresenter<Coll
 			}
 		} else {
 			AuthorizationsServices authorizationsServices = modelLayerFactory.newAuthorizationsServices();
-			AuthorizationDetails authorizationDetails = authorizationsServices.getAuthorization(collection, roleAuthVO.getId())
-					.getDetail();
+			Authorization authorizationDetails = authorizationsServices.getAuthorization(collection, roleAuthVO.getId());
 			authorizationsServices.execute(authorizationDeleteRequest(authorizationDetails).setExecutedBy(getCurrentUser()));
 		}
 		view.refreshTable();
 	}
 
 	protected boolean isRoleAuthorization(Authorization auth) {
-		for (String role : auth.getDetail().getRoles()) {
+		for (String role : auth.getRoles()) {
 			if (!isAccessRole(role)) {
 				return true;
 			}
@@ -165,11 +163,11 @@ public class CollectionUserRolesPresenter extends SingleSchemaBasePresenter<Coll
 	}
 
 	private boolean isOwnAuthorization(Authorization authorization) {
-		return authorization.getGrantedToPrincipals().contains(recordId);
+		return authorization.getPrincipals().contains(recordId);
 	}
 
 	public RoleAuthVO toRoleAuthVO(Authorization roleAuth) {
-		return new RoleAuthVO(roleAuth.getDetail().getId(), roleAuth.getGrantedOnRecord(), roleAuth.getDetail().getRoles());
+		return new RoleAuthVO(roleAuth.getId(), roleAuth.getTarget(), roleAuth.getRoles());
 	}
 
 	boolean isTargetFieldVisible() {

@@ -2,7 +2,7 @@ package com.constellio.app.ui.acceptation.management.authorizations;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.sdk.tests.ConstellioTest;

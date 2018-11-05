@@ -25,6 +25,7 @@ import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -62,6 +63,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	private RecordIdToCaptionConverter recordIdToCaptionConverter = new RecordIdToCaptionConverter();
 
 	private ListUserDocumentsPresenter presenter;
+	private Component quotaSpaceInfo;
 
 	public ListUserDocumentsViewImpl() {
 		presenter = new ListUserDocumentsPresenter(this);
@@ -94,6 +96,16 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 			@Override
 			protected void handleFile(File file, String fileName, String mimeType, long length) {
 				presenter.handleFile(file, fileName, mimeType, length);
+				refreshAvailableSpace();
+			}
+
+			@Override
+			public void drop(DragAndDropEvent event) {
+				if (presenter.isSpaceLimitReached(event)) {
+					showErrorMessage($("ListUserDocumentsView.spaceLimitReached"));
+				} else {
+					super.drop(event);
+				}
 			}
 		};
 		multiFileUpload.setWidth("100%");
@@ -110,6 +122,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 					protected void confirmButtonClick(ConfirmDialog dialog) {
 						RecordVO recordVO = ((RecordVOItem) buttonsContainer.getItem(itemId)).getRecord();
 						presenter.deleteButtonClicked(recordVO, true);
+						refreshAvailableSpace();
 					}
 				};
 			}
@@ -205,7 +218,7 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 							}
 
 							dataProvider.fireDataRefreshEvent();
-
+							refreshAvailableSpace();
 						}
 					}
 				}
@@ -217,9 +230,14 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 			}
 		};
 		deleteAllButton.addStyleName(ValoTheme.BUTTON_LINK);
-
-		mainLayout.addComponents(multiFileUpload, deleteAllButton, userContentSelectTableAdapter);
-
+		if (presenter.isQuotaSpaceConfigActivated()) {
+			quotaSpaceInfo = new Label(
+					"<p style=\"color:green\">" + $("ListUserDocumentsView.availableSpaceMessage",
+							presenter.getAvailableSpace()) + "</p>", ContentMode.HTML);
+			mainLayout.addComponents(multiFileUpload, quotaSpaceInfo, deleteAllButton, userContentSelectTableAdapter);
+		} else {
+			mainLayout.addComponents(multiFileUpload, deleteAllButton, userContentSelectTableAdapter);
+		}
 		dragAndDropWrapper = new DragAndDropWrapper(mainLayout);
 		dragAndDropWrapper.setSizeFull();
 		dragAndDropWrapper.setDropHandler(multiFileUpload);
@@ -290,4 +308,16 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 	protected void onBackgroundViewMonitor() {
 		presenter.backgroundViewMonitor();
 	}
+
+	private void refreshAvailableSpace() {
+		if (presenter.isQuotaSpaceConfigActivated()) {
+			Label quotaSpaceInfoAferRefresh = new Label(
+					"<p style=\"color:green\">" + $("ListUserDocumentsView.availableSpaceMessage", presenter.getAvailableSpace())
+					+ "</p>",
+					ContentMode.HTML);
+			mainLayout.replaceComponent(quotaSpaceInfo, quotaSpaceInfoAferRefresh);
+			quotaSpaceInfo = quotaSpaceInfoAferRefresh;
+		}
+	}
+
 }

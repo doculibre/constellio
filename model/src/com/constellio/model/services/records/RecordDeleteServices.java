@@ -12,7 +12,7 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -35,7 +35,7 @@ import com.constellio.model.services.records.RecordServicesException.ValidationE
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord;
-import com.constellio.model.services.records.preparation.RecordsToReindexResolver;
+import com.constellio.model.services.records.preparation.RecordsLinksResolver;
 import com.constellio.model.services.records.utils.SortOrder;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -285,15 +285,15 @@ public class RecordDeleteServices {
 		List<Record> records = getAllRecordsInHierarchyForPhysicalDeletion(record, options);
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(record.getCollection(), modelLayerFactory);
-		if (schemas.getTypes().hasType(SolrAuthorizationDetails.SCHEMA_TYPE)) {
+		if (schemas.getTypes().hasType(Authorization.SCHEMA_TYPE)) {
 			for (Record recordInHierarchy : records) {
-				for (SolrAuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(
+				for (Authorization details : schemas.searchSolrAuthorizationDetailss(
 						where(schemas.authorizationDetails.target()).isEqualTo(recordInHierarchy.getId()))) {
 
 					authorizationsServices.execute(authorizationDeleteRequest(details));
 				}
 			}
-			for (SolrAuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(
+			for (Authorization details : schemas.searchSolrAuthorizationDetailss(
 					where(schemas.authorizationDetails.target()).isEqualTo(record.getId()))) {
 				authorizationsServices.execute(authorizationDeleteRequest(details));
 			}
@@ -367,7 +367,7 @@ public class RecordDeleteServices {
 
 			Set<String> ids = new HashSet<>();
 			for (Record aRecord : records) {
-				ids.addAll(new RecordsToReindexResolver(types).findRecordsToReindexFromRecord(aRecord, true));
+				ids.addAll(new RecordsLinksResolver(types).findRecordsToReindexFromRecord(aRecord, true));
 			}
 
 			deleteContents(records);
@@ -600,7 +600,9 @@ public class RecordDeleteServices {
 		} else {
 			LogicalSearchQuery query = new LogicalSearchQuery();
 			List<String> paths = record.getList(Schemas.PATH);
-			query.setCondition(fromAllSchemasIn(record.getCollection()).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+			query.setCondition(fromAllSchemasIn(record.getCollection())
+					.where(Schemas.PATH).isStartingWithText(paths.get(0) + "/")
+					.orWhere(Schemas.PATH).isEqualTo(paths.get(0)));
 			if (sortOrder == SortOrder.ASCENDING) {
 				query.sortAsc(Schemas.PRINCIPAL_PATH);
 			} else if (sortOrder == SortOrder.DESCENDING) {
@@ -619,7 +621,9 @@ public class RecordDeleteServices {
 			List<String> paths = record.getList(Schemas.PATH);
 			List<MetadataSchemaType> taxonomySchemaTypes = metadataSchemasManager.getSchemaTypes(record.getCollection())
 					.getSchemaTypesWithCode(taxonomy.getSchemaTypes());
-			query.setCondition(from(taxonomySchemaTypes).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+			query.setCondition(from(taxonomySchemaTypes)
+					.where(Schemas.PATH).isStartingWithText(paths.get(0) + "/")
+					.orWhere(Schemas.PATH).isEqualTo(paths.get(0)));
 			return searchServices.search(query);
 		}
 	}
@@ -632,7 +636,9 @@ public class RecordDeleteServices {
 
 			List<String> paths = principalConcept.getList(Schemas.PATH);
 			LogicalSearchQuery query = new LogicalSearchQuery();
-			query.setCondition(from(schemaType).where(Schemas.PATH).isStartingWithText(paths.get(0)));
+			query.setCondition(from(schemaType)
+					.where(Schemas.PATH).isStartingWithText(paths.get(0) + "/")
+					.orWhere(Schemas.PATH).isEqualTo(paths.get(0)));
 			records.addAll(searchServices.search(query));
 		}
 		return records;

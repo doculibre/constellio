@@ -10,7 +10,7 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
@@ -42,7 +42,7 @@ public class CoreTypes {
 		codesList.add(UserDocument.SCHEMA_TYPE);
 		codesList.add(UserFolder.SCHEMA_TYPE);
 		codesList.add(Printable.SCHEMA_TYPE);
-		codesList.add(SolrAuthorizationDetails.SCHEMA_TYPE);
+		codesList.add(Authorization.SCHEMA_TYPE);
 		codesList.add(Report.SCHEMA_TYPE);
 
 		//Deprecated types :

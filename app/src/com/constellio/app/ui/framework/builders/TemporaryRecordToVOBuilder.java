@@ -23,7 +23,7 @@ public class TemporaryRecordToVOBuilder extends RecordToVOBuilder {
 	}
 
 	@Override
-	protected TemporaryRecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode) {
+	protected TemporaryRecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode, List<String> excludedMetadata) {
 		return new TemporaryRecordVO(id, metadataValueVOs, viewMode);
 	}
 

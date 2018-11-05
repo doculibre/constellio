@@ -21,6 +21,7 @@ import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.builders.FolderToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
+import com.constellio.app.modules.rm.ui.entities.FolderComponent;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -94,6 +95,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		this.recordId = recordId;
 		return this;
 	}
+
+
 
 	@Override
 	protected boolean hasPageAccess(String params, User user) {
@@ -429,7 +432,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
 			if (folder.isIncluded()) {
 				try {
-					result.add(builder.build(folder));
+					FolderDetailVO folderDetailVO = builder.build(folder, FolderComponent.FOLDERS_TO_VALIDATE_COMPONENT);
+					result.add(folderDetailVO);
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					missingFolders.add(folder.getFolderId());
 					e.printStackTrace();
@@ -446,7 +450,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			if (folder.isIncluded() && !decommissioningService().isFolderProcessable(decommissioningList(), folder)
 				&& !isFolderPlacedInContainer(folder)) {
 				try {
-					FolderDetailVO folderVO = builder.build(folder);
+					FolderDetailVO folderVO = builder.build(folder, FolderComponent.PACKAGEABLE_FOLDER_COMPONENT);
 					addOtherMetadatasToFolderDetailVO(folderVO);
 					result.add(folderVO);
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
@@ -472,7 +476,25 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			if (folder.isIncluded() && (decommissioningService().isFolderProcessable(decommissioningList(), folder)
 										|| isFolderPlacedInContainer(folder))) {
 				try {
-					result.add(builder.build(folder));
+					FolderDetailVO folderDetailVO = builder.build(folder, FolderComponent.PROCESSABLE_FOLDER_COMPONENT);
+					result.add(folderDetailVO);
+				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+					missingFolders.add(folder.getFolderId());
+					e.printStackTrace();
+				}
+			}
+		}
+		return result;
+	}
+
+	public List<FolderDetailVO> getSelectedFolders() {
+		FolderDetailToVOBuilder builder = folderDetailToVOBuilder();
+		List<FolderDetailVO> result = new ArrayList<>();
+		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
+			if (folder.isSelected()) {
+				try {
+					FolderDetailVO folderDetailVO = builder.build(folder, FolderComponent.SELECTED_FOLDERS_COMPONENT);
+					result.add(folderDetailVO);
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					missingFolders.add(folder.getFolderId());
 					e.printStackTrace();
@@ -492,7 +514,8 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		for (FolderDetailWithType folder : decommissioningList().getFolderDetailsWithType()) {
 			if (folder.isExcluded()) {
 				try {
-					result.add(builder.build(folder));
+					FolderDetailVO folderDetailVO = builder.build(folder, FolderComponent.EXCLUDED_FOLDER_COMPONENT);
+					result.add(folderDetailVO);
 				} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
 					missingFolders.add(folder.getFolderId());
 					e.printStackTrace();

@@ -5,6 +5,8 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 
+import java.util.List;
+
 public class RecordServicesTestSchemaSetup extends TestsSchemasSetup {
 
 	public RecordServicesTestSchemaSetup() {
@@ -13,6 +15,11 @@ public class RecordServicesTestSchemaSetup extends TestsSchemasSetup {
 	public RecordServicesTestSchemaSetup(String collection) {
 		super(collection);
 	}
+
+	public RecordServicesTestSchemaSetup(String collection, List<String> languages) {
+		super(collection, languages);
+	}
+
 
 	public RecordServicesTestSchemaSetup withAMetadataCopiedInAnotherSchema() {
 		MetadataBuilder copiedMeta = zeDefaultSchemaBuilder.create("copiedMeta").setType(MetadataValueType.STRING);

@@ -3,7 +3,7 @@ package com.constellio.app.api.cmis.accept;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
@@ -131,7 +131,7 @@ public class CmisSecurityAcceptanceTest extends ConstellioTest {
 
 		RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+		cache.configureCache(permanentCache(types.getSchemaType(Authorization.SCHEMA_TYPE)));
 		cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
 		cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
 
