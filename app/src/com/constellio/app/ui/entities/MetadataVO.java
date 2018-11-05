@@ -50,7 +50,8 @@ public class MetadataVO implements Serializable {
 	final Map<String, Object> customParameters;
 	final CollectionInfoVO collectionInfoVO;
 
-	public MetadataVO(String code, String localCode, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
+	public MetadataVO(String code, String localCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
+					  boolean required,
 					  boolean multivalue, boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
 					  Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
 					  MetadataInputType metadataInputType,

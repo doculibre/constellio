@@ -33,16 +33,8 @@ import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Set;
-
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;

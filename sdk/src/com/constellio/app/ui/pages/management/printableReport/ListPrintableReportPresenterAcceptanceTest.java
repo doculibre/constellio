@@ -264,8 +264,8 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 		} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) { /* OK ! */}
 
 
-		for(RecordVO recordVO: recordVOS) {
-			if(recordVO.getId().equals(reportToRemoveById.getId())) {
+		for (RecordVO recordVO : recordVOS) {
+			if (recordVO.getId().equals(reportToRemoveById.getId())) {
 				presenter.removeRecord(recordVO);
 			}
 		}

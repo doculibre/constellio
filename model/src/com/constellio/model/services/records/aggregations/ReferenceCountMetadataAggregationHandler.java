@@ -6,8 +6,6 @@ import com.constellio.model.entities.schemas.entries.SearchAggregatedValuesParam
 
 import java.util.List;
 
-import static java.util.Arrays.asList;
-
 public class ReferenceCountMetadataAggregationHandler implements MetadataAggregationHandler {
 
 	@Override
@@ -22,7 +20,7 @@ public class ReferenceCountMetadataAggregationHandler implements MetadataAggrega
 
 	@Override
 	public List<Metadata> getMetadatasUsedToCalculate(GetMetadatasUsedToCalculateParams params) {
-		return asList(params.getReferenceMetadata());
+		return params.getReferenceMetadatas();
 	}
 
 }

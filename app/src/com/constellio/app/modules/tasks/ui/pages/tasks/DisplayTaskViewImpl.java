@@ -8,7 +8,6 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
@@ -18,7 +17,6 @@ import com.constellio.app.ui.framework.components.table.columns.TableColumnsMana
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;

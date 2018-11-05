@@ -648,7 +648,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			if (!inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
 				displayType = MetadataDisplayType.VERTICAL;
 			}
-			if(formMetadataVO.getValueType() == ENUM && editMode) {
+			if (formMetadataVO.getValueType() == ENUM && editMode) {
 				enumClass = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(formMetadataVO.getCode()).getEnumClass();
 			}
 

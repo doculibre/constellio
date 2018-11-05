@@ -269,7 +269,7 @@ public class RMConfigs {
 				.createBooleanTrueByDefault("folderAdministrativeUnitEnteredAutomatically"));
 
 		add(STORAGE_SPACE_TITLE_CALCULATOR_ENABLED = others
-				.createBooleanFalseByDefault("enableStorageSpaceTitleCalculator")
+				.createBooleanTrueByDefault("enableStorageSpaceTitleCalculator")
 				.scriptedBy(EnableOrDisableStorageSpaceTitleCalculatorScript.class));
 
 		add(DEFAULT_TAB_IN_FOLDER_DISPLAY = others.createString("defaultTabInFolderDisplay")

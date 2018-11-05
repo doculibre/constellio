@@ -147,7 +147,7 @@ Schemas {
 
 		String dataStoreCode = metadata.getDataStoreCode();
 
-		if(isValueTypeSearchable(metadata)) {
+		if (isValueTypeSearchable(metadata)) {
 			if (metadata.isMultivalue()) {
 				dataStoreCode = dataStoreCode.replace("_txt", "_txt_" + languageCode);
 				dataStoreCode = dataStoreCode.replace("_ss", "_txt_" + languageCode);

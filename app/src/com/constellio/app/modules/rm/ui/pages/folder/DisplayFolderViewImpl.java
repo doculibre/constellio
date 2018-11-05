@@ -301,7 +301,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				@Override
 				public String getRecordCaption() {
 					return getCaptionForRecordVO(recordVO, getSessionContext().getCurrentLocale());
-//					return recordDisplay.getCaption();
+					//					return recordDisplay.getCaption();
 				}
 			};
 

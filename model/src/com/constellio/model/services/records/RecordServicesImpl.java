@@ -744,7 +744,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 											.getMetadata(splittedCode[1]);
 									String metadataProvidingReferenceValue = record.get(metadataProvidingReference);
 
-									if(metadataProvidingReferenceValue!=null){
+									if (metadataProvidingReferenceValue != null) {
 										sequenceCode = getDocumentById(metadataProvidingReferenceValue).get(metadataProvidingSequenceCode);
 									}
 								} else {
@@ -790,6 +790,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					&& schema.hasMetadataWithCode(Schemas.MARKED_FOR_REINDEXING.getLocalCode())
 					&& !record.isModified(Schemas.MARKED_FOR_REINDEXING)
 					&& !transaction.getIdsToReindex().contains(record.getId())) {
+
 					record.set(Schemas.MARKED_FOR_REINDEXING, null);
 				}
 			}
@@ -831,9 +832,15 @@ public class RecordServicesImpl extends BaseRecordServices {
 						catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
 				if (record.isSaved()) {
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-					extensions.callRecordInModificationBeforeSave(
-							new RecordInModificationBeforeSaveEvent(record, modifiedMetadatas, transaction.getUser(),
-									singleRecordTransaction, recordErrors), options);
+					extensions.callRecordInModificationBeforeSave(new RecordInModificationBeforeSaveEvent(record,
+							modifiedMetadatas, transaction.getUser(), singleRecordTransaction, recordErrors) {
+						@Override
+						public void recalculateRecord(List<String> metadatas) {
+							newAutomaticMetadataServices().updateAutomaticMetadatas(
+									(RecordImpl) record, newRecordProvider(transaction),
+									metadatas, transaction);
+						}
+					}, options);
 				} else {
 					extensions.callRecordInCreationBeforeSave(new RecordInCreationBeforeSaveEvent(
 							record, transaction.getUser(), singleRecordTransaction, recordErrors) {
