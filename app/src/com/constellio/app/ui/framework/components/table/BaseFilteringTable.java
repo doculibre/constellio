@@ -26,6 +26,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class BaseFilteringTable extends CustomComponent {
 
 	/**
@@ -234,12 +236,12 @@ class DemoFilterDecorator implements FilterDecorator {
 
 	@Override
 	public String getFromCaption() {
-		return "Start date:";
+		return ":"+$("StatisticsView.startDate");
 	}
 
 	@Override
 	public String getToCaption() {
-		return "End date:";
+		return ":"+$("StatisticsView.endDate");
 	}
 
 	@Override

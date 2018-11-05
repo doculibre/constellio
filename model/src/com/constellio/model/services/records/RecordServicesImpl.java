@@ -20,6 +20,7 @@ import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
@@ -1088,7 +1089,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 			List<RecordDeltaDTO> modifiedRecordDTOs = new ArrayList<>();
 			LanguageDetectionManager languageDetectionManager = modelFactory.getLanguageDetectionManager();
 			ContentManager contentManager = modelFactory.getContentManager();
-			List<String> collectionLanguages = modelFactory.getCollectionsListManager().getCollectionLanguages(collection);
+			CollectionInfo collectionInfo = modelFactory.getCollectionsListManager().getCollectionInfo(collection);
 			List<FieldsPopulator> fieldsPopulators = new ArrayList<>();
 			MetadataSchemaTypes types = modelFactory.getMetadataSchemasManager().getSchemaTypes(collection);
 			ConstellioEIMConfigs systemConfigs = modelFactory.getSystemConfigs();
@@ -1096,7 +1097,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					transaction.getParsedContentCache());
 
 			fieldsPopulators
-					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionLanguages,
+					.add(new SearchFieldsPopulator(types, options.isFullRewrite(), parsedContentProvider, collectionInfo,
 							systemConfigs, modelLayerFactory.getExtensions()));
 
 			fieldsPopulators.add(new SortFieldsPopulator(types, options.isFullRewrite(), modelFactory,
@@ -1448,8 +1449,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public void flush() {
 		try {
 			recordDao.flush();
-			eventsDao.flush();
+			if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
+				eventsDao.flush();
+			}
 			notificationsDao.flush();
+
 		} catch (RecordDaoRuntimeException_RecordsFlushingFailed e) {
 			throw new RecordServicesRuntimeException_RecordsFlushingFailed(e);
 		}
