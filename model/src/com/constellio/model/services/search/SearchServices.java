@@ -498,7 +498,7 @@ public class SearchServices {
 		}
 		if (query.getFreeTextQuery() != null) {
 			User user = null;
-			if(query.getUserFilters() != null && query.getUserFilters().size() > 0) {
+			if (query.getUserFilters() != null && query.getUserFilters().size() > 0) {
 				user = query.getUserFilters().get(0).getUser();
 			}
 			String qf = getQfFor(languages, query.getLanguage(), query.getFieldBoosts(), searchedSchemaTypes, user);
@@ -789,15 +789,15 @@ public class SearchServices {
 		return queryTerms.size();
 	}
 
-	private String getQfFor(List<String> languages, String queryLanguage, List<SearchBoost> boosts,
-							List<MetadataSchemaType> searchedSchemaTypes, User user) {
+	String getQfFor(List<String> languages, String queryLanguage, List<SearchBoost> boosts,
+					List<MetadataSchemaType> searchedSchemaTypes, User user) {
 		StringBuilder sb = new StringBuilder();
 
 		Set<String> fields = new HashSet<>();
 
 		List<String> localCodeWithNoAccess = new ArrayList<>();
 		List<String> dataFieldCodeWithNoAccess = new ArrayList<>();
-		if(user != null) {
+		if (user != null) {
 			for (MetadataSchemaType schemaType : searchedSchemaTypes) {
 				for (Metadata metadata : schemaType.getAllMetadatas()) {
 					if (!user.hasGlobalAccessToMetadata(metadata)) {
@@ -812,7 +812,7 @@ public class SearchServices {
 			String dataStoreValue;
 			int lastIndexOfSemiColumn = boost.getKey().lastIndexOf(":");
 
-			if(lastIndexOfSemiColumn == -1) {
+			if (lastIndexOfSemiColumn == -1) {
 				dataStoreValue = boost.getKey();
 			} else {
 				dataStoreValue = boost.getKey().substring(0, lastIndexOfSemiColumn);
@@ -821,7 +821,7 @@ public class SearchServices {
 			String[] dataStoreValueSplited = dataStoreValue.split("_");
 			dataStoreValue = dataStoreValueSplited[0] + "_" + dataStoreValueSplited[1];
 
-			if(!dataFieldCodeWithNoAccess.contains(dataStoreValue)) {
+			if (!dataFieldCodeWithNoAccess.contains(dataStoreValue)) {
 				sb.append(boost.getKey());
 				sb.append("^");
 				sb.append(boost.getValue());
@@ -831,10 +831,9 @@ public class SearchServices {
 		}
 
 
-
 		for (MetadataSchemaType schemaType : searchedSchemaTypes) {
 			for (Metadata metadata : schemaType.getAllMetadatas()) {
-				if(localCodeWithNoAccess.contains(metadata.getLocalCode())) {
+				if (localCodeWithNoAccess.contains(metadata.getLocalCode())) {
 					continue;
 				}
 
