@@ -3,13 +3,15 @@ package com.constellio.app.utils.scripts;
 import com.constellio.app.extensions.api.scripts.ScriptWithLogOutput;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.users.GlobalGroupsManager;
+import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 
 import java.util.ArrayList;
@@ -17,7 +19,7 @@ import java.util.List;
 
 public class DeleteInactiveGroupsScript extends ScriptWithLogOutput {
 
-	private GlobalGroupsManager globalGroupsManager;
+	private SolrGlobalGroupsManager globalGroupsManager;
 	private UserServices userServices;
 	private AuthorizationsServices authorizationsServices;
 
@@ -33,6 +35,7 @@ public class DeleteInactiveGroupsScript extends ScriptWithLogOutput {
 	protected void execute() throws Exception {
 		List<String> collections = modelLayerFactory.getCollectionsListManager().getCollections();
 
+
 		List<GlobalGroup> globalGroups = globalGroupsManager.getAllGroups();
 		for (GlobalGroup globalGroup : globalGroups) {
 			if (globalGroup.isLocallyCreated()) {
@@ -41,14 +44,18 @@ public class DeleteInactiveGroupsScript extends ScriptWithLogOutput {
 
 			boolean used = false;
 			for (String collection : collections) {
+				List<Authorization> authorizations = new SchemasRecordsServices(collection, modelLayerFactory)
+						.getAllAuthorizationsInUnmodifiableState();
 				Group group = userServices.getGroupInCollection(globalGroup.getCode(), collection);
 				if (group == null) {
 					continue;
 				}
 
-				if (!group.getAllAuthorizations().isEmpty()) {
-					used = true;
-					break;
+				for (Authorization authorization : authorizations) {
+					if (authorization.getPrincipals().contains(group.getId())) {
+						used = true;
+						break;
+					}
 				}
 			}
 

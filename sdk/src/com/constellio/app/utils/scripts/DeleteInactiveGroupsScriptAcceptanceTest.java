@@ -14,7 +14,7 @@ import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.security.AuthorizationsServices;
-import com.constellio.model.services.users.GlobalGroupsManager;
+import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.setups.Users;
@@ -29,7 +29,7 @@ public class DeleteInactiveGroupsScriptAcceptanceTest extends ConstellioTest {
 	private RMTestRecords records = new RMTestRecords(zeCollection);
 	private Users users = new Users();
 
-	private GlobalGroupsManager globalGroupsManager;
+	private SolrGlobalGroupsManager globalGroupsManager;
 	private UserServices userServices;
 	private RecordServices recordServices;
 	private CollectionsManager collectionsManager;
