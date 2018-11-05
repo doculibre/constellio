@@ -57,6 +57,7 @@ public class MetadataToVOBuilder implements Serializable {
 	public MetadataVO build(Metadata metadata, Locale locale, MetadataSchemaVO schemaVO,
 							SessionContext sessionContext) {
 		String metadataCode = metadata.getCode();
+		String metadataLocalCode = metadata.getLocalCode();
 		String collection = metadata.getCollection();
 		String datastoreCode = metadata.getDataStoreCode();
 		MetadataValueType type = metadata.getType();
@@ -166,7 +167,7 @@ public class MetadataToVOBuilder implements Serializable {
 		Class<? extends Enum<?>> enumClass = metadata.getEnumClass(); // EnumWithSmallCode
 		AllowedReferences allowedReferences = metadata.getAllowedReferences();
 
-		return newMetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
+		return newMetadataVO(metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 				enabled,
 				structureFactory, metadataGroup, metadata.getDefaultValue(), metadata.getInputMask(),
@@ -176,6 +177,7 @@ public class MetadataToVOBuilder implements Serializable {
 
 	protected MetadataVO newMetadataVO(
 			String metadataCode,
+			String metadataLocalCode,
 			String datastoreCode,
 			MetadataValueType type,
 			String collection,
@@ -199,7 +201,7 @@ public class MetadataToVOBuilder implements Serializable {
 			boolean isMultiLingual, Locale locale,
 			Map<String, Object> customParameters,
 			CollectionInfoVO collectionInfoVO) {
-		return new MetadataVO(metadataCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
+		return new MetadataVO(metadataCode, metadataLocalCode, datastoreCode, type, collection, schemaVO, required, multivalue, readOnly, unmodifiable,
 				labels, enumClass, taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences,
 				enabled,
 				structureFactory, metadataGroup, defaultValue, inputMask, customAttributes, isMultiLingual, locale, customParameters, collectionInfoVO);

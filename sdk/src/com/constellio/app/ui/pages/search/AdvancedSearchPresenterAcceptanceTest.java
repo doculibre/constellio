@@ -53,7 +53,7 @@ public class AdvancedSearchPresenterAcceptanceTest extends ConstellioTest {
 
 	Users users = new Users();
 	@Mock
-	AdvancedSearchView advancedSearchView;
+	AdvancedSearchViewImpl advancedSearchView;
 	@Mock
 	CoreViews navigator;
 	RMTestRecords rmRecords = new RMTestRecords(zeCollection);

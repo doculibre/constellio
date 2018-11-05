@@ -23,6 +23,7 @@ import java.util.Set;
 @SuppressWarnings("serial")
 public class MetadataVO implements Serializable {
 	final String code;
+	final String localCode;
 	final String datastoreCode;
 	final MetadataValueType type;
 	final String collection;
@@ -49,7 +50,7 @@ public class MetadataVO implements Serializable {
 	final Map<String, Object> customParameters;
 	final CollectionInfoVO collectionInfoVO;
 
-	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
+	public MetadataVO(String code, String localCode, MetadataValueType type, String collection, MetadataSchemaVO schema, boolean required,
 					  boolean multivalue, boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
 					  Class<? extends Enum<?>> enumClass, String[] taxonomyCodes, String schemaTypeCode,
 					  MetadataInputType metadataInputType,
@@ -57,14 +58,14 @@ public class MetadataVO implements Serializable {
 					  StructureFactory structureFactory,
 					  String metadataGroup, Object defaultValue, Set<String> customAttributes, boolean multiLingual,
 					  Locale locale, Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO) {
-		this(code, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
+		this(code, localCode, null, type, collection, schema, required, multivalue, readOnly, unmodifiable, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, enabled,
 				structureFactory, metadataGroup,
 				defaultValue, null, customAttributes, multiLingual, locale, customParameters, collectionInfoVO);
 	}
 
 
-	public MetadataVO(String code, String datastoreCode, MetadataValueType type, String collection,
+	public MetadataVO(String code, String localCode, String datastoreCode, MetadataValueType type, String collection,
 					  MetadataSchemaVO schema,
 					  boolean required, boolean multivalue, boolean readOnly, boolean unmodifiable,
 					  Map<Locale, String> labels, Class<? extends Enum<?>> enumClass, String[] taxonomyCodes,
@@ -76,6 +77,7 @@ public class MetadataVO implements Serializable {
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO) {
 		super();
 		this.code = code;
+		this.localCode = localCode;
 		this.datastoreCode = datastoreCode;
 		this.type = type;
 		this.collection = collection;
@@ -107,7 +109,7 @@ public class MetadataVO implements Serializable {
 		}
 	}
 
-	public MetadataVO(String code, MetadataValueType type, String collection, MetadataSchemaVO schema,
+	public MetadataVO(String code, String localCode, MetadataValueType type, String collection, MetadataSchemaVO schema,
 					  boolean required,
 					  boolean multivalue, boolean readOnly, Map<Locale, String> labels,
 					  Class<? extends Enum<?>> enumClass,
@@ -118,7 +120,7 @@ public class MetadataVO implements Serializable {
 					  Set<String> customAttributes, boolean multiLingual, Locale locale,
 					  Map<String, Object> customParameters, CollectionInfoVO collectionInfoVO) {
 
-		this(code, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
+		this(code, localCode, type, collection, schema, required, multivalue, readOnly, false, labels, enumClass,
 				taxonomyCodes, schemaTypeCode, metadataInputType, metadataDisplayType, allowedReferences, true, null,
 				metadataGroup, defaultValue, customAttributes, multiLingual, locale, customParameters, collectionInfoVO);
 	}
@@ -126,6 +128,7 @@ public class MetadataVO implements Serializable {
 	public MetadataVO() {
 		super();
 		this.code = "";
+		this.localCode = "";
 		this.datastoreCode = null;
 		this.type = null;
 		this.collection = null;
@@ -158,7 +161,7 @@ public class MetadataVO implements Serializable {
 	}
 
 	public String getLocalCode() {
-		return getCodeWithoutPrefix(code);
+		return localCode;
 	}
 
 	public static String getCodeWithoutPrefix(String code) {
@@ -177,7 +180,7 @@ public class MetadataVO implements Serializable {
 	}
 
 	public boolean codeMatches(String code) {
-		return getCodeWithoutPrefix(this.code).equals(getCodeWithoutPrefix(code));
+		return localCode.equals(getCodeWithoutPrefix(code));
 	}
 
 	public MetadataValueType getType() {
@@ -339,7 +342,7 @@ public class MetadataVO implements Serializable {
 				if (other.code != null) {
 					return false;
 				}
-			} else if (!getCodeWithoutPrefix(code).equals(getCodeWithoutPrefix(other.code))) {
+			} else if (!localCode.equals(other.localCode)) {
 				return false;
 			} else if (schema == null) {
 				if (other.schema != null) {
@@ -382,10 +385,7 @@ public class MetadataVO implements Serializable {
 
 		MetadataVO other = (MetadataVO) object;
 
-		String localCode = new SchemaUtils().getLocalCode(getCode(), getSchema().getCode());
-		String otherLocalCode = new SchemaUtils().getLocalCode(other.getCode(), other.getSchema().getCode());
-
-		return localCode.equals(otherLocalCode);
+		return localCode.equals(other.localCode);
 	}
 
 	public Set<String> getCustomAttributes() {

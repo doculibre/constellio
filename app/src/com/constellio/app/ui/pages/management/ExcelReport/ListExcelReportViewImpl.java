@@ -162,7 +162,7 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
 
 		@Override
 		protected void buttonClick(ClickEvent event) {
-			presenter.editButtonClicked(report.getId(), report.getSchema().getTypeCode());
+			presenter.editButtonClicked(report.getId(), currentSchema);
 		}
 
 		@Override
@@ -185,7 +185,7 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
 
 		@Override
 		protected void buttonClick(ClickEvent event) {
-			presenter.displayButtonClicked(report.getId(), report.getSchema().getTypeCode());
+			presenter.displayButtonClicked(report.getId(), currentSchema);
 		}
 	}
 
@@ -198,7 +198,7 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
 
 		@Override
 		protected void confirmButtonClick(ConfirmDialog dialog) {
-			presenter.removeRecord(report.getId(), report.getSchema().getTypeCode());
+			presenter.removeRecord(report.getId(), currentSchema);
 		}
 
 		@Override

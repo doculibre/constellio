@@ -359,7 +359,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	@Override
 	protected Component buildMainComponent(ViewChangeEvent event) {
 		FireableTabSheet tabSheet = new FireableTabSheet();
-		folderTable = buildTable("CartView.folders", presenter.getFolderRecords());
+		folderTable = buildFolderTable("CartView.folders", presenter.getFolderRecords());
 		documentTable = buildTable("CartView.documents", presenter.getDocumentRecords());
 		containerTable = buildTable("CartView.containers", presenter.getContainerRecords());
 		TabSheet.Tab folderTab = tabSheet.addTab(folderLayout = new CartTabLayout(buildFolderFilterComponent(), folderTable));
@@ -398,8 +398,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		return mainLayout;
 	}
 
-	private Table buildTable(final String tableId, final RecordVOWithDistinctSchemasDataProvider dataProvider) {
-		final Container container = buildContainer(dataProvider);
+	private Table buildFolderTable(final String tableId, final RecordVOWithDistinctSchemasDataProvider dataProvider) {
+		final Container container = buildFolderContainer(dataProvider);
 		Table table = new RecordVOTable($("CartView.records", container.size()), container) {
 			@Override
 			protected String getTableId() {
@@ -423,15 +423,55 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 							loadContainerProperty = new ObjectProperty(value, Component.class);
 						}
 					}
-				}
-
-				if (loadContainerProperty == null) {
+				} else {
 					loadContainerProperty = super.loadContainerProperty(itemId, propertyId);
 					if (loadContainerProperty.getValue() instanceof String) {
 						String value = (String) loadContainerProperty.getValue();
 						if (Strings.isNullOrEmpty(value)) {
 							loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
 						}
+					}
+				}
+
+				return loadContainerProperty;
+			}
+
+		};
+		table.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				int itemId = (int) event.getItemId();
+				presenter.displayRecordRequested(dataProvider.getRecordVO(itemId));
+			}
+		});
+		table.setColumnHeader(CommonMetadataBuilder.SUMMARY, $("CartViewImpl.title"));
+		table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
+		table.setColumnWidth(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, 50);
+		table.setPageLength(Math.min(15, container.size()));
+		table.setSizeFull();
+		return table;
+	}
+
+	private Table buildTable(final String tableId, final RecordVOWithDistinctSchemasDataProvider dataProvider) {
+		final Container container = buildContainer(dataProvider);
+		Table table = new RecordVOTable($("CartView.records", container.size()), container) {
+			@Override
+			protected String getTableId() {
+				return tableId;
+			}
+
+			@Override
+			protected TableColumnsManager newColumnsManager() {
+				return new TableColumnsManager();
+			}
+
+			@Override
+			protected Property<?> loadContainerProperty(Object itemId, Object propertyId) {
+				Property loadContainerProperty = super.loadContainerProperty(itemId, propertyId);
+				if(loadContainerProperty.getValue() instanceof String) {
+					String value = (String) loadContainerProperty.getValue();
+					if (Strings.isNullOrEmpty(value)) {
+						loadContainerProperty = super.loadContainerProperty(itemId, Schemas.TITLE.getLocalCode());
 					}
 				}
 
@@ -577,6 +617,25 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	private Container buildContainer(final RecordVOWithDistinctSchemasDataProvider dataProvider) {
 		RecordVOWithDistinctSchemaTypesLazyContainer records = new RecordVOWithDistinctSchemaTypesLazyContainer(
 				dataProvider, asList(CommonMetadataBuilder.TITLE));
+		ButtonsContainer<RecordVOWithDistinctSchemaTypesLazyContainer> container = new ButtonsContainer<>(records);
+		container.addButton(new ContainerButton() {
+			@Override
+			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
+				return new DeleteButton() {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						int index = (int) itemId;
+						presenter.itemRemovalRequested(dataProvider.getRecordVO(index));
+					}
+				};
+			}
+		});
+		return container;
+	}
+
+	private Container buildFolderContainer(final RecordVOWithDistinctSchemasDataProvider dataProvider) {
+		RecordVOWithDistinctSchemaTypesLazyContainer records = new RecordVOWithDistinctSchemaTypesLazyContainer(
+				dataProvider, asList(CommonMetadataBuilder.TITLE, CommonMetadataBuilder.SUMMARY));
 		ButtonsContainer<RecordVOWithDistinctSchemaTypesLazyContainer> container = new ButtonsContainer<>(records);
 		container.addButton(new ContainerButton() {
 			@Override

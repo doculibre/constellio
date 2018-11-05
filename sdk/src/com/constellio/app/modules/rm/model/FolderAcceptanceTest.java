@@ -3131,6 +3131,7 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.addAll(folder, childFolder);
 
+		//CHANGE validateTransaction to reflect prepareTransaction
 		recordServices.validateTransaction(transaction);
 	}
 
