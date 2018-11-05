@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.navigation;
 
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
+import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.entities.navigation.PageItem.RecentItemTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
@@ -48,6 +49,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.UniformSubdivision;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.application.Navigation;
@@ -73,8 +75,10 @@ import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.View;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.ui.Component;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedListener.TreeListener;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTreeItemEvent;
 
@@ -83,6 +87,7 @@ import java.util.List;
 
 import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
 import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RMNavigationConfiguration implements Serializable {
 
@@ -92,7 +97,6 @@ public class RMNavigationConfiguration implements Serializable {
 
 	public static final String LAST_VIEWED_FOLDERS = "lastViewedFolders";
 	public static final String LAST_VIEWED_DOCUMENTS = "lastViewedDocuments";
-	public static final String DEFAULT_FAVORITES = "defaultFavorites";
 	public static final String CHECKED_OUT_DOCUMENTS = "checkedOutDocuments";
 	public static final String TAXONOMIES = "taxonomies";
 
@@ -294,6 +298,13 @@ public class RMNavigationConfiguration implements Serializable {
 			public RecordVODataProvider getDataProvider(AppLayerFactory appLayerFactory,
 														SessionContext sessionContext) {
 				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
+			}
+		});
+		config.add(HomeView.TABS, new PageItem.CustomItem($("defaultFavorites")) {
+			@Override
+			public Component buildCustomComponent(ConstellioFactories factories, SessionContext context,
+												  ItemClickEvent.ItemClickListener itemClickListener) {
+				return new RMFavoritesTable(factories.getAppLayerFactory(), context).builtCustomSheet(itemClickListener);
 			}
 		});
 	}

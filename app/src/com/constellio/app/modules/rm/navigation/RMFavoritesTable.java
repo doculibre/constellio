@@ -1,4 +1,4 @@
-package com.constellio.app.modules.rm.ui.pages.home;
+package com.constellio.app.modules.rm.navigation;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -9,7 +9,6 @@ import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
@@ -29,7 +28,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.vaadin.event.ItemClickEvent;
-import com.vaadin.shared.MouseEventDetails;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TabSheet;
 
@@ -41,29 +39,29 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
-public class DefaultFavoritesTable implements Serializable {
+public class RMFavoritesTable implements Serializable {
 	private transient AppLayerFactory appLayerFactory;
 	private transient SessionContext sessionContext;
 	private transient RMSchemasRecordsServices rm;
 	private transient User user;
 
-	public DefaultFavoritesTable(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
+	public RMFavoritesTable(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
 		init(appLayerFactory, sessionContext);
 	}
 
-	public Component builtCustomSheet() {
+	public Component builtCustomSheet(ItemClickEvent.ItemClickListener itemClickListener) {
 		List<RecordVODataProvider> providers = getDataProviders();
 		TabSheet costumTabSheet = new TabSheet();
 		for (RecordVODataProvider provider : providers) {
 			switch (provider.getSchema().getTypeCode()) {
 				case Folder.SCHEMA_TYPE:
-					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.folders"));
+					costumTabSheet.addTab(buildTable(provider, itemClickListener), $("HomeView.tab.customSheet.folders"));
 					break;
 				case Document.SCHEMA_TYPE:
-					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.documents"));
+					costumTabSheet.addTab(buildTable(provider, itemClickListener), $("HomeView.tab.customSheet.documents"));
 					break;
 				case ContainerRecord.SCHEMA_TYPE:
-					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.containers"));
+					costumTabSheet.addTab(buildTable(provider, itemClickListener), $("HomeView.tab.customSheet.containers"));
 					break;
 			}
 
@@ -71,7 +69,8 @@ public class DefaultFavoritesTable implements Serializable {
 		return costumTabSheet;
 	}
 
-	private Component buildTable(RecordVODataProvider dataProvider) {
+	private Component buildTable(RecordVODataProvider dataProvider,
+								 ItemClickEvent.ItemClickListener itemClickListener) {
 		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
 		final RecordVOTable table = new RecordVOTable(container);
 		table.addStyleName("record-table");
@@ -84,16 +83,7 @@ public class DefaultFavoritesTable implements Serializable {
 				}
 			}
 		}
-		table.addItemClickListener(new ItemClickEvent.ItemClickListener() {
-			@Override
-			public void itemClick(ItemClickEvent event) {
-				if (event.getButton() == MouseEventDetails.MouseButton.LEFT) {
-					RecordVOItem recordItem = (RecordVOItem) event.getItem();
-					RecordVO recordVO = recordItem.getRecord();
-					//					recordClicked(recordVO.getId(), null);
-				}
-			}
-		});
+		table.addItemClickListener(itemClickListener);
 		return new RecordVOSelectionTableAdapter(table) {
 			@Override
 			public void selectAll() {
@@ -150,6 +140,15 @@ public class DefaultFavoritesTable implements Serializable {
 	}
 
 	private List<RecordVODataProvider> getDataProviders() {
+		final MetadataSchemaType folderSchemaType = rm.folderSchemaType();
+		MetadataSchemaVO folderSchema = new MetadataSchemaToVOBuilder().build(folderSchemaType.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext);
+		RecordVODataProvider folderVODataProvider = new RecordVODataProvider(folderSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
+			@Override
+			protected LogicalSearchQuery getQuery() {
+				return new LogicalSearchQuery(from(folderSchemaType).where(rm.folder.favorites()).isContaining(asList(user.getId())));
+			}
+		};
+
 		final MetadataSchemaType documentSchemaType = rm.documentSchemaType();
 		MetadataSchemaVO documentSchema = new MetadataSchemaToVOBuilder().build(documentSchemaType.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext);
 		RecordVODataProvider documentVODataProvider = new RecordVODataProvider(documentSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
@@ -157,15 +156,6 @@ public class DefaultFavoritesTable implements Serializable {
 			protected LogicalSearchQuery getQuery() {
 				final Metadata documentFavoritesList = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection()).getMetadata(Document.DEFAULT_SCHEMA + "_" + Document.FAVORITES);
 				return new LogicalSearchQuery(from(documentSchemaType).where(documentFavoritesList).isContaining(asList(user.getId())));
-			}
-		};
-
-		final MetadataSchemaType folderSchemaType = rm.folderSchemaType();
-		MetadataSchemaVO folderSchema = new MetadataSchemaToVOBuilder().build(folderSchemaType.getDefaultSchema(), VIEW_MODE.TABLE, sessionContext);
-		RecordVODataProvider folderVODataProvider = new RecordVODataProvider(folderSchema, new RecordToVOBuilder(), appLayerFactory.getModelLayerFactory(), sessionContext) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(folderSchemaType).where(rm.folder.favorites()).isContaining(asList(user.getId())));
 			}
 		};
 
@@ -179,7 +169,7 @@ public class DefaultFavoritesTable implements Serializable {
 			}
 		};
 
-		return asList(documentVODataProvider, folderVODataProvider, containerVODataProvider);
+		return asList(folderVODataProvider, documentVODataProvider, containerVODataProvider);
 	}
 
 	private void init(AppLayerFactory appLayerFactory, SessionContext sessionContext) {
