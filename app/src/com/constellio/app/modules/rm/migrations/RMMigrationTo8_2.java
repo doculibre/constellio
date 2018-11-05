@@ -16,6 +16,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -76,6 +77,7 @@ public class RMMigrationTo8_2 implements MigrationScript {
 							   final ModelLayerFactory modelLayerFactory) {
 		ConditionnedActionExecutorInBatchBuilder conditionnedActionExecutorInBatchBuilder = onCondition(modelLayerFactory, from(metadataSchemaType).returnAll());
 		conditionnedActionExecutorInBatchBuilder.setBatchSize(500);
+		conditionnedActionExecutorInBatchBuilder.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 		conditionnedActionExecutorInBatchBuilder.modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
 			@Override
 			public void modifyRecord(Record record) {
