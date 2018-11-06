@@ -19,7 +19,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
 import com.constellio.model.services.records.utils.SortOrder;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -173,8 +172,8 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		recordServices.logicallyDelete(document.getWrappedRecord(), User.GOD);
 		recordServices.physicallyDelete(document.getWrappedRecord(), User.GOD);
 
-		assertThat(rm.getFolder("fakeDocument2b")).isNotNull();
-		assertThat(rm.getFolder("fakeDocument2bb")).isNotNull();
+		assertThat(rm.getDocument("fakeDocument2b")).isNotNull();
+		assertThat(rm.getDocument("fakeDocument2bb")).isNotNull();
 	}
 
 	@Test

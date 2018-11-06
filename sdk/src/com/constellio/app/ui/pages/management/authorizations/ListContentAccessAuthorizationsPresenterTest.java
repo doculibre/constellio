@@ -54,7 +54,6 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 	@Mock AuthorizationVO own1;
 	@Mock AuthorizationVO own2;
 	@Mock Authorization authorization;
-	@Mock
 	MockedFactories factories = new MockedFactories();
 
 	ListAuthorizationsPresenter presenter;
