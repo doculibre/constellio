@@ -1206,4 +1206,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public AppLayerFactory getApplayerFactory() {
 		return appLayerFactory;
 	}
+
+	public boolean isNeedingAReasonToDeleteFolder() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
+	}
 }

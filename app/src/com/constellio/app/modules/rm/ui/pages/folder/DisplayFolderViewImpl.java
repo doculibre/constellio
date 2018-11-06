@@ -20,6 +20,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
@@ -89,6 +90,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -302,17 +304,28 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			};
 
-			deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
-				@Override
-				protected void deletionConfirmed(String reason) {
-					presenter.deleteFolderButtonClicked(reason);
-				}
+			deleteFolderButton = new Button();
+			if(!presenter.isNeedingAReasonToDeleteFolder()) {
+				deleteFolderButton = new DeleteButton($("DisplayFolderView.deleteFolder"), false) {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.deleteFolderButtonClicked(null);
+					}
+				};
+			} else {
+				deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
+					@Override
+					protected void deletionConfirmed(String reason) {
+						presenter.deleteFolderButtonClicked(reason);
+					}
 
-				@Override
-				public Component getRecordCaption() {
-					return new ReferenceDisplay(recordVO);
-				}
-			};
+					@Override
+					public Component getRecordCaption() {
+						return new ReferenceDisplay(recordVO);
+					}
+				};
+			}
+
 
 			duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
 					$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {

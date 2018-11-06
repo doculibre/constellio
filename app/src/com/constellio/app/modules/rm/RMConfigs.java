@@ -76,6 +76,7 @@ public class RMConfigs {
 			LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS,
 			ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE,
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
+			NEED_REASON_BEFORE_DELETING_FOLDERS,
 			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS;
 
 	// Category configs
@@ -301,6 +302,8 @@ public class RMConfigs {
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG =
 				advanced.createBooleanTrueByDefault("showFolderUnicityAndFolderSummaryConfig").whichIsHidden());
+
+		add(NEED_REASON_BEFORE_DELETING_FOLDERS = others.createBooleanTrueByDefault("needReasonBeforeDeletingFolders"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -559,5 +562,9 @@ public class RMConfigs {
 
 	public boolean isDecommissioningTypeRequiredInContainers() {
 		return manager.getValue(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS);
+	}
+
+	public boolean isNeedingAReasonBeforeDeletingFolders() {
+		return manager.getValue(NEED_REASON_BEFORE_DELETING_FOLDERS);
 	}
 }
