@@ -71,7 +71,7 @@ public class TaskPresenterServices {
 				task.setReminders(reminders);
 			}
 		}
-		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.REMINDERS)) {
+		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.TASK_FOLLOWERS)) {
 			List<TaskFollowerVO> followersVOs = taskVO.getTaskFollowers();
 			if (taskVO.getTaskFollowers() != null) {
 				TaskFollowerFromVOBuilder followerBuilder = new TaskFollowerFromVOBuilder();
