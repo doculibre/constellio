@@ -6,6 +6,7 @@ import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.modules.tasks.ui.entities.TaskReminderVO;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
@@ -29,6 +30,7 @@ import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.S
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
@@ -308,6 +310,11 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 		TaskReminderVO taskReminderWithFixedDate = new TaskReminderVO();
 		taskReminderWithFixedDate.setFixedDate(now.plusDays(2));
 		when(taskVOMock.getReminders()).thenReturn(asList(taskReminderWithFixedDate));
+		MetadataSchemaVO metadataSchemaVO = mock(MetadataSchemaVO.class);
+		when(metadataSchemaVO.getCode()).thenReturn("userTask_default");
+		when(taskVOMock.getSchema()).thenReturn(metadataSchemaVO);
+		when(taskVOMock.getMetadataCodes()).thenReturn(asList("userTask_default_reminders"));
+
 		Task task = taskPresenterServices.toTask(taskVOMock, tasksSchemas.newTask().getWrappedRecord());
 		assertThat(task.getReminders().size()).isEqualTo(1);
 		assertThat(task.getReminders().get(0).getFixedDate()).isEqualTo(now.plusDays(2));
@@ -321,6 +328,10 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 		followerVO.setFollowerId(users.adminIn(zeCollection).getId());
 		followerVO.setFollowTaskCompleted(true);
 		when(taskVOMock.getTaskFollowers()).thenReturn(asList(followerVO));
+		MetadataSchemaVO metadataSchemaVO = mock(MetadataSchemaVO.class);
+		when(metadataSchemaVO.getCode()).thenReturn("userTask_default");
+		when(taskVOMock.getSchema()).thenReturn(metadataSchemaVO);
+		when(taskVOMock.getMetadataCodes()).thenReturn(asList("userTask_default_taskFollowers"));
 		Task task = taskPresenterServices.toTask(taskVOMock, tasksSchemas.newTask().getWrappedRecord());
 		assertThat(task.getTaskFollowers().size()).isEqualTo(1);
 		TaskFollower taskFollower = task.getTaskFollowers().get(0);
