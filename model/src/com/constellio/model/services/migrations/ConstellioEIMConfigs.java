@@ -132,6 +132,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
 
+	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -252,6 +254,9 @@ public class ConstellioEIMConfigs {
 
 		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
 				.whichIsHidden());
+
+		add(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE = advanced.createInteger("batchProcessMaximumHistorySize")
+				.withDefaultValue(20).whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -490,5 +495,9 @@ public class ConstellioEIMConfigs {
 
 	public boolean isAdminPasswordChangeEnabled() {
 		return manager.getValue(ENABLE_ADMIN_USER_PASSWORD_CHANGE);
+	}
+
+	public int getBatchProcessMaximumHistorySize() {
+		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
 	}
 }
