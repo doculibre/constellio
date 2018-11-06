@@ -170,7 +170,7 @@ public class RMMigrationTo8_2 implements MigrationScript {
 
 			MetadataSchemaBuilder mediumTypeSchema = typesBuilder.getDefaultSchema(MediumType.SCHEMA_TYPE);
 			mediumTypeSchema.createUndeletable(MediumType.ACTIVATED_ON_CONTENT).setType(MetadataValueType.BOOLEAN)
-					.setDefaultRequirement(true).setDefaultValue(false).setEssential(true);
+					.setDefaultRequirement(false).setDefaultValue(false).setEssential(true);
 
 			MetadataSchemaBuilder documentSchema = typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE);
 			documentSchema.createUndeletable(Document.HAS_CONTENT).setType(MetadataValueType.BOOLEAN)
