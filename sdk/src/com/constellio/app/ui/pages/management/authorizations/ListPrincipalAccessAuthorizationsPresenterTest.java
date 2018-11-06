@@ -7,8 +7,8 @@ import com.constellio.app.ui.framework.builders.AuthorizationToVOBuilder;
 import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
@@ -51,7 +51,6 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 	@Mock AuthorizationVO own1;
 	@Mock AuthorizationVO own2;
 	@Mock Authorization authorization;
-	@Mock
 	MockedFactories factories = new MockedFactories();
 
 	ListAuthorizationsPresenter presenter;
@@ -149,7 +148,7 @@ public class ListPrincipalAccessAuthorizationsPresenterTest extends ConstellioTe
 		when(authorizationVO.getAuthId()).thenReturn(authId);
 		when(authorizationsServices.getAuthorization(zeCollection, authId)).thenReturn(authorization);
 		when(authorization.getPrincipals()).thenReturn(multiPrincipal ?
-																   new ArrayList<>(Arrays.asList(ZE_PRINCIPAL, ZENOTHER_PRINCIPAL)) :
-																   Arrays.asList(ZE_PRINCIPAL));
+													   new ArrayList<>(Arrays.asList(ZE_PRINCIPAL, ZENOTHER_PRINCIPAL)) :
+													   Arrays.asList(ZE_PRINCIPAL));
 	}
 }
