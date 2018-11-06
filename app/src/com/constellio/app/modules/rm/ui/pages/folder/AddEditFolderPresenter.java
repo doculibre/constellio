@@ -294,7 +294,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 	}
 
-	private void navigateToFolderDisplay(String id) {
+	protected void navigateToFolderDisplay(String id) {
 		RMNavigationUtils.navigateToDisplayFolder(id, params, appLayerFactory, view.getCollection());
 	}
 
