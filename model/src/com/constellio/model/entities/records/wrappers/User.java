@@ -295,7 +295,7 @@ public class User extends RecordWrapper {
 		List<Authorization> authorizations = authorizationsServices.getRecordAuthorizations(record);
 		List<String> roleListFromAuthorization = new ArrayList<>();
 
-		boolean hasCollectionAcces = this.get(COLLECTION_READ_ACCESS);
+		boolean hasCollectionAcces = Boolean.TRUE.equals(this.get(COLLECTION_READ_ACCESS));
 		boolean hasAtleastOneAuthorization = false;
 
 		for (Authorization authorization : authorizations) {

@@ -30,7 +30,6 @@ public class RecordToVOBuilder implements Serializable {
 	}
 
 
-
 	@SuppressWarnings("unchecked")
 	public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO, SessionContext sessionContext) {
 		String id = record.getId();
@@ -83,7 +82,7 @@ public class RecordToVOBuilder implements Serializable {
 				recordVOValue = listRecordVOValue;
 			}
 			MetadataValueVO metadataValueVO = new MetadataValueVO(metadataVO, recordVOValue);
-			if(user.hasAccessToMetadata(metadata, record)) {
+			if (user == null || user.hasAccessToMetadata(metadata, record)) {
 				metadataValueVOs.add(metadataValueVO);
 			} else {
 				metadataCodeExcludedList.add(metadataVO.getCode());
@@ -110,7 +109,8 @@ public class RecordToVOBuilder implements Serializable {
 		return record.get(metadata);
 	}
 
-	protected RecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode,List<String> excludedMetadata) {
+	protected RecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode,
+								   List<String> excludedMetadata) {
 		return new RecordVO(id, metadataValueVOs, viewMode, excludedMetadata);
 	}
 
