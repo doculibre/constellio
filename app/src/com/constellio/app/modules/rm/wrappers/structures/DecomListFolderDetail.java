@@ -40,8 +40,9 @@ public class DecomListFolderDetail implements ModifiableStructure {
 		return folderDetailStatus;
 	}
 
-	public void setFolderDetailStatus(FolderDetailStatus folderDetailStatus) {
+	public DecomListFolderDetail setFolderDetailStatus(FolderDetailStatus folderDetailStatus) {
 		this.folderDetailStatus = folderDetailStatus;
+		return this;
 	}
 
 	public DecomListFolderDetail setFolderExcluded(boolean folderExcluded) {

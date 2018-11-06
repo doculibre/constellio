@@ -7,20 +7,26 @@ import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDe
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDestructionDatesCalculator2;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator2;
+import com.constellio.app.modules.rm.model.calculators.document.DocumentHasContentCalculator;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -28,9 +34,12 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Collections.singletonList;
 
 public class RMMigrationTo8_2 implements MigrationScript {
 	private static final String FOLDERS = "folders";
@@ -70,12 +79,15 @@ public class RMMigrationTo8_2 implements MigrationScript {
 		modifyRecords(rm.folder.schemaType(), Folder.FAVORITES, modelLayerFactory);
 		modifyRecords(rm.document.schemaType(), Document.FAVORITES, modelLayerFactory);
 		modifyRecords(rm.containerRecord.schemaType(), ContainerRecord.FAVORITES, modelLayerFactory);
+
+		updateAllMediumTypes(collection, appLayerFactory.getModelLayerFactory());
 	}
 
 	private void modifyRecords(final MetadataSchemaType metadataSchemaType, final String metadataCode,
 							   final ModelLayerFactory modelLayerFactory) {
 		ConditionnedActionExecutorInBatchBuilder conditionnedActionExecutorInBatchBuilder = onCondition(modelLayerFactory, from(metadataSchemaType).returnAll());
 		conditionnedActionExecutorInBatchBuilder.setBatchSize(500);
+		conditionnedActionExecutorInBatchBuilder.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 		conditionnedActionExecutorInBatchBuilder.modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
 			@Override
 			public void modifyRecord(Record record) {
@@ -89,6 +101,25 @@ public class RMMigrationTo8_2 implements MigrationScript {
 				}
 			}
 		});
+	}
+
+	private void updateAllMediumTypes(String collection, ModelLayerFactory modelLayerFactory) throws Exception {
+		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		MetadataSchemaType mediumTypeSchemaType = types.getSchemaType(MediumType.SCHEMA_TYPE);
+		MetadataSchema mediumTypeSchema = mediumTypeSchemaType.getDefaultSchema();
+		List<Record> mediumTypes = modelLayerFactory.newSearchServices().getAllRecords(mediumTypeSchemaType);
+
+		List<Record> nonAnalogicalMediumTypes = new ArrayList<>();
+		for (Record mediumType : mediumTypes) {
+			if (Boolean.FALSE.equals(mediumType.<Boolean>get(mediumTypeSchema.getMetadata(MediumType.ANALOGICAL)))) {
+				nonAnalogicalMediumTypes.add(mediumType);
+			}
+		}
+
+		if (nonAnalogicalMediumTypes.size() == 1) {
+			nonAnalogicalMediumTypes.get(0).set(mediumTypeSchema.getMetadata(MediumType.ACTIVATED_ON_CONTENT), true);
+			modelLayerFactory.newRecordServices().update(nonAnalogicalMediumTypes.get(0));
+		}
 	}
 
 	public ConditionnedActionExecutorInBatchBuilder onCondition(ModelLayerFactory modelLayerFactory,
@@ -136,6 +167,21 @@ public class RMMigrationTo8_2 implements MigrationScript {
 				folderSchema.get(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).defineDataEntry()
 						.asCalculated(FolderCopyRulesExpectedDestructionDatesCalculator2.class);
 			}
+
+			MetadataSchemaBuilder mediumTypeSchema = typesBuilder.getDefaultSchema(MediumType.SCHEMA_TYPE);
+			mediumTypeSchema.createUndeletable(MediumType.ACTIVATED_ON_CONTENT).setType(MetadataValueType.BOOLEAN)
+					.setDefaultRequirement(false).setDefaultValue(false).setEssential(true);
+
+			MetadataSchemaBuilder documentSchema = typesBuilder.getDefaultSchema(Document.SCHEMA_TYPE);
+			documentSchema.createUndeletable(Document.HAS_CONTENT).setType(MetadataValueType.BOOLEAN)
+					.defineDataEntry().asCalculated(DocumentHasContentCalculator.class);
+
+			MetadataBuilder folderHasContent = folderSchema.createUndeletable(Folder.HAS_CONTENT).setType(MetadataValueType.BOOLEAN);
+
+			Map<MetadataBuilder, List<MetadataBuilder>> metadatasByRefMetadata = new HashMap<>();
+			metadatasByRefMetadata.put(documentSchema.get(Document.FOLDER), singletonList(documentSchema.get(Document.HAS_CONTENT)));
+			metadatasByRefMetadata.put(folderSchema.get(Folder.PARENT_FOLDER), singletonList(folderHasContent));
+			folderHasContent.defineDataEntry().asAggregatedOr(metadatasByRefMetadata);
 		}
 	}
 }

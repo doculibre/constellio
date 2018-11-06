@@ -931,12 +931,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
-	private void navigateToDocument(RecordVO recordVO) {
+	protected void navigateToDocument(RecordVO recordVO) {
 		RMNavigationUtils.navigateToDisplayDocument(recordVO.getId(), params, appLayerFactory,
 				collection);
 	}
 
-	public void navigateToFolder(String folderId) {
+	protected void navigateToFolder(String folderId) {
 		RMNavigationUtils.navigateToDisplayFolder(folderId, params, appLayerFactory, collection);
 	}
 

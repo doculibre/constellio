@@ -186,9 +186,9 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 		assertThat(content.getCurrentVersion().getHash()).isEqualTo(doc.getContent().getHash());
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
-		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder).containsOnly(
+		assertThat(authorizations).extracting("principals").usingElementComparator(comparingListAnyOrder).containsOnly(
 				toPrincipalIds(fullDocumentToUpdate.getDirectAces().get(0).getPrincipals()));
-		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder).containsOnly(
+		assertThat(authorizations).extracting("roles").usingElementComparator(comparingListAnyOrder).containsOnly(
 				Lists.newArrayList(fullDocumentToUpdate.getDirectAces().get(0).getPermissions()));
 		assertThat(authorizations).extracting("detail.startDate", "detail.endDate").containsOnly(
 				tuple(toLocalDate(fullDocumentToUpdate.getDirectAces().get(0).getStartDate()), toLocalDate(fullDocumentToUpdate.getDirectAces().get(0).getEndDate())));

@@ -32,9 +32,9 @@ import com.constellio.app.ui.i18n.i18n;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
@@ -165,15 +165,15 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 		assertThat(content.getCurrentVersion().getHash()).isEqualTo(doc.getContent().getHash());
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
-		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder).containsOnly(
+		assertThat(authorizations).extracting("principals").usingElementComparator(comparingListAnyOrder).containsOnly(
 				toPrincipalIds(fullDocumentToAdd.getDirectAces().get(0).getPrincipals()),
 				toPrincipalIds(fullDocumentToAdd.getDirectAces().get(1).getPrincipals()));
-		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder).containsOnly(
+		assertThat(authorizations).extracting("roles").usingElementComparator(comparingListAnyOrder).containsOnly(
 				Lists.newArrayList(fullDocumentToAdd.getDirectAces().get(0).getPermissions()),
 				Lists.newArrayList(fullDocumentToAdd.getDirectAces().get(1).getPermissions()));
-		assertThat(authorizations).extracting("detail.startDate").containsOnly(
+		assertThat(authorizations).extracting("startDate").containsOnly(
 				toLocalDate(fullDocumentToAdd.getDirectAces().get(0).getStartDate()), toLocalDate(fullDocumentToAdd.getDirectAces().get(1).getStartDate()));
-		assertThat(authorizations).extracting("detail.endDate").containsOnly(
+		assertThat(authorizations).extracting("endDate").containsOnly(
 				toLocalDate(fullDocumentToAdd.getDirectAces().get(0).getEndDate()), toLocalDate(fullDocumentToAdd.getDirectAces().get(1).getEndDate()));
 	}
 
@@ -838,8 +838,8 @@ public class DocumentRestfulServicePOSTAcceptanceTest extends BaseDocumentRestfu
 
 		Record record = recordServices.getDocumentById(doc.getId());
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
-		assertThat(authorizations).extracting("detail.startDate").containsOnly(toLocalDate(minDocumentToAdd.getDirectAces().get(0).getStartDate()));
-		assertThat(authorizations).extracting("detail.endDate").containsNull();
+		assertThat(authorizations).extracting("startDate").containsOnly(toLocalDate(minDocumentToAdd.getDirectAces().get(0).getStartDate()));
+		assertThat(authorizations).extracting("endDate").containsNull();
 	}
 
 	@Test

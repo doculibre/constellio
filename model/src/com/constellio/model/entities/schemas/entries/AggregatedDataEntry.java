@@ -96,6 +96,10 @@ public class AggregatedDataEntry implements DataEntry {
 		return inputMetadatasByReferenceMetadata;
 	}
 
+	public List<String> getInputMetadatas(String referenceMetadata) {
+		return inputMetadatasByReferenceMetadata.get(referenceMetadata);
+	}
+
 	public AggregationType getAgregationType() {
 		return aggregationType;
 	}
