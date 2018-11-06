@@ -44,7 +44,11 @@ public class RecordToVOBuilder implements Serializable {
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(collection).getSchema(schemaCode);
 		UserServices userServices = modelLayerFactory.newUserServices();
 
-		User user = userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
+		User user = null;
+		if(sessionContext.getCurrentUser() != null) {
+			user = userServices
+					.getUserInCollection(sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
+		}
 
 		if (schemaVO == null) {
 			schemaVO = new MetadataSchemaToVOBuilder().build(schema, viewMode, sessionContext);
