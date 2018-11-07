@@ -15,6 +15,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
@@ -136,7 +137,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	public void givenDeleteButtonClickedThenDeleteTheListAndReturnToMainPage() {
 		RecordServices recordServices = factories.getRecordServices();
 		when(factories.getModelLayerFactory().newLoggingServices()).thenReturn(mock(LoggingServices.class));
-		when(recordServices.validateLogicallyThenPhysicallyDeletable(record, user).isEmpty()).thenReturn(true);
+		when(recordServices.validateLogicallyThenPhysicallyDeletable(record, user)).thenReturn(new ValidationErrors());
 
 		presenter.deleteButtonClicked();
 		verify(factories.getRecordServices(), times(1))

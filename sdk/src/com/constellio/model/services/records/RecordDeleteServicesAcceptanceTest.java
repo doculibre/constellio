@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
@@ -148,8 +149,8 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		transaction.add(aDocument);
 		recordServices.execute(transaction);
 
-		assertThat(deleteService.isLogicallyThenPhysicallyDeletable(childConcept, users.adminIn(zeCollection)).isEmpty()).isFalse();
-		//		assertThat(deleteService.isLogicallyDeletable(childConcept, users.adminIn(zeCollection))).isTrue();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(deleteService.isLogicallyThenPhysicallyDeletable(childConcept, users.adminIn(zeCollection)))).isEqualTo("Vous ne pouvez pas supprimer définitivement cet enregistrement, car un enregistrement dans sa hiérachie est référecié en dehors de cette dernière\n");
+		assertThat(deleteService.isLogicallyDeletable(childConcept, users.adminIn(zeCollection)).isEmpty()).isTrue();
 
 		//		newWebDriver();
 		//		waitUntilICloseTheBrowsers();

@@ -193,17 +193,17 @@ public class RecordDeleteServices {
 		ValidationErrors validationErrors = new ValidationErrors();
 		if (!correctStatus) {
 			LOGGER.info("Not physically deletable : Record is not logically deleted");
-			validationErrors.add(RecordDeleteServices.class, "Not physically deletable : Record is not logically deleted");
+			validationErrors.add(RecordDeleteServices.class, "recordIsNotLogicallyDeleted");
 			return validationErrors;
 
 		} else if (!noActiveRecords) {
 			LOGGER.info("Not physically deletable : There is active records in the hierarchy");
-			validationErrors.add(RecordDeleteServices.class, "Not physically deletable : There is active records in the hierarchy");
+			validationErrors.add(RecordDeleteServices.class, "activeRecordInHierarchy");
 			return validationErrors;
 
 		} else if (!hasPermissions) {
 			LOGGER.info("Not physically deletable : No sufficient permissions on hierarchy");
-			validationErrors.add(RecordDeleteServices.class, "Not physically deletable : No sufficient permissions on hierarchy");
+			validationErrors.add(RecordDeleteServices.class, "noSufficientPermissionsOnHierarchy");
 			return validationErrors;
 
 		} else {
@@ -229,17 +229,17 @@ public class RecordDeleteServices {
 		ValidationErrors validationErrors = new ValidationErrors();
 		if (referencesInConfigs) {
 			LOGGER.info("Not physically deletable : Record is used in configs");
-			validationErrors.add(RecordDeleteServices.class, "Not physically deletable : Record is used in configs");
+			validationErrors.add(RecordDeleteServices.class, "recordIsUsedInConfigs");
 		}
 
 		if (!hasPermissions) {
 			LOGGER.info("Not physically deletable : No sufficient permissions on hierarchy");
-			validationErrors.add(RecordDeleteServices.class, "Not physically deletable : No sufficient permissions on hierarchy");
+			validationErrors.add(RecordDeleteServices.class, "noSufficientPermissionsOnHierarchy");
 		}
 
 		if (referencesUnhandled) {
 			LOGGER.info("Not physically deletable : A record in the hierarchy is referenced outside of the hierarchy");
-			validationErrors.add(RecordDeleteServices.class, "Not physically deletable : A record in the hierarchy is referenced outside of the hierarchy");
+			validationErrors.add(RecordDeleteServices.class, "recordInHierarchyReferencedOutsideOfHierarchy");
 		}
 
 		boolean physicallyDeletable = hasPermissions && !referencesUnhandled && !referencesInConfigs;
@@ -290,7 +290,7 @@ public class RecordDeleteServices {
 		final Set<String> recordsWithUnremovableReferences = new HashSet<>();
 		final Set<String> recordsIdsTitlesWithUnremovableReferences = new HashSet<>();
 		if (!isPhysicallyDeletable(record, user, options).getValidationErrors().isEmpty()) {
-			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId());
+			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(isPhysicallyDeletable(record, user, options).getValidationErrors().get(0).getCode());
 		}
 
 		List<Record> records = getAllRecordsInHierarchyForPhysicalDeletion(record, options);
@@ -482,7 +482,7 @@ public class RecordDeleteServices {
 
 		if (user != null && schemaType.hasSecurity() && !user.hasDeleteAccess().on(record)) {
 			//The record has security, before going further with validations, we check if the user can delete it
-			validationErrors.add(RecordDeleteServices.class, "The record has security or user does not have delete access");
+			validationErrors.add(RecordDeleteServices.class, "recordHasSecurityOrUserDoesNotHaveDeleteAccess");
 			return validationErrors;
 		}
 
@@ -491,10 +491,13 @@ public class RecordDeleteServices {
 		boolean logicallyDeletable =
 				!schemaType.hasSecurity() || authorizationsServices
 						.hasDeletePermissionOnHierarchy(user, record, recordsHierarchy);
+		if (!logicallyDeletable) {
+			validationErrors.add(RecordDeleteServices.class, "userDoesNotHavePermissionOnHierarchy");
+		}
 
 		if (isReferencedByConfigs(record)) {
 			logicallyDeletable = false;
-			validationErrors.add(RecordDeleteServices.class, "The record is referenced by configs");
+			validationErrors.add(RecordDeleteServices.class, "recordReferencedByConfigs");
 		}
 
 		if (logicallyDeletable) {

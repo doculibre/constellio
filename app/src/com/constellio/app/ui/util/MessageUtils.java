@@ -23,7 +23,7 @@ public class MessageUtils {
 			return $(e.getMessage());
 
 		} else if (e instanceof RecordServicesRuntimeException_CannotPhysicallyDeleteRecord) {
-			return $("cannotPhysicallyDelete");
+			return $(e.getMessage());
 
 		} else {
 			e.printStackTrace();

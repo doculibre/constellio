@@ -141,8 +141,8 @@ public class RecordServicesRuntimeException extends RuntimeException {
 			super("Cannot physically delete record '" + recordId + "'", e);
 		}
 
-		public RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(String recordId) {
-			this(recordId, null);
+		public RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(String message) {
+			super(message);
 		}
 	}
 
