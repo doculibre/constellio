@@ -10,7 +10,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -58,7 +58,7 @@ public abstract class BaseDao {
 			return null;
 		}
 
-		return getMetadataValue(userCredential, SolrUserCredential.USERNAME);
+		return getMetadataValue(userCredential, UserCredential.USERNAME);
 	}
 
 	public User getUser(String serviceKey, String collection) {

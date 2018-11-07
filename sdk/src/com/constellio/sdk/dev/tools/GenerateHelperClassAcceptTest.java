@@ -61,8 +61,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.GlobalGroup;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.MainTest;
@@ -106,8 +106,8 @@ public class GenerateHelperClassAcceptTest extends ConstellioTest {
 
 		wrappers.put(User.DEFAULT_SCHEMA, User.class);
 		wrappers.put(Group.DEFAULT_SCHEMA, Group.class);
-		wrappers.put(SolrUserCredential.DEFAULT_SCHEMA, SolrUserCredential.class);
-		wrappers.put(SolrGlobalGroup.DEFAULT_SCHEMA, SolrGlobalGroup.class);
+		wrappers.put(UserCredential.DEFAULT_SCHEMA, UserCredential.class);
+		wrappers.put(GlobalGroup.DEFAULT_SCHEMA, GlobalGroup.class);
 		wrappers.put(Event.DEFAULT_SCHEMA, Event.class);
 		wrappers.put(Collection.DEFAULT_SCHEMA, Collection.class);
 		wrappers.put(EmailToSend.DEFAULT_SCHEMA, EmailToSend.class);

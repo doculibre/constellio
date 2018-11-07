@@ -75,9 +75,9 @@ public class CmisTypesAcceptTest extends ConstellioTest {
 		anotherCollectionRecords = anotherCollectionSchemas.givenRecords(recordServices);
 
 		userServices.addUpdateUserCredential(
-				userServices.getUserCredential(bobGratton).withServiceKey(bobKey).withSystemAdminPermission());
+				userServices.getUserCredential(bobGratton).setServiceKey(bobKey).setSystemAdminEnabled());
 		userServices.addUpdateUserCredential(
-				userServices.getUserCredential(chuckNorris).withServiceKey(chuckNorrisKey).withSystemAdminPermission());
+				userServices.getUserCredential(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
 		bobToken = userServices.generateToken(bobGratton);
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		userServices.addUserToCollection(users.bob(), zeCollection);

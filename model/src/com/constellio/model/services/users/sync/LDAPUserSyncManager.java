@@ -232,8 +232,8 @@ public class LDAPUserSyncManager implements StatefulService {
 						final UserCredential previousUserCredential = userServices
 								.getUserCredential(userCredential.getUsername());
 						if (previousUserCredential != null) {
-							userCredential.withServiceKey(previousUserCredential.getServiceKey());
-							userCredential.withAccessTokens(previousUserCredential.getAccessTokens());
+							userCredential.setServiceKey(previousUserCredential.getServiceKey());
+							userCredential.setAccessTokens(previousUserCredential.getAccessTokens());
 							for (final String userGlobalGroup : previousUserCredential.getGlobalGroups()) {
 								final GlobalGroup previousGlobalGroup = globalGroupsManager
 										.getGlobalGroupWithCode(userGlobalGroup);
@@ -242,7 +242,7 @@ public class LDAPUserSyncManager implements StatefulService {
 								}
 							}
 						}
-						userCredential.withGlobalGroups(newUserGlobalGroups);
+						userCredential.setGlobalGroups(newUserGlobalGroups);
 
 						userServices.addUpdateUserCredential(userCredential);
 						updatedUsersAndGroups.addUsername(UserUtils.cleanUsername(ldapUser.getName()));
@@ -307,14 +307,14 @@ public class LDAPUserSyncManager implements StatefulService {
 		}
 		UserCredential returnUserCredentials = userServices.createUserCredential(
 				username, firstName, lastName, email, globalGroups, new ArrayList<>(collections), userStatus, "",
-				msExchDelegateListBL, ldapUser.getId()).withDN(ldapUser.getId());
+				msExchDelegateListBL, ldapUser.getId()).setDN(ldapUser.getId());
 
 		try {
 			UserCredential currentUserCredential = userServices.getUser(username);
 			if (currentUserCredential.isSystemAdmin()) {
-				returnUserCredentials = returnUserCredentials.withSystemAdminPermission();
+				returnUserCredentials = returnUserCredentials.setSystemAdminEnabled();
 			}
-			returnUserCredentials = returnUserCredentials.withAccessTokens(currentUserCredential.getAccessTokens());
+			returnUserCredentials = returnUserCredentials.setAccessTokens(currentUserCredential.getAccessTokens());
 		} catch (UserServicesRuntimeException_NoSuchUser e) {
 			//OK
 		}
