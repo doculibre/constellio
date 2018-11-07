@@ -17,8 +17,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.encrypt.EncryptionKeyFactory;
@@ -136,7 +135,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 			user = userServices
 					.createUserCredential("grimPatron" + i, "Grim", "Patron", "grim.patron." + i + "@doculibre.com", noGroups,
 							noCollections, UserCredentialStatus.ACTIVE, "domain", msExchDelegateListBL, null)
-					.withSystemAdminPermission();
+					.setSystemAdminEnabled();
 			userServices.addUpdateUserCredential(user);
 		}
 
@@ -598,8 +597,8 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		assertThat(userServices.getUserInCollection(chuckNorris, collection1).getAllRoles())
 				.containsOnlyOnce("role1", "role2", "role3");
 
-		userServices.addUpdateUserCredential(userServices.getUser(chuckNorris).withFirstName("CHUCK").withLastName("NORRIS")
-				.withEmail("chuck@norris.com"));
+		userServices.addUpdateUserCredential(userServices.getUser(chuckNorris).setFirstName("CHUCK").setLastName("NORRIS")
+				.setEmail("chuck@norris.com"));
 
 		user = userServices.getUserInCollection(chuckNorris, collection1);
 		assertThat(user.getTitle()).isEqualTo("CHUCK NORRIS");
@@ -617,7 +616,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		userServices = spy(userServices);
 		doThrow(new UserServicesRuntimeException_CannotExcuteTransaction(new RuntimeException()))
-				.when(userServices).sync(any(SolrUserCredential.class));
+				.when(userServices).sync(any(UserCredential.class));
 
 		try {
 			userServices.addUserToCollection(user, collection1);
@@ -786,7 +785,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 
 		setupAfterCollectionCreation();
 		UserCredential admin = userServices.getUserCredential("admin");
-		admin = admin.withStatus(UserCredentialStatus.DELETED);
+		admin = admin.setStatus(UserCredentialStatus.DELETED);
 		try {
 			userServices.addUpdateUserCredential(admin);
 		} finally {
@@ -1034,7 +1033,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 						userServices.getUserInCollection(user.getUsername(), collection).setStatus(UserCredentialStatus.DELETED);
 					}
 				}
-				user.withStatus(UserCredentialStatus.DELETED);
+				user.setStatus(UserCredentialStatus.DELETED);
 				userServices.addUpdateUserCredential(user);
 			}
 		}
@@ -1064,7 +1063,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(t);
 		UserCredential chuck = userCredentialsManager.getUserCredential(records.getChuckNorris().getUsername());
 
-		chuck.withGlobalGroups(asList(g2.getCode(), g3.getCode(), g4.getCode()));
+		chuck.setGlobalGroups(asList(g2.getCode(), g3.getCode(), g4.getCode()));
 		userCredentialsManager.addUpdate(chuck);
 
 		assertThat(userServices.safePhysicalDeleteAllUnusedGlobalGroups()).doesNotContain(g1).contains(g2, g3, g4);
@@ -1090,7 +1089,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		recordServices.execute(t);
 		UserCredential gandalf = userCredentialsManager.getUserCredential(records.getGandalf_managerInABC().getUsername());
 
-		gandalf.withGlobalGroups(asList(g2.getCode()));
+		gandalf.setGlobalGroups(asList(g2.getCode()));
 
 		userCredentialsManager.addUpdate(gandalf);
 
@@ -1274,7 +1273,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		globalGroupsManager.logicallyRemoveGroup(heroesGlobalGroup);
 
 		Transaction t = new Transaction();
-		t.update(((SolrGlobalGroup) heroesGlobalGroup).getWrappedRecord());
+		t.update(((GlobalGroup) heroesGlobalGroup).getWrappedRecord());
 		recordServices.execute(t);
 
 		assertThat(globalGroupsManager.getGlobalGroupWithCode(heroesGlobalGroup.getCode()).getStatus())
@@ -1300,28 +1299,28 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 		String phone = "450 444 1919";
 
 		UserCredential chuckCredential = users.chuckNorris();
-		chuckCredential.withPhone(phone);
+		chuckCredential.setPhone(phone);
 		userServices.addUpdateUserCredential(chuckCredential);
 
 		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getPhone()).isEqualTo(phone);
 
 		String fax = "450 448 4448";
 		chuckCredential = users.chuckNorris();
-		chuckCredential.withFax(fax);
+		chuckCredential.setFax(fax);
 		userServices.addUpdateUserCredential(chuckCredential);
 
 		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getFax()).isEqualTo(fax);
 
 		String address = "647 addresse";
 		chuckCredential = users.chuckNorris();
-		chuckCredential.withAddress(address);
+		chuckCredential.setAddress(address);
 		userServices.addUpdateUserCredential(chuckCredential);
 
 		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getAddress()).isEqualTo(address);
 
 		String jobTitle = "Programmeur";
 		chuckCredential = users.chuckNorris();
-		chuckCredential.withJobTitle(jobTitle);
+		chuckCredential.setJobTitle(jobTitle);
 		userServices.addUpdateUserCredential(chuckCredential);
 
 		assertThat(userCredentialsManager.getUserCredential(chuckCredential.getUsername()).getJobTitle()).isEqualTo(jobTitle);
@@ -1446,7 +1445,7 @@ public class UserServicesAcceptanceTest extends ConstellioTest {
 	private void givenUserWith(List<String> groups, List<String> collections) {
 		user = userServices.createUserCredential(
 				chuckNorris, "Chuck", "Norris", "chuck.norris@doculibre.com", groups, collections, UserCredentialStatus.ACTIVE,
-				"domain", msExchDelegateListBL, null).withSystemAdminPermission();
+				"domain", msExchDelegateListBL, null).setSystemAdminEnabled();
 		userServices.addUpdateUserCredential(user);
 	}
 

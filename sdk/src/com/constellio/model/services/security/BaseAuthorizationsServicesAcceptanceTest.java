@@ -895,7 +895,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		public UserAction isRemovedFromGroup(String group) {
-			userServices.addUpdateUserCredential(userServices.getUser(username).withRemovedGlobalGroup(group));
+			userServices.addUpdateUserCredential(userServices.getUser(username).removeGlobalGroup(group));
 			try {
 				waitForBatchProcess();
 			} catch (InterruptedException e) {
@@ -905,7 +905,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		public UserAction isAddedInGroup(String group) {
-			userServices.addUpdateUserCredential(userServices.getUser(username).withNewGlobalGroup(group));
+			userServices.addUpdateUserCredential(userServices.getUser(username).addGlobalGroup(group));
 			try {
 				waitForBatchProcess();
 			} catch (InterruptedException e) {

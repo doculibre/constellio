@@ -187,7 +187,7 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 		List<String> newCollections = new ArrayList<>();
 		newCollections.addAll(globalGroup.getUsersAutomaticallyAddedToCollections());
 		newCollections.add(view.getCollection());
-		globalGroup = globalGroup.withUsersAutomaticallyAddedToCollections(newCollections);
+		globalGroup = globalGroup.setUsersAutomaticallyAddedToCollections(newCollections);
 		userServices.addUpdateGlobalGroup(globalGroup);
 
 		roleGroupAdditionRequested(globalGroup.getCode(), roleCode);
@@ -212,7 +212,7 @@ public class ListCollectionUserPresenter extends SingleSchemaBasePresenter<ListC
 		List<String> newCollections = new ArrayList<>();
 		entity.getCollections().remove(view.getCollection());
 		newCollections.addAll(entity.getCollections());
-		globalGroup = globalGroup.withUsersAutomaticallyAddedToCollections(newCollections);
+		globalGroup = globalGroup.setUsersAutomaticallyAddedToCollections(newCollections);
 		userServices.addUpdateGlobalGroup(globalGroup);
 
 		LoggingServices loggingServices = modelLayerFactory.newLoggingServices();

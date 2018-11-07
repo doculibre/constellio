@@ -31,7 +31,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.SystemCollectionListener;
@@ -92,14 +92,14 @@ public class CollectionsManager implements StatefulService {
 
 		}
 		if (!modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION)
-				.hasType(SolrUserCredential.SCHEMA_TYPE)) {
+				.hasType(UserCredential.SCHEMA_TYPE)) {
 			initializeSystemCollection();
 		}
 
 		disableCollectionsWithoutSchemas();
 
 		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
-		if (!schemas.getTypes().hasType(SolrUserCredential.SCHEMA_TYPE)) {
+		if (!schemas.getTypes().hasType(UserCredential.SCHEMA_TYPE)) {
 			for (SystemCollectionListener listener : modelLayerFactory.getSystemCollectionListeners()) {
 				listener.systemCollectionCreated();
 			}
@@ -108,7 +108,7 @@ public class CollectionsManager implements StatefulService {
 		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
 
-		if (schemas.getTypes().hasType(SolrUserCredential.SCHEMA_TYPE)) {
+		if (schemas.getTypes().hasType(UserCredential.SCHEMA_TYPE)) {
 			cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
 			cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
 		}

@@ -17,7 +17,6 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AgentStatus;
-import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -113,19 +112,19 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
 	private void updateUserCredential(final ProfileVO profileVO) {
 		String username = profileVO.getUsername();
-		SolrUserCredential userCredential = (SolrUserCredential) userServices.getUserCredential(username);
+		UserCredential userCredential = (UserCredential) userServices.getUserCredential(username);
 
-		userCredential = (SolrUserCredential) userCredential.
-				withFirstName(profileVO.getFirstName())
-				.withLastName(profileVO.getLastName())
-				.withEmail(profileVO.getEmail())
-				.withJobTitle(profileVO.getJobTitle())
-				.withPhone(profileVO.getPhone())
-				.withAddress(profileVO.getAddress())
-				.withFax(profileVO.getFax());
+		userCredential = (UserCredential) userCredential.
+				setFirstName(profileVO.getFirstName())
+				.setLastName(profileVO.getLastName())
+				.setEmail(profileVO.getEmail())
+				.setJobTitle(profileVO.getJobTitle())
+				.setPhone(profileVO.getPhone())
+				.setAddress(profileVO.getAddress())
+				.setFax(profileVO.getFax());
 
 		if (profileVO.getPersonalEmails() != null) {
-			userCredential = (SolrUserCredential) userCredential.withPersonalEmails(Arrays.asList(profileVO.getPersonalEmails().split("\n")));
+			userCredential = (UserCredential) userCredential.setPersonalEmails(Arrays.asList(profileVO.getPersonalEmails().split("\n")));
 		}
 
 		boolean agentManuallyDisabled = profileVO.isAgentManuallyDisabled();
@@ -213,7 +212,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			defaultTaxonomy = presenterService().getSystemConfigs().getDefaultTaxonomy();
 		}
 
-		SolrUserCredential userCredentials = (SolrUserCredential) userServices.getUser(username);
+		UserCredential userCredentials = (UserCredential) userServices.getUser(username);
 		AgentStatus agentStatus = userCredentials.getAgentStatus();
 		boolean agentManuallyDisabled = agentStatus == AgentStatus.MANUALLY_DISABLED;
 
@@ -329,7 +328,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 
 		String username = view.getSessionContext().getCurrentUser().getUsername();
-		SolrUserCredential userCredentials = (SolrUserCredential) userServices.getUser(username);
+		UserCredential userCredentials = (UserCredential) userServices.getUser(username);
 		AgentStatus agentStatus = userCredentials.getAgentStatus();
 		if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
 			agentStatus = AgentStatus.ENABLED;

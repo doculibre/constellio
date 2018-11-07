@@ -382,7 +382,7 @@ public class TaskPresenterServicesAcceptanceTest extends ConstellioTest {
 
 		Group newGroup = userServices.getGroupInCollection(newGlobalGroup, zeCollection);
 		Group taskNewGroup = userServices.getGroupInCollection(taskNewGlobalGroup, zeCollection);
-		userServices.addUpdateUserCredential(users.alice().withGlobalGroups(asList(newGlobalGroup, aliceNewGlobalGroup)));
+		userServices.addUpdateUserCredential(users.alice().setGlobalGroups(asList(newGlobalGroup, aliceNewGlobalGroup)));
 		aliceHasWriteAccessOnZeTask = users.aliceIn(zeCollection);
 
 		recordServices.update(zeTask.setAssigneeGroupsCandidates(asList(newGroup.getId(), taskNewGroup.getId()))

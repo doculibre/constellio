@@ -95,7 +95,7 @@ public class DisplayUserCredentialPresenter extends BasePresenter<DisplayUserCre
 		List<String> globalGroups = userCredential.getGlobalGroups();
 		newGlobalGroups.addAll(globalGroups);
 		newGlobalGroups.add(globalGroupCode);
-		userCredential = userCredential.withGlobalGroups(newGlobalGroups);
+		userCredential = userCredential.setGlobalGroups(newGlobalGroups);
 		userServices.addUpdateUserCredential(userCredential);
 		view.refreshTable();
 	}

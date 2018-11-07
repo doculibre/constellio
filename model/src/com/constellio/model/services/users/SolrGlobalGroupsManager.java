@@ -9,7 +9,6 @@ import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.SystemCollectionListener;
 import com.constellio.model.services.records.RecordServicesException;
@@ -42,15 +41,15 @@ public class SolrGlobalGroupsManager implements StatefulService, SystemCollectio
 	}
 
 	public GlobalGroup create(String code, String name, List<String> collections, String parent,
-							  GlobalGroupStatus status,
-							  boolean locallyCreated) {
-		return ((SolrGlobalGroup) valueOrDefault(getGlobalGroupWithCode(code), schemas.newGlobalGroup()))
+									 GlobalGroupStatus status,
+									 boolean locallyCreated) {
+		return ((GlobalGroup) valueOrDefault(getGlobalGroupWithCode(code), schemas.newGlobalGroup()))
 				.setCode(code)
 				.setName(name)
 				.setUsersAutomaticallyAddedToCollections(collections)
 				.setParent(parent)
 				.setStatus(status)
-				.withLocallyCreated(locallyCreated);
+				.setLocallyCreated(locallyCreated);
 	}
 
 	public GlobalGroup create(String code, String parent, GlobalGroupStatus status, boolean locallyCreated) {
@@ -58,7 +57,7 @@ public class SolrGlobalGroupsManager implements StatefulService, SystemCollectio
 	}
 
 	public void addUpdate(GlobalGroup group) {
-		SolrGlobalGroup groupRecord = (SolrGlobalGroup) group;
+		GlobalGroup groupRecord = (GlobalGroup) group;
 		validateHierarchy(groupRecord);
 		try {
 			modelLayerFactory.newRecordServices().add(groupRecord);
@@ -70,8 +69,8 @@ public class SolrGlobalGroupsManager implements StatefulService, SystemCollectio
 
 	public void logicallyRemoveGroup(GlobalGroup group) {
 		Transaction transaction = new Transaction();
-		for (GlobalGroup each : getGroupHierarchy((SolrGlobalGroup) group)) {
-			RecordWrapper recordWrapper = ((SolrGlobalGroup) each).setStatus(GlobalGroupStatus.INACTIVE)
+		for (GlobalGroup each : getGroupHierarchy((GlobalGroup) group)) {
+			RecordWrapper recordWrapper = ((GlobalGroup) each).setStatus(GlobalGroupStatus.INACTIVE)
 					.set(Schemas.LOGICALLY_DELETED_STATUS, true);
 			transaction.add(recordWrapper);
 		}
@@ -85,8 +84,8 @@ public class SolrGlobalGroupsManager implements StatefulService, SystemCollectio
 
 	public void activateGlobalGroupHierarchy(GlobalGroup group) {
 		Transaction transaction = new Transaction();
-		for (GlobalGroup each : getGroupHierarchy((SolrGlobalGroup) group)) {
-			transaction.add(((SolrGlobalGroup) each).setStatus(GlobalGroupStatus.ACTIVE));
+		for (GlobalGroup each : getGroupHierarchy((GlobalGroup) group)) {
+			transaction.add(((GlobalGroup) each).setStatus(GlobalGroupStatus.ACTIVE));
 		}
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);
@@ -116,7 +115,7 @@ public class SolrGlobalGroupsManager implements StatefulService, SystemCollectio
 	}
 
 	public List<GlobalGroup> getHierarchy(String code) {
-		SolrGlobalGroup group = (SolrGlobalGroup) getGlobalGroupWithCode(code);
+		GlobalGroup group = (GlobalGroup) getGlobalGroupWithCode(code);
 		return group != null ? getGroupHierarchy(group) : Collections.<GlobalGroup>emptyList();
 	}
 
@@ -146,7 +145,7 @@ public class SolrGlobalGroupsManager implements StatefulService, SystemCollectio
 					Transaction transaction = new Transaction();
 					transaction.getRecordUpdateOptions().setOptimisticLockingResolution(EXCEPTION);
 					for (Record record : records) {
-						transaction.add((SolrGlobalGroup) schemas.wrapGlobalGroup(record)).withRemovedCollection(collection);
+						transaction.add((GlobalGroup) schemas.wrapGlobalGroup(record)).removeCollection(collection);
 					}
 
 					modelLayerFactory.newRecordServices().execute(transaction);
@@ -172,7 +171,7 @@ public class SolrGlobalGroupsManager implements StatefulService, SystemCollectio
 
 	}
 
-	private List<GlobalGroup> getGroupHierarchy(SolrGlobalGroup group) {
+	private List<GlobalGroup> getGroupHierarchy(GlobalGroup group) {
 		List<GlobalGroup> result = new ArrayList<>();
 		for (Record record : searchServices.search(getGroupHierarchyQuery(group))) {
 			result.add(schemas.wrapGlobalGroup(record));
@@ -180,19 +179,19 @@ public class SolrGlobalGroupsManager implements StatefulService, SystemCollectio
 		return result;
 	}
 
-	private LogicalSearchQuery getGroupHierarchyQuery(SolrGlobalGroup group) {
+	private LogicalSearchQuery getGroupHierarchyQuery(GlobalGroup group) {
 		LogicalSearchCondition condition = from(schemas.globalGroupSchemaType())
 				.where(schemas.globalGroupCode()).isEqualTo(group.getCode())
 				.orWhere(schemas.globalGroupHierarchy()).isStartingWithText(group.getHierarchy() + "/");
 		return new LogicalSearchQuery(condition).sortAsc(schemas.globalGroupHierarchy());
 	}
 
-	private void validateHierarchy(SolrGlobalGroup group) {
+	private void validateHierarchy(GlobalGroup group) {
 		if (group.getParent() == null) {
 			group.setHierarchy(group.getCode());
 			return;
 		}
-		SolrGlobalGroup parent = (SolrGlobalGroup) getGlobalGroupWithCode(group.getParent());
+		GlobalGroup parent = (GlobalGroup) getGlobalGroupWithCode(group.getParent());
 		if (parent == null) {
 			throw new GlobalGroupsManagerRuntimeException_ParentNotFound();
 		}

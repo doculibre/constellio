@@ -5,7 +5,6 @@ import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -39,11 +38,11 @@ public class SolrUserCredentialsManager {
 	}
 
 	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
-								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
-								 Map<String, LocalDateTime> tokens,
-								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
-								 String dn) {
-		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
+										boolean systemAdmin, List<String> globalGroups, List<String> collections,
+										Map<String, LocalDateTime> tokens,
+										UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+										String dn) {
+		return ((UserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
 				.setLastName(lastName)
@@ -60,13 +59,13 @@ public class SolrUserCredentialsManager {
 	}
 
 	public UserCredential create(String username, String firstName, String lastName, String email,
-								 List<String> personalEmails,
-								 String serviceKey,
-								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
-								 Map<String, LocalDateTime> tokens,
-								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
-								 String dn) {
-		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
+										List<String> personalEmails,
+										String serviceKey,
+										boolean systemAdmin, List<String> globalGroups, List<String> collections,
+										Map<String, LocalDateTime> tokens,
+										UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+										String dn) {
+		return ((UserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
 				.setLastName(lastName)
@@ -84,13 +83,13 @@ public class SolrUserCredentialsManager {
 	}
 
 	public UserCredential create(String username, String firstName, String lastName, String email,
-								 List<String> personalEmails,
-								 String serviceKey, boolean systemAdmin, List<String> globalGroups,
-								 List<String> collections,
-								 Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain,
-								 List<String> msExchDelegateListBL,
-								 String dn, String jobTitle, String phone, String fax, String address) {
-		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
+										List<String> personalEmails,
+										String serviceKey, boolean systemAdmin, List<String> globalGroups,
+										List<String> collections,
+										Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain,
+										List<String> msExchDelegateListBL,
+										String dn, String jobTitle, String phone, String fax, String address) {
+		return ((UserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
 				.setLastName(lastName)
@@ -105,38 +104,38 @@ public class SolrUserCredentialsManager {
 				.setDomain(domain)
 				.setMsExchDelegateListBL(msExchDelegateListBL)
 				.setDn(dn)
-				.withJobTitle(jobTitle)
-				.withAddress(address)
-				.withPhone(phone)
-				.withFax(fax);
+				.setJobTitle(jobTitle)
+				.setAddress(address)
+				.setPhone(phone)
+				.setFax(fax);
 	}
 
 	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
-								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
-								 Map<String, LocalDateTime> tokens,
-								 UserCredentialStatus status) {
+										boolean systemAdmin, List<String> globalGroups, List<String> collections,
+										Map<String, LocalDateTime> tokens,
+										UserCredentialStatus status) {
 		return create(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status,
 				null, null, null);
 	}
 
 	public UserCredential create(String username, String firstName, String lastName, String email,
-								 List<String> globalGroups,
-								 List<String> collections, UserCredentialStatus status, String domain,
-								 List<String> msExchDelegateListBL, String dn) {
+										List<String> globalGroups,
+										List<String> collections, UserCredentialStatus status, String domain,
+										List<String> msExchDelegateListBL, String dn) {
 		return create(username, firstName, lastName, email, null, false, globalGroups, collections,
 				Collections.<String, LocalDateTime>emptyMap(), status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential create(String username, String firstName, String lastName, String email,
-								 List<String> globalGroups,
-								 List<String> collections, UserCredentialStatus status) {
+										List<String> globalGroups,
+										List<String> collections, UserCredentialStatus status) {
 		return create(username, firstName, lastName, email, null, false, globalGroups, collections,
 				Collections.<String, LocalDateTime>emptyMap(), status, null, null, null);
 	}
 
 	public void addUpdate(UserCredential userCredential) {
 		try {
-			modelLayerFactory.newRecordServices().add((SolrUserCredential) userCredential);
+			modelLayerFactory.newRecordServices().add((UserCredential) userCredential);
 		} catch (RecordServicesException e) {
 			throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
 		}
@@ -213,7 +212,7 @@ public class SolrUserCredentialsManager {
 					Transaction transaction = new Transaction();
 					transaction.getRecordUpdateOptions().setOptimisticLockingResolution(EXCEPTION);
 					for (Record record : records) {
-						transaction.add((SolrUserCredential) schemas.wrapCredential(record).withRemovedCollection(collection));
+						transaction.add((UserCredential) schemas.wrapCredential(record).removeCollection(collection));
 					}
 
 					modelLayerFactory.newRecordServices().execute(transaction);
@@ -228,18 +227,18 @@ public class SolrUserCredentialsManager {
 	public void removeToken(String token) {
 		UserCredential credential = getUserCredentialByToken(token);
 		if (credential != null) {
-			addUpdate(credential.withRemovedToken(token));
+			addUpdate(credential.removeAccessToken(token));
 		}
 	}
 
 	public void removeUserCredentialFromCollection(UserCredential userCredential, String collection) {
-		addUpdate(userCredential.withRemovedCollection(collection));
+		addUpdate(userCredential.removeCollection(collection));
 	}
 
 	public void removeGroup(String group) {
 		Transaction transaction = new Transaction();
 		for (Record record : searchServices.search(getUserCredentialsInGlobalGroupQuery(group))) {
-			transaction.add((SolrUserCredential) schemas.wrapCredential(record).withRemovedGlobalGroup(group));
+			transaction.add((UserCredential) schemas.wrapCredential(record).removeGlobalGroup(group));
 		}
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);
@@ -284,7 +283,7 @@ public class SolrUserCredentialsManager {
 					validTokens.put(token.getKey(), token.getValue());
 				}
 			}
-			transaction.add((SolrUserCredential) credential.withAccessTokens(validTokens));
+			transaction.add((UserCredential) credential.setAccessTokens(validTokens));
 		}
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);

@@ -9,8 +9,7 @@ import com.constellio.model.entities.records.calculators.UserTitleCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -50,7 +49,7 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 			ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 
 			if (!modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
-					.hasType(SolrUserCredential.SCHEMA_TYPE)) {
+					.hasType(UserCredential.SCHEMA_TYPE)) {
 
 				new CoreSchemaAlterationFor6_0(collection, provider, appLayerFactory).migrate();
 
@@ -117,49 +116,49 @@ public class CoreMigrationTo_6_0 implements MigrationScript {
 		}
 
 		private void createUserCredentialSchema(MetadataSchemaTypesBuilder builder) {
-			MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(SolrUserCredential.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(UserCredential.SCHEMA_TYPE);
 			credentialsTypeBuilder.setSecurity(false);
 			MetadataSchemaBuilder credentials = credentialsTypeBuilder.getDefaultSchema();
 
 			credentials.getMetadata(CommonMetadataBuilder.TITLE).defineDataEntry().asCalculated(UserTitleCalculator.class);
 
-			credentials.createUndeletable(SolrUserCredential.USERNAME).setType(MetadataValueType.STRING)
+			credentials.createUndeletable(UserCredential.USERNAME).setType(MetadataValueType.STRING)
 					.setDefaultRequirement(true).setUniqueValue(true).setUnmodifiable(true);
-			credentials.createUndeletable(SolrUserCredential.FIRST_NAME).setType(MetadataValueType.STRING);
-			credentials.createUndeletable(SolrUserCredential.LAST_NAME).setType(MetadataValueType.STRING);
-			credentials.createUndeletable(SolrUserCredential.EMAIL).setType(MetadataValueType.STRING)
+			credentials.createUndeletable(UserCredential.FIRST_NAME).setType(MetadataValueType.STRING);
+			credentials.createUndeletable(UserCredential.LAST_NAME).setType(MetadataValueType.STRING);
+			credentials.createUndeletable(UserCredential.EMAIL).setType(MetadataValueType.STRING)
 					.setUniqueValue(false).addValidator(EmailValidator.class);
-			credentials.createUndeletable(SolrUserCredential.PERSONAL_EMAILS).setType(MetadataValueType.STRING)
+			credentials.createUndeletable(UserCredential.PERSONAL_EMAILS).setType(MetadataValueType.STRING)
 					.setMultivalue(true);
-			credentials.createUndeletable(SolrUserCredential.SERVICE_KEY).setType(MetadataValueType.STRING).setEncrypted(true);
-			credentials.createUndeletable(SolrUserCredential.TOKEN_KEYS).setType(MetadataValueType.STRING).setMultivalue(true)
+			credentials.createUndeletable(UserCredential.SERVICE_KEY).setType(MetadataValueType.STRING).setEncrypted(true);
+			credentials.createUndeletable(UserCredential.TOKEN_KEYS).setType(MetadataValueType.STRING).setMultivalue(true)
 					.setEncrypted(true);
-			credentials.createUndeletable(SolrUserCredential.TOKEN_EXPIRATIONS).setType(MetadataValueType.DATE_TIME)
+			credentials.createUndeletable(UserCredential.TOKEN_EXPIRATIONS).setType(MetadataValueType.DATE_TIME)
 					.setMultivalue(true);
-			credentials.createUndeletable(SolrUserCredential.SYSTEM_ADMIN).setType(MetadataValueType.BOOLEAN)
+			credentials.createUndeletable(UserCredential.SYSTEM_ADMIN).setType(MetadataValueType.BOOLEAN)
 					.setDefaultRequirement(true).setDefaultValue(false);
-			credentials.createUndeletable(SolrUserCredential.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
-			credentials.createUndeletable(SolrUserCredential.GLOBAL_GROUPS).setType(MetadataValueType.STRING).setMultivalue(true);
-			credentials.createUndeletable(SolrUserCredential.STATUS).defineAsEnum(UserCredentialStatus.class)
+			credentials.createUndeletable(UserCredential.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
+			credentials.createUndeletable(UserCredential.GLOBAL_GROUPS).setType(MetadataValueType.STRING).setMultivalue(true);
+			credentials.createUndeletable(UserCredential.STATUS).defineAsEnum(UserCredentialStatus.class)
 					.setDefaultRequirement(true);
-			credentials.createUndeletable(SolrUserCredential.DOMAIN).setType(MetadataValueType.STRING);
-			credentials.createUndeletable(SolrUserCredential.MS_EXCHANGE_DELEGATE_LIST).setType(MetadataValueType.STRING)
+			credentials.createUndeletable(UserCredential.DOMAIN).setType(MetadataValueType.STRING);
+			credentials.createUndeletable(UserCredential.MS_EXCHANGE_DELEGATE_LIST).setType(MetadataValueType.STRING)
 					.setMultivalue(true);
-			credentials.createUndeletable(SolrUserCredential.DN).setType(MetadataValueType.STRING);
+			credentials.createUndeletable(UserCredential.DN).setType(MetadataValueType.STRING);
 		}
 
 		private void createGlobalGroupSchema(MetadataSchemaTypesBuilder builder) {
-			MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(SolrGlobalGroup.SCHEMA_TYPE);
+			MetadataSchemaTypeBuilder credentialsTypeBuilder = builder.createNewSchemaType(GlobalGroup.SCHEMA_TYPE);
 			credentialsTypeBuilder.setSecurity(false);
 			MetadataSchemaBuilder groups = credentialsTypeBuilder.getDefaultSchema();
 
 			groups.createUniqueCodeMetadata();
-			groups.createUndeletable(SolrGlobalGroup.NAME).setType(MetadataValueType.STRING).setDefaultRequirement(true);
-			groups.createUndeletable(SolrGlobalGroup.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
-			groups.createUndeletable(SolrGlobalGroup.PARENT).setType(MetadataValueType.STRING);
-			groups.createUndeletable(SolrGlobalGroup.STATUS).defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
-			groups.createUndeletable(SolrGlobalGroup.HIERARCHY).setType(MetadataValueType.STRING);
-			groups.createUndeletable(SolrGlobalGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
+			groups.createUndeletable(GlobalGroup.NAME).setType(MetadataValueType.STRING).setDefaultRequirement(true);
+			groups.createUndeletable(GlobalGroup.COLLECTIONS).setType(MetadataValueType.STRING).setMultivalue(true);
+			groups.createUndeletable(GlobalGroup.PARENT).setType(MetadataValueType.STRING);
+			groups.createUndeletable(GlobalGroup.STATUS).defineAsEnum(GlobalGroupStatus.class).setDefaultRequirement(true);
+			groups.createUndeletable(GlobalGroup.HIERARCHY).setType(MetadataValueType.STRING);
+			groups.createUndeletable(GlobalGroup.LOCALLY_CREATED).setType(MetadataValueType.BOOLEAN);
 		}
 	}
 }
