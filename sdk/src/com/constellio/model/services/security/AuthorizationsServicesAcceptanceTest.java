@@ -3,8 +3,8 @@ package com.constellio.model.services.security;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
@@ -3385,6 +3385,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		recordServices.update(records.folder4()
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
 
+		assertThat(users.charlesIn(zeCollection).hasReadAccess().on(record(FOLDER4))).isTrue();
+
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
 		}
@@ -3417,6 +3419,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		assertThatAuthorizationsOn(FOLDER4).containsOnly(
 				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(charles),
 				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
 		);
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
@@ -3443,7 +3446,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		assertThatAuthorizationsOn(FOLDER4).containsOnly(
-				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(charles)
 		);
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
 	}
@@ -3470,7 +3474,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		assertThatAuthorizationsOn(FOLDER4).containsOnly(
 				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(alice),
-				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(charles)
 		);
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
 	}

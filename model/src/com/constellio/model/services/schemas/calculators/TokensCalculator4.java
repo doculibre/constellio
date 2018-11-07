@@ -112,7 +112,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		Set<String> negativeTokens = new HashSet<>();
 
 		for (SecurityModelAuthorization authorization : authorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptAuth()
+			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptOrValueList()
 				&& authorization.getDetails().isNegative()) {
 				for (String access : authorization.getDetails().getRoles()) {
 					for (User user : authorization.getUsers()) {
@@ -134,7 +134,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 
 		for (SecurityModelAuthorization authorization : removedOrDetachedAuthorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptAuth()
+			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptOrValueList()
 				&& authorization.getDetails().isNegative()) {
 				for (String access : authorization.getDetails().getRoles()) {
 					for (User user : authorization.getUsers()) {
@@ -156,7 +156,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 		Set<String> positiveTokens = new HashSet<>();
 		for (SecurityModelAuthorization authorization : authorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptAuth()
+			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptOrValueList()
 				&& !authorization.getDetails().isNegative()) {
 				for (String access : authorization.getDetails().getRoles()) {
 					for (User user : authorization.getUsers()) {

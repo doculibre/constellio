@@ -2,8 +2,8 @@ package com.constellio.model.entities.security;
 
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 
 import java.util.ArrayList;
@@ -95,8 +95,17 @@ public class SecurityModelAuthorization {
 		}
 	}
 
-	public boolean isConceptAuth() {
-		return conceptAuth;
+	public boolean isConceptOrValueList() {
+
+		switch (details.getTargetSchemaType()) {
+
+			case "folder":
+			case "document":
+				return false;
+
+			default:
+				return true;
+		}
 	}
 
 	public static SecurityModelAuthorization wrapNewAuthWithoutUsersAndGroups(

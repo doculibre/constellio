@@ -288,11 +288,12 @@ public class UserAuthorizationsUtils {
 
 				TaxonomiesManager taxonomiesManager = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
 						.getTaxonomiesManager();
-				boolean isConcept = taxonomiesManager.isTypeInPrincipalTaxonomy(authorizationDetails.getCollection(),
-						authorizationDetails.getTargetSchemaType());
+				//				boolean isConcept = taxonomiesManager.isTypeInPrincipalTaxonomy(authorizationDetails.getCollection(),
+				//						authorizationDetails.getTargetSchemaType());
+
 
 				if (authorizationDetails.isActiveAuthorization() && filter.isIncluded(authorizationDetails)
-					&& (isConcept || includeSpecifics)) {
+					&& (!Authorization.isSecurizedSchemaType(authorizationDetails.getTargetSchemaType()) || includeSpecifics)) {
 					tokens.add(authorizationDetails.getTarget(), authId);
 				}
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {

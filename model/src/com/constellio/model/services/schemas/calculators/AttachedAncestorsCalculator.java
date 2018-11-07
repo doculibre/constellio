@@ -9,6 +9,7 @@ import com.constellio.model.entities.calculators.dependencies.SpecialDependencie
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.SecurityModel;
+import com.constellio.model.entities.security.SecurityModelAuthorization;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,12 +36,22 @@ public class AttachedAncestorsCalculator implements MetadataValueCalculator<List
 
 		List<String> ancestors = new ArrayList<>();
 		if (hasSecurity) {
-			if (hierarchyDependencyValue != null
-				&& !isDetachedAuths
-				&& !hasActiveOverridingAuth(securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(
-					parameters.get(metadatasProvidingSecurityParams)))) {
+
+			List<SecurityModelAuthorization> authsOnMetadatas = securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(
+					parameters.get(metadatasProvidingSecurityParams));
+
+			if (hierarchyDependencyValue != null && !isDetachedAuths && !hasActiveOverridingAuth(authsOnMetadatas)) {
 				ancestors.addAll(hierarchyDependencyValue.getAttachedAncestors());
 			}
+
+			if (!isDetachedAuths) {
+				for (SecurityModelAuthorization authOnMetadata : authsOnMetadatas) {
+					if (!ancestors.contains(authOnMetadata.getDetails().getTarget())) {
+						ancestors.add(authOnMetadata.getDetails().getTarget());
+					}
+				}
+			}
+
 			ancestors.add(parameters.getId());
 		}
 		return ancestors;
