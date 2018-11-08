@@ -23,6 +23,7 @@ import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -100,7 +101,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		prepareSystem(withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus()
 		);
-
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryLoggingEnabled(true).setQueryDebuggingMode(true);
 		authsServices = getModelLayerFactory().newAuthorizationsServices();
 		recordServices = getModelLayerFactory().newRecordServices();
 
@@ -119,10 +120,12 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		alice = userServices.getUserInCollection(aliceWonderland, zeCollection);
 		zeSasquatch = userServices.getUserInCollection(sasquatch, zeCollection);
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(false));
+		waitForBatchProcess();
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
 				.add(new BigVaultServerExtension() {
 					@Override
 					public void afterQuery(AfterQueryParams params) {
+
 						queriesCount.incrementAndGet();
 						String[] facetQuery = params.getSolrParams().getParams("facet.query");
 						if (facetQuery != null) {
@@ -1586,6 +1589,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+		System.out.println("-----");
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryLoggingEnabled(true);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy()
 				.has(numFoundAndListSize(2))
@@ -1599,6 +1604,9 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.is(empty())
 				.has(solrQueryCounts(1, 0, 2))
 				.has(secondSolrQueryCounts(0, 0, 0));
+
+		System.out.println("-----");
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryLoggingEnabled(true);
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X)
 				.has(numFoundAndListSize(1))
@@ -3682,7 +3690,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);
-
+				System.out.println("--------- --------- --------- --------- --------- --------- ---------");
 				return true;
 			}
 		};
@@ -3705,7 +3713,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);
-
+				System.out.println("--------- --------- --------- --------- --------- --------- ---------");
 				return true;
 			}
 		};
@@ -3733,5 +3741,19 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		} catch (RecordDaoException.OptimisticLocking optimisticLocking) {
 			optimisticLocking.printStackTrace();
 		}
+	}
+
+	@Override
+	protected void givenConfig(SystemConfiguration config, Object value) {
+		super.givenConfig(config, value);
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		queriesCount.set(0);
+		facetsCount.set(0);
+		returnedDocumentsCount.set(0);
+
 	}
 }

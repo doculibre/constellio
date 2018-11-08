@@ -17,7 +17,6 @@ import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
@@ -1286,9 +1285,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth2 = add(authorizationForPrincipals(heroes, dakota).on(FOLDER2).givingReadWriteAccess());
 		auth3 = add(authorizationForUser(dakota).on(TAXO1_CATEGORY1).givingReadAccess());
 
-		//TODO Optimistic locking exception should occur
-		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
-
 		assertThatAuthorizationsOn(FOLDER2).containsOnly(
 				authOnRecord(FOLDER2).givingReadWrite().forPrincipals(heroes, dakota),
 				authOnRecord(TAXO1_CATEGORY1).givingRead().forPrincipals(dakota));
@@ -1338,9 +1334,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		ConstellioFactories.getInstance().onRequestEnded();
 		ConstellioFactories.getInstance().onRequestStarted();
-
-		//TODO Optimistic locking exception should occur
-		//getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		forUser(alice).assertThatRecordsWithReadAccess().containsOnly(
 				FOLDER1, FOLDER1_DOC1, FOLDER2, FOLDER2_1, FOLDER2_2, FOLDER2_2_DOC1, FOLDER2_2_DOC2);
@@ -2745,9 +2738,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		query.filteredWithUser(users.aliceIn(zeCollection));
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
-		//		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
-		//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
-
 		assertThat(searchServices.hasResults(query)).isTrue();
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
@@ -3323,23 +3313,18 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
 		}
 
-		//whenARecordProvidingSecurityReceiveANewNonOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndKeepInheritedAuths
-
 		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
 
-		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 
-		//givenARecordHasNonOverridingAuthFromMetadataProvidingSecurityWhenAuthIsModifiedToOverrideInheritedAuthsThenRecordLoseInheritingAuths
 		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).withNewOverridingInheritedAuths(true));
 		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
 		}
 
-		//givenARecordHasOverridingAuthFromMetadataProvidingSecurityWhenAuthIsModifiedToNonOverrideInheritedAuthsThenRecordRecoverInheritingAuths
 		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).withNewOverridingInheritedAuths(false));
 		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
@@ -3347,28 +3332,22 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).withNewPrincipalIds(gandalf));
-		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, gandalf, chuck);
 		}
 
-		//whenARecordProvidingSecurityReceiveANewOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndLoseInheritedAuths
 		auth4 = add(authorizationForUser(dakota).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
 		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, gandalf, dakota, chuck);
 		}
 
-		//whenARecordProvidingSecurityLoseANonOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndKeepInheritedAuths
 		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).removingItOnRecord());
-		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, dakota, chuck);
 		}
 
-		//whenARecordProvidingSecurityLoseTheLastOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndRegainInheritedAuths
 		modify(modifyAuthorizationOnRecord(auth4, records.folderType1()).removingItOnRecord());
-		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
 		}

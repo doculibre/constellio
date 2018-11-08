@@ -1,12 +1,14 @@
 package com.constellio.model.services.schemas.calculators;
 
 import com.constellio.model.entities.calculators.CalculatorParameters;
+import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
@@ -36,20 +38,25 @@ public class AttachedAncestorsCalculator implements MetadataValueCalculator<List
 
 		List<String> ancestors = new ArrayList<>();
 		if (hasSecurity) {
-
-			List<SecurityModelAuthorization> authsOnMetadatas = securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(
-					parameters.get(metadatasProvidingSecurityParams));
+			DynamicDependencyValues values = parameters.get(metadatasProvidingSecurityParams);
+			List<SecurityModelAuthorization> authsOnMetadatas = securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(values);
 
 			if (hierarchyDependencyValue != null && !isDetachedAuths && !hasActiveOverridingAuth(authsOnMetadatas)) {
 				ancestors.addAll(hierarchyDependencyValue.getAttachedAncestors());
 			}
 
 			if (!isDetachedAuths) {
-				for (SecurityModelAuthorization authOnMetadata : authsOnMetadatas) {
-					if (!ancestors.contains(authOnMetadata.getDetails().getTarget())) {
-						ancestors.add(authOnMetadata.getDetails().getTarget());
+				//				for (SecurityModelAuthorization authOnMetadata : authsOnMetadatas) {
+				//					if (!ancestors.contains(authOnMetadata.getDetails().getTarget())) {
+				for (Metadata metadata : values.getAvailableMetadatasWithAValue()) {
+					if (metadata.isMultivalue()) {
+						ancestors.addAll(values.<List<String>>getValue(metadata));
+					} else {
+						ancestors.add(values.<String>getValue(metadata));
 					}
 				}
+				//					}
+				//				}
 			}
 
 			ancestors.add(parameters.getId());
