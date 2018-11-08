@@ -202,12 +202,10 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		ValidationErrors validationErrors = new ValidationErrors();
 		boolean logicallyDeletable = !searchServices.hasResults(from(rm.folder.schemaType())
 				.where(rm.folder.retentionRule()).isEqualTo(event.getRecord()));
-		if (logicallyDeletable) {
-			return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.forceTrueIf(logicallyDeletable));
-		} else {
+		if (!logicallyDeletable) {
 			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "retentionRuleUsedByFolder");
-			return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.forceTrueIf(logicallyDeletable));
 		}
+		return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.forceTrueIf(logicallyDeletable));
 	}
 
 	private ExtensionValidationErrors isVariableRetentionPeriodLogicallyDeletable(
@@ -221,11 +219,10 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 		} else {
 			long count = searchServices.getResultsCount(from(rm.retentionRule.schemaType())
 					.where(rm.retentionRule.copyRetentionRules()).is(variablePeriodCode(code)));
-			ExtensionBooleanResult extensionBooleanResult = ExtensionBooleanResult.trueIf(count == 0);
 			if (count != 0) {
 				validationErrors.add(RMSchemasLogicalDeleteExtension.class, "variablePeriodTypeIsUsedInRetentionRule");
 			}
-			return new ExtensionValidationErrors(validationErrors, extensionBooleanResult);
+			return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.trueIf(count == 0));
 		}
 	}
 }
