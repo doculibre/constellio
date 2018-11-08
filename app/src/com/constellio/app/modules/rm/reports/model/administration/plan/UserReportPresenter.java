@@ -122,7 +122,14 @@ public class UserReportPresenter {
 		for (AdministrativeUnit administrativeUnit : administrativeUnits) {
 			List<User> users = authorizationsServices.getUsersWithRoleForRecord(Role.WRITE,
 					rmSchemasRecordsServices.getAdministrativeUnit(administrativeUnit.getId()).getWrappedRecord());
-			if (users.contains(user)) {
+
+			List<String> idList = new ArrayList<>();
+
+			for(User currentUser : users) {
+				idList.add(currentUser.getId());
+			}
+
+			if (idList.contains(user.getId())) {
 				UserReportModel_AdministrativeUnit modelAdministrativeUnit = new UserReportModel_AdministrativeUnit();
 
 				String code = StringUtils.defaultString(administrativeUnit.getCode());
