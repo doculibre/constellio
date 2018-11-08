@@ -197,4 +197,9 @@ public class Authorization extends RecordWrapper {
 	public Authorization getUnmodifiableCopyOfOriginalRecord() {
 		return Authorization.wrapNullable(wrappedRecord.getUnmodifiableCopyOfOriginalRecord(), types);
 	}
+
+	//TODO Temporaire
+	public static boolean isSecurizedSchemaType(String schemaType) {
+		return "folder".equals(schemaType) || "document".equals(schemaType);
+	}
 }

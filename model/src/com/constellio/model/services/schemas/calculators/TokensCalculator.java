@@ -14,7 +14,6 @@ public class TokensCalculator implements MetadataValueCalculator<List<String>> {
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		//Use newer version instead
 		return new ArrayList<>();
 	}
 
