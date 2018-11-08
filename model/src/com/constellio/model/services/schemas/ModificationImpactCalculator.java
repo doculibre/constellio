@@ -37,7 +37,6 @@ import java.util.List;
 
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.NON_TAXONOMY_AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
@@ -93,9 +92,17 @@ public class ModificationImpactCalculator {
 			if (Authorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
 				MetadataSchema authSchema = metadataSchemaTypes.getSchema(Authorization.DEFAULT_SCHEMA);
 				Metadata authorizationPrincipals = authSchema.getMetadata(Authorization.PRINCIPALS);
-				if (record.isModified(authorizationPrincipals)) {
+				Metadata lastTokenRecalculate = authSchema.getMetadata(Authorization.LAST_TOKEN_RECALCULATE);
+				Metadata authorizationTargetMetadata = authSchema.getMetadata(Authorization.TARGET);
+				Metadata authorizationTargetSchemaTypeMetadata = authSchema.getMetadata(Authorization.TARGET_SCHEMA_TYPE);
+
+				String authorizationTarget = record.get(authorizationTargetMetadata);
+				String authorizationTargetSchemaType= record.get(authorizationTargetSchemaTypeMetadata);
+
+				if (Authorization.isSecurizedSchemaType(authorizationTargetSchemaType)
+				&& (record.isModified(authorizationPrincipals) || record.isModified(lastTokenRecalculate))) {
 					LogicalSearchCondition condition = fromAllSchemasInCollectionOf(record, DataStore.RECORDS)
-							.where(Schemas.NON_TAXONOMY_AUTHORIZATIONS).isEqualTo(record.getId());
+							.where(Schemas.ATTACHED_ANCESTORS).isEqualTo(authorizationTarget);
 					transaction.addAllRecordsToReindex(searchServices.searchRecordIds(condition));
 				}
 
@@ -286,8 +293,6 @@ public class ModificationImpactCalculator {
 																				   Metadata modifiedMeta) {
 
 		return modifiedMeta.isLocalCode(CommonMetadataBuilder.PATH)
-			   || (modifiedMeta.isLocalCode(NON_TAXONOMY_AUTHORIZATIONS) && automaticMeta
-				.isLocalCode(NON_TAXONOMY_AUTHORIZATIONS))
 			   || (modifiedMeta.isLocalCode(TOKENS) && automaticMeta.isLocalCode(TOKENS))
 			   || (modifiedMeta.isLocalCode(TOKENS) && automaticMeta.isLocalCode(TOKENS))
 			   || (modifiedMeta.isLocalCode(ATTACHED_ANCESTORS) && automaticMeta.isLocalCode(ATTACHED_ANCESTORS))

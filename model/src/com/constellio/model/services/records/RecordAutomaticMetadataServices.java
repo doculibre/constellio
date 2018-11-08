@@ -43,7 +43,6 @@ import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.entities.security.TransactionSecurityModel;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
@@ -560,7 +559,6 @@ public class RecordAutomaticMetadataServices {
 		List<String> paths = new ArrayList<>();
 		List<String> removedAuthorizations = new ArrayList<>();
 		List<String> attachedAncestors = new ArrayList<>();
-		List<String> inheritedNonTaxonomyAuthorizations = new ArrayList<>();
 		MetadataSchema recordSchema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 		List<Metadata> parentReferences = recordSchema.getParentReferences();
 		for (Metadata metadata : parentReferences) {
@@ -571,7 +569,6 @@ public class RecordAutomaticMetadataServices {
 				paths.addAll(parentPaths);
 				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
 				attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
-				inheritedNonTaxonomyAuthorizations.addAll(referencedRecord.<String>getList(Schemas.NON_TAXONOMY_AUTHORIZATIONS));
 			}
 		}
 		for (Taxonomy aTaxonomy : taxonomiesManager.getEnabledTaxonomies(record.getCollection())) {
@@ -603,7 +600,7 @@ public class RecordAutomaticMetadataServices {
 			}
 		}
 		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, removedAuthorizations,
-				inheritedNonTaxonomyAuthorizations, attachedAncestors);
+				attachedAncestors);
 		values.put(dependency, value);
 		return true;
 	}

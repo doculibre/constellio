@@ -3,10 +3,10 @@ package com.constellio.model.services.schemas.calculators;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
-import com.constellio.model.entities.calculators.dependencies.HierarchyDependencyValue;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -14,6 +14,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
+import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,11 +23,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.constellio.model.entities.security.TransactionSecurityModel.hasActiveOverridingAuth;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.LOGICALLY_DELETED;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.MANUAL_TOKENS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.VISIBLE_IN_TREES;
-import static com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator.hasActiveOverridingAuth;
 import static java.lang.Boolean.TRUE;
 
 public class TokensCalculator4 implements MetadataValueCalculator<List<String>> {
@@ -41,11 +42,11 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 	SpecialDependency<SecurityModel> securityModelSpecialDependency = SpecialDependencies.SECURITY_MODEL;
 
-	SpecialDependency<HierarchyDependencyValue> hierarchyDependencyValuesParam = SpecialDependencies.HIERARCHY;
-
 	LocalDependency<Boolean> isDetachedParams = LocalDependency.toABoolean(Schemas.IS_DETACHED_AUTHORIZATIONS.getLocalCode());
 
 	MetadatasProvidingSecurityDynamicDependency metadatasProvidingSecurityParams = new MetadatasProvidingSecurityDynamicDependency();
+
+	LocalDependency<List<String>> attachedAncestorsParam = LocalDependency.toAStringList(CommonMetadataBuilder.ATTACHED_ANCESTORS);
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
@@ -56,15 +57,70 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		return buildTokens(parameters, securityModel, authorizations, removedOrDetachedAuthorizations);
 	}
 
+	private List<SecurityModelAuthorization> getInheritedAuthorizationsTargettingSecurisedRecords(
+			SecurityModel securityModel,
+			List<String> allRemovedAuths,
+			List<String> attachedAncestors,
+			boolean detached) {
+
+		List<SecurityModelAuthorization> returnedAuths = new ArrayList<>();
+
+		if (!detached) {
+			for(String attachedAncestor : attachedAncestors) {
+				if (!attachedAncestor.startsWith("-")) {
+					for (SecurityModelAuthorization inheritedNonTaxonomyAuth : securityModel.getAuthorizationsOnTarget(attachedAncestor)) {
+						if (inheritedNonTaxonomyAuth.isSecurizedRecord()) {
+							returnedAuths.add(inheritedNonTaxonomyAuth);
+						}
+					}
+				}
+			}
+		}
+		return  returnedAuths;
+	}
+
+	private List<SecurityModelAuthorization> getInheritedAuthorizationsTargettingAnyRecordsNoMatterIfDetached(
+			SecurityModel securityModel,
+			List<String> attachedAncestors) {
+
+		List<SecurityModelAuthorization> returnedAuths = new ArrayList<>();
+
+		for(String attachedAncestor : attachedAncestors) {
+
+			String ancestor = attachedAncestor;
+			if (attachedAncestor.startsWith("-")) {
+				ancestor = attachedAncestor.substring(1);
+			}
+
+			for (SecurityModelAuthorization inheritedNonTaxonomyAuth : securityModel.getAuthorizationsOnTarget(ancestor)) {
+				//if ( !allRemovedAuths.contains(inheritedNonTaxonomyAuth)) {
+					returnedAuths.add(inheritedNonTaxonomyAuth);
+				//}
+			}
+		}
+		return  returnedAuths;
+	}
+
+	protected void addActiveAuthorizations(List<String> returnedIds,
+										   List<SecurityModelAuthorization> metadataAuths) {
+		for (SecurityModelAuthorization auth : metadataAuths) {
+			Authorization authorizationDetails = (Authorization) auth.getDetails();
+			if (authorizationDetails.isActiveAuthorization()) {
+				returnedIds.add(authorizationDetails.getId());
+			}
+		}
+	}
+
 	private void calculateAppliedAuthorizations(CalculatorParameters parameters,
 												SecurityModel securityModel,
 												List<SecurityModelAuthorization> authorizations,
 												List<SecurityModelAuthorization> removedOrDetachedAuthorizations) {
-		HierarchyDependencyValue hierarchyDependencyValue = parameters.get(hierarchyDependencyValuesParam);
+		//HierarchyDependencyValue hierarchyDependencyValue = parameters.get(hierarchyDependencyValuesParam);
 		authorizations.addAll(securityModel.getAuthorizationsOnTarget(parameters.getId()));
 		boolean detached = TRUE.equals(parameters.get(isDetachedParams));
 
 		List<String> allRemovedAuths = parameters.get(allRemovedAuthsParam);
+		List<String> attachedAncestors = parameters.get(attachedAncestorsParam);
 
 		List<SecurityModelAuthorization> authsFromMetadatas = securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(
 				parameters.get(metadatasProvidingSecurityParams));
@@ -72,10 +128,14 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		authorizations.addAll(authsFromMetadatas);
 
 		if (!hasActiveOverridingAuth(authsFromMetadatas)) {
+
+
+
 			if (!detached) {
-				for (String inheritedNonTaxonomyAuthId : hierarchyDependencyValue.getInheritedNonTaxonomyAuthorizations()) {
-					SecurityModelAuthorization auth = securityModel.getAuthorizationWithId(inheritedNonTaxonomyAuthId);
-					if (!allRemovedAuths.contains(inheritedNonTaxonomyAuthId)) {
+				List<SecurityModelAuthorization> inheritedAuthorizationsTargettingSecurisedRecords =
+						getInheritedAuthorizationsTargettingSecurisedRecords(securityModel,  allRemovedAuths, attachedAncestors, detached);
+				for (SecurityModelAuthorization auth : inheritedAuthorizationsTargettingSecurisedRecords) {
+					if (!allRemovedAuths.contains(auth.getDetails().getId())) {
 						if (auth != null) {
 							authorizations.add(auth);
 						}
@@ -86,12 +146,9 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 					}
 				}
 			} else {
-				for (String inheritedNonTaxonomyAuthId : hierarchyDependencyValue.getInheritedNonTaxonomyAuthorizations()) {
-					SecurityModelAuthorization auth = securityModel.getAuthorizationWithId(inheritedNonTaxonomyAuthId);
-					if (auth != null) {
-						removedOrDetachedAuthorizations.add(auth);
-					}
-				}
+				List<SecurityModelAuthorization> inheritedAuthorizationsTargettingAnyRecords =
+						getInheritedAuthorizationsTargettingAnyRecordsNoMatterIfDetached(securityModel, attachedAncestors);
+				removedOrDetachedAuthorizations.addAll(inheritedAuthorizationsTargettingAnyRecords);
 			}
 		}
 	}
@@ -112,7 +169,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		Set<String> negativeTokens = new HashSet<>();
 
 		for (SecurityModelAuthorization authorization : authorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptAuth()
+			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurizedRecord()
 				&& authorization.getDetails().isNegative()) {
 				for (String access : authorization.getDetails().getRoles()) {
 					for (User user : authorization.getUsers()) {
@@ -134,7 +191,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 
 		for (SecurityModelAuthorization authorization : removedOrDetachedAuthorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptAuth()
+			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurizedRecord()
 				&& authorization.getDetails().isNegative()) {
 				for (String access : authorization.getDetails().getRoles()) {
 					for (User user : authorization.getUsers()) {
@@ -156,7 +213,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 		Set<String> positiveTokens = new HashSet<>();
 		for (SecurityModelAuthorization authorization : authorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptAuth()
+			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurizedRecord()
 				&& !authorization.getDetails().isNegative()) {
 				for (String access : authorization.getDetails().getRoles()) {
 					for (User user : authorization.getUsers()) {
@@ -273,7 +330,8 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 	@Override
 	public List<? extends Dependency> getDependencies() {
 		return Arrays.asList(securityModelSpecialDependency, manualTokensParam, logicallyDeletedParam,
-				visibleInTreesParam, hierarchyDependencyValuesParam, allRemovedAuthsParam, isDetachedParams,
+				visibleInTreesParam, attachedAncestorsParam, allRemovedAuthsParam, isDetachedParams,
 				metadatasProvidingSecurityParams);
 	}
+
 }

@@ -19,10 +19,6 @@ public class TokensCalculator3 implements MetadataValueCalculator<List<String>> 
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		List<String> manualTokens = parameters.get(manualTokensParam);
-
-		List<String> tokens = new ArrayList<>();
-		tokens.addAll(manualTokens);
 		return new ArrayList<>();
 	}
 

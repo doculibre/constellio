@@ -553,6 +553,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 									.onSomething();
 						} else if (Role.WRITE.equals(access)) {
 							return user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
+
 						} else if (Role.DELETE.equals(access)) {
 							return user.has(RMPermissionsTo.DELETE_CONTAINERS).onSomething();
 						}
