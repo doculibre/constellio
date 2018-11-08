@@ -476,7 +476,7 @@ public class AuthorizationsServices {
 		recordsIdsWithPosibleAuths.remove(record.getId());
 
 		for (String ancestorId : record.<String>getList(ATTACHED_ANCESTORS)) {
-			if (!ancestorId.equals(record.getId())) {
+			if (!ancestorId.equals(record.getId()) && !ancestorId.startsWith("-")) {
 
 				Record ancestor = recordServices.getDocumentById(ancestorId);
 				MetadataSchema schema = schemasManager.getSchemaOf(ancestor);

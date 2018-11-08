@@ -37,12 +37,17 @@ public class AttachedAncestorsCalculator implements MetadataValueCalculator<List
 		boolean hasSecurity = parameters.getSchemaType().hasSecurity();
 
 		List<String> ancestors = new ArrayList<>();
+		List<String> possiblyDetachedAncestors = new ArrayList<>();
 		if (hasSecurity) {
 			DynamicDependencyValues values = parameters.get(metadatasProvidingSecurityParams);
 			List<SecurityModelAuthorization> authsOnMetadatas = securityModel.getAuthorizationDetailsOnMetadatasProvidingSecurity(values);
 
-			if (hierarchyDependencyValue != null && !isDetachedAuths && !hasActiveOverridingAuth(authsOnMetadatas)) {
-				ancestors.addAll(hierarchyDependencyValue.getAttachedAncestors());
+			if (hierarchyDependencyValue != null) {
+				if (!isDetachedAuths && !hasActiveOverridingAuth(authsOnMetadatas)) {
+					ancestors.addAll(hierarchyDependencyValue.getAttachedAncestors());
+				} else {
+					possiblyDetachedAncestors.addAll(hierarchyDependencyValue.getAttachedAncestors());
+				}
 			}
 
 			if (!isDetachedAuths) {
@@ -57,6 +62,13 @@ public class AttachedAncestorsCalculator implements MetadataValueCalculator<List
 
 			ancestors.add(parameters.getId());
 		}
+
+		for(String possiblyDetachedAncestor : possiblyDetachedAncestors) {
+			if (!ancestors.contains(possiblyDetachedAncestor)) {
+				ancestors.add("-" + possiblyDetachedAncestor);
+			}
+		}
+
 		return ancestors;
 	}
 

@@ -67,11 +67,35 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 		if (!detached) {
 			for(String attachedAncestor : attachedAncestors) {
-				for (SecurityModelAuthorization inheritedNonTaxonomyAuth : securityModel.getAuthorizationsOnTarget(attachedAncestor)) {
-					if (!inheritedNonTaxonomyAuth.isConceptOrValueList() && !allRemovedAuths.contains(inheritedNonTaxonomyAuth)) {
-						returnedAuths.add(inheritedNonTaxonomyAuth);
+				if (!attachedAncestor.startsWith("-")) {
+					for (SecurityModelAuthorization inheritedNonTaxonomyAuth : securityModel.getAuthorizationsOnTarget(attachedAncestor)) {
+						if (!inheritedNonTaxonomyAuth.isConceptOrValueList()) {
+							returnedAuths.add(inheritedNonTaxonomyAuth);
+						}
 					}
 				}
+			}
+		}
+		return  returnedAuths;
+	}
+
+	private List<SecurityModelAuthorization> getInheritedAuthorizationsTargettingAnyRecordsNoMatterIfDetached(
+			SecurityModel securityModel,
+			List<String> attachedAncestors) {
+
+		List<SecurityModelAuthorization> returnedAuths = new ArrayList<>();
+
+		for(String attachedAncestor : attachedAncestors) {
+
+			String ancestor = attachedAncestor;
+			if (attachedAncestor.startsWith("-")) {
+				ancestor = attachedAncestor.substring(1);
+			}
+
+			for (SecurityModelAuthorization inheritedNonTaxonomyAuth : securityModel.getAuthorizationsOnTarget(ancestor)) {
+				//if ( !allRemovedAuths.contains(inheritedNonTaxonomyAuth)) {
+					returnedAuths.add(inheritedNonTaxonomyAuth);
+				//}
 			}
 		}
 		return  returnedAuths;
@@ -105,10 +129,11 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 		if (!hasActiveOverridingAuth(authsFromMetadatas)) {
 
-			List<SecurityModelAuthorization> inheritedAuthorizationsTargettingSecurisedRecords =
-					getInheritedAuthorizationsTargettingSecurisedRecords(securityModel,  allRemovedAuths, attachedAncestors, detached);
+
 
 			if (!detached) {
+				List<SecurityModelAuthorization> inheritedAuthorizationsTargettingSecurisedRecords =
+						getInheritedAuthorizationsTargettingSecurisedRecords(securityModel,  allRemovedAuths, attachedAncestors, detached);
 				for (SecurityModelAuthorization auth : inheritedAuthorizationsTargettingSecurisedRecords) {
 					if (!allRemovedAuths.contains(auth.getDetails().getId())) {
 						if (auth != null) {
@@ -121,7 +146,9 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 					}
 				}
 			} else {
-				removedOrDetachedAuthorizations.addAll(inheritedAuthorizationsTargettingSecurisedRecords);
+				List<SecurityModelAuthorization> inheritedAuthorizationsTargettingAnyRecords =
+						getInheritedAuthorizationsTargettingAnyRecordsNoMatterIfDetached(securityModel, attachedAncestors);
+				removedOrDetachedAuthorizations.addAll(inheritedAuthorizationsTargettingAnyRecords);
 			}
 		}
 	}
