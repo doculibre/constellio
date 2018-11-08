@@ -11,7 +11,9 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
@@ -46,6 +48,8 @@ public class CoreTypes {
 		codesList.add(Printable.SCHEMA_TYPE);
 		codesList.add(Authorization.SCHEMA_TYPE);
 		codesList.add(Report.SCHEMA_TYPE);
+		codesList.add(SearchEvent.SCHEMA_TYPE);
+		codesList.add(ThesaurusConfig.SCHEMA_TYPE);
 
 		//Deprecated types :
 		codesList.add(WorkflowTask.SCHEMA_TYPE);

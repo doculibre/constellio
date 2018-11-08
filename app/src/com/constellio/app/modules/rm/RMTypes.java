@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm;
 
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.BagInfo;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -58,6 +59,7 @@ public class RMTypes {
 		codesList.add(YearType.SCHEMA_TYPE);
 		codesList.add(Cart.SCHEMA_TYPE);
 		codesList.add(FilingSpace.SCHEMA_TYPE);
+		codesList.add(BagInfo.SCHEMA_TYPE);
 
 		schemaTypesCodes = Collections.unmodifiableList(codesList);
 
