@@ -181,10 +181,4 @@ public class SingletonSecurityModel implements SecurityModel {
 		return null;
 	}
 
-	@Override
-	public List<SecurityModelAuthorization> getInheritedAuthorizationsTargettingSecurizedRecords(
-			String securizedRecordId) {
-		return null;
-	}
-
 }

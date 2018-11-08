@@ -95,20 +95,20 @@ public class SecurityModelAuthorization {
 		}
 	}
 
-	public boolean isConceptOrValueList() {
+	public boolean isSecurizedRecord() {
 
 		switch (details.getTargetSchemaType()) {
 
 			case "folder":
 			case "document":
-				return false;
+				return true;
 
 			default:
-				return true;
+				return false;
 		}
 	}
 
-	public static SecurityModelAuthorization wrapNewAuthWithoutUsersAndGroups(
+	static SecurityModelAuthorization wrapNewAuthWithoutUsersAndGroups(
 			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
 			Taxonomy principalTaxonomy,
 			Authorization details) {
@@ -124,7 +124,7 @@ public class SecurityModelAuthorization {
 		return auth;
 	}
 
-	public static SecurityModelAuthorization wrapExistingAuthUsingModifiedUsersAndGroups(
+	static SecurityModelAuthorization wrapExistingAuthUsingModifiedUsersAndGroups(
 			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
 			Taxonomy principalTaxonomy,
 			Authorization details,

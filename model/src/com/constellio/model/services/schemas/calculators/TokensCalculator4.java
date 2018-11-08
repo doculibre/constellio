@@ -69,7 +69,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 			for(String attachedAncestor : attachedAncestors) {
 				if (!attachedAncestor.startsWith("-")) {
 					for (SecurityModelAuthorization inheritedNonTaxonomyAuth : securityModel.getAuthorizationsOnTarget(attachedAncestor)) {
-						if (!inheritedNonTaxonomyAuth.isConceptOrValueList()) {
+						if (inheritedNonTaxonomyAuth.isSecurizedRecord()) {
 							returnedAuths.add(inheritedNonTaxonomyAuth);
 						}
 					}
@@ -169,7 +169,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		Set<String> negativeTokens = new HashSet<>();
 
 		for (SecurityModelAuthorization authorization : authorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptOrValueList()
+			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurizedRecord()
 				&& authorization.getDetails().isNegative()) {
 				for (String access : authorization.getDetails().getRoles()) {
 					for (User user : authorization.getUsers()) {
@@ -191,7 +191,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 
 		for (SecurityModelAuthorization authorization : removedOrDetachedAuthorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptOrValueList()
+			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurizedRecord()
 				&& authorization.getDetails().isNegative()) {
 				for (String access : authorization.getDetails().getRoles()) {
 					for (User user : authorization.getUsers()) {
@@ -213,7 +213,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 		Set<String> positiveTokens = new HashSet<>();
 		for (SecurityModelAuthorization authorization : authorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && !authorization.isConceptOrValueList()
+			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurizedRecord()
 				&& !authorization.getDetails().isNegative()) {
 				for (String access : authorization.getDetails().getRoles()) {
 					for (User user : authorization.getUsers()) {
