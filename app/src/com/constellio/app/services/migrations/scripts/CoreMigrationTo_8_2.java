@@ -147,6 +147,11 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 							.setEnabled(false).setMarkedForDeletion(true).defineDataEntry().asManual();
 				}
 
+				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.NON_TAXONOMY_AUTHORIZATIONS.getLocalCode())) {
+					schemaBuilder.getDefaultSchema().get(LegacyGlobalMetadatas.NON_TAXONOMY_AUTHORIZATIONS.getLocalCode())
+							.setEnabled(false).setMarkedForDeletion(true).defineDataEntry().asManual();
+				}
+
 
 			}
 

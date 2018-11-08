@@ -49,7 +49,6 @@ import static com.constellio.model.entities.records.wrappers.Event.USERNAME;
 import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
 import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.NON_TAXONOMY_AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_PATH;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.security.Role.DELETE;
@@ -88,7 +87,6 @@ import static com.constellio.model.services.security.SecurityAcceptanceTestSetup
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_FOND1_1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2_1;
-import static com.constellio.sdk.tests.TestUtils.asOrderedList;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -443,73 +441,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				tuple(FOLDER4_2, asList("role1_" + heroesId, "role1_" + sidekicksId)),
 				tuple(FOLDER4_2_DOC1, asList("role1_" + heroesId, "role1_" + sidekicksId))
 		);
-	}
-
-	@Test
-	public void whenRecordIsSecurizedThenHasAccurateNonTaxonomyAuthorizations()
-			throws Exception {
-
-		auth1 = add(authorizationForUser(bob).on(TAXO1_FOND1).giving(ROLE1));
-		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
-
-		LogicalSearchQuery query = new LogicalSearchQuery(
-				fromAllSchemasIn(zeCollection).where(NON_TAXONOMY_AUTHORIZATIONS).isNotNull());
-		assertThatRecords(searchServices.search(query)).extractingMetadatas(IDENTIFIER, NON_TAXONOMY_AUTHORIZATIONS).isEmpty();
-
-		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY1).removingItOnRecord());
-		modify(authorizationOnRecord(auth2, FOLDER3).removingItOnRecord());
-		auth3 = add(authorizationForGroup(heroes).on(FOLDER4).giving(ROLE1));
-		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
-				.extractingMetadatas(IDENTIFIER, NON_TAXONOMY_AUTHORIZATIONS).containsOnly(
-				tuple(TAXO1_FOND1, new ArrayList<>()),
-				tuple(TAXO1_FOND1_1, new ArrayList<>()),
-				tuple(TAXO1_CATEGORY1, new ArrayList<>()),
-				tuple(TAXO1_CATEGORY2, new ArrayList<>()),
-				tuple(TAXO1_CATEGORY2_1, new ArrayList<>()),
-
-				tuple(FOLDER1, new ArrayList<>()),
-				tuple(FOLDER1_DOC1, new ArrayList<>()),
-				tuple(FOLDER2, new ArrayList<>()),
-				tuple(FOLDER2_1, new ArrayList<>()),
-				tuple(FOLDER2_2, new ArrayList<>()),
-				tuple(FOLDER2_2_DOC2, new ArrayList<>()),
-				tuple(FOLDER2_2_DOC1, new ArrayList<>()),
-				tuple(FOLDER3, new ArrayList<>()),
-				tuple(FOLDER3_DOC1, new ArrayList<>()),
-				tuple(FOLDER4, asList(auth3)),
-				tuple(FOLDER4_1, asList(auth3)),
-				tuple(FOLDER4_1_DOC1, asList(auth3)),
-				tuple(FOLDER4_2, asList(auth3)),
-				tuple(FOLDER4_2_DOC1, asList(auth3))
-		);
-
-		String copyOfAuth1 = detach(FOLDER2_2).get(auth1);
-		Map<String, String> newFolder3Auths = detach(FOLDER3_DOC1);
-
-		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
-				.extractingMetadatas(IDENTIFIER, NON_TAXONOMY_AUTHORIZATIONS).containsOnly(
-				tuple(TAXO1_FOND1, new ArrayList<>()),
-				tuple(TAXO1_FOND1_1, new ArrayList<>()),
-				tuple(TAXO1_CATEGORY1, new ArrayList<>()),
-				tuple(TAXO1_CATEGORY2, new ArrayList<>()),
-				tuple(TAXO1_CATEGORY2_1, new ArrayList<>()),
-
-				tuple(FOLDER1, new ArrayList<>()),
-				tuple(FOLDER1_DOC1, new ArrayList<>()),
-				tuple(FOLDER2, new ArrayList<>()),
-				tuple(FOLDER2_1, new ArrayList<>()),
-				tuple(FOLDER2_2, asList(copyOfAuth1)),
-				tuple(FOLDER2_2_DOC2, asList(copyOfAuth1)),
-				tuple(FOLDER2_2_DOC1, asList(copyOfAuth1)),
-				tuple(FOLDER3, new ArrayList<>()),
-				tuple(FOLDER3_DOC1, asOrderedList(newFolder3Auths.get(auth1), newFolder3Auths.get(auth2))),
-				tuple(FOLDER4, asList(auth3)),
-				tuple(FOLDER4_1, asList(auth3)),
-				tuple(FOLDER4_1_DOC1, asList(auth3)),
-				tuple(FOLDER4_2, asList(auth3)),
-				tuple(FOLDER4_2_DOC1, asList(auth3))
-		);
-
 	}
 
 	@Test

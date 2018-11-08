@@ -509,8 +509,7 @@ public class AuthorizationsServices {
 		String authId = authorization.getId();
 		boolean directlyTargetted = authTarget.equals(record.getId());
 		boolean inherited = !directlyTargetted && record.getList(ATTACHED_ANCESTORS).contains(authTarget);
-		boolean nonTaxonomyAuth = record.<String>getList(Schemas.NON_TAXONOMY_AUTHORIZATIONS).contains(authId);
-		if (!directlyTargetted && !inherited && !nonTaxonomyAuth) {
+		if (!directlyTargetted && !inherited && Authorization.isSecurizedSchemaType(authorization.getTargetSchemaType())) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord(authId, record);
 		}
 
