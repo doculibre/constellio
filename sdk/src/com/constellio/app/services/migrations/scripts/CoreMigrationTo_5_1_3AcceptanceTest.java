@@ -49,7 +49,7 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 		//				.getDocument())).doesNotContain("6f9b7e63-a6c1-4783-9143-1e69edf34b4c");
 
 		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
-		List<String> bobTokens = getModelLayerFactory().newUserServices().getUserCredential("alice").getTokenKeys();
+		List<String> bobTokens = getModelLayerFactory().newUserServices().getUserCredential("bob").getTokenKeys();
 		assertThat(adminTokens).containsOnly("6f9b7e63-a6c1-4783-9143-1e69edf34b4c");
 		assertThat(bobTokens).isEmpty();
 
@@ -63,27 +63,6 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 		assertThat(bobTokens).containsOnly(newBobToken);
 	}
 
-	@Test
-	public void givenSystemWithEncryptedTokensWhenReadingUsersTokensThenTokensDecrypted()
-			throws OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-
-		givenSystemWithEncryptedTokens();
-		givenConfig(RMConfigs.ENFORCE_CATEGORY_AND_RULE_RELATIONSHIP_IN_FOLDER, false);
-
-		String validToken = "c84e2c14-f933-4399-aed2-95c538b2b7dd";
-		assertThat(
-				new XMLOutputter().outputString(getDataLayerFactory().getConfigManager().getXML("userCredentialsConfig.xml.old")
-						.getDocument())).doesNotContain(validToken);
-
-		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
-		assertThat(adminTokens).contains(validToken);
-		assertThat(adminTokens).doesNotContain("invalidkey");
-		String serviceKey = getModelLayerFactory().getUserCredentialsManager().getServiceKeyByToken(validToken);
-		String userServiceKey = "adminkey";
-		assertThat(serviceKey).isEqualTo(userServiceKey);
-		boolean authenticated = getModelLayerFactory().newUserServices().isAuthenticated(userServiceKey, validToken);
-		assertThat(authenticated).isTrue();
-	}
 
 	private void givenSystemWithEncryptedTokens() {
 		givenTransactionLogIsEnabled();
