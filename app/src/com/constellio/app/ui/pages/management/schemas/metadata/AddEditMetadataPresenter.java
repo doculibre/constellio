@@ -119,7 +119,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public void setMetadataCode(String metadataCode) {
 		this.metadataCode = metadataCode;
-		this.metadata = types.getMetadata(metadataCode);
+
+		if(this.metadataCode.split("_").length == 1) {
+			this.metadataCode = getSchemaCode() + "_" + metadataCode;
+		}
+
+		this.metadata = types.getMetadata(this.metadataCode);
 	}
 
 	public boolean isRoleAccessSupportedOnThisMetadata() {

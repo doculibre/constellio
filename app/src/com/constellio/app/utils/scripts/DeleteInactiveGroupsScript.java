@@ -80,7 +80,7 @@ public class DeleteInactiveGroupsScript extends ScriptWithLogOutput {
 				List<String> userGroups = new ArrayList<>(user.getUserGroups());
 				userGroups.remove(group.getId());
 
-				recordServices.update(user.setUserGroups(!userGroups.isEmpty() ? userGroups : null));
+				recordServices.update(user.getCopyOfOriginalRecord().setUserGroups(!userGroups.isEmpty() ? userGroups : null));
 			}
 
 			recordServices.logicallyDelete(group.getWrappedRecord(), User.GOD);
