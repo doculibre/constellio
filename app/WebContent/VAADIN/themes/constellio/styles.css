@@ -13658,6 +13658,10 @@ div.v-layout.v-horizontal.v-widget {
 	content: "\f100";
 }
 
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel {
+	min-height: 2000px;
+}
+
 .constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .close-button-viewer-metadata-layout {
 	position: absolute;
 }

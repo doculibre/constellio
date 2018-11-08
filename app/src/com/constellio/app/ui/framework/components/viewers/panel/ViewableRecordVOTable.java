@@ -31,8 +31,17 @@ public class ViewableRecordVOTable extends RecordVOTable {
 	
 	private boolean compressed;
 
+	public ViewableRecordVOTable(ViewableRecordVOContainer dataSource) {
+		super(dataSource);
+		init();
+	}
+
 	public ViewableRecordVOTable(ContainerAdapter<ViewableRecordVOContainer> dataSource) {
 		super(dataSource);
+		init();
+	}
+	
+	private void init() {
 		setColumnHeader(SearchResultContainer.THUMBNAIL_PROPERTY, "");
 	}
 
@@ -42,18 +51,22 @@ public class ViewableRecordVOTable extends RecordVOTable {
 	
 	private ViewableRecordVOContainer getViewableRecordVOContainer() {
 		ViewableRecordVOContainer result = null;
-		ContainerAdapter<?> dataSource = (ContainerAdapter<?>) getContainerDataSource();
-		ContainerAdapter<?> currentAdapter = dataSource;
-		while (result == null && currentAdapter != null) {
-			Container nestedContainer = currentAdapter.getNestedContainer();
-			if (nestedContainer instanceof ViewableRecordVOContainer) {
-				result = (ViewableRecordVOContainer) nestedContainer;
-			} else if (nestedContainer instanceof ContainerAdapter) {
-				currentAdapter = (ContainerAdapter<?>) nestedContainer;
-			} else {
-				currentAdapter = null;
+		Container dataSource = getContainerDataSource();
+		if (dataSource instanceof ContainerAdapter) {
+			ContainerAdapter<?> currentAdapter = (ContainerAdapter<?>) dataSource;
+			while (result == null && currentAdapter != null) {
+				Container nestedContainer = currentAdapter.getNestedContainer();
+				if (nestedContainer instanceof ViewableRecordVOContainer) {
+					result = (ViewableRecordVOContainer) nestedContainer;
+				} else if (nestedContainer instanceof ContainerAdapter) {
+					currentAdapter = (ContainerAdapter<?>) nestedContainer;
+				} else {
+					currentAdapter = null;
+				}
 			}
-		}
+		} else if (dataSource instanceof ViewableRecordVOContainer) {
+			result = (ViewableRecordVOContainer) dataSource;
+		} 
 		return result;
 	}
 

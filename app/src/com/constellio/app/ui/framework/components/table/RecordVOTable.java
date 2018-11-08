@@ -42,6 +42,7 @@ import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEv
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class RecordVOTable extends BaseTable {
@@ -52,6 +53,7 @@ public class RecordVOTable extends BaseTable {
 	private RecordContextMenu contextMenu;
 	private List<MetadataSchemaVO> schemaVOs = new ArrayList<>();
 	private MetadataDisplayFactory metadataDisplayFactory = new MetadataDisplayFactory();
+	private boolean menuBarColumnAdded = false;
 
 	public RecordVOTable() {
 		super(null);
@@ -422,8 +424,18 @@ public class RecordVOTable extends BaseTable {
 				});
 				setColumnHeader(MENUBAR_PROPERTY_ID, "");
 				setColumnCollapsible(MENUBAR_PROPERTY_ID, false);
+				menuBarColumnAdded = true;
 			}
 		}
+	}
+
+	@Override
+	public Collection<?> getContainerPropertyIds() {
+		List<Object> containerPropertyIds = new ArrayList<>(super.getContainerPropertyIds());
+		if (menuBarColumnAdded) {
+			containerPropertyIds.add(MENUBAR_PROPERTY_ID);
+		}
+		return containerPropertyIds;
 	}
 
 	@Override

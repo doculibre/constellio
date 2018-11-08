@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.ui.pages.folder;
 
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.util.SchemaCaptionUtils.getCaptionForRecordVO;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,7 +21,6 @@ import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersio
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
-import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
@@ -36,10 +36,8 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
-import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.EditButton;
-import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
@@ -47,8 +45,8 @@ import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
-import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
+import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
@@ -69,14 +67,13 @@ import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordTa
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOContainer;
 import com.constellio.app.ui.framework.components.viewers.panel.ViewableRecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
-import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.containers.SearchResultContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.app.ui.pages.search.SearchPresenter.SortOrder;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.KeySetMap;
 import com.constellio.data.utils.TimeProvider;
@@ -93,7 +90,6 @@ import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.server.Resource;
-import com.vaadin.server.ThemeResource;
 import com.vaadin.shared.MouseEventDetails.MouseButton;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -111,8 +107,6 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-
-import static com.constellio.app.ui.util.SchemaCaptionUtils.getCaptionForRecordVO;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
@@ -599,7 +593,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			UserVO currentUser = getSessionContext().getCurrentUser();
 			final RecordDisplayFactory displayFactory = new RecordDisplayFactory(currentUser);
 
-			final ViewableRecordVOContainer adapted = new ViewableRecordVOContainer(recordVOContainer) {
+			final ViewableRecordVOContainer container = new ViewableRecordVOContainer(recordVOContainer) {
 				@Override
 				protected RecordVO getRecordVO(Integer index) {
 					return recordVOContainer.getRecordVO(index);
@@ -612,65 +606,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					return displayFactory.build(searchResultVO, null, null, null, null);
 				}
 			};
-
-			ButtonsContainer<ViewableRecordVOContainer> container = new ButtonsContainer<>(adapted);
-			container.addButton(new ContainerButton() {
-				@Override
-				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
-					int index = (int) itemId;
-					final RecordVO record = recordVOContainer.getRecordVO(index);
-					Button button = new EditButton() {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							presenter.editDocumentButtonClicked(record);
-						}
-					};
-					if (presenter.isDocument(record)) {
-						button.setEnabled(presenter.canModifyDocument(record));
-					} else {
-						button.setVisible(false);
-					}
-					return button;
-				}
-			});
-			container.addButton(new ContainerButton() {
-				@Override
-				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
-					int index = (int) itemId;
-					final RecordVO record = recordVOContainer.getRecordVO(index);
-					Button button = new IconButton(new ThemeResource("images/icons/actions/download.png"),
-							$("DisplayFolderView.download")) {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							presenter.downloadDocumentButtonClicked(record);
-						}
-					};
-					if (presenter.isDocument(record)) {
-						button.setEnabled(record.get(Document.CONTENT) != null);
-					} else {
-						button.setVisible(false);
-					}
-					return button;
-				}
-			});
-			container.addButton(new ContainerButton() {
-				@Override
-				protected Button newButtonInstance(Object itemId, ButtonsContainer<?> container) {
-					int index = (int) itemId;
-					final RecordVO record = recordVOContainer.getRecordVO(index);
-					Button button = new DisplayButton() {
-						@Override
-						protected void buttonClick(ClickEvent event) {
-							if (presenter.isDocument(record)) {
-								presenter.displayDocumentButtonClicked(record);
-							} else {
-								presenter.navigateToFolder(record.getId());
-							}
-						}
-					};
-					return button;
-				}
-			});
 
 			folderContentTable = new ViewableRecordVOTable(container);
 			folderContentTable.setSizeFull();
