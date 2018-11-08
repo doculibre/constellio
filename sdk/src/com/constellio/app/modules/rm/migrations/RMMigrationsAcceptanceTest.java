@@ -32,7 +32,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.security.global.SolrUserCredential.AGENT_STATUS;
+import static com.constellio.model.entities.security.global.UserCredential.AGENT_STATUS;
 import static com.constellio.sdk.tests.TestUtils.noDuplicates;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -177,7 +177,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(retentionRuleSchema.getMetadata(RetentionRule.TITLE).isUniqueValue()).isFalse();
 
 		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION)
-				.getSchema(SolrUserCredential.DEFAULT_SCHEMA).getMetadata(AGENT_STATUS).getType()).isEqualTo(ENUM);
+				.getSchema(UserCredential.DEFAULT_SCHEMA).getMetadata(AGENT_STATUS).getType()).isEqualTo(ENUM);
 
 	}
 
@@ -187,8 +187,8 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(
 				Collection.SYSTEM_COLLECTION);
 
-		assertThat(metadataSchemaTypes.getSchema(SolrUserCredential.DEFAULT_SCHEMA)
-				.getMetadata(SolrUserCredential.PERSONAL_EMAILS).getLabel(Language.French)).isEqualTo("Courriels personnels");
+		assertThat(metadataSchemaTypes.getSchema(UserCredential.DEFAULT_SCHEMA)
+				.getMetadata(UserCredential.PERSONAL_EMAILS).getLabel(Language.French)).isEqualTo("Courriels personnels");
 
 	}
 

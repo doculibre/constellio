@@ -5,7 +5,7 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -33,8 +33,8 @@ public class CoreMigrationTo_7_7_4_11 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaBuilder defaultSchema = typesBuilder.getDefaultSchema(SolrUserCredential.SCHEMA_TYPE);
-			defaultSchema.get(SolrUserCredential.SERVICE_KEY).setUniqueValue(true);
+			MetadataSchemaBuilder defaultSchema = typesBuilder.getDefaultSchema(UserCredential.SCHEMA_TYPE);
+			defaultSchema.get(UserCredential.SERVICE_KEY).setUniqueValue(true);
 		}
 	}
 }

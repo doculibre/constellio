@@ -44,27 +44,27 @@ public class CmisAuthenticationAcceptanceTest extends ConstellioTest {
 		Role anotherCollectionRole = new Role("anotherCollection", "zeRole", asList(CorePermissions.USE_EXTERNAL_APIS_FOR_COLLECTION));
 		getModelLayerFactory().getRolesManager().addRole(anotherCollectionRole);
 
-		userServices.addUpdateUserCredential(users.bob().withServiceKey(bobServiceKey));
+		userServices.addUpdateUserCredential(users.bob().setServiceKey(bobServiceKey));
 		bobToken = userServices.generateToken(users.bob().getUsername());
 
-		userServices.addUpdateUserCredential(users.dakotaLIndien().withServiceKey(dakotaServiceKey));
+		userServices.addUpdateUserCredential(users.dakotaLIndien().setServiceKey(dakotaServiceKey));
 		dakotaToken = userServices.generateToken(users.dakotaLIndien().getUsername());
 		getModelLayerFactory().newRecordServices().update(users.dakotaLIndienIn(zeCollection).setUserRoles(role.getCode()));
 
-		userServices.addUpdateUserCredential(users.robin().withServiceKey(robinServiceKey));
+		userServices.addUpdateUserCredential(users.robin().setServiceKey(robinServiceKey));
 		robinToken = userServices.generateToken(users.robin().getUsername());
 		getModelLayerFactory().newRecordServices().update(users.robinIn(zeCollection).setUserRoles(role.getCode()));
 		getModelLayerFactory().newRecordServices().update(users.robinIn("anotherCollection").setUserRoles(role.getCode()));
 
 		adminToken = userServices.generateToken(users.admin().getUsername());
-		userServices.addUpdateUserCredential(users.admin().withServiceKey(adminServiceKey).withSystemAdminPermission());
+		userServices.addUpdateUserCredential(users.admin().setServiceKey(adminServiceKey).setSystemAdminEnabled());
 
 		robinToken = userServices.generateToken(users.robin().getUsername());
-		userServices.addUpdateUserCredential(users.robin().withServiceKey(robinServiceKey).withSystemAdminPermission());
+		userServices.addUpdateUserCredential(users.robin().setServiceKey(robinServiceKey).setSystemAdminEnabled());
 
 		userServices
-				.addUpdateUserCredential(users.chuckNorris().withServiceKey(chuckNorrisServiceKey).withSystemAdminPermission()
-						.withCollections(asList(zeCollection)));
+				.addUpdateUserCredential(users.chuckNorris().setServiceKey(chuckNorrisServiceKey).setSystemAdminEnabled()
+						.setCollections(asList(zeCollection)));
 		chuckNorrisToken = userServices.generateToken(users.chuckNorris().getUsername());
 
 		userServices.addUserToCollection(users.admin(), zeCollection);

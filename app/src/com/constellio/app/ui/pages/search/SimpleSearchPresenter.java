@@ -202,15 +202,19 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.setPageNumber(pageNumber);
 	}
 
-	private List<MetadataSchemaType> allowedSchemaTypes() {
+	protected List<MetadataSchemaType> allowedSchemaTypes() {
 		List<MetadataSchemaType> result = new ArrayList<>();
-		for (MetadataSchemaType type : types().getSchemaTypes()) {
-			SchemaTypeDisplayConfig config = schemasDisplayManager()
-					.getType(view.getSessionContext().getCurrentCollection(), type.getCode());
-			if (config.isSimpleSearch() && isVisibleForUser(type, getCurrentUser())) {
-				result.add(type);
+		if(types() != null) {
+			for (MetadataSchemaType type : types().getSchemaTypes()) {
+				SchemaTypeDisplayConfig config = schemasDisplayManager()
+						.getType(view.getSessionContext().getCurrentCollection(), type.getCode());
+				if (config.isSimpleSearch() && isVisibleForUser(type, getCurrentUser())) {
+					result.add(type);
+				}
 			}
 		}
+
+
 		return result;
 	}
 

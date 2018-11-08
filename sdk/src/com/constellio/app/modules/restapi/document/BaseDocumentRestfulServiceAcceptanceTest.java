@@ -125,10 +125,10 @@ public class BaseDocumentRestfulServiceAcceptanceTest extends ConstellioTest {
 		dateFormat = getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
 		dateTimeFormat = getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_TIME_FORMAT);
 
-		userServices.addUpdateUserCredential(users.bob().withServiceKey(serviceKey)
-				.withAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
-		userServices.addUpdateUserCredential(users.sasquatch().withServiceKey(sasquatchServiceKey)
-				.withAccessToken(sasquatchToken, TimeProvider.getLocalDateTime().plusYears(1)));
+		userServices.addUpdateUserCredential(users.bob().setServiceKey(serviceKey)
+				.addAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
+		userServices.addUpdateUserCredential(users.sasquatch().setServiceKey(sasquatchServiceKey)
+				.addAccessToken(sasquatchToken, TimeProvider.getLocalDateTime().plusYears(1)));
 
 		givenConfig(RestApiConfigs.REST_API_URLS, "localhost:7070; localhost2");
 		givenTimeIs(fakeDate);
