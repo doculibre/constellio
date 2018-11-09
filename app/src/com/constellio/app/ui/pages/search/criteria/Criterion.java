@@ -1,5 +1,9 @@
 package com.constellio.app.ui.pages.search.criteria;
 
+import java.io.Serializable;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -167,11 +171,15 @@ public class Criterion implements Serializable, ModifiableStructure {
 	}
 
 	public boolean isNotEmpty() {
-		return metadataCode != null && value != null
-			   || searchOperator == SearchOperator.IS_FALSE
-			   || searchOperator == SearchOperator.IS_TRUE
-			   || searchOperator == SearchOperator.IS_NULL
-			   || searchOperator == SearchOperator.IS_NOT_NULL
+		Boolean stringValueIsNotEmpty = true;
+		if (value instanceof String) {
+			stringValueIsNotEmpty = !StringUtils.isBlank((String) value);
+		}
+		return metadataCode != null && value != null && stringValueIsNotEmpty
+				|| searchOperator == SearchOperator.IS_FALSE
+				|| searchOperator == SearchOperator.IS_TRUE
+				|| searchOperator == SearchOperator.IS_NULL
+				|| searchOperator == SearchOperator.IS_NOT_NULL
 				;
 	}
 
