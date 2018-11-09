@@ -1,12 +1,7 @@
 package com.constellio.app.modules.rm.reports.model.search;
 
-import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
-import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.reports.model.excel.BaseExcelReportPresenter;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
-import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Report;
@@ -14,7 +9,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.reports.ReportServices;
@@ -34,7 +28,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
 public class SearchResultReportPresenter extends BaseExcelReportPresenter {
@@ -125,7 +118,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 		return searchServices.query(new LogicalSearchQuery(newSearchQuery).setReturnedMetadatas(returnMetadata)).getRecords();
 	}
 
-	private List<Object> getRecordLine(Record record, List<Metadata> orderedEnabledReportedMetadataList) {
+	protected List<Object> getRecordLine(Record record, List<Metadata> orderedEnabledReportedMetadataList) {
 		List<Object> returnList = new ArrayList<>();
 		for (Metadata metadata : orderedEnabledReportedMetadataList) {
 			Object metadataValue = record.get(metadata, locale);
@@ -140,7 +133,7 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 		return returnList;
 	}
 
-	private Object getConvertedValue(Metadata metadata, Object metadataValue) {
+	protected Object getConvertedValue(Metadata metadata, Object metadataValue) {
 		if (metadata.isMultivalue()) {
 			List<Object> items = (List) metadataValue;
 			List<Object> convertedValue = new ArrayList<>();
@@ -156,8 +149,6 @@ public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 		}
 
 	}
-
-	private Object getConvertedScalarValue(Metadata metadata, Object metadataValue) {
 
 
 	private List<ReportedMetadata> getReportedMetadataList(ReportServices reportServices) {
