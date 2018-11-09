@@ -16,6 +16,8 @@ import com.constellio.model.services.users.sync.LDAPFastBind;
 import com.constellio.model.services.users.sync.RuntimeNamingException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.joda.time.Duration;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
