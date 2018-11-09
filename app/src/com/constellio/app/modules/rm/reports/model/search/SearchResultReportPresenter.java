@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.reports.model.search;
 
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.reports.model.excel.BaseExcelReportPresenter;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.framework.components.converters.EnumWithSmallCodeToCaptionConverter;
@@ -36,7 +37,7 @@ import java.util.Locale;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class SearchResultReportPresenter {
+public class SearchResultReportPresenter extends BaseExcelReportPresenter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchResultReportPresenter.class);
 	static int LIMIT = 10000;
 	static int BATCH_SIZE = 100;
@@ -46,20 +47,17 @@ public class SearchResultReportPresenter {
 	private final String username;
 	private final String reportTitle;
 	private final LogicalSearchQuery searchQuery;
-	private final AppLayerFactory appLayerFactory;
-	private final Locale locale;
 
 	public SearchResultReportPresenter(AppLayerFactory appLayerFactory, List<String> selectedRecords, String schemaType,
 									   String collection, String username,
 									   String reportTitle, LogicalSearchQuery searchQuery, Locale locale) {
+		super(appLayerFactory, locale, collection);
 		this.selectedRecords = selectedRecords;
 		this.schemaTypeCode = schemaType;
 		this.collection = collection;
 		this.username = username;
 		this.reportTitle = reportTitle;
 		this.searchQuery = searchQuery;
-		this.appLayerFactory = appLayerFactory;
-		this.locale = locale;
 	}
 
 	public SearchResultReportModel buildModel(ModelLayerFactory modelLayerFactory) {
@@ -161,38 +159,6 @@ public class SearchResultReportPresenter {
 
 	private Object getConvertedScalarValue(Metadata metadata, Object metadataValue) {
 
-		if (metadata.getType() == MetadataValueType.REFERENCE) {
-			String referenceId = (String) metadataValue;
-			if (referenceId != null) {
-				Record record = appLayerFactory.getModelLayerFactory().newRecordServices().getDocumentById(referenceId);
-				String code = record.get(Schemas.CODE);
-				String title = record.get(Schemas.TITLE);
-				if (code == null || !metadata.isDefaultRequirement()) {
-					return title;
-				} else {
-					return code + "-" + title;
-				}
-			}
-		} else if (metadata.getType() == MetadataValueType.BOOLEAN) {
-			return metadataValue.equals(true) ? $("yes") : $("no");
-		} else if (metadata.getType() == MetadataValueType.TEXT) {
-			SchemasDisplayManager schemasManager = appLayerFactory.getMetadataSchemasDisplayManager();
-			MetadataDisplayConfig config = schemasManager.getMetadata(collection, metadata.getCode());
-			if (config.getInputType().equals(MetadataInputType.RICHTEXT)) {
-				String result = metadataValue.toString().replaceAll("<br>", "\n");
-				result = result.replace("&nbsp;", "");
-				result = result.replaceAll("<li>", "\n");
-				result = result.replaceAll("\\<[^>]*>", "");
-				return result;
-			}
-		} else if (metadata.getType() == MetadataValueType.ENUM) {
-			EnumWithSmallCodeToCaptionConverter captionConverter =
-					new EnumWithSmallCodeToCaptionConverter((Class<? extends EnumWithSmallCode>) metadataValue.getClass());
-			return captionConverter.convertToPresentation(((EnumWithSmallCode) metadataValue).getCode(), String.class, locale);
-		}
-
-		return metadataValue;
-	}
 
 	private List<ReportedMetadata> getReportedMetadataList(ReportServices reportServices) {
 		Report report = reportServices.getUserReport(username, schemaTypeCode, reportTitle);
