@@ -14,6 +14,7 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -22,6 +23,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.users.UserServices;
@@ -118,7 +120,13 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 			if (collectionExtensions.lockedRecords.contains($("ListSchemaTypeView.schemaCode"), schemaCode.split("_")[1])) {
 				view.showMessage($("ListSchemaTypeView.message"));
 			} else {
-				appSchemasServices.deleteSchemaCode(collection, schemaCode);
+				try {
+					appSchemasServices.deleteSchemaCode(collection, schemaCode);
+				} catch (RecordServicesException e) {
+					if (e instanceof RecordServicesException.ValidationException) {
+						view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(((RecordServicesException.ValidationException) e).getErrors()));
+					}
+				}
 				view.navigate().to().listSchema(ParamUtils.addParams("", parameters));
 			}
 		} else {

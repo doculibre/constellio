@@ -46,6 +46,7 @@ import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresent
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.batchprocess.AsyncTask;
@@ -202,8 +203,8 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			return;
 		}
 		for (Record record : recordServices().getRecordsById(view.getCollection(), getAllCartItems())) {
-			if (modelLayerExtensions.isDeleteBlocked(record, getCurrentUser())) {
-				view.showErrorMessage($("CartView.actionBlockedByExtension"));
+			if (!modelLayerExtensions.isDeleteAuthorized(record, getCurrentUser())) {
+				view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(modelLayerExtensions.getDeletionAuthorizationValidationErrors(record, getCurrentUser())));
 				return;
 			}
 		}

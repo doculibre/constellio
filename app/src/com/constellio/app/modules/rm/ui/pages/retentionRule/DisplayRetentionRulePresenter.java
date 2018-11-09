@@ -20,6 +20,7 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -67,11 +68,11 @@ public class DisplayRetentionRulePresenter extends SingleSchemaBasePresenter<Dis
 	}
 
 	@Override
-	public boolean isDeletable(RecordVO entity) {
+	public ValidationErrors validateDeletable(RecordVO entity) {
 		RecordServices recordService = modelLayerFactory.newRecordServices();
 		Record record = getRecord(entity.getId());
 		User user = getCurrentUser();
-		return recordService.isLogicallyDeletable(record, user);
+		return recordService.validateLogicallyDeletable(record, user);
 	}
 
 	@Override

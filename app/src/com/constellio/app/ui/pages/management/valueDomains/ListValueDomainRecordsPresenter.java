@@ -10,6 +10,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.schemaRecords.SchemaRecordsPresentersServices;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
@@ -102,7 +103,7 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 			try {
 				recordServices.logicallyDelete(record, User.GOD);
 			} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-				view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotLogicallyDelete"));
+				view.showErrorMessage(MessageUtils.toMessage(e));
 			}
 		}
 
@@ -110,7 +111,7 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 			try {
 				recordServices.physicallyDelete(record, User.GOD);
 			} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord e) {
-				view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotPhysicallyDelete"));
+				view.showErrorMessage(MessageUtils.toMessage(e));
 			}
 		}
 
@@ -137,7 +138,7 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 		try {
 			recordServices.logicallyDelete(record, User.GOD);
 		} catch (RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-			view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotLogicallyDelete"));
+			view.showErrorMessage(MessageUtils.toMessage(e));
 		}
 
 		view.refreshTables();
@@ -186,7 +187,7 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 				try {
 					recordServices().physicallyDelete(record, User.GOD);
 				} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord e) {
-					view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotPhysicallyDelete"));
+					view.showErrorMessage(MessageUtils.toMessage(e));
 				}
 			}
 		}

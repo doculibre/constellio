@@ -9,6 +9,8 @@ import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
+import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentManagerRuntimeException;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -69,10 +71,12 @@ public class RMEmailDocumentRecordExtension extends RecordExtension {
 	}
 
 	@Override
-	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+	public ExtensionValidationErrors isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		if (DocumentType.SCHEMA_TYPE.equals(event.getSchemaTypeCode())
 			&& DocumentType.EMAIL_DOCUMENT_TYPE.equals(event.getRecord().get(CODE))) {
-			return ExtensionBooleanResult.FALSE;
+			ValidationErrors validationErrors = new ValidationErrors();
+			validationErrors.add(RMEmailDocumentRecordExtension.class, "cannotDeleteEmailDocumentType");
+			return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.FALSE);
 		}
 		return super.isLogicallyDeletable(event);
 	}

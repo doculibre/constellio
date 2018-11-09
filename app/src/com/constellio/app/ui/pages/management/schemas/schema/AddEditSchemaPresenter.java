@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.data.MetadataVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
@@ -18,6 +19,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.MetadataSchemasManagerException.OptimisticLocking;
 import com.constellio.model.services.schemas.SchemaUtils;
@@ -167,8 +169,14 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 
 			if (modifyExistingSchemaCode) {
 				AppSchemasServices appSchemasServices = new AppSchemasServices(appLayerFactory);
-				if (appSchemasServices.modifySchemaCode(collection, initialSchemaCode, code)) {
-					view.showMessage($("AddEditSchemaView.codechangeRequireRecordModification"));
+				try {
+					if (appSchemasServices.modifySchemaCode(collection, initialSchemaCode, code)) {
+						view.showMessage($("AddEditSchemaView.codechangeRequireRecordModification"));
+					}
+				} catch (RecordServicesException e) {
+					if (e instanceof RecordServicesException.ValidationException) {
+						view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(((RecordServicesException.ValidationException) e).getErrors()));
+					}
 				}
 			}
 
