@@ -117,8 +117,8 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 			typesBuilder.getSchemaType(Task.SCHEMA_TYPE).setSmallCode("t");
 			typesBuilder.getSchemaType(ContainerRecord.SCHEMA_TYPE).setSmallCode("c");
 
-			if (typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(Schemas.NON_TAXONOMY_AUTHORIZATIONS.getLocalCode())
-						.getType() == MetadataValueType.REFERENCE) {
+//			if (typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(Schemas.NON_TAXONOMY_AUTHORIZATIONS.getLocalCode())
+//						.getType() == MetadataValueType.REFERENCE) {
 
 				typesBuilder.getSchema(Document.DEFAULT_SCHEMA).getMetadata(Schemas.TOKENS.getLocalCode())
 						.defineDataEntry().asCalculated(TokensCalculator4.class);
@@ -143,7 +143,7 @@ public class RMMigrationTo7_6_6 implements MigrationScript {
 							.setType(STRING).setMultivalue(true)
 							.defineDataEntry().asUnion(documentFolder, documentTokensHierarchy);
 				}
-			}
+			//}
 			MetadataSchemaTypeBuilder builder = typesBuilder.createNewSchemaType(BagInfo.SCHEMA_TYPE);
 			MetadataSchemaBuilder defaultBagInfoSchema = builder.getDefaultSchema();
 

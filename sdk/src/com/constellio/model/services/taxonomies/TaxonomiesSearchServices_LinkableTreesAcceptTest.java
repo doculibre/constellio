@@ -19,6 +19,7 @@ import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -111,6 +112,7 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		zeSasquatch = userServices.getUserInCollection(sasquatch, zeCollection);
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(false));
 
+		waitForBatchProcess();
 		invalidateCachesOfRMSchemas();
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(AdministrativeUnit.SCHEMA_TYPE);
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
@@ -3649,5 +3651,19 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 				getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateRecordsOfType(schemaType.getCode());
 			}
 		}
+	}
+
+	@Override
+	protected void givenConfig(SystemConfiguration config, Object value) {
+		super.givenConfig(config, value);
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		queriesCount.set(0);
+		facetsCount.set(0);
+		returnedDocumentsCount.set(0);
+
 	}
 }

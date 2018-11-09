@@ -7,9 +7,6 @@ import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentIte
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -152,8 +149,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return buildRecordTreeOrRecordMultiTree((RecordTree) tabSource);
 			case CUSTOM_ITEM:
 				return buildCustomComponent((CustomItem) tabSource);
-			case CUSTOM_SHEET:
-				return buildCustomSheet((PageItem.RecordTabSheet) tabSource);
 			default:
 				throw new RuntimeException("Unsupported tab type : " + tabSource.getType());
 		}
@@ -270,27 +265,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		};
 	}
 
-	private Component buildCustomSheet(PageItem.RecordTabSheet recordTabSheet) {
-		List<RecordVODataProvider> providers = recordTabSheet.getDataProviders(
-				getConstellioFactories().getAppLayerFactory(), getSessionContext());
-		TabSheet costumTabSheet = new TabSheet();
-		for (RecordVODataProvider provider : providers) {
-			switch (provider.getSchema().getTypeCode()) {
-				case Folder.SCHEMA_TYPE:
-					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.folders"));
-					break;
-				case Document.SCHEMA_TYPE:
-					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.documents"));
-					break;
-				case ContainerRecord.SCHEMA_TYPE:
-					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.containers"));
-					break;
-			}
-
-		}
-		return costumTabSheet;
-	}
-
 	private Component buildRecordTreeOrRecordMultiTree(RecordTree recordTree) {
 		List<RecordLazyTreeDataProvider> providers = recordTree.getDataProviders(
 				getConstellioFactories().getAppLayerFactory(), getSessionContext());
@@ -360,7 +334,17 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	private Component buildCustomComponent(CustomItem tabSource) {
-		Component component = tabSource.buildCustomComponent(getConstellioFactories(), getSessionContext());
+		ItemClickListener itemClickListener = new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				if (event.getButton() == MouseButton.LEFT) {
+					RecordVOItem recordItem = (RecordVOItem) event.getItem();
+					RecordVO recordVO = recordItem.getRecord();
+					presenter.recordClicked(recordVO.getId(), null);
+				}
+			}
+		};
+		Component component = tabSource.buildCustomComponent(getConstellioFactories(), getSessionContext(), itemClickListener);
 		if (component instanceof BaseViewImpl) {
 			((BaseViewImpl) component).enter(null);
 		}

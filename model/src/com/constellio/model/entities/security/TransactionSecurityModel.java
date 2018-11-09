@@ -221,16 +221,6 @@ public class TransactionSecurityModel implements SecurityModel {
 
 	}
 
-	protected void addActiveAuthorizations(List<String> returnedIds,
-										   List<SecurityModelAuthorization> metadataAuths) {
-		for (SecurityModelAuthorization auth : metadataAuths) {
-			Authorization authorizationDetails = (Authorization) auth.getDetails();
-			if (authorizationDetails.isActiveAuthorization()) {
-				returnedIds.add(authorizationDetails.getId());
-			}
-		}
-	}
-
 
 	public static boolean hasActiveOverridingAuth(List<SecurityModelAuthorization> authorizations) {
 		for (SecurityModelAuthorization auth : authorizations) {

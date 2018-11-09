@@ -38,8 +38,6 @@ import java.util.List;
 
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.NON_TAXONOMY_AUTHORIZATIONS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -261,11 +259,9 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
-				.containsOnly("allRemovedAuths", "attachedAncestors", "path", "taxo1FirstSchemaMetaWithTaxoDependency",
-						NON_TAXONOMY_AUTHORIZATIONS, TOKENS);
+				.containsOnly("allRemovedAuths", "attachedAncestors", "path", "taxo1FirstSchemaMetaWithTaxoDependency");
 		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
-				.containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "path",
-						NON_TAXONOMY_AUTHORIZATIONS, TOKENS);
+				.containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "path");
 		assertThat(impacts.get(0).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1FirstSchema.type()).whereAny(
 						asList(taxonomy1FirstSchema.parent())).isIn(asList(record)));
@@ -279,11 +275,9 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
-				.containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "path",
-						NON_TAXONOMY_AUTHORIZATIONS, TOKENS);
+				.containsOnly("allRemovedAuths", "taxo1SecondSchemaMetaWithTaxoDependency", "attachedAncestors", "path");
 		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
-				.containsOnly("allRemovedAuths", "folderMetaWithTaxoDependency", "attachedAncestors", "path",
-						NON_TAXONOMY_AUTHORIZATIONS, TOKENS);
+				.containsOnly("allRemovedAuths", "folderMetaWithTaxoDependency", "attachedAncestors", "path");
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(taxonomy1SecondSchema.type()).whereAny(
 						asList(taxonomy1SecondSchema.parentOfType2())).isIn(asList(record)));
@@ -298,10 +292,10 @@ public class ModificationImpactCalculator_HierarchiesAcceptanceTest extends Cons
 		assertThat(impacts).hasSize(2);
 		assertThat(impacts.get(1).getMetadataToReindex()).extracting("localCode")
 				.containsOnly("folderMetaWithTaxoDependency", ALL_REMOVED_AUTHS,
-						ATTACHED_ANCESTORS, "path", NON_TAXONOMY_AUTHORIZATIONS, TOKENS);
+						ATTACHED_ANCESTORS, "path");
 		assertThat(impacts.get(0).getMetadataToReindex()).extracting("localCode")
 				.containsOnly("documentMetaWithTaxoDependency", ALL_REMOVED_AUTHS,
-						ATTACHED_ANCESTORS, "path", NON_TAXONOMY_AUTHORIZATIONS, TOKENS);
+						ATTACHED_ANCESTORS, "path");
 		assertThat(impacts.get(1).getLogicalSearchCondition())
 				.isEqualTo(LogicalSearchQueryOperators.from(folderSchema.type()).whereAny(
 						asList(folderSchema.parent())).isIn(asList(record)));
