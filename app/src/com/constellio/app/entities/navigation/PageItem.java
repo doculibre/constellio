@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.data.RecordLazyTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.ui.Component;
 import org.joda.time.LocalDateTime;
 
@@ -16,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class PageItem implements CodedItem, Serializable {
-	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, RECORD_TREE, CUSTOM_ITEM, CUSTOM_SHEET}
+	public enum Type {RECENT_ITEM_TABLE, RECORD_TABLE, RECORD_TREE, CUSTOM_ITEM}
 
 	private final String code;
 	private final Type type;
@@ -115,21 +116,12 @@ public abstract class PageItem implements CodedItem, Serializable {
 
 	}
 
-	public static abstract class RecordTabSheet extends PageItem {
-		public RecordTabSheet(String code) {
-			super(code, Type.CUSTOM_SHEET);
-		}
-
-		public abstract List<RecordVODataProvider> getDataProviders(
-				AppLayerFactory appLayerFactory, SessionContext sessionContext);
-
-	}
-
 	public static abstract class CustomItem extends PageItem {
 		public CustomItem(String code) {
 			super(code, Type.CUSTOM_ITEM);
 		}
 
-		public abstract Component buildCustomComponent(ConstellioFactories factories, SessionContext context);
+		public abstract Component buildCustomComponent(ConstellioFactories factories, SessionContext context,
+													   ItemClickEvent.ItemClickListener itemClickListener);
 	}
 }
