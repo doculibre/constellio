@@ -21,12 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class SchemaTypeExcelGenerator extends BaseExcelReportWriter {
+public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 	MetadataSchemaType metadataSchemaType;
 	Locale locale;
 	AppLayerFactory appLayerFactory;
 
-	public SchemaTypeExcelGenerator(MetadataSchemaType metadataSchemaType, AppLayerFactory appLayerFactory, Locale locale) {
+	public SchemaTypeExcelReportWriter(MetadataSchemaType metadataSchemaType, AppLayerFactory appLayerFactory, Locale locale) {
 		this.metadataSchemaType = metadataSchemaType;
 		this.locale = locale;
 		this.appLayerFactory = appLayerFactory;

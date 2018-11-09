@@ -10,7 +10,6 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.constellio.app.ui.framework.containers.SchemaTypeVOLazyContainer;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
-import com.constellio.app.ui.framework.data.writter.SchemaTypeExcelGenerator;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.data.Container;
 import com.vaadin.event.ItemClickEvent;
@@ -43,7 +42,6 @@ public class ListSchemaTypeViewImpl extends BaseViewImpl implements ListSchemaTy
 	public static final String TYPE_TABLE = "types";
 	private TabSheet sheet = new TabSheet();
 	private List<TabWithTable> tabs = new ArrayList<>();
-	SchemaTypeExcelGenerator schemaTypeExcelGenerator;
 
 	public static final Resource ICON_EXCEL_RESOURCE = new ThemeResource("images/icons/excel-metadata-generate.png");
 
