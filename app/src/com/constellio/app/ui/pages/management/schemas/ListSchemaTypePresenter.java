@@ -5,24 +5,18 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
-import com.constellio.app.ui.framework.data.writter.SchemaTypeExcelGenerator;
+import com.constellio.app.ui.framework.data.writter.SchemaTypeExcelReportWriter;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import org.apache.solr.schema.SchemaManager;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,7 +65,7 @@ public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchem
  	{
 		String titre = schemaTypeVO.getLabel(Language
 				.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
-		SchemaTypeExcelGenerator schemaTypeExcelGenerator = new SchemaTypeExcelGenerator(schemaManager.getSchemaTypes(collection).getSchemaType(schemaTypeVO.getCode()), appLayerFactory, getCurrentLocale());
+		SchemaTypeExcelReportWriter schemaTypeExcelGenerator = new SchemaTypeExcelReportWriter(schemaManager.getSchemaTypes(collection).getSchemaType(schemaTypeVO.getCode()), appLayerFactory, getCurrentLocale());
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		schemaTypeExcelGenerator.write(byteArrayOutputStream);
 
