@@ -49,7 +49,7 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 		//				.getDocument())).doesNotContain("6f9b7e63-a6c1-4783-9143-1e69edf34b4c");
 
 		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
-		List<String> bobTokens = getModelLayerFactory().newUserServices().getUserCredential("bob").getTokenKeys();
+		List<String> bobTokens = getModelLayerFactory().newUserServices().getUserCredential("alice").getTokenKeys();
 		assertThat(adminTokens).containsOnly("6f9b7e63-a6c1-4783-9143-1e69edf34b4c");
 		assertThat(bobTokens).isEmpty();
 
