@@ -81,7 +81,7 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 				tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 
 				for (User user : schemas.wrapUsers(records)) {
-					tx.add(user.set(userAllAuthsMetadata, new ArrayList<>()).set(userAuthsMetadata, new ArrayList<>()));
+					tx.add((User) user.set(userAllAuthsMetadata, new ArrayList<>()).set(userAuthsMetadata, new ArrayList<>()));
 				}
 
 				recordServices.executeWithoutImpactHandling(tx);
@@ -96,7 +96,7 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 				tx.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
 
 				for (Group group : schemas.wrapGroups(records)) {
-					tx.add(group.set(groupAuthsMetadata, new ArrayList<>()));
+					tx.add((Group) group.set(groupAuthsMetadata, new ArrayList<>()));
 				}
 
 				recordServices.executeWithoutImpactHandling(tx);

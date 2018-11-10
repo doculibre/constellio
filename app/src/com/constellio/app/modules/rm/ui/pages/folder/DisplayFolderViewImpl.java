@@ -633,6 +633,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			});
 			final Table table = new RecordVOTable();
+			table.addStyleName("folder-content-table");
 			table.setSizeFull();
 			table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 			table.addItemClickListener(new ItemClickListener() {
