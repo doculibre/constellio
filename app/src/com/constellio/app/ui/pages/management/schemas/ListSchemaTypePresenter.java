@@ -5,20 +5,31 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataSchemaTypeVO;
 import com.constellio.app.ui.framework.builders.MetadataSchemaTypeToVOBuilder;
 import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
+import com.constellio.app.ui.framework.data.writter.SchemaTypeExcelReportWriter;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchemaTypeView> {
 
+	private IOServices ioServices;
+	MetadataSchemasManager schemaManager;
+
 	public ListSchemaTypePresenter(ListSchemaTypeView view) {
 		super(view);
+		ioServices = view.getConstellioFactories().getIoServicesFactory().newIOServices();
+		schemaManager = modelLayerFactory.getMetadataSchemasManager();
 	}
 
 	@Override
@@ -48,6 +59,18 @@ public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchem
 		paramsMap.put("schemaTypeCode", schemaTypeVO.getCode());
 		String params = ParamUtils.addParams(NavigatorConfigurationService.LIST_ONGLET, paramsMap);
 		view.navigate().to().listTabDisplayForm(params);
+	}
+
+	public void generateExcelWithMetadataInfo(MetadataSchemaTypeVO schemaTypeVO)
+ 	{
+		String titre = schemaTypeVO.getLabel(Language
+				.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
+		SchemaTypeExcelReportWriter schemaTypeExcelGenerator = new SchemaTypeExcelReportWriter(schemaManager.getSchemaTypes(collection).getSchemaType(schemaTypeVO.getCode()), appLayerFactory, getCurrentLocale());
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		schemaTypeExcelGenerator.write(byteArrayOutputStream);
+
+
+		view.startDownload(titre +".xls", new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), "xls");
 	}
 
 	public void backButtonClicked() {

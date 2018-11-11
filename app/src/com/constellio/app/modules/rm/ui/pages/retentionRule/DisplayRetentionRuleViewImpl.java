@@ -115,7 +115,7 @@ public class DisplayRetentionRuleViewImpl extends BaseViewImpl implements Displa
 				presenter.deleteButtonClicked();
 			}
 		};
-		deleteButton.setEnabled(presenter.isDeletable(retentionRuleVO));
+		deleteButton.setEnabled(presenter.validateDeletable(retentionRuleVO).isEmpty());
 
 		actionMenuButtons.add(editButton);
 		actionMenuButtons.add(deleteButton);

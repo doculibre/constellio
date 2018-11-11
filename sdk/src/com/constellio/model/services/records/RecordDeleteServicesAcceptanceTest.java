@@ -8,6 +8,7 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.services.records.RecordDao;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
@@ -19,6 +20,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords;
 import com.constellio.model.services.records.utils.SortOrder;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -35,9 +37,11 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
@@ -158,9 +162,31 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		transaction.add(aDocument);
 		recordServices.execute(transaction);
 
-		assertThat(deleteService.isLogicallyThenPhysicallyDeletable(childConcept, users.adminIn(zeCollection))).isFalse();
-		assertThat(deleteService.isLogicallyDeletable(childConcept, users.adminIn(zeCollection))).isTrue();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(deleteService.isLogicallyThenPhysicallyDeletable(childConcept, users.adminIn(zeCollection)))).isEqualTo("Vous ne pouvez pas supprimer définitivement cet enregistrement, car un enregistrement dans sa hiérachie est référecié en dehors de cette dernière\n");
+		assertThat(deleteService.isLogicallyDeletable(childConcept, users.adminIn(zeCollection)).isEmpty()).isTrue();
 	}
+
+	//@Test
+	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk()
+			throws Exception {
+		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
+		recordServices.refresh(parentFolderInCategory_A);
+		try {
+			deleteService.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
+					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+			fail("should find dependent references");
+		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
+			Set<String> relatedRecords = e.getRecordsIdsWithUnremovableReferences();
+			assertThat(relatedRecords).contains(taskReferencesFolderB.getId())
+					.doesNotContain(subFolder_B.getId(), category.getId());
+
+			recordServices.refresh(parentFolderInCategory_A);
+
+			//TODO Nouha, pourquoi la catégorie serait nulle, c'est un champ obligatoire??
+			assertThat(parentFolderInCategory_A.getCategory()).isNull();
+		}
+	}
+
 
 	@Test
 	public void givenRecordsWithSimilarNamesThenMakeSureThatOnlyCorrectRecordsAreDeleted() {

@@ -20,8 +20,6 @@ public class UserTokensCalculator2 implements MetadataValueCalculator<List<Strin
 
 	@Override
 	public List<String> calculate(CalculatorParameters parameters) {
-		//		return TokensCalculator2.getTokensForAuthorizationIds(parameters.get(allAuthorizationsParam),
-		//				parameters.get(manualTokensParam));
 		return new ArrayList<>();
 	}
 

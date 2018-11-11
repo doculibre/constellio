@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
@@ -59,10 +60,10 @@ public class RMMediumTypeRecordExtensionAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCheckingIfMediumTypeLogicallyDeletableThenFalse() {
 		Record mediumType = rm.getMediumTypeByCode("DM").getWrappedRecord();
-		assertThat(recordServices.isLogicallyDeletable(mediumType, User.GOD)).isFalse();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(mediumType, User.GOD))).isEqualTo("Vous ne pouvez pas supprimer le disque magnétique\n");
 
 		mediumType = rm.getMediumTypeByCode("FI").getWrappedRecord();
-		assertThat(recordServices.isLogicallyDeletable(mediumType, User.GOD)).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(mediumType, User.GOD).isEmpty()).isTrue();
 	}
 
 	//

@@ -32,9 +32,20 @@ public class CoreMigrationTo_7_7_1_6 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
-			MetadataSchemaBuilder thesaurusConfig = typesBuilder.createNewSchemaType(ThesaurusConfig.SCHEMA_TYPE).getDefaultSchema();
-			thesaurusConfig.createUndeletable(ThesaurusConfig.CONTENT).setSystemReserved(true).setType(MetadataValueType.CONTENT);
-			thesaurusConfig.createUndeletable(ThesaurusConfig.DENINED_WORDS).setSystemReserved(true).setMultivalue(true).setType(MetadataValueType.STRING);
+			MetadataSchemaBuilder thesaurusConfig;
+			if(typesBuilder.hasSchemaType(ThesaurusConfig.SCHEMA_TYPE)) {
+				thesaurusConfig = typesBuilder.getDefaultSchema(ThesaurusConfig.SCHEMA_TYPE);
+			} else {
+				thesaurusConfig = typesBuilder.createNewSchemaType(ThesaurusConfig.SCHEMA_TYPE).getDefaultSchema();
+			}
+
+			if(!thesaurusConfig.hasMetadata(ThesaurusConfig.CONTENT)) {
+				thesaurusConfig.createUndeletable(ThesaurusConfig.CONTENT).setSystemReserved(true).setType(MetadataValueType.CONTENT);
+			}
+
+			if(!thesaurusConfig.hasMetadata(ThesaurusConfig.DENINED_WORDS)) {
+				thesaurusConfig.createUndeletable(ThesaurusConfig.DENINED_WORDS).setSystemReserved(true).setMultivalue(true).setType(MetadataValueType.STRING);
+			}
 		}
 	}
 }

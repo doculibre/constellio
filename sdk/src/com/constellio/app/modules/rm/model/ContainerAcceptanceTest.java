@@ -11,6 +11,7 @@ import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -155,7 +156,7 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 				.where(Schemas.LOGICALLY_DELETED_STATUS).isTrue());
 		SearchServices searchServices = getModelLayerFactory().newSearchServices();
 
-		//		assertThat(users.adminIn(zeCollection).has(RMPermissionsTo.DELETE_CONTAINERS).onSomething()).isTrue();
+		assertThat(users.adminIn(zeCollection).has(RMPermissionsTo.DELETE_CONTAINERS).onSomething()).isTrue();
 		assertThat(searchServices.getResultsCount(logicallyDeletedQuery.filteredWithUserDelete(users.adminIn(zeCollection)))).isEqualTo(1);
 
 		assertThat(users.aliceIn(zeCollection).has(RMPermissionsTo.DELETE_CONTAINERS).onSomething()).isFalse();
@@ -177,20 +178,21 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		recordServices.add(zeBoite);
 		recordServices.add(zeContainer);
 
+		String containerLinkedToTaskError = "Ce contenant ne peut pas être supprimé car il est lié à une tâche\n";
 		Task task = rm.newRMTask().setLinkedContainers(asList(zeContainer.getId())).setTitle("Task");
 		recordServices.add(task);
-		assertThat(recordServices.isLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(containerLinkedToTaskError);
 
 		recordServices.logicallyDelete(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(recordServices.isLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isTrue();
 
 		recordServices.restore(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(recordServices.isLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(containerLinkedToTaskError);
 
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		TasksSearchServices taskSearchServices = new TasksSearchServices(tasksSchemas);
 		recordServices.update(task.setStatus(taskSearchServices.getFirstFinishedStatus().getId()));
-		assertThat(recordServices.isLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isTrue();
 	}
 
 	@Test(expected = RecordServicesException.ValidationException.class)

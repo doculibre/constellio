@@ -149,7 +149,6 @@ import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
 import com.constellio.app.modules.rm.migrations.records.RMFolderMigrationTo8_1_1_1;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
-import com.constellio.app.modules.rm.navigation.DefaultFavoritesNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -363,7 +362,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	@Override
 	public void configureNavigation(NavigationConfig config) {
 		RMNavigationConfiguration.configureNavigation(config);
-		DefaultFavoritesNavigationConfiguration.configureNavigation(config);
 	}
 
 	@Override
@@ -553,6 +551,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 									.onSomething();
 						} else if (Role.WRITE.equals(access)) {
 							return user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
+
 						} else if (Role.DELETE.equals(access)) {
 							return user.has(RMPermissionsTo.DELETE_CONTAINERS).onSomething();
 						}

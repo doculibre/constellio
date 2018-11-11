@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.model.enums.DisposalType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.modules.rm.wrappers.type.VariableRetentionPeriod;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
@@ -160,42 +161,45 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 		//unitId_11b : 11
 		//unitId_12b : 10
 		//unitId_20d : 0
+		String referencedAndContainsRecordsErrorMessage = "Cette unité administrative ne peut pas être supprimée car elle est référenciée\nCette unité administrative ne peut pas être supprimée car elle contient un enregistrement\n";
+		String referencedRecordErrorMessage = "Cette unité administrative ne peut pas être supprimée car elle est référenciée\n";
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit10().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit10a().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit11().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit11b().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit12().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit12b().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(recordServices.validateLogicallyDeletable(records.getUnit12c().getWrappedRecord(), admin).isEmpty()).isTrue();
 
-		assertThat(recordServices.isLogicallyDeletable(records.getUnit10().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(records.getUnit10a().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(records.getUnit11().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(records.getUnit11b().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(records.getUnit12().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(records.getUnit12b().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(records.getUnit12c().getWrappedRecord(), admin)).isTrue();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit20().getWrappedRecord(), admin))).isEqualTo(referencedRecordErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit30c().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getUnit30().getWrappedRecord(), admin))).isEqualTo(referencedAndContainsRecordsErrorMessage);
 
-		assertThat(recordServices.isLogicallyDeletable(records.getUnit20().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(records.getUnit30c().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(records.getUnit30().getWrappedRecord(), admin)).isFalse();
+		String usedInConfigsError = "Vous ne pouvez pas supprimer définitivement cet enregistrement, car il est utilisé dans les configurations\n";
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit10().getWrappedRecord(), admin))).isEqualTo(usedInConfigsError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit10a().getWrappedRecord(), admin))).isEqualTo(usedInConfigsError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit11().getWrappedRecord(), admin))).isEqualTo(usedInConfigsError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit11b().getWrappedRecord(), admin))).isEqualTo(usedInConfigsError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit12().getWrappedRecord(), admin))).isEqualTo(usedInConfigsError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit12b().getWrappedRecord(), admin))).isEqualTo(usedInConfigsError);
+		assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit12c().getWrappedRecord(), admin).isEmpty()).isTrue();
 
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit10().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit10a().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit11().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit11b().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit12().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit12b().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit12c().getWrappedRecord(), admin)).isTrue();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit20().getWrappedRecord(), admin))).isEqualTo(usedInConfigsError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit30c().getWrappedRecord(), admin))).isEqualTo(usedInConfigsError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(records.getUnit30().getWrappedRecord(), admin))).isEqualTo(usedInConfigsError);
 
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit20().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit30c().getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(records.getUnit30().getWrappedRecord(), admin)).isFalse();
 	}
 
 	private org.assertj.core.api.BooleanAssert assertThatLogicallyDeletable(RecordWrapper recordWrapper,
 																			User user) {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-		return assertThat(recordServices.isLogicallyDeletable(recordWrapper.getWrappedRecord(), user));
+		return assertThat(recordServices.validateLogicallyDeletable(recordWrapper.getWrappedRecord(), user).isEmpty());
 	}
 
 	private org.assertj.core.api.BooleanAssert assertThatLogicallyThenPhysicallyDeletable(RecordWrapper recordWrapper,
 																						  User user) {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-		return assertThat(recordServices.isLogicallyThenPhysicallyDeletable(recordWrapper.getWrappedRecord(), user));
+		return assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(recordWrapper.getWrappedRecord(), user).isEmpty());
 	}
 
 	@Test
@@ -221,10 +225,11 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 		VariableRetentionPeriod period42 = rm.getVariableRetentionPeriodWithCode("42");
 		VariableRetentionPeriod period666 = rm.getVariableRetentionPeriodWithCode("666");
 
-		assertThat(recordServices.isLogicallyDeletable(period888.getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(period999.getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(period42.getWrappedRecord(), admin)).isTrue();
-		assertThat(recordServices.isLogicallyDeletable(period666.getWrappedRecord(), admin)).isTrue();
+		String cannotDeleteVariableRetentionPeriodError = "Vous ne pouvez pas supprimer cette variable de période de conservation car elle a un code égale à 888 ou 999\n";
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(period888.getWrappedRecord(), admin))).isEqualTo(cannotDeleteVariableRetentionPeriodError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(period999.getWrappedRecord(), admin))).isEqualTo(cannotDeleteVariableRetentionPeriodError);
+		assertThat(recordServices.validateLogicallyDeletable(period42.getWrappedRecord(), admin).isEmpty()).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(period666.getWrappedRecord(), admin).isEmpty()).isTrue();
 
 		CopyRetentionRule principal42_666_T = copyBuilder.newPrincipal(asList(rm.PA()))
 				.setActiveRetentionPeriod(RetentionPeriod.variable(period42))
@@ -236,25 +241,26 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 				.setCopyRetentionRules(asList(principal42_666_T, secondary2_0_D));
 		recordServices.add(rule);
 
-		assertThat(recordServices.isLogicallyDeletable(period888.getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(period999.getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(period42.getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(period666.getWrappedRecord(), admin)).isFalse();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(period888.getWrappedRecord(), admin))).isEqualTo(cannotDeleteVariableRetentionPeriodError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(period999.getWrappedRecord(), admin))).isEqualTo(cannotDeleteVariableRetentionPeriodError);
+		String variableRetentionRuleUserInRetentionRuleError = "Vous ne pouvez pas supprimer cette variable de période car elle est utilisé dans une règle de conservation\n";
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(period42.getWrappedRecord(), admin))).isEqualTo(variableRetentionRuleUserInRetentionRuleError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(period666.getWrappedRecord(), admin))).isEqualTo(variableRetentionRuleUserInRetentionRuleError);
 
 		rule.getCopyRetentionRules().get(0).setSemiActiveRetentionPeriod(RetentionPeriod.fixed(2));
 		recordServices.update(rule);
 
-		assertThat(recordServices.isLogicallyDeletable(period888.getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(period999.getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(period42.getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(period666.getWrappedRecord(), admin)).isTrue();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(period888.getWrappedRecord(), admin))).isEqualTo(cannotDeleteVariableRetentionPeriodError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(period999.getWrappedRecord(), admin))).isEqualTo(cannotDeleteVariableRetentionPeriodError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(period42.getWrappedRecord(), admin))).isEqualTo(variableRetentionRuleUserInRetentionRuleError);
+		assertThat(recordServices.validateLogicallyDeletable(period666.getWrappedRecord(), admin).isEmpty()).isTrue();
 
 		recordServices.logicallyDelete(rule.getWrappedRecord(), admin);
 
-		assertThat(recordServices.isLogicallyDeletable(period888.getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(period999.getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(period42.getWrappedRecord(), admin)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(period666.getWrappedRecord(), admin)).isTrue();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(period888.getWrappedRecord(), admin))).isEqualTo(cannotDeleteVariableRetentionPeriodError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(period999.getWrappedRecord(), admin))).isEqualTo(cannotDeleteVariableRetentionPeriodError);
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(period42.getWrappedRecord(), admin))).isEqualTo(variableRetentionRuleUserInRetentionRuleError);
+		assertThat(recordServices.validateLogicallyDeletable(period666.getWrappedRecord(), admin).isEmpty()).isTrue();
 	}
 
 }

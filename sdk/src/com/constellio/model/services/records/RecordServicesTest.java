@@ -46,6 +46,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.User
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
+import com.constellio.model.services.records.preparation.AggregatedMetadataIncrementation;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
@@ -778,7 +779,7 @@ public class RecordServicesTest extends ConstellioTest {
 		List<Record> records = asList((Record) firstUpdatedRecord, firstAddedRecord, secondAddedRecord, secondUpdatedRecord);
 		Set<String> idMarkedForReindexing = asSet("idNotInCache");
 
-		recordServices.refreshRecordsAndCaches(zeCollection, records, idMarkedForReindexing, anyList(),
+		recordServices.refreshRecordsAndCaches(zeCollection, records, idMarkedForReindexing, new ArrayList<AggregatedMetadataIncrementation>(),
 				transactionResponseDTO, metadataSchemaTypes, new RecordProvider(recordServices));
 
 		verify(firstAddedRecord).markAsSaved(firstAddedRecordVersion, zeSchema.instance());

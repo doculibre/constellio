@@ -23,6 +23,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
@@ -165,19 +166,20 @@ public class RecordDeleteServices {
 
 	}
 
-	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user) {
+	public ValidationErrors isLogicallyThenPhysicallyDeletable(Record record, User user) {
 		return isLogicallyThenPhysicallyDeletable(record, user, new RecordPhysicalDeleteOptions());
 	}
 
-	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
+	public ValidationErrors isLogicallyThenPhysicallyDeletable(Record record, User user,
+															   RecordPhysicalDeleteOptions options) {
 		return isPhysicallyDeletableNoMatterTheStatus(record, user, options);
 	}
 
-	public boolean isPhysicallyDeletable(Record record, User user) {
+	public ValidationErrors isPhysicallyDeletable(Record record, User user) {
 		return isPhysicallyDeletable(record, user, new RecordPhysicalDeleteOptions());
 	}
 
-	public boolean isPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
+	public ValidationErrors isPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		ensureSameCollection(user, record);
 		List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -188,17 +190,21 @@ public class RecordDeleteServices {
 		boolean hasPermissions =
 				!schemaType.hasSecurity() || authorizationsServices
 						.hasRestaurationPermissionOnHierarchy(user, record, recordsHierarchy);
+		ValidationErrors validationErrors = new ValidationErrors();
 		if (!correctStatus) {
 			LOGGER.info("Not physically deletable : Record is not logically deleted");
-			return false;
+			validationErrors.add(RecordDeleteServices.class, "recordIsNotLogicallyDeleted");
+			return validationErrors;
 
 		} else if (!noActiveRecords) {
 			LOGGER.info("Not physically deletable : There is active records in the hierarchy");
-			return false;
+			validationErrors.add(RecordDeleteServices.class, "activeRecordInHierarchy");
+			return validationErrors;
 
 		} else if (!hasPermissions) {
 			LOGGER.info("Not physically deletable : No sufficient permissions on hierarchy");
-			return false;
+			validationErrors.add(RecordDeleteServices.class, "noSufficientPermissionsOnHierarchy");
+			return validationErrors;
 
 		} else {
 			return isPhysicallyDeletableNoMatterTheStatus(record, user, options);
@@ -206,8 +212,8 @@ public class RecordDeleteServices {
 
 	}
 
-	private boolean isPhysicallyDeletableNoMatterTheStatus(final Record record, User user,
-														   RecordPhysicalDeleteOptions options) {
+	private ValidationErrors isPhysicallyDeletableNoMatterTheStatus(final Record record, User user,
+																	RecordPhysicalDeleteOptions options) {
 		ensureSameCollection(user, record);
 		final List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -220,16 +226,20 @@ public class RecordDeleteServices {
 		boolean referencesUnhandled =
 				isReferencedByOtherRecords(record, recordsHierarchy) && !options.isSetMostReferencesToNull();
 
+		ValidationErrors validationErrors = new ValidationErrors();
 		if (referencesInConfigs) {
 			LOGGER.info("Not physically deletable : Record is used in configs");
+			validationErrors.add(RecordDeleteServices.class, "recordIsUsedInConfigs");
 		}
 
 		if (!hasPermissions) {
 			LOGGER.info("Not physically deletable : No sufficient permissions on hierarchy");
+			validationErrors.add(RecordDeleteServices.class, "noSufficientPermissionsOnHierarchy");
 		}
 
 		if (referencesUnhandled) {
 			LOGGER.info("Not physically deletable : A record in the hierarchy is referenced outside of the hierarchy");
+			validationErrors.add(RecordDeleteServices.class, "recordInHierarchyReferencedOutsideOfHierarchy");
 		}
 
 		boolean physicallyDeletable = hasPermissions && !referencesUnhandled && !referencesInConfigs;
@@ -244,14 +254,15 @@ public class RecordDeleteServices {
 		if (physicallyDeletable) {
 			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced, true);
 			physicallyDeletable = extensions.forCollectionOf(record).isLogicallyDeletable(event);
+			validationErrors.addAll(extensions.forCollectionOf(record).getLogicalDeletionValidationErrors(event).getValidationErrors());
 		}
 
 		if (physicallyDeletable) {
 			RecordPhysicalDeletionValidationEvent event = new RecordPhysicalDeletionValidationEvent(record, user);
-			physicallyDeletable = extensions.forCollectionOf(record).isPhysicallyDeletable(event);
+			validationErrors.addAll(extensions.forCollectionOf(record).getPhysicalDeletionValidationErrors(event).getValidationErrors());
 		}
 
-		return physicallyDeletable;
+		return validationErrors;
 	}
 
 	public void physicallyDeleteNoMatterTheStatus(Record record, User user, RecordPhysicalDeleteOptions options) {
@@ -278,8 +289,8 @@ public class RecordDeleteServices {
 	public void physicallyDelete(final Record record, User user, RecordPhysicalDeleteOptions options) {
 		final Set<String> recordsWithUnremovableReferences = new HashSet<>();
 		final Set<String> recordsIdsTitlesWithUnremovableReferences = new HashSet<>();
-		if (!isPhysicallyDeletable(record, user, options)) {
-			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(record.getId());
+		if (!isPhysicallyDeletable(record, user, options).getValidationErrors().isEmpty()) {
+			throw new RecordServicesRuntimeException_CannotPhysicallyDeleteRecord(isPhysicallyDeletable(record, user, options).getValidationErrors().get(0).getCode());
 		}
 
 		List<Record> records = getAllRecordsInHierarchyForPhysicalDeletion(record, options);
@@ -462,7 +473,8 @@ public class RecordDeleteServices {
 		return new ContentModificationsBuilder(types);
 	}
 
-	public boolean isLogicallyDeletable(final Record record, User user) {
+	public ValidationErrors isLogicallyDeletable(final Record record, User user) {
+		ValidationErrors validationErrors = new ValidationErrors();
 		ensureSameCollection(user, record);
 
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
@@ -470,7 +482,8 @@ public class RecordDeleteServices {
 
 		if (user != null && schemaType.hasSecurity() && !user.hasDeleteAccess().on(record)) {
 			//The record has security, before going further with validations, we check if the user can delete it
-			return false;
+			validationErrors.add(RecordDeleteServices.class, "recordHasSecurityOrUserDoesNotHaveDeleteAccess");
+			return validationErrors;
 		}
 
 		final List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
@@ -478,9 +491,13 @@ public class RecordDeleteServices {
 		boolean logicallyDeletable =
 				!schemaType.hasSecurity() || authorizationsServices
 						.hasDeletePermissionOnHierarchy(user, record, recordsHierarchy);
+		if (!logicallyDeletable) {
+			validationErrors.add(RecordDeleteServices.class, "userDoesNotHavePermissionOnHierarchy");
+		}
 
 		if (isReferencedByConfigs(record)) {
 			logicallyDeletable = false;
+			validationErrors.add(RecordDeleteServices.class, "recordReferencedByConfigs");
 		}
 
 		if (logicallyDeletable) {
@@ -493,9 +510,12 @@ public class RecordDeleteServices {
 			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced,
 					false);
 			logicallyDeletable = extensions.forCollectionOf(record).isLogicallyDeletable(event);
+			if (!logicallyDeletable) {
+				validationErrors.addAll(extensions.forCollectionOf(record).getLogicalDeletionValidationErrors(event).getValidationErrors());
+			}
 		}
 
-		return logicallyDeletable;
+		return validationErrors;
 	}
 
 	private void removedDefaultValues(String collection, List<Record> records) {
@@ -549,8 +569,8 @@ public class RecordDeleteServices {
 	}
 
 	public void logicallyDelete(Record record, User user, RecordLogicalDeleteOptions options) {
-		if (!options.isSkipValidations() && !isLogicallyDeletable(record, user)) {
-			throw new RecordServicesRuntimeException_CannotLogicallyDeleteRecord(record.getId());
+		if (!options.isSkipValidations() && !isLogicallyDeletable(record, user).isEmpty()) {
+			throw new RecordServicesRuntimeException_CannotLogicallyDeleteRecord(isLogicallyDeletable(record, user).getValidationErrors().get(0).getCode());
 		}
 
 		Transaction transaction = new Transaction().setSkippingRequiredValuesValidation(true);
@@ -799,6 +819,6 @@ public class RecordDeleteServices {
 
 	public boolean isLogicallyDeletableAndIsSkipValidation(Record record, User user,
 														   RecordLogicalDeleteOptions options) {
-		return !options.isSkipValidations() && !isLogicallyDeletable(record, user);
+		return !options.isSkipValidations() && !isLogicallyDeletable(record, user).isEmpty();
 	}
 }

@@ -47,6 +47,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentConversionManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.logging.LoggingServices;
@@ -241,19 +242,26 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		}
 	}
 
-	protected boolean isDeleteDocumentPossible() {
-		return getCurrentUser().hasDeleteAccess().on(currentDocument()) && !extensions
-				.isDeleteBlocked(currentDocument(), getCurrentUser());
+	protected ValidationErrors validateDeleteDocumentPossible() {
+		ValidationErrors validationErrors = new ValidationErrors();
+		if (!getCurrentUser().hasDeleteAccess().on(currentDocument())) {
+			validationErrors.add(DocumentActionsPresenterUtils.class, "userDoesNotHaveDeleteAccess");
+		}
+		if (!extensions.isDeleteAuthorized(currentDocument(), getCurrentUser())) {
+			validationErrors.addAll(extensions.getDeletionAuthorizationValidationErrors(currentDocument(), getCurrentUser()).getValidationErrors());
+		}
+		return validationErrors;
 	}
 
-	protected boolean isDeleteDocumentPossibleExtensively() {
-		return isDeleteDocumentPossible() && presenterUtils.recordServices()
-				.isLogicallyDeletable(currentDocument(), getCurrentUser());
+	protected ValidationErrors validateDeleteDocumentPossibleExtensively() {
+		ValidationErrors validationErrors = new ValidationErrors();
+		validationErrors.addAll(validateDeleteDocumentPossible().getValidationErrors());
+		validationErrors.addAll(presenterUtils.recordServices().validateLogicallyDeletable(currentDocument(), getCurrentUser()).getValidationErrors());
+		return validationErrors;
 	}
 
 	private ComponentState getDeleteButtonState() {
-
-		if (isDeleteDocumentPossible()) {
+		if (validateDeleteDocumentPossible().isEmpty()) {
 			if (documentVO != null) {
 				Document document = new Document(currentDocument(), presenterUtils.types());
 				if (document.isPublished() && !getCurrentUser().has(RMPermissionsTo.DELETE_PUBLISHED_DOCUMENT)
@@ -293,20 +301,13 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 	}
 
 	public void deleteDocumentButtonClicked(Map<String, String> params) {
-		if (isDeleteDocumentPossibleExtensively()) {
+		if (validateDeleteDocumentPossibleExtensively().isEmpty()) {
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			String parentId = document.getFolder();
 			try {
 				presenterUtils.delete(document.getWrappedRecord(), null, true, WAIT_ONE_SECOND);
 			} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
-				Content content = document.getContent();
-				String checkoutUserId = content != null ? content.getCheckoutUserId() : null;
-
-				if (checkoutUserId != null) {
-					actionsComponent.showMessage($("DocumentActionsComponent.cannotBeDeleteBorrowedDocuments"));
-				} else {
-					actionsComponent.showMessage($("DocumentActionsComponent.cannotBeDeleted"));
-				}
+				actionsComponent.showMessage(MessageUtils.toMessage(e));
 				return;
 			}
 			if (parentId != null) {
@@ -315,7 +316,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				actionsComponent.navigate().to().recordsManagement();
 			}
 		} else {
-			actionsComponent.showMessage($("DocumentActionsComponent.cannotBeDeleted"));
+			actionsComponent.showMessage(MessageUtils.getUserDisplayErrorMessage(validateDeleteDocumentPossibleExtensively()));
 		}
 	}
 

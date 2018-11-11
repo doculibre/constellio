@@ -1109,7 +1109,7 @@ public class DecommissioningService {
 
 	private void delete(Record record, String reason, boolean physically, User user) {
 		boolean putFirstInTrash = putFirstInTrash(record);
-		if (recordServices.isLogicallyThenPhysicallyDeletable(record, user) || putFirstInTrash) {
+		if (recordServices.validateLogicallyThenPhysicallyDeletable(record, user).isEmpty() || putFirstInTrash) {
 			recordServices.logicallyDelete(record, user);
 			modelLayerFactory.newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 			if (physically && !putFirstInTrash) {

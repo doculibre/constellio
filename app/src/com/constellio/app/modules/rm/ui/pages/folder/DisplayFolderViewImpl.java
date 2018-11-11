@@ -35,6 +35,7 @@ import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.buttons.EditButton;
@@ -49,6 +50,7 @@ import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
@@ -107,6 +109,19 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
+import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.util.SchemaCaptionUtils.getCaptionForRecordVO;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
@@ -309,18 +324,28 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			};
 
-			deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
-				@Override
-				protected void deletionConfirmed(String reason) {
-					presenter.deleteFolderButtonClicked(reason);
-				}
+			deleteFolderButton = new Button();
+			if(!presenter.isNeedingAReasonToDeleteFolder()) {
+				deleteFolderButton = new DeleteButton($("DisplayFolderView.deleteFolder"), false) {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.deleteFolderButtonClicked(null);
+					}
+				};
+			} else {
+				deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
+					@Override
+					protected void deletionConfirmed(String reason) {
+						presenter.deleteFolderButtonClicked(reason);
+					}
 
-				@Override
-				public String getRecordCaption() {
-					return getCaptionForRecordVO(recordVO, getSessionContext().getCurrentLocale());
-					//					return recordDisplay.getCaption();
-				}
-			};
+					@Override
+					public Component getRecordCaption() {
+						return new ReferenceDisplay(recordVO);
+					}
+				};
+			}
+
 
 			duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
 					$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {

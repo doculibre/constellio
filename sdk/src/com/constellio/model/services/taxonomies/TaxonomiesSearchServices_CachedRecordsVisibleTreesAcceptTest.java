@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
+import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
@@ -109,6 +110,7 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 		document2InA16 = documentsInA16.get(1);
 		document3InA16 = documentsInA16.get(2);
 
+		waitForBatchProcess();
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
 				.add(new BigVaultServerExtension() {
 					@Override
@@ -1719,6 +1721,20 @@ public class TaxonomiesSearchServices_CachedRecordsVisibleTreesAcceptTest extend
 				return true;
 			}
 		};
+	}
+
+	@Override
+	protected void givenConfig(SystemConfiguration config, Object value) {
+		super.givenConfig(config, value);
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		queriesCount.set(0);
+		facetsCount.set(0);
+		returnedDocumentsCount.set(0);
+
 	}
 
 }

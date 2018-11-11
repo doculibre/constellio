@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.reports.builders.search;
 
+import com.constellio.app.modules.rm.reports.builders.excel.BaseExcelReportWriter;
 import com.constellio.app.modules.rm.reports.model.search.SearchResultReportModel;
 import com.constellio.app.ui.framework.reports.ReportWriter;
 import com.constellio.app.ui.i18n.i18n;
@@ -8,7 +9,6 @@ import jxl.CellView;
 import jxl.Workbook;
 import jxl.WorkbookSettings;
 import jxl.write.Label;
-import jxl.write.Number;
 import jxl.write.WritableCellFormat;
 import jxl.write.WritableFont;
 import jxl.write.WritableSheet;
@@ -23,9 +23,10 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Locale;
 
-public class SearchResultReportWriter implements ReportWriter {
+public class SearchResultReportWriter extends BaseExcelReportWriter implements ReportWriter {
 	private static final WritableFont.FontName FONT = WritableFont.TIMES;
 	private static final int FONT_SIZE = 10;
+
 	SearchResultReportModel model;
 	FoldersLocator foldersLocator;
 	Locale locale;
@@ -70,7 +71,7 @@ public class SearchResultReportWriter implements ReportWriter {
 		}
 	}
 
-	private void addHeader(WritableSheet sheet, List<String> columnsTitles)
+	protected void addHeader(WritableSheet sheet, List<String> columnsTitles)
 			throws WriteException {
 		WritableCellFormat boldFont = new WritableCellFormat(new WritableFont(FONT, FONT_SIZE, WritableFont.BOLD));
 
@@ -83,7 +84,7 @@ public class SearchResultReportWriter implements ReportWriter {
 		}
 	}
 
-	private void createContent(WritableSheet sheet, List<List<Object>> lines)
+	protected void createContent(WritableSheet sheet, List<List<Object>> lines)
 			throws WriteException {
 		WritableCellFormat font = new WritableCellFormat(new WritableFont(FONT, FONT_SIZE));
 
@@ -93,7 +94,7 @@ public class SearchResultReportWriter implements ReportWriter {
 		}
 	}
 
-	private void writeLine(WritableSheet sheet, List<Object> currentLine, int lineNumber, WritableCellFormat font)
+	protected void writeLine(WritableSheet sheet, List<Object> currentLine, int lineNumber, WritableCellFormat font)
 			throws WriteException {
 		CellView cv = new CellView();
 		cv.setFormat(font);
@@ -113,7 +114,7 @@ public class SearchResultReportWriter implements ReportWriter {
 		}
 	}
 
-	private void addString(WritableSheet sheet, WritableCellFormat font, int column, int row, String rawText)
+	protected void addString(WritableSheet sheet, WritableCellFormat font, int column, int row, String rawText)
 			throws WriteException {
 		String htmlStripped = "";
 		if (rawText != null) {
@@ -126,10 +127,10 @@ public class SearchResultReportWriter implements ReportWriter {
 		sheet.addCell(label);
 	}
 
-	private void addNumber(WritableSheet sheet, WritableCellFormat font, int column, int row,
-						   double d)
+	protected void addNumber(WritableSheet sheet, WritableCellFormat font, int column, int row,
+							 double d)
 			throws WriteException {
-		Number number = new Number(column, row, d, font);
+		jxl.write.Number number = new jxl.write.Number(column, row, d, font);
 		sheet.addCell(number);
 	}
 

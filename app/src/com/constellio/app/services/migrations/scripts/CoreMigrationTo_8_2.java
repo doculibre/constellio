@@ -3,6 +3,7 @@ package com.constellio.app.services.migrations.scripts;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
+import com.constellio.app.modules.core.CoreTypes;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
@@ -147,9 +148,17 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 							.setEnabled(false).setMarkedForDeletion(true).defineDataEntry().asManual();
 				}
 
+				if (schemaBuilder.getDefaultSchema().hasMetadata(LegacyGlobalMetadatas.NON_TAXONOMY_AUTHORIZATIONS.getLocalCode())) {
+					schemaBuilder.getDefaultSchema().get(LegacyGlobalMetadatas.NON_TAXONOMY_AUTHORIZATIONS.getLocalCode())
+							.setEnabled(false).setMarkedForDeletion(true).defineDataEntry().asManual();
+				}
+
 
 			}
 
+			for(MetadataSchemaTypeBuilder coreType : CoreTypes.coreSchemaTypes(typesBuilder)) {
+				coreType.setSecurity(false);
+			}
 		}
 	}
 }

@@ -9,6 +9,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
@@ -197,16 +198,16 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		wordDocument.getContent().checkOut(dakota);
 		recordServices.execute(new Transaction(childFolder, wordDocument));
 
-		assertThat(recordServices.isLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD)).isFalse();
-		assertThat(recordServices.isLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD)).isFalse();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD))).isEqualTo("Ce document ne peut pas être supprimé car il est emprunté\n");
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD))).isEqualTo("Ce dossier ne peut pas être supprimé car il contient des documents empruntés\n");
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD))).isEqualTo("Ce dossier ne peut pas être supprimé car il contient des documents empruntés\n");
 
 		wordDocument.getContent().checkIn();
 		recordServices.update(wordDocument);
 
-		assertThat(recordServices.isLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD)).isTrue();
-		assertThat(recordServices.isLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD)).isTrue();
-		assertThat(recordServices.isLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD)).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD).isEmpty()).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD).isEmpty()).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD).isEmpty()).isTrue();
 	}
 
 	@Test
@@ -259,21 +260,21 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 			throws RecordServicesException {
 		Document document = rm.newDocument().setFolder(records.getFolder_A03()).setTitle("ze title");
 		recordServices.add(document);
-
+		String documentLinkedToTaskError = "Ce document ne peut pas être supprimé car il est lié à une tâche\n";
 		Task task = rm.newRMTask().setLinkedDocuments(asList(document.getId())).setTitle("Task");
 		recordServices.add(task);
-		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(documentLinkedToTaskError);
 
 		recordServices.logicallyDelete(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isTrue();
 
 		recordServices.restore(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(documentLinkedToTaskError);
 
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		TasksSearchServices taskSearchServices = new TasksSearchServices(tasksSchemas);
 		recordServices.update(task.setStatus(taskSearchServices.getFirstFinishedStatus().getId()));
-		assertThat(recordServices.isLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isTrue();
 	}
 
 	@Test
