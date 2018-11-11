@@ -13107,6 +13107,10 @@ div.v-layout.v-horizontal.v-widget {
 	height: 14px;
 }
 
+.constellio .record-table .v-table-body {
+	overflow-x: auto;
+}
+
 .constellio .v-window .popupContent {
 	z-index: 20001;
 }
@@ -14329,6 +14333,10 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-x: auto;
 }
 
+.constellio .v-ui[width-range~="1101px-"] .folder-content-table .v-scrollable {
+	overflow-x: auto;
+}
+
 .constellio .v-ui[width-range~="1101px-"] .batch-processes .v-table .v-scrollable {
 	overflow-x: auto;
 }
@@ -14402,6 +14410,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .v-ui[width-range~="801-1100px"] .v-table .v-scrollable {
 	overflow-x: hidden;
+}
+
+.constellio .v-ui[width-range~="801-1100px"] .folder-content-table .v-scrollable {
+	overflow-x: auto;
 }
 
 .constellio .v-ui[width-range~="801-1100px"] .action-menu-wrapper {

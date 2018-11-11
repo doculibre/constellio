@@ -608,6 +608,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 			};
 
 			folderContentTable = new ViewableRecordVOTable(container);
+			folderContentTable.addStyleName("folder-content-table");
 			folderContentTable.setSizeFull();
 			folderContentTable.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 			if (!Toggle.SEARCH_RESULTS_VIEWER.isEnabled()) {
@@ -1176,7 +1177,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 	public void refreshFolderContent() {
 	}
 
-//	@Override
+	//	@Override
 	public void refreshFacets(RecordVODataProvider dataProvider) {
 		List<FacetVO> facets = presenter.getFacets(dataProvider);
 		KeySetMap<String, String> facetSelections = presenter.getFacetSelections();
