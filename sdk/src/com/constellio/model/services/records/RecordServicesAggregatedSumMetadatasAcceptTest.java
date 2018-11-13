@@ -42,8 +42,7 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 				types.getSchemaType("document").getDefaultSchema().create("number")
 						.setMultivalue(false).setType(MetadataValueType.NUMBER);
 
-				types.getSchemaType("folder").getDefaultSchema().create("sum")
-						.defineDataEntry().asSum(
+				types.getSchemaType("folder").getDefaultSchema().create("sum").defineDataEntry().asSum(
 						types.getSchemaType("document").getDefaultSchema().getMetadata(Document.FOLDER),
 						types.getSchemaType("document").getDefaultSchema().getMetadata("number"));
 			}
@@ -205,24 +204,59 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 	}
 
 	@Test
-	public void givenModifiedDocumentNumberAndDeletedTaskThenDecreaseSum() throws Exception {
+	public void givenDocumentAndDeletedTaskThenDecreaseSum() throws Exception {
 		createTaskSumMetadata();
 
 		Task task = rm.getRMTask("fakeTask");
 
 		Document document = rm.getDocument("fakeDocument");
 		document.set(rm.document.metadata("task"), task);
-		recordServices.add(document);
+		recordServices.update(document);
 		waitForBatchProcess();
 
 		Metadata taskSum = task.getSchema().getMetadata("sum");
 		assertThat(rm.getRMTask("fakeTask").get(taskSum)).isEqualTo(10.0);
 
 		recordServices.logicallyDelete(document.getWrappedRecord(), User.GOD);
-		recordServices.physicallyDelete(document.getWrappedRecord(), User.GOD);
-		//waitForBatchProcess();
 
 		assertThat(rm.getRMTask("fakeTask").get(taskSum)).isEqualTo(0.0);
+	}
+
+	@Test
+	public void givenDocumentAndRestoredTaskThenIncreaseSum() throws Exception {
+		createTaskSumMetadata();
+
+		Task task = rm.getRMTask("fakeTask");
+
+		Document document = rm.getDocument("fakeDocument");
+		document.set(rm.document.metadata("task"), task);
+		recordServices.update(document);
+		waitForBatchProcess();
+
+		Metadata taskSum = task.getSchema().getMetadata("sum");
+		assertThat(rm.getRMTask("fakeTask").get(taskSum)).isEqualTo(10.0);
+
+		recordServices.logicallyDelete(document.getWrappedRecord(), User.GOD);
+
+		assertThat(rm.getRMTask("fakeTask").get(taskSum)).isEqualTo(0.0);
+
+		recordServices.restore(document.getWrappedRecord(), User.GOD);
+
+		assertThat(rm.getRMTask("fakeTask").get(taskSum)).isEqualTo(10.0);
+	}
+
+	@Test
+	public void givenDocumentWithAddedTaskReferenceThenIncreaseSum() throws Exception {
+		createTaskSumMetadata();
+
+		Task task = rm.getRMTask("fakeTask");
+
+		Document document = rm.getDocument("fakeDocument");
+		document.set(rm.document.metadata("task"), task);
+		recordServices.update(document);
+
+		Metadata taskSum = task.getSchema().getMetadata("sum");
+		assertThat(rm.getRMTask("fakeTask").get(taskSum)).isEqualTo(10.0);
 	}
 
 	@Test
@@ -233,15 +267,13 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 
 		Document document = rm.getDocument("fakeDocument");
 		document.set(rm.document.metadata("task"), task);
-		recordServices.add(document);
-		waitForBatchProcess();
+		recordServices.update(document);
 
 		Metadata taskSum = task.getSchema().getMetadata("sum");
 		assertThat(rm.getRMTask("fakeTask").get(taskSum)).isEqualTo(10.0);
 
 		document.set(rm.document.metadata("task"), null);
-		recordServices.add(document);
-		waitForBatchProcess();
+		recordServices.update(document);
 
 		assertThat(rm.getRMTask("fakeTask").get(taskSum)).isEqualTo(0.0);
 	}
@@ -262,6 +294,22 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 		recordServices.logicallyDelete(folder2.getWrappedRecord(), User.GOD);
 		recordServices.physicallyDelete(folder2.getWrappedRecord(), User.GOD);
 		waitForBatchProcess();
+	}
+
+	@Test
+	public void givenDocumentsWithModifiedParentFolderThenFoldersHaveCorrectSum() throws Exception {
+		recordServices.update(rm.getDocument("fakeDocument2").setFolder("fakeFolder"));
+
+		assertThat(rm.getFolder("fakeFolder").get(rm.folder.metadata("sum"))).isEqualTo(110.0);
+		assertThat(rm.getFolder("fakeFolder2").get(rm.folder.metadata("sum"))).isEqualTo(0.0);
+
+		Transaction transaction = new Transaction();
+		transaction.add(rm.getDocument("fakeDocument2").setFolder("fakeFolder2"));
+		transaction.add(rm.getDocument("fakeDocument").setFolder("fakeFolder2"));
+		recordServices.execute(transaction);
+
+		assertThat(rm.getFolder("fakeFolder").get(rm.folder.metadata("sum"))).isEqualTo(0.0);
+		assertThat(rm.getFolder("fakeFolder2").get(rm.folder.metadata("sum"))).isEqualTo(110.0);
 	}
 
 	private void createTaskSumMetadata() throws Exception {
