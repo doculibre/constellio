@@ -29,6 +29,7 @@ import com.vaadin.data.util.converter.Converter;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.server.ErrorMessage;
+import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
@@ -37,6 +38,8 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomField;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
@@ -204,27 +207,35 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		return mainLayout;
 	}
 
-	protected String searchButtonMessageWhenDisabled() {
-		return i18n.$("readOnlyComponent");
-	}
-
-
 	@NotNull
 	public WindowButton createLookupWindowBouton() {
 		lookupWindowButton = new WindowButton(null, $("search")) {
 			@Override
 			protected Component buildWindowContent() {
-				if(!LookupField.this.isReadOnly()) {
-					return new LookupWindowContent(getWindow());
+				return new LookupWindowContent(getWindow());
+			}
+
+			@Override
+			protected boolean acceptWindowOpen(ClickEvent event) {
+				if(LookupField.this.isReadOnly()) {
+					showReadOnlyMessage();
+					return false;
 				} else {
-					VerticalLayout verticalLayout = new VerticalLayout();
-					Label label = new Label(searchButtonMessageWhenDisabled());
-					verticalLayout.addComponent(label);
-					return verticalLayout;
+					return super.acceptWindowOpen(event);
 				}
 			}
 		};
 		return lookupWindowButton;
+	}
+
+	protected String getReadOnlyMessage() {
+		return $("readOnlyComponent");
+	}
+
+	private void showReadOnlyMessage() {
+		Notification notification = new Notification(getReadOnlyMessage(), Type.WARNING_MESSAGE);
+		notification.setHtmlContentAllowed(true);
+		notification.show(Page.getCurrent());
 	}
 
 	protected BaseAutocompleteField<T> newAutocompleteField(AutocompleteSuggestionsProvider<T> suggestionsProvider) {

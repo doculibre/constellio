@@ -5,6 +5,8 @@ import com.vaadin.data.util.converter.Converter;
 
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class TaskAssignationListRecordLookupField extends ListAddRemoveRecordLookupField {
 	public TaskAssignationListRecordLookupField(String schemaTypeCode) {
 		super(schemaTypeCode);
@@ -44,5 +46,10 @@ public class TaskAssignationListRecordLookupField extends ListAddRemoveRecordLoo
 
 			fireEvent(new ValueChangeEvent(this));
 		}
+	}
+
+	@Override
+	protected String getReadOnlyMessage() {
+		return $("TaskAssignationListRecordLookupField.readOnlyMessage");
 	}
 }
