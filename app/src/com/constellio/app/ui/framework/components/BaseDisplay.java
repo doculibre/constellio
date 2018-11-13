@@ -18,6 +18,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
 @SuppressWarnings("serial")
 public class BaseDisplay extends CustomComponent {
@@ -112,6 +113,8 @@ public class BaseDisplay extends CustomComponent {
 				layout.setWidth("100%");
 				layout.setSpacing(true);
 				panel = new Panel(layout);
+				panel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+				panel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
 				panel.addStyleName("base-display-tab-panel");
 				panel.setWidth("100%");
 				panel.setHeight(Page.getCurrent().getBrowserWindowHeight() + "px");

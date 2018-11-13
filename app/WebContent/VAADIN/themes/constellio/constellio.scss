@@ -941,13 +941,18 @@ $popup-view-z-index: 3;
 
 	.base-window {
 		.v-scrollable {
-			overflow: hidden;
 
 			.base-window-content {
 				padding-left: 5px;
 				padding-right: 5px;
 				margin-top: 25px;
 			}
+		}
+	}
+
+	.base-window-content-scroll {
+		.v-scrollable {
+			overflow: hidden;
 		
 			.v-panel {
 				.v-scrollable {
@@ -1423,7 +1428,7 @@ $popup-view-z-index: 3;
 		}
 
 		.v-splitpanel-second-container-collapsible-horizontal-splitpanel {
-			padding-left: 20px;
+			padding-left: 12px;
 		}
 
 		.v-splitpanel-hsplitter-collapsible-horizontal-splitpanel:before {
@@ -3111,4 +3116,14 @@ $popup-view-z-index: 3;
 
 .warningLabel {
   color: #ff0000
+}
+
+.v-slot-list-add-remove-comment {
+	.v-has-caption {
+		width: 100%;
+		
+		.list-add-remove-comment {
+			width: 100%;
+		}
+	}
 }

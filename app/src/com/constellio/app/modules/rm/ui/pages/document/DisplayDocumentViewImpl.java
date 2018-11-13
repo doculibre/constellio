@@ -251,6 +251,8 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		Panel recordDisplayPanel = new Panel(recordDisplay);
 		recordDisplayPanel.setSizeFull();
+		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+		recordDisplayPanel.addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
 		tabSheet.addTab(recordDisplayPanel, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
 		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
@@ -274,7 +276,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		Component contentMetadataComponent;
 		if (contentViewerInitiallyVisible) {
-
 			CollapsibleHorizontalSplitPanel splitPanel = new CollapsibleHorizontalSplitPanel(DisplayDocumentViewImpl.class.getName());
 			splitPanel.setFirstComponent(contentViewer);
 			splitPanel.setSecondComponent(tabSheet);

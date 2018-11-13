@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentViewImpl;
+import com.constellio.app.modules.rm.ui.pages.document.DisplayDocumentWindow;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -21,7 +21,6 @@ import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.IconButton;
 import com.constellio.app.ui.framework.components.BaseCustomComponent;
-import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.RecordDisplayFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
@@ -40,15 +39,16 @@ import com.jensjansson.pagedtable.PagedTableContainer;
 import com.vaadin.data.Container;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
-import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.Window.CloseEvent;
 import com.vaadin.ui.Window.CloseListener;
+import com.vaadin.ui.themes.ValoTheme;
 
 //@JavaScript({ "theme://jquery/jquery-2.1.4.min.js", "theme://scroll/fix-vertical-scroll.js" })
 public class ViewableRecordTablePanel extends I18NHorizontalLayout {
@@ -358,23 +358,6 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		nextButton.setWidth("24px");
 	}
 	
-	private BaseWindow newWindow() {
-		BaseWindow window = new BaseWindow();
-		window.addStyleName("viewable-record-window");
-		window.setHeight("99%");
-		window.setWidth("95%");
-		window.setResizable(true);
-		window.setModal(false);
-		window.center();
-		window.addCloseListener(new CloseListener() {
-			@Override
-			public void windowClose(CloseEvent e) {
-				refreshMetadata();
-			}
-		});
-		return window;
-	}
-	
 	private void buildDisplayButton() {
 		displayButton = new DisplayButton($("display"), false) {
 			@Override
@@ -382,14 +365,13 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 				String schemaCode = selectedRecordVO.getSchema().getCode();
 				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
 				if (Document.SCHEMA_TYPE.equals(schemaTypeCode)) {
-					DisplayDocumentViewImpl view = new DisplayDocumentViewImpl(selectedRecordVO, false);
-					view.enter(null);
-					BaseWindow window = newWindow();
-					view.addStyleName("viewable-record-window-content");
-					int browserWindowHeight = Page.getCurrent().getBrowserWindowHeight();
-					int viewHeight = browserWindowHeight - 50;
-					view.setHeight(viewHeight + "px");
-					window.setContent(view);
+					Window window =  new DisplayDocumentWindow(selectedRecordVO);
+					window.addCloseListener(new CloseListener() {
+						@Override
+						public void windowClose(CloseEvent e) {
+							refreshMetadata();
+						}
+					});
 					ConstellioUI.getCurrent().addWindow(window);
 				} else {
 					ReferenceDisplay referenceDisplay = new ReferenceDisplay(selectedRecordVO);
@@ -473,6 +455,8 @@ public class ViewableRecordTablePanel extends I18NHorizontalLayout {
 		}
 		
 		private void buildUI() {
+			addStyleName(ValoTheme.PANEL_BORDERLESS);
+			addStyleName(ValoTheme.PANEL_SCROLL_INDICATOR);
 			addStyleName("viewer-metadata-panel");
 			setSizeFull();
 			
