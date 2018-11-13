@@ -377,6 +377,7 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			@Override
 			protected void onSetPageButtonClicked(int page) {
 				super.onSetPageButtonClicked(page);
+				scrollBackUp();
 				presenter.searchNavigationButtonClicked();
 			}
 		};
