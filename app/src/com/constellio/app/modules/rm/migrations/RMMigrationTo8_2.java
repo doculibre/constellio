@@ -62,7 +62,7 @@ public class RMMigrationTo8_2 implements MigrationScript {
 	@Override
 	public void migrate(String collection, MigrationResourcesProvider provider, AppLayerFactory appLayerFactory)
 			throws Exception {
-		new SchemaAlterationFor8_2(collection, provider, appLayerFactory).migrate();
+		new SchemaAlterationFor8_2a(collection, provider, appLayerFactory).migrate();
 
 		ModelLayerFactory modelLayerFactory = appLayerFactory.getModelLayerFactory();
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
@@ -87,6 +87,8 @@ public class RMMigrationTo8_2 implements MigrationScript {
 		modifyRecords(rm.containerRecord.schemaType(), ContainerRecord.FAVORITES, modelLayerFactory);
 
 		updateAllMediumTypes(collection, appLayerFactory.getModelLayerFactory());
+
+		new SchemaAlterationFor8_2b(collection, provider, appLayerFactory).migrate();
 	}
 
 	private void modifyRecords(final MetadataSchemaType metadataSchemaType, final String metadataCode,
@@ -140,9 +142,9 @@ public class RMMigrationTo8_2 implements MigrationScript {
 
 	}
 
-	private class SchemaAlterationFor8_2 extends MetadataSchemasAlterationHelper {
-		public SchemaAlterationFor8_2(String collection, MigrationResourcesProvider migrationResourcesProvider,
-									  AppLayerFactory appLayerFactory) {
+	private class SchemaAlterationFor8_2a extends MetadataSchemasAlterationHelper {
+		public SchemaAlterationFor8_2a(String collection, MigrationResourcesProvider migrationResourcesProvider,
+									   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
@@ -155,9 +157,9 @@ public class RMMigrationTo8_2 implements MigrationScript {
 			builder.getDefaultSchema(ContainerRecord.SCHEMA_TYPE)
 					.createUndeletable(ContainerRecord.FAVORITES).setType(MetadataValueType.STRING).setMultivalue(true).setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true);
 
-			for(MetadataSchemaTypeBuilder rmType : RMTypes.rmSchemaTypes(builder)) {
+			for (MetadataSchemaTypeBuilder rmType : RMTypes.rmSchemaTypes(builder)) {
 				rmType.setSecurity(asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE)
-						.contains( rmType.getCode()));
+						.contains(rmType.getCode()));
 			}
 
 			MetadataSchemaBuilder folderSchema = types().getSchema(Folder.DEFAULT_SCHEMA);
@@ -193,6 +195,27 @@ public class RMMigrationTo8_2 implements MigrationScript {
 			metadatasByRefMetadata.put(documentSchema.get(Document.FOLDER), singletonList(documentSchema.get(Document.HAS_CONTENT)));
 			metadatasByRefMetadata.put(folderSchema.get(Folder.PARENT_FOLDER), singletonList(folderHasContent));
 			folderHasContent.defineDataEntry().asAggregatedOr(metadatasByRefMetadata);
+		}
+	}
+
+	private class SchemaAlterationFor8_2b extends MetadataSchemasAlterationHelper {
+		public SchemaAlterationFor8_2b(String collection, MigrationResourcesProvider migrationResourcesProvider,
+									   AppLayerFactory appLayerFactory) {
+			super(collection, migrationResourcesProvider, appLayerFactory);
+		}
+
+		@Override
+		protected void migrate(MetadataSchemaTypesBuilder builder) {
+			MetadataSchemaTypes metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+			if (metadataSchemaTypes.hasMetadata(Cart.DEFAULT_SCHEMA + "_" + FOLDERS)) {
+				builder.getDefaultSchema(Cart.SCHEMA_TYPE).deleteMetadataWithoutValidation(FOLDERS);
+			}
+			if (metadataSchemaTypes.hasMetadata(Cart.DEFAULT_SCHEMA + "_" + DOCUMENTS)) {
+				builder.getDefaultSchema(Cart.SCHEMA_TYPE).deleteMetadataWithoutValidation(DOCUMENTS);
+			}
+			if (metadataSchemaTypes.hasMetadata(Cart.DEFAULT_SCHEMA + "_" + CONTAINERS)) {
+				builder.getDefaultSchema(Cart.SCHEMA_TYPE).deleteMetadataWithoutValidation(CONTAINERS);
+			}
 		}
 	}
 }

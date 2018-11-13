@@ -300,7 +300,7 @@ public class RMNavigationConfiguration implements Serializable {
 				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
 			}
 		});
-		config.add(HomeView.TABS, new PageItem.CustomItem($("defaultFavorites")) {
+		config.add(HomeView.TABS, new PageItem.CustomItem($("HomeView.tab.defaultFavorites")) {
 			@Override
 			public Component buildCustomComponent(ConstellioFactories factories, SessionContext context,
 												  ItemClickEvent.ItemClickListener itemClickListener) {
