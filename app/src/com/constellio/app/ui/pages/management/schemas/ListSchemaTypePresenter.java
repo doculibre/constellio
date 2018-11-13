@@ -8,12 +8,12 @@ import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
 import com.constellio.app.ui.framework.data.writter.SchemaTypeExcelReportWriter;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
-import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -23,12 +23,10 @@ import java.util.Map;
 
 public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchemaTypeView> {
 
-	private IOServices ioServices;
 	MetadataSchemasManager schemaManager;
 
 	public ListSchemaTypePresenter(ListSchemaTypeView view) {
 		super(view);
-		ioServices = view.getConstellioFactories().getIoServicesFactory().newIOServices();
 		schemaManager = modelLayerFactory.getMetadataSchemasManager();
 	}
 
@@ -65,12 +63,18 @@ public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchem
  	{
 		String titre = schemaTypeVO.getLabel(Language
 				.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
-		SchemaTypeExcelReportWriter schemaTypeExcelGenerator = new SchemaTypeExcelReportWriter(schemaManager.getSchemaTypes(collection).getSchemaType(schemaTypeVO.getCode()), appLayerFactory, getCurrentLocale());
-		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-		schemaTypeExcelGenerator.write(byteArrayOutputStream);
+		ByteArrayOutputStream byteArrayOutputStream = writeSchemaTypeExcelReportOnStream(schemaTypeVO.getCode());
 
 
 		view.startDownload(titre +".xls", new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), "xls");
+	}
+
+	@NotNull
+	public ByteArrayOutputStream writeSchemaTypeExcelReportOnStream(String schemaTypeCode) {
+		SchemaTypeExcelReportWriter schemaTypeExcelGenerator = new SchemaTypeExcelReportWriter(schemaManager.getSchemaTypes(collection).getSchemaType(schemaTypeCode), appLayerFactory, getCurrentLocale());
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		schemaTypeExcelGenerator.write(byteArrayOutputStream);
+		return byteArrayOutputStream;
 	}
 
 	public void backButtonClicked() {

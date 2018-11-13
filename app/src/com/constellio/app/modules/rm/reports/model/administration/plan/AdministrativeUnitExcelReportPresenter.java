@@ -113,8 +113,8 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 			}
 		}
 
-		recordLine.add(userStringBuilder);
-		recordLine.add(groupStringBuilder);
+		recordLine.add(userStringBuilder.toString());
+		recordLine.add(groupStringBuilder.toString());
 	}
 
 	@Override
