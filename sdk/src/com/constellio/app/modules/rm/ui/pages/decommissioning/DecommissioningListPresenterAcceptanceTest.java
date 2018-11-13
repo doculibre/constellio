@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
 import com.constellio.app.modules.rm.model.enums.OriginStatus;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.services.decommissioning.DecommissioningEmailServiceException;
 import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
@@ -128,6 +129,15 @@ public class DecommissioningListPresenterAcceptanceTest extends ConstellioTest {
 		detail1.setFolderId(records.folder_A04);
 		presenter.removeFoldersButtonClicked(asList(detail1));
 		assertThat(rm.getDecommissioningList(decommissioningList.getId()).getFolders()).isEmpty();
+	}
+
+	@Test
+	public void whenRefreshListThenCanAskStillAskForApproval() throws DecommissioningEmailServiceException {
+		doReturn(null).when(view).getContainer(any(ContainerRecord.class));
+		doReturn(null).when(view).getPackageableFolder(any(String.class));
+		presenter.forRecordId(decommissioningList.getId());
+		presenter.refreshList();
+		presenter.getAvailableManagers();
 	}
 
 	@Test
