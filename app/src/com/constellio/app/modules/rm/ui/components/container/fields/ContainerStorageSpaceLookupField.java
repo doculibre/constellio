@@ -20,6 +20,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.constellio.model.services.taxonomies.LinkableConceptFilter;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.model.services.taxonomies.TaxonomiesSearchFilter;
@@ -63,10 +64,39 @@ public class ContainerStorageSpaceLookupField extends LookupRecordField implemen
 	}
 
 	private ContainerStorageSpaceLookupField(String schemaTypeCode, String schemaCode, boolean writeAccess,
-											 String containerRecordType, Double containerCapacity,
+											 final String containerRecordType, final Double containerCapacity,
 											 AddEditContainerPresenter presenter) {
 		super(new RecordTextInputDataProvider(presenter.getConstellioFactories(), presenter.getSessionContext(), schemaTypeCode,
-						schemaCode, writeAccess),
+						schemaCode, writeAccess) {
+				  @Override
+				  public LogicalSearchQuery getQuery(User user, String text, int startIndex, int count) {
+					  MetadataSchemaType storageSpaceSchemaType = getModelLayerFactory().getMetadataSchemasManager()
+							  .getSchemaTypes(sessionContext.getCurrentCollection()).getSchemaType(StorageSpace.SCHEMA_TYPE);
+					  MetadataSchema storageSpaceSchema = storageSpaceSchemaType.getDefaultSchema();
+					  Double containerCapacityInQuery = containerCapacity == null ? 0.0 : containerCapacity;
+
+					  LogicalSearchQuery query = super.getQuery(user, text, startIndex, count);
+					  LogicalSearchCondition conditionWithTextAndCapacity = from(storageSpaceSchemaType).whereAllConditions(
+							  query.getCondition(),
+							  anyConditions(
+									  where(storageSpaceSchema.get(StorageSpace.NUMBER_OF_CHILD)).isEqualTo(0),
+									  where(storageSpaceSchema.get(StorageSpace.NUMBER_OF_CHILD)).isNull()
+							  ),
+							  anyConditions(
+									  where(storageSpaceSchema.get(StorageSpace.AVAILABLE_SIZE))
+											  .isGreaterOrEqualThan(containerCapacityInQuery),
+									  where(storageSpaceSchema.get(StorageSpace.AVAILABLE_SIZE)).isNull()
+							  ),
+							  anyConditions(
+									  where(storageSpaceSchema.get(StorageSpace.CONTAINER_TYPE))
+											  .isContaining(asList(containerRecordType)),
+									  where(storageSpaceSchema.get(StorageSpace.CONTAINER_TYPE)).isNull()
+							  )
+					  );
+					  query.setCondition(conditionWithTextAndCapacity);
+					  return query;
+				  }
+			  },
 				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, containerRecordType, containerCapacity,
 						presenter));
 		setItemConverter(new RecordIdToCaptionConverter());
