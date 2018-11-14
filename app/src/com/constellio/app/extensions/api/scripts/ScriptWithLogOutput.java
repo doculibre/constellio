@@ -1,60 +1,20 @@
 package com.constellio.app.extensions.api.scripts;
 
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBuilder;
-import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public abstract class ScriptWithLogOutput extends Script {
-
-	private boolean saveOutputAsTemporaryRecord = false;
+public abstract class ScriptWithLogOutput extends ScriptWithFileOutput {
 
 	public ScriptWithLogOutput(AppLayerFactory appLayerFactory, String category, String name) {
-		this(appLayerFactory, category, name, false);
+		super(appLayerFactory, category, name);
 	}
 
 	public ScriptWithLogOutput(AppLayerFactory appLayerFactory, String category, String name,
 							   boolean saveOutputAsTemporaryRecord) {
-		super(appLayerFactory, category, name);
-		this.saveOutputAsTemporaryRecord = saveOutputAsTemporaryRecord;
+		super(appLayerFactory, category, name, saveOutputAsTemporaryRecord);
 	}
 
 	@Override
-	public List<ScriptParameter> getParameters() {
-		return new ArrayList<>();
-	}
-
-	@Override
-	public ScriptOutput getScriptOutput() {
-		return ScriptOutput.toLogFile(getClass().getSimpleName() + ".log");
-	}
-
-	@Override
-	public void execute(ScriptActionLogger outputLogger, ScriptParameterValues parameterValues)
-			throws Exception {
-		if (outputLogger != null) {
-			outputLogger.info("Starting execution of " + getClass().getSimpleName());
-		}
-
-		this.outputLogger = outputLogger;
-		this.parameterValues = parameterValues;
-		execute();
-
-		if (outputLogger != null) {
-			outputLogger.info("Execution of " + getClass().getSimpleName() + " finished successfully");
-		}
-	}
-
-	protected abstract void execute()
-			throws Exception;
-
-	public ConditionnedActionExecutorInBatchBuilder onCondition(LogicalSearchCondition condition) {
-		return new ConditionnedActionExecutorInBatchBuilder(modelLayerFactory, condition);
-	}
-
-	public boolean isSaveOutputAsTemporaryRecord() {
-		return saveOutputAsTemporaryRecord;
+	protected String getFilename() {
+		return getClass().getSimpleName() + ".log";
 	}
 }

@@ -13,7 +13,6 @@ import com.constellio.app.services.schemas.bulkImport.RecordsImportServicesExecu
 import com.constellio.app.services.schemas.bulkImport.data.ImportDataOptions;
 import com.constellio.data.conf.ContentDaoType;
 import com.constellio.data.conf.DataLayerConfiguration;
-import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.contents.FileSystemContentDao;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.data.io.services.facades.IOServices;
@@ -24,7 +23,6 @@ import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -39,33 +37,28 @@ import com.constellio.model.entities.structures.MapStringStringStructureFactory;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class RecordExportServices {
 
 	public static final String RECORDS_EXPORT_TEMP_FOLDER = "RecordsExportServices_recordsExportTempFolder";
 
-	public static final String RECORDS_EXPORT_TEMP_DDV = "ddv";
-
 	AppLayerFactory appLayerFactory;
 	ModelLayerFactory modelLayerFactory;
 	ZipService zipService;
 	IOServices ioServices;
-	SchemasRecordsServices schemasRecordsServices;
 	RecordServices recordServices;
 
 	public RecordExportServices(AppLayerFactory appLayerFactory) {
@@ -76,9 +69,8 @@ public class RecordExportServices {
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 	}
 
-	public File exportRecords(String collection, String resourceKey, RecordExportOptions options) {
+	public File exportRecords(String resourceKey, RecordExportOptions options) {
 
-		schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 		File tempFolder = ioServices.newTemporaryFolder(RECORDS_EXPORT_TEMP_FOLDER);
 		ValidationErrors errors = new ValidationErrors();
 
@@ -88,7 +80,7 @@ public class RecordExportServices {
 			ImportRecordOfSameCollectionWriter writer = new ImportRecordOfSameCollectionWriter(tempFolder);
 			StringBuilder contentPaths = new StringBuilder();
 			try {
-				writeRecords(collection, writer, options, contentPaths);
+				writeRecords(writer, options, contentPaths);
 			} finally {
 				writer.close();
 			}
@@ -113,140 +105,45 @@ public class RecordExportServices {
 			return tempZipFile;
 
 		} catch (ZipServiceException e) {
-			throw new RecordExportServicesRuntimeException.ExportServicesRuntimeException_FailedToZip(collection, e);
+			throw new RecordExportServicesRuntimeException.ExportServicesRuntimeException_FailedToZip(e);
 		}
 
 	}
 
-	public File exportRecords(String collection, String resourceKey, RecordExportOptions options,
-							  Iterator<Record> records) {
-
-		File tempFolder = ioServices.newTemporaryFolder(RECORDS_EXPORT_TEMP_FOLDER);
-
-		try {
-			ImportRecordOfSameCollectionWriter writer = new ImportRecordOfSameCollectionWriter(tempFolder);
-			StringBuilder contentPaths = new StringBuilder();
-			try {
-				writeRecords(collection, writer, options, records, contentPaths);
-			} finally {
-				writer.close();
-			}
-
-			File tempZipFile = ioServices.newTemporaryFile(resourceKey, "zip");
-
-			String contentPathString = contentPaths.toString();
-			if (!contentPathString.isEmpty()) {
-				File file = new File(tempFolder, "contentPaths.txt");
-				try {
-					ioServices.appendFileContent(file, contentPathString);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-
-			if (tempFolder.listFiles() == null || tempFolder.listFiles().length == 0) {
-				throw new ExportServicesRuntimeException_NoRecords();
-			}
-			zipService.zip(tempZipFile, asList(tempFolder.listFiles()));
-			return tempZipFile;
-
-		} catch (ZipServiceException e) {
-			throw new RecordExportServicesRuntimeException.ExportServicesRuntimeException_FailedToZip(collection, e);
-		}
-	}
-
-	private static boolean isSchemaCodePresent(List<String> schemaCodeList, String schemaCode) {
-		boolean isSchemaCodePresent = false;
-
-		for (String currentSchemaCode : schemaCodeList) {
-			isSchemaCodePresent = schemaCode.equals(currentSchemaCode);
-			if (isSchemaCodePresent) {
-				break;
-			}
-		}
-
-		return isSchemaCodePresent;
-	}
-
-	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options,
-							  List<String> recordsToExport, StringBuilder contentPaths) {
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
-		// From type options;
+	private void writeRecords(ImportRecordOfSameCollectionWriter writer,
+							  RecordExportOptions options, StringBuilder contentPaths) {
 
 		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection);
 
-		List<String> schemaTypeList = new ArrayList<>();
+		Set<String> receivedTypes = new HashSet<>();
 
-		// Add exportedSchemaType.
-		schemaTypeList.addAll(options.getExportedSchemaTypes());
 
-		if (options.isExportValueLists()) {
-			mergeExportValueLists(metadataSchemaTypes, schemaTypeList);
+		Iterator<Record> recordsToExportIterator = options.getRecordsToExportIterator();
+
+
+		if (recordsToExportIterator == null) {
+			throw new ExportServicesRuntimeException_NoRecords();
 		}
 
-		for (String schemaTypeCode : schemaTypeList) {
-			writer.setOptions(schemaTypeCode,
-					new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true)
-							.setImportAsLegacyId(!options.isForSameSystem()));
-		}
+		boolean atLestOneRecord = false;
+		while (recordsToExportIterator.hasNext()) {
 
-		RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+			Record record = recordsToExportIterator.next();
+			String collection = record.getCollection();
+			atLestOneRecord = true;
 
-		for (String exportedSchemaType : schemaTypeList) {
-
-			logicalSearchQuery.setCondition(from(metadataSchemaTypes.getSchemaType(exportedSchemaType)).where(Schemas.IDENTIFIER).isIn(recordsToExport));
-			SearchResponseIterator<Record> recordSearchResponseIterator = searchServices.recordsIterator(logicalSearchQuery);
-
-			while (recordSearchResponseIterator.hasNext()) {
-				Record record = recordSearchResponseIterator.next();
-
-				MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
-
-				ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, exportedSchemaType,
-						record.getId(), metadataSchema.getLocalCode());
-
-				writeRecord(collection, record, modifiableImportRecord, options, contentPaths);
-
-				appLayerFactory.getExtensions().forCollection(collection)
-						.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
-
-				writer.write(modifiableImportRecord);
+			if (!receivedTypes.contains(record.getTypeCode())) {
+				writer.setOptions(record.getTypeCode(), new ImportDataOptions()
+						.setMergeExistingRecordWithSameUniqueMetadata(true)
+						.setImportAsLegacyId(!options.isForSameSystem()));
+				receivedTypes.add(record.getTypeCode());
 			}
-		}
-	}
 
-	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options,
-							  Iterator<Record> recordsToExport, StringBuilder contentPaths) {
-		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection);
-
-		List<String> schemaTypeList = new ArrayList<>();
-
-		// Add exportedSchemaType.
-		schemaTypeList.addAll(options.getExportedSchemaTypes());
-
-		if (options.isExportValueLists()) {
-			mergeExportValueLists(metadataSchemaTypes, schemaTypeList);
-		}
-
-		for (String schemaTypeCode : schemaTypeList) {
-			writer.setOptions(schemaTypeCode,
-					new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true)
-							.setImportAsLegacyId(!options.isForSameSystem()));
-		}
-
-		while (recordsToExport.hasNext()) {
-			Record record = recordsToExport.next();
-
-			MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
+			MetadataSchema metadataSchema = metadataSchemasManager.getSchemaTypes(record.getCollection())
+					.getSchema(record.getSchemaCode());
 
 			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, record.getTypeCode(),
 					record.getId(), metadataSchema.getLocalCode());
-
-			RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
 
 			writeRecord(collection, record, modifiableImportRecord, options, contentPaths);
 
@@ -255,56 +152,9 @@ public class RecordExportServices {
 
 			writer.write(modifiableImportRecord);
 		}
-	}
 
-	private void writeRecordSchema(String collection, ImportRecordOfSameCollectionWriter writer,
-								   RecordExportOptions options, StringBuilder contentPaths) {
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-
-		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery();
-		// From type options;
-
-		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection);
-
-		List<String> schemaTypeList = new ArrayList<>();
-
-		// Add exportedSchemaType.
-		schemaTypeList.addAll(options.getExportedSchemaTypes());
-
-		if (options.isExportValueLists()) {
-			mergeExportValueLists(metadataSchemaTypes, schemaTypeList);
-		}
-
-		for (String schemaTypeCode : schemaTypeList) {
-			writer.setOptions(schemaTypeCode,
-
-					new ImportDataOptions().setMergeExistingRecordWithSameUniqueMetadata(true)
-							.setImportAsLegacyId(!options.isForSameSystem()));
-		}
-
-		for (String exportedSchemaType : schemaTypeList) {
-
-			logicalSearchQuery.setCondition(from(metadataSchemaTypes.getSchemaType(exportedSchemaType)).returnAll());
-			SearchResponseIterator<Record> recordSearchResponseIterator = searchServices.recordsIterator(logicalSearchQuery);
-
-			while (recordSearchResponseIterator.hasNext()) {
-				Record record = recordSearchResponseIterator.next();
-
-				MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
-
-				ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, exportedSchemaType,
-						record.getId(), metadataSchema.getLocalCode());
-
-				RecordServices recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
-
-				writeRecord(collection, record, modifiableImportRecord, options, contentPaths);
-
-				appLayerFactory.getExtensions().forCollection(collection)
-						.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
-
-				writer.write(modifiableImportRecord);
-			}
+		if (!atLestOneRecord) {
+			throw new ExportServicesRuntimeException_NoRecords();
 		}
 	}
 
@@ -512,21 +362,5 @@ public class RecordExportServices {
 		return commentHasMap;
 	}
 
-	private void mergeExportValueLists(MetadataSchemaTypes metadataSchemaTypes, List<String> schemaTypeList) {
-		// Code
-		// Itération sur les type de schema.
-		for (MetadataSchemaType metadata : metadataSchemaTypes.getSchemaTypes()) {
-			if (metadata.getCode().toLowerCase().startsWith(RECORDS_EXPORT_TEMP_DDV)) {
-				if (!isSchemaCodePresent(schemaTypeList, metadata.getCode())) {
-					schemaTypeList.add(metadata.getCode());
-				}
-			}
-		}
-	}
-
-	private void writeRecords(String collection, ImportRecordOfSameCollectionWriter writer, RecordExportOptions options,
-							  StringBuilder contentPaths) {
-		writeRecordSchema(collection, writer, options, contentPaths);
-	}
 
 }
