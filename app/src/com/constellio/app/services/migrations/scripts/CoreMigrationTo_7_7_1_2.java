@@ -35,7 +35,9 @@ public class CoreMigrationTo_7_7_1_2 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			MetadataSchemaTypeBuilder searchEvent = typesBuilder.getSchemaType(SearchEvent.SCHEMA_TYPE);
 			searchEvent.setDataStore(DataStore.EVENTS);
-			searchEvent.createMetadata(SearchEvent.LAST_PAGE_NAVIGATION).setType(MetadataValueType.NUMBER);
+			if(!searchEvent.getDefaultSchema().hasMetadata(SearchEvent.LAST_PAGE_NAVIGATION)){
+				searchEvent.createMetadata(SearchEvent.LAST_PAGE_NAVIGATION).setType(MetadataValueType.NUMBER);
+			}
 		}
 	}
 }
