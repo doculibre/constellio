@@ -389,6 +389,13 @@ public class RecordsCacheImpl implements RecordsCache {
 						if (cacheConfig.isPermanent() && insertionReason == WAS_MODIFIED) {
 							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
 						}
+
+					} else if (previousRecord.getVersion() == recordCopy.getVersion()) {
+						if (cacheConfig.isPermanent() && insertionReason == WAS_MODIFIED) {
+							permanentCaches.get(cacheConfig.getSchemaType()).queryResults.clear();
+						}
+						return REFUSED_OLD_VERSION;
+
 					} else {
 						return REFUSED_OLD_VERSION;
 					}

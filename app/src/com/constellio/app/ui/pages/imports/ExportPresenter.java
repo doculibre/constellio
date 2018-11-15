@@ -21,6 +21,7 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.dao.services.bigVault.SearchResponseIterator;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.io.services.zip.ZipService;
+import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Content;
@@ -28,6 +29,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.ExportAudit;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
@@ -92,6 +94,30 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 	void exportWithoutContentsButtonClicked() {
 		export(false);
+	}
+
+	void exportWithoutContentsXMLButtonClicked(boolean isSameCollection, String schemaTypeCode,
+											   List<String> legacyIds) {
+		RecordExportOptions options = new RecordExportOptions();
+		options.setForSameSystem(isSameCollection);
+		final Metadata legacyIdMetadata = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
+				.getSchemaType(schemaTypeCode).getDefaultSchema().getMetadata(Schemas.LEGACY_ID.getLocalCode());
+
+		final Iterator<String> idsIterator = legacyIds.iterator();
+		final RecordServices recordServices = modelLayerFactory.newRecordServices();
+		exportToXML(options, new LazyIterator<Record>() {
+			@Override
+			protected Record getNextOrNull() {
+				if (idsIterator.hasNext()) {
+					String id = idsIterator.next();
+					return recordServices.getRecordByMetadata(legacyIdMetadata, id.trim());
+				} else {
+					return null;
+				}
+			}
+		});
+
+
 	}
 
 	void exportWithoutContentsXMLButtonClicked(boolean isSameCollection, List<String> folderIds,
