@@ -9,7 +9,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
@@ -71,24 +70,8 @@ public class TableColumnsManager implements Serializable {
 		currentUser = userServices.getUserInCollection(username, collection);
 	}
 
-	private void checkIfColumnIsMetadataAndAsAccessRestriction(List<String> visibleColumnForUser, String tableId) {
-		List<String> toRemove = new ArrayList<>();
+	protected void decorateVisibleColumns(List<String> visibleColumnForUser, String tableId) {
 
-		for(String id : visibleColumnForUser) {
-			String[] parsedCode = SchemaUtils.underscoreSplitWithCache(id);
-			if (parsedCode.length == 3 && metadataSchemaTypes.hasMetadata(id) && !currentUser.hasGlobalAccessToMetadata(metadataSchemaTypes.getMetadata(id))) {
-				toRemove.add(id);
-			}
-		}
-
-
-		for(String itemToRemove : toRemove) {
-			visibleColumnForUser.remove(itemToRemove);
-		}
-
-		if(toRemove.size() > 0) {
-			currentUser.setVisibleTableColumns(tableId, visibleColumnForUser);
-		}
 	}
 
 	public void manage(final Table table, final String tableId) {
@@ -109,7 +92,7 @@ public class TableColumnsManager implements Serializable {
 
 		List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
 		Collection<?> propertyIds = table.getContainerPropertyIds();
-		checkIfColumnIsMetadataAndAsAccessRestriction(visibleColumnIdsForUser, tableId);
+		decorateVisibleColumns(visibleColumnIdsForUser, tableId);
 
 		for (Object propertyId : propertyIds) {
 			String columnId = toColumnId(propertyId);
