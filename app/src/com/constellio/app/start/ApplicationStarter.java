@@ -6,7 +6,9 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.bio.SocketConnector;
 import org.eclipse.jetty.server.ssl.SslSocketConnector;
 import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlet.ServletMapping;
 import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -35,7 +37,7 @@ public class ApplicationStarter {
 	private static Server server;
 	private static WebAppContext handler;
 	private static Map<String, List<ServletHolder>> servletMappings = new HashMap<>();
-	private static Map<String, List<Filter>> filterMappings = new HashMap<>();
+	private static Map<String, List<FilterHolder>> filterMappings = new HashMap<>();
 
 	private ApplicationStarter() {
 	}
@@ -75,9 +77,9 @@ public class ApplicationStarter {
 			server.start();
 
 			for (String pathSpec : filterMappings.keySet()) {
-				List<Filter> filters = filterMappings.get(pathSpec);
-				for (Filter filter : filters) {
-					handler.addFilter(new FilterHolder(filter), pathSpec, EnumSet.allOf(DispatcherType.class));
+				List<FilterHolder> filters = filterMappings.get(pathSpec);
+				for (FilterHolder filter : filters) {
+					handler.addFilter(filter, pathSpec, EnumSet.allOf(DispatcherType.class));
 				}
 			}
 
@@ -182,21 +184,33 @@ public class ApplicationStarter {
 	}
 
 	public static void registerFilter(String pathRelativeToConstellioContext, Filter filter) {
+		registerFilter(pathRelativeToConstellioContext, new FilterHolder(filter));
+	}
+
+	public static void registerFilter(String pathRelativeToConstellioContext, FilterHolder filterHolder) {
 		if (handler == null) {
 			if (!filterMappings.containsKey(pathRelativeToConstellioContext)) {
-				filterMappings.put(pathRelativeToConstellioContext, new ArrayList<Filter>());
+				filterMappings.put(pathRelativeToConstellioContext, new ArrayList<FilterHolder>());
 			}
-			filterMappings.get(pathRelativeToConstellioContext).add(filter);
+			filterMappings.get(pathRelativeToConstellioContext).add(filterHolder);
 		} else {
-			handler.addFilter(new FilterHolder(filter), pathRelativeToConstellioContext, EnumSet.allOf(DispatcherType.class));
+			handler.addFilter(filterHolder, pathRelativeToConstellioContext, EnumSet.allOf(DispatcherType.class));
 		}
 	}
 
 	public static void resetServlets() {
+		if (handler != null) {
+			handler.getServletHandler().setServlets(new ServletHolder[0]);
+			handler.getServletHandler().setServletMappings(new ServletMapping[0]);
+		}
 		servletMappings.clear();
 	}
 
 	public static void resetFilters() {
+		if (handler != null) {
+			handler.getServletHandler().setFilters(new FilterHolder[0]);
+			handler.getServletHandler().setFilterMappings(new FilterMapping[0]);
+		}
 		filterMappings.clear();
 	}
 }
