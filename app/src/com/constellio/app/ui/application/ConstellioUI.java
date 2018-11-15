@@ -249,7 +249,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 			addStyleName("right-to-left");
 		}
 		if (isSetupRequired()) {
-			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl();
+			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl(VaadinService.getCurrentRequest().getPathInfo());
 			setContent(setupView);
 			addStyleName("setupview");
 		} else {
