@@ -13,6 +13,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentModificationsBuilder;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
@@ -206,7 +207,8 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	public void whenLogicallyDeletingThenSetLogicallyDeletedStatusToAllRecordInHierarchyAndExecuteTransaction()
 			throws Exception {
 
-		doReturn(true).when(recordDeleteServices).validateLogicallyDeletable(theRecord, user);
+		doReturn(new ValidationErrors()).when(recordDeleteServices).validateLogicallyDeletable(theRecord, user);
+		doReturn(new ValidationErrors()).when(recordDeleteServices).validateLogicallyDeletable(theRecord, user);
 
 		ArgumentCaptor<Transaction> transaction = ArgumentCaptor.forClass(Transaction.class);
 
@@ -307,8 +309,9 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	@Test
 	public void givenNotLogicallyDeletableWhenLogicallyDeletingThenThrowException()
 			throws Exception {
-
-		doReturn(false).when(recordDeleteServices).validateLogicallyDeletable(theRecord, user);
+		ValidationErrors validationErrors = new ValidationErrors();
+		validationErrors.add(RecordDeleteServicesUnitTest.class, "ErrorMessage");
+		doReturn(validationErrors).when(recordDeleteServices).validateLogicallyDeletable(theRecord, user);
 
 		try {
 			recordDeleteServices.logicallyDelete(theRecord, user);
@@ -370,8 +373,9 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	@Test
 	public void givenNotPhysicallyDeletableWhenPhysicallyDeletingThenThrowException()
 			throws Exception {
-
-		doReturn(false).when(recordDeleteServices).validatePhysicallyDeletable(theRecord, user);
+		ValidationErrors validationErrors = new ValidationErrors();
+		validationErrors.add(RecordDeleteServicesUnitTest.class, "ErrorMessage");
+		doReturn(validationErrors).when(recordDeleteServices).validatePhysicallyDeletable(theRecord, user);
 
 		try {
 			recordDeleteServices.physicallyDelete(theRecord, user);

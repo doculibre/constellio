@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
@@ -22,7 +21,7 @@ public class RMMediumTypeRecordExtensionAcceptanceTest extends ConstellioTest {
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
 		Record mediumType = rm.getMediumTypeByCode("DM").getWrappedRecord();
-		assertThat(MessageUtils.getCannotDeleteWindow(recordServices.validateLogicallyDeletable(mediumType, User.GOD))).isEqualTo("Vous ne pouvez pas supprimer le disque magnétique\n");
+		assertThat(recordServices.validateLogicallyDeletable(mediumType, User.GOD).isEmpty()).isFalse();
 
 		mediumType = rm.getMediumTypeByCode("FI").getWrappedRecord();
 		assertThat(recordServices.validateLogicallyDeletable(mediumType, User.GOD).isEmpty()).isTrue();
