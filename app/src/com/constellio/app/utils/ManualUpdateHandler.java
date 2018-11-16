@@ -100,6 +100,7 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 					}
 				}
 			};
+			uploadButton.setEnabled(false);
 			uploadButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 			addComponents(uploadField, uploadButton);

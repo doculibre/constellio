@@ -19,6 +19,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
+import com.vaadin.server.Page;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -161,16 +162,20 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		preSetupButtonsLayout.setSpacing(true);
 
 		if (isUpdateWar) {
-			Button updateButton = new WindowButton($("ConstellioSetupView.setup.update." + Language.English.getCode()),
+			WindowButton updateButton = new WindowButton($("ConstellioSetupView.setup.update." + Language.English.getCode()),
 					$("ConstellioSetupView.setup.update." + Language.English.getCode())) {
 				@Override
 				protected Component buildWindowContent() {
+					VerticalLayout verticalLayout = new VerticalLayout();
 					ManualUpdateHandler manualUpdateHandler = new ManualUpdateHandler(
 							getConstellioFactories().getAppLayerFactory(),
 							ConstellioSetupViewImpl.this);
-					return manualUpdateHandler.buildUpdatePanel();
+					verticalLayout.addComponent(manualUpdateHandler.buildUpdatePanel());
+					verticalLayout.setHeight("400px");
+					return verticalLayout;
 				}
 			};
+			updateButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 			preSetupButtonsLayout.addComponent(updateButton);
 		}
@@ -206,6 +211,11 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		}
 		buildFields();
 		mainLayout.addComponent(formLayout);
+	}
+
+	@Override
+	public void navigateToMonitoring() {
+		Page.getCurrent().setLocation("/constellio/serviceMonitoring");
 	}
 
 	private void buildFields() {

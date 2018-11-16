@@ -1,7 +1,6 @@
 package com.constellio.app.ui.pages.setup;
 
 import com.constellio.app.entities.modules.InstallableModule;
-import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
@@ -25,13 +24,10 @@ import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.io.services.zip.ZipService;
 import com.constellio.data.io.services.zip.ZipServiceException;
-import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.modules.Module;
 import com.constellio.model.entities.modules.PluginUtil;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
@@ -41,6 +37,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
+import com.vaadin.server.Page;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
@@ -97,23 +94,11 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 	public void restart() {
 		try {
 			appLayerFactory.newApplicationService().restart();
-			RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-			Record event = rm.newEvent()
-					.setType(EventType.RESTARTING)
-					.setUsername(getCurrentUser().getUsername())
-					.setUserRoles(org.apache.commons.lang.StringUtils.join(getCurrentUser().getAllRoles().toArray(), "; "))
-					.setIp(getCurrentUser().getLastIPAddress())
-					.setCreatedOn(TimeProvider.getLocalDateTime())
-					.setTitle($("ListEventsView.restarting"))
-					.getWrappedRecord();
-			Transaction t = new Transaction();
-			t.add(event);
-			appLayerFactory.getModelLayerFactory().newRecordServices().execute(t);
-		} catch (AppManagementServiceException | RecordServicesException ase) {
+		} catch (AppManagementServiceException e) {
 			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
 		}
 		ConstellioMonitoringServlet.systemRestarting = true;
-		view.navigate().to().serviceMonitoring();
+		Page.getCurrent().setLocation("/constellio/serviceMonitoring");
 	}
 
 	@Override

@@ -9,13 +9,13 @@ import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.joda.time.LocalDate;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +24,8 @@ public class ScriptDeleteAllDansRestart extends ScriptWithLogOutput {
 	public static ScriptParameter CONFIRMATION_PARAMETER = new ScriptParameter(ScriptParameterType.STRING,
 			"Delete all constellio settings, delete solr content, delete the vault content and restart the application. Enter (DELETE ALL COLLECTIONS) to confirm.",
 			true);
+
+	public static final String DELETE_LOG_FILE = "deletelogfile";
 
 	public ScriptDeleteAllDansRestart(AppLayerFactory appLayerFactory) {
 		super(appLayerFactory, "Content", "Delete everything from constellio and restart. ** This cannot be undone.");
@@ -37,25 +39,29 @@ public class ScriptDeleteAllDansRestart extends ScriptWithLogOutput {
 			DataLayerConfiguration dataLayerConfiguration = appLayerFactory.getModelLayerFactory().getDataLayerFactory()
 					.getDataLayerConfiguration();
 
-			//if(SystemUtils.IS_OS_LINUX) {
-			File deleteLogFile = new File("/opt/constellio/systemDeletes.txt");
+			if (SystemUtils.IS_OS_LINUX) {
+				File deleteLogFile = new File("/opt/constellio/systemDeletes.txt");
 
-			if (!deleteLogFile.getParentFile().exists()) {
-				deleteLogFile.getParentFile().mkdirs();
+				if (!deleteLogFile.getParentFile().exists()) {
+					deleteLogFile.getParentFile().mkdirs();
+				}
+
+				if (!deleteLogFile.exists()) {
+					deleteLogFile.createNewFile();
+				}
+
+				String format = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
+				OutputStream outputStream = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices()
+						.newFileOutputStream(deleteLogFile, DELETE_LOG_FILE);
+				try {
+					outputStream.write((DateUtils.format(LocalDate.now(), format) + " " + ConstellioUI.getCurrentSessionContext()
+							.getCurrentUserIPAddress() + " " + ConstellioUI.getCurrentSessionContext().getCurrentUser()
+							.getUsername()).toString().getBytes());
+					outputStream.flush();
+				} finally {
+					outputStream.close();
+				}
 			}
-
-			if (!deleteLogFile.exists()) {
-				deleteLogFile.createNewFile();
-			}
-
-			String format = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
-
-			BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(deleteLogFile, true));
-
-			bufferedWriter.write(DateUtils.format(LocalDate.now(), format) + " " + ConstellioUI.getCurrentSessionContext()
-					.getCurrentUserIPAddress() + " " + ConstellioUI.getCurrentSessionContext().getCurrentUser().getUsername());
-
-			//}
 
 			File contentDaoFileSystemFolder = dataLayerConfiguration.getContentDaoFileSystemFolder();
 
@@ -68,6 +74,8 @@ public class ScriptDeleteAllDansRestart extends ScriptWithLogOutput {
 			settingsFileSystemBaseFolder.mkdirs();
 
 			deleteSolrData();
+
+			appLayerFactory.newApplicationService().restart();
 
 			outputLogger.info("Script finished");
 		} else {
