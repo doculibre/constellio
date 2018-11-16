@@ -498,7 +498,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getDeleteButtonState(User user, Folder folder) {
-		if (user.hasDeleteAccess().on(folder) && extensions.isDeleteAuthorized(folder.getWrappedRecord(), user)) {
+		if (user.hasDeleteAccess().on(folder) && extensions.validateDeleteAuthorized(folder.getWrappedRecord(), user).isEmpty()) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
 					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user

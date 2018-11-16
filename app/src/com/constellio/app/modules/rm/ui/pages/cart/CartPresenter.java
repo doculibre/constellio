@@ -182,8 +182,9 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			return;
 		}
 		for (Record record : recordServices().getRecordsById(view.getCollection(), cart().getAllItems())) {
-			if (!modelLayerExtensions.isDeleteAuthorized(record, getCurrentUser())) {
-				MessageUtils.getCannotDeleteWindow(modelLayerExtensions.getDeletionAuthorizationValidationErrors(record, getCurrentUser())).openWindow();
+			ValidationErrors validateDeleteAuthorized = modelLayerExtensions.validateDeleteAuthorized(record, getCurrentUser());
+			if (!validateDeleteAuthorized.isEmpty()) {
+				MessageUtils.getCannotDeleteWindow(validateDeleteAuthorized).openWindow();
 				return;
 			}
 		}

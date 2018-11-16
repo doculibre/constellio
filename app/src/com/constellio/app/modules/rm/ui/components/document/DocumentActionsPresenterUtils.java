@@ -189,11 +189,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	protected ValidationErrors validateDeleteDocumentPossible() {
 		ValidationErrors validationErrors = new ValidationErrors();
-		if (!getCurrentUser().hasDeleteAccess().on(currentDocument())) {
+		boolean userHasDeleteAccess = !getCurrentUser().hasDeleteAccess().on(currentDocument());
+		if (!userHasDeleteAccess) {
 			validationErrors.add(DocumentActionsPresenterUtils.class, "userDoesNotHaveDeleteAccess");
-		}
-		if (!extensions.isDeleteAuthorized(currentDocument(), getCurrentUser())) {
-			validationErrors.addAll(extensions.getDeletionAuthorizationValidationErrors(currentDocument(), getCurrentUser()).getValidationErrors());
+		} else {
+			validationErrors = extensions.validateDeleteAuthorized(currentDocument(), getCurrentUser());
 		}
 		return validationErrors;
 	}

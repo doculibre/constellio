@@ -252,13 +252,13 @@ public class RecordDeleteServices {
 
 		if (physicallyDeletable) {
 			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced, true);
-			physicallyDeletable = extensions.forCollectionOf(record).isLogicallyDeletable(event);
-			validationErrors.addAll(extensions.forCollectionOf(record).getLogicalDeletionValidationErrors(event).getValidationErrors());
+			validationErrors = extensions.forCollectionOf(record).validateLogicallyDeletable(event);
+			physicallyDeletable = validationErrors.isEmpty();
 		}
 
 		if (physicallyDeletable) {
 			RecordPhysicalDeletionValidationEvent event = new RecordPhysicalDeletionValidationEvent(record, user);
-			validationErrors.addAll(extensions.forCollectionOf(record).getPhysicalDeletionValidationErrors(event).getValidationErrors());
+			validationErrors = extensions.forCollectionOf(record).validatePhysicallyDeletable(event);
 		}
 
 		return validationErrors;
@@ -508,10 +508,7 @@ public class RecordDeleteServices {
 			};
 			RecordLogicalDeletionValidationEvent event = new RecordLogicalDeletionValidationEvent(record, user, referenced,
 					false);
-			logicallyDeletable = extensions.forCollectionOf(record).isLogicallyDeletable(event);
-			if (!logicallyDeletable) {
-				validationErrors.addAll(extensions.forCollectionOf(record).getLogicalDeletionValidationErrors(event).getValidationErrors());
-			}
+			validationErrors = extensions.forCollectionOf(record).validateLogicallyDeletable(event);
 		}
 
 		return validationErrors;

@@ -21,7 +21,6 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
-import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -157,7 +156,7 @@ public class RMDocumentExtension extends RecordExtension {
 	}
 
 	@Override
-	public ExtensionValidationErrors isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+	public ValidationErrors validateLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
 				ConstellioFactories.getInstance().getAppLayerFactory());
 
@@ -190,10 +189,10 @@ public class RMDocumentExtension extends RecordExtension {
 				if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))) {
 					validationErrors.add(RMDocumentExtension.class, "userDoesNotHavePremissionToDeleteBorrowedDocument");
 				}
-				return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.FALSE);
+				return validationErrors;
 			}
 		}
-		return super.isLogicallyDeletable(event);
+		return super.validateLogicallyDeletable(event);
 	}
 
 }
