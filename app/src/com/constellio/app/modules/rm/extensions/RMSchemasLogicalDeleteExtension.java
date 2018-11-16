@@ -24,10 +24,14 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.constellio.app.modules.rm.model.CopyRetentionRuleFactory.variablePeriodCode;
 import static com.constellio.model.entities.schemas.Schemas.PATH_PARTS;
@@ -123,51 +127,54 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 	private ExtensionValidationErrors isAdministrativeUnitLogicallyDeletable(
 			RecordLogicalDeletionValidationEvent event) {
 		ValidationErrors validationErrors = new ValidationErrors();
-		boolean inPath = searchServices.hasResults(fromAllSchemasExcept(asList(rm.administrativeUnit.schemaType()))
+		LogicalSearchQuery query = filteredQueryForErrorMessages(fromAllSchemasExcept(asList(rm.administrativeUnit.schemaType()))
 				.where(Schemas.PATH).isContainingText(event.getRecord().getId()));
+		List<Record> recodsInAdministrativeUnit = searchServices.search(query);
 		boolean referenced = event.isRecordReferenced();
 		if (event.isRecordReferenced()) {
 			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "administrativeUnitIsReferenced");
 		}
-		if (inPath) {
-			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "recordInAdministrativeUnit");
+		if (!recodsInAdministrativeUnit.isEmpty()) {
+			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "recordInAdministrativeUnit", toRecordsParameter(recodsInAdministrativeUnit));
 		}
-		return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.falseIf(inPath || referenced));
+		return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.falseIf(!recodsInAdministrativeUnit.isEmpty() || referenced));
 	}
 
 	private ExtensionValidationErrors isCategoryLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		ValidationErrors validationErrors = new ValidationErrors();
-		boolean inPath = searchServices.hasResults(fromAllSchemasExcept(asList(rm.category.schemaType()))
+		LogicalSearchQuery logicalSearchQuery = filteredQueryForErrorMessages(fromAllSchemasExcept(asList(rm.category.schemaType()))
 				.where(Schemas.PATH).isContainingText(event.getRecord().getId()));
+		List<Record> recodsInCategory = searchServices.search(logicalSearchQuery);
 		boolean referenced = event.isRecordReferenced();
 		if (event.isRecordReferenced()) {
 			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "categoryIsReferenced");
 		}
-		if (inPath) {
-			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "recordInCategory");
+		if (!recodsInCategory.isEmpty()) {
+			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "recordInCategory", toRecordsParameter(recodsInCategory));
 		}
-		return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.falseIf(inPath || referenced));
+		return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.falseIf(!recodsInCategory.isEmpty() || referenced));
 	}
 
 	private ExtensionValidationErrors isFolderLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		//TODO check if user can delete borrowed documents
 		ValidationErrors validationErrors = new ValidationErrors();
 		ExtensionBooleanResult extensionBooleanResult = ExtensionBooleanResult.NOT_APPLICABLE;
-		boolean hasCheckedOutDocument = searchServices.hasResults(from(rm.document.schemaType())
+		List<Record> checkedOutDocument = searchServices.search(filteredQueryForErrorMessages(from(rm.document.schemaType())
 				.where(rm.document.contentCheckedOutBy()).isNotNull()
-				.andWhere(PATH_PARTS).isEqualTo(event.getRecord()));
+				.andWhere(PATH_PARTS).isEqualTo(event.getRecord())));
 
-		if (hasCheckedOutDocument) {
-			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "folderWithCheckoutDocuments");
+		if (!checkedOutDocument.isEmpty()) {
+			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "folderWithCheckoutDocuments", toRecordsParameter(checkedOutDocument));
 			extensionBooleanResult = ExtensionBooleanResult.FALSE;
 		}
 
 		if (!event.isThenPhysicallyDeleted()) {
-			if (searchServices.hasResults(from(rm.userTask.schemaType())
+			List<Record> tasks = searchServices.search(filteredQueryForErrorMessages(from(rm.userTask.schemaType())
 					.where(rm.userTask.linkedFolders()).isContaining(asList(event.getRecord().getId()))
 					.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
-					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull())) {
-				validationErrors.add(RMSchemasLogicalDeleteExtension.class, "folderLinkedToTask");
+					.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()));
+			if (!tasks.isEmpty()) {
+				validationErrors.add(RMSchemasLogicalDeleteExtension.class, "folderLinkedToTask", toRecordsParameter(tasks));
 				extensionBooleanResult = ExtensionBooleanResult.FALSE;
 			}
 		}
@@ -178,13 +185,13 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 	private ExtensionValidationErrors isContainerLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		ExtensionBooleanResult extensionBooleanResult = ExtensionBooleanResult.NOT_APPLICABLE;
 		ValidationErrors validationErrors = new ValidationErrors();
-		boolean taskVerification = searchServices.hasResults(from(rm.userTask.schemaType())
+		List<Record> tasks = searchServices.search(filteredQueryForErrorMessages(from(rm.userTask.schemaType())
 						.where(rm.userTask.linkedContainers()).isContaining(asList(event.getRecord().getId()))
 						.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
 						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()
-		);
-		if (taskVerification) {
-			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "containerLinkedToTask");
+		));
+		if (!tasks.isEmpty()) {
+			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "containerLinkedToTask", toRecordsParameter(tasks));
 			extensionBooleanResult = ExtensionBooleanResult.FALSE;
 		}
 		return new ExtensionValidationErrors(validationErrors, extensionBooleanResult);
@@ -200,12 +207,12 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 
 	private ExtensionValidationErrors isRetentionRuleLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		ValidationErrors validationErrors = new ValidationErrors();
-		boolean logicallyDeletable = !searchServices.hasResults(from(rm.folder.schemaType())
-				.where(rm.folder.retentionRule()).isEqualTo(event.getRecord()));
-		if (!logicallyDeletable) {
-			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "retentionRuleUsedByFolder");
+		List<Record> folderUsingRetentionRules = searchServices.search(filteredQueryForErrorMessages(from(rm.folder.schemaType())
+				.where(rm.folder.retentionRule()).isEqualTo(event.getRecord())));
+		if (!folderUsingRetentionRules.isEmpty()) {
+			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "retentionRuleUsedByFolder", toRecordsParameter(folderUsingRetentionRules));
 		}
-		return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.forceTrueIf(logicallyDeletable));
+		return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.forceTrueIf(folderUsingRetentionRules.isEmpty()));
 	}
 
 	private ExtensionValidationErrors isVariableRetentionPeriodLogicallyDeletable(
@@ -217,12 +224,23 @@ public class RMSchemasLogicalDeleteExtension extends RecordExtension {
 			validationErrors.add(RMSchemasLogicalDeleteExtension.class, "cannotDelete888Or999VariableRetentionPeriod");
 			return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.FALSE);
 		} else {
-			long count = searchServices.getResultsCount(from(rm.retentionRule.schemaType())
-					.where(rm.retentionRule.copyRetentionRules()).is(variablePeriodCode(code)));
-			if (count != 0) {
-				validationErrors.add(RMSchemasLogicalDeleteExtension.class, "variablePeriodTypeIsUsedInRetentionRule");
+			List<Record> retentionRulesUsingVariablePeriod = searchServices.search(filteredQueryForErrorMessages(from(rm.retentionRule.schemaType())
+					.where(rm.retentionRule.copyRetentionRules()).is(variablePeriodCode(code))));
+			if (!retentionRulesUsingVariablePeriod.isEmpty()) {
+				validationErrors.add(RMSchemasLogicalDeleteExtension.class, "variablePeriodTypeIsUsedInRetentionRule", toRecordsParameter(retentionRulesUsingVariablePeriod));
 			}
-			return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.trueIf(count == 0));
+			return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.trueIf(retentionRulesUsingVariablePeriod.isEmpty()));
 		}
+	}
+
+	private Map<String, Object> toRecordsParameter(List<Record> records) {
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("records", records);
+		return parameters;
+	}
+
+	private LogicalSearchQuery filteredQueryForErrorMessages(LogicalSearchCondition logicalSearchCondition) {
+		LogicalSearchQuery logicalSearchQuery = new LogicalSearchQuery(logicalSearchCondition);
+		return logicalSearchQuery.setNumberOfRows(10).setReturnedMetadatas(ReturnedMetadatasFilter.onlyMetadatas(Schemas.TITLE, Schemas.LOGICALLY_DELETED_STATUS));
 	}
 }

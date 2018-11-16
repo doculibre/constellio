@@ -21,8 +21,8 @@ public class RMEmailDocumentRecordExtensionAcceptanceTest extends ConstellioTest
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
 
 		Record emailDocumentType = rm.emailDocumentType().getWrappedRecord();
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(emailDocumentType, User.GOD))).isEqualTo("Vous ne pouvez pas supprimer cet enregistrement car il est verouillé\n");
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(emailDocumentType, User.GOD))).isEqualTo("Vous ne pouvez pas supprimer cet enregistrement car il est verouillé\n");
+		assertThat(MessageUtils.getCannotDeleteWindow(recordServices.validateLogicallyDeletable(emailDocumentType, User.GOD))).isEqualTo("Vous ne pouvez pas supprimer cet enregistrement car il est verouillé\n");
+		assertThat(MessageUtils.getCannotDeleteWindow(recordServices.validateLogicallyThenPhysicallyDeletable(emailDocumentType, User.GOD))).isEqualTo("Vous ne pouvez pas supprimer cet enregistrement car il est verouillé\n");
 
 	}
 }

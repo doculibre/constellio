@@ -3097,13 +3097,13 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		String folderLinkedToTaskError = "Ce dossier ne peut pas être supprimé car il est lié à une tâche\n";
 		Task task = rm.newRMTask().setLinkedFolders(asList(folder.getId())).setTitle("Task");
 		recordServices.add(task);
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(folderLinkedToTaskError);
+		assertThat(MessageUtils.getCannotDeleteWindow(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(folderLinkedToTaskError);
 
 		recordServices.logicallyDelete(task.getWrappedRecord(), users.adminIn(zeCollection));
 		assertThat(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isTrue();
 
 		recordServices.restore(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(folderLinkedToTaskError);
+		assertThat(MessageUtils.getCannotDeleteWindow(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(folderLinkedToTaskError);
 
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		TasksSearchServices taskSearchServices = new TasksSearchServices(tasksSchemas);

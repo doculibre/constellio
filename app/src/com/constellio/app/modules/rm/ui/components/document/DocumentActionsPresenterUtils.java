@@ -261,7 +261,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				actionsComponent.navigate().to().recordsManagement();
 			}
 		} else {
-			actionsComponent.showMessage(MessageUtils.getUserDisplayErrorMessage(validateDeleteDocumentPossibleExtensively()));
+			MessageUtils.getCannotDeleteWindow(validateDeleteDocumentPossibleExtensively()).openWindow();
 		}
 	}
 

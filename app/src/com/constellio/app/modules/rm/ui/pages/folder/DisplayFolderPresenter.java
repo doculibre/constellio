@@ -658,7 +658,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				navigate().to().home();
 			}
 		} else {
-			view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(validateLogicallyDeletable));
+			MessageUtils.getCannotDeleteWindow(validateLogicallyDeletable).openWindow();
 		}
 	}
 

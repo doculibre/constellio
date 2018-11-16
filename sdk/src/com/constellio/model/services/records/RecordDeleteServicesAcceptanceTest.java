@@ -149,8 +149,8 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		transaction.add(aDocument);
 		recordServices.execute(transaction);
 
-		assertThat(MessageUtils.getUserDisplayErrorMessage(deleteService.isLogicallyThenPhysicallyDeletable(childConcept, users.adminIn(zeCollection)))).isEqualTo("Vous ne pouvez pas supprimer définitivement cet enregistrement, car un enregistrement dans sa hiérachie est référecié en dehors de cette dernière\n");
-		assertThat(deleteService.isLogicallyDeletable(childConcept, users.adminIn(zeCollection)).isEmpty()).isTrue();
+		assertThat(MessageUtils.getCannotDeleteWindow(deleteService.validateLogicallyThenPhysicallyDeletable(childConcept, users.adminIn(zeCollection)))).isEqualTo("Vous ne pouvez pas supprimer définitivement cet enregistrement, car un enregistrement dans sa hiérachie est référecié en dehors de cette dernière\n");
+		assertThat(deleteService.validateLogicallyDeletable(childConcept, users.adminIn(zeCollection)).isEmpty()).isTrue();
 
 		//		newWebDriver();
 		//		waitUntilICloseTheBrowsers();

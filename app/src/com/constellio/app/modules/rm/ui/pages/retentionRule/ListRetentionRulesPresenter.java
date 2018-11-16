@@ -66,7 +66,7 @@ public class ListRetentionRulesPresenter extends SingleSchemaBasePresenter<ListR
 			delete(record, false);
 			view.navigate().to(RMViews.class).listRetentionRules();
 		} else {
-			view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(validationErrors));
+			MessageUtils.getCannotDeleteWindow(validationErrors).openWindow();
 		}
 	}
 

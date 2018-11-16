@@ -206,7 +206,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	public void whenLogicallyDeletingThenSetLogicallyDeletedStatusToAllRecordInHierarchyAndExecuteTransaction()
 			throws Exception {
 
-		doReturn(true).when(recordDeleteServices).isLogicallyDeletable(theRecord, user);
+		doReturn(true).when(recordDeleteServices).validateLogicallyDeletable(theRecord, user);
 
 		ArgumentCaptor<Transaction> transaction = ArgumentCaptor.forClass(Transaction.class);
 
@@ -275,7 +275,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 
 		RecordPhysicalDeleteOptions options = new RecordPhysicalDeleteOptions();
 		doNothing().when(recordDeleteServices).deleteContents(anyList());
-		doReturn(true).when(recordDeleteServices).isPhysicallyDeletable(theRecord, user, options);
+		doReturn(true).when(recordDeleteServices).validatePhysicallyDeletable(theRecord, user, options);
 		when(recordServices.getDocumentById(zeCollection)).thenReturn(collection);
 		when(collection.getCollection()).thenReturn(zeCollection);
 		ArgumentCaptor<TransactionDTO> transactionDTO = ArgumentCaptor.forClass(TransactionDTO.class);
@@ -308,7 +308,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	public void givenNotLogicallyDeletableWhenLogicallyDeletingThenThrowException()
 			throws Exception {
 
-		doReturn(false).when(recordDeleteServices).isLogicallyDeletable(theRecord, user);
+		doReturn(false).when(recordDeleteServices).validateLogicallyDeletable(theRecord, user);
 
 		try {
 			recordDeleteServices.logicallyDelete(theRecord, user);
@@ -371,7 +371,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	public void givenNotPhysicallyDeletableWhenPhysicallyDeletingThenThrowException()
 			throws Exception {
 
-		doReturn(false).when(recordDeleteServices).isPhysicallyDeletable(theRecord, user);
+		doReturn(false).when(recordDeleteServices).validatePhysicallyDeletable(theRecord, user);
 
 		try {
 			recordDeleteServices.physicallyDelete(theRecord, user);
@@ -405,7 +405,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//			throws Exception {
 	//		when(authorizationsServices.hasDeletePermissionOnHierarchy(user, theRecord)).thenReturn(false);
 	//
-	//		assertThat(recordDeleteServices.isLogicallyDeletable(theRecord, user)).isFalse();
+	//		assertThat(recordDeleteServices.validateLogicallyDeletable(theRecord, user)).isFalse();
 	//
 	//	}
 	//
@@ -414,7 +414,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//			throws Exception {
 	//		when(authorizationsServices.hasDeletePermissionOnHierarchy(user, theRecord)).thenReturn(true);
 	//
-	//		assertThat(recordDeleteServices.isLogicallyDeletable(theRecord, user)).isTrue();
+	//		assertThat(recordDeleteServices.validateLogicallyDeletable(theRecord, user)).isTrue();
 	//
 	//	}
 	//
@@ -548,7 +548,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		when(user.getCollection()).thenReturn("aCollection");
 		when(theRecord.getCollection()).thenReturn("anotherCollection");
 
-		recordDeleteServices.isLogicallyDeletable(theRecord, user);
+		recordDeleteServices.validateLogicallyDeletable(theRecord, user);
 	}
 
 	@Test(expected = RecordDeleteServicesRuntimeException_CannotDeleteRecordWithUserFromOtherCollection.class)
@@ -556,7 +556,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		when(user.getCollection()).thenReturn("aCollection");
 		when(theRecord.getCollection()).thenReturn("anotherCollection");
 
-		recordDeleteServices.isPhysicallyDeletable(theRecord, user);
+		recordDeleteServices.validatePhysicallyDeletable(theRecord, user);
 	}
 
 	@Test(expected = RecordDeleteServicesRuntimeException_CannotDeleteRecordWithUserFromOtherCollection.class)

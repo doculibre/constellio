@@ -198,9 +198,9 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		wordDocument.getContent().checkOut(dakota);
 		recordServices.execute(new Transaction(childFolder, wordDocument));
 
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD))).isEqualTo("Ce document ne peut pas être supprimé car il est emprunté\n");
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD))).isEqualTo("Ce dossier ne peut pas être supprimé car il contient des documents empruntés\n");
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD))).isEqualTo("Ce dossier ne peut pas être supprimé car il contient des documents empruntés\n");
+		assertThat(MessageUtils.getCannotDeleteWindow(recordServices.validateLogicallyDeletable(wordDocument.getWrappedRecord(), User.GOD))).isEqualTo("Ce document ne peut pas être supprimé car il est emprunté\n");
+		assertThat(MessageUtils.getCannotDeleteWindow(recordServices.validateLogicallyDeletable(childFolder.getWrappedRecord(), User.GOD))).isEqualTo("Ce dossier ne peut pas être supprimé car il contient des documents empruntés\n");
+		assertThat(MessageUtils.getCannotDeleteWindow(recordServices.validateLogicallyDeletable(records.getFolder_A03().getWrappedRecord(), User.GOD))).isEqualTo("Ce dossier ne peut pas être supprimé car il contient des documents empruntés\n");
 
 		wordDocument.getContent().checkIn();
 		recordServices.update(wordDocument);
@@ -263,13 +263,13 @@ public class DocumentAcceptanceTest extends ConstellioTest {
 		String documentLinkedToTaskError = "Ce document ne peut pas être supprimé car il est lié à une tâche\n";
 		Task task = rm.newRMTask().setLinkedDocuments(asList(document.getId())).setTitle("Task");
 		recordServices.add(task);
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(documentLinkedToTaskError);
+		assertThat(MessageUtils.getCannotDeleteWindow(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(documentLinkedToTaskError);
 
 		recordServices.logicallyDelete(task.getWrappedRecord(), users.adminIn(zeCollection));
 		assertThat(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isTrue();
 
 		recordServices.restore(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(documentLinkedToTaskError);
+		assertThat(MessageUtils.getCannotDeleteWindow(recordServices.validateLogicallyDeletable(document.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(documentLinkedToTaskError);
 
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		TasksSearchServices taskSearchServices = new TasksSearchServices(tasksSchemas);

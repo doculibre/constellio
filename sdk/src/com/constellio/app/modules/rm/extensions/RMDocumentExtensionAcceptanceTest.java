@@ -38,8 +38,8 @@ public class RMDocumentExtensionAcceptanceTest extends ConstellioTest {
 
 		Record record = documentWithContent_a19.getWrappedRecord();
 
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(record, User.GOD))).isEqualTo("Ce document ne peut pas être supprimé car il est emprunté\n");
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(record, User.GOD))).isEqualTo("Ce document ne peut pas être supprimé car il est emprunté\n");
+		assertThat(MessageUtils.getCannotDeleteWindow(recordServices.validateLogicallyDeletable(record, User.GOD))).isEqualTo("Ce document ne peut pas être supprimé car il est emprunté\n");
+		assertThat(MessageUtils.getCannotDeleteWindow(recordServices.validateLogicallyThenPhysicallyDeletable(record, User.GOD))).isEqualTo("Ce document ne peut pas être supprimé car il est emprunté\n");
 	}
 
 }
