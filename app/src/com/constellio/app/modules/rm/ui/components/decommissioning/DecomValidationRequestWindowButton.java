@@ -25,7 +25,7 @@ public class DecomValidationRequestWindowButton extends WindowButton {
 
 	public DecomValidationRequestWindowButton(DecommissioningListPresenter presenter) {
 		super(i18n.$("DecomAskForValidationWindowButton.buttonCaption"),
-				i18n.$("DecomAskForValidationWindowButton.windowCaption"));
+				i18n.$("DecomAskForValidationWindowButton.windowCaption"), new WindowConfiguration(true, true, "50%", "550px"));
 		this.presenter = presenter;
 	}
 

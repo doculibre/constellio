@@ -228,13 +228,11 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		tabSheet = new TabSheet();
 		tabSheet.addTab(tableFolder, $("DisplayLabelViewImpl.tabs.folder"));
 		tabSheet.addTab(tableContainer, $("DisplayLabelViewImpl.tabs.container"));
-		System.out.println(tabSheet.getTabIndex());
 		tabSheet.addSelectedTabChangeListener(new TabSheet.SelectedTabChangeListener() {
 			@Override
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
 				getXMLButton.setCurrentSchema(tabSheet.getSelectedTab().equals(tableFolder) ? Folder.SCHEMA_TYPE : ContainerRecord.SCHEMA_TYPE);
 				ListLabelViewImpl.this.currentSchema = getXMLButton.getCurrentSchema();
-				System.out.println(ListLabelViewImpl.this.currentSchema);
 			}
 		});
 
