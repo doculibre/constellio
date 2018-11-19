@@ -129,7 +129,6 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 						recordServices.prepareRecords(transaction);
 						appendCsvReport(transaction, appLayerFactory, params);
 						recordServices.execute(transaction);
-						transaction.getModifiedRecords();
 					} catch (Throwable t) {
 						if (report != null) {
 							report.appendErrors(asList(t.getMessage()));
@@ -224,6 +223,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, batchUser));
 		}
 		transaction.addUpdate(batch);
+		transaction.setUser(batchUser);
 		return transaction;
 	}
 
