@@ -14,7 +14,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;

@@ -100,7 +100,7 @@ public class AuthorizationToVOBuilder implements Serializable {
 
 		String recordCaption = receivedFromValue == null ? null : getCaptionForRecord(receivedFromValue,
 				sessionContext.getCurrentLocale());
-		String authorizationType = authorization.getDetail().isNegative() ? $(DISABLE) : $(ENABLE);
+		String authorizationType = authorization.isNegative() ? $(DISABLE) : $(ENABLE);
 
 		String authorizationType = authorization.isNegative() ? $(DISABLE) : $(ENABLE);
 		AuthorizationVO authorizationVO = new AuthorizationVO(users, groups, records, accessRoles, userRoles, userRolesTitles,

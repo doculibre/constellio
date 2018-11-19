@@ -11,11 +11,11 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 
-public class CoreMigrationTo_8_2_1 implements MigrationScript {
+public class CoreMigrationTo_8_2_0_1 implements MigrationScript {
 
 	@Override
 	public String getVersion() {
-		return "8.2.1";
+		return "8.2.0.1";
 	}
 
 	@Override
@@ -23,14 +23,14 @@ public class CoreMigrationTo_8_2_1 implements MigrationScript {
 						AppLayerFactory appLayerFactory)
 			throws Exception {
 
-		new CoreMigrationTo_8_2_1.SchemaAlterationFor8_2_1(collection, migrationResourcesProvider, appLayerFactory)
+		new SchemaAlterationFor8_2_0_1(collection, migrationResourcesProvider, appLayerFactory)
 				.migrate();
 	}
 
-	class SchemaAlterationFor8_2_1 extends MetadataSchemasAlterationHelper {
+	class SchemaAlterationFor8_2_0_1 extends MetadataSchemasAlterationHelper {
 
-		private SchemaAlterationFor8_2_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
-										 AppLayerFactory appLayerFactory) {
+		private SchemaAlterationFor8_2_0_1(String collection, MigrationResourcesProvider migrationResourcesProvider,
+										   AppLayerFactory appLayerFactory) {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
