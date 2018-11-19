@@ -5,6 +5,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
@@ -55,12 +56,13 @@ public class ScriptDeleteAllDansRestart extends ScriptWithLogOutput {
 				}
 
 				String format = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
-				OutputStream outputStream = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices()
+				IOServices ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
+				OutputStream outputStream = ioServices
 						.newFileOutputStream(deleteLogFile, DELETE_LOG_FILE, true);
 				try {
 					outputStream.write((DateUtils.format(LocalDate.now(), format) + " " + ConstellioUI.getCurrentSessionContext()
 							.getCurrentUserIPAddress() + " " + ConstellioUI.getCurrentSessionContext().getCurrentUser()
-							.getUsername() + "\n").toString().getBytes());
+							.getUsername() + System.lineSeparator()).toString().getBytes());
 					outputStream.flush();
 				} finally {
 					outputStream.close();
