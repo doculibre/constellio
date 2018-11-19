@@ -5,6 +5,7 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
@@ -909,5 +910,9 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			}
 		}
 		return true;
+	}
+
+	public boolean isNeedingAReasonToDeleteRecords() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
 	}
 }
