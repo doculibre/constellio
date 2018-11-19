@@ -280,9 +280,11 @@ public class EventTypeUtils implements Serializable {
 		Metadata permissionDatesMetadata = metadataSchema.getMetadata(Event.PERMISSION_DATE_RANGE);
 		Metadata permissionRolesMetadata = metadataSchema.getMetadata(Event.PERMISSION_ROLES);
 		Metadata permissionUsersMetadata = metadataSchema.getMetadata(Event.PERMISSION_USERS);
+		Metadata negativeAuthMetadata = metadataSchema.getMetadata(Event.NEGATIVE_AUTHORIZATION);
 		metadataCodes.add(permissionDatesMetadata.getCode());
 		metadataCodes.add(permissionRolesMetadata.getCode());
 		metadataCodes.add(permissionUsersMetadata.getCode());
+		metadataCodes.add(negativeAuthMetadata.getCode());
 		return metadataCodes;
 	}
 

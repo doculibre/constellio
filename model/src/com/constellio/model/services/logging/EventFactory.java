@@ -251,6 +251,7 @@ public class EventFactory {
 
 		SchemaUtils schemaUtils = new SchemaUtils();
 		String authorizationRolesString = StringUtils.join(authorization.getRoles(), "; ");
+		Boolean negative = authorization.isNegative() ? true : null;
 		String authorizationPrincipalsString = getAuthorizationPrincipals(authorization);
 		String dateRangeString = getAuthorizationDateRange(authorization);
 		Event event = schemasRecords.newEvent();
@@ -259,6 +260,7 @@ public class EventFactory {
 		event.setPermissionDateRange(dateRangeString);
 		event.setPermissionRoles(authorizationRolesString);
 		event.setDelta(deltaString);
+		event.setNegative(negative);
 		Record currentRecord = recordServices.getDocumentById(recordId);
 		String recordSchema = currentRecord.getSchemaCode();
 
