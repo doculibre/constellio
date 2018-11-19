@@ -52,12 +52,11 @@ public class ScriptDeleteAllDansRestart extends ScriptWithLogOutput {
 
 				if (!deleteLogFile.exists()) {
 					deleteLogFile.createNewFile();
-
 				}
 
 				String format = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
 				OutputStream outputStream = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices()
-						.newFileOutputStream(deleteLogFile, DELETE_LOG_FILE);
+						.newFileOutputStream(deleteLogFile, DELETE_LOG_FILE, true);
 				try {
 					outputStream.write((DateUtils.format(LocalDate.now(), format) + " " + ConstellioUI.getCurrentSessionContext()
 							.getCurrentUserIPAddress() + " " + ConstellioUI.getCurrentSessionContext().getCurrentUser()
