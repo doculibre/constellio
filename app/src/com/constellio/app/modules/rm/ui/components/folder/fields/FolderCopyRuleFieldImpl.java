@@ -64,7 +64,7 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 		return table;
 	}
 
-	private void updateTable() {
+	protected void updateTable() {
 		table.removeAllItems();
 		boolean showTitleColumn = false;
 		for (CopyRetentionRule copyRetentionRule : copyRetentionRules) {
@@ -152,7 +152,7 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 				@Override
 				public void valueChange(Property.ValueChangeEvent event) {
 					if (box.getValue()) {
-						setValue(copyRetentionRule.getId());
+						onValueChange(copyRetentionRule.getId());
 					}
 				}
 			});
@@ -192,5 +192,9 @@ public class FolderCopyRuleFieldImpl extends CustomField<String> implements Fold
 			return new Label(mediumTypes, ContentMode.HTML);
 		}
 
+	}
+
+	protected void onValueChange(String copyRetentionRuleId) {
+		setValue(copyRetentionRuleId);
 	}
 }
