@@ -1,19 +1,18 @@
 package com.constellio.app.extensions.api.scripts;
 
-import com.constellio.app.modules.restapi.core.util.DateUtils;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.util.DateFormatUtils;
 import com.constellio.data.conf.DataLayerConfiguration;
 import com.constellio.data.conf.PropertiesDataLayerConfiguration;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.data.utils.PropertyFileUtils;
 import com.constellio.model.conf.FoldersLocator;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,12 +54,12 @@ public class ScriptDeleteAllDansRestart extends ScriptWithLogOutput {
 					deleteLogFile.createNewFile();
 				}
 
-				String format = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
 				IOServices ioServices = appLayerFactory.getModelLayerFactory().getIOServicesFactory().newIOServices();
 				OutputStream outputStream = ioServices
 						.newFileOutputStream(deleteLogFile, DELETE_LOG_FILE, true);
+				String dateHour = DateFormatUtils.format(LocalDateTime.now());
 				try {
-					outputStream.write((DateUtils.format(LocalDate.now(), format) + " " + ConstellioUI.getCurrentSessionContext()
+					outputStream.write((dateHour + " " + ConstellioUI.getCurrentSessionContext()
 							.getCurrentUserIPAddress() + " " + ConstellioUI.getCurrentSessionContext().getCurrentUser()
 							.getUsername() + System.lineSeparator()).toString().getBytes());
 					outputStream.flush();
