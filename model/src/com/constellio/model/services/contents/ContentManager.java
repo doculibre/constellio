@@ -63,6 +63,7 @@ import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.joda.time.Duration;
 import org.joda.time.LocalDateTime;
@@ -305,6 +306,40 @@ public class ContentManager implements StatefulService {
 				}
 			}
 		}
+
+		deleteOrphanParsedContentOrPreview(subFiles, vaultScanResults);
+	}
+
+	private boolean deleteOrphanParsedContentOrPreview(List<String> subFiles, VaultScanResults vaultScanResults) {
+		ContentDao contentDao = getContentDao();
+		boolean containsParsedContentOrPreview = false;
+		boolean containsMainFile = false;
+		for (String fileId : subFiles) {
+			File file = contentDao.getFileOf(fileId);
+			if (file.exists() && (file.getName().endsWith("__parsed") || file.getName().endsWith(".preview"))) {
+				File mainFile = getMainFile(file);
+				if(!mainFile.exists()) {
+					try {
+						contentDao.delete(asList(fileId));
+						vaultScanResults.incrementNumberOfDeletedContents();
+						vaultScanResults.appendMessage("INFO: Successfully deleted file " + file.getName() + "\n");
+					} catch (Exception e) {
+						vaultScanResults.appendMessage("ERROR: Could not delete file " + file.getName() + "\n");
+						vaultScanResults.appendMessage(e.getMessage() + "\n");
+					}
+				}
+			}
+		}
+		return containsParsedContentOrPreview && !containsMainFile;
+	}
+
+	private File getMainFile(File parsedContentOrPreviewFile) {
+		String parsedContentOrPreviewFileAbsolutePath = parsedContentOrPreviewFile.getAbsolutePath();
+		String mainFileAbsolutePath = StringUtils.removeEnd(parsedContentOrPreviewFileAbsolutePath, "__parsed");
+		if(parsedContentOrPreviewFileAbsolutePath.equals(mainFileAbsolutePath)) {
+			mainFileAbsolutePath = StringUtils.removeEnd(parsedContentOrPreviewFileAbsolutePath, ".preview");
+		}
+		return new File(mainFileAbsolutePath);
 	}
 
 	private boolean shouldFileBeScannedForDeletion(File file) {

@@ -88,9 +88,13 @@ public class CoreMigrationTo_8_0_1 implements MigrationScript {
 
 			CreateValueListOptions options = new CreateValueListOptions();
 			options.setMultilingual(true);
+			if(!typesBuilder.hasSchemaType(CapsuleLanguage.SCHEMA_TYPE)) {
+
+
 
 			new ValueListServices(appLayerFactory, collection)
 					.createValueDomain(CapsuleLanguage.SCHEMA_TYPE, titles, options, typesBuilder);
+			}
 
 			MetadataSchemaBuilder schema = typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE)
 					.createCustomSchema(VaultScanReport.SCHEMA);

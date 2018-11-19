@@ -2,33 +2,50 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
+import com.constellio.sdk.tests.setups.Users;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.constellio.sdk.tests.TestUtils.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Created by constellios on 2017-04-03.
  */
 public class RMDocumentExtensionAcceptanceTest extends ConstellioTest {
+	private static final List<String> NON_EXISTING_CART_IDS = asList("01", "02");
 
 	RMTestRecords records = new RMTestRecords(zeCollection);
+	RecordServices recordServices;
+	RMSchemasRecordsServices rm;
+	Users users = new Users();
 
-	@Test
-	public void whenCheckingIfDocumentDocumentTypeLogicallyOrPhysicallyDeletableThenFalse()
-			throws Exception {
+	@Before
+	public void setUp() {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTestUsers()
 						.withRMTest(records).withFoldersAndContainersOfEveryStatus().withDocumentsDecommissioningList().withDocumentsHavingContent()
 		);
 
-		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
-		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		recordServices = getModelLayerFactory().newRecordServices();
+		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		users.setUp(getModelLayerFactory().newUserServices());
+	}
 
+	@Test
+	public void whenCheckingIfDocumentDocumentTypeLogicallyOrPhysicallyDeletableThenFalse()
+			throws Exception {
 		Document documentWithContent_a19 = records.getDocumentWithContent_A19();
 
 		documentWithContent_a19.getContent().checkOut(records.getAdmin());
@@ -37,8 +54,56 @@ public class RMDocumentExtensionAcceptanceTest extends ConstellioTest {
 
 		Record record = documentWithContent_a19.getWrappedRecord();
 
-		assertThat(recordServices.isLogicallyDeletable(record, User.GOD)).isFalse();
-		assertThat(recordServices.isLogicallyThenPhysicallyDeletable(record, User.GOD)).isFalse();
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(record, User.GOD))).isEqualTo("Ce document ne peut pas être supprimé car il est emprunté\n");
+		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyThenPhysicallyDeletable(record, User.GOD))).isEqualTo("Ce document ne peut pas être supprimé car il est emprunté\n");
+	}
+
+	@Test
+	public void whenModifyingDocumentWithInexistentFavoritesIdsThenIdsAreDeleted() throws RecordServicesException {
+		Document document = records.getDocumentWithContent_A19().setFavorites(NON_EXISTING_CART_IDS);
+		recordServices.add(document);
+
+		document.setTitle("TestModifié");
+		recordServices.update(document);
+
+		assertThat(document.getFavorites()).isEmpty();
+	}
+
+	@Test
+	public void whenModifyingDocumentWithSomeExistingFavoritesIdsThenNonExistingIdsAreDeleted()
+			throws RecordServicesException {
+		Cart cart = rm.newCart().setOwner(users.adminIn(zeCollection).getId());
+		recordServices.add(cart);
+		String existingId = cart.getId();
+		List<String> listWithOneExistingId = new ArrayList<>();
+		listWithOneExistingId.add(existingId);
+		listWithOneExistingId.addAll(NON_EXISTING_CART_IDS);
+
+		Document document = records.getDocumentWithContent_A19().setFavorites(listWithOneExistingId);
+		recordServices.add(document);
+
+		document.setTitle("TestModifié");
+		recordServices.update(document);
+
+		assertThat(document.getFavorites()).containsOnly(existingId);
+	}
+
+	@Test
+	public void whenModifyingDocumentWithExistentFavoritesIdsThenFavoritesListStaysTheSame()
+			throws RecordServicesException {
+		Cart firstCart = rm.newCart().setOwner(users.adminIn(zeCollection).getId());
+		Cart secondCart = rm.newCart().setOwner(users.adminIn(zeCollection).getId());
+		recordServices.add(firstCart);
+		recordServices.add(secondCart);
+		List<String> listWithExistingIds = asList(firstCart.getId(), secondCart.getId());
+
+		Document document = records.getDocumentWithContent_A19().setFavorites(listWithExistingIds);
+		recordServices.add(document);
+
+		document.setTitle("TestModifié");
+		recordServices.update(document);
+
+		assertThat(document.getFavorites()).containsOnly(firstCart.getId(), secondCart.getId());
 	}
 
 }

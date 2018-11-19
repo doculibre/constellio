@@ -12,7 +12,6 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.WorkflowTask;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
@@ -173,8 +172,6 @@ class CoreSchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 		groupSchema.createUndeletable(Group.ROLES).setType(STRING).setMultivalue(true);
 		MetadataBuilder parentGroup = groupSchema.createUndeletable(Group.PARENT).setType(REFERENCE)
 				.defineReferencesTo(groupSchema);
-		MetadataBuilder allAuthorizations = groupSchema.get(Schemas.ALL_AUTHORIZATIONS.getCode());
-		groupSchema.get(Schemas.INHERITED_AUTHORIZATIONS.getCode()).defineDataEntry().asCopied(parentGroup, allAuthorizations);
 		return groupSchemaType;
 	}
 

@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.extensions.api.reports;
 
 import com.constellio.app.modules.rm.model.enums.DecommissioningType;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitExcelReportParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AvailableSpaceReportParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
@@ -48,6 +49,8 @@ public class RMReportBuilderFactories {
 	public SingleValueExtension<NewReportWriterFactory<StatsReportParameters>> statsBuilderFactory = new SingleValueExtension<>();
 
 	public SingleValueExtension<NewReportWriterFactory<AvailableSpaceReportParameters>> availableSpaceBuilderFactory = new SingleValueExtension<>();
+
+	public SingleValueExtension<NewReportWriterFactory<AdministrativeUnitExcelReportParameters>> administrativeUnitExcelBuilderFactory = new SingleValueExtension<>();
 
 	public RMReportBuilderFactories(AppLayerFactory appLayerFactory) {
 	}

@@ -112,16 +112,18 @@ public class TasksNavigationConfiguration implements Serializable {
 
 			@Override
 			public String getBadge(User user, AppLayerFactory appLayerFactory) {
-				TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(user.getCollection(), appLayerFactory);
-				TasksSearchServices tasksSearchServices = new TasksSearchServices(tasksSchemasRecordsServices);
+				if (user != null) {
+					TasksSchemasRecordsServices tasksSchemasRecordsServices = new TasksSchemasRecordsServices(user.getCollection(), appLayerFactory);
+					TasksSearchServices tasksSearchServices = new TasksSearchServices(tasksSchemasRecordsServices);
 
-				if (Toggle.SHOW_UNREAD_TASKS.isEnabled()) {
-					long unreadCount = tasksSearchServices.getCountUnreadTasksToUserQuery(user);
-					return unreadCount > 0 ? "" + unreadCount : "";
+					if (Toggle.SHOW_UNREAD_TASKS.isEnabled()) {
+						long unreadCount = tasksSearchServices.getCountUnreadTasksToUserQuery(user);
+						return unreadCount > 0 ? "" + unreadCount : "";
 
-				} else {
-					return "";
+					}
 				}
+
+				return "";
 			}
 		});
 	}

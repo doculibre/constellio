@@ -104,7 +104,7 @@ public class AppSchemasServices {
 		return true;
 	}
 
-	public void deleteSchemaCode(String collection, String schemaCode) {
+	public void deleteSchemaCode(String collection, String schemaCode) throws RecordServicesException {
 		ValidationErrors validationErrors = isSchemaDeletable(collection, schemaCode);
 		if (validationErrors != null) {
 			throw new AppSchemasServicesRuntimeException_CannotDeleteSchema(schemaCode);
@@ -113,7 +113,8 @@ public class AppSchemasServices {
 		schemasManager.deleteCustomSchemas(asList(schemasManager.getSchemaTypes(collection).getSchema(schemaCode)));
 	}
 
-	public boolean modifySchemaCode(String collection, final String fromCode, final String toCode) {
+	public boolean modifySchemaCode(String collection, final String fromCode, final String toCode)
+			throws RecordServicesException {
 		MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
 		validateModificationAllowed(types, fromCode, toCode);
 
@@ -146,7 +147,8 @@ public class AppSchemasServices {
 		return async;
 	}
 
-	private void updateRecordsWithLinkedSchemas(String collection, String fromCode, String toCode) {
+	private void updateRecordsWithLinkedSchemas(String collection, String fromCode, String toCode)
+			throws RecordServicesException {
 		List<Record> records = searchServices.search(new LogicalSearchQuery().setCondition(
 				fromAllSchemasIn(collection).where(Schemas.LINKED_SCHEMA).isEqualTo(fromCode)));
 
@@ -156,11 +158,8 @@ public class AppSchemasServices {
 			transaction.add(record.set(Schemas.LINKED_SCHEMA, toCode));
 		}
 
-		try {
-			recordServices.execute(transaction);
-		} catch (RecordServicesException e) {
-			throw new RuntimeException(e);
-		}
+		recordServices.execute(transaction);
+
 	}
 
 	private void modifyReferencesWithDirectTarget(MetadataSchemaTypes types, final String fromCode,

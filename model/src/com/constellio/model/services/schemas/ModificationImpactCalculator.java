@@ -11,8 +11,7 @@ import com.constellio.model.entities.calculators.dependencies.ReferenceDependenc
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -23,7 +22,6 @@ import com.constellio.model.entities.schemas.entries.CalculatedDataEntry;
 import com.constellio.model.entities.schemas.entries.CopiedDataEntry;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.records.RecordServices;
-import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
@@ -37,10 +35,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.constellio.model.entities.schemas.Schemas.AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ALL_REMOVED_AUTHS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.ATTACHED_ANCESTORS;
-import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.NON_TAXONOMY_AUTHORIZATIONS;
 import static com.constellio.model.services.schemas.builders.CommonMetadataBuilder.TOKENS;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasInCollectionOf;
@@ -93,29 +89,21 @@ public class ModificationImpactCalculator {
 
 		for (Record record : transaction.getRecords()) {
 
-			if (User.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				if (record.isModified(AUTHORIZATIONS)) {
-					List<String> modifiedValues = RecordUtils.getNewAndRemovedValues(record, AUTHORIZATIONS);
+			if (Authorization.SCHEMA_TYPE.equals(record.getTypeCode())) {
+				MetadataSchema authSchema = metadataSchemaTypes.getSchema(Authorization.DEFAULT_SCHEMA);
+				Metadata authorizationPrincipals = authSchema.getMetadata(Authorization.PRINCIPALS);
+				Metadata lastTokenRecalculate = authSchema.getMetadata(Authorization.LAST_TOKEN_RECALCULATE);
+				Metadata authorizationTargetMetadata = authSchema.getMetadata(Authorization.TARGET);
+				Metadata authorizationTargetSchemaTypeMetadata = authSchema.getMetadata(Authorization.TARGET_SCHEMA_TYPE);
 
+				String authorizationTarget = record.get(authorizationTargetMetadata);
+				String authorizationTargetSchemaType= record.get(authorizationTargetSchemaTypeMetadata);
+
+				if (Authorization.isSecurizedSchemaType(authorizationTargetSchemaType)
+				&& (record.isModified(authorizationPrincipals) || record.isModified(lastTokenRecalculate))) {
 					LogicalSearchCondition condition = fromAllSchemasInCollectionOf(record, DataStore.RECORDS)
-							.where(Schemas.NON_TAXONOMY_AUTHORIZATIONS).isIn(modifiedValues);
-
-					List<String> ids = searchServices.searchRecordIds(condition);
-					transaction.addAllRecordsToReindex(ids);
-				}
-
-			}
-
-			if (Group.SCHEMA_TYPE.equals(record.getTypeCode())) {
-				MetadataSchema groupSchema = metadataSchemaTypes.getSchema(Group.DEFAULT_SCHEMA);
-				Metadata allGroupAuthorizations = groupSchema.getMetadata(Group.ALL_AUTHORIZATIONS);
-				if (record.isModified(allGroupAuthorizations)) {
-					List<String> modifiedValues = RecordUtils.getNewAndRemovedValues(record, allGroupAuthorizations);
-
-					LogicalSearchCondition condition = fromAllSchemasInCollectionOf(record, DataStore.RECORDS)
-							.where(Schemas.NON_TAXONOMY_AUTHORIZATIONS).isIn(modifiedValues);
-					List<String> ids = searchServices.searchRecordIds(condition);
-					transaction.addAllRecordsToReindex(ids);
+							.where(Schemas.ATTACHED_ANCESTORS).isEqualTo(authorizationTarget);
+					transaction.addAllRecordsToReindex(searchServices.searchRecordIds(condition));
 				}
 
 			}
@@ -305,8 +293,6 @@ public class ModificationImpactCalculator {
 																				   Metadata modifiedMeta) {
 
 		return modifiedMeta.isLocalCode(CommonMetadataBuilder.PATH)
-			   || (modifiedMeta.isLocalCode(NON_TAXONOMY_AUTHORIZATIONS) && automaticMeta
-				.isLocalCode(NON_TAXONOMY_AUTHORIZATIONS))
 			   || (modifiedMeta.isLocalCode(TOKENS) && automaticMeta.isLocalCode(TOKENS))
 			   || (modifiedMeta.isLocalCode(TOKENS) && automaticMeta.isLocalCode(TOKENS))
 			   || (modifiedMeta.isLocalCode(ATTACHED_ANCESTORS) && automaticMeta.isLocalCode(ATTACHED_ANCESTORS))

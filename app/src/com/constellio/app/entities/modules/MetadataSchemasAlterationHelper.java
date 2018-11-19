@@ -45,7 +45,7 @@ public abstract class MetadataSchemasAlterationHelper {
 			try {
 				applyI18N(typesBuilder);
 			} catch (MigrationResourcesProviderRuntimeException_NoBundle e) {
-				//LOGGER.warn(e.getMessage());
+				LOGGER.warn(e.getMessage());
 			}
 			metadataSchemasManager.saveUpdateSchemaTypes(typesBuilder);
 		} catch (OptimisticLocking e) {

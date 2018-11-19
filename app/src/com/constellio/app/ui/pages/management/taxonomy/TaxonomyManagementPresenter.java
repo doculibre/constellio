@@ -21,6 +21,7 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.sequence.SequenceServices;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -30,6 +31,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -43,7 +45,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.records.RecordUtils.parentPaths;
 import static com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices.childNodesQuery;
 
@@ -206,7 +207,8 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
-		if (isDeletable(recordVO)) {
+		ValidationErrors validationErrors = validateDeletable(recordVO);
+		if (validationErrors.isEmpty()) {
 			SchemaPresenterUtils utils = new SchemaPresenterUtils(recordVO.getSchema().getCode(), view.getConstellioFactories(),
 					view.getSessionContext());
 			utils.delete(utils.toRecord(recordVO), null, true);
@@ -216,7 +218,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 				view.refreshTable();
 			}
 		} else {
-			view.showErrorMessage($("TaxonomyManagementView.cannotDelete"));
+			view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(validationErrors));
 		}
 	}
 
@@ -312,10 +314,10 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 		return appCollectionExtentions.getTaxonomyExtraFields(new GetTaxonomyExtraFieldsParam(taxonomy, record, view));
 	}
 
-	public boolean isDeletable(RecordVO entity) {
+	public ValidationErrors validateDeletable(RecordVO entity) {
 		Record record = presenterService().getRecord(entity.getId());
 		User user = getCurrentUser();
-		return recordServices().isLogicallyThenPhysicallyDeletable(record, user);
+		return recordServices().validateLogicallyThenPhysicallyDeletable(record, user);
 	}
 
 	public String getDefaultOrderField() {

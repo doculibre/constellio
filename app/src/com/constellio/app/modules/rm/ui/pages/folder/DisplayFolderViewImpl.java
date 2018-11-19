@@ -8,8 +8,8 @@ import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderFie
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
+import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -19,6 +19,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.AddToOrRemoveFromSelectionButton;
 import com.constellio.app.ui.framework.buttons.BaseButton;
+import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DeleteWithJustificationButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.DownloadLink;
@@ -28,13 +29,13 @@ import com.constellio.app.ui.framework.buttons.LinkButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
-import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
 import com.constellio.app.ui.framework.components.BaseWindow;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.ReportTabButton;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.content.ContentVersionVOResource;
+import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.fields.date.JodaDateField;
@@ -51,7 +52,6 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
 import com.constellio.data.utils.TimeProvider;
@@ -87,12 +87,12 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -295,18 +295,28 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			};
 
-			deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
-				@Override
-				protected void deletionConfirmed(String reason) {
-					presenter.deleteFolderButtonClicked(reason);
-				}
+			deleteFolderButton = new Button();
+			if(!presenter.isNeedingAReasonToDeleteFolder()) {
+				deleteFolderButton = new DeleteButton($("DisplayFolderView.deleteFolder"), false) {
+					@Override
+					protected void confirmButtonClick(ConfirmDialog dialog) {
+						presenter.deleteFolderButtonClicked(null);
+					}
+				};
+			} else {
+				deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
+					@Override
+					protected void deletionConfirmed(String reason) {
+						presenter.deleteFolderButtonClicked(reason);
+					}
 
-				@Override
-				public String getRecordCaption() {
-					return getCaptionForRecordVO(recordVO, getSessionContext().getCurrentLocale());
-//					return recordDisplay.getCaption();
-				}
-			};
+					@Override
+					public Component getRecordCaption() {
+						return new ReferenceDisplay(recordVO);
+					}
+				};
+			}
+
 
 			duplicateFolderButton = new WindowButton($("DisplayFolderView.duplicateFolder"),
 					$("DisplayFolderView.duplicateFolderOnlyOrHierarchy")) {
@@ -432,7 +442,19 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
 											 && ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
+			DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
+				@Override
+				public void addToDefaultFavorites() {
+					presenter.addToDefaultFavorite();
+				}
 
+				@Override
+				public void removeFromDefaultFavorites() {
+					presenter.removeFromDefaultFavorites();
+				}
+			};
+			favoriteStar.setStarred(presenter.inDefaultFavorites());
+			actionMenuButtons.add(favoriteStar);
 			actionMenuButtons.add(editFolderButton);
 
 			if (!isAFolderAndDestroyed) {
@@ -624,6 +646,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				}
 			});
 			final Table table = new RecordVOTable();
+			table.addStyleName("folder-content-table");
 			table.setSizeFull();
 			table.setColumnHeader(ButtonsContainer.DEFAULT_BUTTONS_PROPERTY_ID, "");
 			table.addItemClickListener(new ItemClickListener() {

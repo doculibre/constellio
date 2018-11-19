@@ -2,7 +2,6 @@ package com.constellio.app.ui.pages.management.ExcelReport;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -54,11 +53,11 @@ public class ListExcelReportPresenterAcceptanceTest extends ConstellioTest {
 	public void whenGeneratingTabCheckIfAllReportTypeAreThereTest() {
 		Map<String, String> possibleReportType = presenter.initPossibleTab(Locale.FRENCH);
 		assertThat(possibleReportType.keySet())
-				.contains("Contenant", "Document", "Document sur Internet", "Document sur un partage réseau", "Dossier",
-						"Emplacement", "Tâche", "Utilisateur Connecteur LDAP");
+				.contains("connectorHttpDocument", "connectorLdapUserDocument", "connectorSmbDocument",
+						"containerRecord", "document", "folder", "storageSpace", "userTask");
 		assertThat(possibleReportType.values())
-				.contains("containerRecord", "document", "connectorHttpDocument", "connectorSmbDocument", "folder",
-						"storageSpace", "userTask", "connectorLdapUserDocument");
+				.contains("Document sur Internet", "Utilisateur Connecteur LDAP", "Document sur un partage réseau",
+						"Contenant", "Document", "Dossier", "Emplacement", "Tâche");
 	}
 
 	@Test

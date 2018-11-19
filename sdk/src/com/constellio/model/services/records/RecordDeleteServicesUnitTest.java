@@ -21,6 +21,7 @@ import com.constellio.model.services.records.RecordDeleteServicesRuntimeExceptio
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord;
+import com.constellio.model.services.records.utils.SortOrder;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -116,6 +117,14 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		doReturn(Arrays.asList(aSubPrincipalConcept, aRecordInThePrincipalConcept, aRecordInTheSubPrincipalConcept))
 				.when(recordDeleteServices).getAllRecordsInHierarchy(eq(thePrincipalConcept));
 
+		doReturn(Arrays.asList(theRecord, aRecordInTheRecordHierarchy, anotherRecordInTheRecordHierarchy))
+				.when(recordDeleteServices)
+				.getAllRecordsInHierarchy(eq(theRecord), any(SortOrder.class));
+
+		doReturn(Arrays.asList(aSubPrincipalConcept, aRecordInThePrincipalConcept, aRecordInTheSubPrincipalConcept))
+				.when(recordDeleteServices).getAllRecordsInHierarchy(eq(thePrincipalConcept), any(SortOrder.class));
+
+
 		doReturn(Arrays.asList(aSubPrincipalConcept))
 				.when(recordDeleteServices).getAllPrincipalConceptsRecordsInHierarchy(thePrincipalConcept, principalTaxonomy);
 
@@ -196,7 +205,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		verify(aRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_ON, null);
 		verify(anotherRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_STATUS, false);
 		verify(anotherRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_ON, null);
-		verify(recordServices).execute(transaction.capture());
+		verify(recordServices).executeInBatch(transaction.capture());
 
 		assertThat(transaction.getValue().getRecords())
 				.containsOnly(theRecord, aRecordInTheRecordHierarchy, anotherRecordInTheRecordHierarchy);
@@ -218,7 +227,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		verify(aRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_ON, now);
 		verify(anotherRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_STATUS, true);
 		verify(anotherRecordInTheRecordHierarchy).set(Schemas.LOGICALLY_DELETED_ON, now);
-		verify(recordServices).execute(transaction.capture());
+		verify(recordServices).executeInBatch(transaction.capture());
 
 		assertThat(transaction.getValue().getRecords())
 				.containsOnly(theRecord, aRecordInTheRecordHierarchy, anotherRecordInTheRecordHierarchy);
@@ -426,7 +435,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
 	//		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
 	//
-	//		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
+	//		assertThat(recordDeleteServices.validatePhysicallyDeletable(theRecord, user)).isFalse();
 	//
 	//	}
 	//
@@ -438,7 +447,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
 	//		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
 	//
-	//		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
+	//		assertThat(recordDeleteServices.validatePhysicallyDeletable(theRecord, user)).isFalse();
 	//
 	//	}
 	//
@@ -450,7 +459,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
 	//		doReturn(true).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
 	//
-	//		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
+	//		assertThat(recordDeleteServices.validatePhysicallyDeletable(theRecord, user)).isFalse();
 	//
 	//	}
 	//
@@ -462,7 +471,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//		doReturn(false).when(recordDeleteServices).containsNoActiveRecords(theRecord);
 	//		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
 	//
-	//		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
+	//		assertThat(recordDeleteServices.validatePhysicallyDeletable(theRecord, user)).isFalse();
 	//
 	//	}
 	//

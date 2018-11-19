@@ -47,7 +47,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.schemas.PutSchemaRecordsInTrashEvent;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.extensions.ModelLayerExtensions;
@@ -56,7 +55,6 @@ import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.StatusFilter;
@@ -1111,7 +1109,7 @@ public class DecommissioningService {
 
 	private void delete(Record record, String reason, boolean physically, User user) {
 		boolean putFirstInTrash = putFirstInTrash(record);
-		if (recordServices.isLogicallyThenPhysicallyDeletable(record, user) || putFirstInTrash) {
+		if (recordServices.validateLogicallyThenPhysicallyDeletable(record, user).isEmpty() || putFirstInTrash) {
 			recordServices.logicallyDelete(record, user);
 			modelLayerFactory.newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 			if (physically && !putFirstInTrash) {

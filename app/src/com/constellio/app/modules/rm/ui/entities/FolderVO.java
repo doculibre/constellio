@@ -1,18 +1,5 @@
 package com.constellio.app.modules.rm.ui.entities;
 
-import com.constellio.app.modules.rm.model.CopyRetentionRule;
-import com.constellio.app.modules.rm.model.enums.CopyType;
-import com.constellio.app.modules.rm.model.enums.DisposalType;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
-import com.constellio.app.modules.rm.model.enums.RetentionType;
-import com.constellio.app.ui.entities.MetadataValueVO;
-import com.constellio.app.ui.entities.RecordVO;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-
-import java.util.Arrays;
-import java.util.List;
-
 import static com.constellio.app.modules.rm.wrappers.Folder.ACTIVE_RETENTION_TYPE;
 import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_DEPOSIT_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.ACTUAL_DESTRUCTION_DATE;
@@ -33,7 +20,6 @@ import static com.constellio.app.modules.rm.wrappers.Folder.COPY_RULES_EXPECTED_
 import static com.constellio.app.modules.rm.wrappers.Folder.COPY_RULES_EXPECTED_TRANSFER_DATES;
 import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
 import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.DECOMMISSIONING_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.DESCRIPTION;
 import static com.constellio.app.modules.rm.wrappers.Folder.ENTERED_CLOSING_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.EXPECTED_DEPOSIT_DATE;
@@ -54,10 +40,24 @@ import static com.constellio.app.modules.rm.wrappers.Folder.SEMIACTIVE_RETENTION
 import static com.constellio.app.modules.rm.wrappers.Folder.TYPE;
 import static com.constellio.app.modules.rm.wrappers.Folder.UNIFORM_SUBDIVISION_ENTERED;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+
+import com.constellio.app.modules.rm.model.CopyRetentionRule;
+import com.constellio.app.modules.rm.model.enums.CopyType;
+import com.constellio.app.modules.rm.model.enums.DisposalType;
+import com.constellio.app.modules.rm.model.enums.FolderStatus;
+import com.constellio.app.modules.rm.model.enums.RetentionType;
+import com.constellio.app.ui.entities.MetadataValueVO;
+import com.constellio.app.ui.entities.RecordVO;
+
 public class FolderVO extends RecordVO {
 
-	public FolderVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode) {
-		super(id, metadataValues, viewMode);
+	public FolderVO(String id, List<MetadataValueVO> metadataValues, VIEW_MODE viewMode, List<String> excludedMetadata) {
+		super(id, metadataValues, viewMode,excludedMetadata);
 	}
 
 	public FolderVO(RecordVO recordVO) {
@@ -294,10 +294,6 @@ public class FolderVO extends RecordVO {
 
 	public CopyType getCopyStatus() {
 		return get(COPY_STATUS);
-	}
-
-	public LocalDate getDecommissioningDate() {
-		return get(DECOMMISSIONING_DATE);
 	}
 
 	public void setBorrowed(Boolean borrowed) {

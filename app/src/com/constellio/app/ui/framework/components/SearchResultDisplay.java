@@ -217,25 +217,25 @@ public class SearchResultDisplay extends VerticalLayout {
 		VerticalLayout layout = new VerticalLayout();
 		layout.setSpacing(true);
 		for (MetadataValueVO metadataValue : recordVO.getSearchMetadataValues()) {
-			MetadataVO metadataVO = metadataValue.getMetadata();
-			if (metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
-				continue;
+			if(recordVO.getMetadataCodes().contains(metadataValue.getMetadata().getCode())) {
+
+				MetadataVO metadataVO = metadataValue.getMetadata();
+				if (!metadataVO.codeMatches(CommonMetadataBuilder.TITLE)) {
+
+					Component value = componentFactory.build(recordVO, metadataValue);
+					if (value == null) {
+						Label caption = new Label(metadataVO.getLabel() + ":");
+						caption.addStyleName("metadata-caption");
+
+						I18NHorizontalLayout item = new I18NHorizontalLayout(caption, value);
+						item.setHeight("100%");
+						item.setSpacing(true);
+						item.addStyleName("metadata-caption-layout");
+
+						layout.addComponent(item);
+					}
+				}
 			}
-
-			Component value = componentFactory.build(recordVO, metadataValue);
-			if (value == null) {
-				continue;
-			}
-
-			Label caption = new Label(metadataVO.getLabel() + ":");
-			caption.addStyleName("metadata-caption");
-
-			I18NHorizontalLayout item = new I18NHorizontalLayout(caption, value);
-			item.setHeight("100%");
-			item.setSpacing(true);
-			item.addStyleName("metadata-caption-layout");
-
-			layout.addComponent(item);
 		}
 		return layout;
 	}

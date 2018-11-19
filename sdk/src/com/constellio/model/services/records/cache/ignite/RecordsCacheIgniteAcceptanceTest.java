@@ -87,7 +87,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		when(modelLayerFactory.getExtensions()).thenReturn(extensions);
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
-		when(dataLayerFactory.getRecordsCacheManager()).thenReturn(recordsCacheManager);
+		when(dataLayerFactory.getDistributedCacheManager()).thenReturn(recordsCacheManager);
 		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
 
 		cache = new RecordsCacheIgniteImpl(zeCollection, modelLayerFactory);

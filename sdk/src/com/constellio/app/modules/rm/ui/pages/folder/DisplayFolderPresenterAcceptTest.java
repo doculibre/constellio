@@ -57,6 +57,9 @@ import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -111,12 +114,22 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		chuckCredentialVO = new UserCredentialVO();
 		chuckCredentialVO.setUsername("chuck");
 
-		presenter = new DisplayFolderPresenter(displayFolderView, null, false);//spy(
+		displayFolderPresenterCreation(displayFolderView, null, false);
 		presenter.forParams("C30");
+
+
 
 		rolesManager = getModelLayerFactory().getRolesManager();
 
 		givenTimeIs(nowDate);
+	}
+
+	private DisplayFolderPresenter displayFolderPresenterCreation(DisplayFolderView displayFolderView, RecordVO recordVO, boolean popup) {
+		presenter = spy(new DisplayFolderPresenter(displayFolderView, recordVO, popup));//spy(
+		doNothing().when(presenter).navigateToFolder(any(String.class));
+		doNothing().when(presenter).navigateToDocument(any(RecordVO.class));
+
+		return presenter;
 	}
 
 	@Test
@@ -354,6 +367,25 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
+	public void givenFolderWhenAddToDefaultFavoritesThenIsAdded() {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams("C30");
+		presenter.addToDefaultFavorite();
+		assertThat(presenter.inDefaultFavorites()).isTrue();
+	}
+
+	@Test
+	public void givenFolderWhenAddAndRemoveFromDefaultFavoritesThenIsRemoved() {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", "C30");
+		presenter.forParams("C30");
+		presenter.addToDefaultFavorite();
+		presenter.removeFromDefaultFavorites();
+		assertThat(presenter.inDefaultFavorites()).isFalse();
+	}
+
+	@Test
 	public void whenGetTemplatesThenReturnFolderTemplates()
 			throws Exception {
 
@@ -464,7 +496,8 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
 		currentUser = rmRecords.getBob_userInAC();
-		presenter = new DisplayFolderPresenter(displayFolderView, null, false);
+
+		presenter = displayFolderPresenterCreation(displayFolderView, null, false);
 		presenter.forParams("C30");
 
 		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isTrue();
@@ -504,7 +537,7 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
 		currentUser = rmRecords.getBob_userInAC();
-		presenter = new DisplayFolderPresenter(displayFolderView, null, false);
+		presenter = displayFolderPresenterCreation(displayFolderView, null, false);
 		presenter.forParams("C30");
 
 		assertThat(presenter.getAlertWhenAvailableButtonState(currentUser, rmRecords.getFolder_C30()).isVisible()).isTrue();
@@ -811,21 +844,21 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 		sessionContext = FakeSessionContext.bobInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayFolderPresenter(displayFolderView, null, false);
+		presenter = displayFolderPresenterCreation(displayFolderView, null, false);
 	}
 
 	private void connectWithAlice() {
 		sessionContext = FakeSessionContext.aliceInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayFolderPresenter(displayFolderView, null, false);
+		presenter = displayFolderPresenterCreation(displayFolderView, null, false);
 	}
 
 	private void connectWithChuck() {
 		sessionContext = FakeSessionContext.chuckNorrisInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 		when(displayFolderView.getSessionContext()).thenReturn(sessionContext);
-		presenter = new DisplayFolderPresenter(displayFolderView, null, false);
+		presenter = displayFolderPresenterCreation(displayFolderView, null, false);
 	}
 
 	@Test

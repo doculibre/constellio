@@ -186,7 +186,6 @@ public class RMMigrationTo7_1 extends MigrationHelper implements MigrationScript
 			folderSchema.getMetadata(Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES).setTransiency(TRANSIENT_EAGER);
 			folderSchema.getMetadata(Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES).setTransiency(TRANSIENT_EAGER);
 			folderSchema.getMetadata(Folder.MAIN_COPY_RULE).setTransiency(TRANSIENT_EAGER);
-			folderSchema.getMetadata(Folder.DECOMMISSIONING_DATE).setTransiency(TRANSIENT_EAGER);
 
 			folderSchema.getMetadata(Folder.ADMINISTRATIVE_UNIT).setTaxonomyRelationship(false);
 			folderSchema.getMetadata(Folder.ADMINISTRATIVE_UNIT_ENTERED).setTaxonomyRelationship(true);

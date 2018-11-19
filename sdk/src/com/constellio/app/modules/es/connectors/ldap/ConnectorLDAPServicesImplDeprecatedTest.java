@@ -7,7 +7,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import org.joda.time.LocalDateTime;
 import org.junit.Before;
-import org.junit.Test;
 
 import javax.naming.ldap.LdapContext;
 import java.util.Arrays;
@@ -46,8 +45,8 @@ public class ConnectorLDAPServicesImplDeprecatedTest extends ConstellioTest {
 		return ctx;
 	}
 
-	@Test
-	//	@InternetTest
+	//@Test
+	//@InternetTest
 	public void whenConnectToLDAPThenOK()
 			throws Exception {
 		LdapContext ctx = getValidContext();

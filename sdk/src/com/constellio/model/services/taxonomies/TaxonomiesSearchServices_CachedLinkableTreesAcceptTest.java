@@ -23,8 +23,10 @@ import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -68,6 +70,8 @@ import static com.constellio.model.entities.security.global.AuthorizationAddRequ
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.HasChildrenFlagCalculated.NEVER;
 import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.ajustIfBetterThanExpected;
+import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.createFoldersAndDocumentsWithNegativeAuths;
+import static com.constellio.model.services.taxonomies.TaxonomiesTestsUtils.createFoldersAndSubFoldersWithNegativeAuths;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -97,7 +101,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		prepareSystem(withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus()
 		);
-
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryLoggingEnabled(true).setQueryDebuggingMode(true);
 		authsServices = getModelLayerFactory().newAuthorizationsServices();
 		recordServices = getModelLayerFactory().newRecordServices();
 
@@ -116,10 +120,12 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		alice = userServices.getUserInCollection(aliceWonderland, zeCollection);
 		zeSasquatch = userServices.getUserInCollection(sasquatch, zeCollection);
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(false));
+		waitForBatchProcess();
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
 				.add(new BigVaultServerExtension() {
 					@Override
 					public void afterQuery(AfterQueryParams params) {
+
 						queriesCount.incrementAndGet();
 						String[] facetQuery = params.getSolrParams().getParams("facet.query");
 						if (facetQuery != null) {
@@ -508,6 +514,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 	}
 
+
 	@Test
 	public void givenSpecialConditionWhenSelectingASecondaryConceptThenReturnRecordsBasedOnCondition()
 			throws Exception {
@@ -722,6 +729,324 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.has(noItemsWithChildren())
 				.has(solrQueryCounts(2, 1, 1))
 				.has(secondSolrQueryCounts(2, 1, 1));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(subFolder.getId())
+				.is(empty())
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
+
+	}
+
+	@Test
+	public void givenUserHavePositiveAuthorizationsOnFoldersAndSubFoldersThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+
+		createFoldersAndSubFoldersWithNegativeAuths(records.getUnit20(), records.getCategory_X13());
+		waitForBatchProcess();
+
+
+		assertThat(tokensOf("f1")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f1")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f2")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f2")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f3")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f3")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f4")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f4")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f5")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f5")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f6")).containsOnly();
+		assertThat(hierarchyTokensOf("f6")).containsOnly();
+		assertThat(tokensOf("f7")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("f7")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("f8")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("f8")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("f9")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(hierarchyTokensOf("f9")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(tokensOf("f10")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(hierarchyTokensOf("f10")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(tokensOf("f11")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks");
+		assertThat(hierarchyTokensOf("f11")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks");
+		assertThat(tokensOf("f21")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f21")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f31")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_chuck", "nr_chuck", "nw_chuck", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
+		assertThat(hierarchyTokensOf("f31")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_chuck", "nr_chuck", "nw_chuck", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
+		assertThat(tokensOf("f32")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f32")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f41")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
+		assertThat(hierarchyTokensOf("f41")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
+		assertThat(tokensOf("f51")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "r_heroes", "r_sidekicks", "rf_heroes", "rf_sidekicks");
+		assertThat(hierarchyTokensOf("f51")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "r_heroes", "r_sidekicks", "rf_heroes", "rf_sidekicks");
+		assertThat(tokensOf("f61")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("f61")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("f62")).containsOnly("r_legends", "r_rumors", "rf_legends", "rf_rumors");
+		assertThat(hierarchyTokensOf("f62")).containsOnly("r_legends", "r_rumors", "rf_legends", "rf_rumors");
+		assertThat(tokensOf("f71")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("f71")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("f72")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors");
+		assertThat(hierarchyTokensOf("f72")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors");
+		assertThat(tokensOf("f81")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors", "nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f81")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors", "nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f91")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(hierarchyTokensOf("f91")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(tokensOf("f101")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
+		assertThat(hierarchyTokensOf("f101")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
+
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(true));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, users.aliceIn(zeCollection))
+				.has(linkable("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10"))
+				.has(numFound(10));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f9", users.aliceIn(zeCollection)).has(linkable("f91"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f10", users.aliceIn(zeCollection)).has(linkable("f101"));
+
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(false));
+
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, users.aliceIn(zeCollection))
+				.has(linkable("f1", "f2", "f3", "f4", "f5", "f6"))
+				.has(unlinkable("f7", "f8"))
+				.has(numFound(8));
+		//				.has(solrQueryCounts(3, 4, 4))
+		//				.has(secondSolrQueryCounts(1, 0, 0));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f1", users.aliceIn(zeCollection)).has(linkable("f11"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f2", users.aliceIn(zeCollection)).has(linkable("f21"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f3", users.aliceIn(zeCollection)).has(linkable("f31", "f32"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f4", users.aliceIn(zeCollection)).has(noItemsWithChildren());
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f5", users.aliceIn(zeCollection)).has(linkable("f51"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f6", users.aliceIn(zeCollection)).has(linkable("f62")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f7", users.aliceIn(zeCollection)).has(linkable("f72")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f8", users.aliceIn(zeCollection)).has(linkable("f81"));
+
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, users.charlesIn(zeCollection))
+				.has(linkable("f6", "f7", "f8"))
+				.has(unlinkable("f1", "f3", "f4", "f5"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f1", users.charlesIn(zeCollection)).has(linkable("f11")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f3", users.charlesIn(zeCollection)).has(linkable("f31")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f4", users.charlesIn(zeCollection)).has(linkable("f41")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f5", users.charlesIn(zeCollection)).has(linkable("f51")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f6", users.charlesIn(zeCollection)).has(linkable("f61", "f62")).has(numFound(2));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f7", users.charlesIn(zeCollection)).has(linkable("f71", "f72")).has(numFound(2));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f8", users.charlesIn(zeCollection)).has(noItemsWithChildren());
+
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, users.gandalfIn(zeCollection))
+				.has(linkable("f6"))
+				.has(unlinkable("f1", "f3", "f4", "f5", "f7", "f8"));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f1", users.gandalfIn(zeCollection)).has(linkable("f11")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f3", users.gandalfIn(zeCollection)).has(linkable("f31")).has(numFound(1));
+
+		//This is an accepted problem (f41 should not be returned)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f4", users.gandalfIn(zeCollection)).has(noItemsWithChildren());
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f5", users.gandalfIn(zeCollection)).has(linkable("f51")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f6", users.gandalfIn(zeCollection)).has(linkable("f62")).has(numFound(1));
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f7", users.gandalfIn(zeCollection)).has(linkable("f72")).has(numFound(1));
+
+		//This is an accepted problem (f81 should not be returned)
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy("f8", users.gandalfIn(zeCollection)).has(noItemsWithChildren());
+
+	}
+
+	private List<String> tokensOf(String recordId) {
+		return transformTokens(record(recordId).<String>getList(Schemas.TOKENS));
+	}
+
+
+	private List<String> hierarchyTokensOf(String recordId) {
+		return transformTokens(record(recordId).<String>getList(Schemas.TOKENS));
+	}
+
+	private List<String> transformTokens(List<String> tokens) {
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		List<String> returnedTokens = new ArrayList<>();
+
+		for(String token : tokens) {
+			String transformedToken = token;
+
+			for(User user : userServices.getAllUsersInCollection(zeCollection)) {
+				transformedToken = transformedToken.replace(user.getId(), user.getUsername());
+			}
+
+			for(Group group : userServices.getAllGroupsInCollections(zeCollection)) {
+				transformedToken = transformedToken.replace(group.getId(), group.getCode());
+			}
+			returnedTokens.add(transformedToken);
+		}
+
+		return returnedTokens;
+	}
+
+	private void generateAsserts(String... ids) {
+		for(String id : ids) {
+			System.out.println("assertThat(tokensOf(\"" + id + "\")).containsOnly(" + toExpected(tokensOf(id)) + ");" );
+			System.out.println("assertThat(hierarchyTokensOf(\"" + id + "\")).containsOnly(" + toExpected(hierarchyTokensOf(id)) + ");" );
+		}
+
+	}
+
+	private String toExpected(List<String> values) {
+		StringBuilder sb = new StringBuilder();
+
+		for (String value : values) {
+			if (sb.length() > 0) {
+				sb.append(", ");
+			}
+			sb.append("\"" + value + "\"");
+		}
+
+		return sb.toString();
+	}
+
+	@Test
+	public void givenUserHavePositiveAuthorizationsOnFoldersAndDocumentsThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+
+		createFoldersAndDocumentsWithNegativeAuths(records.getUnit20(), records.getCategory_X13());
+
+		waitForBatchProcess();
+
+		assertThat(tokensOf("f1")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f1")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f2")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f2")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f3")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f3")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f4")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f4")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f5")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f5")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f6")).containsOnly();
+		assertThat(hierarchyTokensOf("f6")).containsOnly();
+		assertThat(tokensOf("f7")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("f7")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("f8")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("f8")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("f9")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(hierarchyTokensOf("f9")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(tokensOf("f10")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(hierarchyTokensOf("f10")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(tokensOf("d11")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks");
+		assertThat(hierarchyTokensOf("d11")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks");
+		assertThat(tokensOf("d21")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("d21")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("d31")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_chuck", "nr_chuck", "nw_chuck", "r_alice", "r_bob", "r_charles", "r_gandalf", "rd_alice", "rd_bob", "rd_charles", "rd_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wd_alice", "wd_bob", "wd_charles", "wd_gandalf");
+		assertThat(hierarchyTokensOf("d31")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_chuck", "nr_chuck", "nw_chuck", "r_alice", "r_bob", "r_charles", "r_gandalf", "rd_alice", "rd_bob", "rd_charles", "rd_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wd_alice", "wd_bob", "wd_charles", "wd_gandalf");
+		assertThat(tokensOf("d32")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("d32")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("d41")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rd_alice", "rd_bob", "rd_charles", "rd_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wd_alice", "wd_bob", "wd_charles", "wd_gandalf");
+		assertThat(hierarchyTokensOf("d41")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rd_alice", "rd_bob", "rd_charles", "rd_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wd_alice", "wd_bob", "wd_charles", "wd_gandalf");
+		assertThat(tokensOf("d51")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "r_heroes", "r_sidekicks", "rd_heroes", "rd_sidekicks");
+		assertThat(hierarchyTokensOf("d51")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "r_heroes", "r_sidekicks", "rd_heroes", "rd_sidekicks");
+		assertThat(tokensOf("d61")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("d61")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("d62")).containsOnly("r_legends", "r_rumors", "rd_legends", "rd_rumors");
+		assertThat(hierarchyTokensOf("d62")).containsOnly("r_legends", "r_rumors", "rd_legends", "rd_rumors");
+		assertThat(tokensOf("d71")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("d71")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("d72")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors");
+		assertThat(hierarchyTokensOf("d72")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors");
+		assertThat(tokensOf("d81")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors", "nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("d81")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors", "nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("d91")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(hierarchyTokensOf("d91")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(tokensOf("d101")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rd_alice", "rd_bob", "rd_charles", "rd_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wd_alice", "wd_bob", "wd_charles", "wd_gandalf");
+		assertThat(hierarchyTokensOf("d101")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rd_alice", "rd_bob", "rd_charles", "rd_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wd_alice", "wd_bob", "wd_charles", "wd_gandalf");
+
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(true));
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X13, users.aliceIn(zeCollection))
+				.has(unlinkable("f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10"))
+				.has(numFound(10));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f9", users.aliceIn(zeCollection)).has(linkable("d91"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f10", users.aliceIn(zeCollection)).has(linkable("d101"));
+
+		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(false));
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X13, users.aliceIn(zeCollection))
+				.has(unlinkable("f1", "f2", "f3", "f5", "f6", "f7", "f8"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f1", users.aliceIn(zeCollection)).has(linkable("d11"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f2", users.aliceIn(zeCollection)).has(linkable("d21"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f3", users.aliceIn(zeCollection)).has(linkable("d31", "d32"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f4", users.aliceIn(zeCollection)).has(noItemsWithChildren());
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f5", users.aliceIn(zeCollection)).has(linkable("d51"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f6", users.aliceIn(zeCollection)).has(linkable("d62")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f7", users.aliceIn(zeCollection)).has(linkable("d72")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f8", users.aliceIn(zeCollection)).has(linkable("d81"));
+
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X13, users.charlesIn(zeCollection))
+				.has(unlinkable("f1", "f3", "f4", "f5", "f6", "f7", "f8"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f1", users.charlesIn(zeCollection)).has(linkable("d11")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f3", users.charlesIn(zeCollection)).has(linkable("d31")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f4", users.charlesIn(zeCollection)).has(linkable("d41")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f5", users.charlesIn(zeCollection)).has(linkable("d51")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f6", users.charlesIn(zeCollection)).has(linkable("d61", "d62")).has(numFound(2));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f7", users.charlesIn(zeCollection)).has(linkable("d71", "d72")).has(numFound(2));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f8", users.charlesIn(zeCollection)).has(noItemsWithChildren());
+
+
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(records.categoryId_X13, users.gandalfIn(zeCollection))
+				.has(unlinkable("f1", "f3", "f4", "f5", "f6", "f7", "f8"));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f1", users.gandalfIn(zeCollection)).has(linkable("d11")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f3", users.gandalfIn(zeCollection)).has(linkable("d31")).has(numFound(1));
+
+		//This is an accepted problem (f41 should not be returned)
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f4", users.gandalfIn(zeCollection)).has(noItemsWithChildren());
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f5", users.gandalfIn(zeCollection)).has(linkable("d51")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f6", users.gandalfIn(zeCollection)).has(linkable("d62")).has(numFound(1));
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f7", users.gandalfIn(zeCollection)).has(linkable("d72")).has(numFound(1));
+
+		//This is an accepted problem (f81 should not be returned)
+		assertThatChildWhenSelectingADocumentUsingPlanTaxonomy("f8", users.gandalfIn(zeCollection)).has(noItemsWithChildren());
+
+	}
+
+	@Test
+	public void givenUserHaveNegativeAuthorizationsOnASubFolderAndPositiveAuthorizationOnItsParentThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
+			throws Exception {
+
+		Folder subFolder = decommissioningService.newSubFolderIn(records.getFolder_A20()).setTitle("Ze sub folder");
+		getModelLayerFactory().newRecordServices().add(subFolder);
+
+		givenUserHasReadAccessTo(records.getFolder_A20().getId());
+		givenUserHasNegativeReadAccessTo(subFolder.getId());
+
+		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy()
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z))
+				.has(itemsWithChildren(records.categoryId_Z))
+				.has(solrQueryCounts(2, 2, 2))
+				.has(secondSolrQueryCounts(0, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z100))
+				.has(itemsWithChildren(records.categoryId_Z100))
+				.has(solrQueryCounts(3, 4, 4))
+				.has(secondSolrQueryCounts(1, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z100)
+				.has(numFoundAndListSize(1))
+				.has(unlinkable(records.categoryId_Z120))
+				.has(itemsWithChildren(records.categoryId_Z120))
+				.has(solrQueryCounts(3, 2, 2))
+				.has(secondSolrQueryCounts(1, 0, 0));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z120)
+				.has(numFoundAndListSize(1))
+				.has(linkable(records.folder_A20))
+				.has(solrQueryCounts(3, 1, 1))
+				.has(secondSolrQueryCounts(2, 1, 1));
+
+		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.folder_A20)
+				.has(numFoundAndListSize(0))
+				.has(noItemsWithChildren())
+				.has(solrQueryCounts(1, 0, 0))
+				.has(secondSolrQueryCounts(1, 0, 0));
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(subFolder.getId())
 				.is(empty())
@@ -1357,6 +1682,8 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
+		System.out.println("-----");
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryLoggingEnabled(true);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy()
 				.has(numFoundAndListSize(2))
@@ -1370,6 +1697,9 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.is(empty())
 				.has(solrQueryCounts(1, 0, 2))
 				.has(secondSolrQueryCounts(0, 0, 0));
+
+		System.out.println("-----");
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryLoggingEnabled(true);
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X)
 				.has(numFoundAndListSize(1))
@@ -3054,6 +3384,18 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
 	}
 
+	private void givenUserHasNegativeReadAccessTo(String... ids) {
+		for (String id : ids) {
+			getModelLayerFactory().newAuthorizationsServices().add(authorizationForUsers(alice).on(id).givingNegativeReadAccess());
+		}
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		alice = getModelLayerFactory().newUserServices().getUserInCollection(aliceWonderland, zeCollection);
+	}
+
 	private void givenUserHasWriteAccessTo(String... ids) {
 		for (String id : ids) {
 			getModelLayerFactory().newAuthorizationsServices()
@@ -3136,6 +3478,30 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				LinkableTaxonomySearchResponse response = service.getLinkableChildConceptResponse(alice, inRecord,
 						CLASSIFICATION_PLAN, Folder.SCHEMA_TYPE, options);
 				return response;
+			}
+		});
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(
+			final String category, final User user) {
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+				return service.getLinkableChildConceptResponse(user, inRecord,
+						CLASSIFICATION_PLAN, Folder.SCHEMA_TYPE, new TaxonomiesSearchOptions());
+			}
+		});
+	}
+
+	private ObjectAssert<LinkableTaxonomySearchResponseCaller> assertThatChildWhenSelectingADocumentUsingPlanTaxonomy(
+			final String category, final User user) {
+		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
+			@Override
+			protected LinkableTaxonomySearchResponse call() {
+				Record inRecord = getModelLayerFactory().newRecordServices().getDocumentById(category);
+				return service.getLinkableChildConceptResponse(user, inRecord,
+						CLASSIFICATION_PLAN, Document.SCHEMA_TYPE, new TaxonomiesSearchOptions());
 			}
 		});
 	}
@@ -3417,7 +3783,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);
-
+				System.out.println("--------- --------- --------- --------- --------- --------- ---------");
 				return true;
 			}
 		};
@@ -3440,7 +3806,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);
-
+				System.out.println("--------- --------- --------- --------- --------- --------- ---------");
 				return true;
 			}
 		};
@@ -3468,5 +3834,19 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		} catch (RecordDaoException.OptimisticLocking optimisticLocking) {
 			optimisticLocking.printStackTrace();
 		}
+	}
+
+	@Override
+	protected void givenConfig(SystemConfiguration config, Object value) {
+		super.givenConfig(config, value);
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		queriesCount.set(0);
+		facetsCount.set(0);
+		returnedDocumentsCount.set(0);
+
 	}
 }

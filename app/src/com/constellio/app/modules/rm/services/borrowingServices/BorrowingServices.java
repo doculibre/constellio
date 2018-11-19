@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.services.borrowingServices;
 
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
+import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServicesRunTimeException.BorrowingServicesRunTimeException_ContainerIsAlreadyBorrowed;
@@ -255,7 +256,7 @@ public class BorrowingServices {
 		Folder folder = rm.wrapFolder(folderRecord);
 		validateCanBorrow(currentUser, folder, borrowingDate);
 		LocalDateTime borrowingDateTime;
-		if(TimeProvider.getLocalDate().equals(borrowingDate)) {
+		if (TimeProvider.getLocalDate().equals(borrowingDate)) {
 			borrowingDateTime = TimeProvider.getLocalDateTime();
 		} else {
 			borrowingDateTime = borrowingDate.toDateTimeAtStartOfDay().toLocalDateTime();
@@ -336,7 +337,7 @@ public class BorrowingServices {
 		recordServices.update(folder.getWrappedRecord(), RecordUpdateOptions.validationExceptionSafeOptions());
 
 		LocalDateTime returnDateTime;
-		if(TimeProvider.getLocalDate().equals(returnDate)) {
+		if (TimeProvider.getLocalDate().equals(returnDate)) {
 			returnDateTime = TimeProvider.getLocalDateTime();
 		} else {
 			returnDateTime = returnDate.toDateTimeAtStartOfDay().toLocalDateTime();
@@ -364,10 +365,12 @@ public class BorrowingServices {
 	}
 
 	public void validateCanReturnFolder(User currentUser, Folder folder) {
+		boolean hasPermissionToReturnOtherUsersFolder = currentUser.has(RMPermissionsTo.RETURN_OTHER_USERS_FOLDERS)
+				.on(folder);
 		if (currentUser.hasReadAccess().on(folder)) {
 			if (folder.getBorrowed() == null || !folder.getBorrowed()) {
 				throw new BorrowingServicesRunTimeException_FolderIsNotBorrowed(folder.getId());
-			} else if (!currentUser.getUserRoles().contains(RGD) && !currentUser.getId()
+			} else if (!hasPermissionToReturnOtherUsersFolder && !currentUser.getId()
 					.equals(folder.getBorrowUserEntered())) {
 				throw new BorrowingServicesRunTimeException_UserNotAllowedToReturnFolder(currentUser.getUsername());
 			}

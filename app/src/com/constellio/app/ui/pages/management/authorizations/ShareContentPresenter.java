@@ -11,10 +11,10 @@ import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -82,7 +82,7 @@ public class ShareContentPresenter extends BasePresenter<ShareContentView> {
 	}
 
 	private AuthorizationAddRequest toAuthorization(AuthorizationVO authorizationVO) {
-		AuthorizationDetails details;
+		Authorization details;
 
 		ArrayList<String> roles = new ArrayList<>();
 		roles.addAll(authorizationVO.getAccessRoles());

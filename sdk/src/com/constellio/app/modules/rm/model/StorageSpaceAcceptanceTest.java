@@ -321,6 +321,25 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 		assertThat(rm.getStorageSpace(parentStorageSpace.getId()).getNumberOfChild()).isEqualTo(0);
 	}
 
+	@Test
+	public void givenChildStorageSpaceWithContainersThenDoesNotIncrementNumberOfChild()
+			throws Exception {
+		StorageSpace parentStorageSpace = buildStorageSpace();
+		StorageSpace childStorageSpace = buildStorageSpace().setParentStorageSpace(parentStorageSpace);
+		ContainerRecord container1 = rm.newContainerRecord().setType(records.containerTypeId_boite22x22).setAdministrativeUnits(asList(records.unitId_10a))
+				.setDecommissioningType(DecommissioningType.TRANSFERT_TO_SEMI_ACTIVE).setTemporaryIdentifier("containerTest").setStorageSpace(childStorageSpace.getId());
+
+		Transaction transaction = new Transaction();
+		transaction.addAll(parentStorageSpace, childStorageSpace, container1);
+		recordServices.execute(transaction);
+		reindex();
+
+
+		waitForBatchProcess();
+		assertThat(rm.getStorageSpace(childStorageSpace.getId()).getNumberOfChild()).isEqualTo(0);
+	}
+
+
 	public static boolean canStorageSpaceContainContainer(StorageSpace storageSpace, Double containerCapacity) {
 		return storageSpace.getTitle().equals("storageTest") && storageSpace.getCapacity() != null
 			   && storageSpace.getCapacity() > containerCapacity;

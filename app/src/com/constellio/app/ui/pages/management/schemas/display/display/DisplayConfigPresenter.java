@@ -94,11 +94,11 @@ public class DisplayConfigPresenter extends SingleSchemaBasePresenter<DisplayCon
 
 	private boolean isAllowedMetadata(Metadata metadata) {
 		List<Metadata> restrictedMetadata = Arrays.asList(Schemas.SCHEMA, Schemas.VERSION, Schemas.PATH, Schemas.PRINCIPAL_PATH,
-				Schemas.PARENT_PATH, Schemas.REMOVED_AUTHORIZATIONS, Schemas.ALL_REMOVED_AUTHS, Schemas.ATTACHED_ANCESTORS,
+				Schemas.REMOVED_AUTHORIZATIONS, Schemas.ALL_REMOVED_AUTHS, Schemas.ATTACHED_ANCESTORS,
 				Schemas.IS_DETACHED_AUTHORIZATIONS, Schemas.TOKENS, Schemas.COLLECTION,
-				Schemas.FOLLOWERS, Schemas.LOGICALLY_DELETED_STATUS, Schemas.SHARE_DENY_TOKENS, Schemas.SHARE_TOKENS,
-				Schemas.DENY_TOKENS, Schemas.SEARCHABLE, Schemas.ALL_AUTHORIZATIONS, Schemas.ALL_REFERENCES,
-				Schemas.AUTHORIZATIONS, Schemas.INHERITED_AUTHORIZATIONS, Schemas.LOGICALLY_DELETED_ON, Schemas.MANUAL_TOKENS,
+				Schemas.LOGICALLY_DELETED_STATUS, Schemas.SHARE_DENY_TOKENS, Schemas.SHARE_TOKENS,
+				Schemas.DENY_TOKENS, Schemas.ALL_REFERENCES,
+				Schemas.LOGICALLY_DELETED_ON, Schemas.MANUAL_TOKENS,
 				Schemas.SCHEMA_AUTOCOMPLETE_FIELD, Schemas.VISIBLE_IN_TREES, Schemas.MIGRATION_DATA_VERSION);
 
 		List<String> localCodes = new SchemaUtils().toMetadataLocalCodes(restrictedMetadata);

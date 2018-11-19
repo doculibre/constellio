@@ -280,13 +280,13 @@ public class RecordExtensionsAcceptanceTest extends ConstellioTest {
 		inOrder.verify(recordExtension1).recordPhysicallyDeleted(argumentCaptor.capture());
 		inOrder.verify(recordExtension2).recordPhysicallyDeleted(argumentCaptor.capture());
 
-		assertThat(argumentCaptor.getAllValues().get(0).getRecord().getId())
-				.isEqualTo(logicallyDeletedZeSchemaRecord.getId());
-		assertThat(argumentCaptor.getAllValues().get(1).getRecord().getId())
+		assertThat(argumentCaptor.getAllValues().get(3).getRecord().getId())
 				.isEqualTo(logicallyDeletedZeSchemaRecord.getId());
 		assertThat(argumentCaptor.getAllValues().get(2).getRecord().getId())
+				.isEqualTo(logicallyDeletedZeSchemaRecord.getId());
+		assertThat(argumentCaptor.getAllValues().get(1).getRecord().getId())
 				.isEqualTo(logicallyDeletedZeSchemaChildRecord.getId());
-		assertThat(argumentCaptor.getAllValues().get(3).getRecord().getId())
+		assertThat(argumentCaptor.getAllValues().get(0).getRecord().getId())
 				.isEqualTo(logicallyDeletedZeSchemaChildRecord.getId());
 	}
 

@@ -474,7 +474,7 @@ public class TaskAcceptTest extends ConstellioTest {
 					booleanAssert.isFalse();
 				}
 
-				booleanAssert = assertThat(recordServices.isLogicallyThenPhysicallyDeletable(task.getWrappedRecord(), user))
+				booleanAssert = assertThat(recordServices.validateLogicallyThenPhysicallyDeletable(task.getWrappedRecord(), user).isEmpty())
 						.describedAs(user.getUsername() + " delete access on ze task when deleting");
 				if (expectedUserLists.contains(user)) {
 					booleanAssert.isTrue();

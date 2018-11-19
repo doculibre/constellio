@@ -7,7 +7,7 @@ import com.constellio.app.ui.entities.UserCredentialVO;
 import com.constellio.app.ui.framework.data.GlobalGroupVODataProvider;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
-import com.constellio.model.services.users.UserCredentialsManager;
+import com.constellio.model.services.users.SolrUserCredentialsManager;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -41,7 +41,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 	@Mock GlobalGroupVO heroesGlobalGroupVO;
 	MockedNavigation navigator;
 	@Mock CoreViews coreView;
-	@Mock UserCredentialsManager userCredentialsManager;
+	@Mock SolrUserCredentialsManager userCredentialsManager;
 	@Mock UserCredential dakotaCredential, newDakotaCredential;
 	@Mock GlobalGroup heroes, legends;
 	@Mock GlobalGroupVODataProvider globalGroupVODataProvider;
@@ -157,7 +157,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 		newDakotaGlobalGroups.addAll(dakotaGlobalGroups);
 		newDakotaGlobalGroups.add(LEGENDS);
 		when(dakotaCredential.getGlobalGroups()).thenReturn(dakotaGlobalGroups);
-		when(dakotaCredential.withGlobalGroups(newDakotaGlobalGroups)).thenReturn(newDakotaCredential);
+		when(dakotaCredential.setGlobalGroups(newDakotaGlobalGroups)).thenReturn(newDakotaCredential);
 		when(userServices.getUserCredential(dakota)).thenReturn(dakotaCredential);
 
 		presenter.addUserCredentialButtonClicked(LEGENDS, dakota);

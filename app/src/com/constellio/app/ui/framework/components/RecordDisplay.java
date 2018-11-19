@@ -6,6 +6,7 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsDisplayImpl;
 import com.constellio.app.ui.framework.components.fields.comment.RecordCommentsEditorImpl;
+import com.constellio.app.ui.util.SchemaVOUtils;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.VerticalLayout;
@@ -43,22 +44,24 @@ public class RecordDisplay extends BaseDisplay {
 
 		Locale locale = ConstellioUI.getCurrentSessionContext().getCurrentLocale();
 		for (MetadataValueVO metadataValue : recordVO.getDisplayMetadataValues()) {
-			Component displayComponent = metadataDisplayFactory.build(recordVO, metadataValue);
-			if (displayComponent != null) {
-				MetadataVO metadata = metadataValue.getMetadata();
-				String caption = metadata.getLabel(locale);
-				Label captionLabel = new Label(caption);
+			if(SchemaVOUtils.isMetadataPresentInList(metadataValue.getMetadata(), recordVO.getExcludedMetadataCodeList())) {
+				Component displayComponent = metadataDisplayFactory.build(recordVO, metadataValue);
+				if (displayComponent != null) {
+					MetadataVO metadata = metadataValue.getMetadata();
+					String caption = metadata.getLabel(locale);
+					Label captionLabel = new Label(caption);
 
-				String captionId = STYLE_CAPTION + "-" + metadata.getCode();
-				captionLabel.setId(captionId);
-				captionLabel.addStyleName(captionId);
-				captionLabel.setVisible(displayComponent.isVisible());
+					String captionId = STYLE_CAPTION + "-" + metadata.getCode();
+					captionLabel.setId(captionId);
+					captionLabel.addStyleName(captionId);
+					captionLabel.setVisible(displayComponent.isVisible());
 
-				String valueId = STYLE_VALUE + "-" + metadata.getCode();
-				displayComponent.setId(valueId);
-				displayComponent.addStyleName(valueId);
+					String valueId = STYLE_VALUE + "-" + metadata.getCode();
+					displayComponent.setId(valueId);
+					displayComponent.addStyleName(valueId);
 
-				captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent));
+					captionsAndComponents.add(new CaptionAndComponent(captionLabel, displayComponent));
+				}
 			}
 		}
 		return captionsAndComponents;

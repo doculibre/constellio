@@ -12,7 +12,7 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
@@ -51,46 +51,46 @@ public abstract class GeneratedSchemasRecordsServices extends BaseSchemasRecords
 	 **/
 
 
-	public SolrAuthorizationDetails wrapSolrAuthorizationDetails(Record record) {
-		return record == null ? null : new SolrAuthorizationDetails(record, getTypes());
+	public Authorization wrapSolrAuthorizationDetails(Record record) {
+		return record == null ? null : new Authorization(record, getTypes());
 	}
 
-	public List<SolrAuthorizationDetails> wrapSolrAuthorizationDetailss(List<Record> records) {
-		List<SolrAuthorizationDetails> wrapped = new ArrayList<>();
+	public List<Authorization> wrapSolrAuthorizationDetailss(List<Record> records) {
+		List<Authorization> wrapped = new ArrayList<>();
 		for (Record record : records) {
-			wrapped.add(new SolrAuthorizationDetails(record, getTypes()));
+			wrapped.add(new Authorization(record, getTypes()));
 		}
 
 		return wrapped;
 	}
 
-	public List<SolrAuthorizationDetails> searchSolrAuthorizationDetailss(LogicalSearchQuery query) {
+	public List<Authorization> searchSolrAuthorizationDetailss(LogicalSearchQuery query) {
 		return wrapSolrAuthorizationDetailss(modelLayerFactory.newSearchServices().search(query));
 	}
 
-	public List<SolrAuthorizationDetails> searchSolrAuthorizationDetailss(LogicalSearchCondition condition) {
+	public List<Authorization> searchSolrAuthorizationDetailss(LogicalSearchCondition condition) {
 		MetadataSchemaType type = authorizationDetails.schemaType();
 		LogicalSearchQuery query = new LogicalSearchQuery(from(type).whereAllConditions(asList(condition)));
 		return wrapSolrAuthorizationDetailss(modelLayerFactory.newSearchServices().search(query));
 	}
 
-	public SolrAuthorizationDetails getSolrAuthorizationDetails(String id) {
+	public Authorization getSolrAuthorizationDetails(String id) {
 		return wrapSolrAuthorizationDetails(get(authorizationDetails.schemaType(), id));
 	}
 
-	public List<SolrAuthorizationDetails> getSolrAuthorizationDetailss(List<String> ids) {
+	public List<Authorization> getSolrAuthorizationDetailss(List<String> ids) {
 		return wrapSolrAuthorizationDetailss(get(authorizationDetails.schemaType(), ids));
 	}
 
-	public SolrAuthorizationDetails getSolrAuthorizationDetailsWithLegacyId(String legacyId) {
+	public Authorization getSolrAuthorizationDetailsWithLegacyId(String legacyId) {
 		return wrapSolrAuthorizationDetails(getByLegacyId(authorizationDetails.schemaType(), legacyId));
 	}
 
-	public SolrAuthorizationDetails newSolrAuthorizationDetails() {
+	public Authorization newSolrAuthorizationDetails() {
 		return wrapSolrAuthorizationDetails(create(authorizationDetails.schema()));
 	}
 
-	public SolrAuthorizationDetails newSolrAuthorizationDetailsWithId(String id) {
+	public Authorization newSolrAuthorizationDetailsWithId(String id) {
 		return wrapSolrAuthorizationDetails(create(authorizationDetails.schema(), id));
 	}
 

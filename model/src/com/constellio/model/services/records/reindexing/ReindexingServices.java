@@ -103,7 +103,7 @@ public class ReindexingServices {
 		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
 			this.mainThreadQueryRows = 100;
 
-//		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == NORMAL) {
+			//		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == NORMAL) {
 			//			this.mainThreadQueryRows = 1000;
 
 		} else {
@@ -471,7 +471,9 @@ public class ReindexingServices {
 						List<String> referencedRecordIds = record.getValues(refMetadata);
 
 						for (String referencedRecordId : referencedRecordIds) {
-							aggregatedValuesTempStorage.incrementReferenceCount(referencedRecordId);
+							if (refMetadata.getAllowedReferences().isAllowed(type)) {
+								aggregatedValuesTempStorage.incrementReferenceCount(referencedRecordId);
+							}
 							for (MetadataNetworkLink link : links) {
 								aggregatedValuesTempStorage.addOrReplace(referencedRecordId, record.getId(),
 										link.getToMetadata().getLocalCode(), record.getValues(link.getToMetadata()));

@@ -8,6 +8,7 @@ import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ThemeResource;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
@@ -52,6 +53,9 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 				panel.addComponent(button);
 			}
 		}
+
+
+
 		layout.addComponent(panel);
 		return layout;
 	}

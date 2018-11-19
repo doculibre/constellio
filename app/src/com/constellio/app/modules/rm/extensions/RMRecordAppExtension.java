@@ -8,7 +8,9 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.ThemeUtils;
@@ -20,19 +22,24 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.vaadin.server.Resource;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import static com.constellio.app.ui.util.FileIconUtils.getIcon;
 
 public class RMRecordAppExtension extends RecordAppExtension {
 
 	private static final String IMAGES_DIR = "images";
 
 	private final String collection;
+	private final AppLayerFactory appLayerFactory;
 	private final MetadataSchemasManager manager;
 
 	public RMRecordAppExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		manager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
+		this.appLayerFactory = appLayerFactory;
 	}
 
 	@Override
@@ -214,6 +221,26 @@ public class RMRecordAppExtension extends RecordAppExtension {
 			extension = super.getExtensionForRecordVO(params);
 		}
 		return extension;
+	}
+
+	public Resource getIconFromContent(GetIconPathParams params) {
+		RecordVO recordVO = params.getRecordVO();
+		if(Document.SCHEMA_TYPE.equals(recordVO.getSchema().getTypeCode())) {
+			String fileName = appLayerFactory.getExtensions().forCollection(collection).getIconForRecordVO(new GetIconPathParams(recordVO, false));
+			if (fileName == null) {
+				for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
+					Object value = metadataValueVO.getValue();
+					if (value instanceof ContentVersionVO) {
+						fileName = ((ContentVersionVO) value).getFileName();
+						break;
+					}
+				}
+			}
+			if (fileName != null) {
+				return getIcon(fileName);
+			}
+		}
+		return null;
 	}
 
 }

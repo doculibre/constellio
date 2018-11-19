@@ -16,7 +16,14 @@ import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
 import com.vaadin.server.Page;
-import com.vaadin.ui.*;
+import com.vaadin.ui.Button;
+import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.ui.Label;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.VerticalLayout;
 
 import java.util.List;
 
@@ -157,8 +164,7 @@ public class ReportTabButton extends WindowButton {
 			}
 			if (newReportPresenter.getSupportedReports().isEmpty()) {
 				buttonPresenter.setNeedToRemoveExcelTab(true);
-			}
-			else {
+			} else {
 				buttonPresenter.setNeedToRemoveExcelTab(false);
 			}
 			verticalLayout.addComponent(new ReportSelector(newReportPresenter));

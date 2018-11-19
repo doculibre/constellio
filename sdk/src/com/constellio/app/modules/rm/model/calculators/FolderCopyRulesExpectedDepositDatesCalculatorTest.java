@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.model.calculators;
 
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
+import com.constellio.app.modules.rm.model.calculators.AbstractFolderCopyRulesExpectedDatesCalculator.AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.CalculatorParametersValidatingDependencies;
@@ -12,10 +13,17 @@ import org.joda.time.LocalDate;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.restlet.engine.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.CLOSE_DATE;
+import static com.constellio.app.modules.rm.model.enums.DecommissioningDateBasedOn.OPEN_DATE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.ACTIVE;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DEPOSITED;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.INACTIVE_DESTROYED;
+import static com.constellio.app.modules.rm.model.enums.FolderStatus.SEMI_ACTIVE;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -26,7 +34,7 @@ import static org.mockito.Mockito.when;
 public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends ConstellioTest {
 
 	@Mock DynamicDependencyValues dynamicDependencyValues;
-	@Spy FolderCopyRulesExpectedDepositDatesCalculator calculator;
+	@Spy FolderCopyRulesExpectedDepositDatesCalculator2 calculator;
 	@Mock CalculatorParameters params;
 
 	FolderStatus archivisticStatus;
@@ -41,6 +49,22 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends Constelli
 	String configYearEnd;
 
 	CopyRetentionRuleBuilder copyBuilder = CopyRetentionRuleBuilder.UUID();
+
+	LocalDate november3_2012 = new LocalDate(2012, 11, 3);
+	LocalDate november4_2012 = new LocalDate(2012, 11, 4);
+	LocalDate november5_2012 = new LocalDate(2012, 11, 5);
+	LocalDate november3_2013 = new LocalDate(2013, 11, 3);
+
+	LocalDate december13_2013 = new LocalDate(2013, 11, 13);
+	LocalDate december13_2014 = new LocalDate(2014, 11, 13);
+	LocalDate december13_2015 = new LocalDate(2014, 11, 13);
+
+	LocalDate may30_2013 = new LocalDate(2013, 5, 30);
+	LocalDate may31_2013 = new LocalDate(2013, 5, 31);
+	LocalDate may31_2014 = new LocalDate(2014, 5, 31);
+	LocalDate may31_2015 = new LocalDate(2015, 5, 31);
+	LocalDate april16_2014 = new LocalDate(2014, 4, 16);
+	LocalDate april16_2015 = new LocalDate(2015, 4, 16);
 
 	@Test
 	public void givenMultipleApplicableCopyRulesThenCalculateDateForEachAndReturnEndOFYearDates()
@@ -158,6 +182,216 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends Constelli
 		assertThat(calculateFor(1, principal("3-888-T"))).isEqualTo(new LocalDate(2005, 4, 5));
 	}
 
+	// calculateDecommissioningDate
+
+	@Test
+	public void givenDecommissioningDateBasedOnOpenDateWhenCalculatingOnActiveFolderThenReturnOpenDateAtEndOfYear()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(OPEN_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(ACTIVE);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(december13_2013);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(may31_2013);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnOpenDateWhenCalculatingOnActiveFolderWithOpenDateAtEndOfYearThenReturnSameDate()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(OPEN_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(ACTIVE);
+		when(params.get(calculator.openingDateParam)).thenReturn(may31_2013);
+		when(params.get(calculator.closingDateParam)).thenReturn(december13_2013);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(may31_2013);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnOpenDateWithInsufficientRequiredPeriodBeforeEndOfYearWhenCalculatingOnActiveFolderThenReturnOpenDateAtEndOfNextYear()
+			throws Exception {
+
+		confiRequiredDaysBeforeYearEnd = 180;
+		configYearEnd = "04/16";
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(OPEN_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(ACTIVE);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(december13_2013);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(april16_2014);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnCloseDateWhenCalculatingOnActiveFolderThenReturnCloseDate()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(CLOSE_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(ACTIVE);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(may31_2013);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(may31_2013);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnCloseDateAndNullDateWhenCalculatingOnActiveFolderThenReturnNull()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(CLOSE_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(ACTIVE);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(null);
+		when(params.get(calculator.actualTransferDateParam)).thenReturn(null);
+
+		assertThat(calculateDecommissioningDate()).isNull();
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnCloseDateWhenCalculatingOnActiveFolderWithCloseDateNotAtEndOfYEarWithSufficientPeriod()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(CLOSE_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(ACTIVE);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(november3_2013);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(may31_2014);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnCloseDateWhenCalculatingOnActiveFolderWithCloseDateNotAtEndOfYEarWithInufficientPeriod()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(CLOSE_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(ACTIVE);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(may30_2013);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(may31_2014);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnCloseDateWhenCalculatingOnSemiActiveFolderThenReturnTransferDateAtYearEnd()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(CLOSE_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(SEMI_ACTIVE);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(november4_2012);
+		when(params.get(calculator.actualTransferDateParam)).thenReturn(december13_2013);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(may31_2014);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnCloseDateWhenCalculatingOnSemiActiveFolderWithTransferDateAtYearThenReturnTransferDate()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(CLOSE_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(SEMI_ACTIVE);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(november4_2012);
+		when(params.get(calculator.actualTransferDateParam)).thenReturn(may31_2014);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(may31_2014);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnCloseDateWhenCalculatingOnActiveFolderWithTransferDateThenReturnTransferDateAtEndOfNextYear()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(CLOSE_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(ACTIVE);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(november4_2012);
+		when(params.get(calculator.actualTransferDateParam)).thenReturn(december13_2013);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(may31_2014);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnCloseDateWhenCalculatingOnActiveFolderWithTransferDateWithInsufficientPeriodBeforeEnfOfYEarThenReturnTransferDateAAtEndOfNextYear()
+			throws Exception {
+
+		confiRequiredDaysBeforeYearEnd = 180;
+		configYearEnd = "04/16";
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(CLOSE_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(ACTIVE);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(november4_2012);
+		when(params.get(calculator.actualTransferDateParam)).thenReturn(december13_2013);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(april16_2015);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnCloseDateWhenCalculatingOnDepositedFolderThenReturnCloseDate()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(CLOSE_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(INACTIVE_DEPOSITED);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(november4_2012);
+		when(params.get(calculator.actualTransferDateParam)).thenReturn(december13_2013);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(may31_2013);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnOpenDateWhenCalculatingOnDepositedFolderThenReturnOpenDate()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(OPEN_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(INACTIVE_DEPOSITED);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(may31_2014);
+		when(params.get(calculator.actualTransferDateParam)).thenReturn(december13_2014);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(may31_2013);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnCloseDateWhenCalculatingOnDestroyedFolderThenReturnCloseDate()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(CLOSE_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(INACTIVE_DESTROYED);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(may31_2013);
+		when(params.get(calculator.actualTransferDateParam)).thenReturn(december13_2014);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(may31_2013);
+
+	}
+
+	@Test
+	public void givenDecommissioningDateBasedOnOpenDateWhenCalculatingOnDestroyedFolderThenReturnOpenDate()
+			throws Exception {
+
+		when(params.get(calculator.decommissioningDateBasedOnParam)).thenReturn(OPEN_DATE);
+		when(params.get(calculator.folderStatusParam)).thenReturn(INACTIVE_DESTROYED);
+		when(params.get(calculator.openingDateParam)).thenReturn(november3_2012);
+		when(params.get(calculator.closingDateParam)).thenReturn(may31_2014);
+		when(params.get(calculator.actualTransferDateParam)).thenReturn(december13_2015);
+
+		assertThat(calculateDecommissioningDate()).isEqualTo(may31_2013);
+
+	}
+
 	//--------------------
 
 	private LocalDate calculateFor(int index, CopyRetentionRule copy) {
@@ -168,11 +402,13 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends Constelli
 		when(params.get(calculator.configSemiActiveNumberOfYearWhenVariableDelayPeriodParam))
 				.thenReturn(configSemiActiveNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.copyRulesExpectedTransferDateParam)).thenReturn(copyRulesExpectedTransferDate);
-		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam))
 				.thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
 		//when(params.get(any(DynamicLocalDependency.class))).thenReturn(dynamicDependencyValues);
 		doReturn(dynamicDependencyValues).when(params).get(any(DynamicLocalDependency.class));
+
+		doReturn(decommissioningDate).when(calculator).calculateDecommissioningDate(any(CopyRetentionRule.class),
+				any(AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput.class));
 
 		return calculator.calculateForCopyRule(index, copy, new CalculatorParametersValidatingDependencies(params, calculator));
 	}
@@ -194,7 +430,6 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends Constelli
 		when(params.get(calculator.configSemiActiveNumberOfYearWhenVariableDelayPeriodParam))
 				.thenReturn(configSemiActiveNumberOfYearWhenVariableDelay);
 		when(params.get(calculator.copyRulesExpectedTransferDateParam)).thenReturn(copyRulesExpectedTransferDate);
-		when(params.get(calculator.decommissioningDateParam)).thenReturn(decommissioningDate);
 		when(params.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
 		when(params.get(calculator.configRequiredDaysBeforeYearEndParam)).thenReturn(confiRequiredDaysBeforeYearEnd);
 		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam))
@@ -203,6 +438,25 @@ public class FolderCopyRulesExpectedDepositDatesCalculatorTest extends Constelli
 		//when(params.get(any(DynamicLocalDependency.class))).thenReturn(dynamicDependencyValues);
 		doReturn(dynamicDependencyValues).when(params).get(any(DynamicLocalDependency.class));
 
+		doReturn(decommissioningDate).when(calculator)
+				.calculateDecommissioningDate(any(CopyRetentionRule.class),
+						any(AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput.class));
+
 		return calculator.calculate(new CalculatorParametersValidatingDependencies(params, calculator));
+	}
+
+	private LocalDate calculateDecommissioningDate() {
+		confiRequiredDaysBeforeYearEnd = confiRequiredDaysBeforeYearEnd != 0 ? confiRequiredDaysBeforeYearEnd : 90;
+		configYearEnd = !StringUtils.isNullOrEmpty(configYearEnd) ? configYearEnd : "05/31";
+
+		when(params.get(calculator.configRequiredDaysBeforeYearEndParam)).thenReturn(confiRequiredDaysBeforeYearEnd);
+		when(params.get(calculator.configYearEndParam)).thenReturn(configYearEnd);
+
+		when(params.get(calculator.calculatedMetadatasBasedOnFirstTimerangePartParam))
+				.thenReturn(calculatedMetadatasBasedOnFirstTimerangePartParam);
+
+		AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput input =
+				calculator.new AbstractFolderCopyRulesExpectedDatesCalculator_CalculatorInput(params);
+		return calculator.calculateDecommissioningDate(principal("3-888-T"), input);
 	}
 }

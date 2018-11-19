@@ -82,6 +82,11 @@ public class MetadataSchemaBuilder {
 	MetadataSchemaBuilder() {
 	}
 
+	public static Logger getLOGGER() {
+		return LOGGER;
+	}
+
+
 	static MetadataSchemaBuilder modifySchema(MetadataSchema schema, MetadataSchemaTypeBuilder schemaType) {
 		MetadataSchemaBuilder builder = new MetadataSchemaBuilder();
 		builder.classProvider = schemaType.getClassProvider();

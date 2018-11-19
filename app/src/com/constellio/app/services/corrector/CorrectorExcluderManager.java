@@ -27,7 +27,7 @@ public class CorrectorExcluderManager implements StatefulService, OneXMLConfigPe
 	public CorrectorExcluderManager(ModelLayerFactory modelLayerFactory) {
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
-		this.cacheManager = modelLayerFactory.getDataLayerFactory().getSettingsCacheManager();
+		this.cacheManager = modelLayerFactory.getDataLayerFactory().getLocalCacheManager();
 	}
 
 	@Override

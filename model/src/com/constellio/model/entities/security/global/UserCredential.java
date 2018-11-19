@@ -1,99 +1,296 @@
 package com.constellio.model.entities.security.global;
 
+import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import org.joda.time.LocalDateTime;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
-public interface UserCredential {
-	String getUsername();
+public class UserCredential extends RecordWrapper {
+	public static final String SCHEMA_TYPE = "userCredential";
+	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
 
-	String getFirstName();
+	public static final String USERNAME = "username";
+	public static final String FIRST_NAME = "firstname";
+	public static final String LAST_NAME = "lastname";
+	public static final String EMAIL = "email";
+	public static final String PERSONAL_EMAILS = "personalEmails";
+	public static final String SERVICE_KEY = "serviceKey";
+	public static final String TOKEN_KEYS = "tokenKeys";
+	public static final String TOKEN_EXPIRATIONS = "tokenExpirations";
+	public static final String SYSTEM_ADMIN = "systemAdmin";
+	public static final String COLLECTIONS = "collections";
+	public static final String GLOBAL_GROUPS = "globalGroups";
+	public static final String STATUS = "status";
+	public static final String DOMAIN = "domain";
+	public static final String MS_EXCHANGE_DELEGATE_LIST = "msExchangeDelegateList";
+	public static final String DN = "dn";
+	public static final String PHONE = "phone";
+	public static final String FAX = "fax";
+	public static final String JOB_TITLE = "jobTitle";
+	public static final String ADDRESS = "address";
+	public static final String AGENT_STATUS = "agentStatus";
+	public static final String HAS_AGREED_TO_PRIVACY_POLICY = "hasAgreedToPrivacyPolicy";
 
-	String getLastName();
+	public UserCredential(Record record, MetadataSchemaTypes types) {
+		super(record, types, SCHEMA_TYPE);
+	}
 
-	String getEmail();
+	public String getUsername() {
+		return get(USERNAME);
+	}
 
-	String getPhone();
+	public UserCredential setUsername(String username) {
+		set(USERNAME, username);
+		return this;
+	}
 
-	String getAddress();
+	public String getFirstName() {
+		return get(FIRST_NAME);
+	}
 
-	String getFax();
+	public UserCredential setFirstName(String firstName) {
+		set(FIRST_NAME, firstName);
+		return this;
+	}
 
-	String getJobTitle();
+	public String getLastName() {
+		return get(LAST_NAME);
+	}
 
-	List<String> getPersonalEmails();
+	public UserCredential setLastName(String lastName) {
+		set(LAST_NAME, lastName);
+		return this;
+	}
 
-	String getServiceKey();
+	public String getEmail() {
+		return get(EMAIL);
+	}
 
-	Map<String, LocalDateTime> getAccessTokens();
+	public List<String> getPersonalEmails() {
+		return get(PERSONAL_EMAILS);
+	}
 
-	String getTitle();
+	public UserCredential setEmail(String email) {
+		set(EMAIL, email);
+		return this;
+	}
 
-	List<String> getTokenKeys();
+	public UserCredential setPersonalEmails(List<String> personalEmails) {
+		set(PERSONAL_EMAILS, personalEmails);
+		return this;
+	}
 
-	boolean isSystemAdmin();
+	public String getServiceKey() {
+		return get(SERVICE_KEY);
+	}
 
-	List<String> getCollections();
+	public UserCredential setServiceKey(String serviceKey) {
+		set(SERVICE_KEY, serviceKey);
+		return this;
+	}
 
-	List<String> getGlobalGroups();
+	public Map<String, LocalDateTime> getAccessTokens() {
+		HashMap<String, LocalDateTime> result = new HashMap<>();
+		Iterator<LocalDateTime> expirations = getTokenExpirations().iterator();
+		for (String token : getTokenKeys()) {
+			result.put(token, expirations.next());
+		}
+		return result;
+	}
 
-	UserCredentialStatus getStatus();
+	public UserCredential setAccessTokens(Map<String, LocalDateTime> tokens) {
+		if (tokens != null) {
+			List<String> keys = new ArrayList<>(tokens.size());
+			List<LocalDateTime> expirations = new ArrayList<>(tokens.size());
+			for (Entry<String, LocalDateTime> token : tokens.entrySet()) {
+				keys.add(token.getKey());
+				expirations.add(token.getValue());
+			}
+			set(TOKEN_KEYS, keys);
+			set(TOKEN_EXPIRATIONS, expirations);
+		}
+		return this;
+	}
 
-	String getDomain();
+	public List<String> getTokenKeys() {
+		return getList(TOKEN_KEYS);
+	}
 
-	List<String> getMsExchDelegateListBL();
+	public List<LocalDateTime> getTokenExpirations() {
+		return getList(TOKEN_EXPIRATIONS);
+	}
 
-	UserCredential withCollections(List<String> collections);
+	public boolean isSystemAdmin() {
+		return get(SYSTEM_ADMIN);
+	}
 
-	UserCredential withRemovedCollection(String collection);
+	public UserCredential setSystemAdmin(boolean systemAdmin) {
+		set(SYSTEM_ADMIN, systemAdmin);
+		return this;
+	}
 
-	UserCredential withNewGlobalGroup(String newGroup);
+	public List<String> getCollections() {
+		return getList(COLLECTIONS);
+	}
 
-	UserCredential withRemovedGlobalGroup(String removedGroup);
+	public UserCredential setCollections(List<String> collections) {
+		set(COLLECTIONS, collections);
+		return this;
+	}
 
-	UserCredential withGlobalGroups(List<String> globalGroups);
+	public List<String> getGlobalGroups() {
+		return getList(GLOBAL_GROUPS);
+	}
 
-	UserCredential withFirstName(String firstName);
+	public UserCredential setGlobalGroups(List<String> globalGroups) {
+		set(GLOBAL_GROUPS, globalGroups);
+		return this;
+	}
 
-	UserCredential withLastName(String lastName);
+	public UserCredentialStatus getStatus() {
+		return get(STATUS);
+	}
 
-	UserCredential withEmail(String email);
+	public UserCredential setStatus(UserCredentialStatus status) {
+		set(STATUS, status);
+		return this;
+	}
 
-	UserCredential withPersonalEmails(List<String> personalEmails);
+	public String getDomain() {
+		return get(DOMAIN);
+	}
 
-	UserCredential withStatus(UserCredentialStatus status);
+	public UserCredential setDomain(String domain) {
+		set(DOMAIN, domain);
+		return this;
+	}
 
-	UserCredential withAccessToken(String token, LocalDateTime dateTime);
+	public List<String> getMsExchDelegateListBL() {
+		return getList(MS_EXCHANGE_DELEGATE_LIST);
+	}
 
-	UserCredential withRemovedToken(String key);
+	public UserCredential setMsExchDelegateListBL(List<String> delegateList) {
+		set(MS_EXCHANGE_DELEGATE_LIST, delegateList);
+		return this;
+	}
 
-	UserCredential withAccessTokens(Map<String, LocalDateTime> tokens);
+	public String getDn() {
+		return get(DN);
+	}
 
-	UserCredential withNewCollection(String collection);
+	public boolean isActiveUser() {
+		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
+	}
 
-	UserCredential withSystemAdminPermission();
+	public UserCredential setDn(String dn) {
+		set(DN, dn);
+		return this;
+	}
 
-	UserCredential withServiceKey(String serviceKey);
+	public String getJobTitle() {
+		return get(JOB_TITLE);
+	}
 
-	UserCredential withMsExchDelegateListBL(List<String> msExchDelegateListBL);
+	public String getPhone() {
+		return get(PHONE);
+	}
 
-	UserCredential withDN(String dn);
+	public String getFax() {
+		return get(FAX);
+	}
 
-	UserCredential withPhone(String phone);
+	public String getAddress() {
+		return get(ADDRESS);
+	}
 
-	UserCredential withAddress(String address);
+	public UserCredential removeCollection(String collection) {
+		List<String> collections = new ArrayList<>(getCollections());
+		collections.remove(collection);
+		return setCollections(collections);
+	}
 
-	UserCredential withFax(String fax);
+	public UserCredential addGlobalGroup(String newGroup) {
+		List<String> groups = new ArrayList<>(getGlobalGroups());
+		groups.add(newGroup);
+		return setGlobalGroups(groups);
+	}
 
-	UserCredential withJobTitle(String jobTitle);
+	public UserCredential removeGlobalGroup(String removedGroup) {
+		List<String> groups = new ArrayList<>(getGlobalGroups());
+		groups.remove(removedGroup);
+		return setGlobalGroups(groups);
+	}
 
-	String getDn();
+	public UserCredential addAccessToken(String token, LocalDateTime dateTime) {
+		Map<String, LocalDateTime> tokens = getAccessTokens();
+		tokens.put(token, dateTime);
+		return setAccessTokens(tokens);
+	}
 
-	boolean isActiveUser();
+	public UserCredential removeAccessToken(String token) {
+		Map<String, LocalDateTime> tokens = getAccessTokens();
+		tokens.remove(token);
+		return setAccessTokens(tokens);
+	}
 
-	boolean hasAgreedToPrivacyPolicy();
 
-	UserCredential withAgreedPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy);
+	public UserCredential addCollection(String collection) {
+		List<String> collections = new ArrayList<>(getCollections());
+		if (!collections.contains(collection)) {
+			collections.add(collection);
+		}
+		return setCollections(collections);
+	}
 
+	public UserCredential setSystemAdminEnabled() {
+		return setSystemAdmin(true);
+	}
+
+	public UserCredential setDN(String dn) {
+		return setDn(dn);
+	}
+
+	public UserCredential setPhone(String phone) {
+		set(PHONE, phone);
+		return this;
+	}
+
+	public UserCredential setJobTitle(String jobTitle) {
+		set(JOB_TITLE, jobTitle);
+		return this;
+	}
+
+	public UserCredential setFax(String fax) {
+		set(FAX, fax);
+		return this;
+	}
+
+	public UserCredential setAddress(String address) {
+		set(ADDRESS, address);
+		return this;
+	}
+
+	public AgentStatus getAgentStatus() {
+		return getEnumWithDefaultValue(AGENT_STATUS, AgentStatus.DISABLED);
+	}
+
+	public UserCredential setAgentStatus(AgentStatus agentStatus) {
+		return set(AGENT_STATUS, agentStatus);
+	}
+
+	public boolean hasAgreedToPrivacyPolicy() {
+		return Boolean.TRUE.equals(get(HAS_AGREED_TO_PRIVACY_POLICY));
+	}
+
+	public UserCredential setAgreedPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy) {
+		set(HAS_AGREED_TO_PRIVACY_POLICY, hasAgreedToPrivacyPolicy);
+		return this;
+	}
 }

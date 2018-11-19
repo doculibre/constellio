@@ -28,8 +28,12 @@ public class RestApiLoggingFilter implements ContainerRequestFilter, ContainerRe
 
 	@Override
 	public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
-		long start = (long) requestContext.getProperty("timestamp");
-		long ms = System.currentTimeMillis() - start;
+		Object start = requestContext.getProperty("timestamp");
+		if (start == null) {
+			return;
+		}
+
+		long ms = System.currentTimeMillis() - (long) start;
 
 		log.info("HTTP response: "
 				.concat(String.valueOf(responseContext.getStatus()).concat(" ")

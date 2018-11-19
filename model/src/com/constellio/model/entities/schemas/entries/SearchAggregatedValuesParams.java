@@ -1,12 +1,16 @@
 package com.constellio.model.entities.schemas.entries;
 
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SearchAggregatedValuesParams {
 	LogicalSearchQuery query;
@@ -53,5 +57,16 @@ public class SearchAggregatedValuesParams {
 
 	public List<Metadata> getInputMetadatas() {
 		return types.getMetadatas(getAggregatedDataEntry().getInputMetadatas());
+	}
+
+	public Map<MetadataSchemaType, List<Metadata>> getInputMetatasBySchemaType() {
+		Map<MetadataSchemaType, List<Metadata>> inputMetatasBySchemaType = new HashMap<>();
+		for (String referenceMetadata : aggregatedDataEntry.getReferenceMetadatas()) {
+			MetadataSchemaType schemaType = types.getSchemaType(SchemaUtils.getSchemaTypeCode(referenceMetadata));
+			List<Metadata> metadatas = types.getMetadatas(aggregatedDataEntry.getInputMetadatas(referenceMetadata));
+			inputMetatasBySchemaType.put(schemaType, metadatas);
+		}
+
+		return inputMetatasBySchemaType;
 	}
 }

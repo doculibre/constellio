@@ -68,7 +68,6 @@ public class SeleniumTestFeatures {
 	}
 
 	public void afterTest(boolean failed) {
-		ApplicationStarter.resetServlets();
 		if (waitUntilICloseTheBrowsers) {
 			String phantomJSBinaryDir = sdkProperties.get("phantomJSBinary");
 			String firefoxBinaryDir = sdkProperties.get("firefoxBinary");
@@ -95,6 +94,8 @@ public class SeleniumTestFeatures {
 			closeOpenedWebDriver();
 		}
 
+		ApplicationStarter.resetServlets();
+		ApplicationStarter.resetFilters();
 		waitUntilICloseTheBrowsers = false;
 	}
 

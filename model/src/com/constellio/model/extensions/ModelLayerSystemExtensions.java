@@ -8,6 +8,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordCacheExtension;
+import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.behaviors.UserAuthenticationExtension;
 import com.constellio.model.extensions.events.recordsCache.CacheHitParams;
 import com.constellio.model.extensions.events.recordsCache.CacheMissParams;
@@ -23,6 +24,8 @@ import java.util.List;
 public class ModelLayerSystemExtensions {
 
 	//------------ Extension points -----------
+
+	public VaultBehaviorsList<RecordExtension> recordExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<RecordCacheExtension> recordCacheExtensions = new VaultBehaviorsList<>();
 

@@ -20,7 +20,6 @@ public class FolderDecomDatesDynamicLocalDependency extends DynamicLocalDependen
 			Folder.COPY_RULES_EXPECTED_DEPOSIT_DATES,
 			Folder.COPY_RULES_EXPECTED_DESTRUCTION_DATES,
 			Folder.COPY_RULES_EXPECTED_TRANSFER_DATES,
-			Folder.DECOMMISSIONING_DATE,
 			Folder.ACTUAL_DEPOSIT_DATE,
 			Folder.ACTUAL_DEPOSIT_DATE,
 			Folder.ACTUAL_DESTRUCTION_DATE,
@@ -58,11 +57,5 @@ public class FolderDecomDatesDynamicLocalDependency extends DynamicLocalDependen
 	public int hashCode() {
 		return FolderDecomDatesDynamicLocalDependency.class.hashCode();
 	}
-
-	/*@Deprecated
-	@Override
-	public LocalDate getDate(String metadata, DynamicDependencyValues values) {
-		return super.getDate(metadata, values);
-	}*/
 
 }

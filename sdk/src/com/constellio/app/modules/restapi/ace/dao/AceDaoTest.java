@@ -3,11 +3,10 @@ package com.constellio.app.modules.restapi.ace.dao;
 import com.constellio.app.modules.restapi.core.exception.UnresolvableOptimisticLockException;
 import com.constellio.app.modules.restapi.document.dto.AceDto;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -35,7 +34,7 @@ public class AceDaoTest {
 	@Mock private User user;
 	@Mock private Record record;
 	@Mock private Authorization authorization;
-	@Mock private AuthorizationDetails authorizationDetails;
+	@Mock private Authorization authorizationDetails;
 	@Mock private AuthorizationModificationRequest authorizationModificationRequest;
 
 	@InjectMocks @Spy private AceDao aceDao;
@@ -50,7 +49,6 @@ public class AceDaoTest {
 		aces = singletonList(AceDto.builder().principals(singleton("id")).permissions(singleton("READ")).build());
 
 		when(authorizationsServices.getAuthorization(anyString(), anyString())).thenReturn(authorization);
-		when(authorization.getDetail()).thenReturn(authorizationDetails);
 
 		doReturn(record).when(aceDao).getUserByUsername(anyString(), anyString());
 	}

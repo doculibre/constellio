@@ -1,6 +1,7 @@
 package com.constellio.model.extensions.events.records;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.services.schemas.SchemaUtils;
 
 public class RecordRestorationEvent implements RecordEvent {
 
@@ -12,6 +13,10 @@ public class RecordRestorationEvent implements RecordEvent {
 
 	public Record getRecord() {
 		return record;
+	}
+
+	public String getSchemaTypeCode() {
+		return new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 	}
 
 }

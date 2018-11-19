@@ -104,11 +104,11 @@ public class CmisSinglevalueContentManagementAcceptTest extends ConstellioTest {
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		userServices.addUpdateUserCredential(userServices.createUserCredential(
 				"bob", "bob", "gratton", "bob@doculibre.com", new ArrayList<String>(), asList(zeCollection), ACTIVE, null,
-				Arrays.asList(""), null).withServiceKey("bob-key").withSystemAdminPermission());
+				Arrays.asList(""), null).setServiceKey("bob-key").setSystemAdminEnabled());
 
 		userServices.addUpdateUserCredential(userServices.createUserCredential(
 				"alice", "alice", "wonderland", "alice@doculibre.com", new ArrayList<String>(), asList(zeCollection), ACTIVE,
-				null, Arrays.asList(""), null).withServiceKey("alice-key").withSystemAdminPermission());
+				null, Arrays.asList(""), null).setServiceKey("alice-key").setSystemAdminEnabled());
 
 		alice = userServices.getUserInCollection("alice", zeCollection);
 		bob = userServices.getUserInCollection("bob", zeCollection);

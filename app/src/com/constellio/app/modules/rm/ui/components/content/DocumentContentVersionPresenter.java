@@ -18,8 +18,10 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.RecordVORuntimeException;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -161,7 +163,8 @@ public class DocumentContentVersionPresenter implements Serializable {
 			User currentUser = presenterUtils.getCurrentUser();
 			Document document = rmSchemasRecordsServices.getDocument(documentVO.getId());
 			document.getContent().checkOut(currentUser);
-			presenterUtils.addOrUpdate(document.getWrappedRecord());
+			presenterUtils.addOrUpdate(document.getWrappedRecord(), new RecordUpdateOptions().setOverwriteModificationDateAndUser(false));
+			modelLayerFactory.newLoggingServices().borrowRecord(document.getWrappedRecord(), currentUser, TimeProvider.getLocalDateTime());
 
 			SessionContext sessionContext = window.getSessionContext();
 			documentVO = documentVOBuilder.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, window.getSessionContext());

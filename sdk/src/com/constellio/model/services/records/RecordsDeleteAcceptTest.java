@@ -16,6 +16,7 @@ import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
+import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.records.RecordDeleteServicesRuntimeException.RecordDeleteServicesRuntimeException_CannotTotallyDeleteSchemaType;
@@ -252,8 +253,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		extensions.recordExtensions.add(new RecordExtension() {
 
 			@Override
-			public ExtensionBooleanResult isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent params) {
-				return ExtensionBooleanResult.FALSE;
+			public ExtensionValidationErrors isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent params) {
+				ValidationErrors validationErrors = new ValidationErrors();
+				validationErrors.add(RecordsDeleteAcceptTest.class, "Not physically deletable");
+				return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.FALSE);
 			}
 		});
 		given(bob).logicallyDelete(valueListItem1);
@@ -267,8 +270,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		extensions.recordExtensions.add(new RecordExtension() {
 			@Override
-			public ExtensionBooleanResult isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent params) {
-				return ExtensionBooleanResult.TRUE;
+			public ExtensionValidationErrors isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent params) {
+				return new ExtensionValidationErrors(ExtensionBooleanResult.TRUE);
 			}
 		});
 		given(bob).logicallyDelete(valueListItem1);
@@ -282,8 +285,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		extensions.recordExtensions.add(new RecordExtension() {
 			@Override
-			public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent params) {
-				return ExtensionBooleanResult.FALSE;
+			public ExtensionValidationErrors isLogicallyDeletable(RecordLogicalDeletionValidationEvent params) {
+				ValidationErrors validationErrors = new ValidationErrors();
+				validationErrors.add(RecordsDeleteAcceptTest.class, "Record is not logically deleted");
+				return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.FALSE);
 			}
 
 		});
@@ -295,8 +300,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		extensions.recordExtensions.add(new RecordExtension() {
 			@Override
-			public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent params) {
-				return ExtensionBooleanResult.TRUE;
+			public ExtensionValidationErrors isLogicallyDeletable(RecordLogicalDeletionValidationEvent params) {
+				return new ExtensionValidationErrors(ExtensionBooleanResult.TRUE);
 			}
 
 		});
@@ -1600,7 +1605,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
-				return recordServices.isLogicallyDeletable(record, user);
+				return recordServices.validateLogicallyDeletable(record, user).isEmpty();
 			}
 		}.describedAs("logically deletable by " + user);
 	}
@@ -1614,7 +1619,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
-				return recordServices.isLogicallyThenPhysicallyDeletable(record, user, options);
+				return recordServices.validateLogicallyThenPhysicallyDeletable(record, user, options).isEmpty();
 			}
 		}.describedAs("logically then physically deletable by " + user);
 	}
@@ -1629,8 +1634,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
-				boolean deletable = recordServices.isLogicallyThenPhysicallyDeletable(record, user);
-				assertThat(deletable).describedAs("isLogicallyThenPhysicallyDeletable").isFalse();
+				boolean deletable = recordServices.validateLogicallyThenPhysicallyDeletable(record, user).isEmpty();
+				assertThat(deletable).describedAs("validateLogicallyThenPhysicallyDeletable").isFalse();
 
 				boolean logicallyDeleted = false;
 				try {
@@ -1657,7 +1662,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			@Override
 			public boolean matches(Record record) {
 
-				if (recordServices.isLogicallyDeletable(record, user)) {
+				if (recordServices.validateLogicallyDeletable(record, user).isEmpty()) {
 					return false;
 				} else {
 
@@ -1734,7 +1739,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
-				return recordServices.isPhysicallyDeletable(record, user, options);
+				return recordServices.validatePhysicallyDeletable(record, user, options).isEmpty();
 			}
 		}.describedAs("physically deletable by " + user);
 	}
@@ -1749,7 +1754,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			@Override
 			public boolean matches(Record record) {
 
-				if (recordServices.isPhysicallyDeletable(record, user, options)) {
+				if (recordServices.validatePhysicallyDeletable(record, user, options).isEmpty()) {
 					return false;
 				} else {
 
@@ -1943,7 +1948,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		public void hasRemovedDeletePermissionOn(Record record)
 				throws InterruptedException {
 			recordServices.refresh(record);
-			String authorizationDetailId = authorizationsServices.getRecordAuthorizations(record).get(0).getDetail().getId();
+			String authorizationDetailId = authorizationsServices.getRecordAuthorizations(record).get(0).getId();
 			authorizationsServices.execute(modifyAuthorizationOnRecord(authorizationDetailId, record).removingItOnRecord());
 			waitForBatchProcess();
 		}

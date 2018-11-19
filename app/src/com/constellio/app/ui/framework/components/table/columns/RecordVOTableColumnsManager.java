@@ -8,6 +8,7 @@ import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.services.schemas.SchemaUtils;
 import com.vaadin.ui.Table;
 
 import java.util.ArrayList;
@@ -20,6 +21,27 @@ public class RecordVOTableColumnsManager extends TableColumnsManager {
 
 	public RecordVOTableColumnsManager(RecordVOTable table, String tableId) {
 		super(table, tableId);
+	}
+
+	@Override
+	protected void decorateVisibleColumns(List<String> visibleColumnForUser, String tableId) {
+		List<String> toRemove = new ArrayList<>();
+
+		for(String id : visibleColumnForUser) {
+			String[] parsedCode = SchemaUtils.underscoreSplitWithCache(id);
+			if (parsedCode.length == 3 && metadataSchemaTypes.hasMetadata(id) && !currentUser.hasGlobalAccessToMetadata(metadataSchemaTypes.getMetadata(id))) {
+				toRemove.add(id);
+			}
+		}
+
+
+		for(String itemToRemove : toRemove) {
+			visibleColumnForUser.remove(itemToRemove);
+		}
+
+		if(toRemove.size() > 0) {
+			currentUser.setVisibleTableColumns(tableId, visibleColumnForUser);
+		}
 	}
 
 	@Override

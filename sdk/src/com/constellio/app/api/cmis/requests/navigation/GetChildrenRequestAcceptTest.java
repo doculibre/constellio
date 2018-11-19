@@ -4,10 +4,9 @@ import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup;
 import com.constellio.app.api.cmis.accept.CmisAcceptanceTestSetup.Records;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -80,7 +79,7 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 
 		RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(zeCollection);
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
-		cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+		cache.configureCache(permanentCache(types.getSchemaType(Authorization.SCHEMA_TYPE)));
 		cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
 		cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
 
@@ -91,12 +90,12 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 		zeCollectionRecords = zeCollectionSchemas.givenRecords(recordServices);
 
 		userServices.addUpdateUserCredential(
-				userServices.getUserCredential(chuckNorris).withServiceKey(chuckNorrisKey).withSystemAdminPermission());
+				userServices.getUserCredential(chuckNorris).setServiceKey(chuckNorrisKey).setSystemAdminEnabled());
 		chuckNorrisToken = userServices.generateToken(chuckNorris);
 		userServices.addUserToCollection(users.chuckNorris(), zeCollection);
 		cmisSession = givenAdminSessionOnZeCollection();
 		userServices.addUpdateUserCredential(
-				userServices.getUserCredential(bobGratton).withServiceKey(bobKey).withSystemAdminPermission());
+				userServices.getUserCredential(bobGratton).setServiceKey(bobKey).setSystemAdminEnabled());
 		bobToken = userServices.generateToken(bobGratton);
 		userServices.addUserToCollection(users.bob(), zeCollection);
 

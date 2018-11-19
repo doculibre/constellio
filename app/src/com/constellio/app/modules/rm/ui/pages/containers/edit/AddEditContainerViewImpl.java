@@ -83,6 +83,10 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 	}
 
 	private void prepareTypeField(final Field<String> field) {
+		if(field == null) {
+			return;
+		}
+
 		if ((Field) field instanceof RecordComboBox) {
 			((RecordComboBox) (Field) field).setNullSelectionAllowed(false);
 		}
@@ -95,6 +99,10 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 	}
 
 	private void prepareCapacityField(final Field<String> field) {
+		if(field == null) {
+			return;
+		}
+
 		field.addValueChangeListener(new ValueChangeListener() {
 			@Override
 			public void valueChange(ValueChangeEvent event) {

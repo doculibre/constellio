@@ -33,6 +33,7 @@ public class BaseTable extends Table {
 	}
 
 	private void init() {
+		addStyleName("base-table");
 		addAttachListener(new AttachListener() {
 			@Override
 			public void attach(AttachEvent event) {

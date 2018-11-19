@@ -18,7 +18,6 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class PathCalculator implements MetadataValueCalculator<List<String>> {
 
-	//LocalDependency<List<String>> parentPathDependency = LocalDependency.toAStringList("parentpath");
 	SpecialDependency<HierarchyDependencyValue> taxonomiesParam = SpecialDependencies.HIERARCHY;
 	SpecialDependency<String> idDependency = SpecialDependencies.IDENTIFIER;
 

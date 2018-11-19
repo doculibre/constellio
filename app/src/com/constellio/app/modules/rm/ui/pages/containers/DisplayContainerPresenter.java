@@ -32,6 +32,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
@@ -163,7 +164,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 			ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
 			recordServices().logicallyDelete(container.getWrappedRecord(), getCurrentUser());
 			view.navigate().to(CoreViews.class).home();
-		} catch (Exception e) {
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
 			view.showErrorMessage(MessageUtils.toMessage(e));
 		}
 	}
@@ -360,4 +361,38 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		ContainerRecord record = rmRecordServices().getContainerRecord(containerId);
 		return getCurrentUser().hasWriteAccess().on(record);
 	}
+
+	public void addToDefaultFavorite() {
+		if (rmRecordServices().numberOfContainersInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
+			view.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
+		} else {
+			ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
+			container.addFavorite(getCurrentUser().getId());
+			try {
+				recordServices().update(container);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+			view.showMessage($("DisplayContainerViewImpl.containerAddedToDefaultFavorites"));
+		}
+	}
+
+	public void removeFromDefaultFavorites() {
+		ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
+		container.removeFavorite(getCurrentUser().getId());
+		try {
+			recordServices().update(container);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+		view.showMessage($("DisplayContainerViewImpl.containerRemovedFromDefaultFavorites"));
+	}
+
+	public boolean containerInDefaultFavorites() {
+		ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
+		return container.getFavorites().contains(getCurrentUser().getId());
+	}
+
 }

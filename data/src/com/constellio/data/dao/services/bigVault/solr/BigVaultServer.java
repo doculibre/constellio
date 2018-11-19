@@ -19,9 +19,11 @@ import com.constellio.data.io.concurrent.filesystem.AtomicFileSystem;
 import com.constellio.data.utils.TimeProvider;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient.RouteException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException;
+import org.apache.solr.client.solrj.request.GenericSolrRequest;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
@@ -32,6 +34,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.params.UpdateParams;
+import org.apache.solr.common.util.NamedList;
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +97,18 @@ public class BigVaultServer implements Cloneable {
 			}
 		}
 		this.listeners.add(listener);
+	}
+	public  String getVersion() {
+		SolrRequest request = new GenericSolrRequest(SolrRequest.METHOD.GET, "/admin/system", new ModifiableSolrParams());
+		try {
+			NamedList<Object> response = server.request(request);
+			NamedList<Object> luceneResponse = (NamedList<Object>) response.get("lucene");
+			return luceneResponse.get("solr-spec-version").toString();
+		} catch (SolrServerException | IOException e) {
+			throw new SolrInternalError(e);
+		} catch (NullPointerException e) {
+		}
+		return "";
 	}
 
 	public void unregisterListener(BigVaultServerListener listener) {

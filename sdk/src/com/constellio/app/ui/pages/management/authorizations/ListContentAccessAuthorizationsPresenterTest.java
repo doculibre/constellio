@@ -10,10 +10,9 @@ import com.constellio.app.ui.pages.base.PresenterService;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -55,8 +54,6 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 	@Mock AuthorizationVO own1;
 	@Mock AuthorizationVO own2;
 	@Mock Authorization authorization;
-	@Mock
-	AuthorizationDetails details;
 	MockedFactories factories = new MockedFactories();
 
 	ListAuthorizationsPresenter presenter;
@@ -65,7 +62,7 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 	public void setUp()
 			throws Exception {
 		when(authorizationVO.getAuthId()).thenReturn("zeAuth");
-		when(details.getId()).thenReturn("zeAuth");
+		when(authorization.getId()).thenReturn("zeAuth");
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
 		SessionContext context = FakeSessionContext.gandalfInCollection(zeCollection);
 		when(view.getSessionContext()).thenReturn(context);
@@ -128,23 +125,23 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 		Authorization authorization5 = mock(Authorization.class, "Authorization5");
 		Authorization authorization6 = mock(Authorization.class, "Authorization6");
 
-		when(authorization1.getGrantedOnRecord()).thenReturn(ZE_SECURED_OBJECT);
-		when(authorization1.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
+		when(authorization1.getTarget()).thenReturn(ZE_SECURED_OBJECT);
+		when(authorization1.getPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
 
-		when(authorization2.getGrantedOnRecord()).thenReturn(ZENOTHER_SECURED_OBJECT);
-		when(authorization2.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
+		when(authorization2.getTarget()).thenReturn(ZENOTHER_SECURED_OBJECT);
+		when(authorization2.getPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
 
-		when(authorization3.getGrantedOnRecord()).thenReturn(ZE_SECURED_OBJECT);
-		when(authorization3.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
+		when(authorization3.getTarget()).thenReturn(ZE_SECURED_OBJECT);
+		when(authorization3.getPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
 
-		when(authorization4.getGrantedOnRecord()).thenReturn(ZENOTHER_SECURED_OBJECT);
-		when(authorization4.getGrantedToPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
+		when(authorization4.getTarget()).thenReturn(ZENOTHER_SECURED_OBJECT);
+		when(authorization4.getPrincipals()).thenReturn(Arrays.asList(ZE_PRINCIPAL));
 
-		when(authorization5.getGrantedOnRecord()).thenReturn(ZE_SECURED_OBJECT);
-		when(authorization5.getGrantedToPrincipals()).thenReturn(new ArrayList<String>());
+		when(authorization5.getTarget()).thenReturn(ZE_SECURED_OBJECT);
+		when(authorization5.getPrincipals()).thenReturn(new ArrayList<String>());
 
-		when(authorization6.getGrantedOnRecord()).thenReturn(ZENOTHER_SECURED_OBJECT);
-		when(authorization6.getGrantedToPrincipals()).thenReturn(new ArrayList<String>());
+		when(authorization6.getTarget()).thenReturn(ZENOTHER_SECURED_OBJECT);
+		when(authorization6.getPrincipals()).thenReturn(new ArrayList<String>());
 
 		Record record = mock(Record.class, "Record");
 		when(presenterService.getRecord(ZE_SECURED_OBJECT)).thenReturn(record);
@@ -164,6 +161,5 @@ public class ListContentAccessAuthorizationsPresenterTest extends ConstellioTest
 	private void givenAuthorizationWithId(String authId) {
 		when(authorizationVO.getAuthId()).thenReturn(authId);
 		when(authorizationsServices.getAuthorization(zeCollection, authId)).thenReturn(authorization);
-		when(authorization.getDetail()).thenReturn(details);
 	}
 }

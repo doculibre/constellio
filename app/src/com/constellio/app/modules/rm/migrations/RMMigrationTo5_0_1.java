@@ -18,7 +18,6 @@ import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDe
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedDestructionDatesCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyRulesExpectedTransferDatesCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderCopyStatusCalculator;
-import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderExpectedDepositDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderExpectedDestructionDateCalculator;
 import com.constellio.app.modules.rm.model.calculators.FolderExpectedTransferDateCalculator;
@@ -296,7 +295,6 @@ public class RMMigrationTo5_0_1 extends MigrationHelper implements MigrationScri
 				Folder.EXPECTED_DEPOSIT_DATE,
 				Folder.ACTUAL_DESTRUCTION_DATE,
 				Folder.EXPECTED_DESTRUCTION_DATE,
-				Schemas.FOLLOWERS.getLocalCode(),
 				Folder.COMMENTS);
 		transaction.add(
 				schemaDisplayFolderConfig.withFormMetadataCodes(schemaFormFolderConfig.getFormMetadataCodes()));
@@ -1047,9 +1045,6 @@ class SchemaAlterationFor5_0_1 extends MetadataSchemasAlterationHelper {
 
 		defaultSchema.createUndeletable(Folder.INACTIVE_DISPOSAL_TYPE).defineAsEnum(DisposalType.class)
 				.defineDataEntry().asCalculated(FolderInactiveDisposalTypeCalculator.class);
-
-		defaultSchema.createUndeletable(Folder.DECOMMISSIONING_DATE).setType(DATE)
-				.defineDataEntry().asCalculated(FolderDecommissioningDateCalculator.class);
 
 		defaultSchema.createUndeletable(Folder.MEDIA_TYPE).defineAsEnum(FolderMediaType.class)
 				.defineDataEntry().asCalculated(FolderMediaTypesCalculator.class);

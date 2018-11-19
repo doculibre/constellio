@@ -4,7 +4,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordUtils;
 import org.joda.time.LocalDate;
@@ -24,6 +24,7 @@ public class AuthorizationAddRequest {
 	private Authorization existingAuthorization;
 	private LocalDate start, end;
 	private User executedBy;
+	private boolean negative;
 	private boolean overridingInheritedAuths;
 
 	private AuthorizationAddRequest(String collection) {
@@ -97,6 +98,11 @@ public class AuthorizationAddRequest {
 		return this;
 	}
 
+	private AuthorizationAddRequest setNegative(boolean negative) {
+		this.negative = negative;
+		return this;
+	}
+
 	public AuthorizationAddRequest givingReadDeleteAccess() {
 		return withRoles(asList(Role.READ, Role.DELETE));
 	}
@@ -135,6 +141,46 @@ public class AuthorizationAddRequest {
 			rolesCodes.add(role.getCode());
 		}
 		return withRoles(rolesCodes);
+	}
+
+	public AuthorizationAddRequest givingNegativeReadDeleteAccess() {
+		return withRoles(asList(Role.READ, Role.DELETE)).setNegative(true);
+	}
+
+	public AuthorizationAddRequest givingNegativeDeleteAccess() {
+		return withRoles(asList(Role.DELETE)).setNegative(true);
+	}
+
+	public AuthorizationAddRequest givingNegativeWriteAccess() {
+		return withRoles(asList(Role.WRITE)).setNegative(true);
+	}
+
+	public AuthorizationAddRequest givingNegativeReadAccess() {
+		return withRoles(asList(Role.READ)).setNegative(true);
+	}
+
+	public AuthorizationAddRequest givingNegativeReadWriteAccess() {
+		return withRoles(asList(Role.READ, Role.WRITE)).setNegative(true);
+	}
+
+	public AuthorizationAddRequest givingNegativeReadWriteDeleteAccess() {
+		return withRoles(asList(Role.READ, Role.WRITE, Role.DELETE)).setNegative(true);
+	}
+
+	public AuthorizationAddRequest givingNegative(String... roles) {
+		return withRoles(asList(roles)).setNegative(true);
+	}
+
+	public AuthorizationAddRequest givingNegative(List<String> roles) {
+		return withRoles(roles).setNegative(true);
+	}
+
+	public AuthorizationAddRequest givingNegative(Role... roles) {
+		List<String> rolesCodes = new ArrayList<>();
+		for (Role role : roles) {
+			rolesCodes.add(role.getCode());
+		}
+		return withRoles(rolesCodes).setNegative(true);
 	}
 
 	public static AuthorizationAddRequest authorizationForGroups(Group... groups) {
@@ -208,7 +254,16 @@ public class AuthorizationAddRequest {
 		return this;
 	}
 
+	public AuthorizationAddRequest andNegative(boolean value) {
+		this.negative = value;
+		return this;
+	}
+
 	public boolean isOverridingInheritedAuths() {
 		return overridingInheritedAuths;
 	}
+
+    public boolean isNegative() {
+		return negative;
+    }
 }
