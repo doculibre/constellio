@@ -139,6 +139,7 @@ public class RMViews extends CoreViews {
 	// ARCHIVE MANAGEMENT
 
 	public void archiveManagement() {
+		clearBreadcrumbTrail();
 		navigator.navigateTo(RMNavigationConfiguration.ARCHIVES_MANAGEMENT);
 	}
 
@@ -175,12 +176,14 @@ public class RMViews extends CoreViews {
 	// USER DOCUMENTS
 
 	public void listUserDocuments() {
+		clearBreadcrumbTrail();
 		navigator.navigateTo(RMNavigationConfiguration.LIST_USER_DOCUMENTS);
 	}
 
 	// CARTS
 
 	public void listCarts() {
+		clearBreadcrumbTrail();
 		navigator.navigateTo(RMNavigationConfiguration.LIST_CARTS);
 	}
 
@@ -195,6 +198,7 @@ public class RMViews extends CoreViews {
 	// AUDIT EVENTS
 
 	public void eventAudit() {
+		clearBreadcrumbTrail();
 		navigator.navigateTo(NavigatorConfigurationService.EVENTS_LIST);
 	}
 
