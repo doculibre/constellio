@@ -13,6 +13,8 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -21,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 public class ScriptDeleteAllDansRestart extends ScriptWithLogOutput {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ScriptDeleteAllDansRestart.class);
+
 	public static ScriptParameter CONFIRMATION_PARAMETER = new ScriptParameter(ScriptParameterType.STRING,
 			"Delete all constellio settings, delete solr content, delete the vault content and restart the application. Enter (DELETE ALL COLLECTIONS) to confirm.",
 			true);
@@ -48,6 +52,7 @@ public class ScriptDeleteAllDansRestart extends ScriptWithLogOutput {
 
 				if (!deleteLogFile.exists()) {
 					deleteLogFile.createNewFile();
+
 				}
 
 				String format = modelLayerFactory.getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
@@ -56,7 +61,7 @@ public class ScriptDeleteAllDansRestart extends ScriptWithLogOutput {
 				try {
 					outputStream.write((DateUtils.format(LocalDate.now(), format) + " " + ConstellioUI.getCurrentSessionContext()
 							.getCurrentUserIPAddress() + " " + ConstellioUI.getCurrentSessionContext().getCurrentUser()
-							.getUsername()).toString().getBytes());
+							.getUsername() + "\n").toString().getBytes());
 					outputStream.flush();
 				} finally {
 					outputStream.close();
