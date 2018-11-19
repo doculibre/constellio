@@ -77,8 +77,8 @@ public class ListSchemaTypePresenterAcceptanceTest extends ConstellioTest {
 
 				generatedSheet.getSheetName().equals(presaveSheet.getSheetName());
 
-				List<String> preSaveData = contentCell(presaveSheet);
-				List<String> generatedData = contentCell(generatedSheet);
+				List<String> preSaveData = excelSheetToListOfCellAsStringValue(presaveSheet);
+				List<String> generatedData = excelSheetToListOfCellAsStringValue(generatedSheet);
 
 				Assertions.assertThat(preSaveData).isEqualTo(generatedData);
 			}
@@ -91,7 +91,7 @@ public class ListSchemaTypePresenterAcceptanceTest extends ConstellioTest {
 
 	}
 
-	private List<String> contentCell(HSSFSheet sheet) {
+	private List<String> excelSheetToListOfCellAsStringValue(HSSFSheet sheet) {
 		//Iterate through each rows one by one
 		Iterator<Row> rowIterator = sheet.iterator();
 		ArrayList contentAsList = new ArrayList();
