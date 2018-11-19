@@ -76,7 +76,7 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 				List<Object> returnList = new ArrayList<>();
 				returnList.add(metadata.getCode());
 				returnList.add(metadata.getLabel(Language.withLocale(locale)));
-				returnList.add(MetadataValueType.getCaptionFor(metadata.getType()));
+				returnList.add(i18n.$(MetadataValueType.getCaptionFor(metadata.getType())));
 				returnList.add(metadata.isMultivalue());
 				returnList.add(metadata.getDataEntry().getType() != DataEntryType.MANUAL);
 				returnList.add(metadata.isDefaultRequirement());
