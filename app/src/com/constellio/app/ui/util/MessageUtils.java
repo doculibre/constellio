@@ -7,6 +7,7 @@ import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.frameworks.validation.ValidationRuntimeException;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 
@@ -27,6 +28,9 @@ public class MessageUtils {
 			return $(e.getMessage());
 
 		} else if (e instanceof RecordServicesRuntimeException_CannotPhysicallyDeleteRecord) {
+			return $(e.getMessage());
+
+		} else if (e instanceof RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord) {
 			return $(e.getMessage());
 
 		} else {

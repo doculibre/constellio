@@ -182,7 +182,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	public void whenRestoringThenSetLogicallyDeletedStatusToAllRecordInHierarchyAndExecuteTransaction()
 			throws Exception {
 
-		doReturn(true).when(recordDeleteServices).isRestorable(theRecord, user);
+		doReturn(new ValidationErrors()).when(recordDeleteServices).validateRestorable(theRecord, user);
 		doReturn("abc123").when(theRecord).getId();
 		doReturn("def456").when(aRecordInTheRecordHierarchy).getId();
 		doReturn("ghi789").when(anotherRecordInTheRecordHierarchy).getId();
@@ -358,8 +358,9 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	@Test
 	public void givenNotRestorableWhenRestoringThenThrowException()
 			throws Exception {
-
-		doReturn(false).when(recordDeleteServices).isRestorable(theRecord, user);
+		ValidationErrors validationErrors = new ValidationErrors();
+		validationErrors.add(RecordDeleteServicesUnitTest.class, "notRestorable");
+		doReturn(validationErrors).when(recordDeleteServices).validateRestorable(theRecord, user);
 
 		try {
 			recordDeleteServices.restore(theRecord, user);
@@ -391,7 +392,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//			throws Exception {
 	//		when(authorizationsServices.hasDeletePermissionOnHierarchy(user, theRecord)).thenReturn(false);
 	//
-	//		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isFalse();
+	//		assertThat(recordDeleteServices.validateRestorable(theRecord, user)).isFalse();
 	//
 	//	}
 	//
@@ -400,7 +401,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//			throws Exception {
 	//		when(authorizationsServices.hasRestaurationPermissionOnHierarchy(user, theRecord)).thenReturn(true);
 	//
-	//		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isTrue();
+	//		assertThat(recordDeleteServices.validateRestorable(theRecord, user)).isTrue();
 	//
 	//	}
 	//
@@ -518,7 +519,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//		when(theRecord.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
 	//		when(theRecord.getParentId()).thenReturn(null);
 	//
-	//		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isTrue();
+	//		assertThat(recordDeleteServices.validateRestorable(theRecord, user)).isTrue();
 	//	}
 	//
 	//	@Test
@@ -531,7 +532,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//		when(recordServices.getDocumentById("zeParent")).thenReturn(zeParent);
 	//		when(zeParent.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(false);
 	//
-	//		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isTrue();
+	//		assertThat(recordDeleteServices.validateRestorable(theRecord, user)).isTrue();
 	//	}
 	//
 	//	@Test
@@ -544,7 +545,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//		when(recordServices.getDocumentById("zeParent")).thenReturn(zeParent);
 	//		when(zeParent.get(Schemas.LOGICALLY_DELETED_STATUS)).thenReturn(true);
 	//
-	//		assertThat(recordDeleteServices.isRestorable(theRecord, user)).isFalse();
+	//		assertThat(recordDeleteServices.validateRestorable(theRecord, user)).isFalse();
 	//	}
 
 	@Test(expected = RecordDeleteServicesRuntimeException_CannotDeleteRecordWithUserFromOtherCollection.class)
@@ -568,6 +569,6 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 		when(user.getCollection()).thenReturn("aCollection");
 		when(theRecord.getCollection()).thenReturn("anotherCollection");
 
-		recordDeleteServices.isRestorable(theRecord, user);
+		recordDeleteServices.validateRestorable(theRecord, user);
 	}
 }

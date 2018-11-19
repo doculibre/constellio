@@ -116,7 +116,8 @@ public class RecordDeleteServices {
 		this.modelLayerFactory = modelLayerFactory;
 	}
 
-	public boolean isRestorable(Record record, User user) {
+	public ValidationErrors validateRestorable(Record record, User user) {
+		ValidationErrors validationErrors = new ValidationErrors();
 		ensureSameCollection(user, record);
 		List<Record> recordsHierarchy = loadRecordsHierarchyOf(record);
 		String parentId = record.getParentId();
@@ -128,15 +129,31 @@ public class RecordDeleteServices {
 			parentActiveOrNull = true;
 		}
 
+		if (!parentActiveOrNull) {
+			validationErrors.add(RecordDeleteServices.class, "parentNotActiveNorNull");
+			return validationErrors;
+		}
 		String typeCode = new SchemaUtils().getSchemaTypeCode(record.getSchemaCode());
 		MetadataSchemaType schemaType = metadataSchemasManager.getSchemaTypes(record.getCollection()).getSchemaType(typeCode);
-		return parentActiveOrNull && (!schemaType.hasSecurity() || user == User.GOD ||
-									  authorizationsServices.hasRestaurationPermissionOnHierarchy(user, record, recordsHierarchy));
+		boolean hasSecurity = schemaType.hasSecurity();
+		boolean hasRestaurationPermission = authorizationsServices.hasRestaurationPermissionOnHierarchy(user, record, recordsHierarchy);
+		if (hasSecurity && user != User.GOD && !hasRestaurationPermission) {
+			if (hasSecurity) {
+				validationErrors.add(RecordDeleteServices.class, "hasSecurity");
+				return validationErrors;
+			}
+			if (!hasRestaurationPermission) {
+				validationErrors.add(RecordDeleteServices.class, "doesNotHaveRestaurationPermission");
+			}
+		}
+
+		return validationErrors;
 	}
 
 	public void restore(Record record, User user) {
-		if (!isRestorable(record, user)) {
-			throw new RecordServicesRuntimeException_CannotRestoreRecord(record.getId());
+		ValidationErrors validationErrors = validateRestorable(record, user);
+		if (!validationErrors.isEmpty()) {
+			throw new RecordServicesRuntimeException_CannotRestoreRecord(validationErrors.getValidationErrors().get(0).getCode());
 		}
 
 		Transaction transaction = new Transaction();

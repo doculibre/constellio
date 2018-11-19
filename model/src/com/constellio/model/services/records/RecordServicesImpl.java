@@ -1334,7 +1334,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public boolean isRestorable(Record record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().isRestorable(record, user);
+		return newRecordDeleteServices().validateRestorable(record, user).isEmpty();
 	}
 
 	public void restore(Record record, User user) {
