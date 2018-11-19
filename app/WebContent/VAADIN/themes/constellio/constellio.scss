@@ -1813,6 +1813,12 @@ $popup-view-z-index: 3;
 	    	}
     	}
 
+    	.folder-content-table {
+	    	.v-scrollable {
+	    		overflow-x: auto;
+	    	}
+    	}
+
 		.batch-processes {
 	    	.v-table {
 		    	.v-scrollable {
@@ -1915,6 +1921,12 @@ $popup-view-z-index: 3;
     	.v-table {
 	    	.v-scrollable {
 	    		overflow-x: hidden;
+	    	}
+    	}
+
+    	.folder-content-table {
+	    	.v-scrollable {
+	    		overflow-x: auto;
 	    	}
     	}
 
