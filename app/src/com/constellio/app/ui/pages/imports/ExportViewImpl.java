@@ -256,6 +256,7 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		idsLayout.setSpacing(true);
 
 		final TextField typeCodeField = new TextField("type");
+		typeCodeField.setImmediate(true);
 		typeCodeField.setCaption($("ExportView.schemaType"));
 		typeCodeField.setSizeFull();
 		typeCodeField.setValue("folder");

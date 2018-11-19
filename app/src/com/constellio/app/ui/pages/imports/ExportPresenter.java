@@ -105,7 +105,9 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 
 		final Iterator<String> idsIterator = legacyIds.iterator();
 		final RecordServices recordServices = modelLayerFactory.newRecordServices();
-		exportToXML(options, new LazyIterator<Record>() {
+
+
+		options.setRecordsToExportIterator(new LazyIterator<Record>() {
 			@Override
 			protected Record getNextOrNull() {
 				if (idsIterator.hasNext()) {
@@ -116,6 +118,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				}
 			}
 		});
+		exportToXML(options);
 
 
 	}
@@ -268,7 +271,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 			File zip = null;
 			try {
 				RecordExportServices recordExportServices = new RecordExportServices(appLayerFactory);
-				zip = recordExportServices.exportRecords("SDK Stream", options);
+				zip = recordExportServices.exportRecordsAndZip("SDK Stream", options);
 				view.startDownload(filename, new FileInputStream(zip), "application/zip");
 			} catch (Throwable t) {
 				String error = "Error while generating savestate";
@@ -276,7 +279,9 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 				LOGGER.error(error, t);
 				view.showErrorMessage($("ExportView.error"));
 			} finally {
-				completeImportExportAudit(newExportAudit, zip);
+				if (zip != null) {
+					completeImportExportAudit(newExportAudit, zip);
+				}
 			}
 		}
 	}
@@ -294,6 +299,7 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	}
 
 	private TemporaryRecord completeImportExportAudit(ExportAudit exportAudit, File file) {
+
 		try {
 			ContentManager contentManager = appLayerFactory.getModelLayerFactory().getContentManager();
 			ContentVersionDataSummary contentVersionDataSummary = contentManager.upload(file);

@@ -77,16 +77,6 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		Document document = new Document(params.getRecord(), getTypes());
 
-		//params.getModifiableImportRecord().addField(Schemas.CREATED_BY.getLocalCode(), folder.getFormCreatedBy());
-		//		if (document.getFormCreatedOn() != null) {
-		//			params.getModifiableImportRecord().addField(Schemas.CREATED_ON.getLocalCode(), document.getFormCreatedOn());
-		//		}
-		//params.getModifiableImportRecord().addField(Schemas.MODIFIED_BY.getLocalCode(), folder.getModifiedBy());
-
-		//		if (document.getFormModifiedOn() != null) {
-		//			params.getModifiableImportRecord().addField(Schemas.MODIFIED_ON.getLocalCode(), document.getFormCreatedOn());
-		//		}
-
 		if (document.getContent() != null) {
 			UserSerializedContentFactory contentFactory = new UserSerializedContentFactory(collection, appLayerFactory.getModelLayerFactory());
 
@@ -101,15 +91,15 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		Folder folder = new Folder(params.getRecord(), getTypes());
 
-		//params.getModifiableImportRecord().addField(Schemas.CREATED_BY.getLocalCode(), folder.getFormCreatedBy());
-		//		if (folder.getFormCreatedOn() != null) {
-		//			params.getModifiableImportRecord().addField(Schemas.CREATED_ON.getLocalCode(), folder.getFormCreatedOn());
-		//		}
-		//params.getModifiableImportRecord().addField(Schemas.MODIFIED_BY.getLocalCode(), folder.getModifiedBy());
+		if (folder.getMainCopyRuleIdEntered() != null && !params.isForSameSystem()) {
+			CopyRetentionRule copyRetentionRule = folder.getMainCopyRule();
 
-		//		if (folder.getFormModifiedOn() != null) {
-		//			params.getModifiableImportRecord().addField(Schemas.MODIFIED_ON.getLocalCode(), folder.getFormCreatedOn());
-		//		}
+			//Overwrite the mainCopyRule if possible
+			if (copyRetentionRule.getCode() != null) {
+				params.getModifiableImportRecord().addField(Folder.MAIN_COPY_RULE_ID_ENTERED, copyRetentionRule.getCode());
+			}
+		}
+
 	}
 
 	private void manageUserTask(OnWriteRecordParams params) {

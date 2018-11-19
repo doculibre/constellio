@@ -27,13 +27,6 @@ public abstract class ScriptWithFileOutput extends Script {
 	}
 
 	@Override
-	public ScriptOutput getScriptOutput() {
-		return new ScriptOutput(getFilename());
-	}
-
-	protected abstract String getFilename();
-
-	@Override
 	public void execute(ScriptActionLogger outputLogger, ScriptParameterValues parameterValues)
 			throws Exception {
 		if (outputLogger != null) {

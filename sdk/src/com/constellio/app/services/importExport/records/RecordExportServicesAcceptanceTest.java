@@ -728,6 +728,84 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 		//assertThat(abeillefolderFromAnOtherCollection.getFormModifiedBy()).isEqualTo(abeilleFolderFromZeCollection.getFormModifiedBy());
 	}
 
+
+	@Test
+	public void whenExportingAndImportingFolderWithContainer()
+			throws Exception {
+		prepareSystem(
+				withZeCollection().withConstellioRMModule().withFoldersAndContainersOfEveryStatus().withAllTest(users)
+						.withRMTest(records).withFoldersAndContainersOfEveryStatus(),
+				withCollection("anotherCollection").withConstellioRMModule().withAllTest(users));
+
+		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+
+		Transaction tx = new Transaction();
+		tx.add(records.getFolder_A01().setContainer(records.getContainerBac01()));
+		tx.add(records.getContainerBac01().setLegacyId("zeGreatContainerId"));
+		getModelLayerFactory().newRecordServices().execute(tx);
+
+		Folder abeillefolderFromAnOtherCollection = null;
+		Folder abeilleFolderFromZeCollection = null;
+
+		List<Folder> folderList = rm.searchFolders(ALL);
+
+		boolean isFound = false;
+
+		for (Folder folderFromZeCollection : folderList) {
+			isFound = false;
+			if (folderFromZeCollection.getTitle().equals("Abeille")) {
+				abeilleFolderFromZeCollection = folderFromZeCollection;
+				isFound = true;
+				break;
+			}
+		}
+
+		RecordServices recordServices = getModelLayerFactory().newRecordServices();
+		abeilleFolderFromZeCollection.setFormModifiedOn(new LocalDateTime());
+		abeilleFolderFromZeCollection.setFormCreatedOn(new LocalDateTime());
+		//abeilleFolderFromZeCollection.setFormCreatedBy(records.getAdmin());
+		//abeilleFolderFromZeCollection.setFormModifiedBy(records.getAdmin());
+
+		recordServices.update(abeilleFolderFromZeCollection.getWrappedRecord());
+
+		if (!isFound) {
+			fail("Folder abeille not found.");
+		}
+
+		exportThenImportInAnotherCollection(
+				options.setRecordsToExportIterator(new RecordsOfSchemaTypesIterator(getModelLayerFactory(), zeCollection, (asList(Folder.SCHEMA_TYPE, AdministrativeUnit.SCHEMA_TYPE,
+						MediumType.SCHEMA_TYPE, Category.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE, StorageSpace.SCHEMA_TYPE,
+						ContainerRecordType.SCHEMA_TYPE, RetentionRule.SCHEMA_TYPE, Document.SCHEMA_TYPE,
+						DocumentType.SCHEMA_TYPE)))));
+
+		SearchServices searchService = getModelLayerFactory().newSearchServices();
+
+		RMSchemasRecordsServices rmSchemasRecordsServicesAnOtherCollection = new RMSchemasRecordsServices("anotherCollection",
+				getAppLayerFactory());
+
+		List<Folder> folderListFromAnOtherCollection = rmSchemasRecordsServicesAnOtherCollection.searchFolders(ALL);
+
+		for (Folder folderFromAnOtherCollection : folderListFromAnOtherCollection) {
+			isFound = false;
+
+			for (Folder folderFromZeCollection : folderList) {
+
+				if (folderFromAnOtherCollection.getTitle().equals(folderFromZeCollection.getTitle())) {
+					if (folderFromAnOtherCollection.getTitle().equals("Abeille")) {
+						abeillefolderFromAnOtherCollection = folderFromAnOtherCollection;
+					}
+
+					isFound = true;
+					break;
+				}
+			}
+			assertThat(isFound).isTrue();
+		}
+
+		assertThat(abeillefolderFromAnOtherCollection.getContainer())
+				.isNotEqualTo(records.containerId_bac01);
+	}
+
 	@Test
 	public void whenExportingAndImportingFolderSameSystem()
 			throws Exception {
@@ -1610,7 +1688,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private File exportToZip(RecordExportOptions optios) {
-		return new RecordExportServices(getAppLayerFactory()).exportRecords(SDK_STREAM, options);
+		return new RecordExportServices(getAppLayerFactory()).exportRecordsAndZip(SDK_STREAM, options);
 	}
 
 	private void importFromZip(File zipFile, String collection) {
@@ -1636,7 +1714,7 @@ public class RecordExportServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	private void exportThenImportInAnotherCollection(RecordExportOptions options) {
-		File zipFile = new RecordExportServices(getAppLayerFactory()).exportRecords(SDK_STREAM, options);
+		File zipFile = new RecordExportServices(getAppLayerFactory()).exportRecordsAndZip(SDK_STREAM, options);
 		ImportDataProvider importDataProvider = null;
 		try {
 			importDataProvider = XMLImportDataProvider.forZipFile(getModelLayerFactory(), zipFile);

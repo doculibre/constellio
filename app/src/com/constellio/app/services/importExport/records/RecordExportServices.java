@@ -1,6 +1,7 @@
 package com.constellio.app.services.importExport.records;
 
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
+import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.RMObject;
 import com.constellio.app.modules.rm.wrappers.structures.Comment;
@@ -21,13 +22,14 @@ import com.constellio.data.io.services.zip.ZipServiceException;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.entities.structures.EmailAddressFactory;
 import com.constellio.model.entities.structures.MapStringListStringStructure;
@@ -37,22 +39,27 @@ import com.constellio.model.entities.structures.MapStringStringStructureFactory;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.MetadataValueType.STRUCTURE;
 import static java.util.Arrays.asList;
 
 public class RecordExportServices {
 
+	private static Logger LOGGER = LoggerFactory.getLogger(RecordExportServices.class);
 	public static final String RECORDS_EXPORT_TEMP_FOLDER = "RecordsExportServices_recordsExportTempFolder";
 
 	AppLayerFactory appLayerFactory;
@@ -60,6 +67,7 @@ public class RecordExportServices {
 	ZipService zipService;
 	IOServices ioServices;
 	RecordServices recordServices;
+	MetadataSchemasManager metadataSchemasManager;
 
 	public RecordExportServices(AppLayerFactory appLayerFactory) {
 		this.appLayerFactory = appLayerFactory;
@@ -67,9 +75,10 @@ public class RecordExportServices {
 		this.zipService = modelLayerFactory.getIOServicesFactory().newZipService();
 		this.ioServices = modelLayerFactory.getIOServicesFactory().newIOServices();
 		this.recordServices = appLayerFactory.getModelLayerFactory().newRecordServices();
+		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 	}
 
-	public File exportRecords(String resourceKey, RecordExportOptions options) {
+	public void exportRecordsAndZip(File zipFile, RecordExportOptions options) {
 
 		File tempFolder = ioServices.newTemporaryFolder(RECORDS_EXPORT_TEMP_FOLDER);
 		ValidationErrors errors = new ValidationErrors();
@@ -85,8 +94,6 @@ public class RecordExportServices {
 				writer.close();
 			}
 
-			File tempZipFile = ioServices.newTemporaryFile(resourceKey, "zip");
-
 			String contentPathString = contentPaths.toString();
 			if (!contentPathString.isEmpty()) {
 				File file = new File(tempFolder, "contentPaths.txt");
@@ -100,9 +107,8 @@ public class RecordExportServices {
 			if (tempFolder.listFiles() == null || tempFolder.listFiles().length == 0) {
 				throw new ExportServicesRuntimeException_NoRecords();
 			}
-			zipService.zip(tempZipFile, asList(tempFolder.listFiles()));
+			zipService.zip(zipFile, asList(tempFolder.listFiles()));
 
-			return tempZipFile;
 
 		} catch (ZipServiceException e) {
 			throw new RecordExportServicesRuntimeException.ExportServicesRuntimeException_FailedToZip(e);
@@ -110,10 +116,17 @@ public class RecordExportServices {
 
 	}
 
+
+	public File exportRecordsAndZip(String resourceKey, RecordExportOptions options) {
+		File tempZipFile = ioServices.newTemporaryFile(resourceKey, "zip");
+		exportRecordsAndZip(tempZipFile, options);
+		return tempZipFile;
+	}
+
+
 	private void writeRecords(ImportRecordOfSameCollectionWriter writer,
 							  RecordExportOptions options, StringBuilder contentPaths) {
 
-		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 
 		Set<String> receivedTypes = new HashSet<>();
 
@@ -142,13 +155,18 @@ public class RecordExportServices {
 			MetadataSchema metadataSchema = metadataSchemasManager.getSchemaTypes(record.getCollection())
 					.getSchema(record.getSchemaCode());
 
-			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, record.getTypeCode(),
-					record.getId(), metadataSchema.getLocalCode());
+			String id = record.getId();
+			if (!options.isForSameSystem() && record.get(Schemas.LEGACY_ID) != null) {
+				id = record.get(Schemas.LEGACY_ID);
+			}
 
-			writeRecord(collection, record, modifiableImportRecord, options, contentPaths);
+			ModifiableImportRecord modifiableImportRecord = new ModifiableImportRecord(collection, record.getTypeCode(),
+					id, metadataSchema.getLocalCode());
+
+			writeRecord(record, modifiableImportRecord, options, contentPaths);
 
 			appLayerFactory.getExtensions().forCollection(collection)
-					.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord));
+					.onWriteRecord(new OnWriteRecordParams(record, modifiableImportRecord, options.isForSameSystem()));
 
 			writer.write(modifiableImportRecord);
 		}
@@ -158,78 +176,122 @@ public class RecordExportServices {
 		}
 	}
 
-	private void writeRecord(String collection, Record record, ModifiableImportRecord modifiableImportRecord,
-							 RecordExportOptions options, StringBuilder contentPaths) {
-		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
-		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(collection);
-		MetadataSchema metadataSchema = metadataSchemaTypes.getSchema(record.getSchemaCode());
-		RecordServices recordServices = modelLayerFactory.newRecordServices();
+
+	private static List<String> preferedMetadatas = asList(Schemas.CODE.getLocalCode(), User.USERNAME);
+
+	private String toReferenceImportInstruction(String referencedRecordId, MetadataSchemaType schemaType,
+												boolean isForSameSystem) {
+
+		if (isForSameSystem) {
+			return "id:" + referencedRecordId;
+		} else {
+
+			MetadataSchema defaultSchema = schemaType.getDefaultSchema();
+			try {
+				Record referencedRecord = recordServices.getDocumentById(referencedRecordId);
+				for (String preferedMetadataLocalCode : preferedMetadatas) {
+					if (defaultSchema.hasMetadataWithCode(preferedMetadataLocalCode)) {
+						Metadata preferedMetadata = defaultSchema.getMetadata(preferedMetadataLocalCode);
+						String metadataValue = referencedRecord.get(preferedMetadata);
+						if (metadataValue != null && preferedMetadata.isUniqueValue()) {
+							return preferedMetadataLocalCode + ":" + metadataValue;
+						}
+					}
+				}
+
+				String legacyId = referencedRecord.get(Schemas.LEGACY_ID);
+				if (legacyId != null) {
+					return legacyId;
+				}
+
+			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {
+				LOGGER.warn("Record does not exist", e);
+				return "id:" + referencedRecordId;
+				//Strange situation where the record does not exist locally (probably a partial copy of an instance)
+			}
+
+			//We guess that the id of the record will the legacy id of the equivalent record in another collection
+			return referencedRecordId;
+		}
+
+	}
+
+	private void writeRecord(Record record, ModifiableImportRecord modifiableImportRecord,
+							 final RecordExportOptions options, StringBuilder contentPaths) {
+
+
+		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(record);
 		List<String> allowedMetadatas = asList(Schemas.CREATED_ON.getLocalCode(), Schemas.CREATED_BY.getLocalCode(),
 				Schemas.MODIFIED_ON.getLocalCode(), Schemas.MODIFIED_BY.getLocalCode(),
 				Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), Schemas.LOGICALLY_DELETED_ON.getLocalCode(),
 				ContainerRecord.FIRST_TRANSFER_REPORT_DATE, ContainerRecord.FIRST_DEPOSIT_REPORT_DATE, ContainerRecord.DOCUMENT_RESPONSIBLE,
 				RMObject.FORM_CREATED_BY, RMObject.FORM_CREATED_ON, RMObject.FORM_MODIFIED_BY, RMObject.FORM_MODIFIED_ON);
-		for (Metadata metadata : metadataSchema.getMetadatas()) {
-			if ((!metadata.isSystemReserved() && metadata.getDataEntry().getType() == DataEntryType.MANUAL && metadata.getType() != MetadataValueType.STRUCTURE)
-				|| (allowedMetadatas.contains(metadata.getLocalCode()))) {
-				Object object = record.get(metadata);
-				String referencePrefix = "id:";
-				if (metadata.getType() == MetadataValueType.REFERENCE) {
-					MetadataSchema defaultSchema = metadataSchemaTypes.getDefaultSchema(metadata.getReferencedSchemaType());
-					referencePrefix = options.isForSameSystem ? "id:" : "";
-					referencePrefix = defaultSchema.hasMetadataWithCode("code") && defaultSchema.getMetadata("code").isUniqueValue() ? "code:" : referencePrefix;
-					referencePrefix = defaultSchema.hasMetadataWithCode("username") && defaultSchema.getMetadata("username").isUniqueValue() ? "username:" : referencePrefix;
-				}
-				if (object != null && metadata.getType() == MetadataValueType.REFERENCE && !metadata.isMultivalue()) {
-					Object referencedObject = object;
-					if ("code:".equals(referencePrefix) || "username:".equals(referencePrefix)) {
-						Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
-						referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get(referencePrefix.replace(":", "")));
-					}
-					modifiableImportRecord.addField(metadata.getLocalCode(), referencePrefix + referencedObject);
-				} else if (object != null && metadata.getType() == MetadataValueType.REFERENCE && metadata.isMultivalue()) {
-					if (object instanceof List) {
-						List<String> idList = new ArrayList<>((List) object);
-						for (int i = 0; i < idList.size(); i++) {
-							Object referencedObject = idList.get(i);
-							if ("code:".equals(referencePrefix) || "username:".equals(referencePrefix)) {
-								Record referencedRecord = recordServices.getDocumentById((String) referencedObject);
-								referencedObject = referencedRecord.get(metadataSchemaTypes.getSchema(referencedRecord.getSchemaCode()).get(referencePrefix.replace(":", "")));
-							}
-							idList.set(i, referencePrefix + referencedObject);
-						}
-						modifiableImportRecord.addField(metadata.getLocalCode(), idList);
-					}
-				} else if (object != null) {
-					modifiableImportRecord.addField(metadata.getLocalCode(), object);
-				}
-			} else if (metadata.getType() == MetadataValueType.STRUCTURE) {
-				StructureFactory structureFactory = metadata.getStructureFactory();
-				if (structureFactory.getClass().equals(MapStringListStringStructureFactory.class)) {
-					manageMapStringListStringStructureFactory(record, metadata, modifiableImportRecord);
-				} else if (structureFactory.getClass().equals(MapStringStringStructureFactory.class)) {
-					manageMapStringStringStructureFactory(record, metadata, modifiableImportRecord);
-				} else if (structureFactory.getClass().equals(CommentFactory.class)) {
-					manageCommentFactory(record, metadata, modifiableImportRecord);
-				} else if (structureFactory.getClass().equals(EmailAddressFactory.class)) {
-					manageEmailAddressFactory(record, metadata, modifiableImportRecord);
-				}
-			}
-			if (metadata.getType() == MetadataValueType.CONTENT) {
-				DataLayerFactory dataLayerFactory = modelLayerFactory.getDataLayerFactory();
-				DataLayerConfiguration conf = dataLayerFactory.getDataLayerConfiguration();
 
-				Object contentMetadataValue = record.get(metadata);
-				if (contentMetadataValue instanceof Content) {
-					Content content = (Content) contentMetadataValue;
-					writeContentPath(content, contentPaths);
-				} else if (contentMetadataValue instanceof java.util.Collection) {
-					Iterator iterator = ((Collection) contentMetadataValue).iterator();
-					while (iterator.hasNext()) {
-						writeContentPath((Content) iterator.next(), contentPaths);
-					}
+		for (Metadata metadata : metadataSchemaTypes.getSchema(record.getSchemaCode()).getMetadatas().onlyManuals()) {
+			Object rawValue = record.get(metadata);
+			AppLayerCollectionExtensions collectionExtensions = appLayerFactory.getExtensions().forCollectionOf(record);
+
+			if (rawValue != null && (!metadata.isSystemReserved() || allowedMetadatas.contains(metadata.getLocalCode()))) {
+
+				if (metadata.getType() == STRUCTURE) {
+					convertStructureMetadataValue(record, modifiableImportRecord, metadata);
+
+				} else {
+					convertMetadata(modifiableImportRecord, options, metadataSchemaTypes, metadata, rawValue);
 				}
 			}
+
+			if (metadata.getType() == MetadataValueType.CONTENT) {
+				for (Content content : record.<Content>getValues(metadata)) {
+					writeContentPath(content, contentPaths);
+				}
+			}
+
+		}
+	}
+
+	private void convertMetadata(ModifiableImportRecord modifiableImportRecord, final RecordExportOptions options,
+								 MetadataSchemaTypes metadataSchemaTypes, Metadata metadata, Object rawValue) {
+
+
+		if (metadata.getType() == REFERENCE) {
+			final MetadataSchemaType schemaType = metadataSchemaTypes.getSchemaType(metadata.getReferencedSchemaType());
+
+			if (!metadata.isMultivalue()) {
+				String instr = toReferenceImportInstruction((String) rawValue, schemaType, options.isForSameSystem());
+				modifiableImportRecord.addField(metadata.getLocalCode(), instr);
+			} else {
+				List<String> convertedValues = new ArrayList<>();
+
+				for (Object item : (List) rawValue) {
+					String instr = toReferenceImportInstruction((String) item, schemaType, options.isForSameSystem());
+					convertedValues.add(instr);
+				}
+
+				modifiableImportRecord.addField(metadata.getLocalCode(), convertedValues);
+			}
+
+		} else {
+			modifiableImportRecord.addField(metadata.getLocalCode(), rawValue);
+		}
+	}
+
+	private void convertStructureMetadataValue(Record record, ModifiableImportRecord modifiableImportRecord,
+											   Metadata metadata) {
+		//TODO Refactor this
+		StructureFactory structureFactory = metadata.getStructureFactory();
+		if (structureFactory.getClass().equals(MapStringListStringStructureFactory.class)) {
+			manageMapStringListStringStructureFactory(record, metadata, modifiableImportRecord);
+
+		} else if (structureFactory.getClass().equals(MapStringStringStructureFactory.class)) {
+			manageMapStringStringStructureFactory(record, metadata, modifiableImportRecord);
+
+		} else if (structureFactory.getClass().equals(CommentFactory.class)) {
+			manageCommentFactory(record, metadata, modifiableImportRecord);
+
+		} else if (structureFactory.getClass().equals(EmailAddressFactory.class)) {
+			manageEmailAddressFactory(record, metadata, modifiableImportRecord);
+
 		}
 	}
 
@@ -291,7 +353,8 @@ public class RecordExportServices {
 		}
 	}
 
-	private void manageCommentFactory(Record record, Metadata metadata, ModifiableImportRecord modifiableImportRecord) {
+	private void manageCommentFactory(Record record, Metadata metadata, ModifiableImportRecord
+			modifiableImportRecord) {
 		List<Comment> commentList;
 		Comment comment;
 		List<HashMap<String, String>> commentHashMapList = new ArrayList<>();
