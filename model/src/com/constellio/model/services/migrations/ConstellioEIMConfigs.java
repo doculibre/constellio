@@ -134,6 +134,8 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration NEGATIVE_AUTHORIZATION;
 
+	public static final SystemConfiguration SPACE_QUOTA_FOR_USER_DOCUMENTS;
+
 	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
 
 	static {
@@ -262,6 +264,8 @@ public class ConstellioEIMConfigs {
 
 		add(NEGATIVE_AUTHORIZATION = others.createBooleanFalseByDefault("enableNegativeAuthorization")
 				.whichIsHidden());
+
+		add(SPACE_QUOTA_FOR_USER_DOCUMENTS = others.createInteger("spaceQuotaForUserDocuments").withDefaultValue(-1));
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -500,6 +504,10 @@ public class ConstellioEIMConfigs {
 
 	public boolean isAdminPasswordChangeEnabled() {
 		return manager.getValue(ENABLE_ADMIN_USER_PASSWORD_CHANGE);
+	}
+
+	public int getSpaceQuotaForUserDocuments() {
+		return manager.getValue(SPACE_QUOTA_FOR_USER_DOCUMENTS);
 	}
 
 	public int getBatchProcessMaximumHistorySize() {

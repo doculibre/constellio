@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.ParsedContent;
 import com.constellio.model.entities.schemas.Metadata;
@@ -107,13 +108,12 @@ public class CoreSearchFieldExtensionAcceptTest extends ConstellioTest {
 
 	private SearchFieldsPopulator getSearchFieldPopulator() {
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
-		List<String> collectionLanguages = getModelLayerFactory().getCollectionsListManager()
-				.getCollectionLanguages(zeCollection);
+		CollectionInfo collectionInfo = getModelLayerFactory().getCollectionsListManager().getCollectionInfo(zeCollection);
 		MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(zeCollection);
 		ConstellioEIMConfigs systemConfigs = getModelLayerFactory().getSystemConfigs();
 		ParsedContentProvider parsedContentProvider = new ParsedContentProvider(contentManager,
 				new HashMap<String, ParsedContent>());
 		return new SearchFieldsPopulator(types, false, parsedContentProvider,
-				collectionLanguages, systemConfigs, getModelLayerFactory().getExtensions());
+				collectionInfo, systemConfigs, getModelLayerFactory().getExtensions());
 	}
 }

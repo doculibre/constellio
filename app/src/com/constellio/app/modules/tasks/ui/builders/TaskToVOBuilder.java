@@ -46,8 +46,8 @@ public class TaskToVOBuilder extends RecordToVOBuilder {
 	}
 
 	@Override
-	protected TaskVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode) {
-		return new TaskVO(id, metadataValueVOs, viewMode);
+	protected TaskVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode, List<String> excludedMetadata) {
+		return new TaskVO(id, metadataValueVOs, viewMode, excludedMetadata);
 	}
 
 }

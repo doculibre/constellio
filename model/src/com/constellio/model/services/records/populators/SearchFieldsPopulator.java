@@ -3,6 +3,7 @@ package com.constellio.model.services.records.populators;
 import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.conf.FoldersLocatorMode;
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.ParsedContent;
@@ -39,20 +40,20 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 	ParsedContentProvider parsedContentProvider;
 
-	List<String> collectionLanguages;
+	CollectionInfo collectionInfo;
 
 	ConstellioEIMConfigs systemConf;
 
 	ModelLayerExtensions extensions;
 
 	public SearchFieldsPopulator(MetadataSchemaTypes types, boolean fullRewrite,
-								 ParsedContentProvider parsedContentProvider, List<String> collectionLanguages,
+								 ParsedContentProvider parsedContentProvider, CollectionInfo collectionInfo,
 								 ConstellioEIMConfigs systemConf,
 								 ModelLayerExtensions extensions) {
 		super(types, fullRewrite);
 		//	this.languageDectionServices = languageDectionServices;
 		this.parsedContentProvider = parsedContentProvider;
-		this.collectionLanguages = collectionLanguages;
+		this.collectionInfo = collectionInfo;
 		this.systemConf = systemConf;
 		this.extensions = extensions;
 	}
@@ -72,7 +73,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 				searchableValues.add(idWithoutZeros);
 			}
 
-			for (String collectionLanguage : collectionLanguages) {
+			for (String collectionLanguage : collectionInfo.getCollectionLanguesCodes()) {
 				fields.put("id_txt_" + collectionLanguage, searchableValues);
 			}
 		}
@@ -142,14 +143,18 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 			ParsedContent parsedContent = parsedContentProvider.getParsedContentIfAlreadyParsed(currentVersion.getHash());
 
 			String contentLanguage = null;
-			if (collectionLanguages.size() == 1) {
-				contentLanguage = collectionLanguages.get(0);
-			} else if (parsedContent != null && collectionLanguages.contains(parsedContent.getLanguage())) {
+			if (collectionInfo.isMonoLingual()) {
+				contentLanguage = collectionInfo.getMainSystemLanguage().getCode();
+
+			} else if (parsedContent != null && collectionInfo.getCollectionLanguesCodes().contains(parsedContent.getLanguage())) {
 				contentLanguage = parsedContent.getLanguage();
+
+			} else {
+				contentLanguage = collectionInfo.getMainSystemLanguage().getCode();
 			}
 
 			if (parsedContent == null || contentLanguage == null) {
-				for (String collectionLanguage : collectionLanguages) {
+				for (String collectionLanguage : collectionInfo.getCollectionLanguesCodes()) {
 					keyListMap.add(code + "_" + collectionLanguage + "_ss", currentVersion.getFilename());
 				}
 			} else {
@@ -180,7 +185,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 	}
 
 	private void addEmptyValuesToOtherFields(String copiedMetadataCode, KeyListMap<String, Object> keyListMap) {
-		for (String collectionLanguage : collectionLanguages) {
+		for (String collectionLanguage : collectionInfo.getCollectionLanguesCodes()) {
 			String fieldCode = copiedMetadataCode + "_txt_" + collectionLanguage;
 			if (!keyListMap.getNestedMap().containsKey(fieldCode)) {
 				keyListMap.add(fieldCode, "");
@@ -210,7 +215,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 																						String copiedMetadataCodePrefix) {
 
 		String prefix = copiedMetadataCodePrefix;
-		String valueLanguage = collectionLanguages.get(0);
+		String valueLanguage = collectionInfo.getMainSystemLanguage().getCode();
 		if (!prefix.endsWith("_")) {
 			prefix += "_";
 		}
@@ -220,7 +225,7 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 		}
 
 		Map<String, Object> copyfields = new HashMap<>();
-		for (String collectionLanguage : collectionLanguages) {
+		for (String collectionLanguage : collectionInfo.getCollectionLanguesCodes()) {
 			String fieldCode = prefix + collectionLanguage;
 			if (collectionLanguage.equals(valueLanguage) && value != null && !"null".equals(value)) {
 				copyfields.put(fieldCode, Double.parseDouble(value));
@@ -302,7 +307,6 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 																					   String copiedMetadataCodePrefix) {
 
 		String prefix = copiedMetadataCodePrefix;
-		String valueLanguage = collectionLanguages.get(0);
 		if (!prefix.contains("_")) {
 			prefix += "_txt_";
 		}
@@ -316,14 +320,14 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 
 		KeyListMap<String, Object> keyListMap = new KeyListMap<>();
 		for (Object value : values) {
-			String language = collectionLanguages.get(0);
-			if (language != null && collectionLanguages.contains(language)) {
+			String language = collectionInfo.getMainSystemLanguage().getCode();
+			if (language != null && collectionInfo.getCollectionLanguesCodes().contains(language)) {
 				String fieldCode = prefix + language;
 				keyListMap.add(fieldCode, Double.parseDouble(String.valueOf(value)));
 			}
 		}
 
-		for (String collectionLanguage : collectionLanguages) {
+		for (String collectionLanguage : collectionInfo.getCollectionLanguesCodes()) {
 			String fieldCode = prefix + collectionLanguage;
 			if (!keyListMap.getNestedMap().containsKey(fieldCode)) {
 				keyListMap.add(fieldCode, "");
@@ -356,14 +360,16 @@ public class SearchFieldsPopulator extends SeparatedFieldsPopulator implements F
 				ParsedContent parsedContent = parsedContentProvider.getParsedContentIfAlreadyParsed(currentVersion.getHash());
 
 				String contentLanguage = null;
-				if (collectionLanguages.size() == 1) {
-					contentLanguage = collectionLanguages.get(0);
-				} else if (parsedContent != null && collectionLanguages.contains(parsedContent.getLanguage())) {
+				if (collectionInfo.isMonoLingual()) {
+					contentLanguage = collectionInfo.getMainSystemLanguage().getCode();
+				} else if (parsedContent != null && collectionInfo.getCollectionLanguesCodes().contains(parsedContent.getLanguage())) {
 					contentLanguage = parsedContent.getLanguage();
+				} else {
+					contentLanguage = collectionInfo.getMainSystemLanguage().getCode();
 				}
 
 				if (parsedContent == null || contentLanguage == null) {
-					for (String collectionLanguage : collectionLanguages) {
+					for (String collectionLanguage : collectionInfo.getCollectionLanguesCodes()) {
 						keyListMap.add(copiedMetadataCode + "_" + collectionLanguage + "_ss", currentVersion.getFilename());
 					}
 				} else {

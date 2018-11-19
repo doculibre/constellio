@@ -162,7 +162,7 @@ public class SchemaPresenterUtils extends BasePresenterUtils {
 
 	public final void delete(Record record, String reason, boolean physically, User user, int waitInSeconds) {
 		boolean putFirstInTrash = putFirstInTrash(record);
-		if (recordServices().isLogicallyThenPhysicallyDeletable(record, user) || putFirstInTrash) {
+		if (recordServices().validateLogicallyThenPhysicallyDeletable(record, user).isEmpty() || putFirstInTrash) {
 
 			RecordLogicalDeleteOptions options = new RecordLogicalDeleteOptions();
 			//Validations are already done

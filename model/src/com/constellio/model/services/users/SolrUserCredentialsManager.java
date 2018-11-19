@@ -5,7 +5,6 @@ import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -27,7 +26,7 @@ import static com.constellio.data.utils.LangUtils.valueOrDefault;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.users.UserUtils.cleanUsername;
 
-public class SolrUserCredentialsManager implements UserCredentialsManager {
+public class SolrUserCredentialsManager {
 	private final ModelLayerFactory modelLayerFactory;
 	private final SearchServices searchServices;
 	private final SchemasRecordsServices schemas;
@@ -38,13 +37,12 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 		schemas = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
-	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
-								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
-								 Map<String, LocalDateTime> tokens,
-								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
-								 String dn) {
-		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
+										boolean systemAdmin, List<String> globalGroups, List<String> collections,
+										Map<String, LocalDateTime> tokens,
+										UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+										String dn) {
+		return ((UserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
 				.setLastName(lastName)
@@ -60,15 +58,14 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 				.setDn(dn);
 	}
 
-	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email,
-								 List<String> personalEmails,
-								 String serviceKey,
-								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
-								 Map<String, LocalDateTime> tokens,
-								 UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
-								 String dn) {
-		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
+										List<String> personalEmails,
+										String serviceKey,
+										boolean systemAdmin, List<String> globalGroups, List<String> collections,
+										Map<String, LocalDateTime> tokens,
+										UserCredentialStatus status, String domain, List<String> msExchDelegateListBL,
+										String dn) {
+		return ((UserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
 				.setLastName(lastName)
@@ -85,15 +82,14 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 				.setDn(dn);
 	}
 
-	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email,
-								 List<String> personalEmails,
-								 String serviceKey, boolean systemAdmin, List<String> globalGroups,
-								 List<String> collections,
-								 Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain,
-								 List<String> msExchDelegateListBL,
-								 String dn, String jobTitle, String phone, String fax, String address) {
-		return ((SolrUserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
+										List<String> personalEmails,
+										String serviceKey, boolean systemAdmin, List<String> globalGroups,
+										List<String> collections,
+										Map<String, LocalDateTime> tokens, UserCredentialStatus status, String domain,
+										List<String> msExchDelegateListBL,
+										String dn, String jobTitle, String phone, String fax, String address) {
+		return ((UserCredential) valueOrDefault(getUserCredential(username), schemas.newCredential()))
 				.setUsername(cleanUsername(username))
 				.setFirstName(firstName)
 				.setLastName(lastName)
@@ -108,48 +104,43 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 				.setDomain(domain)
 				.setMsExchDelegateListBL(msExchDelegateListBL)
 				.setDn(dn)
-				.withJobTitle(jobTitle)
-				.withAddress(address)
-				.withPhone(phone)
-				.withFax(fax);
+				.setJobTitle(jobTitle)
+				.setAddress(address)
+				.setPhone(phone)
+				.setFax(fax);
 	}
 
-	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email, String serviceKey,
-								 boolean systemAdmin, List<String> globalGroups, List<String> collections,
-								 Map<String, LocalDateTime> tokens,
-								 UserCredentialStatus status) {
+										boolean systemAdmin, List<String> globalGroups, List<String> collections,
+										Map<String, LocalDateTime> tokens,
+										UserCredentialStatus status) {
 		return create(username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status,
 				null, null, null);
 	}
 
-	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email,
-								 List<String> globalGroups,
-								 List<String> collections, UserCredentialStatus status, String domain,
-								 List<String> msExchDelegateListBL, String dn) {
+										List<String> globalGroups,
+										List<String> collections, UserCredentialStatus status, String domain,
+										List<String> msExchDelegateListBL, String dn) {
 		return create(username, firstName, lastName, email, null, false, globalGroups, collections,
 				Collections.<String, LocalDateTime>emptyMap(), status, domain, msExchDelegateListBL, dn);
 	}
 
-	@Override
 	public UserCredential create(String username, String firstName, String lastName, String email,
-								 List<String> globalGroups,
-								 List<String> collections, UserCredentialStatus status) {
+										List<String> globalGroups,
+										List<String> collections, UserCredentialStatus status) {
 		return create(username, firstName, lastName, email, null, false, globalGroups, collections,
 				Collections.<String, LocalDateTime>emptyMap(), status, null, null, null);
 	}
 
-	@Override
 	public void addUpdate(UserCredential userCredential) {
 		try {
-			modelLayerFactory.newRecordServices().add((SolrUserCredential) userCredential);
+			modelLayerFactory.newRecordServices().add((UserCredential) userCredential);
 		} catch (RecordServicesException e) {
 			throw new UserCredentialsManagerRuntimeException_CannotExecuteTransaction(e);
 		}
 	}
 
-	@Override
 	public UserCredential getUserCredential(String username) {
 		Record record = modelLayerFactory.newRecordServices()
 				.getRecordByMetadata(schemas.credentialUsername(), cleanUsername(username));
@@ -160,7 +151,6 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).returnAll()).sortAsc(schemas.credentialUsername());
 	}
 
-	@Override
 	public List<UserCredential> getUserCredentials() {
 		return schemas.wrapCredentials(searchServices.search(getUserCredentialsQuery()));
 	}
@@ -169,7 +159,6 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 		return getQueryFilteredByStatus(UserCredentialStatus.ACTIVE);
 	}
 
-	@Override
 	public List<UserCredential> getActiveUserCredentials() {
 		return schemas.wrapCredentials(searchServices.search(getActiveUserCredentialsQuery()));
 	}
@@ -178,7 +167,6 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 		return getQueryFilteredByStatus(UserCredentialStatus.SUSPENDED);
 	}
 
-	@Override
 	public List<UserCredential> getSuspendedUserCredentials() {
 		return schemas.wrapCredentials(searchServices.search(getSuspendedUserCredentialsQuery()));
 	}
@@ -187,7 +175,6 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 		return getQueryFilteredByStatus(UserCredentialStatus.PENDING);
 	}
 
-	@Override
 	public List<UserCredential> getPendingApprovalUserCredentials() {
 		return schemas.wrapCredentials(searchServices.search(getPendingApprovalUserCredentialsQuery()));
 	}
@@ -196,7 +183,6 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 		return getQueryFilteredByStatus(UserCredentialStatus.DELETED);
 	}
 
-	@Override
 	public List<UserCredential> getDeletedUserCredentials() {
 		return schemas.wrapCredentials(searchServices.search(getDeletedUserCredentialsQuery()));
 	}
@@ -206,7 +192,6 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 				.sortAsc(schemas.credentialUsername());
 	}
 
-	@Override
 	public List<UserCredential> getUserCredentialsInGlobalGroup(String group) {
 		return schemas.wrapCredentials(searchServices.search(getUserCredentialsInGlobalGroupQuery(group)));
 	}
@@ -217,7 +202,6 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 				.sortAsc(schemas.credentialUsername());
 	}
 
-	@Override
 	public void removeCollection(final String collection) {
 		try {
 			new ActionExecutorInBatch(searchServices, "Remove collection in user credentials records", 100) {
@@ -228,7 +212,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 					Transaction transaction = new Transaction();
 					transaction.getRecordUpdateOptions().setOptimisticLockingResolution(EXCEPTION);
 					for (Record record : records) {
-						transaction.add((SolrUserCredential) schemas.wrapCredential(record).withRemovedCollection(collection));
+						transaction.add((UserCredential) schemas.wrapCredential(record).removeCollection(collection));
 					}
 
 					modelLayerFactory.newRecordServices().execute(transaction);
@@ -240,24 +224,21 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 		}
 	}
 
-	@Override
 	public void removeToken(String token) {
 		UserCredential credential = getUserCredentialByToken(token);
 		if (credential != null) {
-			addUpdate(credential.withRemovedToken(token));
+			addUpdate(credential.removeAccessToken(token));
 		}
 	}
 
-	@Override
 	public void removeUserCredentialFromCollection(UserCredential userCredential, String collection) {
-		addUpdate(userCredential.withRemovedCollection(collection));
+		addUpdate(userCredential.removeCollection(collection));
 	}
 
-	@Override
 	public void removeGroup(String group) {
 		Transaction transaction = new Transaction();
 		for (Record record : searchServices.search(getUserCredentialsInGlobalGroupQuery(group))) {
-			transaction.add((SolrUserCredential) schemas.wrapCredential(record).withRemovedGlobalGroup(group));
+			transaction.add((UserCredential) schemas.wrapCredential(record).removeGlobalGroup(group));
 		}
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);
@@ -273,7 +254,6 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 		return record != null ? schemas.wrapCredential(record) : null;
 	}
 
-	@Override
 	public String getUsernameByServiceKey(String serviceKey) {
 		UserCredential credential = getUserCredentialByServiceKey(serviceKey);
 		return credential != null ? credential.getUsername() : null;
@@ -286,13 +266,11 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 		return record != null ? schemas.wrapCredential(record) : null;
 	}
 
-	@Override
 	public String getServiceKeyByToken(String token) {
 		UserCredential credential = getUserCredentialByToken(token);
 		return credential != null ? credential.getServiceKey() : null;
 	}
 
-	@Override
 	public void removeTimedOutTokens() {
 		LocalDateTime now = TimeProvider.getLocalDateTime();
 		Transaction transaction = new Transaction();
@@ -305,7 +283,7 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 					validTokens.put(token.getKey(), token.getValue());
 				}
 			}
-			transaction.add((SolrUserCredential) credential.withAccessTokens(validTokens));
+			transaction.add((UserCredential) credential.setAccessTokens(validTokens));
 		}
 		try {
 			modelLayerFactory.newRecordServices().execute(transaction);
@@ -319,7 +297,6 @@ public class SolrUserCredentialsManager implements UserCredentialsManager {
 				from(schemas.credentialSchemaType()).where(schemas.credentialTokenExpirations()).isLessOrEqualThan(now));
 	}
 
-	@Override
 	public void rewrite() {
 		// Nothing to be done
 	}

@@ -12,6 +12,7 @@ import com.constellio.model.entities.records.wrappers.HierarchicalValueListItem;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.StatusFilter;
@@ -73,7 +74,8 @@ public class ListSchemaRecordsPresenter extends SingleSchemaBasePresenter<ListSc
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
-		if (isDeletable(recordVO)) {
+		ValidationErrors validationErrors = validateDeletable(recordVO);
+		if (validationErrors.isEmpty()) {
 			Record record = getRecord(recordVO.getId());
 			try {
 				delete(record, false);

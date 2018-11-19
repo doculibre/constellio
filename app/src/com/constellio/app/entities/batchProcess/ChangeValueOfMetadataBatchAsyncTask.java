@@ -154,7 +154,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		} finally {
 			IOUtils.closeQuietly(csvInputStream);
 			IOUtils.closeQuietly(csvOuputStream);
-			if(isCsvReportDone) {
+			if (isCsvReportDone) {
 				FileUtils.deleteQuietly(csvReport);
 			}
 		}
@@ -393,7 +393,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 
 	private OutputStream ensureCsvOutputStreamIsInitialized(AsyncTaskExecutionParams params)
 			throws IOException {
-		if(csvOuputStream == null) {
+		if (csvOuputStream == null) {
 			return csvOuputStream = FileUtils.openOutputStream(createOrGetTempFile(params), true);
 		} else {
 			return csvOuputStream;

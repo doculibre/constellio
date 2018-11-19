@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
@@ -215,7 +216,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					} else if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assigner())) {
 						Field<?> field = getAssignerField();
 						task.setAssigner((String) field.getValue());
-						if(task.getAssignedOn() == null) {
+						if (task.getAssignedOn() == null) {
 							task.setAssignationDate(TimeProvider.getLocalDate());
 						}
 					}
@@ -288,9 +289,12 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		workflowId = paramsMap.get("workflowId");
 		taskVO = new TaskVO(new TaskToVOBuilder().build(task.getWrappedRecord(), FORM, view.getSessionContext()));
 		view.setRecord(taskVO);
-
-		originalAssignedTo = taskVO.getAssignee();
-		originalAssigner = taskVO.get(Task.ASSIGNER);
+		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + ASSIGNEE)) {
+			originalAssignedTo = taskVO.getAssignee();
+		}
+		if(taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNER)) {
+			originalAssigner = taskVO.get(Task.ASSIGNER);
+		}
 	}
 
 	public String getViewTitle() {
@@ -362,7 +366,8 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustAssignerField() {
 		Field assignerField = getAssignerField();
-		if (assignerField != null && taskVO != null && !Objects.equals(originalAssignedTo, taskVO.getAssignee())) {
+		if (assignerField != null && taskVO != null &&  taskVO.getMetadataCodes().contains(taskVO.getSchema().getCode() + "_" + Task.ASSIGNEE)
+				&& !Objects.equals(originalAssignedTo, taskVO.getAssignee())) {
 			assignerField.setValue(getCurrentUser().getId());
 		}
 	}
@@ -370,7 +375,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private void adjustProgressPercentageField() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
-		if(progressPercentageField != null) {
+		if (progressPercentageField != null) {
 			progressPercentageField.setVisible(editMode);
 		}
 	}
@@ -485,7 +490,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustRelativeDueDate() {
 		TaskRelativeDueDateField field = (TaskRelativeDueDateField) view.getForm().getCustomField(Task.RELATIVE_DUE_DATE);
-		if(field != null) {
+		if (field != null) {
 			try {
 				Task task = loadTask();
 
@@ -522,29 +527,39 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	public void fieldValueChanged(Field<?> customField) {
 
 		Field<String> assignee = (Field<String>) view.getForm().getField(Task.ASSIGNEE);
-		boolean assigneeValue = assignee != null && StringUtils.isNotBlank(assignee.getValue());
+		boolean assigneeValue = false;
+		if(assignee != null) {
+			StringUtils.isNotBlank(assignee.getValue());
+		}
 
 		ListAddRemoveField group = (ListAddRemoveField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
-		boolean groupValue = group != null && CollectionUtils.isNotEmpty(group.getValue());
+		boolean groupValue = false;
+		if(group!= null) {
+			groupValue = CollectionUtils.isNotEmpty(group.getValue());
+		}
 
 		ListAddRemoveField user = (ListAddRemoveField) view.getForm().getField(Task.ASSIGNEE_USERS_CANDIDATES);
-		boolean userValue = user != null && CollectionUtils.isNotEmpty(user.getValue());
+		boolean userValue = false;
+		if(user!= null) {
+			userValue = CollectionUtils.isNotEmpty(user.getValue());
+		}
 
 		ListAddRemoveField priorite = (ListAddRemoveField) view.getForm().getField(ASSIGNATION_MODES);
 		boolean prioriteValue = priorite != null && CollectionUtils.isNotEmpty(priorite.getValue());
 
-		if(assignee != null) {
+		if (assignee != null) {
 			assignee.setReadOnly(groupValue || userValue || prioriteValue);
 		}
-		if(group != null) {
+		if (group != null) {
 			group.setReadOnly(assigneeValue);
 		}
-		if(user != null) {
+		if (user != null) {
 			user.setReadOnly(assigneeValue);
 		}
-		if(priorite != null) {
+		if (priorite != null) {
 			priorite.setReadOnly(assigneeValue);
 		}
+
 	}
 
 	void adjustCustomFields(CustomTaskField<?> customField) {
@@ -642,7 +657,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private BetaWorkflowTask loadTask() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
-		if(progressPercentageField != null) {
+		if (progressPercentageField != null) {
 			progressPercentageField.setVisible(editMode);
 		}
 

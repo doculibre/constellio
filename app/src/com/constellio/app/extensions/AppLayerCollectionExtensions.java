@@ -85,8 +85,11 @@ import com.constellio.model.entities.records.wrappers.Capsule;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.AllowedReferences;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataFilter;
+import com.constellio.model.entities.schemas.MetadataFilterFactory;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
@@ -155,6 +158,7 @@ public class AppLayerCollectionExtensions {
 	public VaultBehaviorsList<ListSchemaExtention> listSchemaCommandExtensions = new VaultBehaviorsList<>();
 
 	public VaultBehaviorsList<MetadataFieldExtension> metadataFieldExtensions = new VaultBehaviorsList<>();
+
 
 	//Key : schema type code
 	//Values : record's code
@@ -700,12 +704,23 @@ public class AppLayerCollectionExtensions {
 	}
 
 	public Resource getIconFromContent(GetIconPathParams params) {
-		for(RecordAppExtension extension: recordAppExtensions) {
+		for (RecordAppExtension extension : recordAppExtensions) {
 			Resource calculatedResource = extension.getIconFromContent(params);
-			if(calculatedResource != null) {
+			if (calculatedResource != null) {
 				return calculatedResource;
 			}
 		}
 		return null;
 	}
+	public List<MetadataFilter> getMetadataAccessExclusionFilters() {
+		List<MetadataFilter> metadataFilter = new ArrayList<>();
+		metadataFilter.add(MetadataFilterFactory.excludeMetadataWithLocalCode(Schemas.TITLE_CODE));
+		for (SchemaTypesPageExtension schemaTypesPageExtension : schemaTypesPageExtensions) {
+			metadataFilter.addAll(schemaTypesPageExtension.getMetadataAccessExclusionFilters());
+		}
+
+		return metadataFilter;
+	}
+
+
 }

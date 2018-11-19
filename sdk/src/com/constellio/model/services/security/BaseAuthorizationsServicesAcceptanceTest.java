@@ -5,18 +5,16 @@ import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.batchprocess.RecordBatchProcess;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationResponse;
 import com.constellio.model.entities.security.global.UserCredential;
@@ -143,8 +141,8 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				for (String collection : TestUtils.asList(zeCollection, anotherCollection)) {
 					RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
 					MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
-					if (!cache.isConfigured(SolrAuthorizationDetails.SCHEMA_TYPE)) {
-						cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+					if (!cache.isConfigured(Authorization.SCHEMA_TYPE)) {
+						cache.configureCache(permanentCache(types.getSchemaType(Authorization.SCHEMA_TYPE)));
 					}
 					if (!cache.isConfigured(User.SCHEMA_TYPE)) {
 						cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
@@ -200,7 +198,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				for (String collection : TestUtils.asList(zeCollection, anotherCollection)) {
 					RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
 					MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
-					cache.configureCache(permanentCache(types.getSchemaType(SolrAuthorizationDetails.SCHEMA_TYPE)));
+					cache.configureCache(permanentCache(types.getSchemaType(Authorization.SCHEMA_TYPE)));
 					cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
 					cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
 				}
@@ -217,7 +215,9 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				.configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
 		recordServices.getRecordsCaches().getCache(anotherCollection)
 				.configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
+
 	}
+
 
 	protected ListAssert<String> assertThatBatchProcessDuringTest() {
 
@@ -731,18 +731,6 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 	}
 
-	protected ListAssert<String> assertThatAllAuthorizationIds() {
-
-		List<String> authorizations = new ArrayList<>();
-		for (AuthorizationDetails details : getModelLayerFactory().getAuthorizationDetailsManager()
-				.getAuthorizationsDetails(zeCollection).values()) {
-			authorizations.add(details.getId());
-		}
-
-		return assertThat(authorizations);
-
-	}
-
 	protected ListAssert<String> ensureNoRecordsHaveAnInvalidAuthorization() {
 		try {
 			waitForBatchProcess();
@@ -751,7 +739,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 		List<String> authorizations = new ArrayList<>();
 
-		for (SolrAuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(ALL)) {
+		for (Authorization details : schemas.searchSolrAuthorizationDetailss(ALL)) {
 			authorizations.add(details.getId());
 			try {
 				recordServices.getDocumentById(details.getTarget());
@@ -780,7 +768,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 
 	protected ListAssert<String> assertThatAllAuthorizationsIds() {
 		List<String> authorizations = new ArrayList<>();
-		for (AuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(ALL)) {
+		for (Authorization details : schemas.searchSolrAuthorizationDetailss(ALL)) {
 			authorizations.add(details.getId());
 		}
 		return assertThat(authorizations);
@@ -789,14 +777,14 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	protected ListAssert<VerifiedAuthorization> assertThatAllAuthorizations() {
 
 		List<VerifiedAuthorization> authorizations = new ArrayList<>();
-		for (AuthorizationDetails details : schemas.searchSolrAuthorizationDetailss(ALL)) {
+		for (Authorization details : schemas.searchSolrAuthorizationDetailss(ALL)) {
 			Authorization authorization = services.getAuthorization(zeCollection, details.getId());
 
 			List<String> removedOnRecords = searchServices.searchRecordIds(fromAllSchemasIn(zeCollection).where(
-					REMOVED_AUTHORIZATIONS).isEqualTo(authorization.getDetail().getId()));
+					REMOVED_AUTHORIZATIONS).isEqualTo(authorization.getId()));
 
-			authorizations.add(authOnRecord(authorization.getGrantedOnRecord())
-					.forPrincipalIds(authorization.getGrantedToPrincipals())
+			authorizations.add(authOnRecord(authorization.getTarget())
+					.forPrincipalIds(authorization.getPrincipals())
 					.givingRoles(details.getRoles().toArray(new String[0]))
 					.startingOn(details.getStartDate()).endingOn(details.getEndDate())
 					.removedOnRecords(removedOnRecords.toArray(new String[0])));
@@ -826,11 +814,11 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		List<VerifiedAuthorization> authorizations = new ArrayList<>();
 		for (Authorization authorization : services.getRecordAuthorizations(record)) {
 			List<String> removedOnRecords = searchServices.searchRecordIds(fromAllSchemasIn(zeCollection).where(
-					REMOVED_AUTHORIZATIONS).isEqualTo(authorization.getDetail().getId()));
+					REMOVED_AUTHORIZATIONS).isEqualTo(authorization.getId()));
 
-			authorizations.add(authOnRecord(authorization.getGrantedOnRecord())
-					.forPrincipalIds(authorization.getGrantedToPrincipals())
-					.givingRoles(authorization.getDetail().getRoles().toArray(new String[0]))
+			authorizations.add(authOnRecord(authorization.getTarget())
+					.forPrincipalIds(authorization.getPrincipals())
+					.givingRoles(authorization.getRoles().toArray(new String[0]))
 					.removedOnRecords(removedOnRecords.toArray(new String[0])));
 		}
 		return assertThat(authorizations).usingFieldByFieldElementComparator();
@@ -845,12 +833,6 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			this.authId = authId;
 		}
 
-		public AuthorizationVerifier isDeleted() {
-			assertThat(getModelLayerFactory().getAuthorizationDetailsManager().get(zeCollection, authId))
-					.describedAs("Authorization supposed to be deleted").isNull();
-			return this;
-		}
-
 		public AuthorizationVerifier isTargetting(String recordId) {
 			return this;
 		}
@@ -863,7 +845,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			List<String> expectedPrincipals = toPrincipalIds(principals);
 			Authorization authorization = services
 					.getAuthorization(zeCollection, authId);
-			assertThat(authorization.getGrantedToPrincipals()).describedAs("principals")
+			assertThat(authorization.getPrincipals()).describedAs("principals")
 					.containsOnly(expectedPrincipals.toArray(new String[0]));
 			return this;
 		}
@@ -913,7 +895,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		public UserAction isRemovedFromGroup(String group) {
-			userServices.addUpdateUserCredential(userServices.getUser(username).withRemovedGlobalGroup(group));
+			userServices.addUpdateUserCredential(userServices.getUser(username).removeGlobalGroup(group));
 			try {
 				waitForBatchProcess();
 			} catch (InterruptedException e) {
@@ -923,7 +905,7 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 		}
 
 		public UserAction isAddedInGroup(String group) {
-			userServices.addUpdateUserCredential(userServices.getUser(username).withNewGlobalGroup(group));
+			userServices.addUpdateUserCredential(userServices.getUser(username).addGlobalGroup(group));
 			try {
 				waitForBatchProcess();
 			} catch (InterruptedException e) {
@@ -1068,7 +1050,8 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Deprecated
-	protected Authorization addAuthorizationWithoutDetaching(List<String> roles, List<String> grantedToPrincipals,
+	protected Authorization addAuthorizationWithoutDetaching(List<String> roles,
+															 List<String> grantedToPrincipals,
 															 String grantedOnRecord) {
 		return addAuthorizationWithoutDetaching(aString(), roles, grantedToPrincipals, grantedOnRecord);
 	}

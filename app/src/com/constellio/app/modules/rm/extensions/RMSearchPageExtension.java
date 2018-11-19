@@ -22,7 +22,6 @@ import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchViewImpl;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Component;
 
@@ -89,7 +88,7 @@ public class RMSearchPageExtension extends SearchPageExtension {
 	public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
 		Component mainComponent = param.getMainComponent();
 		LogicalSearchCondition logicalSearchCondition = param.getCondition();
-		if(mainComponent instanceof SimpleSearchViewImpl || mainComponent instanceof AdvancedSearchViewImpl) {
+		if (mainComponent instanceof SimpleSearchViewImpl || mainComponent instanceof AdvancedSearchViewImpl) {
 			User user = param.getUser();
 			if (Boolean.TRUE.equals(user.get(RMUser.HIDE_NOT_ACTIVE))) {
 				List<String> notActiveCodes = new ArrayList<>();

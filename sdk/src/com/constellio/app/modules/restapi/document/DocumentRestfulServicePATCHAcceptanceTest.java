@@ -35,7 +35,7 @@ import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -126,9 +126,9 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 						doc.getContent().getVersionType() == MAJOR));
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
-		assertThat(authorizations).extracting("grantedToPrincipals").containsOnly(
+		assertThat(authorizations).extracting("principals").containsOnly(
 				singletonList(authorization1.getPrincipals().get(0)), singletonList(authorization2.getPrincipals().get(0)));
-		assertThat(authorizations).extracting("detail").extracting("roles", "startDate", "endDate").containsOnly(
+		assertThat(authorizations).extracting("roles", "startDate", "endDate").containsOnly(
 				tuple(authorization1.getRoles(), authorization1.getStart(), authorization1.getEnd()),
 				tuple(authorization2.getRoles(), authorization2.getStart(), authorization2.getEnd()));
 	}
@@ -172,9 +172,9 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 						doc.getContent().getVersionType() == MAJOR));
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
-		assertThat(authorizations).extracting("grantedToPrincipals").containsOnly(
+		assertThat(authorizations).extracting("principals").containsOnly(
 				singletonList(authorization1.getPrincipals().get(0)), singletonList(authorization2.getPrincipals().get(0)));
-		assertThat(authorizations).extracting("detail").extracting("roles", "startDate", "endDate").containsOnly(
+		assertThat(authorizations).extracting("roles", "startDate", "endDate").containsOnly(
 				tuple(authorization1.getRoles(), authorization1.getStart(), authorization1.getEnd()),
 				tuple(authorization2.getRoles(), authorization2.getStart(), authorization2.getEnd()));
 	}
@@ -215,9 +215,9 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 				.containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(), true));
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
-		assertThat(authorizations).extracting("grantedToPrincipals").containsOnly(
+		assertThat(authorizations).extracting("principals").containsOnly(
 				singletonList(authorization1.getPrincipals().get(0)), singletonList(authorization2.getPrincipals().get(0)));
-		assertThat(authorizations).extracting("detail").extracting("roles", "startDate", "endDate").containsOnly(
+		assertThat(authorizations).extracting("roles", "startDate", "endDate").containsOnly(
 				tuple(authorization1.getRoles(), authorization1.getStart(), authorization1.getEnd()),
 				tuple(authorization2.getRoles(), authorization2.getStart(), authorization2.getEnd()));
 	}
@@ -264,11 +264,11 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 				.containsExactly(tuple(doc.getContent().getVersion(), doc.getContent().getFilename(), doc.getContent().getHash(), true));
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
-		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder).containsOnly(
+		assertThat(authorizations).extracting("principals").usingElementComparator(comparingListAnyOrder).containsOnly(
 				toPrincipalIds(docUpdate.getDirectAces().get(0).getPrincipals()));
-		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder).containsOnly(
+		assertThat(authorizations).extracting("roles").usingElementComparator(comparingListAnyOrder).containsOnly(
 				Lists.newArrayList(docUpdate.getDirectAces().get(0).getPermissions()));
-		assertThat(authorizations).extracting("detail.startDate", "detail.endDate").containsOnly(
+		assertThat(authorizations).extracting("startDate", "endDate").containsOnly(
 				tuple(authorization1.getStart(), authorization1.getEnd()),
 				tuple(authorization2.getStart(), authorization2.getEnd()));
 	}
@@ -309,9 +309,9 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 						doc.getContent().getVersionType() == MAJOR));
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
-		assertThat(authorizations).extracting("grantedToPrincipals").containsOnly(
+		assertThat(authorizations).extracting("principals").containsOnly(
 				singletonList(authorization1.getPrincipals().get(0)), singletonList(authorization2.getPrincipals().get(0)));
-		assertThat(authorizations).extracting("detail").extracting("roles", "startDate", "endDate").containsOnly(
+		assertThat(authorizations).extracting("roles", "startDate", "endDate").containsOnly(
 				tuple(authorization1.getRoles(), authorization1.getStart(), authorization1.getEnd()),
 				tuple(authorization2.getRoles(), authorization2.getStart(), authorization2.getEnd()));
 	}
@@ -938,8 +938,8 @@ public class DocumentRestfulServicePATCHAcceptanceTest extends BaseDocumentRestf
 
 		Record record = recordServices.getDocumentById(doc.getId());
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
-		assertThat(authorizations).extracting("detail.startDate").containsOnly(toLocalDate(documentToPartialUpdate.getDirectAces().get(0).getStartDate()));
-		assertThat(authorizations).extracting("detail.endDate").containsNull();
+		assertThat(authorizations).extracting("startDate").containsOnly(toLocalDate(documentToPartialUpdate.getDirectAces().get(0).getStartDate()));
+		assertThat(authorizations).extracting("endDate").containsNull();
 	}
 
 	@Test

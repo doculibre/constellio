@@ -1574,7 +1574,7 @@ public abstract class AbstractConstellioTest implements FailureDetectionTestWatc
 	protected Session newCMISSessionAsUserInCollection(String username, String collection) {
 		ensureNotUnitTest();
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(userServices.getUser(username).withServiceKey(username + "-key"));
+		userServices.addUpdateUserCredential(userServices.getUser(username).setServiceKey(username + "-key"));
 		String token = userServices.generateToken(username, Duration.standardHours(72));
 		System.out.println("Logging as " + username + "-key / " + token);
 		Session session = newCmisSessionBuilder().authenticatedBy(username + "-key", token).onCollection(collection).build();

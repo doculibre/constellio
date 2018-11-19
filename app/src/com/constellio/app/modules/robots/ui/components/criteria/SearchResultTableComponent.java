@@ -81,7 +81,7 @@ public class SearchResultTableComponent extends CustomComponent {
 	}
 
 	private SearchResultContainer buildResultContainer() {
-		RecordDisplayFactory displayFactory = new RecordDisplayFactory(currentUserVO);
+		RecordDisplayFactory displayFactory = new RecordDisplayFactory(currentUserVO, null);
 		SearchResultVOLazyContainer results = new SearchResultVOLazyContainer(
 				presenter.getSearchResults(component.getSearchCriteria()));
 

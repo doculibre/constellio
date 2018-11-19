@@ -161,6 +161,10 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 		public Metadata groups() {
 			return getMetadata(code() + "_groups");
 		}
+
+		public Metadata tokens() {
+			return getMetadata(code() + "_" + CommonMetadataBuilder.TOKENS);
+		}
 	}
 
 	public class Taxonomy1FirstSchemaType implements SchemaShortcuts {
@@ -201,12 +205,8 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 			return getMetadata(code() + "_parentpath");
 		}
 
-		public Metadata allAuthorizations() {
-			return getMetadata(code() + "_allauthorizations");
-		}
-
-		public Metadata inheritedAuthorizations() {
-			return getMetadata(code() + "_inheritedauthorizations");
+		public Metadata tokens() {
+			return getMetadata(code() + "_" + CommonMetadataBuilder.TOKENS);
 		}
 	}
 
@@ -255,18 +255,13 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 			return getMetadata(code() + "_parentpath");
 		}
 
-		public Metadata allAuthorizations() {
-			return getMetadata(code() + "_allauthorizations");
-		}
-
-		public Metadata inheritedAuthorizations() {
-			return getMetadata(code() + "_inheritedauthorizations");
-		}
-
 		public Metadata allRemovedAuths() {
 			return getMetadata(code() + "_" + CommonMetadataBuilder.ALL_REMOVED_AUTHS);
 		}
 
+		public Metadata tokens() {
+			return getMetadata(code() + "_" + CommonMetadataBuilder.TOKENS);
+		}
 	}
 
 	public class Taxonomy2DefaultSchema implements SchemaShortcuts {
@@ -306,12 +301,8 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 			return getMetadata(code() + "_parentpath");
 		}
 
-		public Metadata allAuthorizations() {
-			return getMetadata(code() + "_allauthorizations");
-		}
-
-		public Metadata inheritedAuthorizations() {
-			return getMetadata(code() + "_inheritedauthorizations");
+		public Metadata tokens() {
+			return getMetadata(code() + "_" + CommonMetadataBuilder.TOKENS);
 		}
 
 	}
@@ -349,14 +340,9 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 			return getMetadata(code() + "_parentpath");
 		}
 
-		public Metadata allAuthorizations() {
-			return getMetadata(code() + "_allauthorizations");
+		public Metadata tokens() {
+			return getMetadata(code() + "_" + CommonMetadataBuilder.TOKENS);
 		}
-
-		public Metadata inheritedAuthorizations() {
-			return getMetadata(code() + "_inheritedauthorizations");
-		}
-
 	}
 
 	public class CollectionSchema implements SchemaShortcuts {
@@ -388,12 +374,8 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 			return getMetadata(code() + "_parentpath");
 		}
 
-		public Metadata allAuthorizations() {
-			return getMetadata(code() + "_allauthorizations");
-		}
-
-		public Metadata inheritedAuthorizations() {
-			return getMetadata(code() + "_inheritedauthorizations");
+		public Metadata tokens() {
+			return getMetadata(code() + "_" + CommonMetadataBuilder.TOKENS);
 		}
 	}
 
@@ -430,14 +412,6 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 			return getMetadata(code() + "_parentpath");
 		}
 
-		public Metadata allAuthorizations() {
-			return getMetadata(code() + "_allauthorizations");
-		}
-
-		public Metadata inheritedAuthorizations() {
-			return getMetadata(code() + "_inheritedauthorizations");
-		}
-
 		public Metadata allRemovedAuths() {
 			return getMetadata(code() + "_" + CommonMetadataBuilder.ALL_REMOVED_AUTHS);
 		}
@@ -456,6 +430,11 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 
 		public Metadata conceptReferenceWithoutTaxonomyRelationship() {
 			return getMetadata(code() + "_conceptReferenceWithoutTaxonomyRelationship");
+		}
+
+
+		public Metadata tokens() {
+			return getMetadata(code() + "_" + CommonMetadataBuilder.TOKENS);
 		}
 
 	}
@@ -486,14 +465,6 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 			return getMetadata(code() + "_parentpath");
 		}
 
-		public Metadata allAuthorizations() {
-			return getMetadata(code() + "_allauthorizations");
-		}
-
-		public Metadata inheritedAuthorizations() {
-			return getMetadata(code() + "_inheritedauthorizations");
-		}
-
 		public Metadata attachedAncestors() {
 			return getMetadata(code() + "_attachedAncestors");
 		}
@@ -506,6 +477,9 @@ public class TwoTaxonomiesContainingFolderAndDocumentsSetup extends SchemasSetup
 			return getMetadata(code() + "_parent");
 		}
 
+		public Metadata tokens() {
+			return getMetadata(code() + "_" + CommonMetadataBuilder.TOKENS);
+		}
 	}
 
 	public class TaxonomyRecords {

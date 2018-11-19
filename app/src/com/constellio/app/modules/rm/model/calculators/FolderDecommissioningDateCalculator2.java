@@ -17,6 +17,7 @@ import java.util.List;
 
 import static com.constellio.app.modules.rm.model.calculators.CalculatorUtils.toNextEndOfYearDateIfNotAlready;
 
+@Deprecated
 public class FolderDecommissioningDateCalculator2 implements MetadataValueCalculator<LocalDate> {
 
 	LocalDependency<LocalDate> openingDateParam = LocalDependency.toADate(Folder.OPENING_DATE);

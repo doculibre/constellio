@@ -10,7 +10,7 @@ import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.global.AgentStatus;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -65,8 +65,8 @@ public class CoreMigrationTo_7_0_1 implements MigrationScript {
 						.setType(MetadataValueType.DATE_TIME);
 
 				if (Collection.SYSTEM_COLLECTION.equals(typesBuilder.getCollection())) {
-					MetadataSchemaBuilder userCredentialSchema = typesBuilder.getSchema(SolrUserCredential.DEFAULT_SCHEMA);
-					userCredentialSchema.create(SolrUserCredential.AGENT_STATUS).setType(ENUM).defineAsEnum(AgentStatus.class);
+					MetadataSchemaBuilder userCredentialSchema = typesBuilder.getSchema(UserCredential.DEFAULT_SCHEMA);
+					userCredentialSchema.create(UserCredential.AGENT_STATUS).setType(ENUM).defineAsEnum(AgentStatus.class);
 				}
 			}
 		}

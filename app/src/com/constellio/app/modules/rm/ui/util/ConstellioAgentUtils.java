@@ -18,7 +18,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.AgentStatus;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
@@ -141,7 +141,7 @@ public class ConstellioAgentUtils {
 			RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 			UserVO userVO = sessionContext.getCurrentUser();
 			UserServices userServices = modelLayerFactory.newUserServices();
-			SolrUserCredential userCredentials = (SolrUserCredential) userServices.getUser(userVO.getUsername());
+			UserCredential userCredentials = (UserCredential) userServices.getUser(userVO.getUsername());
 			AgentStatus agentStatus = userCredentials.getAgentStatus();
 			if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
 				agentStatus = AgentStatus.ENABLED;

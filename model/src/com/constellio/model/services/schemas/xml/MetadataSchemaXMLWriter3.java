@@ -67,7 +67,7 @@ public class MetadataSchemaXMLWriter3 {
 									MetadataSchema collectionSchema) {
 		Element customSchemasElement = new Element("customSchemas");
 		for (MetadataSchema schema : schemaType.getCustomSchemas()) {
-			Element schemaElement = toXMLElement(schema, collectionSchema);
+			Element schemaElement = toXMLElement(schema, collectionSchema, schemaType.getCollectionInfo());
 			customSchemasElement.addContent(schemaElement);
 		}
 		schemaTypeElement.addContent(customSchemasElement);
@@ -79,9 +79,9 @@ public class MetadataSchemaXMLWriter3 {
 		Element defaultSchemaElement = new Element("defaultSchema");
 		defaultSchemaElement.setAttribute("code", "" + defaultSchema.getLocalCode());
 
-		writeLabels(defaultSchemaElement, defaultSchema.getLabels());
+		writeLabels(defaultSchemaElement, defaultSchema.getLabels(), schemaType.getCollectionInfo());
 		//		defaultSchemaElement.setAttribute("label", "" + defaultSchema.getLabel());
-		addAllMetadataToSchema(collectionSchema, defaultSchema, defaultSchemaElement);
+		addAllMetadataToSchema(collectionSchema, defaultSchema, defaultSchemaElement, schemaType.getCollectionInfo());
 		if (!defaultSchema.getValidators().isEmpty()) {
 			defaultSchemaElement.addContent(writeSchemaValidators(defaultSchema));
 		}
@@ -89,7 +89,7 @@ public class MetadataSchemaXMLWriter3 {
 	}
 
 	private void addAllMetadataToSchema(MetadataSchema collectionSchema, MetadataSchema defaultSchema,
-										Element defaultSchemaElement) {
+										Element defaultSchemaElement, CollectionInfo collectionInfo) {
 		for (Metadata metadata : defaultSchema.getMetadatas()) {
 			Metadata metadataInCollectionSchema = null;
 			if (collectionSchema != null && Schemas.isGlobalMetadata(metadata.getLocalCode())
@@ -97,7 +97,8 @@ public class MetadataSchemaXMLWriter3 {
 				metadataInCollectionSchema = collectionSchema.getMetadata(metadata.getLocalCode());
 			}
 
-			addMetadataToSchema(defaultSchemaElement, metadata, metadataInCollectionSchema);
+
+			addMetadataToSchema(defaultSchemaElement, metadata, metadataInCollectionSchema, collectionInfo);
 		}
 	}
 
@@ -145,7 +146,7 @@ public class MetadataSchemaXMLWriter3 {
 		Element schemaTypeElement = new Element("type");
 		schemaTypeElement.setAttribute("code", schemaType.getCode());
 
-		writeLabels(schemaTypeElement, schemaType.getLabels());
+		writeLabels(schemaTypeElement, schemaType.getLabels(), schemaType.getCollectionInfo());
 		if (schemaType.hasSecurity()) {
 			schemaTypeElement.setAttribute("security", writeBoolean(schemaType.hasSecurity()));
 		}
@@ -167,31 +168,30 @@ public class MetadataSchemaXMLWriter3 {
 		return schemaTypeElement;
 	}
 
-	private Element toXMLElement(MetadataSchema schema, MetadataSchema collectionSchema) {
+	private Element toXMLElement(MetadataSchema schema, MetadataSchema collectionSchema, CollectionInfo collectionInfo) {
 		Element schemaElement = new Element("schema");
 		schemaElement.setAttribute("code", schema.getLocalCode());
-		writeLabels(schemaElement, schema.getLabels());
+		writeLabels(schemaElement, schema.getLabels(), schema.getCollectionInfo());
 		schemaElement.setAttribute("undeletable", writeBoolean(schema.isUndeletable()));
 		schemaElement.setAttribute("active", writeBoolean(schema.isActive()));
-		addAllMetadataToSchema(collectionSchema, schema, schemaElement);
+		addAllMetadataToSchema(collectionSchema, schema, schemaElement, collectionInfo);
 		if (!schema.getValidators().isEmpty()) {
 			schemaElement.addContent(writeSchemaValidators(schema));
 		}
 		return schemaElement;
 	}
 
-	private void writeLabels(Element schemaElement, Map<Language, String> labels) {
+	private void writeLabels(Element schemaElement, Map<Language, String> labels, CollectionInfo collectionInfo) {
 
 		for (Language language : Language.values()) {
-
-			if (labels.containsKey(language)) {
+			if (labels.containsKey(language) && collectionInfo.getCollectionLocales().contains(language.getLocale())) {
 				schemaElement.setAttribute("label_" + language.getCode(), labels.get(language));
 			}
 		}
 	}
 
 	private void addMetadataToSchema(Element schemaElement, Metadata metadata,
-									 Metadata globalMetadataInCollectionSchema) {
+									 Metadata globalMetadataInCollectionSchema, CollectionInfo collectionInfo) {
 		ParametrizedInstanceUtils utils = new ParametrizedInstanceUtils();
 		Element metadataElement = new Element("m");
 		metadataElement.setAttribute("code", metadata.getLocalCode());
@@ -202,15 +202,15 @@ public class MetadataSchemaXMLWriter3 {
 		boolean notUserDefinedMetadata = !localCode.startsWith("USR");
 
 		if (metadata.inheritDefaultSchema() && !metadata.getSchemaCode().contains("default")) {
-			differentFromInheritance = writeMetadataWithInheritance(metadata, metadataElement);
+			differentFromInheritance = writeMetadataWithInheritance(metadata, metadataElement, collectionInfo);
 		} else {
 
 			if (globalMetadataInCollectionSchema == null) {
-				writeMetadataWithoutInheritance(metadata, utils, metadataElement, notUserDefinedMetadata);
+				writeMetadataWithoutInheritance(metadata, utils, metadataElement, notUserDefinedMetadata, collectionInfo);
 				differentFromInheritance = true;
 			} else {
 				writeGlobalMetadataWithoutInheritance(metadata, utils, metadataElement,
-						notUserDefinedMetadata, globalMetadataInCollectionSchema);
+						notUserDefinedMetadata, globalMetadataInCollectionSchema, collectionInfo);
 				differentFromInheritance = true;
 			}
 		}
@@ -222,8 +222,8 @@ public class MetadataSchemaXMLWriter3 {
 
 	private void writeMetadataWithoutInheritance(Metadata metadata, ParametrizedInstanceUtils utils,
 												 Element metadataElement,
-												 boolean notUserDefinedMetadata) {
-		writeLabels(metadataElement, metadata.getLabels());
+												 boolean notUserDefinedMetadata, CollectionInfo collectionInfo) {
+		writeLabels(metadataElement, metadata.getLabels(), collectionInfo);
 
 		if (!metadata.isEnabled()) {
 			metadataElement.setAttribute("enabled", writeBoolean(metadata.isEnabled()));
@@ -336,11 +336,11 @@ public class MetadataSchemaXMLWriter3 {
 
 	private boolean writeGlobalMetadataWithoutInheritance(Metadata metadata, ParametrizedInstanceUtils utils,
 														  Element metadataElement, boolean notUserDefinedMetadata,
-														  Metadata globalMetadataInCollection) {
+														  Metadata globalMetadataInCollection, CollectionInfo collectionInfo) {
 
 		boolean different = false;
 		if (!globalMetadataInCollection.getLabels().equals(metadata.getLabels())) {
-			writeLabels(metadataElement, metadata.getLabels());
+			writeLabels(metadataElement, metadata.getLabels(), collectionInfo);
 			different = true;
 		}
 
@@ -484,7 +484,7 @@ public class MetadataSchemaXMLWriter3 {
 		return different;
 	}
 
-	private boolean writeMetadataWithInheritance(Metadata metadata, Element metadataElement) {
+	private boolean writeMetadataWithInheritance(Metadata metadata, Element metadataElement, CollectionInfo collectionInfo) {
 		boolean differentFromInheritance = false;
 		if (metadata.getInheritance().isDefaultRequirement() != metadata.isDefaultRequirement()) {
 			metadataElement.setAttribute("defaultRequirement", writeBoolean(metadata.isDefaultRequirement()));
@@ -508,7 +508,7 @@ public class MetadataSchemaXMLWriter3 {
 		}
 		if (metadata.getLabels() != null && !metadata.getLabels().isEmpty() && !metadata.getLabels()
 				.equals(metadata.getInheritance().getLabels())) {
-			writeLabels(metadataElement, metadata.getLabels());
+			writeLabels(metadataElement, metadata.getLabels(), collectionInfo);
 			differentFromInheritance = true;
 		}
 		if (metadata.getDefaultValue() != null && !metadata.getDefaultValue()
@@ -692,10 +692,18 @@ public class MetadataSchemaXMLWriter3 {
 		} else if (dataEntryValue.getType() == DataEntryType.AGGREGATED) {
 			AggregatedDataEntry agregatedDataEntry = (AggregatedDataEntry) dataEntryValue;
 			dataEntry.setAttribute("agregationType", agregatedDataEntry.getAgregationType().getCode());
-			dataEntry.setAttribute("referenceMetadata", agregatedDataEntry.getReferenceMetadata());
 
-			if (agregatedDataEntry.getInputMetadatas() != null && !agregatedDataEntry.getInputMetadatas().isEmpty()) {
-				String inputMetadatasStr = StringUtils.join(agregatedDataEntry.getInputMetadatas(), ",");
+			Map<String, List<String>> metadatasByRefMetadata = agregatedDataEntry.getInputMetadatasByReferenceMetadata();
+
+			String referenceMetadata = StringUtils.join(metadatasByRefMetadata.keySet(), ";");
+			dataEntry.setAttribute("referenceMetadata", referenceMetadata);
+
+			List<String> inputMetadataStr = new ArrayList<>();
+			for (List<String> inputMetadatas : metadatasByRefMetadata.values()) {
+				inputMetadataStr.add(StringUtils.join(inputMetadatas, ","));
+			}
+			if (!inputMetadataStr.isEmpty()) {
+				String inputMetadatasStr = StringUtils.join(inputMetadataStr, ";");
 				dataEntry.setAttribute("inputMetadata", inputMetadatasStr);
 			}
 			if (agregatedDataEntry.getAggregatedCalculator() != null) {

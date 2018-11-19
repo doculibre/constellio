@@ -9,7 +9,6 @@ import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
-import com.constellio.app.ui.tools.AuthorizationReportBuilder;
 import com.constellio.data.dao.services.factories.DataLayerFactory;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Transaction;
@@ -48,7 +47,7 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 
-		//givenBackgroundThreadsEnabled();
+		givenBackgroundThreadsEnabled();
 
 		givenTransactionLogIsEnabled();
 		prepareSystem(
@@ -84,7 +83,6 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 			}
 		});
 
-		System.out.println(new AuthorizationReportBuilder().build(getAppLayerFactory()));
 
 	}
 

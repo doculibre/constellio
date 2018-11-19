@@ -1,5 +1,6 @@
 package com.constellio.app.services.migrations.scripts;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.data.dao.managers.config.ConfigManagerException.OptimisticLockingConfiguration;
 import com.constellio.model.conf.email.EmailServerConfiguration;
 import com.constellio.model.services.emails.OldSmtpServerTestConfig;
@@ -62,26 +63,6 @@ public class CoreMigrationTo_5_1_3AcceptanceTest extends ConstellioTest {
 		assertThat(bobTokens).containsOnly(newBobToken);
 	}
 
-	@Test
-	public void givenSystemWithEncryptedTokensWhenReadingUsersTokensThenTokensDecrypted()
-			throws OptimisticLockingConfiguration, NoSuchAlgorithmException, IOException, InvalidKeySpecException {
-
-		givenSystemWithEncryptedTokens();
-
-		String validToken = "c84e2c14-f933-4399-aed2-95c538b2b7dd";
-		assertThat(
-				new XMLOutputter().outputString(getDataLayerFactory().getConfigManager().getXML("userCredentialsConfig.xml.old")
-						.getDocument())).doesNotContain(validToken);
-
-		List<String> adminTokens = getModelLayerFactory().newUserServices().getUserCredential("admin").getTokenKeys();
-		assertThat(adminTokens).contains(validToken);
-		assertThat(adminTokens).doesNotContain("invalidkey");
-		String serviceKey = getModelLayerFactory().getUserCredentialsManager().getServiceKeyByToken(validToken);
-		String userServiceKey = "adminkey";
-		assertThat(serviceKey).isEqualTo(userServiceKey);
-		boolean authenticated = getModelLayerFactory().newUserServices().isAuthenticated(userServiceKey, validToken);
-		assertThat(authenticated).isTrue();
-	}
 
 	private void givenSystemWithEncryptedTokens() {
 		givenTransactionLogIsEnabled();

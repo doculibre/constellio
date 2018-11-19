@@ -2,18 +2,15 @@ package com.constellio.app.ui.pages.search;
 
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
-import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
-import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.RMUser;
 import com.constellio.app.modules.rm.wrappers.StorageSpace;
+import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
 import com.constellio.model.services.records.RecordImpl;
@@ -31,11 +28,8 @@ import java.util.Set;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
 import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.allConditions;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
 
 public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SimpleSearchPresenter.class);
@@ -85,10 +79,29 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		searchExpression = search.getFreeTextSearch();
 		facetSelections.putAll(search.getSelectedFacets());
 		sortCriterion = search.getSortField();
-		sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		if(search.getSortOrder() != null) {
+			sortOrder = SortOrder.valueOf(search.getSortOrder().name());
+		}
 		pageNumber = search.getPageNumber();
 		resultsViewMode = search.getResultsViewMode() != null ? search.getResultsViewMode() : SearchResultsViewMode.DETAILED;
 		setSelectedPageLength(search.getPageLength());
+	}
+
+	@Override
+	void init(ConstellioFactories constellioFactories, SessionContext sessionContext) {
+		super.init(constellioFactories, sessionContext);
+
+		User user = view.getConstellioFactories().getAppLayerFactory()
+				.getModelLayerFactory().newUserServices().getUserInCollection(
+						view.getSessionContext().getCurrentUser().getUsername(),
+						collection);
+
+		if (allowedSchemaTypes().isEmpty()) {
+			service = new SearchPresenterService(collection, user, modelLayerFactory,null);
+		} else {
+			service = new SearchPresenterService(collection, user, modelLayerFactory,allowedSchemaTypes());
+		}
+
 	}
 
 	@Override
@@ -167,6 +180,7 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 		return true;
 	}
 
+
 	@Override
 	protected LogicalSearchCondition getSearchCondition() {
 		LogicalSearchCondition logicalSearchCondition;
@@ -187,15 +201,19 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 				.setPageNumber(pageNumber);
 	}
 
-	private List<MetadataSchemaType> allowedSchemaTypes() {
+	protected List<MetadataSchemaType> allowedSchemaTypes() {
 		List<MetadataSchemaType> result = new ArrayList<>();
-		for (MetadataSchemaType type : types().getSchemaTypes()) {
-			SchemaTypeDisplayConfig config = schemasDisplayManager()
-					.getType(view.getSessionContext().getCurrentCollection(), type.getCode());
-			if (config.isSimpleSearch() && isVisibleForUser(type, getCurrentUser())) {
-				result.add(type);
+		if(types() != null) {
+			for (MetadataSchemaType type : types().getSchemaTypes()) {
+				SchemaTypeDisplayConfig config = schemasDisplayManager()
+						.getType(view.getSessionContext().getCurrentCollection(), type.getCode());
+				if (config.isSimpleSearch() && isVisibleForUser(type, getCurrentUser())) {
+					result.add(type);
+				}
 			}
 		}
+
+
 		return result;
 	}
 

@@ -35,12 +35,14 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.rometools.utils.Strings;
 import com.vaadin.ui.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -76,27 +78,55 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	@Override
 	public DecommissioningBuilderPresenter forRequestParameters(String params) {
 		String[] parts = params.split("/", 3);
+		List<String> partsList = Arrays.asList(parts);
+		if(partsList.contains("new")) {
+			view.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+			view.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
+		}
+
+		String saveSearchFromSession = view.getUIContext().getAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 
 		if (!addMode) {
-			Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
-			searchType = SearchType.valueOf(parts[0]);
-			view.setCriteriaSchemaType(getSchemaType());
-			view.addEmptyCriterion();
-			view.addEmptyCriterion();
-			this.displayResults = false;
-			pageNumber = 1;
-		} else if (parts.length > 1) {
+			if(saveSearchFromSession == null || Strings.isBlank(saveSearchFromSession)) {
+				searchType = SearchType.valueOf(parts[0]);
+				view.setCriteriaSchemaType(getSchemaType());
+				view.addEmptyCriterion();
+				view.addEmptyCriterion();
+				this.displayResults = false;
+				pageNumber = 1;
+			} else {
+				searchType = SearchType.valueOf(parts[0]);
+				SavedSearch savedSearch = getSavedSearch(saveSearchFromSession);
+				setSavedSearch(savedSearch);
+				view.setExtraParameters(searchType.toString(), savedSearch.getId());
+				this.displayResults = true;
+			}
+		} else if (parts.length > 2) {
 			searchType = SearchType.valueOf(parts[0]);
 			SavedSearch search = getSavedSearch(parts[2]);
+
 			setSavedSearch(search);
 			this.displayResults = true;
+			view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, search.getId());
+			view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType.toString());
+			view.setExtraParameters(searchType.toString(), search.getId());
+
 		} else {
-			searchType = SearchType.valueOf(params);
-			view.setCriteriaSchemaType(getSchemaType());
-			view.addEmptyCriterion();
-			view.addEmptyCriterion();
-			this.displayResults = false;
-			pageNumber = 1;
+
+			if(saveSearchFromSession != null) {
+				searchType = SearchType.valueOf(params);
+				SavedSearch savedSearch = getSavedSearch(saveSearchFromSession);
+				setSavedSearch(savedSearch);
+				this.displayResults = true;
+				view.setExtraParameters(searchType.toString(), savedSearch.getId());
+			} else {
+				searchType = SearchType.valueOf(params);
+				view.setCriteriaSchemaType(getSchemaType());
+				view.addEmptyCriterion();
+				view.addEmptyCriterion();
+				this.displayResults = false;
+				pageNumber = 1;
+			}
 		}
 
 		return this;
@@ -175,7 +205,9 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		try {
 			buildSearchCondition();
 			resetFacetSelection();
+
 			view.refreshSearchResultsAndFacets();
+
 		} catch (ConditionException_EmptyCondition e) {
 			view.showErrorMessage($("AdvancedSearchView.emptyCondition"));
 		} catch (ConditionException_TooManyClosedParentheses e) {
@@ -427,8 +459,13 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 				.setPageNumber(pageNumber)
 				.setSelectedFacets(this.getFacetSelections().getNestedMap())
 				.setPageLength(getSelectedPageLength());
+		search.getWrappedRecord().markAsSaved(99, search.getSchema());
 		modelLayerFactory.getRecordsCaches().getCache(view.getCollection()).insert(search.getWrappedRecord(), WAS_MODIFIED);
 		//recordServices().update(search);
+
+		view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING, search.getId());
+		view.getUIContext().setAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE, searchType.toString());
+
 		if (refreshPage) {
 			view.navigate().to(RMViews.class).decommissioningListBuilderReplay(searchType.name(), search.getId());
 		}

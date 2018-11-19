@@ -103,7 +103,7 @@ public class ReindexingServices {
 		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == LESS_MEMORY_CONSUMPTION) {
 			this.mainThreadQueryRows = 100;
 
-//		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == NORMAL) {
+			//		} else if (modelLayerFactory.getSystemConfigs().getMemoryConsumptionLevel() == NORMAL) {
 			//			this.mainThreadQueryRows = 1000;
 
 		} else {

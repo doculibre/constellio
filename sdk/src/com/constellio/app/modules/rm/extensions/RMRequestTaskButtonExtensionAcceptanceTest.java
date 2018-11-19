@@ -2,7 +2,7 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerPresenter;
 import com.constellio.app.modules.rm.ui.pages.containers.DisplayContainerViewImpl;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
@@ -97,7 +97,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
 		when(folderView.navigate()).thenReturn(navigator);
 		when(folderView.getUIContext()).thenReturn(uiContext);
 		when(folderView.getRecord()).thenReturn(folderVO);
-		when(uiContext.getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE)).thenReturn("plan");
+		when(uiContext.getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE)).thenReturn("plan");
 
 		when(containerView.getSessionContext()).thenReturn(sessionContext);
 		when(containerView.getCollection()).thenReturn(zeCollection);
@@ -143,7 +143,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
 		recordServices.physicallyDeleteNoMatterTheStatus(task.getWrappedRecord(), User.GOD, new RecordPhysicalDeleteOptions());
 
 
-		containerPresenter.forContainerId(records.containerId_bac13); //Crocodile
+		containerPresenter.forParams(records.containerId_bac13); //Crocodile
 		extension.borrowRequest(containerView, true, "7");
 		tasks = taskSchemas.wrapTasks(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(rm.userTask.schemaType()).where(Schemas.IDENTIFIER).isNotEqual(task.getId()))));
@@ -173,7 +173,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenReturnButtonClickedForContainerThenCreateValidTask() {
-		containerPresenter.forContainerId(records.containerId_bac13); //Crocodile
+		containerPresenter.forParams(records.containerId_bac13); //Crocodile
 		extension.returnRequest(containerView);
 		List<Task> tasks = taskSchemas.wrapTasks(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(rm.userTask.schemaType()).returnAll())));
@@ -203,7 +203,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenReactivationButtonClickedForContainerThenCreateValidTask() {
-		containerPresenter.forContainerId(records.containerId_bac13); //Crocodile
+		containerPresenter.forParams(records.containerId_bac13); //Crocodile
 		extension.reactivationRequested(containerView, new RMRequestTaskButtonExtension.Request(new LocalDate().now(), RMRequestTaskButtonExtension.RequestType.REACTIVATION));
 		List<Task> tasks = taskSchemas.wrapTasks(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(rm.userTask.schemaType()).returnAll())));
@@ -233,7 +233,7 @@ public class RMRequestTaskButtonExtensionAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void givenBorrowExtensionButtonClickedForContainerThenCreateValidTask() {
-		containerPresenter.forContainerId(records.containerId_bac13); //Crocodile
+		containerPresenter.forParams(records.containerId_bac13); //Crocodile
 		extension.borrowExtensionRequested(containerView, new RMRequestTaskButtonExtension.Request(new LocalDate().now(), RMRequestTaskButtonExtension.RequestType.EXTENSION));
 		List<Task> tasks = taskSchemas.wrapTasks(getModelLayerFactory().newSearchServices().search(new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(rm.userTask.schemaType()).returnAll())));

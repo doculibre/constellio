@@ -11,21 +11,18 @@ import com.constellio.app.ui.entities.FacetValueVO;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.search.AdvancedSearchPresenter;
-import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.ui.pages.search.AdvancedSearchViewImpl;
 import com.constellio.app.ui.pages.search.SimpleSearchPresenter;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.ConditionBuilder;
 import com.constellio.app.ui.pages.search.criteria.CriteriaBuilder;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
-import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import com.constellio.sdk.tests.MockedNavigation;
-import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.Condition;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,12 +31,10 @@ import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.constellio.app.ui.pages.search.criteria.Criterion.BooleanOperator.OR;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -173,7 +168,8 @@ public class SearchPageExtensionAcceptanceTest extends ConstellioTest {
 	AdvancedSearchPresenter buildDefaultAdvancedSearchPresenter(final User user) {
 		AdvancedSearchPresenter advancedSearchPresenter = new AdvancedSearchPresenter(advancedSearchView) {
 			@Override
-			protected void updateUIContext(SavedSearch savedSearch) {}
+			protected void updateUIContext(SavedSearch savedSearch) {
+			}
 
 			@Override
 			protected User getCurrentUser() {
@@ -187,8 +183,8 @@ public class SearchPageExtensionAcceptanceTest extends ConstellioTest {
 	Condition<List<FacetVO>> onlyActiveFolders = new Condition<List<FacetVO>>() {
 		@Override
 		public boolean matches(List<FacetVO> facets) {
-			for(FacetVO facetVO: facets) {
-				if(rm.getFacet(facetVO.getId()).getFieldDataStoreCode().equals(rm.folder.archivisticStatus().getDataStoreCode())) {
+			for (FacetVO facetVO : facets) {
+				if (rm.getFacet(facetVO.getId()).getFieldDataStoreCode().equals(rm.folder.archivisticStatus().getDataStoreCode())) {
 					List<FacetValueVO> facetValues = facetVO.getValues();
 					return facetValues.size() == 1 && facetValues.get(0).getValue().equals("a");
 				}
@@ -200,8 +196,8 @@ public class SearchPageExtensionAcceptanceTest extends ConstellioTest {
 	Condition<List<FacetVO>> allArchivisticStatuses = new Condition<List<FacetVO>>() {
 		@Override
 		public boolean matches(List<FacetVO> facets) {
-			for(FacetVO facetVO: facets) {
-				if(rm.getFacet(facetVO.getId()).getFieldDataStoreCode().equals(rm.folder.archivisticStatus().getDataStoreCode())) {
+			for (FacetVO facetVO : facets) {
+				if (rm.getFacet(facetVO.getId()).getFieldDataStoreCode().equals(rm.folder.archivisticStatus().getDataStoreCode())) {
 					List<FacetValueVO> facetValues = facetVO.getValues();
 					return facetValues.size() == 4;
 				}

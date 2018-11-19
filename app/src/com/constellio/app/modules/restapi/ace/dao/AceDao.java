@@ -7,9 +7,9 @@ import com.constellio.app.modules.restapi.document.dto.AceDto;
 import com.constellio.app.modules.restapi.document.dto.AceListDto;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationDeleteRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
@@ -44,16 +44,16 @@ public class AceDao extends BaseDao {
 
 		List<Authorization> authorizations = authorizationsServices.getRecordAuthorizations(record);
 		for (Authorization authorization : authorizations) {
-			boolean direct = authorization.getGrantedOnRecord().equals(record.getId());
+			boolean direct = authorization.getTarget().equals(record.getId());
 
 			AceDto ace = AceDto.builder()
-					.authorizationId(authorization.getDetail().getId())
-					.principals(getPrincipals(authorization.getGrantedToPrincipals()))
-					.permissions(Sets.newLinkedHashSet(authorization.getDetail().getRoles()))
-					.startDate(authorization.getDetail().getStartDate() != null ?
-							   DateUtils.format(authorization.getDetail().getStartDate(), getDateFormat()) : null)
-					.endDate(authorization.getDetail().getEndDate() != null ?
-							 DateUtils.format(authorization.getDetail().getEndDate(), getDateFormat()) : null)
+					.authorizationId(authorization.getId())
+					.principals(getPrincipals(authorization.getPrincipals()))
+					.permissions(Sets.newLinkedHashSet(authorization.getRoles()))
+					.startDate(authorization.getStartDate() != null ?
+							   DateUtils.format(authorization.getStartDate(), getDateFormat()) : null)
+					.endDate(authorization.getEndDate() != null ?
+							 DateUtils.format(authorization.getEndDate(), getDateFormat()) : null)
 					.build();
 			if (direct) {
 				directAces.add(ace);

@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.RecordVORuntimeException;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -103,7 +104,11 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 
 	@Override
 	protected String getTitle() {
-		return $("CartView.viewTitle");
+		if (presenter.isDefaultCart()) {
+			return $("CartView.defaultFavoritesViewTitle");
+		} else {
+			return $("CartView.viewTitle");
+		}
 	}
 
 	@Override
@@ -115,10 +120,13 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 		buttons.add(buildFoldersBatchProcessingButton());
 		buttons.add(buildContainersBatchProcessingButton());
 		buttons.add(buildFoldersLabelsButton());
+		buttons.add(buildDocumentLabelsButton());
 		buttons.add(buildContainersLabelsButton());
 		buttons.add(buildBatchDeleteButton());
 		buttons.add(buildEmptyButton());
-		buttons.add(buildShareButton());
+		if (!presenter.isDefaultCart()) {
+			buttons.add(buildShareButton());
+		}
 		buttons.add(buildDecommissionButton());
 		buttons.add(buildPrintMetadataReportButton());
 		buttons.add(buildCreateSIPArchivesButton());
@@ -135,6 +143,12 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	private Button buildContainersLabelsButton() {
 		Button button = buildLabelsButton(ContainerRecord.SCHEMA_TYPE);
 		button.setCaption($("CartView.containersLabelsButton"));
+		return button;
+	}
+
+	private Button buildDocumentLabelsButton() {
+		Button button = buildLabelsButton(Document.SCHEMA_TYPE);
+		button.setCaption($("CartView.documentLabelsButton"));
 		return button;
 	}
 
@@ -199,7 +213,7 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildShareButton() {
-		return new WindowButton($("CartView.share"), $("CartView.shareWindow")) {
+		Button shareButton = new WindowButton($("CartView.share"), $("CartView.shareWindow")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout layout = new VerticalLayout();
@@ -222,6 +236,9 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				return layout;
 			}
 		};
+		shareButton.setEnabled(presenter.cartHasRecords());
+		shareButton.setVisible(presenter.cartHasRecords());
+		return shareButton;
 	}
 
 	private HorizontalLayout buildFolderFilterComponent() {
@@ -278,7 +295,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				super.buttonClick(event);
 			}
 		};
-
+		reportGeneratorButton.setEnabled(presenter.cartHasRecords());
+		reportGeneratorButton.setVisible(presenter.cartHasRecords());
 		return reportGeneratorButton;
 	}
 
@@ -399,10 +417,12 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				Property loadContainerProperty = null;
 				if (itemId instanceof Integer && CommonMetadataBuilder.SUMMARY.equals(propertyId)) {
 					RecordVO recordVO = dataProvider.getRecordVO((int) itemId);
-					MetadataVO metadataVO = recordVO.getSchema().getMetadata(Folder.SUMMARY);
-					String value = recordVO.get(recordVO.getSchema().getMetadata(Folder.SUMMARY));
-					if (metadataVO != null && !Strings.isNullOrEmpty(value)) {
-						loadContainerProperty = new ObjectProperty(value, Component.class);
+					if(recordVO.getMetadataOrNull(recordVO.getSchema().getCode() + "_" + Folder.SUMMARY) != null) {
+						MetadataVO metadataVO = recordVO.getSchema().getMetadata(Folder.SUMMARY);
+						String value = recordVO.get(recordVO.getSchema().getMetadata(Folder.SUMMARY));
+						if (metadataVO != null && !Strings.isNullOrEmpty(value)) {
+							loadContainerProperty = new ObjectProperty(value, Component.class);
+						}
 					}
 				} else {
 					loadContainerProperty = super.loadContainerProperty(itemId, propertyId);
@@ -669,6 +689,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				super.buttonClick(event);
 			}
 		};
+		siPbutton.setEnabled(presenter.cartHasRecords());
+		siPbutton.setVisible(presenter.cartHasRecords());
 		return siPbutton;
 	}
 
@@ -689,6 +711,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 			}
 
 		};
+		consolidatedPdfButton.setEnabled(presenter.cartHasRecords());
+		consolidatedPdfButton.setVisible(presenter.cartHasRecords());
 		return consolidatedPdfButton;
 	}
 

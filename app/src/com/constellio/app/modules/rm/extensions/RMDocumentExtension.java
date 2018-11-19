@@ -17,27 +17,40 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
+import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
+import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.SearchServices;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
 
 public class RMDocumentExtension extends RecordExtension {
+	private final ModelLayerFactory modelLayerFactory;
+	private final RMSchemasRecordsServices rmSchema;
 
 	private static String OUTLOOK_MSG_MIMETYPE = "application/vnd.ms-outlook";
 
 	private String collection;
-
 	private AppLayerFactory appLayerFactory;
+	private List<String> removedCartsIds;
 
 	public RMDocumentExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
+		rmSchema = new RMSchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory());
+		modelLayerFactory = appLayerFactory.getModelLayerFactory();
+		removedCartsIds = new ArrayList<>();
 	}
 
 	@Override
@@ -148,7 +161,16 @@ public class RMDocumentExtension extends RecordExtension {
 	}
 
 	@Override
-	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+	public void recordInModificationBeforeValidationAndAutomaticValuesCalculation(
+			RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent event) {
+		if (event.isSchemaType(Document.SCHEMA_TYPE)) {
+			Document document = rmSchema.wrapDocument(event.getRecord());
+			deleteNonExistentFavoritesIds(document);
+		}
+	}
+
+	@Override
+	public ExtensionValidationErrors isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
 				ConstellioFactories.getInstance().getAppLayerFactory());
 
@@ -171,10 +193,35 @@ public class RMDocumentExtension extends RecordExtension {
 			}
 			if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))
 				|| usedInTasks) {
-				return ExtensionBooleanResult.FALSE;
+				ValidationErrors validationErrors = new ValidationErrors();
+				if (usedInTasks) {
+					validationErrors.add(RMDocumentExtension.class, "documentUsedInTasks");
+				}
+				if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))) {
+					validationErrors.add(RMDocumentExtension.class, "userDoesNotHavePremissionToDeleteBorrowedDocument");
+				}
+				return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.FALSE);
 			}
 		}
 		return super.isLogicallyDeletable(event);
+	}
+
+	private void deleteNonExistentFavoritesIds(Document document) {
+		List<String> removedIds = new ArrayList<>();
+		RecordsCaches recordsCaches = modelLayerFactory.getRecordsCaches();
+		for (String cartId : document.getFavorites()) {
+			if (!removedCartsIds.contains(cartId)) {
+				if (recordsCaches.getRecord(cartId) == null) {
+					removedIds.add(cartId);
+					removedCartsIds.add(cartId);
+				}
+			} else {
+				removedIds.add(cartId);
+			}
+		}
+		if (!removedIds.isEmpty()) {
+			document.removeFavorites(removedIds);
+		}
 	}
 
 }

@@ -28,6 +28,12 @@ public class MetadataAggregationHandlerFactory {
 			case VALUES_UNION:
 				return new UnionMetadataAggregationHandler();
 
+			case LOGICAL_AND:
+				return new LogicalAndMetadataAggregationHandler();
+
+			case LOGICAL_OR:
+				return new LogicalOrMetadataAggregationHandler();
+
 			default:
 				throw new ImpossibleRuntimeException("Aggregation type is not yet supported : " + dataEntry.getAgregationType());
 		}

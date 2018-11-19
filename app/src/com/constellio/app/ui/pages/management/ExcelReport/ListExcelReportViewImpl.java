@@ -1,6 +1,5 @@
 package com.constellio.app.ui.pages.management.ExcelReport;
 
-import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.RecordVO;
@@ -8,10 +7,6 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
-
-
-
-
 import com.constellio.app.ui.framework.components.TabWithTable;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
@@ -21,7 +16,6 @@ import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
-import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.vaadin.data.Container;
@@ -211,8 +205,8 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
 
 		@Override
 		public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
-			for(TabWithTable tab: tabs) {
-				if(tab.getTabLayout().equals(event.getTabSheet().getSelectedTab())) {
+			for (TabWithTable tab : tabs) {
+				if (tab.getTabLayout().equals(event.getTabSheet().getSelectedTab())) {
 					tab.refreshTable();
 					currentSchema = (String) tab.getId();
 					break;

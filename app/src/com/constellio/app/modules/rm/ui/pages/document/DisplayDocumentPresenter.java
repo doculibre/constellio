@@ -1,16 +1,16 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.document.DocumentActionsPresenterUtils;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.TasksPermissionsTo;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflow;
@@ -30,6 +30,7 @@ import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
@@ -42,6 +43,7 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.search.StatusFilter;
@@ -66,6 +68,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static java.util.Arrays.asList;
 
 public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayDocumentView> {
+	private transient RecordServices recordServices;
 
 	protected DocumentToVOBuilder voBuilder;
 	protected ContentVersionToVOBuilder contentVersionVOBuilder;
@@ -82,9 +85,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private String lastKnownCheckoutUserId;
 	private Long lastKnownLength;
 	private Document document;
+	private Map<String, String> params = null;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, boolean popup) {
 		super(view);
+		initTransientObjects();
 		presenterUtils = new DocumentActionsPresenterUtils<DisplayDocumentView>(view) {
 			@Override
 			public void updateActionsComponent() {
@@ -98,9 +103,25 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 
-		if (recordVO != null) {
+		if (recordVO != null && params == null) {
 			forParams(recordVO.getId());
 		}
+	}
+
+	private void initTransientObjects() {
+		recordServices = modelLayerFactory.newRecordServices();
+	}
+
+	public Document getDocument() {
+		return document;
+	}
+
+	public void setDocument(Document document) {
+		this.document = document;
+	}
+
+	public Record getRecord() {
+		return record;
 	}
 
 	@Override
@@ -108,9 +129,22 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return true;
 	}
 
+	public Map<String, String> getParams() {
+		return params;
+	}
+
 	public void forParams(String params) {
-		String id = params;
-		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE);
+		String id;
+
+		if (params.contains("id")) {
+			this.params = ParamUtils.getParamsMap(params);
+			id = this.params.get("id");
+		} else {
+			id = params;
+		}
+
+
+		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
 
 		this.record = getRecord(id);
@@ -160,6 +194,19 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public int getTaskCount() {
 		return tasksDataProvider.size();
+	}
+
+	public List<LabelTemplate> getDefaultTemplates() {
+		return view.getConstellioFactories().getAppLayerFactory().getLabelTemplateManager().listTemplates(Document.SCHEMA_TYPE);
+	}
+
+	public List<LabelTemplate> getCustomTemplates() {
+		return view.getConstellioFactories().getAppLayerFactory().getLabelTemplateManager().listExtensionTemplates(Document.SCHEMA_TYPE);
+	}
+
+	public RecordVO getDocumentVO() {
+		return new RecordToVOBuilder()
+				.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public void backgroundViewMonitor() {
@@ -277,11 +324,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void editDocumentButtonClicked() {
-		presenterUtils.editDocumentButtonClicked();
+		presenterUtils.editDocumentButtonClicked(params);
 	}
 
 	public void deleteDocumentButtonClicked() {
-		presenterUtils.deleteDocumentButtonClicked();
+		presenterUtils.deleteDocumentButtonClicked(params);
 	}
 
 	public void linkToDocumentButtonClicked() {
@@ -299,7 +346,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void createPDFAButtonClicked() {
 		if (!presenterUtils.getDocumentVO().getExtension().toUpperCase().equals("PDF") && !presenterUtils.getDocumentVO()
 				.getExtension().toUpperCase().equals("PDFA")) {
-			presenterUtils.createPDFA();
+			presenterUtils.createPDFA(params);
 		} else {
 			this.view.showErrorMessage($("DocumentActionsComponent.documentAllreadyPDFA"));
 		}
@@ -335,7 +382,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void copyContentButtonClicked() {
-		presenterUtils.copyContentButtonClicked();
+		presenterUtils.copyContentButtonClicked(params);
 	}
 
 	public String getContentTitle() {
@@ -346,7 +393,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		Document document = presenterUtils.renameContentButtonClicked(newContentTitle);
 		if (document != null) {
 			addOrUpdate(document.getWrappedRecord());
-			view.navigate().to(RMViews.class).displayDocument(document.getId());
+			presenterUtils.navigateToDisplayDocument(document.getId(), params);
 		}
 	}
 
@@ -381,7 +428,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void addToCartRequested(RecordVO recordVO) {
-		presenterUtils.addToCartRequested(recordVO);
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(rm.getCart(recordVO.getId()).getId(), 1)) {
+			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			presenterUtils.addToCartRequested(recordVO);
+		}
 	}
 
 	public InputStream getSignatureInputStream(String certificate, String password) {
@@ -418,13 +469,13 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
+		document.addFavorite(cart.getId());
 		try {
-			cart.addDocuments(Arrays.asList(presenterUtils.getDocumentVO().getId()));
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			recordServices().update(document);
 			view.showMessage($("DocumentActionsComponent.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
-			throw new RuntimeException(e);
 		}
 	}
 
@@ -505,6 +556,36 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		LogicalSearchQuerySort sortField = new FunctionLogicalSearchQuerySort(
 				"termfreq(" + metadata.getDataStoreCode() + ",\'" + getCurrentUser().getId() + "\')", false);
 		query.sortFirstOn(sortField);
+	}
+
+	public void addToDefaultFavorite() {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(getCurrentUser().getId(), 1)) {
+			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			document.addFavorite(getCurrentUser().getId());
+			try {
+				recordServices.update(document);
+			} catch (RecordServicesException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+			view.showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
+		}
+	}
+
+	public void removeFromDefaultFavorites() {
+		document.removeFavorite(getCurrentUser().getId());
+		try {
+			recordServices.update(document);
+		} catch (RecordServicesException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+		view.showMessage($("DisplayDocumentView.documentRemovedFromDefaultFavorites"));
+	}
+
+	public boolean inDefaultFavorites() {
+		return document.getFavorites().contains(getCurrentUser().getId());
 	}
 
 	public RMSelectionPanelReportPresenter buildReportPresenter() {

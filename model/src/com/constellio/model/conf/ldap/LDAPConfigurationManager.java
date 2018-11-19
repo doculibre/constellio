@@ -16,11 +16,11 @@ import com.constellio.model.services.users.sync.LDAPFastBind;
 import com.constellio.model.services.users.sync.RuntimeNamingException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.joda.time.Duration;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.LdapContext;
@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.regex.PatternSyntaxException;
 
 public class LDAPConfigurationManager implements StatefulService {
-	private static final Logger LOGGER = LogManager.getLogger(LDAPConfigurationManager.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(LDAPConfigurationManager.class);
 
 	private static final String CACHE_KEY = "configs";
 	private static final String LDAP_CONFIGS = "ldapConfigs.properties";
@@ -67,7 +67,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	public void saveLDAPConfiguration(final LDAPServerConfiguration ldapServerConfiguration,
-			final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+									  final LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		saveLDAPConfiguration(ldapServerConfiguration, ldapUserSyncConfiguration, true);
 	}
 
@@ -243,7 +243,7 @@ public class LDAPConfigurationManager implements StatefulService {
 			}
 
 			if (ldapUserSyncConfiguration.getDurationBetweenExecution() != null
-					&& ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() != 0L) {
+				&& ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() != 0L) {
 				if (ldapUserSyncConfiguration.getDurationBetweenExecution().getMillis() < MIN_DURATION) {
 					throw new TooShortDurationRuntimeException(ldapUserSyncConfiguration.getDurationBetweenExecution());
 				}
@@ -252,7 +252,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	private void validateADAndEDirectoryConfiguration(LDAPServerConfiguration configs,
-			LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
+													  LDAPUserSyncConfiguration ldapUserSyncConfiguration) {
 		boolean activeDirectory = configs.getDirectoryType().equals(LDAPDirectoryType.ACTIVE_DIRECTORY);
 		for (String url : configs.getUrls()) {
 			try {
@@ -274,7 +274,7 @@ public class LDAPConfigurationManager implements StatefulService {
 			try {
 				ctx = ldapServices.connectToLDAP(configs.getDomains(), url, ldapUserSyncConfiguration.getUser(),
 						ldapUserSyncConfiguration.getPassword(), configs.getFollowReferences(), activeDirectory);
-			}  finally {
+			} finally {
 				if (ctx != null) {
 					try {
 						ctx.close();
@@ -407,7 +407,7 @@ public class LDAPConfigurationManager implements StatefulService {
 		String directoryTypeString = getString(configs, "ldap.serverConfiguration.directoryType",
 				LDAPDirectoryType.ACTIVE_DIRECTORY.getCode()).toLowerCase();
 		if (StringUtils.isBlank(directoryTypeString) ||
-				directoryTypeString.equals(LDAPDirectoryType.ACTIVE_DIRECTORY.getCode().toLowerCase())) {
+			directoryTypeString.equals(LDAPDirectoryType.ACTIVE_DIRECTORY.getCode().toLowerCase())) {
 			return LDAPDirectoryType.ACTIVE_DIRECTORY;
 		} else if (directoryTypeString.equals(LDAPDirectoryType.E_DIRECTORY.getCode().toLowerCase())) {
 			return LDAPDirectoryType.E_DIRECTORY;
@@ -420,7 +420,7 @@ public class LDAPConfigurationManager implements StatefulService {
 	}
 
 	private List<String> getSharpSeparatedValuesWithoutBlanks(Map<String, String> configs, String key,
-			ArrayList<String> defaultValues) {
+															  ArrayList<String> defaultValues) {
 		String allValuesString = getString(configs, key, "");
 		String[] allVales = StringUtils.split(allValuesString, "#");
 		if (allVales.length == 0) {

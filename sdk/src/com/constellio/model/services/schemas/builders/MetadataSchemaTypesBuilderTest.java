@@ -8,7 +8,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.CalculatorUsingM2;
-import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyNoDependenciesCalculator;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyNumberCalculator2;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderTestCalculatorUtils.DummyReferenceNumberCalculator;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
@@ -459,25 +458,6 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 		typesBuilder.build(typesFactory, modelLayerFactory);
 	}
 
-	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.NoDependenciesInCalculator.class)
-	public void givenMetadataWithCalculatedEntryWithoutDependenciesWhenBuildingThenException()
-			throws Exception {
-
-		MetadataBuilder metadataWithCalculatedEntry = givenZeDefaultSchemaMetadata(STRING).setMultivalue(false);
-		metadataWithCalculatedEntry.defineDataEntry().asCalculated(DummyNoDependenciesCalculator.class);
-
-		typesBuilder.build(typesFactory, modelLayerFactory);
-	}
-
-	@Test(expected = MetadataSchemaTypesBuilderRuntimeException.NoDependenciesInCalculator.class)
-	public void givenMetadataWithCalculatedEntryWithoutReferenceDependencyWhenBuildingThenException()
-			throws Exception {
-
-		MetadataBuilder metadataWithCalculatedEntry = givenZeDefaultSchemaMetadata(STRING).setMultivalue(false);
-		metadataWithCalculatedEntry.defineDataEntry().asCalculated(DummyNoDependenciesCalculator.class);
-
-		typesBuilder.build(typesFactory, modelLayerFactory);
-	}
 
 	@Test
 	public void givenMultiValueMetadataWithCalculatedEntryAndAMultivalueLocalDependencyAndListCalculatedWhenBuildingThenOk()
@@ -708,8 +688,8 @@ public class MetadataSchemaTypesBuilderTest extends ConstellioTest {
 
 		assertThat(metadatas).extracting("localCode")
 				.isEqualTo(
-						asList("allReferences", "allRemovedAuths", "attachedAncestors", "autocomplete", "inheritedauthorizations",
-								"m2", "parentpath", "path", "tokens", "allauthorizations", "m1", "pathParts", "principalpath",
+						asList("allReferences", "allRemovedAuths", "attachedAncestors", "autocomplete",
+								"m2", "path", "tokens", "m1", "pathParts", "principalpath",
 								"tokensHierarchy"));
 
 	}

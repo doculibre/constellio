@@ -87,7 +87,7 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 
 		when(modelLayerFactory.getExtensions()).thenReturn(extensions);
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
-		when(dataLayerFactory.getRecordsCacheManager()).thenReturn(recordsCacheManager);
+		when(dataLayerFactory.getDistributedCacheManager()).thenReturn(recordsCacheManager);
 		when(extensions.getSystemWideExtensions()).thenReturn(systemExtensions);
 
 		cache = new RecordsCacheIgniteImpl(zeCollection, modelLayerFactory);
@@ -1707,6 +1707,11 @@ public class RecordsCacheIgniteAcceptanceTest extends ConstellioTest {
 		@Override
 		public boolean isOfSchemaType(String type) {
 			return false;
+		}
+
+		@Override
+		public void markAsSaved(long version, MetadataSchema schema) {
+
 		}
 
 		public <T> List<T> getValues(Metadata metadata) {

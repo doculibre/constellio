@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitExcelReportParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AdministrativeUnitReportParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.AvailableSpaceReportParameters;
 import com.constellio.app.modules.rm.reports.builders.administration.plan.ClassificationReportPlanParameters;
@@ -43,7 +44,8 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 				new ReportWithCaptionVO("Reports.AdministrativeUnitsAndUsers", $("Reports.AdministrativeUnitsAndUsers")),
 				new ReportWithCaptionVO("Reports.Users", $("Reports.Users")),
 				new ReportWithCaptionVO("Reports.AvailableSpaceReport", $("Reports.AvailableSpaceReport")),
-				new ReportWithCaptionVO("Reports.AvailableSpaceReportAll", $("Reports.AvailableSpaceReportAll")));
+				new ReportWithCaptionVO("Reports.AvailableSpaceReportAll", $("Reports.AvailableSpaceReportAll")),
+				new ReportWithCaptionVO("Reports.administrativeUnitExcelFormat", $("Reports.administrativeUnitExcelFormat")));
 	}
 
 	public NewReportWriterFactory getReport(String report) {
@@ -73,6 +75,8 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 				return rmModuleExtensions.getReportBuilderFactories().availableSpaceBuilderFactory.getValue();
 			case "Reports.AvailableSpaceReportAll":
 				return rmModuleExtensions.getReportBuilderFactories().availableSpaceBuilderFactory.getValue();
+			case "Reports.administrativeUnitExcelFormat":
+				return 	rmModuleExtensions.getReportBuilderFactories().administrativeUnitExcelBuilderFactory.getValue();
 
 		}
 
@@ -105,6 +109,8 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 				return new AvailableSpaceReportParameters(false);
 			case "Reports.AvailableSpaceReportAll":
 				return new AvailableSpaceReportParameters(true);
+			case "Reports.administrativeUnitExcelFormat":
+				return 	new AdministrativeUnitExcelReportParameters();
 		}
 
 		throw new RuntimeException("BUG: Unknown report: " + report);

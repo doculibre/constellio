@@ -15,7 +15,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
@@ -92,15 +92,15 @@ public class CoreMigrationTo_7_1 implements MigrationScript {
 			UserBuilder.create(User.ADDRESS).setEssential(false).setType(MetadataValueType.STRING).defineDataEntry().asManual();
 
 			if (typesBuilder.getCollection().equals(Collection.SYSTEM_COLLECTION)) {
-				MetadataSchemaBuilder UserCredentialBuilder = typesBuilder.getSchemaType(SolrUserCredential.SCHEMA_TYPE)
+				MetadataSchemaBuilder UserCredentialBuilder = typesBuilder.getSchemaType(UserCredential.SCHEMA_TYPE)
 						.getDefaultSchema();
-				UserCredentialBuilder.create(SolrUserCredential.ADDRESS).setEssential(false).setType(MetadataValueType.STRING)
+				UserCredentialBuilder.create(UserCredential.ADDRESS).setEssential(false).setType(MetadataValueType.STRING)
 						.defineDataEntry().asManual();
-				UserCredentialBuilder.create(SolrUserCredential.FAX).setEssential(false).setType(MetadataValueType.STRING)
+				UserCredentialBuilder.create(UserCredential.FAX).setEssential(false).setType(MetadataValueType.STRING)
 						.defineDataEntry().asManual();
-				UserCredentialBuilder.create(SolrUserCredential.JOB_TITLE).setEssential(false).setType(MetadataValueType.STRING)
+				UserCredentialBuilder.create(UserCredential.JOB_TITLE).setEssential(false).setType(MetadataValueType.STRING)
 						.defineDataEntry().asManual();
-				UserCredentialBuilder.create(SolrUserCredential.PHONE).setEssential(false).setType(MetadataValueType.STRING)
+				UserCredentialBuilder.create(UserCredential.PHONE).setEssential(false).setType(MetadataValueType.STRING)
 						.defineDataEntry().asManual();
 			}
 		}

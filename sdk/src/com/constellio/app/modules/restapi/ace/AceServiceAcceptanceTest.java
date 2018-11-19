@@ -8,8 +8,8 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -123,9 +123,9 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 		aceService.addAces(admin, document.getWrappedRecord(), aces);
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
-		assertThat(authorizations).extracting("grantedToPrincipals").contains(
+		assertThat(authorizations).extracting("principals").contains(
 				toPrincipalIds(aces.get(0).getPrincipals()), toPrincipalIds(aces.get(1).getPrincipals()));
-		assertThat(authorizations).extracting("detail").extracting("roles", "startDate", "endDate").contains(
+		assertThat(authorizations).extracting("roles", "startDate", "endDate").contains(
 				tuple(Lists.newArrayList(aces.get(0).getPermissions()), toLocalDate(aces.get(0).getStartDate()), toLocalDate(aces.get(0).getEndDate())),
 				tuple(Lists.newArrayList(aces.get(1).getPermissions()), toLocalDate(aces.get(1).getStartDate()), toLocalDate(aces.get(1).getEndDate())));
 	}
@@ -139,9 +139,9 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(1);
-		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder)
+		assertThat(authorizations).extracting("principals").usingElementComparator(comparingListAnyOrder)
 				.containsOnly(toPrincipalIds(asList(chuck, alice, bob)));
-		assertThat(authorizations).extracting("detail").extracting("roles", "startDate", "endDate")
+		assertThat(authorizations).extracting("roles", "startDate", "endDate")
 				.containsOnly(tuple(singletonList(READ), null, null));
 	}
 
@@ -156,11 +156,11 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(2);
-		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder)
+		assertThat(authorizations).extracting("principals").usingElementComparator(comparingListAnyOrder)
 				.containsOnly(toPrincipalIds(aces.get(0).getPrincipals()), toPrincipalIds(aces.get(1).getPrincipals()));
-		assertThat(authorizations).extracting("detail").extracting("roles").usingElementComparator(comparingListAnyOrder)
+		assertThat(authorizations).extracting("roles").usingElementComparator(comparingListAnyOrder)
 				.containsOnly(Lists.newArrayList(aces.get(0).getPermissions()), Lists.newArrayList(aces.get(1).getPermissions()));
-		assertThat(authorizations).extracting("detail").extracting("startDate", "endDate")
+		assertThat(authorizations).extracting("startDate", "endDate")
 				.containsOnly(tuple(toLocalDate(aces.get(0).getStartDate()), toLocalDate(aces.get(0).getEndDate())),
 						tuple(toLocalDate(aces.get(1).getStartDate()), toLocalDate(aces.get(1).getEndDate())));
 	}
@@ -173,11 +173,11 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(1);
-		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder)
+		assertThat(authorizations).extracting("principals").usingElementComparator(comparingListAnyOrder)
 				.containsOnly(toPrincipalIds(asList(chuck, alice, bob)));
-		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder)
+		assertThat(authorizations).extracting("roles").usingElementComparator(comparingListAnyOrder)
 				.containsOnly(asList(READ, WRITE, DELETE));
-		assertThat(authorizations).extracting("detail").extracting("startDate", "endDate")
+		assertThat(authorizations).extracting("startDate", "endDate")
 				.containsOnly(tuple(null, null));
 	}
 
@@ -193,15 +193,15 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(3);
-		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder).containsOnly(
+		assertThat(authorizations).extracting("principals").usingElementComparator(comparingListAnyOrder).containsOnly(
 				toPrincipalIds(aces.get(0).getPrincipals()),
 				toPrincipalIds(aces.get(1).getPrincipals()),
 				toPrincipalIds(aces.get(2).getPrincipals()));
-		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder).containsOnly(
+		assertThat(authorizations).extracting("roles").usingElementComparator(comparingListAnyOrder).containsOnly(
 				Lists.newArrayList(aces.get(0).getPermissions()),
 				Lists.newArrayList(aces.get(1).getPermissions()),
 				Lists.newArrayList(aces.get(2).getPermissions()));
-		assertThat(authorizations).extracting("detail").extracting("startDate", "endDate").containsOnly(
+		assertThat(authorizations).extracting("startDate", "endDate").containsOnly(
 				tuple(toLocalDate(aces.get(0).getStartDate()), toLocalDate(aces.get(0).getEndDate())),
 				tuple(toLocalDate(aces.get(1).getStartDate()), toLocalDate(aces.get(1).getEndDate())),
 				tuple(toLocalDate(aces.get(2).getStartDate()), toLocalDate(aces.get(2).getEndDate())));
@@ -219,11 +219,11 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(2);
-		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder)
+		assertThat(authorizations).extracting("principals").usingElementComparator(comparingListAnyOrder)
 				.containsOnly(toPrincipalIds(aces.get(0).getPrincipals()), toPrincipalIds(aces.get(1).getPrincipals()));
-		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder)
+		assertThat(authorizations).extracting("roles").usingElementComparator(comparingListAnyOrder)
 				.containsOnly(Lists.newArrayList(aces.get(0).getPermissions()), Lists.newArrayList(aces.get(1).getPermissions()));
-		assertThat(authorizations).extracting("detail").extracting("startDate", "endDate")
+		assertThat(authorizations).extracting("startDate", "endDate")
 				.containsOnly(tuple(toLocalDate(aces.get(0).getStartDate()), toLocalDate(aces.get(0).getEndDate())),
 						tuple(toLocalDate(aces.get(1).getStartDate()), toLocalDate(aces.get(1).getEndDate())));
 	}
@@ -235,7 +235,7 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(1);
-		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder)
+		assertThat(authorizations).extracting("roles").usingElementComparator(comparingListAnyOrder)
 				.containsOnly(asList(READ, DELETE));
 	}
 
@@ -246,7 +246,7 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(1);
-		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder)
+		assertThat(authorizations).extracting("roles").usingElementComparator(comparingListAnyOrder)
 				.containsOnly(asList(READ, WRITE));
 	}
 
@@ -257,7 +257,7 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(1);
-		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder)
+		assertThat(authorizations).extracting("roles").usingElementComparator(comparingListAnyOrder)
 				.containsOnly(asList(READ, WRITE, DELETE));
 	}
 
@@ -270,16 +270,16 @@ public class AceServiceAcceptanceTest extends ConstellioTest {
 
 		List<Authorization> authorizations = filterInherited(authorizationsServices.getRecordAuthorizations(document.getWrappedRecord()));
 		assertThat(authorizations).hasSize(1);
-		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder)
+		assertThat(authorizations).extracting("principals").usingElementComparator(comparingListAnyOrder)
 				.containsOnly(toPrincipalIds(asList(chuck, alice, bob)));
-		assertThat(authorizations).extracting("detail").extracting("roles", "startDate", "endDate")
+		assertThat(authorizations).extracting("roles", "startDate", "endDate")
 				.containsOnly(tuple(asList(READ, WRITE), null, null));
 	}
 
 	private List<Authorization> filterInherited(List<Authorization> authorizations) {
 		List<Authorization> filteredAuthorizations = Lists.newArrayList();
 		for (Authorization authorization : authorizations) {
-			if (authorization.getGrantedOnRecord().equals(document.getId())) {
+			if (authorization.getTarget().equals(document.getId())) {
 				filteredAuthorizations.add(authorization);
 			}
 		}

@@ -19,7 +19,7 @@ public abstract class TabWithTable {
 		this.tabLayout = new VerticalLayout();
 		this.table = buildTable();
 		this.tabLayout.addComponent(table);
-		if(StringUtils.isNotBlank(caption)) {
+		if (StringUtils.isNotBlank(caption)) {
 			tabLayout.setCaption(caption);
 		}
 	}

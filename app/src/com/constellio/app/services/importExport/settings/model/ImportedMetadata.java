@@ -48,6 +48,7 @@ public class ImportedMetadata {
 	private Boolean unmodifiable;
 	private Boolean advanceSearchable;
 	private Boolean relationshipProvidingSecurity;
+	private List<String> requiredReadRoles;
 
 	private ImportedDataEntry dataEntry;
 
@@ -59,6 +60,15 @@ public class ImportedMetadata {
 
 	public ImportedMetadata setCode(String code) {
 		this.code = code;
+		return this;
+	}
+
+	public List<String> getRequiredReadRoles() {
+		return requiredReadRoles;
+	}
+
+	public ImportedMetadata setRequiredReadRoles(List<String> requiredReadRoles) {
+		this.requiredReadRoles = requiredReadRoles;
 		return this;
 	}
 
@@ -369,20 +379,20 @@ public class ImportedMetadata {
 	public List<String> getVisibleInListInSchemas(ListType listType) {
 		switch (listType) {
 
-			case DISPLAY:
-				return getVisibleInDisplayIn();
+		case DISPLAY:
+			return getVisibleInDisplayIn();
 
-			case FORM:
-				return getVisibleInFormIn();
+		case FORM:
+			return getVisibleInFormIn();
 
-			case SEARCH:
-				return getVisibleInResultIn();
+		case SEARCH:
+			return getVisibleInResultIn();
 
-			case TABLES:
-				return getVisibleInTablesIn();
+		case TABLES:
+			return getVisibleInTablesIn();
 
-			default:
-				throw new RuntimeException("Unsupported list " + listType);
+		default:
+			throw new RuntimeException("Unsupported list " + listType);
 
 		}
 
@@ -391,20 +401,20 @@ public class ImportedMetadata {
 	public Boolean getVisible(ListType listType) {
 		switch (listType) {
 
-			case DISPLAY:
-				return getVisibleInDisplay();
+		case DISPLAY:
+			return getVisibleInDisplay();
 
-			case FORM:
-				return getVisibleInForm();
+		case FORM:
+			return getVisibleInForm();
 
-			case SEARCH:
-				return getVisibleInSearchResult();
+		case SEARCH:
+			return getVisibleInSearchResult();
 
-			case TABLES:
-				return getVisibleInTables();
+		case TABLES:
+			return getVisibleInTables();
 
-			default:
-				throw new RuntimeException("Unsupported list " + listType);
+		default:
+			throw new RuntimeException("Unsupported list " + listType);
 
 		}
 

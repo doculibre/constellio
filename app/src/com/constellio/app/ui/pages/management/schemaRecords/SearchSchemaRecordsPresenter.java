@@ -11,6 +11,7 @@ import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotPhysicallyDeleteRecord;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.StatusFilter;
@@ -65,7 +66,8 @@ public class SearchSchemaRecordsPresenter extends SingleSchemaBasePresenter<Sear
 	}
 
 	public void deleteButtonClicked(RecordVO recordVO) {
-		if (isDeletable(recordVO)) {
+		ValidationErrors validationErrors = validateDeletable(recordVO);
+		if (validationErrors.isEmpty()) {
 			Record record = getRecord(recordVO.getId());
 			try {
 				delete(record, false);

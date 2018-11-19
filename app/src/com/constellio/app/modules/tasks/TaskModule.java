@@ -8,9 +8,11 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.core.LockedRecordsExtension;
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
+import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension;
+import com.constellio.app.modules.tasks.extensions.TaskSchemaTypesPageExtension;
 import com.constellio.app.modules.tasks.extensions.TaskStatusSchemasExtension;
 import com.constellio.app.modules.tasks.extensions.WorkflowRecordExtension;
 import com.constellio.app.modules.tasks.extensions.schema.TaskTrashSchemaExtension;
@@ -107,7 +109,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollection(collection);
 		extensions.recordAppExtensions.add(new TaskRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new TaskRecordNavigationExtension(appLayerFactory, collection));
-
+		extensions.schemaTypesPageExtensions.add(new TaskSchemaTypesPageExtension());
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {
@@ -181,11 +183,15 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 	private void registerManagers(String collection, AppLayerFactory appLayerFactory) {
 		appLayerFactory.registerManager(collection, ID, TaskReminderEmailManager.ID,
 				new TaskReminderEmailManager(appLayerFactory, collection));
+
+
 	}
 
 	@Override
 	public void start(AppLayerFactory appLayerFactory) {
 		TasksNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
+
+		appLayerFactory.getModelLayerFactory().getCachesManager().register(new UnreadTasksUserCache(appLayerFactory));
 	}
 
 	@Override

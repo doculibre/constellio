@@ -73,11 +73,14 @@ public class SearchFieldsPopulatorTest extends ConstellioTest {
 	@Mock ConstellioEIMConfigs configs;
 	@Mock ModelLayerExtensions extensions;
 
+	CollectionInfo collectionInfo = new CollectionInfo(zeCollection, "klingon", collectionLanguages);
+
 	@Before
 	public void setUp()
 			throws Exception {
 
-		populator = new SearchFieldsPopulator(types, false, parsedContentProvider, collectionLanguages, configs, extensions);
+
+		populator = new SearchFieldsPopulator(types, false, parsedContentProvider, collectionInfo, configs, extensions);
 
 		when(languageDectionServices.tryDetectLanguage(oldElvishText)).thenReturn("elvish");
 		when(languageDectionServices.tryDetectLanguage(oldElvishText2)).thenReturn("elvish");

@@ -19,4 +19,6 @@ public interface DecommissioningBuilderView extends SearchView, ArchivesManageme
 
 	List<Criterion> getSearchCriteria();
 
+	void setExtraParameters(String searchType, String saveEventId);
+
 }

@@ -201,6 +201,10 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	private Component buildRecordTable(final RecordTable recordTable) {
 		RecordVODataProvider dataProvider = recordTable
 				.getDataProvider(getConstellioFactories().getAppLayerFactory(), getSessionContext());
+		return buildTable(dataProvider);
+	}
+
+	private Component buildTable(RecordVODataProvider dataProvider) {
 		RecordVOLazyContainer container = new RecordVOLazyContainer(dataProvider);
 		final RecordVOTable table = new RecordVOTable(container);
 		table.addStyleName("record-table");
@@ -330,7 +334,17 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	private Component buildCustomComponent(CustomItem tabSource) {
-		Component component = tabSource.buildCustomComponent(getConstellioFactories(), getSessionContext());
+		ItemClickListener itemClickListener = new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				if (event.getButton() == MouseButton.LEFT) {
+					RecordVOItem recordItem = (RecordVOItem) event.getItem();
+					RecordVO recordVO = recordItem.getRecord();
+					presenter.recordClicked(recordVO.getId(), null);
+				}
+			}
+		};
+		Component component = tabSource.buildCustomComponent(getConstellioFactories(), getSessionContext(), itemClickListener);
 		if (component instanceof BaseViewImpl) {
 			((BaseViewImpl) component).enter(null);
 		}

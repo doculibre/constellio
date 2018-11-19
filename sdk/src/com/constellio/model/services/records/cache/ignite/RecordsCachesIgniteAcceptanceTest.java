@@ -34,7 +34,7 @@ public class RecordsCachesIgniteAcceptanceTest extends ConstellioTest {
 		cacheManager = new ConstellioIgniteCacheManager("localhost:47500", "1.2.3.42");
 
 		when(modelLayerFactory.getDataLayerFactory()).thenReturn(dataLayerFactory);
-		when(dataLayerFactory.getRecordsCacheManager()).thenReturn(cacheManager);
+		when(dataLayerFactory.getDistributedCacheManager()).thenReturn(cacheManager);
 		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
 
 		cacheManager.initialize();

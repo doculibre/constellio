@@ -1,8 +1,8 @@
 package com.constellio.model.services.security;
 
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.security.roles.RolesManagerRuntimeException;
@@ -316,15 +316,15 @@ public class AuthorizationsServicesLegacyAcceptanceTest extends BaseAuthorizatio
 		Authorization authorization = addAuthorizationWithoutDetaching(roles, asList(users.heroesIn(zeCollection).getId()),
 				records.taxo1_category2().getId());
 		waitForBatchProcess();
-		String authId = authorization.getDetail().getId();
+		String authId = authorization.getId();
 
 		Authorization retrievedAuthorization = services
-				.getAuthorization(authorization.getDetail().getCollection(),
+				.getAuthorization(authorization.getCollection(),
 						authId);
 
-		assertThat(authorization.getDetail()).isEqualToComparingFieldByField(retrievedAuthorization.getDetail());
-		assertThat(authorization.getGrantedOnRecord()).isEqualTo(retrievedAuthorization.getGrantedOnRecord());
-		assertThat(authorization.getGrantedToPrincipals()).isEqualTo(retrievedAuthorization.getGrantedToPrincipals());
+		assertThat(authorization).isEqualToComparingFieldByField(retrievedAuthorization);
+		assertThat(authorization.getTarget()).isEqualTo(retrievedAuthorization.getTarget());
+		assertThat(authorization.getPrincipals()).isEqualTo(retrievedAuthorization.getPrincipals());
 	}
 
 }

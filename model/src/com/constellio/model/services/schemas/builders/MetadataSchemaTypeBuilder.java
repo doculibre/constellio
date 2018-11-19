@@ -218,8 +218,10 @@ public class MetadataSchemaTypeBuilder {
 			throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefined(code);
 		} else {
 			for (Entry<Language, String> entry : labels.entrySet()) {
-				if (Strings.isNullOrEmpty(entry.getValue())) {
-					throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefinedForLanguage(entry.getKey(), code);
+				if(collectionInfo.getCollectionLocales().contains(entry.getKey().getLocale())) {
+					if (Strings.isNullOrEmpty(entry.getValue())) {
+						throw new MetadataSchemaTypeBuilderRuntimeException.LabelNotDefinedForLanguage(entry.getKey(), code);
+					}
 				}
 			}
 		}

@@ -21,6 +21,7 @@ import com.constellio.model.extensions.events.records.RecordLogicalDeletionValid
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionValidationEvent;
+import com.constellio.model.extensions.events.records.RecordReindexationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
@@ -31,6 +32,8 @@ import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
 import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.extensions.params.GetCaptionForRecordParams;
+import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import org.slf4j.Logger;
@@ -232,6 +235,12 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
+	public void callRecordReindexed(RecordReindexationEvent event) {
+		for (RecordExtension extension : recordExtensions) {
+			extension.recordReindexed(event);
+		}
+	}
+
 	public boolean isModifyBlocked(Record record, User user) {
 		boolean modifyBlocked = false;
 		for (RecordExtension extension : recordExtensions) {
@@ -243,33 +252,64 @@ public class ModelLayerCollectionExtensions {
 		return modifyBlocked;
 	}
 
-	public boolean isDeleteBlocked(Record record, User user) {
-		boolean deleteBlocked = false;
-		for (RecordExtension extension : recordExtensions) {
-			deleteBlocked = extension.isDeleteBlocked(record, user);
-			if (deleteBlocked) {
-				break;
+	public boolean isDeleteAuthorized(final Record record, final User user) {
+		return recordExtensions.getBooleanValue(true, new BooleanCaller<RecordExtension>() {
+			@Override
+			public ExtensionBooleanResult call(RecordExtension behavior) {
+				return behavior.validateDeleteAuthorized(record, user).getExtensionBooleanResult();
+			}
+		});
+	}
+
+	public ValidationErrors getDeletionAuthorizationValidationErrors(final Record record, final User user) {
+		ValidationErrors validationErrors = new ValidationErrors();
+		for (RecordExtension extension : recordExtensions.getExtensions()) {
+			ExtensionValidationErrors extensionValidationErrors = extension.validateDeleteAuthorized(record, user);
+			if (extensionValidationErrors.getExtensionBooleanResult() != null && extensionValidationErrors.getExtensionBooleanResult().equals(ExtensionBooleanResult.FALSE)) {
+				return extensionValidationErrors.getValidationErrors();
 			}
 		}
-		return deleteBlocked;
+		return validationErrors;
 	}
 
 	public boolean isLogicallyDeletable(final RecordLogicalDeletionValidationEvent event) {
 		return recordExtensions.getBooleanValue(true, new BooleanCaller<RecordExtension>() {
 			@Override
 			public ExtensionBooleanResult call(RecordExtension behavior) {
-				return behavior.isLogicallyDeletable(event);
+				return behavior.isLogicallyDeletable(event).getExtensionBooleanResult();
 			}
 		});
+	}
+
+	public ValidationErrors getLogicalDeletionValidationErrors(RecordLogicalDeletionValidationEvent event) {
+		ValidationErrors validationErrors = new ValidationErrors();
+		for (RecordExtension extension : recordExtensions.getExtensions()) {
+			ExtensionValidationErrors extensionValidationErrors = extension.isLogicallyDeletable(event);
+			if (extensionValidationErrors.getExtensionBooleanResult() != null && extensionValidationErrors.getExtensionBooleanResult().equals(ExtensionBooleanResult.FALSE)) {
+				return extensionValidationErrors.getValidationErrors();
+			}
+		}
+		return validationErrors;
 	}
 
 	public boolean isPhysicallyDeletable(final RecordPhysicalDeletionValidationEvent event) {
 		return recordExtensions.getBooleanValue(true, new BooleanCaller<RecordExtension>() {
 			@Override
 			public ExtensionBooleanResult call(RecordExtension behavior) {
-				return behavior.isPhysicallyDeletable(event);
+				return behavior.isPhysicallyDeletable(event).getExtensionBooleanResult();
 			}
 		});
+	}
+
+	public ValidationErrors getPhysicalDeletionValidationErrors(RecordPhysicalDeletionValidationEvent event) {
+		ValidationErrors validationErrors = new ValidationErrors();
+		for (RecordExtension extension : recordExtensions.getExtensions()) {
+			ExtensionValidationErrors extensionValidationErrors = extension.isPhysicallyDeletable(event);
+			if (extensionValidationErrors.getExtensionBooleanResult() != null && extensionValidationErrors.getExtensionBooleanResult().equals(ExtensionBooleanResult.FALSE)) {
+				return extensionValidationErrors.getValidationErrors();
+			}
+		}
+		return validationErrors;
 	}
 
 	public boolean isPutInTrashBeforePhysicalDelete(final SchemaEvent event) {

@@ -7,6 +7,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class DecomListFolderDetailTest extends ConstellioTest {
+	private static final String NULL = "~null~";
 	DecomListFolderDetailFactory factory;
 	DecomListFolderDetail detail;
 
@@ -67,4 +68,37 @@ public class DecomListFolderDetailTest extends ConstellioTest {
 
 		assertThat(deserialized).isEqualTo(detail);
 	}
+
+	@Test
+	public void whenConvertingStructureTheOldWayWithFolderDetailStatusSetToTrueThenConvertedSuccessfully()
+			throws Exception {
+		detail = new DecomListFolderDetail()
+				.setFolderId("01")
+				.setFolderExcluded(false)
+				.setContainerRecordId("containerRecordId")
+				.setReversedSort(true)
+				.setFolderLinearSize(123.4d);
+
+		String serialized = "01:true:~null~:~null~:~null~:containerRecordId:true:123.4:false";
+		DecomListFolderDetail deserialized = (DecomListFolderDetail) factory.build(serialized);
+
+		assertThat(deserialized).isEqualTo(detail);
+	}
+
+	@Test
+	public void whenConvertingStructureTheOldWayWithFolderDetailStatusSetToFalseThenConvertedSuccessfully()
+			throws Exception {
+		detail = new DecomListFolderDetail()
+				.setFolderId("01")
+				.setFolderExcluded(true)
+				.setContainerRecordId("containerRecordId")
+				.setReversedSort(true)
+				.setFolderLinearSize(123.4d);
+
+		String serialized = "01:false:~null~:~null~:~null~:containerRecordId:true:123.4:false";
+		DecomListFolderDetail deserialized = (DecomListFolderDetail) factory.build(serialized);
+
+		assertThat(deserialized).isEqualTo(detail);
+	}
+
 }

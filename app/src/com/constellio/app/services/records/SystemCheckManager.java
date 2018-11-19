@@ -10,7 +10,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -263,7 +263,7 @@ public class SystemCheckManager implements StatefulService {
 			Iterator<Record> authsIterator = searchServices.recordsIterator(new LogicalSearchQuery(
 					from(schemas.authorizationDetails.schemaType()).returnAll()), 10000);
 			while (authsIterator.hasNext()) {
-				SolrAuthorizationDetails auth = schemas.wrapSolrAuthorizationDetails(authsIterator.next());
+				Authorization auth = schemas.wrapSolrAuthorizationDetails(authsIterator.next());
 				authsIds.put(auth.getId(), auth.getTarget());
 			}
 		}

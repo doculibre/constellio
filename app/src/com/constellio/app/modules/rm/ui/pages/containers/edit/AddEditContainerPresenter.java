@@ -33,6 +33,7 @@ import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.jgoodies.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,9 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	protected boolean multipleMode;
 	protected int numberOfContainer = 1;
 
+	private String tabName;
+	private String administrativeUnitId;
+
 	public static final String STYLE_NAME = "window-button";
 	public static final String WINDOW_STYLE_NAME = STYLE_NAME + "-window";
 	public static final String WINDOW_CONTENT_STYLE_NAME = WINDOW_STYLE_NAME + "-content";
@@ -66,8 +70,18 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 	public AddEditContainerPresenter forParams(String parameters) {
 		StringUtils.countMatches(parameters, "/");
 		editMode = StringUtils.isNotBlank(parameters) && StringUtils.countMatches(parameters, "/") == 0;
-		multipleMode = StringUtils.countMatches(parameters, "/") > 0;
-		Record container = editMode ? getRecord(parameters) : newContainerRecord();
+
+		String recordId = parameters;
+		if(parameters.startsWith("edit")) {
+			editMode = true;
+			String[] parts = parameters.split("/");
+			recordId = parts[1];
+			tabName = parts[2];
+			administrativeUnitId = parts[3];
+		}
+
+		multipleMode = parameters.endsWith("/m/t");
+		Record container = editMode ? getRecord(recordId) : newContainerRecord();
 		setSchemaCode(container.getSchemaCode());
 		this.container = new RecordToVOBuilder().build(container, VIEW_MODE.FORM, view.getSessionContext());
 		return this;
@@ -115,7 +129,13 @@ public class AddEditContainerPresenter extends SingleSchemaBasePresenter<AddEdit
 			}
 		} else {
 			addOrUpdate(toRecord(record));
-			view.navigate().to(RMViews.class).displayContainer(record.getId());
+			if(Strings.isNotBlank(tabName) && Strings.isNotBlank(administrativeUnitId)) {
+				view.navigate().to(RMViews.class)
+						.displayContainerFromContainerByAdministrativeUnit(record.getId(), tabName, administrativeUnitId);
+			} else {
+				view.navigate().to(RMViews.class)
+						.displayContainer(record.getId());
+			}
 		}
 
 	}

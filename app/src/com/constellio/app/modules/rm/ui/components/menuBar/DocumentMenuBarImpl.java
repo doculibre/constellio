@@ -23,6 +23,7 @@ import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.UIContext;
+import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.vaadin.data.Container;
 import com.vaadin.navigator.View;
@@ -146,7 +147,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 			editDocumentItem.setCommand(new Command() {
 				@Override
 				public void menuSelected(MenuItem selectedItem) {
-					presenter.editDocumentButtonClicked();
+					presenter.editDocumentButtonClicked(ParamUtils.getCurrentParams());
 				}
 			});
 		}
@@ -161,7 +162,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.deleteDocumentButtonClicked();
+					presenter.deleteDocumentButtonClicked(ParamUtils.getCurrentParams());
 				}
 			});
 		}
@@ -186,7 +187,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
-					presenter.createPDFA();
+					presenter.createPDFA(ParamUtils.getCurrentParams());
 				}
 			});
 		}
@@ -255,6 +256,28 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 				@Override
 				protected void confirmButtonClick(ConfirmDialog dialog) {
 					presenter.finalizeButtonClicked();
+				}
+			});
+		}
+
+		if (presenter.documentInDefaultFavorites()) {
+			MenuItem addToDefaultCartItem = rootItem.addItem($("DocumentContextMenu.removeFromDefaultCart"), FontAwesome.STAR, null);
+			addToDefaultCartItem.setCommand(new Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+					presenter.removeDocumentFromDefaultFavorites();
+					refreshParent();
+					showMessage($("DisplayDocumentView.documentRemovedFromDefaultFavorites"));
+				}
+			});
+		} else {
+			MenuItem addToDefaultCartItem = rootItem.addItem($("DocumentContextMenu.addToDefaultCart"), FontAwesome.STAR_O, null);
+			addToDefaultCartItem.setCommand(new Command() {
+				@Override
+				public void menuSelected(MenuItem selectedItem) {
+					presenter.addDocumentToDefaultFavorite();
+					refreshParent();
+					showMessage($("DisplayDocumentView.documentAddedToDefaultFavorites"));
 				}
 			});
 		}

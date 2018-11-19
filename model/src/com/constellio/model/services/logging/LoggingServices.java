@@ -10,7 +10,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.entities.security.Authorization;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -75,7 +75,7 @@ public class LoggingServices {
 
 	public void grantPermission(Authorization authorization, User user) {
 		Event event = eventFactory
-				.eventPermission(authorization, null, user, authorization.getGrantedOnRecord(), EventType.GRANT_PERMISSION);
+				.eventPermission(authorization, null, user, authorization.getTarget(), EventType.GRANT_PERMISSION);
 		executeTransaction(event);
 	}
 
