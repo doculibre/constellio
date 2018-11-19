@@ -342,7 +342,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 	private boolean isSetupRequired() {
 		ConstellioFactories constellioFactories = getConstellioFactories();
-		return constellioFactories.getAppLayerFactory().getCollectionsManager().getCollectionCodesExcludingSystem().isEmpty();
+		return constellioFactories.getAppLayerFactory().getCollectionsManager().getCollectionCodesExcludingSystem().isEmpty()
+				&& constellioFactories.getAppLayerFactory().isInitializationFinished();
 	}
 
 	public ConstellioHeader getHeader() {
