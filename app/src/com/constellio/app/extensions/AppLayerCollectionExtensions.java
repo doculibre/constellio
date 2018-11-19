@@ -704,9 +704,9 @@ public class AppLayerCollectionExtensions {
 	}
 
 	public Resource getIconFromContent(GetIconPathParams params) {
-		for(RecordAppExtension extension: recordAppExtensions) {
+		for (RecordAppExtension extension : recordAppExtensions) {
 			Resource calculatedResource = extension.getIconFromContent(params);
-			if(calculatedResource != null) {
+			if (calculatedResource != null) {
 				return calculatedResource;
 			}
 		}
