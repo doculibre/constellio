@@ -51,6 +51,7 @@ import com.constellio.model.entities.schemas.preparationSteps.UpdateCreationModi
 import com.constellio.model.entities.schemas.preparationSteps.ValidateCyclicReferencesRecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.ValidateMetadatasRecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.ValidateUsingSchemaValidatorsRecordPreparationStep;
+import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordEvent;
@@ -1533,5 +1534,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 		newAutomaticMetadataServices()
 				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 						new Transaction(new RecordUpdateOptions()));
+	}
+
+	@Override
+	public SecurityModel getSecurityModel(String collection) {
+		return newAutomaticMetadataServices().getSecurityModel(collection);
 	}
 }

@@ -1,14 +1,12 @@
 package com.constellio.model.entities.security;
 
 import com.constellio.data.utils.KeyListMap;
-import com.constellio.data.utils.Provider;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.services.records.RecordProvider;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,6 +24,8 @@ public class SingletonSecurityModel implements SecurityModel {
 
 	Map<String, SecurityModelAuthorization> authorizationsById = new HashMap<>();
 
+	KeyListMap<String, SecurityModelAuthorization> authorizationsByPrincipalId = new KeyListMap<>();
+
 	KeyListMap<String, SecurityModelAuthorization> authorizationsByTargets = new KeyListMap<>();
 
 	List<Authorization> authorizationDetails;
@@ -33,27 +33,27 @@ public class SingletonSecurityModel implements SecurityModel {
 	List<Group> groups;
 	List<String> disabledGroupCodes;
 	Taxonomy principalTaxonomy;
-	RecordProvider recordProvider;
+	//RecordProvider recordProvider;
 	String collection;
 
 	public static SingletonSecurityModel empty(String collection) {
 
 		return new SingletonSecurityModel(Collections.<Authorization>emptyList(),
-				Collections.<User>emptyList(), Collections.<Group>emptyList(), FROM_PARENT_TO_CHILD, new ArrayList<String>(), null, null, collection);
+				Collections.<User>emptyList(), Collections.<Group>emptyList(), FROM_PARENT_TO_CHILD, new ArrayList<String>(), null, collection);
 	}
 
 	public SingletonSecurityModel(List<Authorization> authorizationDetails, List<User> users,
 								  final List<Group> groups,
 								  GroupAuthorizationsInheritance groupAuthorizationsInheritance,
 								  List<String> disabledGroupCodes, Taxonomy principalTaxonomy,
-								  RecordProvider recordProvider, String collection) {
+								  String collection) {
 		this.authorizationDetails = authorizationDetails;
 		this.users = users;
 		this.groups = groups;
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
 		this.disabledGroupCodes = disabledGroupCodes;
 		this.principalTaxonomy = principalTaxonomy;
-		this.recordProvider = recordProvider;
+		//this.recordProvider = recordProvider;
 		this.collection = collection;
 
 		Map<String, Object> groupsAndUsersMap = new HashMap<>();
@@ -80,6 +80,7 @@ public class SingletonSecurityModel implements SecurityModel {
 				} else if (principalWrapper instanceof Group) {
 					securityModelAuthorization.addGroup((Group) principalWrapper);
 				}
+				authorizationsByPrincipalId.add(principalId, securityModelAuthorization);
 			}
 		}
 
@@ -133,13 +134,7 @@ public class SingletonSecurityModel implements SecurityModel {
 	public List<SecurityModelAuthorization> getAuthorizationDetailsOnMetadatasProvidingSecurity(
 			DynamicDependencyValues metadatasProvidingSecurity) {
 
-		return SecurityModelUtils.getAuthorizationDetailsOnMetadatasProvidingSecurity(
-				metadatasProvidingSecurity, recordProvider, this, new Provider<String, SecurityModelAuthorization>() {
-					@Override
-					public SecurityModelAuthorization get(String authId) {
-						return getAuthorizationWithId(authId);
-					}
-				});
+		return SecurityModelUtils.getAuthorizationDetailsOnMetadatasProvidingSecurity(metadatasProvidingSecurity, this);
 
 	}
 
@@ -179,6 +174,11 @@ public class SingletonSecurityModel implements SecurityModel {
 		}
 
 		return null;
+	}
+
+	@Override
+	public List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId) {
+		return authorizationsByPrincipalId.get(principalId);
 	}
 
 }
