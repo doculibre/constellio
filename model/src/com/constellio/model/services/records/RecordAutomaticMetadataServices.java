@@ -442,7 +442,7 @@ public class RecordAutomaticMetadataServices {
 
 			if (securityModel == null) {
 
-				securityModel = buildTransactionSecurityModel(context.getTransaction(), roles, types, recordProvider);
+				securityModel = buildTransactionSecurityModel(context.getTransaction(), roles, types);
 				context.setTransactionSecurityModel(securityModel);
 			}
 			return securityModel;
@@ -453,30 +453,39 @@ public class RecordAutomaticMetadataServices {
 
 	}
 
-	private TransactionSecurityModel buildTransactionSecurityModel(Transaction tx, Roles roles,
-																   MetadataSchemaTypes types,
-																   RecordProvider recordProvider) {
+	public SingletonSecurityModel getSecurityModel(String collection) {
 
 		SecurityModelCache cache = modelLayerFactory.getSecurityModelCache();
-		SingletonSecurityModel model = cache.getCached(tx.getCollection());
+		SingletonSecurityModel model = cache.getCached(collection);
 
 		if (model == null) {
 
+			MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
+			Roles roles = modelLayerFactory.getRolesManager().getCollectionRoles(collection);
+
 			synchronized (SingletonSecurityModel.class) {
 
-				model = cache.getCached(tx.getCollection());
+				model = cache.getCached(collection);
 				if (model == null) {
 					//TODO Put in singleton
-					model = buildSingletonSecurityModel(roles, types, recordProvider, tx.getCollection());
+					model = buildSingletonSecurityModel(roles, types, collection);
 					cache.insert(model);
 				}
 			}
 		}
-		return new TransactionSecurityModel(types, roles, model, tx);
+
+		return model;
+	}
+
+	private TransactionSecurityModel buildTransactionSecurityModel(Transaction tx, Roles roles,
+																   MetadataSchemaTypes types) {
+
+		SingletonSecurityModel singletonSecurityModel = getSecurityModel(types.getCollection());
+		return new TransactionSecurityModel(types, roles, singletonSecurityModel, tx);
 	}
 
 	private SingletonSecurityModel buildSingletonSecurityModel(Roles roles, MetadataSchemaTypes types,
-															   RecordProvider recordProvider, String collection) {
+															   String collection) {
 
 		List<Group> groups = new ArrayList<>();
 		List<User> users = new ArrayList<>();
@@ -528,7 +537,7 @@ public class RecordAutomaticMetadataServices {
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(types.getCollection());
 
 		return new SingletonSecurityModel(authorizationDetails, users, groups, groupInheritanceMode, disabledGroups,
-				principalTaxonomy, recordProvider, collection);
+				principalTaxonomy, collection);
 	}
 
 

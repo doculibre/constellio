@@ -20,4 +20,6 @@ public interface SecurityModel {
 
 	Object getPrincipalById(String id);
 
+	List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId);
+
 }
