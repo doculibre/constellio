@@ -3,6 +3,7 @@ package com.constellio.app.modules.tasks.ui.pages.tasks;
 import com.constellio.app.modules.tasks.model.wrappers.request.BorrowRequest;
 import com.constellio.app.modules.tasks.navigation.TaskViews;
 import com.constellio.app.modules.tasks.ui.components.fields.CustomTaskField;
+import com.constellio.app.modules.tasks.ui.components.fields.TaskAssignationListRecordLookupField;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskForm;
 import com.constellio.app.modules.tasks.ui.components.fields.TaskFormImpl;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
@@ -122,6 +123,15 @@ public class AddEditTaskViewImpl extends BaseViewImpl implements AddEditTaskView
 					@Override
 					public void valueChange(ValueChangeEvent event) {
 						presenter.customFieldValueChanged((CustomTaskField<?>) field);
+					}
+				});
+			}
+
+			if(field instanceof TaskAssignationListRecordLookupField) {
+				((TaskAssignationListRecordLookupField) field).addLookupValueChangeListener(new ValueChangeListener() {
+					@Override
+					public void valueChange(ValueChangeEvent event) {
+						presenter.fieldValueChanged(field);
 					}
 				});
 			}

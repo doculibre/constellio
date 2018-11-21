@@ -30,6 +30,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
@@ -524,11 +525,11 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		Field<String> assignee = (Field<String>) view.getForm().getField(Task.ASSIGNEE);
 		boolean assigneeValue = assignee != null && StringUtils.isNotBlank(assignee.getValue());
 
-		ListAddRemoveField group = (ListAddRemoveField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
-		boolean groupValue = group != null && CollectionUtils.isNotEmpty(group.getValue());
+		ListAddRemoveRecordLookupField group = (ListAddRemoveRecordLookupField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
+		boolean groupValue = group != null && (CollectionUtils.isNotEmpty(group.getValue()) || group.getLookupFieldValue() != null);
 
-		ListAddRemoveField user = (ListAddRemoveField) view.getForm().getField(Task.ASSIGNEE_USERS_CANDIDATES);
-		boolean userValue = user != null && CollectionUtils.isNotEmpty(user.getValue());
+		ListAddRemoveRecordLookupField user = (ListAddRemoveRecordLookupField) view.getForm().getField(Task.ASSIGNEE_USERS_CANDIDATES);
+		boolean userValue = user != null && (CollectionUtils.isNotEmpty(user.getValue()) || user.getLookupFieldValue() != null);
 
 		ListAddRemoveField priorite = (ListAddRemoveField) view.getForm().getField(ASSIGNATION_MODES);
 		boolean prioriteValue = priorite != null && CollectionUtils.isNotEmpty(priorite.getValue());
