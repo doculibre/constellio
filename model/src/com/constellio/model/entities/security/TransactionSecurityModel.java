@@ -213,7 +213,8 @@ public class TransactionSecurityModel implements SecurityModel {
 	}
 
 	@Override
-	public List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId) {
+	public List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId,
+																		 boolean includeInheritance) {
 		throw new UnsupportedOperationException("Only supported on singleton security model");
 	}
 
