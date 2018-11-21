@@ -20,6 +20,7 @@ public interface SecurityModel {
 
 	Object getPrincipalById(String id);
 
-	List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId);
+	List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId, boolean includeInherited);
+
 
 }
