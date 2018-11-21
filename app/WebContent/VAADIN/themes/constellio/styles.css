@@ -1583,6 +1583,14 @@ div.v-layout.v-horizontal.v-widget {
 	color: #ff0000;
 }
 
+.v-slot-list-add-remove-comment .v-has-caption {
+	width: 100%;
+}
+
+.v-slot-list-add-remove-comment .v-has-caption .list-add-remove-comment {
+	width: 100%;
+}
+
 .constellio {
 	@media screen and (max-width: 480px) {
 	.notifications.v-window {
@@ -13604,8 +13612,17 @@ div.v-layout.v-horizontal.v-widget {
 	line-height: 100%;
 }
 
+.constellio .fixed-content-viewer {
+	position: fixed;
+	width: calc(100% - 500px);
+}
+
 .constellio .collapsible-horizontal-splitpanel {
 	padding-bottom: 2px;
+}
+
+.constellio .collapsible-horizontal-splitpanel .v-panel .v-scrollable {
+	overflow: auto;
 }
 
 .constellio .collapsible-horizontal-splitpanel .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel {
@@ -13633,7 +13650,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .collapsible-horizontal-splitpanel .v-splitpanel-second-container-collapsible-horizontal-splitpanel {
-	padding-left: 20px;
+	padding-left: 12px;
 }
 
 .constellio .collapsible-horizontal-splitpanel .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel:before {
@@ -13648,6 +13665,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .collapsible-horizontal-splitpanel .v-splitpanel-hsplitter-collapsible-horizontal-splitpanel-second-hidden:before {
 	content: "\f100";
+}
+
+.constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel {
+	min-height: 2000px;
 }
 
 .constellio .collapsible-horizontal-splitpanel .viewable-record-table-panel .close-button-viewer-metadata-layout {
@@ -14129,6 +14150,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .action-menu-bar {
+	z-index: 2000;
 	position: absolute;
 	top: -40px;
 	right: 30px;
@@ -14849,6 +14871,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .right-to-left .popupContent .action-menu-bar {
+	z-index: 2000;
 	position: absolute;
 	top: -40px;
 	right: 30px;

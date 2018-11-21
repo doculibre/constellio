@@ -246,6 +246,11 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 		Panel recordDisplayPanel = new Panel(recordDisplay);
 		recordDisplayPanel.setSizeFull();
+//		recordDisplay.setHeight(Page.getCurrent().getBrowserWindowHeight() - 1, Unit.PIXELS);
+//		recordDisplayPanel.setWidth("100%");
+//		int recordDisplayHeight = Page.getCurrent().getBrowserWindowHeight();
+//		recordDisplayPanel.setHeight(recordDisplayHeight, Unit.PIXELS);
+		
 		tabSheet.addTab(recordDisplayPanel, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
 		tabSheet.addTab(tasksComponent, $("DisplayDocumentView.tabs.tasks", presenter.getTaskCount()));
@@ -1013,7 +1018,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 	@Override
 	public void editInWindow() {
 		Window window = ComponentTreeUtils.findParent(this, Window.class);
-		AddEditDocumentViewImpl editView = new AddEditDocumentViewImpl(documentVO);
+		AddEditDocumentViewImpl editView = new AddEditDocumentViewImpl(documentVO, true);
 		editView.enter(null);
 		window.setContent(editView);
 	}

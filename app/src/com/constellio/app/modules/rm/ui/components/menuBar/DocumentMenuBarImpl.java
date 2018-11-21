@@ -512,7 +512,7 @@ public class DocumentMenuBarImpl extends BaseMenuBar implements DocumentMenuBar 
 
 	@Override
 	public void editInWindow() {
-		AddEditDocumentViewImpl view = new AddEditDocumentViewImpl(recordVO);
+		AddEditDocumentViewImpl view = new AddEditDocumentViewImpl(recordVO, true);
 		Window window =  ComponentTreeUtils.findParent(this, Window.class);
 		boolean newWindow;
 		if (window == null) {

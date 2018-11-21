@@ -91,7 +91,7 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 		
 		setCookie(secondComponentVisible);
 	}
-	
+
 	protected void toggleSecondButtonClicked() {
 		setSecondComponentVisible(!secondComponentVisible);
 		onSecondComponentVisibilyChanged(secondComponentVisible);
@@ -161,18 +161,15 @@ public class CollapsibleHorizontalSplitPanel extends HorizontalSplitPanel {
 			setSizeFull();
 			
 			Label spacer = new Label();
+			spacer.setWidth("4px");
 			if (second) {
 				spacer.addStyleName(STYLE_NAME + "spacer-second");
-//				spacer.setWidth((SPLITTER_WIDTH * 2) + "px");
 				addComponents(spacer, component);
-				setExpandRatio(component, 1);
 			} else {
 				spacer.addStyleName(STYLE_NAME + "spacer-first");
-//				spacer.setWidth(SPLITTER_WIDTH + "px"); 
-				spacer.setWidth("10px");
 				addComponents(component, spacer);
-				setExpandRatio(component, 1);
 			}
+			setExpandRatio(component, 1);
 		}
 		
 	}

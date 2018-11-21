@@ -1,5 +1,11 @@
 package com.constellio.app.ui.framework.components.viewers;
 
+import java.util.Arrays;
+import java.util.UUID;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -9,18 +15,18 @@ import com.constellio.app.ui.framework.components.viewers.document.DocumentViewe
 import com.constellio.app.ui.framework.components.viewers.image.ImageViewer;
 import com.constellio.app.ui.framework.components.viewers.image.TiffImageViewer;
 import com.constellio.app.ui.framework.components.viewers.video.VideoViewer;
+import com.constellio.app.ui.util.ComponentTreeUtils;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CustomComponent;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Arrays;
+import com.vaadin.ui.JavaScript;
+import com.vaadin.ui.Window;
 
 public class ContentViewer extends CustomComponent {
 
 	private Component viewerComponent;
 
 	public ContentViewer(RecordVO recordVO, String metadataCode, ContentVersionVO contentVersionVO) {
+		setId(UUID.randomUUID().toString());
 		if (contentVersionVO != null) {
 			String fileName = contentVersionVO.getFileName();
 			String extension = StringUtils.lowerCase(FilenameUtils.getExtension(fileName));
@@ -58,6 +64,16 @@ public class ContentViewer extends CustomComponent {
 
 	public boolean isViewerComponentVisible() {
 		return isVisible() && viewerComponent != null && viewerComponent.isVisible();
+	}
+
+	@Override
+	public void attach() {
+		super.attach();
+//		if (ComponentTreeUtils.findParent(this, Window.class) != null) {
+//			String js = "document.getElementById('" + getId() + "').style.position='fixed';";
+//			js += "document.getElementById('" + getId() + "').style.width=calc(100% - 850px);";
+//			JavaScript.getCurrent().execute(js);
+//		}
 	}
 
 }

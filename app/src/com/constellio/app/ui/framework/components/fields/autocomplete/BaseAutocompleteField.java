@@ -1,18 +1,17 @@
 package com.constellio.app.ui.framework.components.fields.autocomplete;
 
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.framework.components.fields.BaseComboBox;
+import com.vaadin.data.Item;
+import com.vaadin.data.Property;
 import com.vaadin.data.Validator.InvalidValueException;
+import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.converter.Converter;
-import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteQuery;
-import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteSuggestion;
-import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteSuggestionProvider;
-import eu.maxschuster.vaadin.autocompletetextfield.AutocompleteTextField;
-import org.apache.commons.lang3.StringUtils;
+import com.vaadin.data.util.filter.UnsupportedFilterException;
+import com.vaadin.shared.ui.combobox.FilteringMode;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -25,11 +24,13 @@ import static com.constellio.app.ui.i18n.i18n.$;
  * @param <T> Type of the selected object
  * @author Vincent
  */
-public class BaseAutocompleteField<T> extends AutocompleteTextField {
+public class BaseAutocompleteField<T> extends BaseComboBox {
 
 	public static final String STYLE_NAME = "autocomplete";
 
 	private static final String ERROR_STYLE_NAME = STYLE_NAME + "-error";
+
+	private static final String CAPTION_PROPERTY_ID = "caption";
 
 	private AutocompleteSuggestionsProvider<T> suggestionsProvider;
 
@@ -37,82 +38,105 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 
 	private int prefixSize = 0; // Default value
 
-	private Map<String, T> lastSuggestions = new HashMap<>();
+	private AutocompleteContainer autocompleteContainer;
 
-	private Class<T> modelType;
-
-	public BaseAutocompleteField(final AutocompleteSuggestionsProvider<T> suggestionsProvider) {
+	public BaseAutocompleteField(AutocompleteSuggestionsProvider<T> suggestionsProvider) {
 		super();
-		this.modelType = suggestionsProvider.getModelType();
 		this.suggestionsProvider = suggestionsProvider;
 
-		setMinChars(1);
-		setCache(false);
-		setSuggestionProvider(new AutocompleteSuggestionProvider() {
-			@Override
-			public Collection<AutocompleteSuggestion> querySuggestions(AutocompleteQuery query) {
-				List<AutocompleteSuggestion> suggestions = new ArrayList<>();
-
-				String term = query.getTerm();
-				List<T> objectSuggestions = suggestionsProvider.suggest(term);
-				for (T objectSuggestion : objectSuggestions) {
-					String stringSuggestion = getCaption(objectSuggestion);
-					if (!StringUtils.equalsIgnoreCase(stringSuggestion, term)) {
-						suggestions.add(new AutocompleteSuggestion(stringSuggestion));
-						lastSuggestions.put(stringSuggestion, objectSuggestion);
-					}
-				}
-				return suggestions;
-			}
-		});
-
 		addStyleName(STYLE_NAME);
+		setImmediate(true);
+		setFilteringMode(FilteringMode.STARTSWITH);
 		setInputPrompt($("BaseAutocompleteField.inputPrompt"));
-		setNullRepresentation("");
-		//		setPageLength(suggestionsProvider.getBufferSize());
-		setConverter(new Converter<String, T>() {
+		setTextInputAllowed(true);
+		setNullSelectionAllowed(true);
+		setItemCaptionMode(ItemCaptionMode.PROPERTY);
+		setItemCaptionPropertyId(CAPTION_PROPERTY_ID);
+		autocompleteContainer = new AutocompleteContainer();
+		setContainerDataSource(autocompleteContainer);
+		setPageLength(suggestionsProvider.getBufferSize());
+
+		addValueChangeListener(new ValueChangeListener() {
 			@SuppressWarnings("unchecked")
 			@Override
-			public T convertToModel(String value, Class<? extends T> targetType, Locale locale)
-					throws ConversionException {
-				T result;
-				if (value != null) {
-					result = lastSuggestions.get(value);
-
-					if (result == null && getModelType().isAssignableFrom(String.class)) {
-						result = (T) value;
-					}
-					if (result == null && String.class.isAssignableFrom(targetType)) {
-						result = (T) value;
-					}
-				} else {
-					result = null;
+			public void valueChange(Property.ValueChangeEvent event) {
+				T newValue = (T) event.getProperty().getValue();
+				if (newValue != null && !autocompleteContainer.contains(newValue)) {
+					autocompleteContainer.addContainerFilter(null);
+					addSuggestion(newValue, 0);
 				}
-				return result;
-			}
-
-			@Override
-			public String convertToPresentation(T value, Class<? extends String> targetType, Locale locale)
-					throws ConversionException {
-				String result;
-				if (value != null) {
-					result = getCaption(value);
-				} else {
-					result = null;
-				}
-				return result;
-			}
-
-			@Override
-			public Class<T> getModelType() {
-				return modelType;
-			}
-
-			@Override
-			public Class<String> getPresentationType() {
-				return String.class;
 			}
 		});
+	}
+
+	@Override
+	public void changeVariables(Object source, Map<String, Object> variables) {
+		String newFilter;
+		String filterstring = null;
+		if ((newFilter = (String) variables.get("filter")) != null) {
+			// this is a filter request
+			filterstring = newFilter;
+			if (filterstring != null) {
+				filterstring = filterstring.toLowerCase(getLocale());
+			}
+			updateItems(filterstring);
+		}
+		super.changeVariables(source, variables);
+	}
+
+	private int subStringSize = prefixSize;
+	private String querySubString;
+
+	private void updateItems(String newFilterString) {
+		if (newFilterString == null) {
+			removeAllItems();
+		} else if (newFilterString != null && !(newFilterString.equals(querySubString))) {
+			// check to make sure the substring isn't null and its not equal to the last one
+			setInternalValue(null);
+			removeAllItems();
+			// set the sub string
+			querySubString = newFilterString;
+			// check the size on the sub string
+			if (querySubString.length() >= subStringSize) {
+				// get the results
+				querySuggestionsProvider(newFilterString);
+			} // end if the substring langth is long enough
+		}// end if newFilterString doesnt equal null and newFilterString doesnt equal last value
+	}
+
+	protected void querySuggestionsProvider(String text) {
+		// Query the database here with the code you want
+		// Store it how ever you want this example uses a list to demonstrate how to get the data to display
+		List<T> dataList = suggestionsProvider.suggest(text);
+
+		// add the results to the container
+		//		int i = 0;
+		Iterator<T> iterDataList = dataList.iterator();
+		while (iterDataList.hasNext()) {
+			T suggestion = iterDataList.next();
+			addSuggestion(suggestion);
+			//			i++;
+		}// end while iter has next
+
+	}// end queryDataBase method
+
+	protected void addSuggestion(T suggestion) {
+		addSuggestion(suggestion, -1);
+	}
+
+	@SuppressWarnings("unchecked")
+	protected void addSuggestion(T suggestion, int index) {
+		if (autocompleteContainer.containsId(suggestion)) {
+			autocompleteContainer.removeItem(suggestion);
+		}
+		String suggestionCaption = getCaption(suggestion);
+		Item item;
+		if (index >= 0) {
+			item = autocompleteContainer.addItemAt(index, suggestion);
+		} else {
+			item = autocompleteContainer.addItem(suggestion);
+		}
+		item.getItemProperty(CAPTION_PROPERTY_ID).setValue(suggestionCaption);
 	}
 
 	@Override
@@ -142,7 +166,6 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 
 	public void setPrefixSize(int prefixSize) {
 		this.prefixSize = prefixSize;
-		setMinChars(prefixSize);
 	}
 
 	public Converter<String, T> getItemConverter() {
@@ -176,9 +199,41 @@ public class BaseAutocompleteField<T> extends AutocompleteTextField {
 
 		List<T> suggest(String text);
 
-		Class<T> getModelType();
-
 		int getBufferSize();
+
+	}
+
+	private class AutocompleteContainer extends IndexedContainer {
+
+		public AutocompleteContainer() {
+			addContainerProperty(CAPTION_PROPERTY_ID, String.class, null);
+		}
+
+		@SuppressWarnings("unchecked")
+		private boolean contains(T object) {
+			boolean inSuggestions = false;
+			for (Object itemId : getItemIds()) {
+				T suggestion = (T) itemId;
+				inSuggestions = object.equals(suggestion);
+				if (inSuggestions) {
+					break;
+				}
+			}
+			return inSuggestions;
+		}
+
+		@Override
+		protected boolean passesFilters(Object itemId) {
+			// The combobox only contains filtered data
+			return true;
+		}
+
+		public void addContainerFilter(Filter filter)
+				throws UnsupportedFilterException {
+			if (filter != null) {
+				super.addContainerFilter(filter);
+			}
+		}
 
 	}
 

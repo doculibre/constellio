@@ -27,12 +27,17 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 	private RecordVO recordVO;
 	private DocumentFormImpl recordForm;
 	private I18NHorizontalLayout mainLayout;
+	private boolean popup;
 
 	public AddEditDocumentViewImpl() {
 		this(null);
 	}
 
 	public AddEditDocumentViewImpl(RecordVO documentVO) {
+		this(documentVO, false);
+	}
+
+	public AddEditDocumentViewImpl(RecordVO documentVO, boolean popup) {
 		presenter = newPresenter(documentVO);
 	}
 

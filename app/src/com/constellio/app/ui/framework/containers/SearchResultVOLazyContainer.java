@@ -4,6 +4,7 @@ import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.SearchResultVO;
 import com.constellio.app.ui.framework.data.DataProvider.DataRefreshListener;
+import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.data.SearchResultVODataProvider;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.BeanItem;
@@ -107,7 +108,16 @@ public class SearchResultVOLazyContainer extends LazyQueryContainer {
 		}
 	}
 
-	public String getLastCallQTime() {
-		return "" + dataProvider.getQTime();
+	public double getLastCallQTime() {
+		int total = dataProvider.getQTime();
+
+		double totalInSeconds;
+		if (total < 10) {
+			totalInSeconds = total / 1000.0;
+		} else {
+			totalInSeconds = Math.round(total / 10.0) / 100.0;
+		}
+
+		return totalInSeconds;
 	}
 }

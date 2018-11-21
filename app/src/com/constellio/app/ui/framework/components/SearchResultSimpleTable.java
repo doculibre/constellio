@@ -229,8 +229,8 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		return recordVO;
 	}
 
-	private String getLastCallQTime() {
-		String lastCallQTime;
+	private double getLastCallQTime() {
+		double lastCallQTime;
 		if (recordVOContainer instanceof RecordVOLazyContainer) {
 			lastCallQTime = ((RecordVOLazyContainer) recordVOContainer).getLastCallQTime();
 		} else {
@@ -277,10 +277,12 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	}
 
 	public VerticalLayout createSummary(List<Component> alwaysActive, final List<Component> extra) {
-
+		double totalInSeconds = getLastCallQTime();
+		String qtime = "" + totalInSeconds;
+		
 		int size = recordVOContainer.size();
 		String key = size <= 1 ? "SearchResultTable.count1" : "SearchResultTable.counts";
-		Label totalCount = new Label($(key, size, getLastCallQTime()));
+		Label totalCount = new Label($(key, size, qtime));
 		totalCount.addStyleName(ValoTheme.LABEL_BOLD);
 
 		HorizontalLayout count = new HorizontalLayout(totalCount);

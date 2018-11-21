@@ -16,7 +16,7 @@ public class RMMetadataFieldFactory extends MetadataFieldFactory {
 		Field<?> field;
 		String schemaTypeCode = metadata.getSchemaTypeCode();
 		MetadataInputType inputType = metadata.getMetadataInputType();
-		if (inputType == MetadataInputType.LOOKUP && schemaTypeCode.equals(Folder.SCHEMA_TYPE) && !metadata.isMultivalue()) {
+		if (inputType == MetadataInputType.LOOKUP && Folder.SCHEMA_TYPE.equals(schemaTypeCode) && !metadata.isMultivalue()) {
 			field = new LookupFolderField();
 		} else {
 			field = super.build(metadata, locale);
