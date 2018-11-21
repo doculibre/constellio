@@ -84,6 +84,7 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 	private Button clearButton;
 	private ConverterWithCache<String, T> itemConverter;
 	private ConstellioEIMConfigs configs;
+	private String readOnlyMessageI18NKey = null;
 
 	protected boolean isShowDeactivated = true;
 
@@ -228,7 +229,15 @@ public abstract class LookupField<T extends Serializable> extends CustomField<T>
 		return lookupWindowButton;
 	}
 
+	public LookupField<T> setReadOnlyMessageI18NKey(String readOnlyMessageI18NKey) {
+		this.readOnlyMessageI18NKey = readOnlyMessageI18NKey;
+		return this;
+	}
+
 	protected String getReadOnlyMessage() {
+		if(!StringUtils.isBlank(readOnlyMessageI18NKey)) {
+			return $(readOnlyMessageI18NKey);
+		}
 		return $("readOnlyComponent");
 	}
 
