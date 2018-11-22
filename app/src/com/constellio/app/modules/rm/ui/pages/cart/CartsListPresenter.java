@@ -16,6 +16,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -45,6 +46,15 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 		view.navigate().to(RMViews.class).listCarts();
 	}
 
+	public void displayButtonClicked(Cart cart) {
+		view.navigate().to(RMViews.class).cart(cart.getId());
+	}
+
+	public void deleteButtonClicked(Cart cart) {
+		delete(cart.getWrappedRecord());
+		view.navigate().to(RMViews.class).listCarts();
+	}
+
 	public RecordVODataProvider getOwnedCartsDataProvider() {
 		return new RecordVODataProvider(schemaVO, recordToVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
@@ -65,6 +75,11 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 		};
 	}
 
+	public List<Cart> getOwnedCarts() {
+		return rm.wrapCarts(searchServices().search(new LogicalSearchQuery(from(defaultSchema()).where(getMetadata(Cart.OWNER))
+				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
+	}
+
 	public void saveButtonClicked(String title) {
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
@@ -81,4 +96,13 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 	public void displayDefaultFavorites() {
 		view.navigate().to(RMViews.class).cart(getCurrentUser().getId());
 	}
+
+	public User getCurrentUser() {
+		return super.getCurrentUser();
+	}
+
+	public String getUsernameById(String userId) {
+		return rm.wrapUser(searchServices().searchSingleResult(from(rm.userSchemaType()).where(getMetadata("id")).isEqualTo(userId))).getUsername();
+	}
+
 }
