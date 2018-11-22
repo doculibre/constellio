@@ -69,7 +69,7 @@ public class TransactionSecurityModel implements SecurityModel {
 					if (indexMap == null) {
 						indexMap = new HashMap<>();
 						for (int i = 0; i < nestedSecurityModelAuths.size(); i++) {
-							indexMap.put(nestedSecurityModelAuths.get(i).details.getId(), i);
+							indexMap.put(nestedSecurityModelAuths.get(i).getDetails().getId(), i);
 						}
 					}
 
@@ -81,7 +81,7 @@ public class TransactionSecurityModel implements SecurityModel {
 
 						SecurityModelAuthorization newVersion = wrapExistingAuthUsingModifiedUsersAndGroups(
 								nestedSecurityModel.groupAuthorizationsInheritance,
-								nestedSecurityModel.principalTaxonomy,
+								nestedSecurityModel.securableRecordSchemaTypes.contains(authorization.getTargetSchemaType()),
 								authorization,
 								nestedSecurityModel.getUsers(),
 								nestedSecurityModel.getGroups());
@@ -99,7 +99,7 @@ public class TransactionSecurityModel implements SecurityModel {
 			if (!ajustedAuths.contains(returnedAuth.getDetails().getId())) {
 				SecurityModelAuthorization newVersion = wrapExistingAuthUsingModifiedUsersAndGroups(
 						nestedSecurityModel.groupAuthorizationsInheritance,
-						nestedSecurityModel.principalTaxonomy,
+						returnedAuth.isSecurableRecord(),
 						returnedAuth.getDetails(),
 						nestedSecurityModel.getUsers(),
 						nestedSecurityModel.getGroups());
@@ -122,17 +122,17 @@ public class TransactionSecurityModel implements SecurityModel {
 	private SecurityModelAuthorization wrap(Authorization details) {
 		SecurityModelAuthorization authorization = wrapNewAuthWithoutUsersAndGroups(
 				nestedSecurityModel.groupAuthorizationsInheritance,
-				nestedSecurityModel.principalTaxonomy,
+				nestedSecurityModel.securableRecordSchemaTypes.contains(details.getTargetSchemaType()),
 				details);
 
 		for (String principalId : details.getPrincipals()) {
 			Object principal = getPrincipalById(principalId);
 
 			if (principal instanceof User) {
-				authorization.users.add((User) principal);
+				authorization.addUser((User) principal);
 
 			} else if (principal instanceof Group) {
-				authorization.groups.add((Group) principal);
+				authorization.addGroup((Group) principal);
 			}
 		}
 
@@ -153,7 +153,7 @@ public class TransactionSecurityModel implements SecurityModel {
 				} else {
 					return wrapExistingAuthUsingModifiedUsersAndGroups(
 							nestedSecurityModel.groupAuthorizationsInheritance,
-							nestedSecurityModel.principalTaxonomy,
+							nestedAuthorization.isSecurableRecord(),
 							authorization,
 							nestedSecurityModel.getUsers(),
 							nestedSecurityModel.getGroups());
@@ -166,7 +166,7 @@ public class TransactionSecurityModel implements SecurityModel {
 		} else {
 			return wrapExistingAuthUsingModifiedUsersAndGroups(
 					nestedSecurityModel.groupAuthorizationsInheritance,
-					nestedSecurityModel.principalTaxonomy,
+					nestedAuthorization.isSecurableRecord(),
 					nestedAuthorization.getDetails(),
 					nestedSecurityModel.getUsers(),
 					nestedSecurityModel.getGroups());

@@ -7,10 +7,12 @@ import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -41,12 +43,13 @@ public class SingletonSecurityModel implements SecurityModel {
 
 	Map<String, Object> principalsById = new HashMap<>();
 
-	List<Authorization> authorizationDetails;
 	List<User> users;
 	List<Group> groups;
 	List<String> disabledGroupCodes;
-	Taxonomy principalTaxonomy;
 	String collection;
+	List<String> securableRecordSchemaTypes;
+
+	static int REFRESH_COUNTER = 0;
 
 	public static SingletonSecurityModel empty(String collection) {
 
@@ -59,49 +62,58 @@ public class SingletonSecurityModel implements SecurityModel {
 								  GroupAuthorizationsInheritance groupAuthorizationsInheritance,
 								  List<String> disabledGroupCodes, Taxonomy principalTaxonomy,
 								  String collection) {
-		this.authorizationDetails = authorizationDetails;
+		System.out.println("Security model refresh #" + ++REFRESH_COUNTER);
 		this.users = users;
 		this.groups = groups;
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
 		this.disabledGroupCodes = disabledGroupCodes;
-		this.principalTaxonomy = principalTaxonomy;
 		this.collection = collection;
 
-		initUserAndGroupsMaps(users, groups, groupAuthorizationsInheritance);
+		this.securableRecordSchemaTypes = new ArrayList<>();
 
-		initAuthsMaps(authorizationDetails, groupAuthorizationsInheritance, principalTaxonomy);
+		if (!users.isEmpty()) {
+			for (MetadataSchemaType schemaType : users.get(0).getMetadataSchemaTypes().getSchemaTypes()) {
+				if (schemaType.hasSecurity() && (principalTaxonomy == null || !principalTaxonomy.getSchemaTypes().contains(schemaType.getCode()))) {
+					securableRecordSchemaTypes.add(schemaType.getCode());
+				}
+			}
+		}
+
+		initUserAndGroupsMaps(users, groups);
+
+		initAuthsMaps(authorizationDetails);
 
 	}
 
-	protected void initAuthsMaps(List<Authorization> authorizationDetails,
-								 GroupAuthorizationsInheritance groupAuthorizationsInheritance,
-								 Taxonomy principalTaxonomy) {
+	protected void initAuthsMaps(List<Authorization> authorizationDetails) {
 		for (Authorization authorizationDetail : authorizationDetails) {
-			boolean conceptAuth = principalTaxonomy != null && principalTaxonomy.getSchemaTypes().contains(authorizationDetail.getTargetSchemaType());
-			SecurityModelAuthorization securityModelAuthorization = new SecurityModelAuthorization(
-					authorizationDetail, conceptAuth, groupAuthorizationsInheritance);
-			authorizations.add(securityModelAuthorization);
-			authorizationsById.put(authorizationDetail.getId(), securityModelAuthorization);
-			authorizationsByTargets.add(authorizationDetail.getTarget(), securityModelAuthorization);
-
-			for (String principalId : authorizationDetail.getPrincipals()) {
-				Object principalWrapper = principalsById.get(principalId);
-				if (principalWrapper instanceof User) {
-					securityModelAuthorization.addUser((User) principalWrapper);
-				} else if (principalWrapper instanceof Group) {
-					securityModelAuthorization.addGroup((Group) principalWrapper);
-				}
-				authorizationsByPrincipalId.add(principalId, securityModelAuthorization);
-			}
+			insertAuthorizationInMemoryMaps(authorizationDetail);
 		}
 	}
 
-	protected void initUserAndGroupsMaps(List<User> users, List<Group> groups,
-										 GroupAuthorizationsInheritance groupAuthorizationsInheritance) {
+	private void insertAuthorizationInMemoryMaps(Authorization authorizationDetail) {
+		boolean securableRecord = securableRecordSchemaTypes.contains(authorizationDetail.getTargetSchemaType());
+		SecurityModelAuthorization securityModelAuthorization = new SecurityModelAuthorization(
+				authorizationDetail, securableRecord, groupAuthorizationsInheritance);
+		authorizations.add(securityModelAuthorization);
+		authorizationsById.put(authorizationDetail.getId(), securityModelAuthorization);
+		authorizationsByTargets.add(authorizationDetail.getTarget(), securityModelAuthorization);
+
+		for (String principalId : authorizationDetail.getPrincipals()) {
+			Object principalWrapper = principalsById.get(principalId);
+			if (principalWrapper instanceof User) {
+				securityModelAuthorization.addUser((User) principalWrapper);
+			} else if (principalWrapper instanceof Group) {
+				securityModelAuthorization.addGroup((Group) principalWrapper);
+			}
+			authorizationsByPrincipalId.add(principalId, securityModelAuthorization);
+		}
+	}
+
+	protected void initUserAndGroupsMaps(List<User> users, List<Group> groups) {
 		for (final Group group : groups) {
 			principalsById.put(group.getId(), group);
 		}
-
 
 		for (final Group group : groups) {
 
@@ -184,5 +196,44 @@ public class SingletonSecurityModel implements SecurityModel {
 		}
 	}
 
+	private void removeAuthWithId(String authId, List<SecurityModelAuthorization> auths) {
+		Iterator<SecurityModelAuthorization> authsIterator = auths.iterator();
+		while (authsIterator.hasNext()) {
+			if (authId.equals(authsIterator.next().getDetails().getId())) {
+				authsIterator.remove();
+				break;
+			}
+		}
 
+	}
+
+	public synchronized void removeAuth(String authId) {
+		removeAuthWithId(authId, authorizations);
+
+		SecurityModelAuthorization auth = authorizationsById.remove(authId);
+
+		for (User user : auth.getUsers()) {
+			removeAuthWithId(authId, authorizationsByPrincipalId.get(user.getId()));
+		}
+
+		for (Group group : auth.getGroups()) {
+			removeAuthWithId(authId, authorizationsByPrincipalId.get(group.getId()));
+		}
+
+		removeAuthWithId(authId, authorizationsByTargets.get(auth.getDetails().getTarget()));
+	}
+
+	public synchronized void updateCache(List<Authorization> newAuths, List<Authorization> modifiedAuths) {
+		for (Authorization auth : newAuths) {
+			insertAuthorizationInMemoryMaps(auth);
+		}
+
+		for (Authorization auth : modifiedAuths) {
+			removeAuth(auth.getId());
+		}
+
+		for (Authorization auth : modifiedAuths) {
+			insertAuthorizationInMemoryMaps(auth);
+		}
+	}
 }

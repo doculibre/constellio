@@ -284,7 +284,7 @@ public class UserAuthorizationsUtils {
 			try {
 				Authorization authorizationDetails = user.getAuthorizationDetail(authId);
 				if (authorizationDetails.isActiveAuthorization() && filter.isIncluded(authorizationDetails)
-					&& (!Authorization.isSecurizedSchemaType(authorizationDetails.getTargetSchemaType()) || includeSpecifics)) {
+					&& (!Authorization.isSecurableSchemaType(authorizationDetails.getTargetSchemaType()) || includeSpecifics)) {
 					tokens.add(authorizationDetails.getTarget(), authId);
 				}
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {

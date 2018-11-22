@@ -58,7 +58,7 @@ public class FilterUtils {
 				filter.append(user.getId());
 
 				for (String schemaType : securityTokenManager
-						.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
+						.getGlobalPermissionSecurableSchemaTypesVisibleBy(user, Role.READ)) {
 					filter.append(" OR ");
 					filter.append(SCHEMA.getDataStoreCode());
 					filter.append(":");
@@ -113,7 +113,7 @@ public class FilterUtils {
 
 			filterBuilder.append(Schemas.TOKENS, "w_" + user.getId());
 
-			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, WRITE)) {
+			for (String schemaType : securityTokenManager.getGlobalPermissionSecurableSchemaTypesVisibleBy(user, WRITE)) {
 				filterBuilder.append(SCHEMA, schemaType + "_*");
 			}
 
@@ -180,7 +180,7 @@ public class FilterUtils {
 
 			filterBuilder.append(TOKENS, "r_" + user.getId());
 
-			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
+			for (String schemaType : securityTokenManager.getGlobalPermissionSecurableSchemaTypesVisibleBy(user, Role.READ)) {
 				filterBuilder.append(SCHEMA, schemaType + "_*");
 			}
 
@@ -281,7 +281,7 @@ public class FilterUtils {
 				filterBuilder.append(TOKENS_OF_HIERARCHY, "z" + tokenPrefix + "_" + user.getId());
 			}
 
-			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
+			for (String schemaType : securityTokenManager.getGlobalPermissionSecurableSchemaTypesVisibleBy(user, Role.READ)) {
 				filterBuilder.append(SCHEMA, schemaType + "_*");
 			}
 
@@ -373,7 +373,7 @@ public class FilterUtils {
 
 			filterBuilder.append(TOKENS, "d_" + user.getId());
 
-			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.DELETE)) {
+			for (String schemaType : securityTokenManager.getGlobalPermissionSecurableSchemaTypesVisibleBy(user, Role.DELETE)) {
 				filterBuilder.append(SCHEMA, schemaType + "_*");
 			}
 

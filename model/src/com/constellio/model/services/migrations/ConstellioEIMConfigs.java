@@ -218,7 +218,8 @@ public class ConstellioEIMConfigs {
 
 		add(GROUP_AUTHORIZATIONS_INHERITANCE = others
 				.createEnum("groupAuthorizationsInheritance", GroupAuthorizationsInheritance.class)
-				.withDefaultValue(GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD));
+				.withDefaultValue(GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD)
+				.scriptedBy(GroupAuthorizationsInheritanceScript.class));
 
 		add(TRANSACTION_DELAY = others.createInteger("transactionDelay").withDefaultValue(3));
 		//add(DEFAULT_FONT_SIZE = others.createInteger("defaultFontSize").withDefaultValue(16));

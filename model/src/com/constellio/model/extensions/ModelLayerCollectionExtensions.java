@@ -24,6 +24,7 @@ import com.constellio.model.extensions.events.records.RecordPhysicalDeletionVali
 import com.constellio.model.extensions.events.records.RecordReindexationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutedEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
@@ -115,22 +116,6 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
-	public void callTransactionExecuted(TransactionExecutionBeforeSaveEvent event,
-												   RecordUpdateOptions options) {
-		for (RecordExtension extension : recordExtensions) {
-			try {
-				extension.transactionExecutionBeforeSave(event);
-
-			} catch (RuntimeException e) {
-				if (options.isCatchExtensionsExceptions()) {
-					LOGGER.warn("Exception while calling extension of class '" + extension.getClass().getName()
-								+ "' on transaction ", e);
-				} else {
-					throw e;
-				}
-			}
-		}
-	}
 
 	public void callRecordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
@@ -170,19 +155,15 @@ public class ModelLayerCollectionExtensions {
 
 	public static void handleException(RuntimeException e, String recordId, String extensionClassname,
 									   RecordUpdateOptions options) {
-		//if (e instanceof ValidationRuntimeException) {
-		//	if (options.isCatchExtensionsValidationsErrors()) {
-		//		LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "' on record " + recordId, e);
-		//			} else {
-		//		throw e;
-		//		}
-		//} else {
 		if (options.isCatchExtensionsExceptions()) {
-			LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "' on record " + recordId, e);
+			if (recordId == null) {
+				LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "'", e);
+			} else {
+				LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "' on record " + recordId, e);
+			}
 		} else {
 			throw e;
 		}
-		//}
 	}
 
 	public void callRecordInModificationBeforeValidationAndAutomaticValuesCalculation(
@@ -213,6 +194,16 @@ public class ModelLayerCollectionExtensions {
 				extension.recordModified(event);
 			} catch (RuntimeException e) {
 				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
+		}
+	}
+
+	public void callTransactionExecuted(TransactionExecutedEvent event, RecordUpdateOptions options) {
+		for (RecordExtension extension : recordExtensions) {
+			try {
+				extension.transactionExecuted(event);
+			} catch (RuntimeException e) {
+				handleException(e, null, extension.getClass().getName(), options);
 			}
 		}
 	}

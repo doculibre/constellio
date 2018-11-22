@@ -10,13 +10,14 @@ import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.extensions.behaviors.RecordExtension;
-import com.constellio.model.extensions.events.records.RecordCreationEvent;
-import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutedEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.schemas.MetadataList;
+import com.constellio.model.services.records.SchemasRecordsServices;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.constellio.data.events.EventBusEventsExecutionStrategy.EXECUTED_LOCALLY_THEN_SENT_REMOTELY;
@@ -26,16 +27,21 @@ public class SecurityModelCache implements EventBusListener {
 	public static final String cacheName = "securityModelCache";
 
 	public static final String INVALIDATE_EVENT_TYPE = "invalidate";
+	public static final String UPDATE_CACHE_EVENT_TYPE = "authsCreated";
+	public static final String REMOVE_AUTH_EVENT_TYPE = "authDeleted";
 
 	Map<String, SingletonSecurityModel> models = new HashMap<>();
 	EventBus eventBus;
+	ModelLayerFactory modelLayerFactory;
 
 	public SecurityModelCache(final ModelLayerFactory modelLayerFactory) {
+		this.modelLayerFactory = modelLayerFactory;
 		eventBus = modelLayerFactory.getDataLayerFactory().getEventBusManager()
 				.createEventBus(cacheName, EXECUTED_LOCALLY_THEN_SENT_REMOTELY);
 		eventBus.register(this);
 
 		modelLayerFactory.getExtensions().getSystemWideExtensions().recordExtensions.add(new SecurityModelCacheRecordExtension());
+
 	}
 
 
@@ -53,6 +59,25 @@ public class SecurityModelCache implements EventBusListener {
 		}
 	}
 
+	private void updateCache(String collection, List<String> createdAuthsIds, List<String> modifiedAuthsIds) {
+		if (models.containsKey(collection)) {
+			Map<String, Object> values = new HashMap<>();
+			values.put("collection", collection);
+			values.put("createdAuthsIds", createdAuthsIds);
+			values.put("modifiedAuthsIds", modifiedAuthsIds);
+			eventBus.send(UPDATE_CACHE_EVENT_TYPE, values);
+		}
+	}
+
+	private void removeAuth(String collection, String authId) {
+		if (models.containsKey(collection)) {
+			Map<String, Object> values = new HashMap<>();
+			values.put("collection", collection);
+			values.put("authId", authId);
+			eventBus.send(REMOVE_AUTH_EVENT_TYPE, values);
+		}
+	}
+
 	@Override
 	public void onEventReceived(Event event) {
 		switch (event.getType()) {
@@ -61,54 +86,102 @@ public class SecurityModelCache implements EventBusListener {
 				this.models.remove(collection);
 				break;
 
+			case UPDATE_CACHE_EVENT_TYPE:
+				collection = event.getData("collection");
+				SingletonSecurityModel securityModel = this.models.get(collection);
+				if (securityModel != null) {
+					SchemasRecordsServices schemas = new SchemasRecordsServices(collection, modelLayerFactory);
+					securityModel.updateCache(
+							schemas.getSolrAuthorizationDetailss(event.<List<String>>getData("createdAuthsIds")),
+							schemas.getSolrAuthorizationDetailss(event.<List<String>>getData("modifiedAuthsIds")));
+				}
+				break;
+
+			case REMOVE_AUTH_EVENT_TYPE:
+				securityModel = this.models.get(event.<String>getData("collection"));
+				if (securityModel != null) {
+					securityModel.removeAuth(event.<String>getData("authId"));
+				}
+				break;
+
 			default:
 				throw new ImpossibleRuntimeException("Unsupported event type '" + event.getType() + "'");
 		}
 	}
 
+	public void invalidate(String collection) {
+		invalidateIfLoaded(collection);
+	}
+
 	public class SecurityModelCacheRecordExtension extends RecordExtension {
 
 		@Override
-		public void recordCreated(RecordCreationEvent event) {
-			if (isRequiringSecurityModelInvalidation(event.getRecord(), null, true)) {
-				invalidateIfLoaded(event.getRecord().getCollection());
-			}
-		}
+		public void transactionExecuted(TransactionExecutedEvent event) {
 
-		@Override
-		public void recordModified(RecordModificationEvent event) {
-			if (isRequiringSecurityModelInvalidation(event.getRecord(), event.getModifiedMetadatas(), false)) {
-				invalidateIfLoaded(event.getRecord().getCollection());
+			List<String> authCreated = new ArrayList<>();
+			List<String> authModified = new ArrayList<>();
+
+			boolean fullInvalidateRequired = false;
+
+			for (Record newRecord : event.getNewRecords()) {
+
+				switch (newRecord.getTypeCode()) {
+					case User.SCHEMA_TYPE:
+						fullInvalidateRequired = true;
+						break;
+
+					case Group.SCHEMA_TYPE:
+						fullInvalidateRequired = true;
+						break;
+
+					case Authorization.SCHEMA_TYPE:
+						authCreated.add(newRecord.getId());
+						break;
+				}
+			}
+
+			for (Record modifiedRecord : event.getUpdatedRecords()) {
+				switch (modifiedRecord.getTypeCode()) {
+					case User.SCHEMA_TYPE:
+						fullInvalidateRequired = true;
+						break;
+
+					case Group.SCHEMA_TYPE:
+						fullInvalidateRequired = event.getModifiedMetadataListOf(modifiedRecord).containsMetadataWithLocalCode(Group.PARENT);
+						break;
+
+					case Authorization.SCHEMA_TYPE:
+						authModified.add(modifiedRecord.getId());
+						break;
+				}
+			}
+
+			if (fullInvalidateRequired) {
+				invalidateIfLoaded(event.getTransaction().getCollection());
+
+			} else if (!authCreated.isEmpty() || !authModified.isEmpty()) {
+				updateCache(event.getTransaction().getCollection(), authCreated, authModified);
 			}
 		}
 
 		@Override
 		public void recordPhysicallyDeleted(RecordPhysicalDeletionEvent event) {
-			if (isRequiringSecurityModelInvalidation(event.getRecord(), null, true)) {
-				invalidateIfLoaded(event.getRecord().getCollection());
-			}
-		}
 
-		private boolean isRequiringSecurityModelInvalidation(Record record, MetadataList modifiedMetadatas,
-															 boolean createdOrDeleted) {
-
-			String schemaType = record.getTypeCode();
-
-			switch (schemaType) {
+			switch (event.getRecord().getTypeCode()) {
 				case User.SCHEMA_TYPE:
-					return createdOrDeleted;
-
+					invalidateIfLoaded(event.getRecord().getCollection());
+					break;
 
 				case Group.SCHEMA_TYPE:
-					return createdOrDeleted || (modifiedMetadatas != null && modifiedMetadatas.containsMetadataWithLocalCode(Group.PARENT));
+					invalidateIfLoaded(event.getRecord().getCollection());
+					break;
 
 				case Authorization.SCHEMA_TYPE:
-					return true;
-
-				default:
-					return false;
+					removeAuth(event.getRecord().getCollection(), event.getRecord().getId());
+					break;
 			}
 		}
+
 
 	}
 }

@@ -1,6 +1,5 @@
 package com.constellio.model.entities.security;
 
-import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -11,24 +10,25 @@ import java.util.List;
 
 public class SecurityModelAuthorization {
 
-	List<User> users = new ArrayList<>();
+	private List<User> users = new ArrayList<>();
 
-	List<Group> groups = new ArrayList<>();
+	private List<Group> groups = new ArrayList<>();
 
-	Authorization details;
+	private Authorization details;
 
-	GroupAuthorizationsInheritance groupAuthorizationsInheritance;
+	private boolean securableRecord;
 
-	boolean conceptAuth;
+	private GroupAuthorizationsInheritance groupAuthorizationsInheritance;
 
 	private SecurityModelAuthorization(GroupAuthorizationsInheritance groupAuthorizationsInheritance) {
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
 	}
 
 	public SecurityModelAuthorization(Authorization details,
-									  boolean conceptAuth,
+									  boolean securableRecord,
 									  GroupAuthorizationsInheritance groupAuthorizationsInheritance) {
 		this.details = details;
+		this.securableRecord = securableRecord;
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
 	}
 
@@ -45,30 +45,6 @@ public class SecurityModelAuthorization {
 		return users;
 	}
 
-	public List<String> getPrincipalIds() {
-		List<String> principalIds = new ArrayList<>();
-
-		for (Group group : groups) {
-			principalIds.add(group.getId());
-		}
-
-		if (groupAuthorizationsInheritance != GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD) {
-			for (Group group : groups) {
-				for (String ancestor : group.getAncestors()) {
-					if (!principalIds.contains(ancestor)) {
-						principalIds.add(ancestor);
-					}
-				}
-			}
-		}
-
-		for (User user : users) {
-			principalIds.add(user.getId());
-		}
-
-		return principalIds;
-	}
-
 	public List<Group> getGroups() {
 		return groups;
 	}
@@ -77,47 +53,19 @@ public class SecurityModelAuthorization {
 		return details;
 	}
 
-	public void removeUser(User user) {
-		for (int i = 0; i < users.size(); i++) {
-			if (users.get(i).getUsername().equals(user.getUsername())) {
-				users.remove(i);
-				break;
-			}
-		}
-	}
-
-	public void removeGroup(Group group) {
-		for (int i = 0; i < groups.size(); i++) {
-			if (groups.get(i).getCode().equals(group.getCode())) {
-				groups.remove(i);
-				break;
-			}
-		}
-	}
-
-	public boolean isSecurizedRecord() {
-
-		switch (details.getTargetSchemaType()) {
-
-			case "folder":
-			case "document":
-				return true;
-
-			default:
-				return false;
-		}
+	public boolean isSecurableRecord() {
+		return securableRecord;
 	}
 
 	static SecurityModelAuthorization wrapNewAuthWithoutUsersAndGroups(
 			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
-			Taxonomy principalTaxonomy,
+			boolean securableRecord,
 			Authorization details) {
 
 		SecurityModelAuthorization auth = new SecurityModelAuthorization(groupAuthorizationsInheritance);
 		auth.users = new ArrayList<>();
 		auth.groups = new ArrayList<>();
-		auth.conceptAuth = principalTaxonomy != null
-						   && principalTaxonomy.getSchemaTypes().contains(details.getTargetSchemaType());
+		auth.securableRecord = securableRecord;
 
 		auth.details = details;
 
@@ -126,7 +74,7 @@ public class SecurityModelAuthorization {
 
 	static SecurityModelAuthorization wrapExistingAuthUsingModifiedUsersAndGroups(
 			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
-			Taxonomy principalTaxonomy,
+			boolean securableRecord,
 			Authorization details,
 			List<User> existingUsers,
 			List<Group> existingGroups) {
@@ -134,8 +82,7 @@ public class SecurityModelAuthorization {
 		SecurityModelAuthorization auth = new SecurityModelAuthorization(groupAuthorizationsInheritance);
 		auth.users = new ArrayList<>();
 		auth.groups = new ArrayList<>();
-		auth.conceptAuth = principalTaxonomy != null
-						   && principalTaxonomy.getSchemaTypes().contains(details.getTargetSchemaType());
+		auth.securableRecord = securableRecord;
 
 
 		for (User user : existingUsers) {

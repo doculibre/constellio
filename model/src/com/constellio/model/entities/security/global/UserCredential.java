@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import static java.util.Arrays.asList;
+
 public class UserCredential extends RecordWrapper {
 	public static final String SCHEMA_TYPE = "userCredential";
 	public static final String DEFAULT_SCHEMA = SCHEMA_TYPE + "_default";
@@ -142,6 +144,11 @@ public class UserCredential extends RecordWrapper {
 
 	public UserCredential setCollections(List<String> collections) {
 		set(COLLECTIONS, collections);
+		return this;
+	}
+
+	public UserCredential setCollections(String... collections) {
+		set(COLLECTIONS, asList(collections));
 		return this;
 	}
 

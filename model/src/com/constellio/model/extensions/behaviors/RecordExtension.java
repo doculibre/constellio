@@ -16,6 +16,7 @@ import com.constellio.model.extensions.events.records.RecordPhysicalDeletionVali
 import com.constellio.model.extensions.events.records.RecordReindexationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutedEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.extensions.params.GetCaptionForRecordParams;
 import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
@@ -60,6 +61,9 @@ public class RecordExtension {
 	}
 
 	public void recordReindexed(RecordReindexationEvent event) {
+	}
+
+	public void transactionExecuted(TransactionExecutedEvent event) {
 	}
 
 	public void setRecordCategory(RecordSetCategoryEvent event) {

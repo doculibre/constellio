@@ -77,7 +77,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 			for (String attachedAncestor : attachedAncestors) {
 				if (!attachedAncestor.startsWith("-")) {
 					for (SecurityModelAuthorization inheritedNonTaxonomyAuth : securityModel.getAuthorizationsOnTarget(attachedAncestor)) {
-						if (inheritedNonTaxonomyAuth.isSecurizedRecord()) {
+						if (inheritedNonTaxonomyAuth.isSecurableRecord()) {
 							returnedAuths.add(inheritedNonTaxonomyAuth);
 						}
 					}
@@ -161,7 +161,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 											final Set<String> negativeTokens) {
 		final Set<String> positiveTokens = new HashSet<>();
 		for (SecurityModelAuthorization authorization : authorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurizedRecord()
+			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurableRecord()
 				&& !authorization.getDetails().isNegative()) {
 
 				forEachAccessAndPrincipalInheriting(securityModel, authorization, new Caller() {
@@ -183,7 +183,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 		for (SecurityModelAuthorization authorization : authorizations) {
 			if (authorization.getDetails().isActiveAuthorization()
-				&& authorization.isSecurizedRecord()
+				&& authorization.isSecurableRecord()
 				&& authorization.getDetails().isNegative()) {
 
 				forEachAccessAndPrincipalInheriting(securityModel, authorization, new Caller() {
@@ -203,7 +203,7 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 												   final String typeSmallCode) {
 		final Set<String> removedNegativeTokens = new HashSet<>();
 		for (SecurityModelAuthorization authorization : removedOrDetachedAuthorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurizedRecord()
+			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurableRecord()
 				&& authorization.getDetails().isNegative()) {
 
 				forEachAccessAndPrincipalInheriting(securityModel, authorization, new Caller() {

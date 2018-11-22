@@ -11,7 +11,6 @@ import java.util.List;
 import static com.constellio.data.dao.services.bigVault.BigVaultRecordDao.DATE_SEARCH_FIELD;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
 
@@ -35,8 +34,6 @@ Schemas {
 	public static final Metadata PATH_PARTS = add(new Metadata("pathParts_ss", STRING, true));
 	public static final Metadata PRINCIPAL_PATH = add(new Metadata("principalpath_s", STRING, false));
 	public static final Metadata REMOVED_AUTHORIZATIONS = add(new Metadata("removedauthorizations_ss", STRING, true));
-	public static final Metadata NON_TAXONOMY_AUTHORIZATIONS = add(
-			new Metadata("nonTaxonomyAuthorizationsId_ss", REFERENCE, true));
 	public static final Metadata ALL_REMOVED_AUTHS = add(new Metadata("allRemovedAuths_ss", STRING, true));
 	public static final Metadata IS_DETACHED_AUTHORIZATIONS = add(new Metadata("detachedauthorizations_s", STRING, false));
 	public static final Metadata TOKENS = add(new Metadata("tokens_ss", STRING, true));

@@ -62,6 +62,7 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutedEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -827,11 +828,14 @@ public class RecordServicesImpl extends BaseRecordServices {
 			LOGGER.warn("Validating errors added by extensions : \n" + $(transactionExtensionErrors));
 		}
 
+		ValidationErrors recordErrors =
+				catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
+		List<Record> newRecords = new ArrayList<>();
+		List<Record> modifiedRecords = new ArrayList<>();
 		for (final Record record : transaction.getRecords()) {
 			if (record.isDirty()) {
-				ValidationErrors recordErrors =
-						catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
 				if (record.isSaved()) {
+					modifiedRecords.add(record);
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
 					extensions.callRecordInModificationBeforeSave(new RecordInModificationBeforeSaveEvent(record,
 							modifiedMetadatas, transaction.getUser(), singleRecordTransaction, recordErrors) {
@@ -843,6 +847,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 						}
 					}, options);
 				} else {
+					newRecords.add(record);
 					extensions.callRecordInCreationBeforeSave(new RecordInCreationBeforeSaveEvent(
 							record, transaction.getUser(), singleRecordTransaction, recordErrors) {
 						@Override
@@ -860,6 +865,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 		}
+
 		if (!errors.isEmpty()) {
 			throw new RecordServicesException.ValidationException(transaction, errors);
 		}
@@ -1015,7 +1021,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 					MetadataSchemaTypes metadataSchemaTypes = modelFactory.getMetadataSchemasManager().getSchemaTypes(
 							transaction.getCollection());
 
-					List<RecordEvent> recordEvents = prepareRecordEvents(modifiedOrUnsavedRecords, metadataSchemaTypes);
+					List<RecordEvent> recordEvents = new ArrayList<>();
+					TransactionExecutedEvent event = prepareRecordEvents(transaction, modifiedOrUnsavedRecords, metadataSchemaTypes, recordEvents);
+
 
 					TransactionResponseDTO transactionResponseDTO;
 					if (transactionDTOEntry.getKey().equals(DataStore.RECORDS)) {
@@ -1037,7 +1045,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 						modificationImpactHandler.handle();
 					}
 
-					callExtensions(transaction.getCollection(), recordEvents, transaction.getRecordUpdateOptions());
+					callExtensions(transaction.getCollection(), recordEvents, event, transaction.getRecordUpdateOptions());
 
 				} catch (OptimisticLocking e) {
 					if (modificationImpactHandler != null) {
@@ -1051,9 +1059,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
-	private List<RecordEvent> prepareRecordEvents(List<Record> modifiedOrUnsavedRecords, MetadataSchemaTypes types) {
-		List<RecordEvent> events = new ArrayList<>();
+	private TransactionExecutedEvent prepareRecordEvents(Transaction transaction, List<Record> modifiedOrUnsavedRecords,
+														 MetadataSchemaTypes types, List<RecordEvent> events) {
 
+		List<Record> newRecords = new ArrayList<>();
+		List<Record> modifiedRecords = new ArrayList<>();
+		Map<String, MetadataList> modifiedMetadatasOfModifiedRecords = new HashMap<>();
 		for (Record record : modifiedOrUnsavedRecords) {
 			if (record.isSaved()) {
 
@@ -1064,21 +1075,23 @@ public class RecordServicesImpl extends BaseRecordServices {
 						events.add(new RecordLogicalDeletionEvent(record));
 					}
 				} else {
-
+					modifiedRecords.add(record);
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-					events.add(
-							new RecordModificationEvent(record, modifiedMetadatas));
+					events.add(new RecordModificationEvent(record, modifiedMetadatas));
+					modifiedMetadatasOfModifiedRecords.put(record.getId(), modifiedMetadatas);
 				}
 
 			} else {
+				newRecords.add(record);
 				events.add(new RecordCreationEvent(record));
 			}
 		}
 
-		return events;
+		return new TransactionExecutedEvent(transaction, newRecords, modifiedRecords, modifiedMetadatasOfModifiedRecords);
 	}
 
-	private void callExtensions(String collection, List<RecordEvent> recordEvents, RecordUpdateOptions options) {
+	private void callExtensions(String collection, List<RecordEvent> recordEvents, TransactionExecutedEvent event,
+								RecordUpdateOptions options) {
 		ModelLayerCollectionExtensions extensions = modelFactory.getExtensions().forCollection(collection);
 
 		for (RecordEvent recordEvent : recordEvents) {
@@ -1095,6 +1108,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 				extensions.callRecordRestored((RecordRestorationEvent) recordEvent);
 			}
 		}
+
+		extensions.callTransactionExecuted(event, options);
 
 	}
 
