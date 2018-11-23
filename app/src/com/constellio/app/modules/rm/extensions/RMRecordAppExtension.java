@@ -3,6 +3,7 @@ package com.constellio.app.modules.rm.extensions;
 import com.constellio.app.extensions.records.RecordAppExtension;
 import com.constellio.app.extensions.records.params.BuildRecordVOParams;
 import com.constellio.app.extensions.records.params.GetIconPathParams;
+import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.model.enums.FolderStatus;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
@@ -167,38 +168,67 @@ public class RMRecordAppExtension extends RecordAppExtension {
 
 	private String getFolderIconPath(Folder folder, boolean expanded) {
 		String imgName = getFolderExtension(folder, expanded);
-		return IMAGES_DIR + "/icons/folder/" + imgName + ".png";
+		return IMAGES_DIR + "/icons/folder2/" + imgName + ".png";
 	}
 
 	private String getFolderIconPath(RecordVO recordVO, boolean expanded) {
 		String imgName = getFolderExtension(recordVO, expanded);
-		return IMAGES_DIR + "/icons/folder/" + imgName + ".png";
+		return IMAGES_DIR + "/icons/folder2/" + imgName + ".png";
 	}
 
 	private String getFolderExtension(RecordVO recordVO, boolean expanded) {
 		FolderStatus archivisticStatus = recordVO.getMetadataValue(recordVO.getMetadata(Folder.ARCHIVISTIC_STATUS)).getValue();
-		return getArchivisticStatusFilename(expanded, archivisticStatus);
+		FolderMediaType folderMediaType = recordVO.getMetadataValue(recordVO.getMetadata(Folder.MEDIA_TYPE)).getValue();
+		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(folderMediaType) + "_folder_" + getIsOpenOrClose(expanded);
 	}
 
 	private String getFolderExtension(Folder folder, boolean expanded) {
 		FolderStatus archivisticStatus = folder.getArchivisticStatus();
-		return getArchivisticStatusFilename(expanded, archivisticStatus);
+		FolderMediaType folderMediaType = folder.getMediaType();
+		return getArchivisticStatusFilename(archivisticStatus) + "_" + getSupportType(folderMediaType) + "_folder_" + getIsOpenOrClose(expanded);
 	}
 
-	private String getArchivisticStatusFilename(boolean expanded, FolderStatus archivisticStatus) {
+	public static String getIsOpenOrClose(boolean expanded) {
+		if(expanded) {
+			return "opened";
+		} else {
+			return "closed";
+		}
+	}
+
+	public static String getSupportType(FolderMediaType folderMediaType) {
+		if(folderMediaType == null) {
+			return "empty";
+		}
+
+		switch(folderMediaType) {
+			case ELECTRONIC:
+				return "numerical";
+			case HYBRID:
+				return "hybrid";
+			case ANALOG:
+				return "analog";
+			case UNKNOWN:
+				return "empty";
+		}
+
+		return null;
+	}
+
+	public static String getArchivisticStatusFilename(FolderStatus archivisticStatus) {
 		String imgName;
 		if (archivisticStatus != null) {
 			if (archivisticStatus.isDestroyed()) {
-				imgName = expanded ? "folder_open_grey" : "folder_grey";
+				imgName = "grey";
 			} else if (archivisticStatus.isDeposited()) {
-				imgName = expanded ? "folder_open_purple" : "folder_purple";
+				imgName = "purple";
 			} else if (archivisticStatus.isSemiActive()) {
-				imgName = expanded ? "folder_open_orange" : "folder_orange";
+				imgName = "orange";
 			} else {
-				imgName = expanded ? "folder_open" : "folder";
+				imgName = "yellow";
 			}
 		} else {
-			imgName = expanded ? "folder_open" : "folder";
+			imgName = "yellow";
 		}
 		return imgName;
 	}
