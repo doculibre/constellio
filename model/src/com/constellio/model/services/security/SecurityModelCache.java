@@ -7,8 +7,8 @@ import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.SingletonSecurityModel;
+import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutedEvent;
@@ -121,15 +121,12 @@ public class SecurityModelCache implements EventBusListener {
 			List<String> authCreated = new ArrayList<>();
 			List<String> authModified = new ArrayList<>();
 
+			boolean allCollectionInvalidateRequired = false;
 			boolean fullInvalidateRequired = false;
 
 			for (Record newRecord : event.getNewRecords()) {
 
 				switch (newRecord.getTypeCode()) {
-					case User.SCHEMA_TYPE:
-						fullInvalidateRequired = true;
-						break;
-
 					case Group.SCHEMA_TYPE:
 						fullInvalidateRequired = true;
 						break;
@@ -142,12 +139,12 @@ public class SecurityModelCache implements EventBusListener {
 
 			for (Record modifiedRecord : event.getUpdatedRecords()) {
 				switch (modifiedRecord.getTypeCode()) {
-					case User.SCHEMA_TYPE:
-						fullInvalidateRequired = true;
-						break;
-
 					case Group.SCHEMA_TYPE:
 						fullInvalidateRequired = event.getModifiedMetadataListOf(modifiedRecord).containsMetadataWithLocalCode(Group.PARENT);
+						break;
+
+					case GlobalGroup.SCHEMA_TYPE:
+						allCollectionInvalidateRequired = event.getModifiedMetadataListOf(modifiedRecord).containsMetadataWithLocalCode(GlobalGroup.STATUS);
 						break;
 
 					case Authorization.SCHEMA_TYPE:
@@ -156,7 +153,12 @@ public class SecurityModelCache implements EventBusListener {
 				}
 			}
 
-			if (fullInvalidateRequired) {
+			if (allCollectionInvalidateRequired) {
+				for (String collection : modelLayerFactory.getCollectionsListManager().getCollections()) {
+					invalidateIfLoaded(collection);
+				}
+
+			} else if (fullInvalidateRequired) {
 				invalidateIfLoaded(event.getTransaction().getCollection());
 
 			} else if (!authCreated.isEmpty() || !authModified.isEmpty()) {
@@ -168,10 +170,6 @@ public class SecurityModelCache implements EventBusListener {
 		public void recordPhysicallyDeleted(RecordPhysicalDeletionEvent event) {
 
 			switch (event.getRecord().getTypeCode()) {
-				case User.SCHEMA_TYPE:
-					invalidateIfLoaded(event.getRecord().getCollection());
-					break;
-
 				case Group.SCHEMA_TYPE:
 					invalidateIfLoaded(event.getRecord().getCollection());
 					break;

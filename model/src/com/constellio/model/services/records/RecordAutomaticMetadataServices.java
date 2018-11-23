@@ -488,7 +488,6 @@ public class RecordAutomaticMetadataServices {
 															   String collection) {
 
 		List<Group> groups = new ArrayList<>();
-		List<User> users = new ArrayList<>();
 		List<Authorization> authorizationDetails = new ArrayList<>();
 		List<String> disabledGroups = new ArrayList<>();
 
@@ -514,14 +513,6 @@ public class RecordAutomaticMetadataServices {
 			}
 		}
 
-		for (Record record : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(User.SCHEMA_TYPE))) {
-			if (record != null) {
-				users.add(User.wrapNullable(record, types, roles));
-			} else {
-				LOGGER.warn("Null record returned while getting all users");
-			}
-		}
-
 		for (Record record : searchServices
 				.getAllRecordsInUnmodifiableState(types.getSchemaType(Authorization.SCHEMA_TYPE))) {
 			if (record != null) {
@@ -536,8 +527,15 @@ public class RecordAutomaticMetadataServices {
 
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(types.getCollection());
 
-		return new SingletonSecurityModel(authorizationDetails, users, groups, groupInheritanceMode, disabledGroups,
-				principalTaxonomy, collection);
+		List<String> securableRecordSchemaTypes = new ArrayList<>();
+		for (MetadataSchemaType schemaType : schemasManager.getSchemaTypes(collection).getSchemaTypes()) {
+			if (schemaType.hasSecurity() && (principalTaxonomy == null || !principalTaxonomy.getSchemaTypes().contains(schemaType.getCode()))) {
+				securableRecordSchemaTypes.add(schemaType.getCode());
+			}
+		}
+
+		return new SingletonSecurityModel(authorizationDetails, groups, groupInheritanceMode, disabledGroups,
+				securableRecordSchemaTypes, collection);
 	}
 
 

@@ -2876,6 +2876,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		userServices.addUpdateGlobalGroup(users.rumors().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//TODO Should not be required
+		//Cache invalidation problemgetModelLayerFactory().getSecurityModelCache().invalidate(zeCollection);
 		reindex();
 
 		assertThat(users.edouardIn(zeCollection).hasReadAccess().on(record(TAXO1_CATEGORY1))).isFalse();
@@ -3802,7 +3803,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		add(authorizationForGroupInAnotherCollection(heroes).on(otherCollectionRecords.folder4_1()).givingNegativeReadWriteDeleteAccess());
 		add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder2_1()).givingNegativeReadWriteDeleteAccess());
-
 
 		assertThatAllFoldersVisibleBy(charles).containsOnly(
 				"folder4", "folder4_1", "folder4_2", "anotherCollection_folder2", "anotherCollection_folder2_2",

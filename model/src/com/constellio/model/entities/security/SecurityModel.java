@@ -18,7 +18,7 @@ public interface SecurityModel {
 	List<SecurityModelAuthorization> getAuthorizationDetailsOnMetadatasProvidingSecurity(
 			DynamicDependencyValues metadatasProvidingSecurity);
 
-	Object getPrincipalById(String id);
+	Group getPrincipalById(String id);
 
 	List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId, boolean includeInherited);
 
