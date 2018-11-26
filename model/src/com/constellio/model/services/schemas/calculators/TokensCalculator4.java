@@ -7,7 +7,6 @@ import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
@@ -244,10 +243,10 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 				caller.call(access, userId);
 			}
 
-			for (Group group : authorization.getGroups()) {
-				if (securityModel.isGroupActive(group)) {
-					for (Group aGroup : securityModel.getGroupsInheritingAuthorizationsFrom(group)) {
-						caller.call(access, aGroup.getId());
+			for (String groupId : authorization.getGroupIds()) {
+				if (securityModel.isGroupActive(groupId)) {
+					for (String aGroup : securityModel.getGroupsInheritingAuthorizationsFrom(groupId)) {
+						caller.call(access, aGroup);
 					}
 				}
 			}

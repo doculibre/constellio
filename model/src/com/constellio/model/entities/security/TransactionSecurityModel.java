@@ -4,7 +4,6 @@ import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.security.roles.Roles;
@@ -82,7 +81,7 @@ public class TransactionSecurityModel implements SecurityModel {
 								nestedSecurityModel.groupAuthorizationsInheritance,
 								nestedSecurityModel.securableRecordSchemaTypes.contains(authorization.getTargetSchemaType()),
 								authorization,
-								nestedSecurityModel.getGroups());
+								nestedSecurityModel.getGroupIds());
 
 						SecurityModelAuthorization oldVersion = nestedSecurityModelAuths.get(index);
 
@@ -99,7 +98,7 @@ public class TransactionSecurityModel implements SecurityModel {
 						nestedSecurityModel.groupAuthorizationsInheritance,
 						returnedAuth.isSecurableRecord(),
 						returnedAuth.getDetails(),
-						nestedSecurityModel.getGroups());
+						nestedSecurityModel.getGroupIds());
 
 				returnedAuths.set(i, newVersion);
 			}
@@ -123,10 +122,9 @@ public class TransactionSecurityModel implements SecurityModel {
 				details);
 
 		for (String principalId : details.getPrincipals()) {
-			Group principal = getPrincipalById(principalId);
 
-			if (principal != null) {
-				authorization.addGroup(principal);
+			if (nestedSecurityModel.getGroupIds().contains(principalId)) {
+				authorization.addGroupId(principalId);
 			} else {
 				authorization.addUserId(principalId);
 			}
@@ -151,7 +149,7 @@ public class TransactionSecurityModel implements SecurityModel {
 							nestedSecurityModel.groupAuthorizationsInheritance,
 							nestedAuthorization.isSecurableRecord(),
 							authorization,
-							nestedSecurityModel.getGroups());
+							nestedSecurityModel.getGroupIds());
 
 				}
 			}
@@ -163,20 +161,18 @@ public class TransactionSecurityModel implements SecurityModel {
 					nestedSecurityModel.groupAuthorizationsInheritance,
 					nestedAuthorization.isSecurableRecord(),
 					nestedAuthorization.getDetails(),
-					nestedSecurityModel.getGroups());
+					nestedSecurityModel.getGroupIds());
 		}
 	}
 
 	@Override
-	public List<Group> getGroupsInheritingAuthorizationsFrom(Group group) {
-		//TODO Handle group inheritance modifications in transaction
-		return nestedSecurityModel.getGroupsInheritingAuthorizationsFrom(group);
+	public List<String> getGroupsInheritingAuthorizationsFrom(String groupId) {
+		return nestedSecurityModel.getGroupsInheritingAuthorizationsFrom(groupId);
 	}
 
 	@Override
-	public boolean isGroupActive(Group group) {
-		//TODO Handle group inheritance modifications in transaction
-		return nestedSecurityModel.isGroupActive(group);
+	public boolean isGroupActive(String groupId) {
+		return nestedSecurityModel.isGroupActive(groupId);
 	}
 
 	@Override
@@ -185,19 +181,6 @@ public class TransactionSecurityModel implements SecurityModel {
 
 		return SecurityModelUtils.getAuthorizationDetailsOnMetadatasProvidingSecurity(
 				metadatasProvidingSecurity, this);
-
-	}
-
-	@Override
-	public Group getPrincipalById(String id) {
-
-		Record record = transaction.getRecord(id);
-		if (record != null && Group.SCHEMA_TYPE.equals(record.getTypeCode())) {
-			return Group.wrapNullable(record, types);
-
-		} else {
-			return nestedSecurityModel.getPrincipalById(id);
-		}
 
 	}
 

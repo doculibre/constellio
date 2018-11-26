@@ -2,16 +2,16 @@ package com.constellio.model.entities.security;
 
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Authorization;
-import com.constellio.model.entities.records.wrappers.Group;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class SecurityModelAuthorization {
 
 	private List<String> userIds = new ArrayList<>();
 
-	private List<Group> groups = new ArrayList<>();
+	private List<String> groupIds = new ArrayList<>();
 
 	private Authorization details;
 
@@ -39,12 +39,12 @@ public class SecurityModelAuthorization {
 		return userIds;
 	}
 
-	public void addGroup(Group group) {
-		groups.add(group);
+	public void addGroupId(String groupId) {
+		groupIds.add(groupId);
 	}
 
-	public List<Group> getGroups() {
-		return groups;
+	public List<String> getGroupIds() {
+		return groupIds;
 	}
 
 	public Authorization getDetails() {
@@ -62,7 +62,7 @@ public class SecurityModelAuthorization {
 
 		SecurityModelAuthorization auth = new SecurityModelAuthorization(groupAuthorizationsInheritance);
 		auth.userIds = new ArrayList<>();
-		auth.groups = new ArrayList<>();
+		auth.groupIds = new ArrayList<>();
 		auth.securableRecord = securableRecord;
 
 		auth.details = details;
@@ -74,29 +74,17 @@ public class SecurityModelAuthorization {
 			GroupAuthorizationsInheritance groupAuthorizationsInheritance,
 			boolean securableRecord,
 			Authorization details,
-			List<Group> existingGroups) {
+			Set<String> existingGroups) {
 
 		SecurityModelAuthorization auth = new SecurityModelAuthorization(groupAuthorizationsInheritance);
 		auth.userIds = new ArrayList<>();
-		auth.groups = new ArrayList<>();
+		auth.groupIds = new ArrayList<>();
 		auth.securableRecord = securableRecord;
 
-		for (Group group : existingGroups) {
-			if (details.getPrincipals().contains(group.getId())) {
-				auth.groups.add(group);
-			}
-		}
-
 		for (String userId : details.getPrincipals()) {
-			boolean found = false;
-			for (Group group : auth.groups) {
-				if (group.getId().equals(userId)) {
-					found = true;
-					break;
-				}
-			}
-
-			if (!found) {
+			if (existingGroups.contains(userId)) {
+				auth.groupIds.add(userId);
+			} else {
 				auth.userIds.add(userId);
 			}
 		}
@@ -108,10 +96,7 @@ public class SecurityModelAuthorization {
 
 	public String toString() {
 		List<String> printablePrincipals = new ArrayList<>();
-		for (Group group : groups) {
-			printablePrincipals.add(group.getCode());
-		}
-
+		printablePrincipals.addAll(groupIds);
 		printablePrincipals.addAll(userIds);
 
 		return "Giving " + (details.isNegative() ? "negative " : "") + details.getRoles() + " to " + printablePrincipals + " on " + details.getTarget() + " (" + details.getTargetSchemaType() + ")";

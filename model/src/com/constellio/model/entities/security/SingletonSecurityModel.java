@@ -4,7 +4,6 @@ import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Authorization;
-import com.constellio.model.entities.records.wrappers.Group;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,8 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import static com.constellio.model.entities.enums.GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD;
+import java.util.Set;
 
 public class SingletonSecurityModel implements SecurityModel {
 
@@ -30,40 +28,49 @@ public class SingletonSecurityModel implements SecurityModel {
 	/**
 	 * For each group, a list of groups receiving access from it (including self)
 	 */
-	KeyListMap<String, Group> groupsReceivingAccessToGroup = new KeyListMap<>();
+	KeyListMap<String, String> groupsReceivingAccessToGroup = new KeyListMap<>();
 
 
 	/**
 	 * For each group, a list of groups giving access to it (including self)
 	 */
-	KeyListMap<String, Group> groupsGivingAccessToGroup = new KeyListMap<>();
+	KeyListMap<String, String> groupsGivingAccessToGroup = new KeyListMap<>();
 
-	Map<String, Group> groupsById = new HashMap<>();
+	Map<String, Boolean> globalGroupDisabledMap = new HashMap<>();
 
-	List<Group> groups;
-	List<String> disabledGroupCodes;
 	String collection;
 	List<String> securableRecordSchemaTypes;
 
 	static int REFRESH_COUNTER = 0;
 
 	public static SingletonSecurityModel empty(String collection) {
-
-		return new SingletonSecurityModel(Collections.<Authorization>emptyList(),
-				Collections.<Group>emptyList(), FROM_PARENT_TO_CHILD, Collections.<String>emptyList(), Collections.<String>emptyList(), collection);
+		return new SingletonSecurityModel(collection);
 	}
 
-	public SingletonSecurityModel(List<Authorization> authorizationDetails, final List<Group> groups,
+
+	private SingletonSecurityModel(String collection) {
+
+		this.groupAuthorizationsInheritance = GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD;
+		this.globalGroupDisabledMap = Collections.emptyMap();
+		this.collection = collection;
+		this.securableRecordSchemaTypes = Collections.emptyList();
+	}
+
+	public SingletonSecurityModel(List<Authorization> authorizationDetails,
+								  Map<String, Boolean> globalGroupDisabledMap,
+								  KeyListMap<String, String> groupsReceivingAccessToGroup,
+								  KeyListMap<String, String> groupsGivingAccessToGroup,
 								  GroupAuthorizationsInheritance groupAuthorizationsInheritance,
-								  List<String> disabledGroupCodes, List<String> securableRecordSchemaTypes,
+								  List<String> securableRecordSchemaTypes,
 								  String collection) {
 		System.out.println("Security model refresh #" + ++REFRESH_COUNTER);
-		this.groups = groups;
+
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
-		this.disabledGroupCodes = disabledGroupCodes;
 		this.collection = collection;
 		this.securableRecordSchemaTypes = securableRecordSchemaTypes;
-		initGroupsMaps(groups);
+		this.globalGroupDisabledMap = globalGroupDisabledMap;
+		this.groupsReceivingAccessToGroup = groupsReceivingAccessToGroup;
+		this.groupsGivingAccessToGroup = groupsGivingAccessToGroup;
 		initAuthsMaps(authorizationDetails);
 	}
 
@@ -82,34 +89,12 @@ public class SingletonSecurityModel implements SecurityModel {
 		authorizationsByTargets.add(authorizationDetail.getTarget(), securityModelAuthorization);
 
 		for (String principalId : authorizationDetail.getPrincipals()) {
-			Group group = groupsById.get(principalId);
-			if (group != null) {
-				securityModelAuthorization.addGroup(group);
+			if (globalGroupDisabledMap.keySet().contains(principalId)) {
+				securityModelAuthorization.addGroupId(principalId);
 			} else {
 				securityModelAuthorization.addUserId(principalId);
 			}
 			authorizationsByPrincipalId.add(principalId, securityModelAuthorization);
-		}
-	}
-
-	protected void initGroupsMaps(List<Group> groups) {
-		for (final Group group : groups) {
-			groupsById.put(group.getId(), group);
-		}
-
-		for (final Group group : groups) {
-
-			for (String ancestor : group.getAncestors()) {
-				if (groupAuthorizationsInheritance == FROM_PARENT_TO_CHILD) {
-					groupsGivingAccessToGroup.add(group.getId(), (Group) groupsById.get(ancestor));
-					groupsReceivingAccessToGroup.add(ancestor, group);
-
-				} else {
-					groupsReceivingAccessToGroup.add(group.getId(), (Group) groupsById.get(ancestor));
-					groupsGivingAccessToGroup.add(ancestor, group);
-				}
-
-			}
 		}
 	}
 
@@ -127,17 +112,17 @@ public class SingletonSecurityModel implements SecurityModel {
 		return authorizationsById.get(authId);
 	}
 
-	public List<Group> getGroups() {
-		return groups;
+	public Set<String> getGroupIds() {
+		return globalGroupDisabledMap.keySet();
 	}
 
-	public List<Group> getGroupsInheritingAuthorizationsFrom(Group group) {
-		return groupsReceivingAccessToGroup.get(group.getId());
+	public List<String> getGroupsInheritingAuthorizationsFrom(String groupId) {
+		return groupsReceivingAccessToGroup.get(groupId);
 	}
 
 	@Override
-	public boolean isGroupActive(Group group) {
-		return !disabledGroupCodes.contains(group.getCode());
+	public boolean isGroupActive(String groupId) {
+		return Boolean.TRUE.equals(globalGroupDisabledMap.get(groupId));
 	}
 
 	@Override
@@ -149,17 +134,12 @@ public class SingletonSecurityModel implements SecurityModel {
 
 
 	@Override
-	public Group getPrincipalById(String id) {
-		return groupsById.get(id);
-	}
-
-	@Override
 	public List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId, boolean includeInherited) {
 		if (includeInherited) {
 
 			List<SecurityModelAuthorization> returnedAuths = new ArrayList<>();
-			for (Group inheritingPrincipal : groupsGivingAccessToGroup.get(principalId)) {
-				returnedAuths.addAll(authorizationsByPrincipalId.get(inheritingPrincipal.getId()));
+			for (String inheritingPrincipal : groupsGivingAccessToGroup.get(principalId)) {
+				returnedAuths.addAll(authorizationsByPrincipalId.get(inheritingPrincipal));
 			}
 
 			return returnedAuths;
@@ -189,8 +169,8 @@ public class SingletonSecurityModel implements SecurityModel {
 			removeAuthWithId(authId, authorizationsByPrincipalId.get(userId));
 		}
 
-		for (Group group : auth.getGroups()) {
-			removeAuthWithId(authId, authorizationsByPrincipalId.get(group.getId()));
+		for (String groupId : auth.getGroupIds()) {
+			removeAuthWithId(authId, authorizationsByPrincipalId.get(groupId));
 		}
 
 		removeAuthWithId(authId, authorizationsByTargets.get(auth.getDetails().getTarget()));
