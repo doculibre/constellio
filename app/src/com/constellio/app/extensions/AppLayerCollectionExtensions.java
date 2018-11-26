@@ -713,6 +713,7 @@ public class AppLayerCollectionExtensions {
 		}
 		return null;
 	}
+
 	public List<MetadataFilter> getMetadataAccessExclusionFilters() {
 		List<MetadataFilter> metadataFilter = new ArrayList<>();
 		metadataFilter.add(MetadataFilterFactory.excludeMetadataWithLocalCode(Schemas.TITLE_CODE));
