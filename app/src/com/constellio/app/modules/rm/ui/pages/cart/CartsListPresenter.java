@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -101,8 +102,8 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 		return super.getCurrentUser();
 	}
 
-	public String getUsernameById(String userId) {
-		return rm.wrapUser(searchServices().searchSingleResult(from(rm.userSchemaType()).where(getMetadata("id")).isEqualTo(userId))).getUsername();
+	public Record getUser(String userId) {
+		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(getMetadata("id")).isEqualTo(userId));
 	}
 
 }
