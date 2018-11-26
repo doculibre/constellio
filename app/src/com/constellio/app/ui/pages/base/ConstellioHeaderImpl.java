@@ -607,7 +607,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 		addToDefaultFavoritesButton.setEnabled(
 				presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(param.getSchemaTypeCodes(),
 						asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE)));
-		addToDefaultFavoritesButton.setVisible(isEnabled());
+		addToDefaultFavoritesButton.setVisible(addToDefaultFavoritesButton.isEnabled());
 		return addToDefaultFavoritesButton;
 	}
 
