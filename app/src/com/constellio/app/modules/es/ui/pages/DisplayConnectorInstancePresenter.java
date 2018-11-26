@@ -64,7 +64,7 @@ public class DisplayConnectorInstancePresenter extends BasePresenter<DisplayConn
 		Record record = presenterService().getRecord(params);
 		this.recordVO = voBuilder.build(record, VIEW_MODE.DISPLAY, view.getSessionContext());
 		view.setRecord(recordVO);
-		connectorInstance = esSchemasRecordsServices.getConnectorInstance(recordVO.getId());
+		connectorInstance = esSchemasRecordsServices.getConnectorInstance(record.getId());
 	}
 
 	@Override

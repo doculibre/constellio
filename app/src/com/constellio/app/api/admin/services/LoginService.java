@@ -56,7 +56,7 @@ public class LoginService {
 	}
 
 	@POST
-	@Path("removeToken")
+	@Path("removeAccessToken")
 	public Response removeToken(
 			@Context HttpHeaders httpHeaders) {
 		AdminServiceAuthenticator adminServiceAuthenticator = new AdminServiceAuthenticator(

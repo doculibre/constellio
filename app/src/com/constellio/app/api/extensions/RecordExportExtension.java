@@ -13,4 +13,5 @@ public abstract class RecordExportExtension {
 	public List<String> getUnwantedTaxonomiesForExportation() {
 		return null;
 	}
+
 }

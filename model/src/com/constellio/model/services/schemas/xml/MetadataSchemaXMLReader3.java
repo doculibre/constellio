@@ -641,10 +641,24 @@ public class MetadataSchemaXMLReader3 {
 			} else if (dataEntry.getAttributeValue("agregationType") != null) {
 				AggregationType aggregationType = (AggregationType)
 						toEnum(AggregationType.class, dataEntry.getAttributeValue("agregationType"));
+
 				String referenceMetadata = dataEntry.getAttributeValue("referenceMetadata");
 				String inputMetadataStr = dataEntry.getAttributeValue("inputMetadata");
-				List<String> inputMetadatas = isBlank(inputMetadataStr) ? new ArrayList<String>() :
-											  asList(inputMetadataStr.split(","));
+
+				Map<String, List<String>> inputMetadatasByRefMetadata = new HashMap<>();
+				if (!isBlank(referenceMetadata)) {
+					List<String> referenceMetadatas = asList(referenceMetadata.split(";"));
+					List<String> inputMetadatas = !isBlank(inputMetadataStr) ?
+												  asList(inputMetadataStr.split(";")) :
+												  new ArrayList<String>();
+
+					for (int i = 0; i < referenceMetadatas.size(); i++) {
+						inputMetadatasByRefMetadata.put(referenceMetadatas.get(i),
+								!inputMetadatas.isEmpty() ? asList(inputMetadatas.get(i).split(",")) :
+								new ArrayList<String>());
+					}
+				}
+
 				String calculatorClassName = dataEntry.getAttributeValue("aggregatedCalculator");
 				if (calculatorClassName != null) {
 					Class<? extends AggregatedCalculator<?>> calculatorClass;
@@ -654,10 +668,10 @@ public class MetadataSchemaXMLReader3 {
 						throw new MetadataBuilderRuntimeException.CannotInstanciateClass(calculatorClassName, e);
 					}
 					metadataBuilder.defineDataEntry()
-							.as(new AggregatedDataEntry(inputMetadatas, referenceMetadata, aggregationType, calculatorClass));
+							.as(new AggregatedDataEntry(inputMetadatasByRefMetadata, aggregationType, calculatorClass));
 				} else {
 					metadataBuilder.defineDataEntry()
-							.as(new AggregatedDataEntry(inputMetadatas, referenceMetadata, aggregationType));
+							.as(new AggregatedDataEntry(inputMetadatasByRefMetadata, aggregationType));
 				}
 			}
 		} else if (!isInheriting(metadataElement)) {

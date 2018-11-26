@@ -467,7 +467,7 @@ public class SearchWebServiceSecurityAcceptTest extends ConstellioTest {
 	private void setupUsers()
 			throws RecordServicesException, InterruptedException {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(users.chuckNorris().withSystemAdminPermission());
+		userServices.addUpdateUserCredential(users.chuckNorris().setSystemAdminEnabled());
 
 		userWithZeCollectionReadAccess = users.alice();
 		userWithAnotherCollectionReadAccess = users.bob();

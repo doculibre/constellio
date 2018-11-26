@@ -57,6 +57,7 @@ public class User extends RecordWrapper {
 	public static final String ADDRESS = "address";
 	public static final String AGENT_ENABLED = "agentEnabled";
 	public static final String DEFAULT_PAGE_LENGTH = "defaultPageLength";
+	public static final String USER_DOCUMENT_SIZE_SUM = "userDocumentSizeSum";
 
 	private Logger LOGGER = LoggerFactory.getLogger(User.class);
 
@@ -259,7 +260,7 @@ public class User extends RecordWrapper {
 	}
 
 	public boolean hasGlobalAccessToMetadata(Metadata m) {
-		if (m.getAccessRestrictions() == null || m.getAccessRestrictions().getRequiredReadRoles() == null || m.getAccessRestrictions().getRequiredReadRoles().size() <= 0) {
+		if (!isMetadataSecured(m)) {
 			return true;
 		}
 
@@ -274,6 +275,13 @@ public class User extends RecordWrapper {
 		}
 
 		return false;
+	}
+
+	private boolean isMetadataSecured(Metadata m) {
+		if (m.getAccessRestrictions() == null || m.getAccessRestrictions().getRequiredReadRoles() == null || m.getAccessRestrictions().getRequiredReadRoles().size() <= 0) {
+			return false;
+		}
+		return true;
 	}
 
 	private boolean isAccessRole(String role) {
@@ -291,10 +299,14 @@ public class User extends RecordWrapper {
 
 	public boolean hasAccessToMetadata(Metadata m, Record record) {
 
+		if (!isMetadataSecured(m)) {
+			return true;
+		}
+
 		List<Authorization> authorizations = authorizationsServices.getRecordAuthorizations(record);
 		List<String> roleListFromAuthorization = new ArrayList<>();
 
-		boolean hasCollectionAcces = this.get(COLLECTION_READ_ACCESS);
+		boolean hasCollectionAcces = Boolean.TRUE.equals(this.get(COLLECTION_READ_ACCESS));
 		boolean hasAtleastOneAuthorization = false;
 
 		for (Authorization authorization : authorizations) {
@@ -578,6 +590,10 @@ public class User extends RecordWrapper {
 
 	public boolean isActiveUser() {
 		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
+	}
+
+	public Double getUserDocumentSizeSum() {
+		return get(USER_DOCUMENT_SIZE_SUM);
 	}
 
 }

@@ -3,8 +3,8 @@ package com.constellio.model.services.security;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
@@ -17,7 +17,6 @@ import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.records.reindexing.ReindexationMode;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
@@ -50,7 +49,6 @@ import static com.constellio.model.entities.records.wrappers.Event.USERNAME;
 import static com.constellio.model.entities.schemas.Schemas.ALL_REMOVED_AUTHS;
 import static com.constellio.model.entities.schemas.Schemas.ATTACHED_ANCESTORS;
 import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
-import static com.constellio.model.entities.schemas.Schemas.NON_TAXONOMY_AUTHORIZATIONS;
 import static com.constellio.model.entities.schemas.Schemas.PRINCIPAL_PATH;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.security.Role.DELETE;
@@ -89,7 +87,6 @@ import static com.constellio.model.services.security.SecurityAcceptanceTestSetup
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO1_FOND1_1;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2_1;
-import static com.constellio.sdk.tests.TestUtils.asOrderedList;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -444,73 +441,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				tuple(FOLDER4_2, asList("role1_" + heroesId, "role1_" + sidekicksId)),
 				tuple(FOLDER4_2_DOC1, asList("role1_" + heroesId, "role1_" + sidekicksId))
 		);
-	}
-
-	@Test
-	public void whenRecordIsSecurizedThenHasAccurateNonTaxonomyAuthorizations()
-			throws Exception {
-
-		auth1 = add(authorizationForUser(bob).on(TAXO1_FOND1).giving(ROLE1));
-		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
-
-		LogicalSearchQuery query = new LogicalSearchQuery(
-				fromAllSchemasIn(zeCollection).where(NON_TAXONOMY_AUTHORIZATIONS).isNotNull());
-		assertThatRecords(searchServices.search(query)).extractingMetadatas(IDENTIFIER, NON_TAXONOMY_AUTHORIZATIONS).isEmpty();
-
-		modify(authorizationOnRecord(auth1, TAXO1_CATEGORY1).removingItOnRecord());
-		modify(authorizationOnRecord(auth2, FOLDER3).removingItOnRecord());
-		auth3 = add(authorizationForGroup(heroes).on(FOLDER4).giving(ROLE1));
-		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
-				.extractingMetadatas(IDENTIFIER, NON_TAXONOMY_AUTHORIZATIONS).containsOnly(
-				tuple(TAXO1_FOND1, new ArrayList<>()),
-				tuple(TAXO1_FOND1_1, new ArrayList<>()),
-				tuple(TAXO1_CATEGORY1, new ArrayList<>()),
-				tuple(TAXO1_CATEGORY2, new ArrayList<>()),
-				tuple(TAXO1_CATEGORY2_1, new ArrayList<>()),
-
-				tuple(FOLDER1, new ArrayList<>()),
-				tuple(FOLDER1_DOC1, new ArrayList<>()),
-				tuple(FOLDER2, new ArrayList<>()),
-				tuple(FOLDER2_1, new ArrayList<>()),
-				tuple(FOLDER2_2, new ArrayList<>()),
-				tuple(FOLDER2_2_DOC2, new ArrayList<>()),
-				tuple(FOLDER2_2_DOC1, new ArrayList<>()),
-				tuple(FOLDER3, new ArrayList<>()),
-				tuple(FOLDER3_DOC1, new ArrayList<>()),
-				tuple(FOLDER4, asList(auth3)),
-				tuple(FOLDER4_1, asList(auth3)),
-				tuple(FOLDER4_1_DOC1, asList(auth3)),
-				tuple(FOLDER4_2, asList(auth3)),
-				tuple(FOLDER4_2_DOC1, asList(auth3))
-		);
-
-		String copyOfAuth1 = detach(FOLDER2_2).get(auth1);
-		Map<String, String> newFolder3Auths = detach(FOLDER3_DOC1);
-
-		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
-				.extractingMetadatas(IDENTIFIER, NON_TAXONOMY_AUTHORIZATIONS).containsOnly(
-				tuple(TAXO1_FOND1, new ArrayList<>()),
-				tuple(TAXO1_FOND1_1, new ArrayList<>()),
-				tuple(TAXO1_CATEGORY1, new ArrayList<>()),
-				tuple(TAXO1_CATEGORY2, new ArrayList<>()),
-				tuple(TAXO1_CATEGORY2_1, new ArrayList<>()),
-
-				tuple(FOLDER1, new ArrayList<>()),
-				tuple(FOLDER1_DOC1, new ArrayList<>()),
-				tuple(FOLDER2, new ArrayList<>()),
-				tuple(FOLDER2_1, new ArrayList<>()),
-				tuple(FOLDER2_2, asList(copyOfAuth1)),
-				tuple(FOLDER2_2_DOC2, asList(copyOfAuth1)),
-				tuple(FOLDER2_2_DOC1, asList(copyOfAuth1)),
-				tuple(FOLDER3, new ArrayList<>()),
-				tuple(FOLDER3_DOC1, asOrderedList(newFolder3Auths.get(auth1), newFolder3Auths.get(auth2))),
-				tuple(FOLDER4, asList(auth3)),
-				tuple(FOLDER4_1, asList(auth3)),
-				tuple(FOLDER4_1_DOC1, asList(auth3)),
-				tuple(FOLDER4_2, asList(auth3)),
-				tuple(FOLDER4_2_DOC1, asList(auth3))
-		);
-
 	}
 
 	@Test
@@ -1286,9 +1216,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth2 = add(authorizationForPrincipals(heroes, dakota).on(FOLDER2).givingReadWriteAccess());
 		auth3 = add(authorizationForUser(dakota).on(TAXO1_CATEGORY1).givingReadAccess());
 
-		//TODO Optimistic locking exception should occur
-		getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
-
 		assertThatAuthorizationsOn(FOLDER2).containsOnly(
 				authOnRecord(FOLDER2).givingReadWrite().forPrincipals(heroes, dakota),
 				authOnRecord(TAXO1_CATEGORY1).givingRead().forPrincipals(dakota));
@@ -1338,9 +1265,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		ConstellioFactories.getInstance().onRequestEnded();
 		ConstellioFactories.getInstance().onRequestStarted();
-
-		//TODO Optimistic locking exception should occur
-		//getModelLayerFactory().newReindexingServices().reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
 
 		forUser(alice).assertThatRecordsWithReadAccess().containsOnly(
 				FOLDER1, FOLDER1_DOC1, FOLDER2, FOLDER2_1, FOLDER2_2, FOLDER2_2_DOC1, FOLDER2_2_DOC2);
@@ -2312,7 +2236,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(sasquatch)
 		);
 
-		userServices.addUpdateUserCredential(users.sasquatch().withStatus(UserCredentialStatus.SUSPENDED));
+		userServices.addUpdateUserCredential(users.sasquatch().setStatus(UserCredentialStatus.SUSPENDED));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -2367,7 +2291,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(sasquatch)
 		);
 
-		userServices.addUpdateUserCredential(users.sasquatch().withStatus(UserCredentialStatus.SUSPENDED));
+		userServices.addUpdateUserCredential(users.sasquatch().setStatus(UserCredentialStatus.SUSPENDED));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -2422,7 +2346,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(legends)
 		);
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.legends().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -2444,7 +2368,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		reenableLegends();
-		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.rumors().setStatus(GlobalGroupStatus.INACTIVE));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(sasquatch).contains(edouard);
@@ -2507,7 +2431,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(legends)
 		);
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.legends().setStatus(GlobalGroupStatus.INACTIVE));
 
 		assertThat(schemas.getAllUsersInGroup(users.legendsIn(zeCollection), true, true))
 				.extracting("username").doesNotContain("edouard", "sasquatch");
@@ -2541,7 +2465,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		reenableLegends();
-		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.rumors().setStatus(GlobalGroupStatus.INACTIVE));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
 			verifyRecord.usersWithRole(ROLE1).describedAs(verifyRecord.recordId).contains(edouard).doesNotContain(sasquatch);
@@ -2565,10 +2489,10 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 	private void reenableLegends() {
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.ACTIVE));
-		userServices.addUpdateUserCredential(users.edouardLechat().withNewGlobalGroup("legends"));
-		userServices.addUpdateUserCredential(users.alice().withNewGlobalGroup("legends"));
-		userServices.addUpdateUserCredential(users.gandalfLeblanc().withNewGlobalGroup("legends"));
+		userServices.addUpdateGlobalGroup(users.legends().setStatus(GlobalGroupStatus.ACTIVE));
+		userServices.addUpdateUserCredential(users.edouardLechat().addGlobalGroup("legends"));
+		userServices.addUpdateUserCredential(users.alice().addGlobalGroup("legends"));
+		userServices.addUpdateUserCredential(users.gandalfLeblanc().addGlobalGroup("legends"));
 	}
 
 	@Test
@@ -2597,7 +2521,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(rumors)
 		);
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.legends().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -2619,7 +2543,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		reenableLegends();
-		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.rumors().setStatus(GlobalGroupStatus.INACTIVE));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(edouard, sasquatch);
@@ -2675,7 +2599,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(rumors)
 		);
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.legends().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -2703,7 +2627,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		reenableLegends();
-		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.rumors().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -2745,9 +2669,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		query.filteredWithUser(users.aliceIn(zeCollection));
 		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
-		//		ReindexingServices reindexingServices = getModelLayerFactory().newReindexingServices();
-		//		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE_AND_REWRITE);
-
 		assertThat(searchServices.hasResults(query)).isTrue();
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
@@ -2768,7 +2689,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(legends)
 		);
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.legends().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -2790,7 +2711,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		reenableLegends();
-		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.rumors().setStatus(GlobalGroupStatus.INACTIVE));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
 			verifyRecord.usersWithReadAccess().doesNotContain(sasquatch).contains(edouard);
@@ -2849,7 +2770,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(legends)
 		);
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.legends().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -2877,7 +2798,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		reenableLegends();
-		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.rumors().setStatus(GlobalGroupStatus.INACTIVE));
 
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1)) {
 			verifyRecord.usersWithRole(ROLE1).doesNotContain(sasquatch).contains(edouard);
@@ -2927,7 +2848,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingReadDelete().forPrincipals(rumors)
 		);
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.legends().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -2949,7 +2870,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		reenableLegends();
-		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.rumors().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//TODO Should not be required
 		reindex();
@@ -3012,7 +2933,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 				authOnRecord(FOLDER3).givingRoles(ROLE2).forPrincipals(rumors)
 		);
 
-		userServices.addUpdateGlobalGroup(users.legends().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.legends().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -3040,7 +2961,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		reenableLegends();
-		userServices.addUpdateGlobalGroup(users.rumors().withStatus(GlobalGroupStatus.INACTIVE));
+		userServices.addUpdateGlobalGroup(users.rumors().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//The auths are still existing. Should the user have been disabled by a mistake, it does not lose its auth when reactivated
 		assertThatAllAuthorizations().containsOnly(
@@ -3323,23 +3244,18 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
 		}
 
-		//whenARecordProvidingSecurityReceiveANewNonOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndKeepInheritedAuths
-
 		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess());
 
-		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, charles, chuck);
 		}
 
-		//givenARecordHasNonOverridingAuthFromMetadataProvidingSecurityWhenAuthIsModifiedToOverrideInheritedAuthsThenRecordLoseInheritingAuths
 		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).withNewOverridingInheritedAuths(true));
 		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
 		}
 
-		//givenARecordHasOverridingAuthFromMetadataProvidingSecurityWhenAuthIsModifiedToNonOverrideInheritedAuthsThenRecordRecoverInheritingAuths
 		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).withNewOverridingInheritedAuths(false));
 		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
@@ -3347,28 +3263,22 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).withNewPrincipalIds(gandalf));
-		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, gandalf, chuck);
 		}
 
-		//whenARecordProvidingSecurityReceiveANewOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndLoseInheritedAuths
 		auth4 = add(authorizationForUser(dakota).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
 		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, gandalf, dakota, chuck);
 		}
 
-		//whenARecordProvidingSecurityLoseANonOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndKeepInheritedAuths
 		modify(modifyAuthorizationOnRecord(auth3, records.folderType1()).removingItOnRecord());
-		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, dakota, chuck);
 		}
 
-		//whenARecordProvidingSecurityLoseTheLastOverridingAuthThenRecordsLinkedToItReceiveTheAuthsAndRegainInheritedAuths
 		modify(modifyAuthorizationOnRecord(auth4, records.folderType1()).removingItOnRecord());
-		reindex();//TODO Improve impact modification
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(alice, bob, chuck);
 		}
@@ -3384,6 +3294,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth3 = add(authorizationForUser(charles).on(FOLDER_TYPE1).givingReadWriteAccess().andOverridingInheritedAuths());
 		recordServices.update(records.folder4()
 				.set(setup.folderSchema.firstReferenceMetadataProvidingSecurity(), FOLDER_TYPE1));
+
+		assertThat(users.charlesIn(zeCollection).hasReadAccess().on(record(FOLDER4))).isTrue();
 
 		for (RecordVerifier verifyRecord : $(FOLDER4, FOLDER4_1, FOLDER4_2_DOC1)) {
 			verifyRecord.usersWithWriteAccess().containsOnly(bob, charles, chuck);
@@ -3417,6 +3329,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		assertThatAuthorizationsOn(FOLDER4).containsOnly(
 				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(alice),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(charles),
 				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
 		);
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
@@ -3443,7 +3356,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		}
 
 		assertThatAuthorizationsOn(FOLDER4).containsOnly(
-				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(charles)
 		);
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
 	}
@@ -3470,7 +3384,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		assertThatAuthorizationsOn(FOLDER4).containsOnly(
 				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(alice),
-				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob)
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(bob),
+				authOnRecord(FOLDER4).givingReadWrite().forPrincipals(charles)
 		);
 		verifyRecord(FOLDER4).detachedAuthorizationFlag().isTrue();
 	}

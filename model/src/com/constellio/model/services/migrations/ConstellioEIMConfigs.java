@@ -134,6 +134,10 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration NEGATIVE_AUTHORIZATION;
 
+	public static final SystemConfiguration SPACE_QUOTA_FOR_USER_DOCUMENTS;
+
+	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -255,6 +259,11 @@ public class ConstellioEIMConfigs {
 		add(ENABLE_ADMIN_USER_PASSWORD_CHANGE = others.createBooleanTrueByDefault("enableAdminUserPasswordChange")
 				.whichIsHidden());
 
+		add(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE = advanced.createInteger("batchProcessMaximumHistorySize")
+				.withDefaultValue(20).whichIsHidden());
+
+		add(SPACE_QUOTA_FOR_USER_DOCUMENTS = others.createInteger("spaceQuotaForUserDocuments").withDefaultValue(-1));
+
 		add(NEGATIVE_AUTHORIZATION = others.createBooleanFalseByDefault("enableNegativeAuthorization")
 				.whichIsHidden());
 
@@ -360,7 +369,7 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isIncludingFromFieldWhenGeneratingEmails() {
-		return !Boolean.FALSE.equals(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS);
+		return !Boolean.FALSE.equals(manager.getValue(INCLUDE_FROM_FIELD_WHEN_GENERATING_EMAILS));
 	}
 
 	public static class WriteZZRecordsScript extends AbstractSystemConfigurationScript<Boolean> {
@@ -497,7 +506,15 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(ENABLE_ADMIN_USER_PASSWORD_CHANGE);
 	}
 
+	public int getSpaceQuotaForUserDocuments() {
+		return manager.getValue(SPACE_QUOTA_FOR_USER_DOCUMENTS);
+	}
+
 	public boolean isNegativeAuthorizationEnabled() {
 		return manager.getValue(NEGATIVE_AUTHORIZATION);
+	}
+
+	public int getBatchProcessMaximumHistorySize() {
+		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
 	}
 }

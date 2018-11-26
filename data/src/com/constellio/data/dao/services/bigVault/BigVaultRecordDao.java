@@ -198,7 +198,7 @@ public class BigVaultRecordDao implements RecordDao {
 									   Map<String, Double> recordsInTransactionRefCounts,
 									   Map<String, Double> recordsOutOfTransactionRefCounts,
 									   KeyListMap<String, String> recordsAncestors, RecordDeltaDTO modifiedRecord) {
-		if (!modifiedRecord.getModifiedFields().isEmpty()) {
+		if (!modifiedRecord.getModifiedFields().isEmpty() || !modifiedRecord.getIncrementedFields().isEmpty()) {
 			SolrInputDocument solrInputDocument = buildDeltaSolrDocument(modifiedRecord);
 			if (transaction.isFullRewrite()) {
 				solrInputDocument.removeField("_version_");
@@ -970,6 +970,10 @@ public class BigVaultRecordDao implements RecordDao {
 		for (Map.Entry<String, Object> field : deltaDTO.getCopyfields().entrySet()) {
 			Object solrValue = convertBigVaultValueToSolrValue(field.getKey(), field.getValue());
 			atomicUpdate.addField(field.getKey(), LangUtils.newMapWithEntry("set", solrValue));
+		}
+		for (Map.Entry<String, Double> field : deltaDTO.getIncrementedFields().entrySet()) {
+			Object solrValue = convertBigVaultValueToSolrValue(field.getKey(), field.getValue());
+			atomicUpdate.addField(field.getKey(), LangUtils.newMapWithEntry("inc", solrValue));
 		}
 
 		return atomicUpdate;

@@ -76,7 +76,9 @@ public class RMConfigs {
 			LOG_FOLDER_DOCUMENT_ACCESS_WITH_CMIS,
 			ALLOW_TRANSFER_DATE_FIELD_WHEN_COPY_RULE_HAS_NO_SEMIACTIVE_STATE,
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
-			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS;
+			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
+			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE,
+			NEED_REASON_BEFORE_DELETING_FOLDERS;
 
 	// Category configs
 	public static final SystemConfiguration LINKABLE_CATEGORY_MUST_NOT_BE_ROOT, LINKABLE_CATEGORY_MUST_HAVE_APPROVED_RULES;
@@ -268,7 +270,7 @@ public class RMConfigs {
 				.createBooleanTrueByDefault("folderAdministrativeUnitEnteredAutomatically"));
 
 		add(STORAGE_SPACE_TITLE_CALCULATOR_ENABLED = others
-				.createBooleanFalseByDefault("enableStorageSpaceTitleCalculator")
+				.createBooleanTrueByDefault("enableStorageSpaceTitleCalculator")
 				.scriptedBy(EnableOrDisableStorageSpaceTitleCalculatorScript.class));
 
 		add(DEFAULT_TAB_IN_FOLDER_DISPLAY = others.createString("defaultTabInFolderDisplay")
@@ -300,7 +302,12 @@ public class RMConfigs {
 
 		SystemConfigurationGroup advanced = new SystemConfigurationGroup(null, "advanced");
 		add(SHOW_FOLDER_UNICITY_AND_FOLDER_SUMMARY_CONFIG =
-				advanced.createBooleanTrueByDefault("showFolderUnicityAndFolderSummaryConfig").whichIsHidden());
+				advanced.createBooleanFalseByDefault("showFolderUnicityAndFolderSummaryConfig").whichIsHidden());
+
+		add(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE = decommissioning
+				.createBooleanTrueByDefault("depositAndDestructionDatesBasedOnActualTransferDate").withReIndexionRequired());
+
+		add(NEED_REASON_BEFORE_DELETING_FOLDERS = others.createBooleanTrueByDefault("needReasonBeforeDeletingFolders"));
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -559,5 +566,14 @@ public class RMConfigs {
 
 	public boolean isDecommissioningTypeRequiredInContainers() {
 		return manager.getValue(IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS);
+	}
+
+	public boolean isDepositAndDestructionDatesBasedOnActualTransferDate() {
+		return manager.getValue(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE);
+	}
+
+
+	public boolean isNeedingAReasonBeforeDeletingFolders() {
+		return manager.getValue(NEED_REASON_BEFORE_DELETING_FOLDERS);
 	}
 }

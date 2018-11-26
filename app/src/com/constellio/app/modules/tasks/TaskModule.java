@@ -8,6 +8,7 @@ import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.core.LockedRecordsExtension;
 import com.constellio.app.modules.rm.extensions.imports.TaskImportExtension;
+import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.extensions.TaskRecordAppExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension;
@@ -33,6 +34,7 @@ import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_7;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_7_3;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_7_4;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_7_4_1;
+import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_2;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
@@ -77,6 +79,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		scripts.add(new TasksMigrationTo7_7_3());
 		scripts.add(new TasksMigrationTo7_7_4());
 		scripts.add(new TasksMigrationTo7_7_4_1());
+		scripts.add(new TasksMigrationTo8_1_2());
 
 		return scripts;
 	}
@@ -180,11 +183,15 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 	private void registerManagers(String collection, AppLayerFactory appLayerFactory) {
 		appLayerFactory.registerManager(collection, ID, TaskReminderEmailManager.ID,
 				new TaskReminderEmailManager(appLayerFactory, collection));
+
+
 	}
 
 	@Override
 	public void start(AppLayerFactory appLayerFactory) {
 		TasksNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
+
+		appLayerFactory.getModelLayerFactory().getCachesManager().register(new UnreadTasksUserCache(appLayerFactory));
 	}
 
 	@Override

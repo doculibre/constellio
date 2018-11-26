@@ -1,10 +1,15 @@
 package com.constellio.app.ui.pages.management.labels;
 
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
 import com.constellio.app.modules.rm.ui.components.document.fields.CustomDocumentField;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
+import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
@@ -28,9 +33,6 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.lang3.StringUtils;
-
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabelView> {
 	private MetadataSchemaToVOBuilder schemaVOBuilder;
@@ -41,7 +43,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 	private transient RecordServices recordServices;
 	private transient ModelLayerCollectionExtensions extensions;
 	protected RecordVO container;
-	private RecordVODataProvider folderDataProvider, containerDataProvider;
+	private RecordVODataProvider folderDataProvider, containerDataProvider, documentDataProvider;
 
 
 	public AddEditLabelPresenter(AddEditLabelView view) {
@@ -86,6 +88,23 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 			};
 		}
 		return folderDataProvider;
+	}
+
+	public RecordVODataProvider getLabelDocumentDataProvider() {
+		if (documentDataProvider == null) {
+			final MetadataSchemaVO labelSchemaVo = schemaVOBuilder
+					.build(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+			documentDataProvider = new RecordVODataProvider(labelSchemaVo, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
+				@Override
+				protected LogicalSearchQuery getQuery() {
+					MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME);
+					return new LogicalSearchQuery(
+							from(modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getSchema(PrintableLabel.SCHEMA_NAME))
+									.where(schema.getMetadata(PrintableLabel.TYPE_LABEL)).isEqualTo(Document.SCHEMA_TYPE));
+				}
+			};
+		}
+		return documentDataProvider;
 	}
 
 	public RecordVODataProvider getLabelContainerDataProvider() {
@@ -140,17 +159,26 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 		return new SchemaTypeVODataProvider(new MetadataSchemaTypeToVOBuilder(), appLayerFactory, collection);
 	}
 
-	public void editButtonClicked(RecordVO record, String schema) {
+	public void editButtonClicked(RecordVO record) {
 		view.navigate().to().editLabel(record.getId());
 	}
 
 	public RecordVO getRecordsWithIndex(String schema, String itemId) {
-		RecordVODataProvider dataProvider = schema.equals(Folder.SCHEMA_TYPE) ? this.getLabelFolderDataProvider() : this.getLabelContainerDataProvider();
+		RecordVODataProvider dataProvider;
+
+		if(schema.equals(Folder.SCHEMA_TYPE)) {
+			dataProvider = this.getLabelFolderDataProvider();
+		} else if (schema.equals(ContainerRecord.SCHEMA_TYPE)) {
+			dataProvider = this.getLabelContainerDataProvider();
+		} else {
+			dataProvider = this.getLabelDocumentDataProvider();
+		}
+
 		RecordVO records = dataProvider.getRecordVO(Integer.parseInt(itemId));
 		return records;
 	}
 
-	public void displayButtonClicked(RecordVO record, String schema) {
+	public void displayButtonClicked(RecordVO record) {
 		view.navigate().to().viewLabel(record.getId());
 	}
 

@@ -156,11 +156,11 @@ public class DisplayUserCredentialPresenterTest extends ConstellioTest {
 		newDakotaGlobalGroups.add(HEROES);
 		when(dakotaCredential.getGlobalGroups()).thenReturn(dakotaGlobalGroups);
 		when(newDakotaCredential.getGlobalGroups()).thenReturn(newDakotaGlobalGroups);
-		when(dakotaCredential.withGlobalGroups(newDakotaGlobalGroups)).thenReturn(newDakotaCredential);
+		when(dakotaCredential.setGlobalGroups(newDakotaGlobalGroups)).thenReturn(newDakotaCredential);
 
 		presenter.addGlobalGroupButtonClicked(dakotaCredentialVO.getUsername(), HEROES);
 
-		verify(dakotaCredential).withGlobalGroups(newDakotaGlobalGroups);
+		verify(dakotaCredential).setGlobalGroups(newDakotaGlobalGroups);
 		verify(userServices).addUpdateUserCredential(newDakotaCredential);
 		verify(userCredentialView).refreshTable();
 	}

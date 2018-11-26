@@ -7,8 +7,10 @@ import com.constellio.model.conf.ModelLayerConfiguration;
 import com.constellio.model.entities.enums.SearchSortType;
 import com.constellio.model.services.extensions.ConstellioModulesManager;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
+import com.constellio.model.services.users.UserServices;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
+import com.constellio.sdk.tests.FakeUIContext;
 import com.constellio.sdk.tests.MockedFactories;
 import com.constellio.sdk.tests.MockedNavigation;
 import org.junit.Before;
@@ -42,6 +44,8 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 	@Mock
 	private ConstellioEIMConfigs mockedConfigs;
 
+	@Mock UserServices userServices;
+
 	@Before
 	public void setUp() {
 		when(view.getConstellioFactories()).thenReturn(factories.getConstellioFactories());
@@ -58,6 +62,9 @@ public class DecommissioningBuilderPresenterTest extends ConstellioTest {
 		when(factories.getAppLayerFactory().getModulesManager()).thenReturn(modulesManager);
 		when(factories.getModelLayerFactory().getConfiguration()).thenReturn(modelLayerConfiguration);
 		when(modelLayerConfiguration.getMainDataLanguage()).thenReturn(Locale.FRENCH.getLanguage());
+		when(factories.getModelLayerFactory().newUserServices()).thenReturn(userServices);
+		when(view.getUIContext()).thenReturn(new FakeUIContext());
+
 
 		presenter = spy(new DecommissioningBuilderPresenter(view));
 		//		doReturn(new ArrayList<>()).when(presenter).getFoldersAlreadyInNonProcessedDecommissioningLists();

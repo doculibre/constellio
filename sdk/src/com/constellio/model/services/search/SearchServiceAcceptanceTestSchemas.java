@@ -4,6 +4,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.sdk.tests.schemas.TestsSchemasSetup;
 
+import java.util.List;
+
 public class SearchServiceAcceptanceTestSchemas extends TestsSchemasSetup {
 
 	public SearchServiceAcceptanceTestSchemas() {
@@ -12,6 +14,11 @@ public class SearchServiceAcceptanceTestSchemas extends TestsSchemasSetup {
 	public SearchServiceAcceptanceTestSchemas(String collection) {
 		super(collection);
 	}
+
+	public SearchServiceAcceptanceTestSchemas(String collection, List<String> languages) {
+		super(collection, languages);
+	}
+
 
 	public SearchServiceAcceptanceTestSchemas withStringMetadatasInZeSchemaAndAnotherSchema() {
 		zeDefaultSchemaBuilder.create("textMetadata").setType(MetadataValueType.STRING);

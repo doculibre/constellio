@@ -10,6 +10,8 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.SecurityModel;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.BaseRecordServices;
 import com.constellio.model.services.records.RecordImpl;
@@ -284,9 +286,8 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public boolean isPhysicallyDeletable(Record record,
-										 User user) {
-		return recordServices.isPhysicallyDeletable(record, user);
+	public ValidationErrors validatePhysicallyDeletable(Record record, User user) {
+		return recordServices.validatePhysicallyDeletable(record, user);
 	}
 
 	@Override
@@ -307,9 +308,9 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public boolean isLogicallyDeletable(Record record,
-										User user) {
-		return recordServices.isLogicallyDeletable(record, user);
+	public ValidationErrors validateLogicallyDeletable(Record record,
+													   User user) {
+		return recordServices.validateLogicallyDeletable(record, user);
 	}
 
 	@Override
@@ -318,9 +319,8 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	}
 
 	@Override
-	public boolean isLogicallyThenPhysicallyDeletable(Record record,
-													  User user) {
-		return recordServices.isLogicallyThenPhysicallyDeletable(record, user);
+	public ValidationErrors validateLogicallyThenPhysicallyDeletable(Record record, User user) {
+		return recordServices.validateLogicallyThenPhysicallyDeletable(record, user);
 	}
 
 	@Override
@@ -379,5 +379,10 @@ public class CachedRecordServices extends BaseRecordServices implements RecordSe
 	@Override
 	public void reloadEagerTransientMetadatas(Record record) {
 		recordServices.reloadEagerTransientMetadatas(record);
+	}
+
+	@Override
+	public SecurityModel getSecurityModel(String collection) {
+		return recordServices.getSecurityModel(collection);
 	}
 }

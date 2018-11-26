@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.document;
 
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.events.RMEventsSearchServices;
@@ -135,7 +136,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public void forParams(String params) {
 		String id;
 
-		if(params.contains("id")) {
+		if (params.contains("id")) {
 			this.params = ParamUtils.getParamsMap(params);
 			id = this.params.get("id");
 		} else {
@@ -193,6 +194,19 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public int getTaskCount() {
 		return tasksDataProvider.size();
+	}
+
+	public List<LabelTemplate> getDefaultTemplates() {
+		return view.getConstellioFactories().getAppLayerFactory().getLabelTemplateManager().listTemplates(Document.SCHEMA_TYPE);
+	}
+
+	public List<LabelTemplate> getCustomTemplates() {
+		return view.getConstellioFactories().getAppLayerFactory().getLabelTemplateManager().listExtensionTemplates(Document.SCHEMA_TYPE);
+	}
+
+	public RecordVO getDocumentVO() {
+		return new RecordToVOBuilder()
+				.build(document.getWrappedRecord(), VIEW_MODE.DISPLAY, view.getSessionContext());
 	}
 
 	public void backgroundViewMonitor() {

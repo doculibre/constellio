@@ -1,5 +1,7 @@
 package com.constellio.app.modules.tasks.migrations;
 
+import static java.util.Arrays.asList;
+
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -42,8 +44,6 @@ import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.schemas.validators.PercentageValidator;
 import com.constellio.model.services.security.roles.RolesManager;
-
-import static java.util.Arrays.asList;
 
 public final class GeneratedTasksMigrationCombo {
 	String collection;
@@ -692,7 +692,7 @@ public final class GeneratedTasksMigrationCombo {
 		ddvTaskType_code.setSchemaAutocomplete(true);
 		ddvTaskType_code.setSearchable(true);
 		ddvTaskType_code.setUniqueValue(true);
-		MetadataBuilder ddvTaskType_comments = ddvTaskTypeSchema.create("comments").setType(MetadataValueType.ENUM);
+		MetadataBuilder ddvTaskType_comments = ddvTaskTypeSchema.create("comments").setType(MetadataValueType.STRUCTURE);
 		ddvTaskType_comments.setMultivalue(true);
 		ddvTaskType_comments.defineStructureFactory(CommentFactory.class);
 		MetadataBuilder ddvTaskType_createdBy = ddvTaskTypeSchema.create("createdBy").setType(MetadataValueType.REFERENCE);
@@ -1307,7 +1307,7 @@ public final class GeneratedTasksMigrationCombo {
 		ddvTaskStatus_code.setSearchable(true);
 		ddvTaskStatus_code.setUniqueValue(true);
 		ddvTaskStatus_code.setUnmodifiable(true);
-		MetadataBuilder ddvTaskStatus_comments = ddvTaskStatusSchema.create("comments").setType(MetadataValueType.ENUM);
+		MetadataBuilder ddvTaskStatus_comments = ddvTaskStatusSchema.create("comments").setType(MetadataValueType.STRUCTURE);
 		ddvTaskStatus_comments.setMultivalue(true);
 		ddvTaskStatus_comments.defineStructureFactory(CommentFactory.class);
 		MetadataBuilder ddvTaskStatus_createdBy = ddvTaskStatusSchema.create("createdBy").setType(MetadataValueType.REFERENCE);

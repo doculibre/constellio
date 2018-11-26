@@ -435,7 +435,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
 	//		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
 	//
-	//		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
+	//		assertThat(recordDeleteServices.validatePhysicallyDeletable(theRecord, user)).isFalse();
 	//
 	//	}
 	//
@@ -447,7 +447,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
 	//		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
 	//
-	//		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
+	//		assertThat(recordDeleteServices.validatePhysicallyDeletable(theRecord, user)).isFalse();
 	//
 	//	}
 	//
@@ -459,7 +459,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//		doReturn(true).when(recordDeleteServices).containsNoActiveRecords(theRecord);
 	//		doReturn(true).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
 	//
-	//		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
+	//		assertThat(recordDeleteServices.validatePhysicallyDeletable(theRecord, user)).isFalse();
 	//
 	//	}
 	//
@@ -471,7 +471,7 @@ public class RecordDeleteServicesUnitTest extends ConstellioTest {
 	//		doReturn(false).when(recordDeleteServices).containsNoActiveRecords(theRecord);
 	//		doReturn(false).when(recordDeleteServices).isReferencedByOtherRecords(theRecord);
 	//
-	//		assertThat(recordDeleteServices.isPhysicallyDeletable(theRecord, user)).isFalse();
+	//		assertThat(recordDeleteServices.validatePhysicallyDeletable(theRecord, user)).isFalse();
 	//
 	//	}
 	//

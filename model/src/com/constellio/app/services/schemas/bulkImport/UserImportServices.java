@@ -36,7 +36,7 @@ public class UserImportServices implements ImportServices {
 	}
 
 	void importUser(List<String> collections, UserCredential userCredential) {
-		userCredential = userCredential.withCollections(collections);
+		userCredential = userCredential.setCollections(collections);
 		userServices.addUpdateUserCredential(userCredential);
 	}
 

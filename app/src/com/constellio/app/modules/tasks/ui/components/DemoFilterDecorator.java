@@ -10,6 +10,8 @@ import org.tepi.filtertable.numberfilter.NumberFilterPopupConfig;
 
 import java.util.Locale;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class DemoFilterDecorator implements FilterDecorator {
 
 	@Override
@@ -45,12 +47,12 @@ public class DemoFilterDecorator implements FilterDecorator {
 
 	@Override
 	public String getFromCaption() {
-		return "Start date:";
+		return ":"+$("StatisticsView.startDate");
 	}
 
 	@Override
 	public String getToCaption() {
-		return "End date:";
+		return ":"+$("StatisticsView.endDate");
 	}
 
 	@Override

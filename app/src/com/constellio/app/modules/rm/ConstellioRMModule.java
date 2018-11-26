@@ -21,6 +21,7 @@ import com.constellio.app.modules.rm.extensions.RMEventRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMFolderExtension;
 import com.constellio.app.modules.rm.extensions.RMGenericRecordPageExtension;
 import com.constellio.app.modules.rm.extensions.RMListSchemaTypeExtension;
+import com.constellio.app.modules.rm.extensions.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
 import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
@@ -53,7 +54,6 @@ import com.constellio.app.modules.rm.extensions.imports.ReportImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtension;
-import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.migrations.RMMigrationCombo;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
@@ -140,11 +140,12 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_1;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
+import com.constellio.app.modules.rm.migrations.records.RMFolderMigrationTo8_1_1_1;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -307,9 +308,9 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_1());
 		scripts.add(new RMMigrationTo8_1_0_1());
 		scripts.add(new RMMigrationTo8_1_1());
+		scripts.add(new RMMigrationTo8_1_2());
 		scripts.add(new RMMigrationTo8_1_1_1());
 		scripts.add(new RMMigrationTo8_2());
-		scripts.add(new RMMigrationTo8_2_1());
 
 		return scripts;
 	}
@@ -321,6 +322,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMContainerRecordMigrationTo7_3(collection, appLayerFactory));
 		scripts.add(new RMDocumentMigrationTo7_6_10(collection, appLayerFactory));
 		scripts.add(new RMEmailMigrationTo7_7_1(collection, appLayerFactory));
+		scripts.add(new RMFolderMigrationTo8_1_1_1(collection, appLayerFactory));
 
 		return scripts;
 	}
@@ -466,7 +468,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.schemaExtensions.add(new RMTrashSchemaExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMAvailableCapacityExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMRequestTaskApprovedExtension(collection, appLayerFactory));
-		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, modelLayerFactory));
+		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMEventRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMRecordCaptionExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMContainerRecordExtension(collection, appLayerFactory));
@@ -547,6 +549,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 									.onSomething();
 						} else if (Role.WRITE.equals(access)) {
 							return user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
+
 						} else if (Role.DELETE.equals(access)) {
 							return user.has(RMPermissionsTo.DELETE_CONTAINERS).onSomething();
 						}

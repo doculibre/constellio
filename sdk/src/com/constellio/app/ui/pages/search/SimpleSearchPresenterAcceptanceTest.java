@@ -68,7 +68,7 @@ public class SimpleSearchPresenterAcceptanceTest extends ConstellioTest {
 	SearchPresenterService searchPresenterService;
 	SchemasRecordsServices schemasRecordsServices;
 
-	@Mock SimpleSearchView view;
+	@Mock SimpleSearchViewImpl view;
 	SimpleSearchPresenter simpleSearchPresenter;
 
 	long allFolderDocumentsContainersCount;

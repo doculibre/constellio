@@ -71,7 +71,7 @@ import com.constellio.app.ui.pages.viewGroups.UserDocumentsViewGroup;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AgentStatus;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
@@ -300,7 +300,7 @@ public class RMNavigationConfiguration implements Serializable {
 				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
 			}
 		});
-		config.add(HomeView.TABS, new PageItem.CustomItem($("defaultFavorites")) {
+		config.add(HomeView.TABS, new PageItem.CustomItem($("HomeView.tab.defaultFavorites")) {
 			@Override
 			public Component buildCustomComponent(ConstellioFactories factories, SessionContext context,
 												  ItemClickEvent.ItemClickListener itemClickListener) {
@@ -473,7 +473,7 @@ public class RMNavigationConfiguration implements Serializable {
 				RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
 
 				String username = user.getUsername();
-				SolrUserCredential userCredentials = (SolrUserCredential) userServices.getUser(username);
+				UserCredential userCredentials = (UserCredential) userServices.getUser(username);
 				AgentStatus agentStatus = userCredentials.getAgentStatus();
 				if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
 					agentStatus = AgentStatus.ENABLED;

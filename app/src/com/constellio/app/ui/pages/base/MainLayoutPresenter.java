@@ -51,10 +51,14 @@ public class MainLayoutPresenter implements Serializable {
 	public User getUser() {
 		String collection = ConstellioUI.getCurrentSessionContext().getCurrentCollection();
 		UserVO userVO = ConstellioUI.getCurrentSessionContext().getCurrentUser();
-		ModelLayerFactory modelLayerFactory = mainLayout.getHeader().getConstellioFactories().getModelLayerFactory();
-		AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
-		RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
-		return schemas.getUser(userVO.getId());
+		if (userVO == null) {
+			return null;
+		} else {
+			ModelLayerFactory modelLayerFactory = mainLayout.getHeader().getConstellioFactories().getModelLayerFactory();
+			AppLayerFactory appLayerFactory = mainLayout.getHeader().getConstellioFactories().getAppLayerFactory();
+			RMSchemasRecordsServices schemas = new RMSchemasRecordsServices(collection, appLayerFactory);
+			return schemas.getUser(userVO.getId());
+		}
 
 	}
 

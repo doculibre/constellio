@@ -22,6 +22,7 @@ public class Event extends RecordWrapper {
 	public static final String TASK = "task";
 	public static final String DESCRIPTION = "description";
 	public static final String ACCEPTED = "accepted";
+	public static final String NEGATIVE_AUTHORIZATION = "negative";
 
 	public Event(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE + "_");
@@ -169,6 +170,15 @@ public class Event extends RecordWrapper {
 
 	public Event setAccepted(Boolean isAccepted) {
 		set(ACCEPTED, isAccepted);
+		return this;
+	}
+
+	public Boolean getNegative() {
+		return get(NEGATIVE_AUTHORIZATION);
+	}
+
+	public Event setNegative(Boolean negative) {
+		set(NEGATIVE_AUTHORIZATION, negative);
 		return this;
 	}
 }

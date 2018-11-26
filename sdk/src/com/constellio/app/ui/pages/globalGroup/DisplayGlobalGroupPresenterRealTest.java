@@ -157,7 +157,7 @@ public class DisplayGlobalGroupPresenterRealTest extends ConstellioTest {
 		newDakotaGlobalGroups.addAll(dakotaGlobalGroups);
 		newDakotaGlobalGroups.add(LEGENDS);
 		when(dakotaCredential.getGlobalGroups()).thenReturn(dakotaGlobalGroups);
-		when(dakotaCredential.withGlobalGroups(newDakotaGlobalGroups)).thenReturn(newDakotaCredential);
+		when(dakotaCredential.setGlobalGroups(newDakotaGlobalGroups)).thenReturn(newDakotaCredential);
 		when(userServices.getUserCredential(dakota)).thenReturn(dakotaCredential);
 
 		presenter.addUserCredentialButtonClicked(LEGENDS, dakota);

@@ -255,7 +255,7 @@ public class LoginViewImpl extends BaseViewImpl implements LoginView {
 			protected void buttonClick(ClickEvent event) {
 				UserServices userServices = modelLayerFactory.newUserServices();
 				userServices.addUpdateUserCredential(userServices.getUserCredential(userInLastCollection.getUsername())
-						.withAgreedPrivacyPolicy(true));
+						.setAgreedPrivacyPolicy(true));
 				presenter.signInValidated(userInLastCollection, lastCollection);
 				window.close();
 			}

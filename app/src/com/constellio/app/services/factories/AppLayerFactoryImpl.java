@@ -127,7 +127,7 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		this.setDefaultLocale();
 		this.metadataSchemasDisplayManager = add(new SchemasDisplayManager(dataLayerFactory.getConfigManager(),
 				modelLayerFactory.getCollectionsListManager(), modelLayerFactory.getMetadataSchemasManager(),
-				dataLayerFactory.getSettingsCacheManager()));
+				dataLayerFactory.getLocalCacheManager()));
 
 		String warVersion = newApplicationService().getWarVersion();
 		dataLayerFactory.setConstellioVersion(warVersion);

@@ -1,5 +1,6 @@
 package com.constellio.model.services.search;
 
+import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.data.dao.dto.records.FacetValue;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.BigVaultRuntimeException.BadRequest;
@@ -53,7 +54,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import com.constellio.app.modules.tasks.model.wrappers.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -815,7 +815,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		SearchBoost searchBoost = createRegexBoost("description_t", "Kiwi", "My boost", 12.0);
 
-		String qfResult1 = searchServices.getQfFor(Language.French.getCode(), asList(searchBoost), metadataSchemaTypeList, user);
+		String qfResult1 = searchServices.getQfFor(asList(Language.French.getCode()), Language.French.getCode(), asList(searchBoost), metadataSchemaTypeList, user);
 
 		assertThat(qfResult1.contains("description_t:Kiwi^12.0")).isTrue();
 
@@ -824,13 +824,14 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
 		metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
 
-		String qfResult2 = searchServices.getQfFor(Language.French.getCode(), asList(searchBoost), metadataSchemaTypeList, user);
+		String qfResult2 = searchServices.getQfFor(asList(Language.French.getCode()), Language.French.getCode(), asList(searchBoost), metadataSchemaTypeList, user);
 
 		assertThat(qfResult2.contains("description_t:Kiwi^12.0")).isFalse();
 	}
 
 	@Test
-	public void givenMetadataWithRoleRestrictionWithAllSchemaThatDoesNotIncludeThatMetadataThenSearchIncludeThatField() throws OptimisticLocking {
+	public void givenMetadataWithRoleRestrictionWithAllSchemaThatDoesNotIncludeThatMetadataThenSearchIncludeThatField()
+			throws OptimisticLocking {
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
 		List<MetadataSchemaType> metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
@@ -838,7 +839,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		User user = users.adminIn(zeCollection);
 
 
-		String qfResult1 = searchServices.getQfFor(Language.French.getCode(), new ArrayList<SearchBoost>(), metadataSchemaTypeList, user);
+		String qfResult1 = searchServices.getQfFor(asList(Language.French.getCode()), Language.French.getCode(), new ArrayList<SearchBoost>(), metadataSchemaTypeList, user);
 
 		assertThat(qfResult1.contains("description_t")).isTrue();
 
@@ -849,13 +850,14 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		metadataSchemaTypeList = removeSchemaTypeFromSchemaTypeList(metadataSchemaTypeList, Task.SCHEMA_TYPE);
 
-		String qfResult2 = searchServices.getQfFor(Language.French.getCode(), new ArrayList<SearchBoost>(), metadataSchemaTypeList, user);
+		String qfResult2 = searchServices.getQfFor(asList(Language.French.getCode()), Language.French.getCode(), new ArrayList<SearchBoost>(), metadataSchemaTypeList, user);
 
 		assertThat(qfResult2.contains("description_t")).isTrue();
 	}
 
 	@Test
-	public void givenMetadataWithRoleRestrictionAndSchemaThatDoesNotIncludeThatMetadataThenSearchIncludeThatBoost() throws OptimisticLocking {
+	public void givenMetadataWithRoleRestrictionAndSchemaThatDoesNotIncludeThatMetadataThenSearchIncludeThatBoost()
+			throws OptimisticLocking {
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
 		List<MetadataSchemaType> metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
@@ -864,7 +866,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		SearchBoost searchBoost = createRegexBoost("description_t", "Kiwi", "My boost", 12.0);
 
-		String qfResult1 = searchServices.getQfFor(Language.French.getCode(), asList(searchBoost), metadataSchemaTypeList, user);
+		String qfResult1 = searchServices.getQfFor(asList(Language.French.getCode()), Language.French.getCode(), asList(searchBoost), metadataSchemaTypeList, user);
 
 		assertThat(qfResult1.contains("description_t:Kiwi^12.0")).isTrue();
 
@@ -875,19 +877,20 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 
 		metadataSchemaTypeList = removeSchemaTypeFromSchemaTypeList(metadataSchemaTypeList, Task.SCHEMA_TYPE);
 
-		String qfResult2 = searchServices.getQfFor(Language.French.getCode(), asList(searchBoost), metadataSchemaTypeList, user);
+		String qfResult2 = searchServices.getQfFor(asList(Language.French.getCode()), Language.French.getCode(), asList(searchBoost), metadataSchemaTypeList, user);
 
 		assertThat(qfResult2.contains("description_t:Kiwi^12.0")).isTrue();
 	}
 
-	private List<MetadataSchemaType> removeSchemaTypeFromSchemaTypeList(List<MetadataSchemaType> metadataSchemaTypes, String code) {
+	private List<MetadataSchemaType> removeSchemaTypeFromSchemaTypeList(List<MetadataSchemaType> metadataSchemaTypes,
+																		String code) {
 		Iterator iterator = metadataSchemaTypes.iterator();
 		List<MetadataSchemaType> metadataSchemaTypeList = new ArrayList<>();
 
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			MetadataSchemaType metadataSchemaType = (MetadataSchemaType) iterator.next();
 
-			if(!metadataSchemaType.getCode().equals(code)) {
+			if (!metadataSchemaType.getCode().equals(code)) {
 				metadataSchemaTypeList.add(metadataSchemaType);
 			}
 		}
@@ -896,14 +899,15 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenBoostWithCorrespondingMetadataWithRoleRestrictionThenSearchDoesNotIncludeThatField() throws OptimisticLocking {
+	public void givenBoostWithCorrespondingMetadataWithRoleRestrictionThenSearchDoesNotIncludeThatField()
+			throws OptimisticLocking {
 		MetadataSchemasManager metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		MetadataSchemaTypes metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
 		List<MetadataSchemaType> metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
 
 		String descriptionCode = metadataSchemaTypes.getSchemaType(Task.SCHEMA_TYPE).getDefaultSchema().getMetadata(Task.DESCRIPTION).getDataStoreCode();
 		User user = users.adminIn(zeCollection);
-		String qfResult1 = searchServices.getQfFor(Language.French.getCode(), new ArrayList<SearchBoost>(), metadataSchemaTypeList, user);
+		String qfResult1 = searchServices.getQfFor(asList(Language.French.getCode()), Language.French.getCode(), new ArrayList<SearchBoost>(), metadataSchemaTypeList, user);
 
 		assertThat(qfResult1.contains(descriptionCode)).isTrue();
 
@@ -912,7 +916,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 		metadataSchemaTypes = metadataSchemasManager.getSchemaTypes(zeCollection);
 		metadataSchemaTypeList = metadataSchemaTypes.getSchemaTypes();
 
-		String qfResult2 = searchServices.getQfFor(Language.French.getCode(), new ArrayList<SearchBoost>(), metadataSchemaTypeList, user);
+		String qfResult2 = searchServices.getQfFor(asList(Language.French.getCode()), Language.French.getCode(), new ArrayList<SearchBoost>(), metadataSchemaTypeList, user);
 
 		assertThat(qfResult2.contains(descriptionCode)).isFalse();
 	}
@@ -3158,7 +3162,7 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		defineSchemasManager().using(
 				schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata(whichIsSearchable).withADateMetadata()
-				.withAStringMetadataInAnotherSchema(whichIsSearchable).withANumberMetadataInAnotherSchema(whichIsSearchable));
+						.withAStringMetadataInAnotherSchema(whichIsSearchable).withANumberMetadataInAnotherSchema(whichIsSearchable));
 
 		condition = from(asList(zeSchema.typeCode(), anotherSchema.typeCode()), zeSchema.collection()).returnAll();
 		LogicalSearchQuery query = new LogicalSearchQuery(condition).setFreeTextQuery("myFreeText");

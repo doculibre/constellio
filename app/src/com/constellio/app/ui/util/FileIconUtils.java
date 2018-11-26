@@ -105,18 +105,9 @@ public class FileIconUtils implements Serializable {
 	public static Resource getIcon(RecordVO recordVO) {
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 		String collection = recordVO.getSchema().getCollection();
-		String fileName = appLayerFactory.getExtensions().forCollection(collection).getIconForRecordVO(new GetIconPathParams(recordVO, false));
-		if (fileName == null) {
-			for (MetadataValueVO metadataValueVO : recordVO.getMetadataValues()) {
-				Object value = metadataValueVO.getValue();
-				if (value instanceof ContentVersionVO) {
-					fileName = ((ContentVersionVO) value).getFileName();
-					break;
-				}
-			}
-		}
-		if (fileName != null) {
-			return getIcon(fileName);
+		Resource resource = appLayerFactory.getExtensions().forCollection(collection).getIconFromContent(new GetIconPathParams(recordVO, false));
+		if (resource != null) {
+			return resource;
 		} else {
 			return getIconForRecordVO(recordVO);
 		}

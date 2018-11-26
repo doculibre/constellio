@@ -8,6 +8,7 @@ import com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.Au
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.search.StatusFilter;
 import com.constellio.model.services.security.SecurityTokenManager;
@@ -19,34 +20,46 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.model.entities.records.wrappers.UserAuthorizationsUtils.retrieveUserTokens;
+import static com.constellio.model.entities.schemas.Schemas.COLLECTION;
+import static com.constellio.model.entities.schemas.Schemas.DENY_TOKENS;
+import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
+import static com.constellio.model.entities.schemas.Schemas.TOKENS;
+import static com.constellio.model.entities.schemas.Schemas.TOKENS_OF_HIERARCHY;
+import static com.constellio.model.entities.security.Role.WRITE;
+
 public class FilterUtils {
 
 	public static String multiCollectionUserReadFilter(UserCredential userCredential, UserServices userServices,
 													   SecurityTokenManager securityTokenManager) {
 		StringBuilder filter = new StringBuilder();
 		if (userCredential.getCollections().isEmpty() || !userCredential.isActiveUser()) {
-			addTokenA38(filter);
+			filter.append(TOKENS.getDataStoreCode());
+			filter.append(":");
+			filter.append("A38");
 		} else {
-			addTokenA38(filter);
+			filter.append(TOKENS.getDataStoreCode());
+			filter.append(":");
+			filter.append("A38");
 
 			for (String collection : userCredential.getCollections()) {
 				User user = userServices.getUserInCollection(userCredential.getUsername(), collection);
 				if (user.hasCollectionReadAccess()) {
 					filter.append(" OR ");
-					filter.append(Schemas.COLLECTION.getDataStoreCode());
+					filter.append(COLLECTION.getDataStoreCode());
 					filter.append(":");
 					filter.append(collection);
 				}
 
 				filter.append(" OR ");
-				filter.append(Schemas.TOKENS.getDataStoreCode());
+				filter.append(TOKENS.getDataStoreCode());
 				filter.append(":r_");
 				filter.append(user.getId());
 
 				for (String schemaType : securityTokenManager
 						.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
 					filter.append(" OR ");
-					filter.append(Schemas.SCHEMA.getDataStoreCode());
+					filter.append(SCHEMA.getDataStoreCode());
 					filter.append(":");
 					filter.append(schemaType);
 					filter.append("_*");
@@ -55,7 +68,7 @@ public class FilterUtils {
 				for (String aGroup : user.getUserGroups()) {
 					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
 						filter.append(" OR ");
-						filter.append(Schemas.TOKENS.getDataStoreCode());
+						filter.append(TOKENS.getDataStoreCode());
 						filter.append(":r_");
 						filter.append(aGroup);
 					}
@@ -71,144 +84,123 @@ public class FilterUtils {
 	}
 
 	public static String userWriteFilter(User user, SecurityTokenManager securityTokenManager) {
-		StringBuilder stringBuilder = new StringBuilder();
+
+		SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
 
 		if (!user.hasCollectionWriteAccess()) {
-			if (stringBuilder.length() > 0) {
-				stringBuilder.append(" AND ");
-			}
-			stringBuilder.append("-");
-			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-			stringBuilder.append(":nw_");
-			stringBuilder.append(user.getId());
+			filterBuilder.appendNegative(TOKENS, "nw_" + user.getId());
 
 			for (String aGroup : user.getUserGroups()) {
 				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-					stringBuilder.append(" AND -");
-					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-					stringBuilder.append(":nw_");
-					stringBuilder.append(aGroup);
+					filterBuilder.appendNegative(TOKENS, "nw_" + aGroup);
 				}
 			}
 		}
-		stringBuilder.append("(");
-		addTokenA38(stringBuilder);
+
+		filterBuilder.openORGroupReturningFalseIfEmpty();
+
 		if (user.isActiveUser()) {
 			if (user.hasCollectionWriteAccess()) {
-				stringBuilder.append(" OR ");
-				stringBuilder.append(Schemas.COLLECTION.getDataStoreCode());
-				stringBuilder.append(":");
-				stringBuilder.append(user.getCollection());
+				filterBuilder.append(COLLECTION, user.getCollection());
 			}
 
-			stringBuilder.append(" OR ");
-			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-			stringBuilder.append(":w_");
-			stringBuilder.append(user.getId());
+			filterBuilder.append(Schemas.TOKENS, "w_" + user.getId());
 
-			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.WRITE)) {
-				stringBuilder.append(" OR ");
-				stringBuilder.append(Schemas.SCHEMA.getDataStoreCode());
-				stringBuilder.append(":");
-				stringBuilder.append(schemaType);
-				stringBuilder.append("_*");
+			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, WRITE)) {
+				filterBuilder.append(SCHEMA, schemaType + "_*");
 			}
 
 			for (String aGroup : user.getUserGroups()) {
 				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-					stringBuilder.append(" OR ");
-					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-					stringBuilder.append(":w_");
-					stringBuilder.append(aGroup);
+					filterBuilder.append(Schemas.TOKENS, "w_" + aGroup);
 				}
 			}
 
 			UserTokens tokens = securityTokenManager.getTokens(user);
-			addAuthsTokens(stringBuilder, user, false, UserAuthorizationsUtils.WRITE_ACCESS);
-			addTokens(stringBuilder, tokens.getAllowTokens(), 'w');
-			addTokens(stringBuilder, tokens.getShareAllowTokens(), 'w');
-			addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
+			addRecordAuths(filterBuilder, user, false, UserAuthorizationsUtils.WRITE_ACCESS);
+
+			for (String token : tokens.getAllowTokens()) {
+				if (token.charAt(0) == 'w') {
+					filterBuilder.append(TOKENS, token);
+				}
+			}
+
+			for (String token : tokens.getShareAllowTokens()) {
+				if (token.charAt(0) == 'w') {
+					filterBuilder.append(TOKENS, token);
+				}
+			}
+
+			for (String publicType : securityTokenManager.getSchemaTypesWithoutSecurity()) {
+				filterBuilder.append(SCHEMA, publicType + "_*");
+			}
 		}
-		stringBuilder.append(")");
-		return stringBuilder.toString();
+		filterBuilder.closeGroup();
+		return filterBuilder.toString();
 	}
 
 	public static String userReadFilter(User user, SecurityTokenManager securityTokenManager) {
-		StringBuilder stringBuilder = new StringBuilder();
+		SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
 		UserTokens tokens = securityTokenManager.getTokens(user);
-		addDenyTokens(stringBuilder, tokens.getAllowTokens(), 'r');
-		if (!user.hasCollectionReadAccess() && !user.hasCollectionWriteAccess() && !user.hasCollectionDeleteAccess()) {
-			if (stringBuilder.length() > 0) {
-				stringBuilder.append(" AND ");
+		for (String token : tokens.getAllowTokens()) {
+			if (token.charAt(0) == 'r') {
+				filterBuilder.appendNegative(DENY_TOKENS, token);
 			}
+		}
+		if (!user.hasCollectionReadAccess() && !user.hasCollectionWriteAccess() && !user.hasCollectionDeleteAccess()) {
 
-
-			stringBuilder.append("-");
-			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-			stringBuilder.append(":nr_");
-			stringBuilder.append(user.getId());
+			filterBuilder.appendNegative(TOKENS, "nr_" + user.getId());
 
 			for (String aGroup : user.getUserGroups()) {
 				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-					stringBuilder.append(" AND -");
-					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-					stringBuilder.append(":nr_");
-					stringBuilder.append(aGroup);
+					filterBuilder.appendNegative(TOKENS, "nr_" + aGroup);
 				}
 			}
 		}
-		boolean denyOrNegativeTokens = stringBuilder.length() > 0;
 
-		if (denyOrNegativeTokens) {
-			stringBuilder.append(" AND (");
-		}
-		addTokenA38(stringBuilder);
+		filterBuilder.openORGroupReturningFalseIfEmpty();
 
 		if (user.isActiveUser()) {
 
 			if (user.hasCollectionReadAccess() || user.hasCollectionDeleteAccess() || user.hasCollectionWriteAccess()) {
-				stringBuilder.append(" OR ");
-				stringBuilder.append(Schemas.COLLECTION.getDataStoreCode());
-				stringBuilder.append(":");
-				stringBuilder.append(user.getCollection());
+				filterBuilder.append(COLLECTION, user.getCollection());
 			}
 
-			stringBuilder.append(" OR ");
-			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-			stringBuilder.append(":r_");
-			stringBuilder.append(user.getId());
+			filterBuilder.append(TOKENS, "r_" + user.getId());
 
 			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
-				stringBuilder.append(" OR ");
-				stringBuilder.append(Schemas.SCHEMA.getDataStoreCode());
-				stringBuilder.append(":");
-				stringBuilder.append(schemaType);
-				stringBuilder.append("_*");
+				filterBuilder.append(SCHEMA, schemaType + "_*");
 			}
 
 			for (String aGroup : user.getUserGroups()) {
 				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-					stringBuilder.append(" OR ");
-					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-					stringBuilder.append(":r_");
-					stringBuilder.append(aGroup);
+					filterBuilder.append(TOKENS, "r_" + aGroup);
 				}
 			}
 
-			addAuthsTokens(stringBuilder, user, false, UserAuthorizationsUtils.READ_ACCESS);
-			addTokens(stringBuilder, tokens.getAllowTokens(), 'r');
-			addTokens(stringBuilder, tokens.getShareAllowTokens(), 'r');
-			addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
-			stringBuilder.append(" OR ");
-			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-			stringBuilder.append(":");
-			stringBuilder.append(Record.PUBLIC_TOKEN);
+			addRecordAuths(filterBuilder, user, false, UserAuthorizationsUtils.READ_ACCESS);
+
+			for (String token : tokens.getAllowTokens()) {
+				if (token.charAt(0) == 'r') {
+					filterBuilder.append(TOKENS, token);
+				}
+			}
+
+			for (String token : tokens.getShareAllowTokens()) {
+				if (token.charAt(0) == 'r') {
+					filterBuilder.append(TOKENS, token);
+				}
+			}
+
+			for (String publicType : securityTokenManager.getSchemaTypesWithoutSecurity()) {
+				filterBuilder.append(SCHEMA, publicType + "_*");
+			}
+
+			filterBuilder.append(TOKENS, Record.PUBLIC_TOKEN);
 
 		}
-		if (denyOrNegativeTokens) {
-			stringBuilder.append(")");
-		}
-		return stringBuilder.toString();
+		filterBuilder.closeGroup();
+		return filterBuilder.toString();
 	}
 
 	public static String userHierarchyFilter(User user, SecurityTokenManager securityTokenManager, String access,
@@ -237,231 +229,186 @@ public class FilterUtils {
 			}
 		}
 
-		StringBuilder stringBuilder = new StringBuilder();
+		SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningTrueIfEmpty();
+
 		UserTokens tokens = securityTokenManager.getTokens(user);
-		addDenyTokens(stringBuilder, tokens.getAllowTokens(), 'r');
+
+		for (String token : tokens.getAllowTokens()) {
+			if (token.charAt(0) == 'r') {
+				filterBuilder.appendNegative(DENY_TOKENS, token);
+			}
+		}
 
 		if (user.isActiveUser() && !user.hasCollectionAccess(access == null ? Role.READ : access)) {
-			if (stringBuilder.length() > 0) {
-				stringBuilder.append(" AND ");
-			}
-			stringBuilder.append("-");
-			stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
-			stringBuilder.append(":nw_");
-			stringBuilder.append(user.getId());
+
+			filterBuilder.appendNegative(TOKENS_OF_HIERARCHY, "nr_" + user.getId());
+
 
 			for (String aGroup : user.getUserGroups()) {
 				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-					stringBuilder.append(" AND -");
-					stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
-					stringBuilder.append(":nw_");
-					stringBuilder.append(aGroup);
+
+					filterBuilder.appendNegative(TOKENS_OF_HIERARCHY, "nr_" + aGroup);
 				}
 			}
 		}
 
-		boolean denyOrNegativeTokens = stringBuilder.length() > 0;
-		if (denyOrNegativeTokens) {
-			stringBuilder.append(" AND (");
-		}
-		addTokenA38(stringBuilder);
+		filterBuilder.openORGroupReturningFalseIfEmpty();
 
 		if (user.isActiveUser()) {
 
 			if (user.hasCollectionReadAccess() || user.hasCollectionDeleteAccess() || user.hasCollectionWriteAccess()) {
-				stringBuilder.append(" OR ");
-				stringBuilder.append(Schemas.COLLECTION.getDataStoreCode());
-				stringBuilder.append(":");
-				stringBuilder.append(user.getCollection());
+				filterBuilder.append(COLLECTION, user.getCollection());
 			}
 
-			stringBuilder.append(" OR ");
-			stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
-			stringBuilder.append(":" + tokenPrefix + "_");
-			stringBuilder.append(user.getId());
+			filterBuilder.append(TOKENS_OF_HIERARCHY, tokenPrefix + "_" + user.getId());
 			if (includeInvisible) {
-				stringBuilder.append(" OR ");
-				stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
-				stringBuilder.append(":" + "z" + tokenPrefix + "_");
-				stringBuilder.append(user.getId());
+				filterBuilder.append(TOKENS_OF_HIERARCHY, "z" + tokenPrefix + "_" + user.getId());
 			}
 
 			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
-				stringBuilder.append(" OR ");
-				stringBuilder.append(Schemas.SCHEMA.getDataStoreCode());
-				stringBuilder.append(":");
-				stringBuilder.append(schemaType);
-				stringBuilder.append("_*");
+				filterBuilder.append(SCHEMA, schemaType + "_*");
 			}
 
 			for (String aGroup : user.getUserGroups()) {
 				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-					stringBuilder.append(" OR ");
-					stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
-					stringBuilder.append(":" + tokenPrefix + "_");
-					stringBuilder.append(aGroup);
+
+					filterBuilder.append(TOKENS_OF_HIERARCHY, tokenPrefix + "_" + aGroup);
+
 					if (includeInvisible) {
-						stringBuilder.append(" OR ");
-						stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
-						stringBuilder.append(":z" + tokenPrefix + "_");
-						stringBuilder.append(aGroup);
+						filterBuilder.append(TOKENS_OF_HIERARCHY, "z" + tokenPrefix + "_" + aGroup);
 					}
 				}
 			}
 
-			addAuthsTokens(stringBuilder, user, false, UserAuthorizationsUtils.READ_ACCESS);
-			addTokens(stringBuilder, tokens.getAllowTokens(), 'r');
-			addTokens(stringBuilder, tokens.getShareAllowTokens(), 'r');
-			addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
-			stringBuilder.append(" OR ");
-			stringBuilder.append(Schemas.TOKENS_OF_HIERARCHY.getDataStoreCode());
-			stringBuilder.append(":");
-			stringBuilder.append(Record.PUBLIC_TOKEN);
-			if (denyOrNegativeTokens) {
-				stringBuilder.append(")");
-			}
-		}
-		return stringBuilder.toString();
-	}
+			addRecordAuths(filterBuilder, user, false, UserAuthorizationsUtils.READ_ACCESS);
 
-	private static void addDenyTokens(StringBuilder stringBuilder, List<String> tokens, Character type) {
-		for (String token : tokens) {
-			if (token.charAt(0) == type) {
-				if (stringBuilder.length() > 0) {
-					stringBuilder.append(" AND ");
+			for (String token : tokens.getAllowTokens()) {
+				if (token.charAt(0) == 'r') {
+					filterBuilder.append(TOKENS, token);
 				}
-				stringBuilder.append("-");
-				stringBuilder.append(Schemas.DENY_TOKENS.getDataStoreCode());
-				stringBuilder.append(":");
-				stringBuilder.append(token);
 			}
+
+			for (String token : tokens.getShareAllowTokens()) {
+				if (token.charAt(0) == 'r') {
+					filterBuilder.append(TOKENS, token);
+				}
+			}
+
+
+			for (String publicType : securityTokenManager.getSchemaTypesWithoutSecurity()) {
+				filterBuilder.append(SCHEMA, publicType + "_*");
+			}
+
+			filterBuilder.append(TOKENS_OF_HIERARCHY, Record.PUBLIC_TOKEN);
+
 		}
+		filterBuilder.closeGroup();
+		return filterBuilder.toString();
 	}
 
 	public static String permissionFilter(User user, String permission) {
-		StringBuilder stringBuilder = new StringBuilder();
+		SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
 
-		if (!user.isActiveUser()) {
-			addTokenA38(stringBuilder);
-
-		} else if (!user.has(permission).globally()) {
-			addTokenA38(stringBuilder);
+		if (user.isActiveUser() && !user.has(permission).globally()) {
 
 			List<String> rolesGivingPermission = Role.toCodes(user.getRolesDetails().getRolesGivingPermission(permission));
 			for (String role : rolesGivingPermission) {
 
-				stringBuilder.append(" OR ");
-				stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-				stringBuilder.append(":" + role + "_");
-				stringBuilder.append(user.getId());
+				filterBuilder.append(TOKENS, role + "_" + user.getId());
 
 				for (String aGroup : user.getUserGroups()) {
 					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-						stringBuilder.append(" OR ");
-						stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-						stringBuilder.append(":" + role + "_");
-						stringBuilder.append(aGroup);
+						filterBuilder.append(TOKENS, role + "_" + aGroup);
 					}
 				}
 			}
 
-			addAuthsTokens(stringBuilder, user, false,
+			addRecordAuths(filterBuilder, user, false,
 					UserAuthorizationsUtils.anyRole(rolesGivingPermission.toArray(new String[0])));
 		}
-		return stringBuilder.toString();
+		return filterBuilder.build();
 	}
 
 	public static String userDeleteFilter(User user, SecurityTokenManager securityTokenManager) {
-		StringBuilder stringBuilder = new StringBuilder();
+
+		SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
+				.newRecordServices().getSecurityModel(user.getCollection());
+
+		SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
 
 		if (!user.hasCollectionDeleteAccess()) {
-			if (stringBuilder.length() > 0) {
-				stringBuilder.append(" AND ");
-			}
-			stringBuilder.append("-");
-			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-			stringBuilder.append(":nd_");
-			stringBuilder.append(user.getId());
 
+			//if (hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(user.getId()))) {
+			filterBuilder.appendNegative(TOKENS, "nd_" + user.getId());
+			//}
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-					stringBuilder.append(" AND -");
-					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-					stringBuilder.append(":nd_");
-					stringBuilder.append(aGroup);
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)/* &&
+					hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup))*/) {
+					filterBuilder.appendNegative(TOKENS, "nd_" + aGroup);
 				}
 			}
 		}
-		stringBuilder.append("(");
-		addTokenA38(stringBuilder);
-
+		filterBuilder.openORGroupReturningFalseIfEmpty();
 		if (user.isActiveUser()) {
 
 			if (user.hasCollectionDeleteAccess()) {
-				stringBuilder.append(" OR ");
-				stringBuilder.append(Schemas.COLLECTION.getDataStoreCode());
-				stringBuilder.append(":");
-				stringBuilder.append(user.getCollection());
+				filterBuilder.append(COLLECTION, user.getCollection());
 			}
 
-			stringBuilder.append(" OR ");
-			stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-			stringBuilder.append(":d_");
-			stringBuilder.append(user.getId());
+			filterBuilder.append(TOKENS, "d_" + user.getId());
 
 			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.DELETE)) {
-				stringBuilder.append(" OR ");
-				stringBuilder.append(Schemas.SCHEMA.getDataStoreCode());
-				stringBuilder.append(":");
-				stringBuilder.append(schemaType);
-				stringBuilder.append("_*");
+				filterBuilder.append(SCHEMA, schemaType + "_*");
 			}
 
 			for (String aGroup : user.getUserGroups()) {
 				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-					stringBuilder.append(" OR ");
-					stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-					stringBuilder.append(":d_");
-					stringBuilder.append(aGroup);
+					filterBuilder.append(TOKENS, "d_" + aGroup);
 				}
 			}
 
 			UserTokens tokens = securityTokenManager.getTokens(user);
-			addAuthsTokens(stringBuilder, user, true, UserAuthorizationsUtils.DELETE_ACCESS);
-			addTokens(stringBuilder, tokens.getAllowTokens(), 'd');
-			addTokens(stringBuilder, tokens.getShareAllowTokens(), 'd');
-			addPublicTypes(stringBuilder, securityTokenManager.getSchemaTypesWithoutSecurity());
+			addRecordAuths(filterBuilder, user, true, UserAuthorizationsUtils.DELETE_ACCESS);
+
+			for (String token : tokens.getAllowTokens()) {
+				if (token.charAt(0) == 'd') {
+					filterBuilder.append(TOKENS, token);
+				}
+			}
+
+			for (String token : tokens.getShareAllowTokens()) {
+				if (token.charAt(0) == 'd') {
+					filterBuilder.append(TOKENS, token);
+				}
+			}
+
+			for (String publicType : securityTokenManager.getSchemaTypesWithoutSecurity()) {
+				filterBuilder.append(SCHEMA, publicType + "_*");
+			}
 
 		}
-		stringBuilder.append(")");
-		return stringBuilder.toString();
+		filterBuilder.closeGroup();
+		return filterBuilder.build();
 	}
 
-	private static void addAuthsTokens(StringBuilder stringBuilder, User user, boolean includeSpecifics,
+
+	private static void addRecordAuths(SolrFilterBuilder filterBuilder, User user,
+									   boolean includeSpecifics,
 									   AuthorizationDetailsFilter filter) {
 
 		//Specific auths are excluded, they are handled with tokens
-		KeySetMap<String, String> tokens = UserAuthorizationsUtils.retrieveUserTokens(user, includeSpecifics, filter);
+		KeySetMap<String, String> removedAuthsGroupedByTarget = retrieveUserTokens(user, includeSpecifics, filter);
 
-		for (Map.Entry<String, Set<String>> token : tokens.getNestedMap().entrySet()) {
-			stringBuilder.append(" OR (");
-			stringBuilder.append(Schemas.ATTACHED_ANCESTORS.getDataStoreCode());
-			stringBuilder.append(":");
-			stringBuilder.append(token.getKey());
-			stringBuilder.append(" AND -(");
+		for (Map.Entry<String, Set<String>> token : removedAuthsGroupedByTarget.getNestedMap().entrySet()) {
+			filterBuilder.openANDGroupRemovedIfEmpty();
+			filterBuilder.append(Schemas.ATTACHED_ANCESTORS, token.getKey());
 			//TODO Tester!
 			for (Iterator<String> iterator = token.getValue().iterator(); iterator.hasNext(); ) {
 				String removedAuth = iterator.next();
-				stringBuilder.append(Schemas.ALL_REMOVED_AUTHS.getDataStoreCode());
-				stringBuilder.append(":");
-				stringBuilder.append(removedAuth);
-				if (iterator.hasNext()) {
-					stringBuilder.append(" AND ");
-				}
-
+				filterBuilder.appendNegative(Schemas.ALL_REMOVED_AUTHS, removedAuth);
 			}
-			stringBuilder.append(")");
-			stringBuilder.append(")");
+
+			filterBuilder.closeGroup();
 		}
 
 	}
@@ -476,29 +423,4 @@ public class FilterUtils {
 		}
 	}
 
-	private static void addTokenA38(StringBuilder stringBuilder) {
-		stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-		stringBuilder.append(":");
-		stringBuilder.append("A38");
-	}
-
-	private static void addTokens(StringBuilder stringBuilder, List<String> tokens, Character type) {
-		for (String token : tokens) {
-			if (token.charAt(0) == type) {
-				stringBuilder.append(" OR ");
-				stringBuilder.append(Schemas.TOKENS.getDataStoreCode());
-				stringBuilder.append(":");
-				stringBuilder.append(token);
-			}
-		}
-	}
-
-	private static void addPublicTypes(StringBuilder stringBuilder, List<String> publicTypes) {
-		for (String publicType : publicTypes) {
-			stringBuilder.append(" OR ");
-			stringBuilder.append(Schemas.SCHEMA.getDataStoreCode());
-			stringBuilder.append(":");
-			stringBuilder.append(publicType + "_*");
-		}
-	}
 }

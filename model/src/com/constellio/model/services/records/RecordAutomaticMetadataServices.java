@@ -43,7 +43,6 @@ import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.entities.security.TransactionSecurityModel;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.factories.ModelLayerLogger;
@@ -54,6 +53,8 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.constellio.model.services.search.query.logical.ongoing.OngoingLogicalSearchCondition;
 import com.constellio.model.services.security.SecurityModelCache;
 import com.constellio.model.services.security.roles.Roles;
 import com.constellio.model.services.security.roles.RolesManager;
@@ -129,6 +130,17 @@ public class RecordAutomaticMetadataServices {
 
 	}
 
+	public void updateAutomaticMetadatas(RecordImpl record, RecordProvider recordProvider,
+										 List<String> automaticMetadatas, Transaction transaction) {
+		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
+		TransactionRecordsReindexation reindexation = TransactionRecordsReindexation.ALL();
+		MetadataSchemaTypes types = schemasManager.getSchemaTypes(record.getCollection());
+		MetadataSchema schema = types.getSchema(record.getSchemaCode());
+		for (String metadata : automaticMetadatas) {
+			updateAutomaticMetadata(context, record, recordProvider, schema.get(metadata), reindexation, types, transaction);
+		}
+	}
+
 	void updateAutomaticMetadata(TransactionExecutionContext context, RecordImpl record, RecordProvider recordProvider,
 								 Metadata metadata,
 								 TransactionRecordsReindexation reindexation, MetadataSchemaTypes types,
@@ -150,21 +162,18 @@ public class RecordAutomaticMetadataServices {
 				setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(context, record, metadata, transaction, types);
 
 			} else if (transaction.getRecordUpdateOptions().isUpdateAggregatedMetadatas()) {
-				setAggregatedValuesInRecords(record, metadata, recordProvider, reindexation, types);
+				setAggregatedValuesInRecords(record, metadata, types);
 			}
 
 		}
 	}
 
-	private void setAggregatedValuesInRecords(RecordImpl record, Metadata metadata, RecordProvider recordProvider,
-											  TransactionRecordsReindexation reindexation, MetadataSchemaTypes types) {
+	private void setAggregatedValuesInRecords(RecordImpl record, Metadata metadata, MetadataSchemaTypes types) {
 
 		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
 
-		Metadata referenceMetadata = types.getMetadata(aggregatedDataEntry.getReferenceMetadata());
-		MetadataSchemaType schemaType = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(referenceMetadata));
-		LogicalSearchQuery query = new LogicalSearchQuery();
-		query.setCondition(from(schemaType).where(referenceMetadata).isEqualTo(record));
+		Map<String, List<String>> inputMetadatasByReferenceMetadata = aggregatedDataEntry.getInputMetadatasByReferenceMetadata();
+		LogicalSearchQuery query = buildAggregatedQuery(record, types, inputMetadatasByReferenceMetadata);
 
 		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
 		if (agregationType != null) {
@@ -175,15 +184,29 @@ public class RecordAutomaticMetadataServices {
 		}
 	}
 
+	private LogicalSearchQuery buildAggregatedQuery(Record record, MetadataSchemaTypes types,
+													Map<String, List<String>> inputMetadatasByReferenceMetadata) {
+		List<MetadataSchemaType> schemaTypes = new ArrayList<>();
+		for (String referenceMetadata : inputMetadatasByReferenceMetadata.keySet()) {
+			MetadataSchemaType schemaType = types.getSchemaType(SchemaUtils.getSchemaTypeCode(referenceMetadata));
+			schemaTypes.add(schemaType);
+		}
+		OngoingLogicalSearchCondition ongoingCondition = from(schemaTypes);
+
+		List<LogicalSearchCondition> conditions = new ArrayList<>();
+		for (String referenceMetadata : inputMetadatasByReferenceMetadata.keySet()) {
+			Metadata metadata = types.getMetadata(referenceMetadata);
+			conditions.add(ongoingCondition.where(metadata).isEqualTo(record));
+		}
+		return new LogicalSearchQuery().setCondition(ongoingCondition.whereAnyCondition(conditions));
+	}
+
 	private void setAggregatedValuesInRecordsBasedOnOtherRecordInTransaction(TransactionExecutionContext context,
 																			 RecordImpl record, Metadata metadata,
 																			 Transaction transaction,
 																			 MetadataSchemaTypes types) {
 
 		AggregatedDataEntry aggregatedDataEntry = (AggregatedDataEntry) metadata.getDataEntry();
-
-		Metadata referenceMetadata = types.getMetadata(aggregatedDataEntry.getReferenceMetadata());
-		MetadataSchemaType schemaType = types.getSchemaType(new SchemaUtils().getSchemaTypeCode(referenceMetadata));
 
 		AggregationType agregationType = aggregatedDataEntry.getAgregationType();
 		if (agregationType != null) {
@@ -419,7 +442,7 @@ public class RecordAutomaticMetadataServices {
 
 			if (securityModel == null) {
 
-				securityModel = buildTransactionSecurityModel(context.getTransaction(), roles, types, recordProvider);
+				securityModel = buildTransactionSecurityModel(context.getTransaction(), roles, types);
 				context.setTransactionSecurityModel(securityModel);
 			}
 			return securityModel;
@@ -430,30 +453,39 @@ public class RecordAutomaticMetadataServices {
 
 	}
 
-	private TransactionSecurityModel buildTransactionSecurityModel(Transaction tx, Roles roles,
-																   MetadataSchemaTypes types,
-																   RecordProvider recordProvider) {
+	public SingletonSecurityModel getSecurityModel(String collection) {
 
 		SecurityModelCache cache = modelLayerFactory.getSecurityModelCache();
-		SingletonSecurityModel model = cache.getCached(tx.getCollection());
+		SingletonSecurityModel model = cache.getCached(collection);
 
 		if (model == null) {
 
+			MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
+			Roles roles = modelLayerFactory.getRolesManager().getCollectionRoles(collection);
+
 			synchronized (SingletonSecurityModel.class) {
 
-				model = cache.getCached(tx.getCollection());
+				model = cache.getCached(collection);
 				if (model == null) {
 					//TODO Put in singleton
-					model = buildSingletonSecurityModel(roles, types, recordProvider, tx.getCollection());
+					model = buildSingletonSecurityModel(roles, types, collection);
 					cache.insert(model);
 				}
 			}
 		}
-		return new TransactionSecurityModel(types, roles, model, tx);
+
+		return model;
+	}
+
+	private TransactionSecurityModel buildTransactionSecurityModel(Transaction tx, Roles roles,
+																   MetadataSchemaTypes types) {
+
+		SingletonSecurityModel singletonSecurityModel = getSecurityModel(types.getCollection());
+		return new TransactionSecurityModel(types, roles, singletonSecurityModel, tx);
 	}
 
 	private SingletonSecurityModel buildSingletonSecurityModel(Roles roles, MetadataSchemaTypes types,
-															   RecordProvider recordProvider, String collection) {
+															   String collection) {
 
 		List<Group> groups = new ArrayList<>();
 		List<User> users = new ArrayList<>();
@@ -464,9 +496,9 @@ public class RecordAutomaticMetadataServices {
 		RecordsCache systemCollectionCache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
 		SchemasRecordsServices systemCollectionSchemasRecordServices = new SchemasRecordsServices(
 				Collection.SYSTEM_COLLECTION, modelLayerFactory);
-		if (systemCollectionCache.isConfigured(SolrGlobalGroup.SCHEMA_TYPE)) {
+		if (systemCollectionCache.isConfigured(GlobalGroup.SCHEMA_TYPE)) {
 			for (Record record : searchServices.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
-					.getSchemaType(SolrGlobalGroup.SCHEMA_TYPE))) {
+					.getSchemaType(GlobalGroup.SCHEMA_TYPE))) {
 				GlobalGroup globalGroup = systemCollectionSchemasRecordServices.wrapGlobalGroup(record);
 				if (record != null && GlobalGroupStatus.INACTIVE.equals(globalGroup.getStatus())) {
 					disabledGroups.add(globalGroup.getCode());
@@ -505,7 +537,7 @@ public class RecordAutomaticMetadataServices {
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(types.getCollection());
 
 		return new SingletonSecurityModel(authorizationDetails, users, groups, groupInheritanceMode, disabledGroups,
-				principalTaxonomy, recordProvider, collection);
+				principalTaxonomy, collection);
 	}
 
 
@@ -536,7 +568,6 @@ public class RecordAutomaticMetadataServices {
 		List<String> paths = new ArrayList<>();
 		List<String> removedAuthorizations = new ArrayList<>();
 		List<String> attachedAncestors = new ArrayList<>();
-		List<String> inheritedNonTaxonomyAuthorizations = new ArrayList<>();
 		MetadataSchema recordSchema = schemasManager.getSchemaTypes(record.getCollection()).getSchema(record.getSchemaCode());
 		List<Metadata> parentReferences = recordSchema.getParentReferences();
 		for (Metadata metadata : parentReferences) {
@@ -547,7 +578,6 @@ public class RecordAutomaticMetadataServices {
 				paths.addAll(parentPaths);
 				removedAuthorizations.addAll(referencedRecord.<String>getList(Schemas.ALL_REMOVED_AUTHS));
 				attachedAncestors.addAll(referencedRecord.<String>getList(Schemas.ATTACHED_ANCESTORS));
-				inheritedNonTaxonomyAuthorizations.addAll(referencedRecord.<String>getList(Schemas.NON_TAXONOMY_AUTHORIZATIONS));
 			}
 		}
 		for (Taxonomy aTaxonomy : taxonomiesManager.getEnabledTaxonomies(record.getCollection())) {
@@ -579,7 +609,7 @@ public class RecordAutomaticMetadataServices {
 			}
 		}
 		HierarchyDependencyValue value = new HierarchyDependencyValue(taxonomy, paths, removedAuthorizations,
-				inheritedNonTaxonomyAuthorizations, attachedAncestors);
+				attachedAncestors);
 		values.put(dependency, value);
 		return true;
 	}

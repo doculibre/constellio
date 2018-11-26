@@ -80,8 +80,8 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 
 		zeCache = new SerializationCheckCache("zeCache", new ConstellioCacheOptions());
 		when(cacheManager.getCache(anyString())).thenReturn(zeCache);
-		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(cacheManager);
-		when(dataLayerFactory.getRecordsCacheManager()).thenReturn(cacheManager);
+		when(dataLayerFactory.getLocalCacheManager()).thenReturn(cacheManager);
+		when(dataLayerFactory.getDistributedCacheManager()).thenReturn(cacheManager);
 
 		XMLConfiguration xmlConfiguration = Mockito.mock(XMLConfiguration.class);
 		Document document = Mockito.mock(Document.class);
@@ -93,7 +93,7 @@ public class ModelLayerFactoryTest extends ConstellioTest {
 		when(dataLayerFactory.getDataLayerConfiguration()).thenReturn(dataLayerConfiguration);
 		when(dataLayerConfiguration.getHashingEncoding()).thenReturn(BASE64_URL_ENCODED);
 
-		when(dataLayerFactory.getSettingsCacheManager()).thenReturn(cacheManager);
+		when(dataLayerFactory.getLocalCacheManager()).thenReturn(cacheManager);
 		when(dataLayerFactory.getIOServicesFactory()).thenReturn(ioServicesFactory);
 		when(dataLayerFactory.newTypesFactory()).thenReturn(typesFactory);
 		when(dataLayerFactory.getConfigManager()).thenReturn(configManager);

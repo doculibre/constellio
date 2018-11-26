@@ -23,6 +23,8 @@ import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCaches;
+import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.SearchServices;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -168,7 +170,7 @@ public class RMDocumentExtension extends RecordExtension {
 	}
 
 	@Override
-	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+	public ExtensionValidationErrors isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
 				ConstellioFactories.getInstance().getAppLayerFactory());
 
@@ -191,7 +193,14 @@ public class RMDocumentExtension extends RecordExtension {
 			}
 			if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))
 				|| usedInTasks) {
-				return ExtensionBooleanResult.FALSE;
+				ValidationErrors validationErrors = new ValidationErrors();
+				if (usedInTasks) {
+					validationErrors.add(RMDocumentExtension.class, "documentUsedInTasks");
+				}
+				if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))) {
+					validationErrors.add(RMDocumentExtension.class, "userDoesNotHavePremissionToDeleteBorrowedDocument");
+				}
+				return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.FALSE);
 			}
 		}
 		return super.isLogicallyDeletable(event);

@@ -18,7 +18,11 @@ public class RMNavigationUtils {
 
 		RMModuleExtensions rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection)
 				.forModule(ConstellioRMModule.ID);
-		String containerId = params.get("containerId");
+		String containerId = null;
+
+		if (params != null) {
+			containerId = params.get("containerId");
+		}
 
 		if (containerId != null) {
 			navigation.to(RMViews.class).displayFolderFromContainer(id, containerId);

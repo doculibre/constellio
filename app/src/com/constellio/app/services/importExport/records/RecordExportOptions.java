@@ -1,18 +1,14 @@
 package com.constellio.app.services.importExport.records;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.constellio.model.entities.records.Record;
+
+import java.util.Iterator;
 
 public class RecordExportOptions {
 
-	boolean exportValueLists;
 	boolean isForSameSystem = false;
 
-	List<String> exportedSchemaTypes = new ArrayList<>();
-
-	public List<String> getExportedSchemaTypes() {
-		return exportedSchemaTypes;
-	}
+	Iterator<Record> recordsToExportIterator;
 
 	public boolean isForSameSystem() {
 		return isForSameSystem;
@@ -23,18 +19,13 @@ public class RecordExportOptions {
 		return this;
 	}
 
-	public RecordExportOptions setExportedSchemaTypes(List<String> exportedSchemaTypes) {
-		this.exportedSchemaTypes = exportedSchemaTypes;
+	public Iterator<Record> getRecordsToExportIterator() {
+		return recordsToExportIterator;
+	}
+
+	public RecordExportOptions setRecordsToExportIterator(
+			Iterator<Record> recordsToExportIterator) {
+		this.recordsToExportIterator = recordsToExportIterator;
 		return this;
 	}
-
-	public boolean isExportValueLists() {
-		return exportValueLists;
-	}
-
-	public RecordExportOptions setExportValueLists(boolean exportValueLists) {
-		this.exportValueLists = exportValueLists;
-		return this;
-	}
-
 }

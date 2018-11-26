@@ -119,7 +119,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public void setMetadataCode(String metadataCode) {
 		this.metadataCode = metadataCode;
-		this.metadata = types.getMetadata(metadataCode);
+
+		if(this.metadataCode.split("_").length == 1) {
+			this.metadataCode = getSchemaCode() + "_" + metadataCode;
+		}
+
+		this.metadata = types.getMetadata(this.metadataCode);
 	}
 
 	public boolean isRoleAccessSupportedOnThisMetadata() {
@@ -648,7 +653,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			if (!inputType.equals(MetadataInputType.CHECKBOXES) && !inputType.equals(MetadataInputType.RADIO_BUTTONS)) {
 				displayType = MetadataDisplayType.VERTICAL;
 			}
-			if(formMetadataVO.getValueType() == ENUM && editMode) {
+			if (formMetadataVO.getValueType() == ENUM && editMode) {
 				enumClass = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection).getMetadata(formMetadataVO.getCode()).getEnumClass();
 			}
 
@@ -656,7 +661,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			CollectionInfoVO collectionInfoVO = new CollectionInfoVO(collectionInfo.getMainSystemLanguage(), collectionInfo.getCode(), collectionInfo.getCollectionLanguages(),
 					collectionInfo.getMainSystemLocale(), collectionInfo.getSecondaryCollectionLanguesCodes(), collectionInfo.getCollectionLanguesCodes(), collectionInfo.getCollectionLocales());
 
-			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getCode(), formMetadataVO.getValueType(), collection,
+			MetadataVO metadataVO = new MetadataVO(formMetadataVO.getCode(), formMetadataVO.getLocalcode(), formMetadataVO.getValueType(), collection,
 					formMetadataVO.getSchema(), formMetadataVO.isRequired(), formMetadataVO.isMultivalue(), false,
 					new HashMap<Locale, String>(), enumClass, new String[]{}, formMetadataVO.getReference(), inputType, displayType,
 					new AllowedReferences(formMetadataVO.getReference(), null), formMetadataVO.getMetadataGroup(),

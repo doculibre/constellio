@@ -19,6 +19,8 @@ public class UserDocument extends RecordWrapper {
 
 	public static final String CONTENT = "content";
 
+	public static final String CONTENT_SIZE = "contentSize";
+
 	// TODO Move to RM
 	public static final String FOLDER = "folder";
 
@@ -100,6 +102,10 @@ public class UserDocument extends RecordWrapper {
 	public UserDocument setUserFolder(UserFolder userFolder) {
 		set(USER_FOLDER, userFolder);
 		return this;
+	}
+
+	public Double getContentSize() {
+		return get(CONTENT_SIZE);
 	}
 
 }

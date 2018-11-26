@@ -38,6 +38,7 @@ public class SecurityModelCache implements EventBusListener {
 		modelLayerFactory.getExtensions().getSystemWideExtensions().recordExtensions.add(new SecurityModelCacheRecordExtension());
 	}
 
+
 	public SingletonSecurityModel getCached(String collection) {
 		return models.get(collection);
 	}

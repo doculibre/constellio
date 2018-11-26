@@ -1,5 +1,25 @@
 package com.constellio.app.ui.pages.base;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.data.dao.services.cache.InsertionReason.WAS_MODIFIED;
+import static com.constellio.data.dao.services.idGenerator.UUIDV1Generator.newRandomId;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static java.util.Arrays.asList;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.entities.navigation.NavigationItem;
@@ -42,8 +62,10 @@ import com.constellio.app.ui.pages.search.SearchResultsViewMode;
 import com.constellio.app.ui.pages.search.SimpleSearchView;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.dao.dto.records.FacetValue;
+import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
+import com.constellio.data.utils.comparators.AbstractTextComparator;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
@@ -414,10 +436,10 @@ public class ConstellioHeaderPresenter implements SearchCriteriaPresenter {
 	}
 
 	protected void sort(List<MetadataVO> metadataVOs) {
-		Collections.sort(metadataVOs, new Comparator<MetadataVO>() {
+		Collections.sort(metadataVOs, new AbstractTextComparator<MetadataVO>() {
 			@Override
-			public int compare(MetadataVO o1, MetadataVO o2) {
-				return o1.getLabel().toLowerCase().compareTo(o2.getLabel().toLowerCase());
+			protected String getText(MetadataVO object) {
+				return object.getLabel();
 			}
 		});
 	}

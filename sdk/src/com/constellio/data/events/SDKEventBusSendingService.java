@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static junit.framework.Assert.fail;
+
 public class SDKEventBusSendingService extends EventBusSendingService {
 
 	List<SDKEventBusSendingService> others = new ArrayList<>();
@@ -22,12 +24,30 @@ public class SDKEventBusSendingService extends EventBusSendingService {
 	public void sendRemotely(Event event) {
 		sentEvents.add(event);
 
-		Object deserializedData = testDataSerialization(event.getData());
+		String serializedDataInBase64 = null;
+		if (event.data != null) {
+			Object serializedData = eventDataSerializer.serialize(event.data);
+
+			try {
+				serializedDataInBase64 = serializeToBase64((Serializable) serializedData);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 
 		for (SDKEventBusSendingService other : others) {
+			Object data = null;
+			if (serializedDataInBase64 != null) {
+				try {
+					Object deserializedFromBase64 = deserializeBase64(serializedDataInBase64);
+					data = other.eventDataSerializer.deserialize(deserializedFromBase64);
+				} catch (IOException | ClassNotFoundException e) {
+					throw new RuntimeException(e);
+				}
 
+			}
 			Event newEvent = new Event(event.getBusName(), event.getType(), event.getId(), event.getTimeStamp(),
-					deserializedData);
+					data);
 			other.receive(newEvent);
 		}
 	}
@@ -49,6 +69,7 @@ public class SDKEventBusSendingService extends EventBusSendingService {
 	public void receive(Event event) {
 		//System.out.println("Event received " + event.getType() + " " + event.getData());
 		receivedEvents.add(event);
+
 		eventReceiver.receive(event);
 	}
 
@@ -93,6 +114,44 @@ public class SDKEventBusSendingService extends EventBusSendingService {
 
 		return newSent;
 	}
+
+	public String serialize(Object data) {
+
+		if (data == null) {
+			return null;
+		}
+
+		String serializedData = null;
+		try {
+			Object converted = eventDataSerializer.serialize(data);
+			serializedData = serializeToBase64((Serializable) converted);
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Data of type '" + data.getClass().getName() + "' is not serialisable");
+		}
+
+		return serializedData;
+	}
+
+
+	public Object deserialize(String serialized) {
+
+		if (serialized == null) {
+			return null;
+		}
+
+		String serializedData = null;
+		try {
+			Object object = deserializeBase64(serialized);
+			Object converted = eventDataSerializer.deserialize(object);
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Failed to deserialize data");
+		}
+
+		return serializedData;
+	}
+
 
 	/**
 	 * Read the object from Base64 string.

@@ -476,7 +476,7 @@ public class AuthorizationsServices {
 		recordsIdsWithPosibleAuths.remove(record.getId());
 
 		for (String ancestorId : record.<String>getList(ATTACHED_ANCESTORS)) {
-			if (!ancestorId.equals(record.getId())) {
+			if (!ancestorId.equals(record.getId()) && !ancestorId.startsWith("-")) {
 
 				Record ancestor = recordServices.getDocumentById(ancestorId);
 				MetadataSchema schema = schemasManager.getSchemaOf(ancestor);
@@ -509,8 +509,7 @@ public class AuthorizationsServices {
 		String authId = authorization.getId();
 		boolean directlyTargetted = authTarget.equals(record.getId());
 		boolean inherited = !directlyTargetted && record.getList(ATTACHED_ANCESTORS).contains(authTarget);
-		boolean nonTaxonomyAuth = record.<String>getList(Schemas.NON_TAXONOMY_AUTHORIZATIONS).contains(authId);
-		if (!directlyTargetted && !inherited && !nonTaxonomyAuth) {
+		if (!directlyTargetted && !inherited && Authorization.isSecurizedSchemaType(authorization.getTargetSchemaType())) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord(authId, record);
 		}
 

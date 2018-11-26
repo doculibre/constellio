@@ -58,6 +58,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
@@ -72,6 +73,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.icap.IcapException;
@@ -568,7 +570,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getDeleteButtonState(User user, Folder folder) {
-		if (user.hasDeleteAccess().on(folder) && !extensions.isDeleteBlocked(folder.getWrappedRecord(), user)) {
+		if (user.hasDeleteAccess().on(folder) && extensions.isDeleteAuthorized(folder.getWrappedRecord(), user)) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
 					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
@@ -717,8 +719,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void deleteFolderButtonClicked(String reason) {
 		String parentId = folderVO.get(Folder.PARENT_FOLDER);
 		Record record = toRecord(folderVO);
-
-		if (recordServices.isLogicallyDeletable(record, getCurrentUser())) {
+		ValidationErrors validateLogicallyDeletable = recordServices.validateLogicallyDeletable(record, getCurrentUser());
+		if (validateLogicallyDeletable.isEmpty()) {
 			appLayerFactory.getExtensions().forCollection(collection)
 					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
 			delete(record, reason, false, WAIT_ONE_SECOND);
@@ -728,7 +730,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				navigate().to().home();
 			}
 		} else {
-			view.showErrorMessage($("ListSchemaRecordsView.cannotDelete"));
+			view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(validateLogicallyDeletable));
 		}
 	}
 
@@ -819,12 +821,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
-	private void navigateToDocument(RecordVO recordVO) {
+	protected void navigateToDocument(RecordVO recordVO) {
 		RMNavigationUtils.navigateToDisplayDocument(recordVO.getId(), params, appLayerFactory,
 				collection);
 	}
 
-	public void navigateToFolder(String folderId) {
+	protected void navigateToFolder(String folderId) {
 		RMNavigationUtils.navigateToDisplayFolder(folderId, params, appLayerFactory, collection);
 	}
 
@@ -1341,5 +1343,9 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public AppLayerFactory getApplayerFactory() {
 		return appLayerFactory;
+	}
+
+	public boolean isNeedingAReasonToDeleteFolder() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
 	}
 }

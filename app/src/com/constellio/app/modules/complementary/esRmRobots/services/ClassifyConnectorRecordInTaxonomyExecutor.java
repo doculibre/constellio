@@ -57,7 +57,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -316,14 +315,15 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		newExclusions.add(connectorDocument.getURL());
 	}
 
-	private void mapFolderMetadataFromMappingFile(String folderName, Folder rmFolder, String folderURL, List<String> previouslyCalculatedMetadatas, boolean isANewFolder) {
+	private void mapFolderMetadataFromMappingFile(String folderName, Folder rmFolder, String folderURL,
+												  List<String> previouslyCalculatedMetadatas, boolean isANewFolder) {
 		Content folderMapping = params.getFolderMapping();
 
 		Map<String, Object> defaultValuesOfSchema = new HashMap<>();
-		if(isANewFolder) {
+		if (isANewFolder) {
 			MetadataSchema schemaOfFolder = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(rmFolder.getWrappedRecord());
-			for(Metadata metadata: schemaOfFolder.getMetadatas().onlyWithDefaultValue()) {
-				if(!previouslyCalculatedMetadatas.contains(metadata.getLocalCode())) {
+			for (Metadata metadata : schemaOfFolder.getMetadatas().onlyWithDefaultValue()) {
+				if (!previouslyCalculatedMetadatas.contains(metadata.getLocalCode())) {
 					defaultValuesOfSchema.put(metadata.getLocalCode(), metadata.getDefaultValue());
 				}
 			}
@@ -367,7 +367,8 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		return mappedEntries;
 	}
 
-	private Folder classifyFolderInParentFolder(String fullConnectorDocPath, String pathPart, String folderTypeId, List<String> calculatedMetadatas) {
+	private Folder classifyFolderInParentFolder(String fullConnectorDocPath, String pathPart, String folderTypeId,
+												List<String> calculatedMetadatas) {
 		String parentPath = getParentPath(fullConnectorDocPath, pathPart);
 
 		Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
@@ -390,7 +391,8 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 	}
 
 	private Folder classifyFolderInConcept(String fullConnectorDocPath, Taxonomy targetTaxonomy, String pathPart,
-										   MetadataSchema folderSchema, Record parentConcept, String folderTypeId, List<String> calculatedMetadatas) {
+										   MetadataSchema folderSchema, Record parentConcept, String folderTypeId,
+										   List<String> calculatedMetadatas) {
 		Folder newRmFolder;
 		if (folderTypeId != null) {
 			newRmFolder = rm.newFolderWithType(folderTypeId);
@@ -586,8 +588,9 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		addMediumTypeToFolder(rmFolder);
 	}
 
-	private boolean isMetadataAtDefaultValue(Folder rmFolder, Map<String, Object> defaultValuesOfSchema, String localCode) {
-		if(defaultValuesOfSchema.containsKey(localCode)) {
+	private boolean isMetadataAtDefaultValue(Folder rmFolder, Map<String, Object> defaultValuesOfSchema,
+											 String localCode) {
+		if (defaultValuesOfSchema.containsKey(localCode)) {
 			return Objects.equals(rmFolder.get(localCode), defaultValuesOfSchema.get(localCode));
 		} else {
 			return false;
@@ -609,31 +612,32 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 	}
 
-	private void useDefaultValuesInMissingFields(Map<String, String> folderEntry, Folder rmFolder, Map<String, Object> defaultValuesOfSchema) {
-		if ((folderEntry.get(Folder.PARENT_FOLDER) == null  || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
+	private void useDefaultValuesInMissingFields(Map<String, String> folderEntry, Folder rmFolder,
+												 Map<String, Object> defaultValuesOfSchema) {
+		if ((folderEntry.get(Folder.PARENT_FOLDER) == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
 			&& rmFolder.getParentFolder() == null
 			&& params.getDefaultParentFolder() != null) {
 			rmFolder.setParentFolder(params.getDefaultParentFolder());
 		}
-		if ((rmFolder.getAdministrativeUnitEntered() == null  || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
+		if ((rmFolder.getAdministrativeUnitEntered() == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
 			&& folderEntry.get(Folder.ADMINISTRATIVE_UNIT_ENTERED) == null
 			&& params.getDefaultAdminUnit() != null) {
 			rmFolder.setAdministrativeUnitEntered(params.getDefaultAdminUnit());
 		}
-		if ((rmFolder.getCategoryEntered() == null  || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
+		if ((rmFolder.getCategoryEntered() == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
 			&& folderEntry.get(Folder.CATEGORY_ENTERED) == null
 			&& params.getDefaultCategory() != null) {
 			rmFolder.setCategoryEntered(params.getDefaultCategory());
 		}
-		if ((folderEntry.get(Folder.RETENTION_RULE_ENTERED) == null  || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
+		if ((folderEntry.get(Folder.RETENTION_RULE_ENTERED) == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
 			&& params.getDefaultRetentionRule() != null) {
 			rmFolder.setRetentionRuleEntered(params.getDefaultRetentionRule());
 		}
-		if ((folderEntry.get(Folder.COPY_STATUS_ENTERED) == null  || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
+		if ((folderEntry.get(Folder.COPY_STATUS_ENTERED) == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
 			&& params.getDefaultCopyStatus() != null) {
 			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
 		}
-		if ((folderEntry.get(Folder.UNIFORM_SUBDIVISION) == null  || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
+		if ((folderEntry.get(Folder.UNIFORM_SUBDIVISION) == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
 			&& params.getDefaultUniformSubdivision() != null) {
 			rmFolder.setUniformSubdivisionEntered(params.getDefaultUniformSubdivision());
 		}
