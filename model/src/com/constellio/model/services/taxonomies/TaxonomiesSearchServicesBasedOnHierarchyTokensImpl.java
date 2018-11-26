@@ -245,7 +245,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 		//			}
 		//		}
 
-		public boolean isNonSecurizedTaxonomyRecord(Record record) {
+		public boolean isNonSecurableTaxonomyRecord(Record record) {
 			return isConceptOfNavigatedTaxonomy(record) && !principalTaxonomy;
 		}
 
@@ -584,7 +584,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 			for (int i = 0; i < batch.size(); i++) {
 				Record child = batch.get(i);
 
-				hasAccess[i] = context.isNonSecurizedTaxonomyRecord(child) || context.hasRequiredAccessOn(child);
+				hasAccess[i] = context.isNonSecurableTaxonomyRecord(child) || context.hasRequiredAccessOn(child);
 
 				if (calculateHasChildren || !hasAccess[i]) {
 					hasChildrenQueryHandler.addRecordToCheck(child);

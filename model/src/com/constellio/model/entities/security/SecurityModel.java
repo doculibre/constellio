@@ -1,7 +1,6 @@
 package com.constellio.model.entities.security;
 
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
-import com.constellio.model.entities.records.wrappers.Group;
 
 import java.util.List;
 
@@ -11,15 +10,14 @@ public interface SecurityModel {
 
 	SecurityModelAuthorization getAuthorizationWithId(String authId);
 
-	List<Group> getGroupsInheritingAuthorizationsFrom(Group group);
+	List<String> getGroupsInheritingAuthorizationsFrom(String groupId);
 
-	boolean isGroupActive(Group group);
+	boolean isGroupActive(String groupId);
 
 	List<SecurityModelAuthorization> getAuthorizationDetailsOnMetadatasProvidingSecurity(
 			DynamicDependencyValues metadatasProvidingSecurity);
 
-	Object getPrincipalById(String id);
+	List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId, boolean includeInherited);
 
-	List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId);
 
 }

@@ -34,7 +34,7 @@ public class SecurityModelUtils {
 
 	public static boolean hasNegativeAccessOnSecurisedRecord(List<SecurityModelAuthorization> auths) {
 		for (SecurityModelAuthorization auth : auths) {
-			if (auth.isSecurizedRecord() && auth.getDetails().isNegative()) {
+			if (auth.isSecurableRecord() && auth.getDetails().isNegative()) {
 				return true;
 			}
 		}

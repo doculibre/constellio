@@ -152,8 +152,8 @@ public class RecordServicesRuntimeException extends RuntimeException {
 			super("Cannot restore record '" + recordId + "'", e);
 		}
 
-		public RecordServicesRuntimeException_CannotRestoreRecord(String recordId) {
-			this(recordId, null);
+		public RecordServicesRuntimeException_CannotRestoreRecord(String message) {
+			super(message);
 		}
 	}
 

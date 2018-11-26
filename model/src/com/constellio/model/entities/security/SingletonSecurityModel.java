@@ -1,20 +1,17 @@
 package com.constellio.model.entities.security;
 
 import com.constellio.data.utils.KeyListMap;
-import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
 import com.constellio.model.entities.enums.GroupAuthorizationsInheritance;
 import com.constellio.model.entities.records.wrappers.Authorization;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.User;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import static com.constellio.model.entities.enums.GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD;
+import java.util.Set;
 
 public class SingletonSecurityModel implements SecurityModel {
 
@@ -28,62 +25,77 @@ public class SingletonSecurityModel implements SecurityModel {
 
 	KeyListMap<String, SecurityModelAuthorization> authorizationsByTargets = new KeyListMap<>();
 
-	List<Authorization> authorizationDetails;
-	List<User> users;
-	List<Group> groups;
-	List<String> disabledGroupCodes;
-	Taxonomy principalTaxonomy;
-	//RecordProvider recordProvider;
+	/**
+	 * For each group, a list of groups receiving access from it (including self)
+	 */
+	KeyListMap<String, String> groupsReceivingAccessToGroup = new KeyListMap<>();
+
+
+	/**
+	 * For each group, a list of groups giving access to it (including self)
+	 */
+	KeyListMap<String, String> groupsGivingAccessToGroup = new KeyListMap<>();
+
+	Map<String, Boolean> globalGroupDisabledMap = new HashMap<>();
+
 	String collection;
+	List<String> securableRecordSchemaTypes;
+
+	static int REFRESH_COUNTER = 0;
 
 	public static SingletonSecurityModel empty(String collection) {
-
-		return new SingletonSecurityModel(Collections.<Authorization>emptyList(),
-				Collections.<User>emptyList(), Collections.<Group>emptyList(), FROM_PARENT_TO_CHILD, new ArrayList<String>(), null, collection);
+		return new SingletonSecurityModel(collection);
 	}
 
-	public SingletonSecurityModel(List<Authorization> authorizationDetails, List<User> users,
-								  final List<Group> groups,
-								  GroupAuthorizationsInheritance groupAuthorizationsInheritance,
-								  List<String> disabledGroupCodes, Taxonomy principalTaxonomy,
-								  String collection) {
-		this.authorizationDetails = authorizationDetails;
-		this.users = users;
-		this.groups = groups;
-		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
-		this.disabledGroupCodes = disabledGroupCodes;
-		this.principalTaxonomy = principalTaxonomy;
-		//this.recordProvider = recordProvider;
+
+	private SingletonSecurityModel(String collection) {
+
+		this.groupAuthorizationsInheritance = GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD;
+		this.globalGroupDisabledMap = Collections.emptyMap();
 		this.collection = collection;
+		this.securableRecordSchemaTypes = Collections.emptyList();
+	}
 
-		Map<String, Object> groupsAndUsersMap = new HashMap<>();
-		for (final Group group : groups) {
-			groupsAndUsersMap.put(group.getId(), group);
-		}
+	public SingletonSecurityModel(List<Authorization> authorizationDetails,
+								  Map<String, Boolean> globalGroupDisabledMap,
+								  KeyListMap<String, String> groupsReceivingAccessToGroup,
+								  KeyListMap<String, String> groupsGivingAccessToGroup,
+								  GroupAuthorizationsInheritance groupAuthorizationsInheritance,
+								  List<String> securableRecordSchemaTypes,
+								  String collection) {
+		System.out.println("Security model refresh #" + ++REFRESH_COUNTER);
 
-		for (final User user : users) {
-			groupsAndUsersMap.put(user.getId(), user);
-		}
+		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
+		this.collection = collection;
+		this.securableRecordSchemaTypes = securableRecordSchemaTypes;
+		this.globalGroupDisabledMap = globalGroupDisabledMap;
+		this.groupsReceivingAccessToGroup = groupsReceivingAccessToGroup;
+		this.groupsGivingAccessToGroup = groupsGivingAccessToGroup;
+		initAuthsMaps(authorizationDetails);
+	}
 
+	protected void initAuthsMaps(List<Authorization> authorizationDetails) {
 		for (Authorization authorizationDetail : authorizationDetails) {
-			boolean conceptAuth = principalTaxonomy != null && principalTaxonomy.getSchemaTypes().contains(authorizationDetail.getTargetSchemaType());
-			SecurityModelAuthorization securityModelAuthorization = new SecurityModelAuthorization(
-					authorizationDetail, conceptAuth, groupAuthorizationsInheritance);
-			authorizations.add(securityModelAuthorization);
-			authorizationsById.put(authorizationDetail.getId(), securityModelAuthorization);
-			authorizationsByTargets.add(authorizationDetail.getTarget(), securityModelAuthorization);
-
-			for (String principalId : authorizationDetail.getPrincipals()) {
-				Object principalWrapper = groupsAndUsersMap.get(principalId);
-				if (principalWrapper instanceof User) {
-					securityModelAuthorization.addUser((User) principalWrapper);
-				} else if (principalWrapper instanceof Group) {
-					securityModelAuthorization.addGroup((Group) principalWrapper);
-				}
-				authorizationsByPrincipalId.add(principalId, securityModelAuthorization);
-			}
+			insertAuthorizationInMemoryMaps(authorizationDetail);
 		}
+	}
 
+	private void insertAuthorizationInMemoryMaps(Authorization authorizationDetail) {
+		boolean securableRecord = securableRecordSchemaTypes.contains(authorizationDetail.getTargetSchemaType());
+		SecurityModelAuthorization securityModelAuthorization = new SecurityModelAuthorization(
+				authorizationDetail, securableRecord, groupAuthorizationsInheritance);
+		authorizations.add(securityModelAuthorization);
+		authorizationsById.put(authorizationDetail.getId(), securityModelAuthorization);
+		authorizationsByTargets.add(authorizationDetail.getTarget(), securityModelAuthorization);
+
+		for (String principalId : authorizationDetail.getPrincipals()) {
+			if (globalGroupDisabledMap.keySet().contains(principalId)) {
+				securityModelAuthorization.addGroupId(principalId);
+			} else {
+				securityModelAuthorization.addUserId(principalId);
+			}
+			authorizationsByPrincipalId.add(principalId, securityModelAuthorization);
+		}
 	}
 
 	public String getCollection() {
@@ -100,34 +112,17 @@ public class SingletonSecurityModel implements SecurityModel {
 		return authorizationsById.get(authId);
 	}
 
-	public List<User> getUsers() {
-		return users;
+	public Set<String> getGroupIds() {
+		return globalGroupDisabledMap.keySet();
 	}
 
-	public List<Group> getGroups() {
-		return groups;
-	}
-
-	public List<Group> getGroupsInheritingAuthorizationsFrom(Group group) {
-
-		if (groupAuthorizationsInheritance == GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD) {
-			return getGroupHierarchy(group);
-
-		} else {
-			List<Group> returnedGroups = new ArrayList<>();
-			for (Group aGroup : groups) {
-				if (group.getAncestors().contains(aGroup.getId())) {
-					returnedGroups.add(aGroup);
-				}
-			}
-			return returnedGroups;
-		}
-
+	public List<String> getGroupsInheritingAuthorizationsFrom(String groupId) {
+		return groupsReceivingAccessToGroup.get(groupId);
 	}
 
 	@Override
-	public boolean isGroupActive(Group group) {
-		return !disabledGroupCodes.contains(group.getCode());
+	public boolean isGroupActive(String groupId) {
+		return Boolean.TRUE.equals(globalGroupDisabledMap.get(groupId));
 	}
 
 	@Override
@@ -135,50 +130,63 @@ public class SingletonSecurityModel implements SecurityModel {
 			DynamicDependencyValues metadatasProvidingSecurity) {
 
 		return SecurityModelUtils.getAuthorizationDetailsOnMetadatasProvidingSecurity(metadatasProvidingSecurity, this);
-
 	}
 
-	private List<Group> getGroupHierarchy(Group group) {
-		List<Group> groupsHierarchy = new ArrayList<>();
-
-		for (Group aGroup : groups) {
-			if (aGroup.getParent() != null && aGroup.getParent().equals(group.getId())) {
-				if (!disabledGroupCodes.contains(aGroup.getCode())) {
-					groupsHierarchy.add(aGroup);
-					groupsHierarchy.addAll(getGroupHierarchy(aGroup));
-				}
-			}
-		}
-
-		return groupsHierarchy;
-
-	}
-
-
-	public GroupAuthorizationsInheritance getGroupAuthorizationsInheritance() {
-		return groupAuthorizationsInheritance;
-	}
 
 	@Override
-	public Object getPrincipalById(String id) {
-		for (User user : users) {
-			if (user.getId().equals(id)) {
-				return user;
+	public List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId, boolean includeInherited) {
+		if (includeInherited) {
+
+			List<SecurityModelAuthorization> returnedAuths = new ArrayList<>();
+			for (String inheritingPrincipal : groupsGivingAccessToGroup.get(principalId)) {
+				returnedAuths.addAll(authorizationsByPrincipalId.get(inheritingPrincipal));
+			}
+
+			return returnedAuths;
+
+		} else {
+			return authorizationsByPrincipalId.get(principalId);
+		}
+	}
+
+	private void removeAuthWithId(String authId, List<SecurityModelAuthorization> auths) {
+		Iterator<SecurityModelAuthorization> authsIterator = auths.iterator();
+		while (authsIterator.hasNext()) {
+			if (authId.equals(authsIterator.next().getDetails().getId())) {
+				authsIterator.remove();
+				break;
 			}
 		}
 
-		for (Group group : groups) {
-			if (group.getId().equals(id)) {
-				return group;
-			}
+	}
+
+	public synchronized void removeAuth(String authId) {
+		removeAuthWithId(authId, authorizations);
+
+		SecurityModelAuthorization auth = authorizationsById.remove(authId);
+
+		for (String userId : auth.getUserIds()) {
+			removeAuthWithId(authId, authorizationsByPrincipalId.get(userId));
 		}
 
-		return null;
+		for (String groupId : auth.getGroupIds()) {
+			removeAuthWithId(authId, authorizationsByPrincipalId.get(groupId));
+		}
+
+		removeAuthWithId(authId, authorizationsByTargets.get(auth.getDetails().getTarget()));
 	}
 
-	@Override
-	public List<SecurityModelAuthorization> getAuthorizationsToPrincipal(String principalId) {
-		return authorizationsByPrincipalId.get(principalId);
-	}
+	public synchronized void updateCache(List<Authorization> newAuths, List<Authorization> modifiedAuths) {
+		for (Authorization auth : newAuths) {
+			insertAuthorizationInMemoryMaps(auth);
+		}
 
+		for (Authorization auth : modifiedAuths) {
+			removeAuth(auth.getId());
+		}
+
+		for (Authorization auth : modifiedAuths) {
+			insertAuthorizationInMemoryMaps(auth);
+		}
+	}
 }

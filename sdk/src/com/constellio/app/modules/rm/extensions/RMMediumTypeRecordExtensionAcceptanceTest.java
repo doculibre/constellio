@@ -60,7 +60,7 @@ public class RMMediumTypeRecordExtensionAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCheckingIfMediumTypeLogicallyDeletableThenFalse() {
 		Record mediumType = rm.getMediumTypeByCode("DM").getWrappedRecord();
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(mediumType, User.GOD))).isEqualTo("Vous ne pouvez pas supprimer le disque magnétique\n");
+		assertThat(recordServices.validateLogicallyDeletable(mediumType, User.GOD).isEmpty()).isFalse();
 
 		mediumType = rm.getMediumTypeByCode("FI").getWrappedRecord();
 		assertThat(recordServices.validateLogicallyDeletable(mediumType, User.GOD).isEmpty()).isTrue();

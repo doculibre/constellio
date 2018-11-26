@@ -19,4 +19,9 @@ public class CopyRetentionRuleFieldImpl extends FolderCopyRuleFieldImpl implemen
 		setFieldChoices(options);
 	}
 
+	@Override
+	protected void onValueChange(String copyRetentionRuleId) {
+		super.onValueChange(copyRetentionRuleId);
+		updateTable();
+	}
 }

@@ -180,7 +180,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
-import com.constellio.model.services.security.GlobalSecurizedTypeCondition;
+import com.constellio.model.services.security.GlobalSecuredTypeCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -541,7 +541,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	public void start(AppLayerFactory appLayerFactory) {
 		RMNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
 		appLayerFactory.getModelLayerFactory().getSecurityTokenManager().registerPublicTypeWithCondition(
-				ContainerRecord.SCHEMA_TYPE, new GlobalSecurizedTypeCondition() {
+				ContainerRecord.SCHEMA_TYPE, new GlobalSecuredTypeCondition() {
 					@Override
 					public boolean hasGlobalAccess(User user, String access) {
 						if (Role.READ.equals(access)) {
@@ -558,7 +558,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				});
 
 		appLayerFactory.getModelLayerFactory().getSecurityTokenManager().registerPublicTypeWithCondition(
-				StorageSpace.SCHEMA_TYPE, new GlobalSecurizedTypeCondition() {
+				StorageSpace.SCHEMA_TYPE, new GlobalSecuredTypeCondition() {
 					@Override
 					public boolean hasGlobalAccess(User user, String access) {
 						if (Role.READ.equals(access) || Role.WRITE.equals(access) || Role.DELETE.equals(access)) {

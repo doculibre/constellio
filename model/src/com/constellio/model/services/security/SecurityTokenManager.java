@@ -12,7 +12,7 @@ import java.util.Set;
 public class SecurityTokenManager implements StatefulService {
 	List<TokenProvider> providers = new ArrayList<>();
 	List<String> schemaTypesWithoutSecurity = new ArrayList<>();
-	List<PublicTypeWithCondition> globalPermissionSecurizedSchemaTypes = new ArrayList<>();
+	List<PublicTypeWithCondition> globalPermissionSecurableSchemaTypes = new ArrayList<>();
 	ModelLayerFactory modelLayerFactory;
 
 	public SecurityTokenManager(ModelLayerFactory modelLayerFactory) {
@@ -42,13 +42,13 @@ public class SecurityTokenManager implements StatefulService {
 		providers.add(provider);
 	}
 
-	public void registerPublicTypeWithCondition(String schemaType, GlobalSecurizedTypeCondition condition) {
+	public void registerPublicTypeWithCondition(String schemaType, GlobalSecuredTypeCondition condition) {
 
 		PublicTypeWithCondition publicTypeWithCondition = new PublicTypeWithCondition();
 		publicTypeWithCondition.condition = condition;
 		publicTypeWithCondition.schemaType = schemaType;
 
-		this.globalPermissionSecurizedSchemaTypes.add(publicTypeWithCondition);
+		this.globalPermissionSecurableSchemaTypes.add(publicTypeWithCondition);
 	}
 
 	public void registerPublicType(String publicType) {
@@ -63,9 +63,9 @@ public class SecurityTokenManager implements StatefulService {
 		return schemaTypesWithoutSecurity;
 	}
 
-	public Set<String> getGlobalPermissionSecurizedSchemaTypesVisibleBy(User user, String access) {
+	public Set<String> getGlobalPermissionSecurableSchemaTypesVisibleBy(User user, String access) {
 		Set<String> types = new HashSet<>();
-		for (PublicTypeWithCondition publicTypeWithCondition : globalPermissionSecurizedSchemaTypes) {
+		for (PublicTypeWithCondition publicTypeWithCondition : globalPermissionSecurableSchemaTypes) {
 			if (publicTypeWithCondition.condition.hasGlobalAccess(user, access)) {
 				types.add(publicTypeWithCondition.schemaType);
 			}
@@ -74,7 +74,7 @@ public class SecurityTokenManager implements StatefulService {
 	}
 
 	public boolean hasGlobalTypeAccess(User user, String typeCode, String access) {
-		for (PublicTypeWithCondition publicTypeWithCondition : globalPermissionSecurizedSchemaTypes) {
+		for (PublicTypeWithCondition publicTypeWithCondition : globalPermissionSecurableSchemaTypes) {
 			if (publicTypeWithCondition.schemaType.equals(typeCode)
 				&& publicTypeWithCondition.condition.hasGlobalAccess(user, access)) {
 				return true;
@@ -136,6 +136,6 @@ public class SecurityTokenManager implements StatefulService {
 
 	private static class PublicTypeWithCondition {
 		String schemaType;
-		GlobalSecurizedTypeCondition condition;
+		GlobalSecuredTypeCondition condition;
 	}
 }

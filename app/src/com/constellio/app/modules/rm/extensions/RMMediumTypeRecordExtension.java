@@ -5,11 +5,9 @@ import com.constellio.app.modules.rm.services.mediumType.MediumTypeService;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
-import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.schemas.MetadataList;
 import lombok.extern.slf4j.Slf4j;
@@ -34,14 +32,14 @@ public class RMMediumTypeRecordExtension extends RecordExtension {
 	}
 
 	@Override
-	public ExtensionValidationErrors isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+	public ValidationErrors validateLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		if (MediumType.SCHEMA_TYPE.equals(event.getSchemaTypeCode())
 			&& event.getRecord().get(CODE).equals("DM")) {
 			ValidationErrors validationErrors = new ValidationErrors();
 			validationErrors.add(RMMediumTypeRecordExtension.class, "cannotDeleteMediumTypeWithCodeDM");
-			return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.FALSE);
+			return validationErrors;
 		}
-		return super.isLogicallyDeletable(event);
+		return super.validateLogicallyDeletable(event);
 	}
 
 	@Override
@@ -76,5 +74,8 @@ public class RMMediumTypeRecordExtension extends RecordExtension {
 			mediumTypes.remove(mediumType.getId());
 		}
 		folder.setMediumTypes(mediumTypes);
+	}
+
+	private class ExtensionValidationErrors {
 	}
 }

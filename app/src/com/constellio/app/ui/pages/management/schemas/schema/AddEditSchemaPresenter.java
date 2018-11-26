@@ -175,7 +175,7 @@ public class AddEditSchemaPresenter extends SingleSchemaBasePresenter<AddEditSch
 					}
 				} catch (RecordServicesException e) {
 					if (e instanceof RecordServicesException.ValidationException) {
-						view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(((RecordServicesException.ValidationException) e).getErrors()));
+						MessageUtils.getCannotDeleteWindow(((RecordServicesException.ValidationException) e).getErrors()).openWindow();
 					}
 				}
 			}

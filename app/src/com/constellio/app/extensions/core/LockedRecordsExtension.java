@@ -2,14 +2,12 @@ package com.constellio.app.extensions.core;
 
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
-import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 
 import static com.constellio.data.utils.LangUtils.isEqual;
@@ -47,7 +45,7 @@ public class LockedRecordsExtension extends RecordExtension {
 	}
 
 	@Override
-	public ExtensionValidationErrors isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+	public ValidationErrors validateLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		ValidationErrors validationErrors = new ValidationErrors();
 		if (collectionExtensions.lockedRecords.contains(event.getSchemaTypeCode())) {
 			Record record = event.getRecord();
@@ -55,12 +53,12 @@ public class LockedRecordsExtension extends RecordExtension {
 			if (schema.hasMetadataWithCode(Schemas.CODE.getLocalCode()) &&
 				collectionExtensions.lockedRecords.get(event.getSchemaTypeCode()).contains(record.get(Schemas.CODE))) {
 				validationErrors.add(LockedRecordsExtension.class, CANNOT_DELETE_LOCKED_RECORD);
-				return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.FALSE);
+				return validationErrors;
 			} else if (collectionExtensions.lockedRecords.get(event.getSchemaTypeCode()).contains(record.getId())) {
 				validationErrors.add(LockedRecordsExtension.class, CANNOT_DELETE_LOCKED_RECORD);
-				return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.FALSE);
+				return validationErrors;
 			}
 		}
-		return super.isLogicallyDeletable(event);
+		return super.validateLogicallyDeletable(event);
 	}
 }

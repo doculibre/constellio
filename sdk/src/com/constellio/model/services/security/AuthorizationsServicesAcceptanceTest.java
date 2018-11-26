@@ -12,6 +12,7 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
@@ -57,7 +58,7 @@ import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
-import static com.constellio.model.entities.security.global.GlobalGroupStatus.ACTIVE;
+import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -197,7 +198,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenRecordIsSecurizedThenHasAncestors()
+	public void whenRecordIsSecurableThenHasAncestors()
 			throws Exception {
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
@@ -277,7 +278,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenRecordIsSecurizedThenHasInheritedRemovedAuths()
+	public void whenRecordIsSecurableThenHasInheritedRemovedAuths()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(bob).on(TAXO1_FOND1).giving(ROLE1));
@@ -343,7 +344,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenRecordIsSecurizedThenHasAccuratePrincipalsWithSpecificAuthorization()
+	public void whenRecordIsSecurableThenHasAccuratePrincipalsWithSpecificAuthorization()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(bob).on(TAXO1_FOND1).giving(ROLE1));
@@ -867,7 +868,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void whenAddingAndRemovingAuthorizationToAGroupThenAppliedToAllUsers()
 			throws Exception {
 
-		GlobalGroup group = userServices.createGlobalGroup("vilains", "Vilains", new ArrayList<String>(), null, ACTIVE, true);
+		GlobalGroup group = userServices.createGlobalGroup("vilains", "Vilains", new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE, true);
 		userServices.addUpdateGlobalGroup(group);
 		userServices.setGlobalGroupUsers("vilains", asList(users.bob()));
 		forUser(bob).assertThatRecordsWithReadAccess().isEmpty();
@@ -974,7 +975,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenDetachingASecurizedRecordThenCustomAuthKeptAndRemovedAuthNotCopied()
+	public void whenDetachingASecurableRecordThenCustomAuthKeptAndRemovedAuthNotCopied()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(alice).on(FOLDER4).givingReadAccess());
@@ -1031,7 +1032,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenDetachingARootSecurizedRecordThenCustomAuthKeptAndRemovedAuthNotCopied()
+	public void whenDetachingARootSecurableRecordThenCustomAuthKeptAndRemovedAuthNotCopied()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadAccess());
@@ -1068,7 +1069,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenResettingASecurizedRecordThenCustomAuthDeletedAndRemovedAuthReenabled()
+	public void whenResettingASecurableRecordThenCustomAuthDeletedAndRemovedAuthReenabled()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(alice).on(FOLDER4).givingReadAccess());
@@ -1098,7 +1099,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenResettingARootSecurizedRecordThenCustomAuthDeletedAndRemovedAuthReenabled()
+	public void whenResettingARootSecurableRecordThenCustomAuthDeletedAndRemovedAuthReenabled()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadAccess());
@@ -2830,6 +2831,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth2 = add(authorizationForGroup(rumors).on(FOLDER4).givingReadAccess());
 		auth3 = add(authorizationForGroup(rumors).on(FOLDER3).givingReadDeleteAccess());
 
+		getModelLayerFactory().getSecurityModelCache().models.remove(zeCollection);
+
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
 			verifyRecord.usersWithReadAccess().contains(sasquatch, edouard);
 		}
@@ -2873,6 +2876,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		userServices.addUpdateGlobalGroup(users.rumors().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//TODO Should not be required
+		//Cache invalidation problemgetModelLayerFactory().getSecurityModelCache().invalidate(zeCollection);
 		reindex();
 
 		assertThat(users.edouardIn(zeCollection).hasReadAccess().on(record(TAXO1_CATEGORY1))).isFalse();
@@ -3232,7 +3236,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void givenRecordProvidingSecurityHasItsAuthsModifiedThenChangesAlwaysAppliedToSecurizedRecords()
+	public void givenRecordProvidingSecurityHasItsAuthsModifiedThenChangesAlwaysAppliedToSecurableRecords()
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
@@ -3800,7 +3804,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		add(authorizationForGroupInAnotherCollection(heroes).on(otherCollectionRecords.folder4_1()).givingNegativeReadWriteDeleteAccess());
 		add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder2_1()).givingNegativeReadWriteDeleteAccess());
 
-
 		assertThatAllFoldersVisibleBy(charles).containsOnly(
 				"folder4", "folder4_1", "folder4_2", "anotherCollection_folder2", "anotherCollection_folder2_2",
 				"anotherCollection_folder4", "anotherCollection_folder4_2", "anotherCollection_folder4_1");
@@ -4005,6 +4008,12 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		SecurityModelCache instance1Cache = getModelLayerFactory().getSecurityModelCache();
 		auth1 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+
+		UserCredential jambon = userServices.newUpdateUserCredential().setUsername("jambon")
+				.setFirstName("Jean").setLastName("Bond").setEmail("jean@bond.com").setCollections(zeCollection)
+				.setStatus(ACTIVE);
+		userServices.addUpdateUserCredential(jambon);
+
 		SecurityModelCache instance2Cache = getModelLayerFactory("other-instance").getSecurityModelCache();
 
 		assertThat(instance1Cache.getCached(zeCollection)).isNull();
@@ -4018,18 +4027,86 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThat(instance1Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
 		assertThat(instance2Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
 
-
-		//An auth is created, both caches are removed
-		auth2 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		userServices.addUpdateUserCredential(jambon.setGlobalGroups(asList("legends")));
 		assertThat(instance1Cache.getCached(zeCollection)).isNull();
 		assertThat(instance2Cache.getCached(zeCollection)).isNull();
-
-	}
-
-	private void createAFolderOnBothInstance() {
 		createAFolderOnInstance1();
 		createAFolderOnInstance2();
+
 	}
+
+	@Test
+	public void whenAuthIsCreatedOrDeletedThenCacheIsUpdated()
+			throws Exception {
+
+		String aliceId = users.aliceIn(zeCollection).getId();
+		String bobId = users.bobIn(zeCollection).getId();
+
+		createAFolderOnInstance1();
+		createAFolderOnInstance2();
+
+		SecurityModelCache instance1Cache = getModelLayerFactory().getSecurityModelCache();
+		auth1 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		SecurityModelCache instance2Cache = getModelLayerFactory("other-instance").getSecurityModelCache();
+
+		assertThat(instance1Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance2Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsOnTarget(TAXO1_CATEGORY2))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsToPrincipal(aliceId, false))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationWithId(auth1).getDetails().getRoles())
+				.containsOnly(Role.READ, Role.WRITE);
+
+		assertThat(instance2Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsOnTarget(TAXO1_CATEGORY2))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsToPrincipal(aliceId, false))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationWithId(auth1).getDetails().getRoles())
+				.containsOnly(Role.READ, Role.WRITE);
+
+		services.execute(modifyAuthorizationOnRecord(auth1, record(TAXO1_CATEGORY2))
+				.withNewPrincipalIds(bobId).withNewAccessAndRoles(Role.READ, Role.DELETE));
+
+		assertThat(instance1Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance2Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsOnTarget(TAXO1_CATEGORY2))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsToPrincipal(aliceId, false)).isEmpty();
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsToPrincipal(bobId, false))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationWithId(auth1).getDetails().getRoles())
+				.containsOnly(Role.READ, Role.DELETE);
+
+		assertThat(instance2Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsOnTarget(TAXO1_CATEGORY2))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsToPrincipal(aliceId, false)).isEmpty();
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsToPrincipal(bobId, false))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationWithId(auth1).getDetails().getRoles())
+				.containsOnly(Role.READ, Role.DELETE);
+
+		services.execute(modifyAuthorizationOnRecord(auth1, record(TAXO1_CATEGORY2)).removingItOnRecord());
+
+		assertThat(instance1Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance2Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsOnTarget(TAXO1_CATEGORY2))
+				.extracting("details.id").doesNotContain(auth1);
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsToPrincipal(aliceId, false))
+				.extracting("details.id").doesNotContain(auth1);
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationWithId(auth1)).isNull();
+
+		assertThat(instance2Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsOnTarget(TAXO1_CATEGORY2))
+				.extracting("details.id").doesNotContain(auth1);
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsToPrincipal(aliceId, false))
+				.extracting("details.id").doesNotContain(auth1);
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationWithId(auth1)).isNull();
+
+	}
+
 
 	private void createAFolderOnInstance1() {
 

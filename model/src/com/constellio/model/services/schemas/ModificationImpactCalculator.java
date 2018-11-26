@@ -99,7 +99,7 @@ public class ModificationImpactCalculator {
 				String authorizationTarget = record.get(authorizationTargetMetadata);
 				String authorizationTargetSchemaType= record.get(authorizationTargetSchemaTypeMetadata);
 
-				if (Authorization.isSecurizedSchemaType(authorizationTargetSchemaType)
+				if (Authorization.isSecurableSchemaType(authorizationTargetSchemaType)
 				&& (record.isModified(authorizationPrincipals) || record.isModified(lastTokenRecalculate))) {
 					LogicalSearchCondition condition = fromAllSchemasInCollectionOf(record, DataStore.RECORDS)
 							.where(Schemas.ATTACHED_ANCESTORS).isEqualTo(authorizationTarget);

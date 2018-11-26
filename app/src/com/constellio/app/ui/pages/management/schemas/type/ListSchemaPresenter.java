@@ -124,7 +124,7 @@ public class ListSchemaPresenter extends SingleSchemaBasePresenter<ListSchemaVie
 					appSchemasServices.deleteSchemaCode(collection, schemaCode);
 				} catch (RecordServicesException e) {
 					if (e instanceof RecordServicesException.ValidationException) {
-						view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(((RecordServicesException.ValidationException) e).getErrors()));
+						MessageUtils.getCannotDeleteWindow(((RecordServicesException.ValidationException) e).getErrors()).openWindow();
 					}
 				}
 				view.navigate().to().listSchema(ParamUtils.addParams("", parameters));

@@ -27,6 +27,7 @@ import static com.constellio.model.entities.schemas.Schemas.SCHEMA;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS;
 import static com.constellio.model.entities.schemas.Schemas.TOKENS_OF_HIERARCHY;
 import static com.constellio.model.entities.security.Role.WRITE;
+import static com.constellio.model.entities.security.SecurityModelUtils.hasNegativeAccessOnSecurisedRecord;
 
 public class FilterUtils {
 
@@ -57,7 +58,7 @@ public class FilterUtils {
 				filter.append(user.getId());
 
 				for (String schemaType : securityTokenManager
-						.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
+						.getGlobalPermissionSecurableSchemaTypesVisibleBy(user, Role.READ)) {
 					filter.append(" OR ");
 					filter.append(SCHEMA.getDataStoreCode());
 					filter.append(":");
@@ -80,18 +81,24 @@ public class FilterUtils {
 
 			}
 		}
+
 		return filter.toString();
 	}
 
 	public static String userWriteFilter(User user, SecurityTokenManager securityTokenManager) {
 
 		SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
+		SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
+				.newRecordServices().getSecurityModel(user.getCollection());
 
 		if (!user.hasCollectionWriteAccess()) {
-			filterBuilder.appendNegative(TOKENS, "nw_" + user.getId());
+			if (hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(user.getId(), false))) {
+				filterBuilder.appendNegative(TOKENS, "nw_" + user.getId());
+			}
 
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)
+					&& hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup, true))) {
 					filterBuilder.appendNegative(TOKENS, "nw_" + aGroup);
 				}
 			}
@@ -106,7 +113,7 @@ public class FilterUtils {
 
 			filterBuilder.append(Schemas.TOKENS, "w_" + user.getId());
 
-			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, WRITE)) {
+			for (String schemaType : securityTokenManager.getGlobalPermissionSecurableSchemaTypesVisibleBy(user, WRITE)) {
 				filterBuilder.append(SCHEMA, schemaType + "_*");
 			}
 
@@ -141,6 +148,9 @@ public class FilterUtils {
 
 	public static String userReadFilter(User user, SecurityTokenManager securityTokenManager) {
 		SolrFilterBuilder filterBuilder = SolrFilterBuilder.createAndFilterReturningFalseIfEmpty();
+		SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
+				.newRecordServices().getSecurityModel(user.getCollection());
+
 		UserTokens tokens = securityTokenManager.getTokens(user);
 		for (String token : tokens.getAllowTokens()) {
 			if (token.charAt(0) == 'r') {
@@ -149,10 +159,12 @@ public class FilterUtils {
 		}
 		if (!user.hasCollectionReadAccess() && !user.hasCollectionWriteAccess() && !user.hasCollectionDeleteAccess()) {
 
-			filterBuilder.appendNegative(TOKENS, "nr_" + user.getId());
-
+			if (hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(user.getId(), false))) {
+				filterBuilder.appendNegative(TOKENS, "nr_" + user.getId());
+			}
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)
+					&& hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup, true))) {
 					filterBuilder.appendNegative(TOKENS, "nr_" + aGroup);
 				}
 			}
@@ -168,7 +180,7 @@ public class FilterUtils {
 
 			filterBuilder.append(TOKENS, "r_" + user.getId());
 
-			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
+			for (String schemaType : securityTokenManager.getGlobalPermissionSecurableSchemaTypesVisibleBy(user, Role.READ)) {
 				filterBuilder.append(SCHEMA, schemaType + "_*");
 			}
 
@@ -206,6 +218,8 @@ public class FilterUtils {
 	public static String userHierarchyFilter(User user, SecurityTokenManager securityTokenManager, String access,
 											 MetadataSchemaType selectedType, boolean includeInvisible) {
 
+		SecurityModel securityModel = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
+				.newRecordServices().getSecurityModel(user.getCollection());
 		String selectedTypeSmallCode = null;
 		if (selectedType != null) {
 			selectedTypeSmallCode = selectedType.getSmallCode();
@@ -241,11 +255,13 @@ public class FilterUtils {
 
 		if (user.isActiveUser() && !user.hasCollectionAccess(access == null ? Role.READ : access)) {
 
-			filterBuilder.appendNegative(TOKENS_OF_HIERARCHY, "nr_" + user.getId());
-
+			if (hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(user.getId(), false))) {
+				filterBuilder.appendNegative(TOKENS_OF_HIERARCHY, "nr_" + user.getId());
+			}
 
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)
+					&& hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup, true))) {
 
 					filterBuilder.appendNegative(TOKENS_OF_HIERARCHY, "nr_" + aGroup);
 				}
@@ -265,7 +281,7 @@ public class FilterUtils {
 				filterBuilder.append(TOKENS_OF_HIERARCHY, "z" + tokenPrefix + "_" + user.getId());
 			}
 
-			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.READ)) {
+			for (String schemaType : securityTokenManager.getGlobalPermissionSecurableSchemaTypesVisibleBy(user, Role.READ)) {
 				filterBuilder.append(SCHEMA, schemaType + "_*");
 			}
 
@@ -338,12 +354,12 @@ public class FilterUtils {
 
 		if (!user.hasCollectionDeleteAccess()) {
 
-			//if (hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(user.getId()))) {
-			filterBuilder.appendNegative(TOKENS, "nd_" + user.getId());
-			//}
+			if (hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(user.getId(), false))) {
+				filterBuilder.appendNegative(TOKENS, "nd_" + user.getId());
+			}
 			for (String aGroup : user.getUserGroups()) {
-				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)/* &&
-					hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup))*/) {
+				if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)
+					&& hasNegativeAccessOnSecurisedRecord(securityModel.getAuthorizationsToPrincipal(aGroup, true))) {
 					filterBuilder.appendNegative(TOKENS, "nd_" + aGroup);
 				}
 			}
@@ -357,7 +373,7 @@ public class FilterUtils {
 
 			filterBuilder.append(TOKENS, "d_" + user.getId());
 
-			for (String schemaType : securityTokenManager.getGlobalPermissionSecurizedSchemaTypesVisibleBy(user, Role.DELETE)) {
+			for (String schemaType : securityTokenManager.getGlobalPermissionSecurableSchemaTypesVisibleBy(user, Role.DELETE)) {
 				filterBuilder.append(SCHEMA, schemaType + "_*");
 			}
 

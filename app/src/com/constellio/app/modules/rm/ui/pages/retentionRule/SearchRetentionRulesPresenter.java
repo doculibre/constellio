@@ -71,7 +71,7 @@ public class SearchRetentionRulesPresenter extends SingleSchemaBasePresenter<Sea
 			delete(record, false);
 			view.navigate().to(RMViews.class).listRetentionRules();
 		} else {
-			view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(validationErrors));
+			MessageUtils.getCannotDeleteWindow(validationErrors).openWindow();
 		}
 	}
 
