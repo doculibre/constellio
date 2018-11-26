@@ -6,6 +6,7 @@ import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
+import com.constellio.model.entities.schemas.DefaultLabels;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -69,7 +70,8 @@ public class MetadataSchemaXMLReader3 {
 
 	public MetadataSchemaTypesBuilder read(CollectionInfo collectionInfo, Document document,
 										   DataStoreTypesFactory typesFactory,
-										   ModelLayerFactory modelLayerFactory) {
+										   ModelLayerFactory modelLayerFactory,
+										   DefaultLabels defaultLabels) {
 
 		Element rootElement = document.getRootElement();
 		int version = Integer.valueOf(rootElement.getAttributeValue("version")) - 1;
@@ -77,7 +79,7 @@ public class MetadataSchemaXMLReader3 {
 		MetadataSchemaTypesBuilder typesBuilder = MetadataSchemaTypesBuilder
 				.createWithVersion(collectionInfo, version, classProvider, languages);
 		for (Element schemaTypeElement : rootElement.getChildren("type")) {
-			parseSchemaType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory);
+			parseSchemaType(typesBuilder, schemaTypeElement, typesFactory, modelLayerFactory, collectionInfo, defaultLabels);
 		}
 		return typesBuilder;
 	}
@@ -93,7 +95,9 @@ public class MetadataSchemaXMLReader3 {
 
 	private MetadataSchemaType parseSchemaType(MetadataSchemaTypesBuilder typesBuilder, Element element,
 											   DataStoreTypesFactory typesFactory,
-											   ModelLayerFactory modelLayerFactory) {
+											   ModelLayerFactory modelLayerFactory,
+											   CollectionInfo collectionInfo,
+											   DefaultLabels defaultLabels) {
 		String code = getCodeValue(element);
 		Map<Language, String> labels = readLabels(element);
 		MetadataSchemaTypeBuilder schemaTypeBuilder = typesBuilder.createNewSchemaType(code, false)

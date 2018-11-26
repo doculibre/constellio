@@ -16,6 +16,8 @@ import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.CollectionObject;
 import com.constellio.model.entities.batchprocess.BatchProcess;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.schemas.DefaultLabels;
+import com.constellio.model.entities.schemas.DefaultLabelsBuilder;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
@@ -56,6 +58,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerCollectionManagerListener<MetadataSchemaTypes> {
 
+	private static DefaultLabels defaultLabels;
 	public static final String SCHEMAS_CONFIG_PATH = "/schemas.xml";
 	private final DataStoreTypesFactory typesFactory;
 	private final TaxonomiesManager taxonomiesManager;
@@ -159,8 +162,11 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 							.read(collectionInfo, document, typesFactory, modelLayerFactory);
 
 				} else if (MetadataSchemaXMLReader3.FORMAT_VERSION.equals(formatVersion)) {
+					if (defaultLabels == null) {
+						defaultLabels = new DefaultLabelsBuilder().build();
+					}
 					typesBuilder = new MetadataSchemaXMLReader3(getClassProvider())
-							.read(collectionInfo, document, typesFactory, modelLayerFactory);
+							.read(collectionInfo, document, typesFactory, modelLayerFactory, defaultLabels);
 				} else {
 					throw new ImpossibleRuntimeException("Invalid format version '" + formatVersion + "'");
 				}
@@ -171,6 +177,7 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 			}
 		};
 	}
+
 
 	public MetadataSchema getSchemaOf(Record record) {
 		return getSchemaTypes(record).getSchema(record.getSchemaCode());
@@ -289,7 +296,11 @@ public class MetadataSchemasManager implements StatefulService, OneXMLConfigPerC
 			throws OptimisticLocking {
 		MetadataSchemaTypes schemaTypes = schemaTypesBuilder.build(typesFactory, modelLayerFactory);
 
-		Document document = new MetadataSchemaXMLWriter3().write(schemaTypes);
+		if (defaultLabels == null) {
+			defaultLabels = new DefaultLabelsBuilder().build();
+		}
+
+		Document document = new MetadataSchemaXMLWriter3().write(schemaTypes, defaultLabels);
 		List<SchemaTypesAlterationImpact> impacts = calculateImpactsOf(schemaTypesBuilder);
 		List<BatchProcess> batchProcesses = prepareBatchProcesses(impacts, schemaTypesBuilder.getCollection());
 

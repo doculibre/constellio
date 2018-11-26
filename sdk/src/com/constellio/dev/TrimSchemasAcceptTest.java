@@ -8,8 +8,8 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
-import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader1;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader2;
+import com.constellio.model.services.schemas.xml.MetadataSchemaXMLReader3;
 import com.constellio.model.services.schemas.xml.MetadataSchemaXMLWriter3;
 import com.constellio.model.utils.DefaultClassProvider;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -19,6 +19,7 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,7 +36,7 @@ public class TrimSchemasAcceptTest extends ConstellioTest {
 
 	}
 
-	//@Test
+	@Test
 	public void zeTest()
 			throws Exception {
 
@@ -45,8 +46,8 @@ public class TrimSchemasAcceptTest extends ConstellioTest {
 				withCollection("collection").withConstellioRMModule()
 		);
 
-		String inputFilePath = "/Users/francisbaril/Workspaces/new-schema-xml/before-default.xml";
-		String outputFilePath = "/Users/francisbaril/Workspaces/new-schema-xml/after-default.xml";
+		String inputFilePath = "/Users/francisbaril/Downloads/schemas.xml";
+		String outputFilePath = "/Users/francisbaril/Downloads/schemasWithoutTitles.xml";
 
 		File inputFile = new File(inputFilePath);
 		File outputFile = new File(outputFilePath);
@@ -55,11 +56,12 @@ public class TrimSchemasAcceptTest extends ConstellioTest {
 		Document originalDocument = getDocumentFromFile(inputFile);
 		long fileLength = inputFile.length();
 		System.out.println("fileLength before " + fileLength);
-		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaXMLReader1(new DefaultClassProvider())
-				.read(collectionInfo, originalDocument, new SolrDataStoreTypesFactory(), getModelLayerFactory());
+		MetadataSchemaTypesBuilder typesBuilder = new MetadataSchemaXMLReader3(new DefaultClassProvider())
+				.read(collectionInfo, originalDocument, new SolrDataStoreTypesFactory(), getModelLayerFactory(), null);
 		MetadataSchemaTypes types = typesBuilder.build(new SolrDataStoreTypesFactory(), getModelLayerFactory());
 
-		Document trimmedDocument = new MetadataSchemaXMLWriter3().write(types);
+		MetadataSchemaXMLWriter3.WRITE_LABELS = false;
+		Document trimmedDocument = new MetadataSchemaXMLWriter3().write(types, null);
 		XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
 		FileOutputStream fileOutputStream = new FileOutputStream(outputFile);
 

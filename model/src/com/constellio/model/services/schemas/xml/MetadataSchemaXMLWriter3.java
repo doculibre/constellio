@@ -7,6 +7,7 @@ import com.constellio.model.entities.Language;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.AllowedReferences;
+import com.constellio.model.entities.schemas.DefaultLabels;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.entities.schemas.MetadataNetwork;
@@ -56,7 +57,7 @@ public class MetadataSchemaXMLWriter3 {
 				new ArrayList<String>(), Arrays.asList(Language.French, Language.English), MetadataNetwork.EMPTY()), document);
 	}
 
-	public Document write(MetadataSchemaTypes schemaTypes) {
+	public Document write(MetadataSchemaTypes schemaTypes, DefaultLabels defaultLabels) {
 		Document document = new Document();
 		writeSchemaTypes(schemaTypes, document);
 		document.getRootElement().setAttribute(FORMAT_ATTRIBUTE, FORMAT_VERSION);
@@ -168,7 +169,8 @@ public class MetadataSchemaXMLWriter3 {
 		return schemaTypeElement;
 	}
 
-	private Element toXMLElement(MetadataSchema schema, MetadataSchema collectionSchema, CollectionInfo collectionInfo) {
+	private Element toXMLElement(MetadataSchema schema, MetadataSchema collectionSchema,
+								 CollectionInfo collectionInfo) {
 		Element schemaElement = new Element("schema");
 		schemaElement.setAttribute("code", schema.getLocalCode());
 		writeLabels(schemaElement, schema.getLabels(), schema.getCollectionInfo());
@@ -181,11 +183,15 @@ public class MetadataSchemaXMLWriter3 {
 		return schemaElement;
 	}
 
+	public static boolean WRITE_LABELS = true;
+
 	private void writeLabels(Element schemaElement, Map<Language, String> labels, CollectionInfo collectionInfo) {
 
-		for (Language language : Language.values()) {
-			if (labels.containsKey(language) && collectionInfo.getCollectionLocales().contains(language.getLocale())) {
-				schemaElement.setAttribute("label_" + language.getCode(), labels.get(language));
+		if (WRITE_LABELS) {
+			for (Language language : Language.values()) {
+				if (labels.containsKey(language) && collectionInfo.getCollectionLocales().contains(language.getLocale())) {
+					schemaElement.setAttribute("label_" + language.getCode(), labels.get(language));
+				}
 			}
 		}
 	}
@@ -336,7 +342,8 @@ public class MetadataSchemaXMLWriter3 {
 
 	private boolean writeGlobalMetadataWithoutInheritance(Metadata metadata, ParametrizedInstanceUtils utils,
 														  Element metadataElement, boolean notUserDefinedMetadata,
-														  Metadata globalMetadataInCollection, CollectionInfo collectionInfo) {
+														  Metadata globalMetadataInCollection,
+														  CollectionInfo collectionInfo) {
 
 		boolean different = false;
 		if (!globalMetadataInCollection.getLabels().equals(metadata.getLabels())) {
@@ -484,7 +491,8 @@ public class MetadataSchemaXMLWriter3 {
 		return different;
 	}
 
-	private boolean writeMetadataWithInheritance(Metadata metadata, Element metadataElement, CollectionInfo collectionInfo) {
+	private boolean writeMetadataWithInheritance(Metadata metadata, Element metadataElement,
+												 CollectionInfo collectionInfo) {
 		boolean differentFromInheritance = false;
 		if (metadata.getInheritance().isDefaultRequirement() != metadata.isDefaultRequirement()) {
 			metadataElement.setAttribute("defaultRequirement", writeBoolean(metadata.isDefaultRequirement()));
