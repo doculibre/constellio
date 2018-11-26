@@ -138,7 +138,6 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
 
-	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -522,7 +521,4 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(NEGATIVE_AUTHORIZATION);
 	}
 
-	public int getBatchProcessMaximumHistorySize() {
-		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
-	}
 }
