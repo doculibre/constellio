@@ -7,6 +7,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.extensions.params.RMSchemaTypesPageExtensionExclusionByPropertyParams;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -135,7 +136,14 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		List<MetadataFilter> metadataThatDontSupportRoleAccessRetValueList = view.getConstellioFactories().getAppLayerFactory()
 				.getExtensions().forCollection(view.getCollection()).getMetadataAccessExclusionFilters();
 
-		return metadata != null && !metadata.isFilteredByAny(metadataThatDontSupportRoleAccessRetValueList);
+		if(metadata == null) {
+			return false;
+		}
+
+		boolean isMetadataExcludedByProperty = view.getConstellioFactories().getAppLayerFactory()
+				.getExtensions().forCollection(view.getCollection()).isMetadataAccessExclusionByPropertyFilter(new RMSchemaTypesPageExtensionExclusionByPropertyParams(metadata));
+
+		return !isMetadataExcludedByProperty && !metadata.isFilteredByAny(metadataThatDontSupportRoleAccessRetValueList);
 	}
 
 	public FormMetadataVO getFormMetadataVO() {
