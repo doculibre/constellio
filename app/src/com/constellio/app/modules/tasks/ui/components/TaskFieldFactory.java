@@ -24,14 +24,17 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
+import com.constellio.app.ui.framework.components.fields.lookup.LookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.ui.Field;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 
 import static com.constellio.app.modules.rm.wrappers.Document.TYPE;
+import static com.constellio.app.modules.tasks.model.wrappers.Task.ASSIGNEE;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.DECISION;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_DOCUMENTS;
 import static com.constellio.app.modules.tasks.model.wrappers.Task.LINKED_FOLDERS;
@@ -126,6 +129,12 @@ public class TaskFieldFactory extends MetadataFieldFactory {
 			case ASSIGNER:
 				field = new LookupRecordField(User.SCHEMA_TYPE);
 				postBuild(field, metadata);
+				break;
+			case ASSIGNEE:
+				field = super.build(metadata, locale);
+				if(field instanceof LookupField) {
+					((LookupField<Serializable>) field).setReadOnlyMessageI18NKey("TaskAssignee.readOnlyMessage");
+				}
 				break;
 			case ASSIGNATION_MODES:
 				field = new TaskAssignationEnumField(metadata.getEnumClass());

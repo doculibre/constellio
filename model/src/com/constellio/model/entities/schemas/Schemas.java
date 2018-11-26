@@ -13,6 +13,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static java.util.Arrays.asList;
 
 public class
 Schemas {
@@ -170,7 +171,7 @@ Schemas {
 	}
 
 	public static boolean isValueTypeSearchable(Metadata metadata) {
-		return metadata.getType() != MetadataValueType.ENUM;
+		return !asList(MetadataValueType.ENUM, MetadataValueType.BOOLEAN).contains(metadata.getType());
 	}
 
 	public static Metadata getSecondaryLanguageMetadata(Metadata metadata, String language) {

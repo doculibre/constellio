@@ -5,6 +5,7 @@ import com.constellio.app.modules.es.ui.pages.ConnectorReportView;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.services.migrations.CoreNavigationConfiguration;
+import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.pages.events.EventCategory;
 import com.constellio.app.ui.pages.management.taxonomy.AddEditTaxonomyConceptPresenter;
 import com.constellio.app.ui.pages.management.taxonomy.TaxonomyManagementPresenter;
@@ -58,10 +59,12 @@ public class CoreViews {
 	}
 
 	public void home() {
+		clearBreadcrumbTrail();
 		navigator.navigateTo(NavigatorConfigurationService.HOME);
 	}
 
 	public void home(String tab) {
+		clearBreadcrumbTrail();
 		Map<String, String> params = new HashMap<>();
 		params.put("tab", tab);
 		String fragment = ParamUtils.addParams(NavigatorConfigurationService.HOME, params);
@@ -69,6 +72,7 @@ public class CoreViews {
 	}
 
 	public void home(String taxonomyCode, String expandedRecordId, String taxonomyMetadata) {
+		clearBreadcrumbTrail();
 		Map<String, String> params = new HashMap<>();
 		params.put("tab", CoreNavigationConfiguration.TAXONOMIES);
 		params.put("taxonomyCode", taxonomyCode);
@@ -303,10 +307,12 @@ public class CoreViews {
 	}
 
 	public void adminModule() {
+		clearBreadcrumbTrail();
 		navigator.navigateTo(NavigatorConfigurationService.ADMIN_MODULE);
 	}
 
 	public void trash() {
+		clearBreadcrumbTrail();
 		navigator.navigateTo(NavigatorConfigurationService.TRASH);
 	}
 
@@ -717,5 +723,12 @@ public class CoreViews {
 
 	public void propertiesAnalyser() {
 		navigator.navigateTo(NavigatorConfigurationService.PROPERTIES_ANALYSER);
+	}
+
+	public void clearBreadcrumbTrail() {
+		ConstellioUI uiContext = ConstellioUI.getCurrent();
+		uiContext.clearAttribute(BaseBreadcrumbTrail.SEARCH_ID);
+		uiContext.clearAttribute(BaseBreadcrumbTrail.ADVANCED_SEARCH);
+		uiContext.clearAttribute(BaseBreadcrumbTrail.TAXONOMY_CODE);
 	}
 }
