@@ -22,17 +22,13 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.cache.RecordsCaches;
-import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import java.util.ArrayList;
 import java.util.HashMap;
