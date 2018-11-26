@@ -14,6 +14,7 @@ import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.handlers.OnEnterKeyHandler;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.util.MessageUtils;
+import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.vaadin.data.util.BeanItemContainer;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.ui.Alignment;
@@ -28,6 +29,7 @@ import org.vaadin.dialogs.ConfirmDialog;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -241,10 +243,10 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 			this.displayButton = null;
 			this.modifiedOn = cart.getModifiedOn().toString("yyyy-MM-dd HH:mm:ss");
 			this.createdOn = cart.getCreatedOn().toString("yyyy-MM-dd HH:mm:ss");
-			this.createdBy = presenter.getUsernameById(cart.getCreatedBy());
-			this.modifiedBy = presenter.getUsernameById(cart.getModifiedBy());
+			this.createdBy = SchemaCaptionUtils.getCaptionForRecord(presenter.getUser(cart.getCreatedBy()), Locale.FRENCH);
+			this.modifiedBy = SchemaCaptionUtils.getCaptionForRecord(presenter.getUser(cart.getModifiedBy()), Locale.FRENCH);
 			this.sharedWith = separatedByLine(cart.getSharedWithUsers());
-			this.owner = presenter.getUsernameById(cart.getOwner());
+			this.owner = SchemaCaptionUtils.getCaptionForRecord(presenter.getUser(cart.getOwner()), Locale.FRENCH);
 		}
 
 		public CartItem(String title) {
@@ -298,8 +300,8 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 
 	private String separatedByLine(List<String> users) {
 		StringBuffer stringBuffer = new StringBuffer();
-		for (String username : users) {
-			stringBuffer.append(username);
+		for (String userId : users) {
+			stringBuffer.append(SchemaCaptionUtils.getCaptionForRecordId(userId));
 			stringBuffer.append("\n");
 		}
 		return stringBuffer.toString();
