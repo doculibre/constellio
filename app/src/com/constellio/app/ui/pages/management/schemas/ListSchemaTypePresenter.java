@@ -17,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,17 +65,36 @@ public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchem
  	{
 		String titre = schemaTypeVO.getLabel(Language
 				.withCode(view.getSessionContext().getCurrentLocale().getLanguage()));
-		ByteArrayOutputStream byteArrayOutputStream = writeSchemaTypeExcelReportOnStream(schemaTypeVO.getCode());
+		ByteArrayOutputStream byteArrayOutputStream = null;
+		ByteArrayInputStream byteArrayInputStream = null;
+		try {
+			byteArrayOutputStream = writeSchemaTypeExcelReportOnStream(schemaTypeVO.getCode());
+			byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+			view.startDownload(titre + ".xls", byteArrayInputStream, "xls");
+		} finally {
+			closeQuietly(byteArrayInputStream);
+			closeQuietly(byteArrayOutputStream);
+		}
+	}
 
+	private void closeQuietly(Closeable closeable) {
+		if(closeable != null) {
+			try {
+				closeable.close();
+			} catch (IOException e) {
 
-		view.startDownload(titre +".xls", new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), "xls");
+			}
+		}
 	}
 
 	@NotNull
 	public ByteArrayOutputStream writeSchemaTypeExcelReportOnStream(String schemaTypeCode) {
+
 		SchemaTypeExcelReportWriter schemaTypeExcelGenerator = new SchemaTypeExcelReportWriter(schemaManager.getSchemaTypes(collection).getSchemaType(schemaTypeCode), appLayerFactory, getCurrentLocale());
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		schemaTypeExcelGenerator.write(byteArrayOutputStream);
+
+
 		return byteArrayOutputStream;
 	}
 
