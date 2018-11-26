@@ -155,7 +155,7 @@ public class ListValueDomainRecordsPresenter extends SingleSchemaBasePresenter<L
 			try {
 				recordServices.restore(record, User.GOD);
 			} catch (RecordServicesRuntimeException_CannotRestoreRecord e) {
-				view.showErrorMessage($("ListValueDomainRecordsPresenter.cannotRestore"));
+				view.showErrorMessage(MessageUtils.toMessage(e));
 			}
 
 			enableLinkedSchema(record);

@@ -146,7 +146,7 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 			utils.delete(utils.toRecord(recordVO), null, false);
 			view.refreshTable();
 		} else {
-			view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(validationErrors));
+			MessageUtils.getCannotDeleteWindow(validationErrors).openWindow();
 		}
 	}
 

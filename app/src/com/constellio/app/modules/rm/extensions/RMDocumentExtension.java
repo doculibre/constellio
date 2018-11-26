@@ -12,6 +12,7 @@ import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.io.ConversionManager;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.records.Content;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
@@ -26,11 +27,17 @@ import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.SearchServices;
+import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static java.util.Arrays.asList;
@@ -170,7 +177,7 @@ public class RMDocumentExtension extends RecordExtension {
 	}
 
 	@Override
-	public ExtensionValidationErrors isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+	public ValidationErrors validateLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection,
 				ConstellioFactories.getInstance().getAppLayerFactory());
 
@@ -184,26 +191,29 @@ public class RMDocumentExtension extends RecordExtension {
 			SearchServices searchServices = appLayerFactory.getModelLayerFactory().newSearchServices();
 			TasksSchemasRecordsServices taskSchemas = new TasksSchemasRecordsServices(collection, appLayerFactory);
 			boolean usedInTasks = false;
-
+			List<Record> tasks = new ArrayList<>();
 			if (!event.isThenPhysicallyDeleted()) {
-				usedInTasks = searchServices.hasResults(from(rm.userTask.schemaType())
+				tasks = searchServices.search(new LogicalSearchQuery(from(rm.userTask.schemaType())
 						.where(rm.userTask.linkedDocuments()).isContaining(asList(event.getRecord().getId()))
 						.andWhere(taskSchemas.userTask.status()).isNotIn(taskSchemas.getFinishedOrClosedStatuses())
-						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull());
+						.andWhere(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull()));
+				usedInTasks = !tasks.isEmpty();
 			}
 			if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))
 				|| usedInTasks) {
 				ValidationErrors validationErrors = new ValidationErrors();
 				if (usedInTasks) {
-					validationErrors.add(RMDocumentExtension.class, "documentUsedInTasks");
+					Map<String, Object> parameter = new HashMap<>();
+					parameter.put("records", tasks);
+					validationErrors.add(RMDocumentExtension.class, "documentUsedInTasks", parameter);
 				}
 				if ((checkoutUserId != null && (user == null || !user.has(RMPermissionsTo.DELETE_BORROWED_DOCUMENT).on(document)))) {
 					validationErrors.add(RMDocumentExtension.class, "userDoesNotHavePremissionToDeleteBorrowedDocument");
 				}
-				return new ExtensionValidationErrors(validationErrors, ExtensionBooleanResult.FALSE);
+				return validationErrors;
 			}
 		}
-		return super.isLogicallyDeletable(event);
+		return super.validateLogicallyDeletable(event);
 	}
 
 	private void deleteNonExistentFavoritesIds(Document document) {

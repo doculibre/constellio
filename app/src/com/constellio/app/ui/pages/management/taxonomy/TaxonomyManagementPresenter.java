@@ -218,7 +218,7 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 				view.refreshTable();
 			}
 		} else {
-			view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(validationErrors));
+			MessageUtils.getCannotDeleteWindow(validationErrors).openWindow();
 		}
 	}
 

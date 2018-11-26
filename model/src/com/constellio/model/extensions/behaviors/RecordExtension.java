@@ -19,16 +19,16 @@ import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutedEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.extensions.params.GetCaptionForRecordParams;
-import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 
 public class RecordExtension {
 
-	public ExtensionValidationErrors isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
-		return new ExtensionValidationErrors(ExtensionBooleanResult.NOT_APPLICABLE);
+	public ValidationErrors validateLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		return new ValidationErrors();
 	}
 
-	public ExtensionValidationErrors isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent event) {
-		return new ExtensionValidationErrors(ExtensionBooleanResult.NOT_APPLICABLE);
+	public ValidationErrors validatePhysicallyDeletable(RecordPhysicalDeletionValidationEvent event) {
+		return new ValidationErrors();
 	}
 
 	public void recordInCreationBeforeValidationAndAutomaticValuesCalculation(
@@ -100,8 +100,8 @@ public class RecordExtension {
 		}
 	}
 
-	public ExtensionValidationErrors validateDeleteAuthorized(Record record, User user) {
-		return new ExtensionValidationErrors(ExtensionBooleanResult.NOT_APPLICABLE);
+	public ValidationErrors validateDeleteAuthorized(Record record, User user) {
+		return new ValidationErrors();
 	}
 
 	public boolean isModifyBlocked(Record record, User user) {
