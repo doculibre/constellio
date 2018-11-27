@@ -46,6 +46,8 @@ public class SeleniumTestFeatures {
 	private FactoriesTestFeatures factoriesTestFeatures;
 	SkipTestsRule skipTestsRule;
 
+	private static boolean resetServletsAndFiltersAfterTest = true;
+
 	private Map<String, String> sdkProperties;
 
 	private int port = 8080;
@@ -60,6 +62,7 @@ public class SeleniumTestFeatures {
 		if (openedWebDriver != null) {
 			closeOpenedWebDriver();
 		}
+		resetServletsAndFiltersAfterTest = true;
 	}
 
 	private static void closeOpenedWebDriver() {
@@ -94,8 +97,10 @@ public class SeleniumTestFeatures {
 			closeOpenedWebDriver();
 		}
 
-		ApplicationStarter.resetServlets();
-		ApplicationStarter.resetFilters();
+		if (resetServletsAndFiltersAfterTest) {
+			ApplicationStarter.resetServlets();
+			ApplicationStarter.resetFilters();
+		}
 		waitUntilICloseTheBrowsers = false;
 	}
 
@@ -114,6 +119,7 @@ public class SeleniumTestFeatures {
 	}
 
 	public CmisSessionBuilder newCmisSessionBuilder() {
+		resetServletsAndFiltersAfterTest = false;
 		disableAllServices();
 		System.setProperty("cmisEnabled", "true");
 		if (!applicationStarted) {
@@ -414,6 +420,7 @@ public class SeleniumTestFeatures {
 
 	public void stopApplication() {
 		ApplicationStarter.stopApplication();
+		applicationStarted = false;
 	}
 
 	private void waitForWebDriversToClose() {
