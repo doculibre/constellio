@@ -529,12 +529,13 @@ public class RecordServicesTest extends ConstellioTest {
 		assertThat(transactionDTO.getModifiedRecords()).hasSize(2);
 		RecordDTO firstRecordDTO = transactionDTO.getNewRecords().get(0);
 		RecordDTO secondRecordDTO = transactionDTO.getNewRecords().get(1);
-		RecordDeltaDTO firstDeltaRecordDTO = transactionDTO.getModifiedRecords().get(0);
-		RecordDeltaDTO secondDeltaRecordDTO = transactionDTO.getModifiedRecords().get(1);
+		RecordDeltaDTO firstDeltaRecordDTO = transactionDTO.getModifiedRecords().get(1);
+		RecordDeltaDTO secondDeltaRecordDTO = transactionDTO.getModifiedRecords().get(0);
 		assertThat(firstRecordDTO.getFields()).containsEntry(zeSchema.stringMetadata().getDataStoreCode(), "recordString");
 		assertThat(firstRecordDTO.getFields()).containsEntry(zeSchema.title().getDataStoreCode(), "recordTitle");
 		assertThat(secondRecordDTO.getFields()).containsEntry(zeSchema.stringMetadata().getDataStoreCode(), "otherRecordString");
 		assertThat(secondRecordDTO.getFields()).containsEntry(zeSchema.title().getDataStoreCode(), "otherRecordTitle");
+
 		assertThat(firstDeltaRecordDTO.getModifiedFields()).containsEntry(zeSchema.stringMetadata().getDataStoreCode(),
 				"savedRecordString");
 		assertThat(firstDeltaRecordDTO.getModifiedFields())

@@ -141,8 +141,13 @@ public class RecordsLinksResolver {
 			double delta = calculateDelta(referenceRecordId, originalReferenceRecordId, current, previous, deleted, restored);
 			if (delta != 0) {
 				String recordId = referenceRecordId != null ? referenceRecordId : originalReferenceRecordId;
-				incrementations.add(createAggregatedMetadataIncrementation(recordId, metadata, delta));
-				return true;
+				if (recordId != null) {
+					incrementations.add(createAggregatedMetadataIncrementation(recordId, metadata, delta));
+					return true;
+				} else {
+					return false;
+				}
+
 			}
 			return false;
 		}
