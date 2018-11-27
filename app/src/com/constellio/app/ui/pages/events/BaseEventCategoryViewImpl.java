@@ -1,9 +1,13 @@
 package com.constellio.app.ui.pages.events;
 
 import com.constellio.app.ui.framework.buttons.DisplayButton;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
 import com.constellio.app.ui.framework.components.DateRangePanel;
 import com.constellio.app.ui.framework.components.EventByIdSearchPanel;
 import com.constellio.app.ui.framework.components.EventReportGenerationPanel;
+import com.constellio.app.ui.framework.components.content.InputStreamWrapper;
+import com.constellio.app.ui.framework.components.content.InputStreamWrapper.SimpleAction;
+import com.constellio.app.ui.framework.components.content.LazyStreamRessource;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -14,6 +18,9 @@ import com.vaadin.data.Container;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.Page;
+import com.vaadin.server.StreamResource;
+import com.vaadin.server.StreamResource.StreamSource;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
@@ -24,7 +31,9 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 
+import java.io.InputStream;
 import java.util.Date;
 
 import static com.constellio.app.ui.i18n.i18n.$;
@@ -36,6 +45,10 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 	private Panel reportGenerationPanel;
 	private Panel fetchByIdPanel;
 	private Panel dateRangePanel;
+	private DownloadLink generateCSVDownloadLink;
+	private LazyStreamRessource lazyStreamRessource;
+	private InputStreamWrapper inputStreamWrapper;
+
 
 	private EventViewParameters eventViewParameters;
 
@@ -63,16 +76,31 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 		}
 		if (presenter.isWithReportPanel(eventViewParameters.getEventCategory())) {
 			viewLayout.addComponent(new Label("&nbsp;", ContentMode.HTML));
+
 			reportGenerationPanel = buildReportGenerationPanel(eventViewParameters.getEventCategory());
 			reportGenerationPanel.setWidthUndefined();
 			viewLayout.addComponent(reportGenerationPanel);
 			viewLayout.setComponentAlignment(reportGenerationPanel, Alignment.MIDDLE_CENTER);
 		}
 
+
+		InputStreamWrapper inputStreamWrapper = new InputStreamWrapper();
+		inputStreamWrapper.addSimpleAction(new SimpleAction() {
+			@Override
+			public void action(InputStreamWrapper inputStreamWrapper) {
+				inputStreamWrapper.setInputStream(presenter.generateCsvReport());
+			}
+		});
+		lazyStreamRessource = new LazyStreamRessource(inputStreamWrapper, this.getTitle() + ".csv");
+
+		generateCSVDownloadLink = new DownloadLink(lazyStreamRessource, $("BaseEventCategoryViewImpl.generateCSVRepport"));
+		generateCSVDownloadLink.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+
+		viewLayout.addComponent(generateCSVDownloadLink);
 		statisticsTable = buildStatisticsTable();
 		viewLayout.addComponent(statisticsTable);
 		viewLayout.setExpandRatio(statisticsTable, 1);
-
 
 		return viewLayout;
 	}
@@ -194,6 +222,10 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 		}
 	}
 
+	public EventViewParameters getEventViewParameters() {
+		return eventViewParameters;
+	}
+
 	protected void displayButtonClicked(Integer itemId) {
 		presenter.displayEvent(itemId, eventViewParameters.getEventCategory());
 	}
@@ -213,7 +245,7 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 	}
 
 	@Override
-	protected String getTitle() {
+	public String getTitle() {
 		String title = presenter.getTitle(eventViewParameters.getEventCategory());
 		return title;
 	}
@@ -223,5 +255,16 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 		eventViewParameters = new EventViewParameters(event.getParameters());
 	}
 
-
+	@Override
+	public void startDownload(String filename, final InputStream inputStream, String mimeType) {
+		StreamSource streamSource = new StreamSource() {
+			@Override
+			public InputStream getStream() {
+				return inputStream;
+			}
+		};
+		StreamResource resource = new StreamResource(streamSource, filename);
+		resource.setMIMEType(mimeType);
+		Page.getCurrent().open(resource, "_blank", false);
+	}
 }

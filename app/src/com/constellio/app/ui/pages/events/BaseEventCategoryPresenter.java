@@ -1,20 +1,37 @@
 package com.constellio.app.ui.pages.events;
 
+import au.com.bytecode.opencsv.CSVWriter;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.ui.framework.data.DataProvider;
+import com.constellio.app.ui.framework.data.event.EventStatistics;
 import com.constellio.app.ui.framework.data.event.category.EventsListDataProviderFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import org.apache.commons.lang.CharEncoding;
 import org.joda.time.LocalDateTime;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryView> {
+
+	private IOServices ioServices;
+	public static final String STREAM_NAME = BaseEventCategoryPresenter.class.getName() + "-stream";
+	public static final String TEMPORARY_FILE = BaseEventCategoryPresenter.class.getName() + "-file";
 
 	public BaseEventCategoryPresenter(BaseEventCategoryView view) {
 		super(view);
 		recordServices().flush();
+		ioServices = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getIOServicesFactory().newIOServices();
 	}
 
 	public void displayEvent(Integer itemId, EventCategory eventCategory) {
@@ -104,6 +121,47 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 
 	public void eventAudit() {
 		view.navigate().to(RMViews.class).eventAudit();
+	}
+
+	public InputStream generateCsvReport() {
+
+		OutputStreamWriter outputStreamWriter = null;
+		InputStream inputStream = null;
+		CSVWriter csvWriter = null;
+		ByteArrayOutputStream byteArrayOutputStream = null;
+		ByteArrayInputStream byteArrayInputStream = null;
+		try {
+			byteArrayOutputStream = ioServices.newByteArrayOutputStream(STREAM_NAME);
+			outputStreamWriter = new OutputStreamWriter(byteArrayOutputStream, CharEncoding.ISO_8859_1);
+			csvWriter = new CSVWriter(outputStreamWriter);
+			csvReportGenerate(csvWriter);
+			csvWriter.flush();
+			ioServices.closeQuietly(csvWriter);
+			ioServices.closeQuietly(outputStreamWriter);
+
+			byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			ioServices.closeQuietly(csvWriter);
+			ioServices.closeQuietly(outputStreamWriter);
+			ioServices.closeQuietly(inputStream);
+			ioServices.closeQuietly(byteArrayOutputStream);
+			ioServices.closeQuietly(byteArrayInputStream);
+		}
+
+		return byteArrayInputStream;
+	}
+
+	public void csvReportGenerate(CSVWriter csvWriter) {
+		DataProvider dataProvider = getEventListDataProvider(view.getEventViewParameters().getEventCategory());
+
+		String[] headerRecord = {$("title"), $("value")};
+		csvWriter.writeNext(headerRecord);
+		for(EventStatistics eventStatistics : ((EventsCategoryDataProvider) dataProvider).getEvents()) {
+			csvWriter.writeNext(eventStatistics.getLabel(), eventStatistics.getValue() + "");
+		}
 	}
 
 	@Override
