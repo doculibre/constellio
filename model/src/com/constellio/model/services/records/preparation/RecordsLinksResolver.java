@@ -82,14 +82,15 @@ public class RecordsLinksResolver {
 					isSumAggregationMetadata(reverseLink.getFromMetadata()) &&
 					schema.hasMetadataWithCode(reverseLink.getToMetadata().getCode())) {
 
-					// fallback to reindex mode if reference record is in current transaction
+					Metadata fromMetadata = reverseLink.getFromMetadata();
+
+					// fallback to reindex mode if reference record's metadata is already modified in transaction
 					String referenceRecordId = record.get(reverseLink.getRefMetadata());
-					if (isRecordInCurrentTransaction(transaction, referenceRecordId)) {
+					if (isRecordMetadataAlreadyModifiedInCurrentTransaction(transaction, referenceRecordId, fromMetadata)) {
 						break;
 					}
 					String originalReferenceRecordId = originalRecord != null ?
 													   originalRecord.<String>get(reverseLink.getRefMetadata()) : null;
-					Metadata fromMetadata = reverseLink.getFromMetadata();
 					boolean deleted = !record.isActive() && (originalRecord != null && originalRecord.isActive());
 					boolean restored = record.isActive() && (originalRecord != null && !originalRecord.isActive());
 
@@ -171,13 +172,15 @@ public class RecordsLinksResolver {
 		return metadata.getType() == NUMBER && metadata.getDataEntry().getType() != DataEntryType.AGGREGATED;
 	}
 
-	private boolean isRecordInCurrentTransaction(Transaction transaction, String referenceRecordId) {
-		if (transaction == null || referenceRecordId == null) {
+	private boolean isRecordMetadataAlreadyModifiedInCurrentTransaction(Transaction transaction, String recordId,
+																		Metadata metadata) {
+		if (transaction == null || recordId == null) {
 			return false;
 		}
 
-		Record recordInTransaction = transaction.getRecord(referenceRecordId);
-		return (recordInTransaction != null && !recordInTransaction.isSaved());
+		Record recordInTransaction = transaction.getRecord(recordId);
+		return (recordInTransaction != null &&
+				(!recordInTransaction.isSaved() || recordInTransaction.isModified(metadata)));
 	}
 
 	private double calculateDelta(String referenceRecordId, String originalReferenceRecordId,
