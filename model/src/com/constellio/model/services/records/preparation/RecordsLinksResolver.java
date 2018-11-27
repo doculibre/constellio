@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.schemas.MetadataList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +58,7 @@ public class RecordsLinksResolver {
 		Set<String> metadatasToReindex = new HashSet<>();
 		Set<String> metadatasToIncrement = new HashSet<>();
 
-		List<Metadata> metadatas = allMetadatas ? schema.getMetadatas() : record.getModifiedMetadatas(types);
+		MetadataList metadatas = allMetadatas ? schema.getMetadatas() : record.getModifiedMetadatas(types);
 		for (Metadata metadata : metadatas) {
 			Metadata currentMetadata = metadata.getInheritance() != null ? metadata.getInheritance() : metadata;
 
@@ -67,7 +68,8 @@ public class RecordsLinksResolver {
 				}
 			} else {
 				for (MetadataNetworkLink link : types.getMetadataNetwork().getLinksTo(currentMetadata)) {
-					addToReindexedOrIncrementedSet(link, metadatasToReindex, metadatasToIncrement, reindexOnly);
+					addToReindexedOrIncrementedSet(link, metadatasToReindex, metadatasToIncrement, metadatas,
+							record.isSaved(), reindexOnly);
 				}
 			}
 		}
@@ -147,14 +149,20 @@ public class RecordsLinksResolver {
 	}
 
 	private void addToReindexedOrIncrementedSet(MetadataNetworkLink link, Set<String> metadatasToReindex,
-												Set<String> metadatasToIncrement, boolean reindexOnly) {
+												Set<String> metadatasToIncrement, MetadataList modifiedMetadatas,
+												boolean savedRecord, boolean reindexOnly) {
 		if (link.getLevel() > 0 &&
 			!metadatasToIncrement.contains(link.getFromMetadata().getCode()) &&
 			!metadatasToReindex.contains(link.getFromMetadata().getCode())) {
-			if (!reindexOnly && isSumAggregationMetadata(link.getFromMetadata())) {
-				metadatasToIncrement.add(link.getFromMetadata().getCode());
-			} else {
-				metadatasToReindex.add(link.getFromMetadata().getCode());
+
+			if (!link.getToMetadata().isSameLocalCode(link.getRefMetadata())
+				|| (savedRecord && modifiedMetadatas.containsMetadataWithLocalCode(link.getRefMetadata().getLocalCode()))) {
+
+				if (!reindexOnly && isSumAggregationMetadata(link.getFromMetadata())) {
+					metadatasToIncrement.add(link.getFromMetadata().getCode());
+				} else {
+					metadatasToReindex.add(link.getFromMetadata().getCode());
+				}
 			}
 		}
 	}
@@ -212,7 +220,8 @@ public class RecordsLinksResolver {
 		return value != null ? value : 0.0;
 	}
 
-	private AggregatedMetadataIncrementation createAggregatedMetadataIncrementation(String recordId, Metadata metadata,
+	private AggregatedMetadataIncrementation createAggregatedMetadataIncrementation(String recordId, Metadata
+			metadata,
 																					double delta) {
 		AggregatedMetadataIncrementation incrementation = new AggregatedMetadataIncrementation();
 		incrementation.setRecordId(recordId);

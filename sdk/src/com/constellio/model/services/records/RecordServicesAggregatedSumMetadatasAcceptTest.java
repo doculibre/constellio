@@ -10,6 +10,7 @@ import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -117,10 +118,58 @@ public class RecordServicesAggregatedSumMetadatasAcceptTest extends ConstellioTe
 
 		assertThat(rm.getDocument("fakeDocument").get(rm.document.metadata("number"))).isEqualTo(20.0);
 		assertThat(rm.getFolder("fakeFolder").get(rm.folder.metadata("sum"))).isEqualTo(20.0);
+		assertThat(rm.getFolder("fakeFolder").<Boolean>get(Schemas.MARKED_FOR_REINDEXING)).isNull();
 
 		assertThat(rm.getDocument("fakeDocument2").get(rm.document.metadata("number"))).isEqualTo(50.0);
 		assertThat(rm.getFolder("fakeFolder2").get(rm.folder.metadata("sum"))).isEqualTo(50.0);
+		assertThat(rm.getFolder("fakeFolder2").<Boolean>get(Schemas.MARKED_FOR_REINDEXING)).isNull();
 	}
+
+
+	@Test
+	public void givenMultipleUnmodifiedOrZeroNumberValueThenNothingIncrementedAndNotMarkedForReindexing()
+			throws Exception {
+		Transaction transaction = new Transaction();
+
+		Document document = rm.getDocument("fakeDocument");
+		document.set(rm.document.metadata("number"), 0.0);
+		transaction.add(document);
+
+		Document document2 = rm.getDocument("fakeDocument2");
+		document2.set(rm.document.metadata("number"), null);
+		transaction.add(document2);
+
+		recordServices.execute(transaction);
+
+		assertThat(rm.getDocument("fakeDocument").get(rm.document.metadata("number"))).isEqualTo(0.0);
+		assertThat(rm.getFolder("fakeFolder").get(rm.folder.metadata("sum"))).isEqualTo(0.0);
+		assertThat(rm.getFolder("fakeFolder").<Boolean>get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+
+		assertThat(rm.getDocument("fakeDocument2").get(rm.document.metadata("number"))).isNull();
+		assertThat(rm.getFolder("fakeFolder2").get(rm.folder.metadata("sum"))).isEqualTo(0.0);
+		assertThat(rm.getFolder("fakeFolder2").<Boolean>get(Schemas.MARKED_FOR_REINDEXING)).isNull();
+	}
+
+
+	//	@Test
+	//	public void whenCreateFolderWithoutLinearLengthThenContainerNotMarkedToReindex() throws Exception {
+	//		Transaction transaction = new Transaction();
+	//
+	//		Folder folder = rm.newFolder().setTitle("test").
+	//
+	//		Document document2 = rm.getDocument("fakeDocument2");
+	//		document2.set(rm.document.metadata("number"), 50.0);
+	//		transaction.add(document2);
+	//
+	//		recordServices.execute(transaction);
+	//
+	//		assertThat(rm.getDocument("fakeDocument").get(rm.document.metadata("number"))).isEqualTo(20.0);
+	//		assertThat(rm.getFolder("fakeFolder").get(rm.folder.metadata("sum"))).isEqualTo(20.0);
+	//
+	//		assertThat(rm.getDocument("fakeDocument2").get(rm.document.metadata("number"))).isEqualTo(50.0);
+	//		assertThat(rm.getFolder("fakeFolder2").get(rm.folder.metadata("sum"))).isEqualTo(50.0);
+	//	}
+
 
 	@Test
 	public void givenTwoModifiedDocumentNumberAndOneFolderSumThenIncrementFolderSumTwice() throws Exception {
