@@ -10,7 +10,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.services.schemas.MetadataList;
 
 import java.util.ArrayList;
@@ -21,6 +20,8 @@ import java.util.Set;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.entries.AggregationType.REFERENCE_COUNT;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.AGGREGATED;
 import static java.util.Arrays.asList;
 
 public class RecordsLinksResolver {
@@ -161,6 +162,7 @@ public class RecordsLinksResolver {
 			!metadatasToReindex.contains(link.getFromMetadata().getCode())) {
 
 			if (!link.getToMetadata().isSameLocalCode(link.getRefMetadata())
+				|| isReferenceCountAggregation(link.getFromMetadata())
 				|| (savedRecord && modifiedMetadatas.containsMetadataWithLocalCode(link.getRefMetadata().getLocalCode()))) {
 
 				if (!reindexOnly && isSumAggregationMetadata(link.getFromMetadata())) {
@@ -172,8 +174,14 @@ public class RecordsLinksResolver {
 		}
 	}
 
+	private boolean isReferenceCountAggregation(Metadata metadata) {
+		return metadata.getDataEntry().getType() == AGGREGATED
+			   && ((AggregatedDataEntry) metadata.getDataEntry()).getAgregationType() == REFERENCE_COUNT;
+
+	}
+
 	private boolean isSumAggregationMetadata(Metadata metadata) {
-		if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED &&
+		if (metadata.getDataEntry().getType() == AGGREGATED &&
 			((AggregatedDataEntry) metadata.getDataEntry()).getAgregationType() == AggregationType.SUM) {
 			List<MetadataNetworkLink> links = types.getMetadataNetwork().getLinksTo(metadata);
 			return links.isEmpty();
@@ -182,7 +190,7 @@ public class RecordsLinksResolver {
 	}
 
 	private boolean isNumberAndNonAggregatedMetadata(Metadata metadata) {
-		return metadata.getType() == NUMBER && metadata.getDataEntry().getType() != DataEntryType.AGGREGATED;
+		return metadata.getType() == NUMBER && metadata.getDataEntry().getType() != AGGREGATED;
 	}
 
 	private boolean isRecordMetadataAlreadyModifiedInCurrentTransaction(Transaction transaction, String recordId,
