@@ -82,8 +82,8 @@ public class CmisAcceptanceTestSetup extends SchemasSetup {
 		MetadataSchemaTypeBuilder documentFondType = typesBuilder.createNewSchemaType("documentFond");
 		categoryType = typesBuilder.createNewSchemaType("category");
 		MetadataSchemaTypeBuilder administrativeUnitType = typesBuilder.createNewSchemaType("administrativeUnit");
-		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("folder");
-		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("document");
+		MetadataSchemaTypeBuilder folderType = typesBuilder.createNewSchemaType("folder").setSecurity(true);
+		MetadataSchemaTypeBuilder documentType = typesBuilder.createNewSchemaType("document").setSecurity(true);
 
 		setupTaxonomy1(documentFondType, categoryType);
 		setupTaxonomy2(administrativeUnitType);

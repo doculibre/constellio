@@ -166,10 +166,16 @@ public class UserServices {
 				msExchDelegateListBL, dn, jobTitle, phone, fax, address);
 	}
 
-	public UserCredential newUpdateUserCredential() {
+	public UserCredential newUserCredential() {
 		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(SYSTEM_COLLECTION);
 		return new UserCredential(recordServices.newRecordWithSchema(types.getSchema(UserCredential.DEFAULT_SCHEMA)), types);
 	}
+
+	public GlobalGroup newGlobalGroup() {
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(SYSTEM_COLLECTION);
+		return new GlobalGroup(recordServices.newRecordWithSchema(types.getSchema(GlobalGroup.DEFAULT_SCHEMA)), types);
+	}
+
 
 	public void addUpdateUserCredential(UserCredential userCredential) {
 		List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
