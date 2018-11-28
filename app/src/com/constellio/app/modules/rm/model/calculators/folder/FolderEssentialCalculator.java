@@ -25,7 +25,14 @@ public class FolderEssentialCalculator implements MetadataValueCalculator<Boolea
 
 		CopyRetentionRule mainCopyRule = parameters.get(mainCopyRuleParam);
 		Boolean retentionRuleEssential = parameters.get(retentionRuleEssentialParam);
-		return mainCopyRule.isEssential() || Boolean.TRUE.equals(retentionRuleEssential);
+
+		boolean isEssential = mainCopyRule.isEssential() || Boolean.TRUE.equals(retentionRuleEssential);
+
+		if(isEssential) {
+			return true;
+		} else {
+			return null;
+		}
 	}
 
 	@Override
