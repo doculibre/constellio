@@ -26,12 +26,6 @@ public class ConstellioNavigatorTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenNavigatingToHomeThenNavigateToHomeURL() {
-		navigator.home();
-		verify(theVaadinNavigator, times(1)).navigateTo(NavigatorConfigurationService.HOME);
-	}
-
-	@Test
 	public void whenNavigatingToSimpleSearchResultInnerPageThenNavigateToSearchURLWithQueryAndPage() {
 		navigator.simpleSearch("query", 42);
 		verify(theVaadinNavigator, times(1)).navigateTo(NavigatorConfigurationService.SIMPLE_SEARCH + "/q/query/42");

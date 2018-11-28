@@ -135,6 +135,7 @@ public class SeleniumTestFeatures {
 	public AdminServicesSession newRestClient(String serviceKey, String username, String password) {
 		disableAllServices();
 		System.setProperty("driverEnabled", "true");
+		resetServletsAndFiltersAfterTest = false;
 		if (!applicationStarted) {
 			startApplication();
 		}

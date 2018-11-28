@@ -12,7 +12,6 @@ import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
@@ -58,7 +57,6 @@ import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
-import static com.constellio.model.entities.security.global.UserCredentialStatus.ACTIVE;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -229,25 +227,25 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
 				.extractingMetadatas(IDENTIFIER, ATTACHED_ANCESTORS).containsOnly(
-				tuple(TAXO1_FOND1, asList(TAXO1_FOND1)),
-				tuple(TAXO1_FOND1_1, asList(TAXO1_FOND1, TAXO1_FOND1_1)),
-				tuple(FOLDER4_1, asList(FOLDER4, FOLDER4_1)),
-				tuple(FOLDER4_2, asList(FOLDER4, FOLDER4_2)),
-				tuple(FOLDER2, asList(FOLDER2)),
-				tuple(FOLDER1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1)),
-				tuple(TAXO1_CATEGORY1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1)),
-				tuple(FOLDER2_2_DOC2, asList(FOLDER2, FOLDER2_2, FOLDER2_2_DOC2)),
-				tuple(FOLDER3, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3)),
-				tuple(FOLDER4, asList(FOLDER4)),
-				tuple(FOLDER2_2_DOC1, asList(FOLDER2, FOLDER2_2, FOLDER2_2_DOC1)),
-				tuple(FOLDER4_2_DOC1, asList(FOLDER4, FOLDER4_2, FOLDER4_2_DOC1)),
-				tuple(FOLDER1_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1, FOLDER1_DOC1)),
-				tuple(FOLDER2_1, asList(FOLDER2, FOLDER2_1)),
-				tuple(FOLDER2_2, asList(FOLDER2, FOLDER2_2)),
-				tuple(TAXO1_CATEGORY2, asList(TAXO1_FOND1, TAXO1_CATEGORY2)),
-				tuple(TAXO1_CATEGORY2_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1)),
-				tuple(FOLDER3_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)),
-				tuple(FOLDER4_1_DOC1, asList(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1))
+				tuple("taxo1_fond1", asList("taxo1_fond1")),
+				tuple("taxo1_fond1_1", asList("taxo1_fond1", "taxo1_fond1_1")),
+				tuple("taxo1_category1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1")),
+				tuple("taxo1_category2", asList("taxo1_fond1", "taxo1_category2")),
+				tuple("taxo1_category2_1", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1")),
+				tuple("folder1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1")),
+				tuple("folder3", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3")),
+				tuple("folder1_doc1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1", "folder1_doc1")),
+				tuple("folder3_doc1", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3", "folder3_doc1")),
+				tuple("folder4", asList("folder4", "-taxo1_fond1", "-taxo1_category2")),
+				tuple("folder4_1", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_1")),
+				tuple("folder4_2", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2")),
+				tuple("folder4_1_doc1", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_1", "folder4_1_doc1")),
+				tuple("folder4_2_doc1", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2", "folder4_2_doc1")),
+				tuple("folder2", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1")),
+				tuple("folder2_1", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_1")),
+				tuple("folder2_2", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_2")),
+				tuple("folder2_2_doc2", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_2", "folder2_2_doc2")),
+				tuple("folder2_2_doc1", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_2", "folder2_2_doc1"))
 		);
 
 		reset(FOLDER2);
@@ -255,25 +253,25 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
 				.extractingMetadatas(IDENTIFIER, ATTACHED_ANCESTORS).containsOnly(
-				tuple(TAXO1_FOND1, asList(TAXO1_FOND1)),
-				tuple(TAXO1_FOND1_1, asList(TAXO1_FOND1, TAXO1_FOND1_1)),
-				tuple(FOLDER4_1, asList(FOLDER4_1)),
-				tuple(FOLDER4_2, asList(FOLDER4, FOLDER4_2)),
-				tuple(FOLDER2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2)),
-				tuple(FOLDER1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1)),
-				tuple(TAXO1_CATEGORY1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1)),
-				tuple(FOLDER2_2_DOC2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2, FOLDER2_2_DOC2)),
-				tuple(FOLDER3, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3)),
-				tuple(FOLDER4, asList(FOLDER4)),
-				tuple(FOLDER2_2_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2, FOLDER2_2_DOC1)),
-				tuple(FOLDER4_2_DOC1, asList(FOLDER4, FOLDER4_2, FOLDER4_2_DOC1)),
-				tuple(FOLDER1_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1, FOLDER1_DOC1)),
-				tuple(FOLDER2_1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_1)),
-				tuple(FOLDER2_2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2)),
-				tuple(TAXO1_CATEGORY2, asList(TAXO1_FOND1, TAXO1_CATEGORY2)),
-				tuple(TAXO1_CATEGORY2_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1)),
-				tuple(FOLDER3_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)),
-				tuple(FOLDER4_1_DOC1, asList(FOLDER4_1, FOLDER4_1_DOC1))
+				tuple("taxo1_fond1", asList("taxo1_fond1")),
+				tuple("taxo1_fond1_1", asList("taxo1_fond1", "taxo1_fond1_1")),
+				tuple("taxo1_category1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1")),
+				tuple("taxo1_category2", asList("taxo1_fond1", "taxo1_category2")),
+				tuple("taxo1_category2_1", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1")),
+				tuple("folder1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1")),
+				tuple("folder3", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3")),
+				tuple("folder1_doc1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1", "folder1_doc1")),
+				tuple("folder3_doc1", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3", "folder3_doc1")),
+				tuple("folder2", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2")),
+				tuple("folder2_1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_1")),
+				tuple("folder2_2", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2")),
+				tuple("folder2_2_doc2", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2", "folder2_2_doc2")),
+				tuple("folder2_2_doc1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2", "folder2_2_doc1")),
+				tuple("folder4_1", asList("folder4_1", "-folder4", "--taxo1_fond1", "--taxo1_category2")),
+				tuple("folder4_1_doc1", asList("folder4_1", "-folder4", "--taxo1_fond1", "--taxo1_category2", "folder4_1_doc1")),
+				tuple("folder4", asList("folder4", "-taxo1_fond1", "-taxo1_category2")),
+				tuple("folder4_2", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2")),
+				tuple("folder4_2_doc1", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2", "folder4_2_doc1"))
 		);
 	}
 
@@ -3804,6 +3802,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		add(authorizationForGroupInAnotherCollection(heroes).on(otherCollectionRecords.folder4_1()).givingNegativeReadWriteDeleteAccess());
 		add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder2_1()).givingNegativeReadWriteDeleteAccess());
 
+		waitForBatchProcess();
+
 		assertThatAllFoldersVisibleBy(charles).containsOnly(
 				"folder4", "folder4_1", "folder4_2", "anotherCollection_folder2", "anotherCollection_folder2_2",
 				"anotherCollection_folder4", "anotherCollection_folder4_2", "anotherCollection_folder4_1");
@@ -4009,17 +4009,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		SecurityModelCache instance1Cache = getModelLayerFactory().getSecurityModelCache();
 		auth1 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 
-		UserCredential jambon = userServices.newUpdateUserCredential().setUsername("jambon")
-				.setFirstName("Jean").setLastName("Bond").setEmail("jean@bond.com").setCollections(zeCollection)
-				.setStatus(ACTIVE);
-		userServices.addUpdateUserCredential(jambon);
-
 		SecurityModelCache instance2Cache = getModelLayerFactory("other-instance").getSecurityModelCache();
 
-		assertThat(instance1Cache.getCached(zeCollection)).isNull();
-		assertThat(instance2Cache.getCached(zeCollection)).isNull();
-
-		createAFolderOnInstance1();
 		assertThat(instance1Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
 		assertThat(instance2Cache.getCached(zeCollection)).isNull();
 
@@ -4027,11 +4018,10 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThat(instance1Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
 		assertThat(instance2Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
 
-		userServices.addUpdateUserCredential(jambon.setGlobalGroups(asList("legends")));
+		GlobalGroup group = userServices.newGlobalGroup().setCode("zeGroup").setName("Ze ultimate group");
+		userServices.addUpdateGlobalGroup(group);
 		assertThat(instance1Cache.getCached(zeCollection)).isNull();
 		assertThat(instance2Cache.getCached(zeCollection)).isNull();
-		createAFolderOnInstance1();
-		createAFolderOnInstance2();
 
 	}
 

@@ -30,9 +30,6 @@ public class SecurityModelCache implements EventBusListener {
 	public static final String UPDATE_CACHE_EVENT_TYPE = "authsCreated";
 	public static final String REMOVE_AUTH_EVENT_TYPE = "authDeleted";
 
-	private static int GROUP_CAUSING_INVALIDATE = 0;
-	private static int GLOBALGROUP_CAUSING_INVALIDATE = 0;
-
 	Map<String, SingletonSecurityModel> models = new HashMap<>();
 	EventBus eventBus;
 	ModelLayerFactory modelLayerFactory;
@@ -131,7 +128,6 @@ public class SecurityModelCache implements EventBusListener {
 
 				switch (newRecord.getTypeCode()) {
 					case Group.SCHEMA_TYPE:
-						System.out.println("Group causing invalidate " + (++GROUP_CAUSING_INVALIDATE));
 						fullInvalidateRequired = true;
 						break;
 
@@ -144,12 +140,10 @@ public class SecurityModelCache implements EventBusListener {
 			for (Record modifiedRecord : event.getUpdatedRecords()) {
 				switch (modifiedRecord.getTypeCode()) {
 					case Group.SCHEMA_TYPE:
-						System.out.println("Group causing invalidate " + (++GROUP_CAUSING_INVALIDATE));
 						fullInvalidateRequired = event.getModifiedMetadataListOf(modifiedRecord).containsMetadataWithLocalCode(Group.PARENT);
 						break;
 
 					case GlobalGroup.SCHEMA_TYPE:
-						System.out.println("Global group causing invalidate " + (++GLOBALGROUP_CAUSING_INVALIDATE));
 						allCollectionInvalidateRequired = event.getModifiedMetadataListOf(modifiedRecord).containsMetadataWithLocalCode(GlobalGroup.STATUS);
 						break;
 
@@ -177,7 +171,6 @@ public class SecurityModelCache implements EventBusListener {
 
 			switch (event.getRecord().getTypeCode()) {
 				case Group.SCHEMA_TYPE:
-					System.out.println("Group causing invalidate " + (++GROUP_CAUSING_INVALIDATE));
 					invalidateIfLoaded(event.getRecord().getCollection());
 					break;
 
