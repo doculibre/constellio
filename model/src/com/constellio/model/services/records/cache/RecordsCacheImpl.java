@@ -3,8 +3,8 @@ package com.constellio.model.services.records.cache;
 import com.constellio.data.dao.services.cache.InsertionReason;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -683,7 +683,6 @@ public class RecordsCacheImpl implements RecordsCache {
 			if (invalidationMethod == VolatileCacheInvalidationMethod.LRU) {
 				if (holder != null && holder.getCopy() != null && holder.getCopy().getTypeCode() != null
 					&& holder.getCopy().getTypeCode().equals("savedSearch")) {
-					System.out.println("hit on savedSearch " + holder.getCopy().getId());
 				}
 
 				if (holder.volatileCacheOccurences <= 2) {

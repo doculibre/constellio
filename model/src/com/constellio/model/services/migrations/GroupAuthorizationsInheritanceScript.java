@@ -23,13 +23,9 @@ public class GroupAuthorizationsInheritanceScript implements SystemConfiguration
 
 	}
 
-	static int invalidateCount = 0;
-
-
 	@Override
 	public void onValueChanged(GroupAuthorizationsInheritance previousValue, GroupAuthorizationsInheritance newValue,
 							   ModelLayerFactory modelLayerFactory, String collection) {
-		System.out.println("Config causing invalidate " + (++invalidateCount));
 		modelLayerFactory.getSecurityModelCache().invalidate(collection);
 	}
 }

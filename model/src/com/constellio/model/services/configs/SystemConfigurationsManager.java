@@ -391,22 +391,6 @@ public class SystemConfigurationsManager implements StatefulService, ConfigUpdat
 		throw new ImpossibleRuntimeException("Unsupported config type : " + config.getType());
 	}
 
-	//	private synchronized void loadPropertiesFileInCacheIfNecessary() {
-	//		if (readPropertiesFileRequired) {
-	//			System.out.println("Load");
-	//			PropertiesConfiguration propertiesConfig = configManager.getProperties(CONFIG_FILE_PATH);
-	//			if (propertiesConfig != null) {
-	//				Map<String, String> properties = propertiesConfig.getProperties();
-	//				cache2.put("properties", (Serializable) properties, InsertionReason.WAS_OBTAINED);
-	//				//				for (String key : properties.keySet()) {
-	//				//					String value = properties.get(key);
-	//				//					properties.put(key, value, InsertionReason.WAS_OBTAINED);
-	//				//				}
-	//				//				readPropertiesFileRequired = false;
-	//			}
-	//		}
-	//	}
-
 	@SuppressWarnings("unchecked")
 	public <T> T getValue(SystemConfiguration config) {
 		T value;

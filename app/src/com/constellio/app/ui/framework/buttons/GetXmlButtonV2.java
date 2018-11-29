@@ -146,7 +146,6 @@ public class GetXmlButtonV2 extends WindowButton {
 			return new StreamResource(new StreamResource.StreamSource() {
 				@Override
 				public InputStream getStream() {
-					System.out.println();
 					try {
 						return new ByteArrayInputStream(xml.getBytes("UTF-8"));
 					} catch (IOException e) {

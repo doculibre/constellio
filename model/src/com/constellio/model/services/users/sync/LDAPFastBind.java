@@ -110,13 +110,10 @@ public class LDAPFastBind {
 			ctx.addToEnvironment(Context.SECURITY_PRINCIPAL, username);
 			ctx.addToEnvironment(Context.SECURITY_CREDENTIALS, password);
 			ctx.reconnect(connCtls);
-			//			System.out.println(username + " is authenticated");
 			return true;
 		} catch (AuthenticationException e) {
-			//			System.out.println(username + " is not authenticated");
 			return false;
 		} catch (NamingException e) {
-			//			System.out.println(username + " is not authenticated");
 			return false;
 		}
 	}

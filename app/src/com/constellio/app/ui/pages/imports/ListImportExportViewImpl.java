@@ -83,7 +83,6 @@ public class ListImportExportViewImpl extends BaseViewImpl implements ListImport
 					RecordVOItem item = (RecordVOItem) source.getItem(itemId);
 					RecordVO record = item.getRecord();
 					MetadataVO errors = record.getMetadata(ImportAudit.ERRORS);
-					System.out.println("test");
 					if (errors != null && !((List) record.getMetadataValue(errors).getValue()).isEmpty()) {
 						return "error";
 					}
