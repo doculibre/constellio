@@ -84,7 +84,7 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 		}
 
 
-		InputStreamWrapper inputStreamWrapper = new InputStreamWrapper();
+		inputStreamWrapper = new InputStreamWrapper();
 		inputStreamWrapper.addSimpleAction(new SimpleAction() {
 			@Override
 			public void action(InputStreamWrapper inputStreamWrapper) {
@@ -127,13 +127,19 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 		};
 	}
 
+	private void updateGenerateCSVDownloadLinkVisible(int dataProviderSize) {
+		generateCSVDownloadLink.setVisible(dataProviderSize != 0);
+	}
+
 	private Table buildStatisticsTable() {
 		final EventsCategoryDataProvider dataProvider = getEventListDataProvider();
+		updateGenerateCSVDownloadLinkVisible(dataProvider.size());
 		if (dataProvider.size() == 0) {
 			Table table = new Table();
 			table.setVisible(false);
 			return table;
 		}
+
 		Container container = new EventCategoryContainer(dataProvider);
 		ButtonsContainer buttonsContainer = new ButtonsContainer(container, PROPERTY_BUTTONS);
 		addButtons(dataProvider, buttonsContainer);
@@ -187,6 +193,7 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 		Table newTable = buildStatisticsTable();
 		viewLayout.replaceComponent(statisticsTable, newTable);
 		statisticsTable = newTable;
+		inputStreamWrapper.setActionDone(false);
 	}
 
 	@Override

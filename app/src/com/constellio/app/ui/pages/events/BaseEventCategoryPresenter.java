@@ -160,7 +160,7 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 		String[] headerRecord = {$("title"), $("value")};
 		csvWriter.writeNext(headerRecord);
 		for(EventStatistics eventStatistics : ((EventsCategoryDataProvider) dataProvider).getEvents()) {
-			csvWriter.writeNext(eventStatistics.getLabel(), eventStatistics.getValue() + "");
+			csvWriter.writeNext(eventStatistics.getLabel(), eventStatistics.getValue().toString());
 		}
 	}
 
