@@ -3070,8 +3070,6 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 	public void givenMultipleAlreadyImportedRecordsWhenImportingRecordsOfAnotherTypeThen()
 			throws Exception {
 
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
 		defineSchemasManager().using(schemas.andCustomSchema()
 				.withAStringMetadata().with(new MetadataSchemaTypesConfigurator() {
 					@Override

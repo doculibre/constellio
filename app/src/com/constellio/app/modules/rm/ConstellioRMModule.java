@@ -167,7 +167,6 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
@@ -486,10 +485,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				cache.removeCache(type.getCode());
 			}
 			cache.configureCache(CacheConfig.permanentCache(type));
-		}
-
-		if (!cache.isConfigured(Facet.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.facet.schemaType()));
 		}
 
 		if (cache.isConfigured(AdministrativeUnit.SCHEMA_TYPE)) {

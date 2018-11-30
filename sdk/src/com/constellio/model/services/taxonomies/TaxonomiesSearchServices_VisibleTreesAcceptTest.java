@@ -139,7 +139,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 						returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
 					}
 				});
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setLogFL(false).setQueryDebuggingMode(true);
 	}
 
 	private List<String> getFolderDocuments(String id) {
@@ -150,8 +149,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	@Test
 	public void whenDakotaIsNavigatingATaxonomyWithVisibleRecordsThenSeesRecords()
 			throws Exception {
-
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB())
 				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
@@ -500,8 +497,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	@Test
 	public void whenUserIsNavigatingAdminUnitTaxonomyAlwaysDisplayingConceptsWithReadAccessThenOnlySeeConceptsContainingAccessibleRecordsAndThoseWithReadAccess()
 			throws Exception {
-
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
 				.setLinkableFlagCalculated(false).setHasChildrenFlagCalculated(NEVER)

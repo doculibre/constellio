@@ -57,7 +57,6 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 	public void givenTransactionWithOptimisticLockingExceptionWhenRetryingWithSameRecordsThenOK()
 			throws Exception {
 
-		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("Sam_Gamegie_ze_brave", "Frodon", "Gandalf"));
 		add("Sam_Gamegie_ze_brave", "Frodon", "Gandalf");
 
 		updateExpectingAnOptimisticLocking(inCurrentVersion("Gandalf"), inCurrentVersion("Sam_Gamegie_ze_brave"),
@@ -79,7 +78,6 @@ public class BigVaultServerConcurrencyAcceptTest extends ConstellioTest {
 	public void givenTransactionWithOptimisticLockingExceptionWhenRetryingWithSameRecordsUsingRealTimeGetThenOK()
 			throws Exception {
 
-		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("Sam_Gamegie_ze_brave", "Frodon", "Gandalf"));
 		add("Sam_Gamegie_ze_brave", "Frodon", "Gandalf");
 
 		updateExpectingAnOptimisticLocking(inCurrentVersion("Gandalf"), inCurrentVersion("Sam_Gamegie_ze_brave"),
