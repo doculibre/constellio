@@ -1157,16 +1157,22 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	public Record newRecordWithSchema(MetadataSchema schema, String id) {
+		return newRecordWithSchema(schema, id, true);
+	}
+
+	public Record newRecordWithSchema(MetadataSchema schema, String id, boolean withDefaultValues) {
 		Record record = new RecordImpl(schema, id);
 
-		for (Metadata metadata : schema.getMetadatas().onlyWithDefaultValue().onlyManuals()) {
+		if(withDefaultValues) {
+			for (Metadata metadata : schema.getMetadatas().onlyWithDefaultValue().onlyManuals()) {
 
-			if (metadata.isMultivalue()) {
-				List<Object> values = new ArrayList<>();
-				values.addAll((List) metadata.getDefaultValue());
-				record.set(metadata, values);
-			} else {
-				record.set(metadata, metadata.getDefaultValue());
+				if (metadata.isMultivalue()) {
+					List<Object> values = new ArrayList<>();
+					values.addAll((List) metadata.getDefaultValue());
+					record.set(metadata, values);
+				} else {
+					record.set(metadata, metadata.getDefaultValue());
+				}
 			}
 		}
 
