@@ -1156,6 +1156,28 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return transactions;
 	}
 
+	public Record newRecordWithSchema(MetadataSchema schema) {
+		return newRecordWithSchema(schema, true);
+	}
+
+	public Record newRecordWithSchema(MetadataSchema schema, boolean isWithDefaultValues) {
+		String id;
+		if ("collection_default".equals(schema.getCode())) {
+			id = schema.getCollection();
+
+		} else if (DataStore.EVENTS.equals(schema.getDataStore())) {
+			id = UUIDV1Generator.newRandomId();
+
+		} else if (!schema.isInTransactionLog()) {
+			id = uniqueIdGenerator.next() + "ZZ";
+
+		} else {
+			id = uniqueIdGenerator.next();
+		}
+
+		return newRecordWithSchema(schema, id, isWithDefaultValues);
+	}
+
 	public Record newRecordWithSchema(MetadataSchema schema, String id) {
 		return newRecordWithSchema(schema, id, true);
 	}
@@ -1177,23 +1199,6 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 
 		return record;
-	}
-
-	public Record newRecordWithSchema(MetadataSchema schema) {
-		String id;
-		if ("collection_default".equals(schema.getCode())) {
-			id = schema.getCollection();
-
-		} else if (DataStore.EVENTS.equals(schema.getDataStore())) {
-			id = UUIDV1Generator.newRandomId();
-
-		} else if (!schema.isInTransactionLog()) {
-			id = uniqueIdGenerator.next() + "ZZ";
-
-		} else {
-			id = uniqueIdGenerator.next();
-		}
-		return newRecordWithSchema(schema, id);
 	}
 
 	public RecordAutomaticMetadataServices newAutomaticMetadataServices() {

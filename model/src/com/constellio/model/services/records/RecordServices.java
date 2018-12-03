@@ -105,7 +105,11 @@ public interface RecordServices {
 	void validateRecord(Record record)
 			throws RecordServicesException.ValidationException;
 
+	Record newRecordWithSchema(MetadataSchema schema, String id, boolean withDefaultValues);
+
 	Record newRecordWithSchema(MetadataSchema schema, String id);
+
+	Record newRecordWithSchema(MetadataSchema schema, boolean isWithDefaultValues);
 
 	Record newRecordWithSchema(MetadataSchema schema);
 
