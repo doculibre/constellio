@@ -2,6 +2,8 @@ package com.constellio.app.ui.pages.events;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.ui.framework.components.content.InputStreamWrapper;
+import com.constellio.app.ui.framework.components.content.InputStreamWrapper.SimpleAction;
 import com.constellio.app.ui.framework.data.DataProvider;
 import com.constellio.app.ui.framework.data.event.EventStatistics;
 import com.constellio.app.ui.framework.data.event.category.EventsListDataProviderFactory;
@@ -12,10 +14,12 @@ import com.constellio.model.entities.records.wrappers.User;
 import org.apache.commons.lang.CharEncoding;
 import org.joda.time.LocalDateTime;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
@@ -123,38 +127,60 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 		view.navigate().to(RMViews.class).eventAudit();
 	}
 
-	public InputStream generateCsvReport() {
+	public InputStreamWrapper createInputStreamWrapper() {
+		InputStreamWrapper inputStreamWrapper = new InputStreamWrapper();
+		inputStreamWrapper.addSimpleAction(new SimpleAction() {
+			@Override
+			public void action(InputStreamWrapper inputStreamWrapper) {
+				try {
+					final File tempFile = generateCsvReport();
+					InputStream inputStream = new FileInputStream(tempFile) {
+						@Override
+						public void close()
+								throws IOException {
+							super.close();
+							ioServices.deleteQuietly(tempFile);
+						}
+					};
+					inputStreamWrapper.setInputStream(inputStream);
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+					throw new RuntimeException(e);
+				}
+			}
+		});
+
+		return inputStreamWrapper;
+	}
+
+	public File generateCsvReport() {
 
 		OutputStreamWriter outputStreamWriter = null;
-		InputStream inputStream = null;
 		CSVWriter csvWriter = null;
-		ByteArrayOutputStream byteArrayOutputStream = null;
-		ByteArrayInputStream byteArrayInputStream = null;
+		OutputStream byteArrayOutputStream = null;
+		File temporaryFile = null;
 		try {
-			byteArrayOutputStream = ioServices.newByteArrayOutputStream(STREAM_NAME);
+			temporaryFile = ioServices.newTemporaryFile(TEMPORARY_FILE);
+			byteArrayOutputStream = ioServices.newFileOutputStream(temporaryFile, STREAM_NAME);
 			outputStreamWriter = new OutputStreamWriter(byteArrayOutputStream, CharEncoding.ISO_8859_1);
-			csvWriter = new CSVWriter(outputStreamWriter);
-			csvReportGenerate(csvWriter);
+			csvWriter = new CSVWriter(outputStreamWriter, ',', CSVWriter.NO_QUOTE_CHARACTER);
+			writeCsvReport(csvWriter);
 			csvWriter.flush();
 			ioServices.closeQuietly(csvWriter);
 			ioServices.closeQuietly(outputStreamWriter);
-
-			byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			ioServices.closeQuietly(csvWriter);
 			ioServices.closeQuietly(outputStreamWriter);
-			ioServices.closeQuietly(inputStream);
 			ioServices.closeQuietly(byteArrayOutputStream);
-			ioServices.closeQuietly(byteArrayInputStream);
 		}
 
-		return byteArrayInputStream;
+		return temporaryFile;
 	}
 
-	public void csvReportGenerate(CSVWriter csvWriter) {
+	public void writeCsvReport(CSVWriter csvWriter) {
 		DataProvider dataProvider = getEventListDataProvider(view.getEventViewParameters().getEventCategory());
 
 		String[] headerRecord = {$("title"), $("value")};

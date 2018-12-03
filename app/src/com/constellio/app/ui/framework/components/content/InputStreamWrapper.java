@@ -6,7 +6,6 @@ import java.util.List;
 
 public class InputStreamWrapper {
 	private InputStream inputStream;
-	private boolean actionDone = false;
 	private List<SimpleAction> simpleActionList = new ArrayList<>();
 
 	public interface SimpleAction {
@@ -18,11 +17,8 @@ public class InputStreamWrapper {
 	}
 
 	public void doActionIfNotAlreadyDone() {
-		if(!actionDone) {
-			for(SimpleAction simpleAction : simpleActionList) {
-				simpleAction.action(this);
-			}
-			actionDone = true;
+		for(SimpleAction simpleAction : simpleActionList) {
+			simpleAction.action(this);
 		}
 	}
 
@@ -36,13 +32,5 @@ public class InputStreamWrapper {
 
 	public InputStream getInputStream() {
 		return inputStream;
-	}
-
-	public boolean isActionDone() {
-		return actionDone;
-	}
-
-	public void setActionDone(boolean actionDone) {
-		this.actionDone = actionDone;
 	}
 }

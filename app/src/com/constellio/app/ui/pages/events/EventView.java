@@ -8,5 +8,7 @@ import java.util.Map;
 public interface EventView extends BaseView, LogsViewGroup {
 
 	Map<String, String> getParameters();
+	Object[] getTableVisibleProperties();
+	String[] getTableColumn();
 
 }

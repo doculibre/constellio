@@ -6,7 +6,6 @@ import com.constellio.app.ui.framework.components.DateRangePanel;
 import com.constellio.app.ui.framework.components.EventByIdSearchPanel;
 import com.constellio.app.ui.framework.components.EventReportGenerationPanel;
 import com.constellio.app.ui.framework.components.content.InputStreamWrapper;
-import com.constellio.app.ui.framework.components.content.InputStreamWrapper.SimpleAction;
 import com.constellio.app.ui.framework.components.content.LazyStreamRessource;
 import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
@@ -83,17 +82,10 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 			viewLayout.setComponentAlignment(reportGenerationPanel, Alignment.MIDDLE_CENTER);
 		}
 
-
-		inputStreamWrapper = new InputStreamWrapper();
-		inputStreamWrapper.addSimpleAction(new SimpleAction() {
-			@Override
-			public void action(InputStreamWrapper inputStreamWrapper) {
-				inputStreamWrapper.setInputStream(presenter.generateCsvReport());
-			}
-		});
+		inputStreamWrapper = presenter.createInputStreamWrapper();
 		lazyStreamRessource = new LazyStreamRessource(inputStreamWrapper, this.getTitle() + ".csv");
 
-		generateCSVDownloadLink = new DownloadLink(lazyStreamRessource, $("BaseEventCategoryViewImpl.generateCSVRepport"));
+		generateCSVDownloadLink = new DownloadLink(lazyStreamRessource, $("generateCSVRepport"));
 		generateCSVDownloadLink.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 
@@ -104,6 +96,8 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 
 		return viewLayout;
 	}
+
+
 
 	private Panel buildDateRangePanel(Date startDate, Date endDate) {
 		return new DateRangePanel(startDate, endDate) {
@@ -193,7 +187,6 @@ public class BaseEventCategoryViewImpl extends BaseViewImpl implements BaseEvent
 		Table newTable = buildStatisticsTable();
 		viewLayout.replaceComponent(statisticsTable, newTable);
 		statisticsTable = newTable;
-		inputStreamWrapper.setActionDone(false);
 	}
 
 	@Override
