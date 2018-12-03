@@ -71,6 +71,7 @@ import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -708,4 +709,12 @@ public class AppLayerCollectionExtensions {
 		}
 		return null;
 	}
+
+    public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
+		List<AdditionnalRecordField> additionnalFields = new ArrayList<>();
+		for(PagesComponentsExtension extension: pagesComponentsExtensions) {
+			additionnalFields.addAll(extension.getAdditionnalFields(params));
+		}
+		return additionnalFields;
+    }
 }

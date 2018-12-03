@@ -59,6 +59,7 @@ public class User extends RecordWrapper {
 	public static final String AGENT_ENABLED = "agentEnabled";
 	public static final String DEFAULT_PAGE_LENGTH = "defaultPageLength";
 
+
 	private transient Roles roles;
 
 	public User(Record record, MetadataSchemaTypes types, Roles roles) {

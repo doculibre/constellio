@@ -6,6 +6,9 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.RMUser;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
+import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
+import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
@@ -66,7 +69,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		return result;
 	}
 
-	public void saveButtonClicked(ProfileVO profileVO) {
+	public void saveButtonClicked(ProfileVO profileVO, HashMap<String, Object> additionnalMetadataValues) {
 		User user = userServices.getUserInCollection(profileVO.getUsername(), view.getCollection());
 		user.setPhone(profileVO.getPhone());
 		user.setJobTitle(profileVO.getJobTitle());
@@ -96,7 +99,13 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 				authenticationService.changePassword(profileVO.getUsername(), profileVO.getOldPassword(), profileVO.getPassword());
 			}
 
-			recordServices.update(user.getWrappedRecord());
+            Iterator<Map.Entry<String, Object>> additionnalMetadatasIterator = additionnalMetadataValues.entrySet().iterator();
+            while (additionnalMetadatasIterator.hasNext()) {
+                Map.Entry<String, Object> metadataValue = additionnalMetadatasIterator.next();
+                user.set(metadataValue.getKey(), metadataValue.getValue());
+            }
+
+            recordServices.update(user.getWrappedRecord());
 
 			changePhoto(profileVO.getImage());
 
@@ -355,4 +364,8 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	public boolean isPasswordChangeEnabled() {
 		return !ADMIN.equals(username) || new ConstellioEIMConfigs(modelLayerFactory).isAdminPasswordChangeEnabled();
 	}
+
+    public User getUserRecord() {
+        return getCurrentUser();
+    }
 }
