@@ -92,21 +92,26 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	private PasswordField oldPasswordField;
 	@PropertyId("loginLanguageCode")
 	private ComboBox loginLanguageCodeField;
+
+
+
+	//TODO RM Module Extension
 	@PropertyId("startTab")
 	private OptionGroup startTabField;
-	@PropertyId("defaultTabInFolderDisplay")
-	private EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay> defaultTabInFolderDisplay;
 	@PropertyId("defaultPageLength")
 	private EnumWithSmallCodeComboBox defaultPageLength;
 	@PropertyId("defaultTaxonomy")
 	private ListOptionGroup taxonomyField;
-	@PropertyId("agentManuallyDisabled")
-	private CheckBox agentManuallyDisabledField;
-	//TODO RM Module Extension
-	@PropertyId("defaultAdministrativeUnit")
-	private Field defaultAdministrativeUnitField;
+
+//	@PropertyId("defaultTabInFolderDisplay")
+//	private EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay> defaultTabInFolderDisplay;
+//	@PropertyId("defaultAdministrativeUnit")
+//	private Field defaultAdministrativeUnitField;
 	@PropertyId("hideNotActive")
 	private Field hideNotActiveField;
+
+	@PropertyId("agentManuallyDisabled")
+	private CheckBox agentManuallyDisabledField;
 
 
 	private boolean agentManuallyDisabledVisible;
@@ -331,14 +336,6 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 			startTabField.setItemCaption(tab, $("HomeView.tab." + tab));
 		}
 
-		defaultTabInFolderDisplay = new EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay>(DefaultTabInFolderDisplay.class);
-		defaultTabInFolderDisplay.setCaption($("ModifyProfileView.defaultTabInFolderDisplay"));
-		defaultTabInFolderDisplay.setId("defaultTabInFolderDisplay");
-		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.CONTENT,
-				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.CONTENT));
-		defaultTabInFolderDisplay.setItemCaption(DefaultTabInFolderDisplay.METADATA,
-				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.METADATA));
-
 		defaultPageLength = new EnumWithSmallCodeComboBox<SearchPageLength>(SearchPageLength.class);
 		defaultPageLength.setCaption($("ModifyProfileView.searchPageLength"));
 		defaultPageLength.setId("defaultPageLength");
@@ -360,15 +357,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 
 
 		if (presenter.isRMModuleActivated()) {
-			defaultAdministrativeUnitField = new LookupRecordField(AdministrativeUnit.SCHEMA_TYPE, true, false);
-			defaultAdministrativeUnitField.setCaption($("ModifyProfileView.defaultAdministrativeUnit"));
-
 			hideNotActiveField = new CheckBox($("ModifyProfileView.hideNotActive"));
 		} else {
-			defaultAdministrativeUnitField = new TextField();
-			defaultAdministrativeUnitField.setVisible(false);
-			defaultAdministrativeUnitField.setEnabled(false);
-
 			hideNotActiveField = new TextField();
 			hideNotActiveField.setVisible(false);
 			hideNotActiveField.setEnabled(false);
@@ -380,8 +370,8 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		agentManuallyDisabledField.setVisible(agentManuallyDisabledVisible);
 
 		List<Field> allFields = new ArrayList<>(asList(imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
-				phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField, defaultTabInFolderDisplay,
-				taxonomyField, defaultAdministrativeUnitField, defaultPageLength, agentManuallyDisabledField, hideNotActive));
+				phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField,
+				taxonomyField, defaultPageLength, agentManuallyDisabledField, hideNotActiveField));
 		final List<AdditionnalRecordField> additionnalFields = getAdditionnalFields();
 		allFields.addAll(additionnalFields);
 		form = new BaseForm<ProfileVO>(profileVO, this, allFields.toArray(new Field[0])) {
