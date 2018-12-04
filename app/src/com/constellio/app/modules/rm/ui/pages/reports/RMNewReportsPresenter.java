@@ -37,7 +37,6 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 	public List<ReportWithCaptionVO> getSupportedReports() {
 		return Arrays.asList(new ReportWithCaptionVO("Reports.ClassificationPlan", $("Reports.ClassificationPlan")),
 				new ReportWithCaptionVO("Reports.DetailedClassificationPlan", $("Reports.DetailedClassificationPlan")),
-				new ReportWithCaptionVO("Reports.ClassificationPlanByAdministrativeUnit", $("Reports.ClassificationPlanByAdministrativeUnit")),
 				new ReportWithCaptionVO("Reports.ConservationRulesList", $("Reports.ConservationRulesList")),
 				new ReportWithCaptionVO("Reports.ConservationRulesListByAdministrativeUnit", $("Reports.ConservationRulesListByAdministrativeUnit")),
 				new ReportWithCaptionVO("Reports.AdministrativeUnits", $("Reports.AdministrativeUnits")),
@@ -120,6 +119,15 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 		switch (report) {
 			case "Reports.ConservationRulesListByAdministrativeUnit":
 			case "Reports.ClassificationPlanByAdministrativeUnit":
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	public boolean isDetailedClassificationPlan(String reports) {
+		switch (reports) {
+			case "Reports.DetailedClassificationPlan":
 				return true;
 			default:
 				return false;

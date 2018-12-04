@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.components.fields.autocomplete.RecordAuto
 import com.constellio.app.ui.framework.components.tree.LazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.ObjectsResponse;
 import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -47,7 +48,7 @@ public class LookupRecordField extends LookupField<String> {
 
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess,
 							 RecordTextInputDataProvider recordTextInputDataProvider) {
-		this(recordTextInputDataProvider, getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, true));
+		this(recordTextInputDataProvider, getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, true, false));
 	}
 
 	public LookupRecordField(String schemaTypeCode, boolean writeAccess) {
@@ -62,10 +63,11 @@ public class LookupRecordField extends LookupField<String> {
 		this(schemaTypeCode, schemaCode, writeAccess, true, true);
 	}
 
+
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess, boolean showDeactivated,
 							 boolean isShowAllIfHasAccessToManageSecurity) {
 		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess, showDeactivated),
-				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, isShowAllIfHasAccessToManageSecurity));
+				getTreeDataProvider(schemaTypeCode, schemaCode, writeAccess, isShowAllIfHasAccessToManageSecurity, false));
 		this.isShowDeactivated = showDeactivated;
 		setItemConverter(new TaxonomyRecordIdToContextCaptionConverter());
 	}
@@ -83,9 +85,10 @@ public class LookupRecordField extends LookupField<String> {
 		setItemConverter(itemConverter);
 	}
 
-	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,
+	public static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,
 																		boolean writeAccess,
-																		boolean isShowAllIfHasAccessToManageSecurity) {
+																		boolean isShowAllIfHasAccessToManageSecurity,
+																		boolean isRootOnly) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -108,7 +111,28 @@ public class LookupRecordField extends LookupField<String> {
 		for (Taxonomy taxonomy : taxonomies) {
 			String taxonomyCode = taxonomy.getCode();
 			if (StringUtils.isNotBlank(taxonomyCode)) {
-				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess, isShowAllIfHasAccessToManageSecurity));
+				if(!isRootOnly) {
+					dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess,
+							isShowAllIfHasAccessToManageSecurity));
+				} else {
+					dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess,
+							isShowAllIfHasAccessToManageSecurity) {
+						@Override
+						public ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
+							return new ObjectsResponse<>(new ArrayList<String>(), 0L);
+						}
+
+						@Override
+						public boolean hasChildren(String parent) {
+							return false;
+						}
+
+						@Override
+						public boolean isLeaf(String parent) {
+							return true;
+						}
+					});
+				}
 			}
 		}
 
