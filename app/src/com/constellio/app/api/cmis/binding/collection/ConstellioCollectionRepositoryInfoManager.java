@@ -64,7 +64,7 @@ public class ConstellioCollectionRepositoryInfoManager {
 		repositoryInfo.setProductVersion(constellioVersion);
 		repositoryInfo.setVendorName("DocuLibre");
 
-		repositoryInfo.setRootFolder(ROOT_ID);
+		repositoryInfo.setRootFolder(collection);
 
 		repositoryInfo.setThinClientUri("");
 		repositoryInfo.setChangesIncomplete(true);

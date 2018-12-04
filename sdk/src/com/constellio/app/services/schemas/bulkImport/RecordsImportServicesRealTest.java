@@ -104,6 +104,7 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.Schemas.CODE;
 import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
+import static com.constellio.model.services.records.cache.CacheConfig.permanentCache;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQuery.query;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
@@ -119,6 +120,7 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsDisabled
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultilingual;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsReferencing;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsScripted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSystemReserved;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnique;
 import static java.io.File.separator;
@@ -1554,11 +1556,14 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 			bulkImport(importDataProvider, progressionListener, admin);
 			fail("An exception was expected");
 		} catch (ValidationException e) {
-			assertThat(extractingSimpleCodeAndParameters(e, "cyclicDependentIds", "prefix")).containsOnly(
-					tuple("RecordsImportServices_cyclicDependencies", "1, 2, 3, 4", "Ze type de schéma : ")
-			);
 			assertThat(frenchMessages(e)).containsOnly(
-					"Ze type de schéma : Il y a une dépendance cyclique entre les enregistrements importés avec ids «1, 2, 3, 4»");
+					"Ze type de schéma 1 : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «2» à la métadonnée «parentReferenceFromZeSchemaToZeSchema»",
+					"Ze type de schéma 2 : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «3» à la métadonnée «parentReferenceFromZeSchemaToZeSchema»",
+					"Ze type de schéma 3 : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «4» à la métadonnée «parentReferenceFromZeSchemaToZeSchema»",
+					"Ze type de schéma 4 : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «2» à la métadonnée «parentReferenceFromZeSchemaToZeSchema»",
+					"Ze type de schéma 4 : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «2» à la métadonnée «parentReferenceFromZeSchemaToZeSchema»",
+					"Ze type de schéma : Il y a possiblement une dépendance cyclique entre les enregistrements importés avec ids «1, 2, 3, 4»");
+
 		}
 	}
 
@@ -1717,15 +1722,15 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		assertThat(resolver.cache).hasSize(2).containsKey(zeSchema.typeCode()).containsKey(anotherSchema.typeCode());
 		assertThat(resolver.getSchemaTypeCache(zeSchema.typeCode(), LEGACY_ID_LOCAL_CODE).idsMapping)
 				.hasSize(1).containsEntry("previouslySavedRecordLegacyId", "previouslySavedRecordId");
-		assertThat(resolver.getSchemaTypeCache(zeSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedLegacyIds.getNestedMap())
+		assertThat(resolver.getSchemaTypeCache(zeSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedUniqueValues.getNestedMap())
 				.isEmpty();
 
 		assertThat(resolver.getSchemaTypeCache(anotherSchema.typeCode(), LEGACY_ID_LOCAL_CODE).idsMapping).isEmpty();
-		assertThat(resolver.getSchemaTypeCache(anotherSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedLegacyIds.getNestedMap())
+		assertThat(resolver.getSchemaTypeCache(anotherSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedUniqueValues.getNestedMap())
 				.isEmpty();
 
 		assertThat(resolver.getSchemaTypeCache(thirdSchema.typeCode(), LEGACY_ID_LOCAL_CODE).idsMapping).isEmpty();
-		assertThat(resolver.getSchemaTypeCache(thirdSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedLegacyIds.getNestedMap())
+		assertThat(resolver.getSchemaTypeCache(thirdSchema.typeCode(), LEGACY_ID_LOCAL_CODE).unresolvedUniqueValues.getNestedMap())
 				.isEmpty();
 	}
 
@@ -2651,6 +2656,107 @@ public class RecordsImportServicesRealTest extends ConstellioTest {
 		bulkImport(importDataProvider, progressionListener, admin);
 
 		validateCorrectlyImported();
+
+	}
+
+	@Test
+	public void givenImportingUsingUniqueCalculatedMetadataOfCachedRecordsWhenFallbackOnTransactionCacheThenResolveDependencies()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata(whichIsUnique, whichIsScripted("'code' + anotherStringMetadata"))
+				.withAnotherStringMetadata()
+				.withAStringMetadataInCustomSchema()
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(schemas.zeDefaultSchemaType()));
+
+		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title")
+				.set(zeSchema.anotherStringMetadata(), "0"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code2")
+				.addField("anotherStringMetadata", "1"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code3")
+				.addField("anotherStringMetadata", "2"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code42")
+				.addField("anotherStringMetadata", "3"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 42")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code0")
+				.addField("anotherStringMetadata", "42"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setSchema("custom").setId("43").addField("title", "Record 43")
+				.addField("customString", "customFieldValue")
+				.addField("anotherStringMetadata", "43"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("666").addField("title", "Ze record")
+				.addField("referenceFromAnotherSchemaToZeSchema", "stringMetadata:code1"));
+
+		bulkImport(importDataProvider, progressionListener, admin);
+
+
+	}
+
+
+	@Test
+	public void givenImportingUsingUniqueCalculatedMetadataOfCachedRecordsWhenCannotFindReferenceWhileFallbackingOnTransactionCacheThenValidationError()
+			throws Exception {
+
+		defineSchemasManager().using(schemas.andCustomSchema()
+				.withAStringMetadata(whichIsUnique, whichIsScripted("'code' + anotherStringMetadata"))
+				.withAnotherStringMetadata()
+				.withAStringMetadataInCustomSchema()
+				.withAParentReferenceFromZeSchemaToZeSchema()
+				.withAParentReferenceFromAnotherSchemaToZeSchema());
+
+		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).configureCache(permanentCache(schemas.zeDefaultSchemaType()));
+
+		getModelLayerFactory().newRecordServices().add(new TestRecord(zeSchema, "previouslySavedRecordId")
+				.set(LEGACY_ID, "previouslySavedRecordLegacyId").set(TITLE, "title")
+				.set(zeSchema.anotherStringMetadata(), "0"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("1").addField("title", "Record 1")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code666")
+				.addField("anotherStringMetadata", "1"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("2").addField("title", "Record 2")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code3")
+				.addField("anotherStringMetadata", "2"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("3").addField("title", "Record 3")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code42")
+				.addField("anotherStringMetadata", "3"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setId("42").addField("title", "Record 42")
+				.addField("parentReferenceFromZeSchemaToZeSchema", "stringMetadata:code0")
+				.addField("anotherStringMetadata", "42"));
+
+		zeSchemaTypeRecords.add(defaultSchemaData().setSchema("custom").setId("43").addField("title", "Record 43")
+				.addField("customString", "customFieldValue")
+				.addField("anotherStringMetadata", "43"));
+
+		anotherSchemaTypeRecords.add(defaultSchemaData().setId("666").addField("title", "Ze record")
+				.addField("referenceFromAnotherSchemaToZeSchema", "stringMetadata:code1"));
+
+
+		try {
+			bulkImport(importDataProvider, progressionListener, admin);
+			fail("An exception was expected");
+		} catch (ValidationException e) {
+
+			assertThat(frenchMessages(e.getValidationErrors().getValidationErrors())).containsOnly(
+					"Ze type de schéma 1 : Aucun enregistrement de type «Ze type de schéma» n’a la valeur «code666» à la métadonnée «parentReferenceFromZeSchemaToZeSchema»",
+					"Ze type de schéma : Il y a possiblement une dépendance cyclique entre les enregistrements importés avec ids «1»"
+			);
+
+		}
 
 	}
 
