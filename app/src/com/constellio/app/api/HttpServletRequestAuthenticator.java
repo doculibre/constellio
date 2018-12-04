@@ -7,12 +7,14 @@ import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
+import com.constellio.model.services.users.UserServicesRuntimeException;
 import com.constellio.model.services.users.UserServicesRuntimeException.UserServicesRuntimeException_UserIsNotInCollection;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
+import java.nio.charset.Charset;
 import java.security.Principal;
 
 public class HttpServletRequestAuthenticator {
@@ -21,6 +23,7 @@ public class HttpServletRequestAuthenticator {
 	public static final String USER_SERVICE_KEY = "serviceKey";
 	public static final String USER_TOKEN = "token";
 	public static final String COLLECTION = "collection";
+	public static final String USERNAME = "username";
 
 	static AuthCache authCache = new AuthCache(Duration.standardMinutes(2));
 
@@ -111,6 +114,33 @@ public class HttpServletRequestAuthenticator {
 			collection = request.getParameter(COLLECTION);
 		}
 		return collection;
+	}
+
+	public UserCredential authenticateUsingUsername(HttpServletRequest request) {
+		String username = request.getHeader(USERNAME);
+		String userToken = request.getHeader(USER_TOKEN);
+
+		UserServices userServices = modelLayerFactory.newUserServices();
+		try {
+			byte[] tokenOrPassword = userToken.getBytes(Charset.forName("UTF-8"));
+
+			boolean authenticated = modelLayerFactory.newAuthenticationService().authenticate(username, new String(tokenOrPassword));
+			UserCredential userCredential = userServices.getUser(username);
+			if (!authenticated) {
+				authenticated = userCredential.getTokenKeys().contains(new String(tokenOrPassword));
+			}
+
+			if (authenticated) {
+				return userServices.getUser(username);
+			} else {
+				LOGGER.warn("Cannot authentify user - Bad token or password");
+				return null;
+			}
+
+		} catch (UserServicesRuntimeException.UserServicesRuntimeException_NoSuchUser | UserServicesRuntimeException_UserIsNotInCollection e) {
+			LOGGER.warn("Cannot authentify user ", e);
+			return null;
+		}
 	}
 
 	public User authenticateSystemAdminInCollection(HttpServletRequest request) {
