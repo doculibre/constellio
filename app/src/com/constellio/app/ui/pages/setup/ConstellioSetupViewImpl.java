@@ -228,7 +228,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 			@Override
 			protected void saveButtonClick(ConstellioSetupBean viewObject)
 					throws ValidationException {
-				new Thread() {
+				UI.getCurrent().access(new Runnable() {
 					@Override
 					public void run() {
 						if (!presenter.isLoadSaveState()) {
@@ -258,7 +258,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 							}
 						}
 					}
-				}.start();
+				});
 			}
 
 			@Override

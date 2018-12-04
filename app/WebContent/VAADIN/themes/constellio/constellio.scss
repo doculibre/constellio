@@ -549,6 +549,11 @@ $popup-view-z-index: 3;
     	}
     }
    
+   	.panel-no-scroll {
+   		overflow-x: hidden;
+   		overflow-y: hidden;		
+   	}
+   
     .viewable-record-window {
    		width: 100%;
    		

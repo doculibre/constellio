@@ -20,11 +20,14 @@ import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.Page;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.Field;
+import com.vaadin.ui.Panel;
+import com.vaadin.ui.themes.ValoTheme;
 
 public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocumentView {
 
 	private final AddEditDocumentPresenter presenter;
 	private RecordVO recordVO;
+//	private Panel recordFormPanel;
 	private DocumentFormImpl recordForm;
 	private I18NHorizontalLayout mainLayout;
 	private boolean popup;
@@ -87,11 +90,13 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 			mainLayout.setSpacing(true);
 			
 			ContentViewer contentViewer = new ContentViewer(recordVO, Document.CONTENT, contentVersionVO);
-			mainLayout.addComponent(contentViewer);
+			mainLayout.addComponents(contentViewer, recordForm);
 			
 			recordForm.setWidth("700px");
+			mainLayout.setExpandRatio(contentViewer, 1);
+		} else {
+			mainLayout.addComponent(recordForm);
 		}
-		mainLayout.addComponent(recordForm);
 		return mainLayout;
 	}
 

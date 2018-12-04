@@ -12892,6 +12892,11 @@ div.v-layout.v-horizontal.v-widget {
 	overflow-y: auto;
 }
 
+.constellio .panel-no-scroll {
+	overflow-x: hidden;
+	overflow-y: hidden;
+}
+
 .constellio .viewable-record-window {
 	width: 100%;
 }

@@ -175,7 +175,8 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 	}
 
 	public String getDefaultOrderField() {
-		return Schemas.CODE.getLocalCode();
+		Taxonomy taxonomy = fetchTaxonomy(getTaxonomy().getCode());
+		return appCollectionExtentions.getSortMetadataCode(taxonomy);
 	}
 
 	public void searchConcept(String freeText) {

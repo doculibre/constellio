@@ -245,11 +245,14 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		versionTable.setSizeFull();
 
 		Panel recordDisplayPanel = new Panel(recordDisplay);
+		recordDisplayPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+		recordDisplayPanel.addStyleName("panel-no-scroll");
 		recordDisplayPanel.setSizeFull();
-//		recordDisplay.setHeight(Page.getCurrent().getBrowserWindowHeight() - 1, Unit.PIXELS);
-//		recordDisplayPanel.setWidth("100%");
-//		int recordDisplayHeight = Page.getCurrent().getBrowserWindowHeight();
-//		recordDisplayPanel.setHeight(recordDisplayHeight, Unit.PIXELS);
+		int otherElementsHeight = 0;
+		recordDisplay.setHeight(Page.getCurrent().getBrowserWindowHeight() - otherElementsHeight - 1, Unit.PIXELS);
+		recordDisplayPanel.setWidth("100%");
+		int recordDisplayHeight = Page.getCurrent().getBrowserWindowHeight() /*- otherElementsHeight */;
+		recordDisplayPanel.setHeight(recordDisplayHeight, Unit.PIXELS);
 		
 		tabSheet.addTab(recordDisplayPanel, $("DisplayDocumentView.tabs.metadata"));
 		tabSheet.addTab(buildVersionTab(), $("DisplayDocumentView.tabs.versions"));
