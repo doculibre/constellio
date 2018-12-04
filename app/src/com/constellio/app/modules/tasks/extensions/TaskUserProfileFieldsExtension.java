@@ -23,6 +23,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.SchemaUtils;
+import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.Field;
 
@@ -33,11 +34,14 @@ import java.util.List;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class TaskUserFieldsExtension extends PagesComponentsExtension {
+public class TaskUserProfileFieldsExtension extends PagesComponentsExtension {
 	String collection;
 	AppLayerFactory appLayerFactory;
 
-	public TaskUserFieldsExtension(String collection, AppLayerFactory appLayerFactory) {
+	@PropertyId("test")
+	Field champ1;
+
+	public TaskUserProfileFieldsExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 	}
@@ -59,7 +63,7 @@ public class TaskUserFieldsExtension extends PagesComponentsExtension {
 
         TaskToVOBuilder taskToVOBuilder = new TaskToVOBuilder();
         TaskFollower taskFollower = user.get(TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK);
-        AdditionalTaskFollowerFieldImpl taskFollowerField = new AdditionalTaskFollowerFieldImpl();
+		TaskFollowerAdditionalFieldImpl taskFollowerField = new TaskFollowerAdditionalFieldImpl();
         taskFollowerField.setCaption(appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(user.getWrappedRecord())
                 .getMetadata(TaskUser.DEFAULT_FOLLOWER_WHEN_CREATING_TASK)
                 .getLabel(Language.withLocale(params.getMainComponent().getSessionContext().getCurrentLocale())));
@@ -77,7 +81,7 @@ public class TaskUserFieldsExtension extends PagesComponentsExtension {
         User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
         Boolean isAssigningTaskAutomatically = user.get(TaskUser.ASSIGN_TASK_AUTOMATICALLY);
-        AutoAssigningTaskAdditionFieldImpl autoAssigningField = new AutoAssigningTaskAdditionFieldImpl();
+        AutoAssigningTaskAdditionalFieldImpl autoAssigningField = new AutoAssigningTaskAdditionalFieldImpl();
         autoAssigningField.setImmediate(true);
 		autoAssigningField.setCaption(appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(user.getWrappedRecord())
 				.getMetadata(TaskUser.ASSIGN_TASK_AUTOMATICALLY)
@@ -92,7 +96,7 @@ public class TaskUserFieldsExtension extends PagesComponentsExtension {
         return autoAssigningField;
     }
 
-	private class AdditionalTaskFollowerFieldImpl extends TaskFollowerFieldImpl implements AdditionnalRecordField<TaskFollowerVO> {
+	private class TaskFollowerAdditionalFieldImpl extends TaskFollowerFieldImpl implements AdditionnalRecordField<TaskFollowerVO> {
 
 		@Override
 		public String getMetadataLocalCode() {
@@ -126,7 +130,7 @@ public class TaskUserFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class AutoAssigningTaskAdditionFieldImpl extends CheckBox implements AdditionnalRecordField<Boolean>{
+	private class AutoAssigningTaskAdditionalFieldImpl extends CheckBox implements AdditionnalRecordField<Boolean>{
 
         @Override
         public String getMetadataLocalCode() {

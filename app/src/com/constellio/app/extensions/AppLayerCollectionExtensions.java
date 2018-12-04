@@ -35,6 +35,7 @@ import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnPara
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;

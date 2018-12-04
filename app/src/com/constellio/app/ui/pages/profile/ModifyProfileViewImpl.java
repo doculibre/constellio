@@ -93,29 +93,6 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	@PropertyId("loginLanguageCode")
 	private ComboBox loginLanguageCodeField;
 
-
-
-	//TODO RM Module Extension
-	@PropertyId("startTab")
-	private OptionGroup startTabField;
-	@PropertyId("defaultPageLength")
-	private EnumWithSmallCodeComboBox defaultPageLength;
-	@PropertyId("defaultTaxonomy")
-	private ListOptionGroup taxonomyField;
-
-//	@PropertyId("defaultTabInFolderDisplay")
-//	private EnumWithSmallCodeOptionGroup<DefaultTabInFolderDisplay> defaultTabInFolderDisplay;
-//	@PropertyId("defaultAdministrativeUnit")
-//	private Field defaultAdministrativeUnitField;
-	@PropertyId("hideNotActive")
-	private Field hideNotActiveField;
-
-	@PropertyId("agentManuallyDisabled")
-	private CheckBox agentManuallyDisabledField;
-
-
-	private boolean agentManuallyDisabledVisible;
-
 	ModifyProfilePresenter presenter;
 
 	public ModifyProfileViewImpl() {
@@ -329,57 +306,16 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 		}
 		loginLanguageCodeField.setEnabled(true);
 
-		startTabField = new OptionGroup($("ModifyProfileView.startTab"));
-		startTabField.setId("startTab");
-		for (String tab : presenter.getAvailableHomepageTabs()) {
-			startTabField.addItem(tab);
-			startTabField.setItemCaption(tab, $("HomeView.tab." + tab));
-		}
-
-		defaultPageLength = new EnumWithSmallCodeComboBox<SearchPageLength>(SearchPageLength.class);
-		defaultPageLength.setCaption($("ModifyProfileView.searchPageLength"));
-		defaultPageLength.setId("defaultPageLength");
-		defaultPageLength.setNullSelectionAllowed(false);
-		//		defaultPageLength.setItemCaption(DefaultTabInFolderDisplay.CONTENT,
-		//				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.CONTENT));
-		//		defaultPageLength.setItemCaption(DefaultTabInFolderDisplay.METADATA,
-		//				$("defaultTabInFolderDisplay." + DefaultTabInFolderDisplay.METADATA));
-
-		taxonomyField = new ListOptionGroup($("ModifyProfileView.defaultTaxonomy"));
-		taxonomyField.addStyleName("defaultTaxonomy");
-		taxonomyField.setId("defaultTaxonomy");
-		taxonomyField.setMultiSelect(false);
-		taxonomyField.setRequired(false);
-		for (TaxonomyVO value : presenter.getEnabledTaxonomies()) {
-			taxonomyField.addItem(value.getCode());
-			taxonomyField.setItemCaption(value.getCode(), value.getTitle());
-		}
-
-
-		if (presenter.isRMModuleActivated()) {
-			hideNotActiveField = new CheckBox($("ModifyProfileView.hideNotActive"));
-		} else {
-			hideNotActiveField = new TextField();
-			hideNotActiveField.setVisible(false);
-			hideNotActiveField.setEnabled(false);
-		}
-
-		agentManuallyDisabledField = new CheckBox($("ModifyProfileView.agentManuallyDisabled"));
-		agentManuallyDisabledField.setId("agentManuallyDisabled");
-		agentManuallyDisabledField.addStyleName("agentManuallyDisabled");
-		agentManuallyDisabledField.setVisible(agentManuallyDisabledVisible);
-
-		List<Field> allFields = new ArrayList<>(asList(imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
-				phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField, startTabField,
-				taxonomyField, defaultPageLength, agentManuallyDisabledField, hideNotActiveField));
-		final List<AdditionnalRecordField> additionnalFields = getAdditionnalFields();
-		allFields.addAll(additionnalFields);
+		List<Field> allFields = new ArrayList<Field>(asList(imageField, usernameField, firstNameField, lastNameField, emailField, personalEmailsField,
+				phoneField, faxField, jobTitleField, addressField, passwordField, confirmPasswordField, oldPasswordField, loginLanguageCodeField));
+		final List<AdditionnalRecordField> configFields = getAdditionnalFields();
+		allFields.addAll(configFields);
 		form = new BaseForm<ProfileVO>(profileVO, this, allFields.toArray(new Field[0])) {
 			@Override
 			protected void saveButtonClick(ProfileVO profileVO)
 					throws ValidationException {
 				HashMap<String, Object> additionnalMetadataValues = new HashMap<>();
-				for(AdditionnalRecordField field: additionnalFields) {
+				for(AdditionnalRecordField field: configFields) {
 					field.commit();
 					additionnalMetadataValues.put(field.getMetadataLocalCode(), field.getCommittableValue());
 				}
@@ -430,11 +366,6 @@ public class ModifyProfileViewImpl extends BaseViewImpl implements ModifyProfile
 	@Override
 	public void updateUI() {
 		ConstellioUI.getCurrent().updateContent();
-	}
-
-	@Override
-	public void setAgentManuallyDisabledVisible(boolean visible) {
-		this.agentManuallyDisabledVisible = visible;
 	}
 
 	public List<AdditionnalRecordField> getAdditionnalFields() {
