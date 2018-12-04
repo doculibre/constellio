@@ -262,26 +262,19 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	private void exportToXML(RecordExportOptions options) {
 		String filename = "exportedData-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
 
-		if (appLayerFactory.getSystemGlobalConfigsManager().hasLastReindexingFailed()) {
-			view.showErrorMessage($("ExportView.lastReindexingFailed"));
-
-		} else {
-
-			ExportAudit newExportAudit = createNewExportAudit();
-			File zip = null;
-			try {
-				RecordExportServices recordExportServices = new RecordExportServices(appLayerFactory);
-				zip = recordExportServices.exportRecordsAndZip("SDK Stream", options);
-				view.startDownload(filename, new FileInputStream(zip), "application/zip");
-			} catch (Throwable t) {
-				String error = "Error while generating savestate";
-				//				newExportAudit.setErrors(asList(error));
-				LOGGER.error(error, t);
-				view.showErrorMessage($("ExportView.error"));
-			} finally {
-				if (zip != null) {
-					completeImportExportAudit(newExportAudit, zip);
-				}
+		ExportAudit newExportAudit = createNewExportAudit();
+		File zip = null;
+		try {
+			RecordExportServices recordExportServices = new RecordExportServices(appLayerFactory);
+			zip = recordExportServices.exportRecordsAndZip("SDK Stream", options);
+			view.startDownload(filename, new FileInputStream(zip), "application/zip");
+		} catch (Throwable t) {
+			String error = "Error while generating savestate";
+			LOGGER.error(error, t);
+			view.showErrorMessage($("ExportView.error"));
+		} finally {
+			if (zip != null) {
+				completeImportExportAudit(newExportAudit, zip);
 			}
 		}
 	}
