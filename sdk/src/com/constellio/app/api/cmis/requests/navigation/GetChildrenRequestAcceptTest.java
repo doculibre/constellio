@@ -164,7 +164,7 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 	@Test
 	public void whenGettingChildrenOnRootThenCorrectChildrenReturned()
 			throws Exception {
-		ItemIterable<CmisObject> obtainedChildren = getChildrenOfObject("@root@");
+		ItemIterable<CmisObject> obtainedChildren = getChildrenOfObject("zeCollection");
 		validateThat(obtainedChildren).hasChildrenIds("taxo_taxo1", "taxo_taxo2")
 				.withPaths("/taxo_taxo1", "/taxo_taxo2");
 	}
@@ -224,7 +224,7 @@ public class GetChildrenRequestAcceptTest extends ConstellioTest {
 
 	private ItemIterable<CmisObject> getChildrenOfObject(String objectId) {
 		CmisObject object;
-		if ("@root@".equals(objectId)) {
+		if ("zeCollection".equals(objectId)) {
 			object = cmisSession.getRootFolder();
 		} else {
 			object = cmisSession.getObject(objectId);
