@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,7 +42,7 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 	private SavedSearchPresenter presenter;
 	private RecordServices recordServices;
 	private RecordToVOBuilder voBuilder;
-	private User adminUser;
+	private User adminUser, aliceUser, bobUser;
 	private SessionContext sessionContext;
 
 	@Before
@@ -53,6 +54,8 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 		prepareSystem(withZeCollection().withConstellioRMModule().withAllTestUsers());
 		defineSchemasManager().using(setup);
 		adminUser = getModelLayerFactory().newUserServices().getUserInCollection(admin, zeCollection);
+		aliceUser = getModelLayerFactory().newUserServices().getUserInCollection(alice, zeCollection);
+		bobUser = getModelLayerFactory().newUserServices().getUserInCollection(bob, zeCollection);
 		sessionContext = FakeSessionContext.forRealUserIncollection(adminUser);
 		when(view.getSessionContext()).thenReturn(sessionContext);
 		when(view.getCollection()).thenReturn(zeCollection);
@@ -67,10 +70,10 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 	@Test
 	public void givenUserAndPublicSearchesThenAllDataProvidersOk()
 			throws Exception {
-		SavedSearch userSavedSearch1 = newSavedSearch(adminUser.getId(), false);
-		SavedSearch userSavedSearch2 = newSavedSearch(adminUser.getId(), false);
-		SavedSearch publicSavedSearch1 = newSavedSearch(null, true);
-		SavedSearch publicSavedSearch2 = newSavedSearch(null, true);
+		SavedSearch userSavedSearch1 = newSavedSearch(adminUser, false);
+		SavedSearch userSavedSearch2 = newSavedSearch(adminUser, false);
+		SavedSearch publicSavedSearch1 = newSavedSearch(adminUser, true);
+		SavedSearch publicSavedSearch2 = newSavedSearch(adminUser, true);
 
 		verifyThat(presenter.getUserSearchesDataProvider()).containsOnly(userSavedSearch1, userSavedSearch2);
 		verifyThat(presenter.getPublicSearchesDataProvider()).containsOnly(publicSavedSearch1, publicSavedSearch2);
@@ -80,17 +83,20 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 	public void whenEditingSavedSearchThenEditedProperly()
 			throws Exception {
 
-		SavedSearch userSavedSearch1 = newSavedSearch(adminUser.getId(), false);
+		SavedSearch userSavedSearch1 = newSavedSearch(adminUser, false);
 
 		RecordVO recordVO = toVO(userSavedSearch1);
 		recordVO.setTitle("New Title");
 		recordVO.set(SavedSearch.PUBLIC, true);
-		presenter.searchModificationRequested(recordVO.getId(), "New Title", true);
+		presenter.searchModificationRequested(recordVO.getId(), "New Title", true,
+				aliceUser.getUserGroups(), singletonList(aliceUser.getId()));
 
 		userSavedSearch1 = new SavedSearch(recordServices.getDocumentById(userSavedSearch1.getId()), setup.getTypes());
 
 		assertThat(userSavedSearch1.getTitle()).isEqualTo("New Title");
 		assertThat(userSavedSearch1.isPublic()).isTrue();
+		assertThat(userSavedSearch1.getSharedUsers()).containsOnly(aliceUser.getId());
+		assertThat(userSavedSearch1.getSharedGroups()).containsOnly(aliceUser.getUserGroups().toArray(new String[0]));
 		verify(navigator.to()).listSavedSearches();
 	}
 
@@ -100,7 +106,7 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 		MockedNavigation navigator = new MockedNavigation();
 		when(view.navigate()).thenReturn(navigator);
 
-		SavedSearch userSavedSearch1 = newSavedSearch(adminUser.getId(), false);
+		SavedSearch userSavedSearch1 = newSavedSearch(adminUser, false);
 		RecordVO recordVO = toVO(userSavedSearch1);
 
 		presenter.deleteButtonClicked(recordVO);
@@ -112,20 +118,42 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 		}
 	}
 
+	@Test
+	public void whenSavingRestrictedUserPublicSearchThenNotSharedToOtherUser() throws Exception {
+		newSavedSearch(aliceUser, true, singletonList(bobUser.getId()), null);
+		assertThat(verifyThat(presenter.getPublicSearchesDataProvider()).recordsIds).isEmpty();
+	}
+
+	@Test
+	public void whenSavingRestrictedGroupPublicSearchThenNotSharedToUserNotInGroup() throws Exception {
+		newSavedSearch(aliceUser, true, null, aliceUser.getUserGroups());
+		assertThat(verifyThat(presenter.getPublicSearchesDataProvider()).recordsIds).isEmpty();
+	}
+
 	public RecordVO toVO(SavedSearch userSavedSearch1) {
 		return voBuilder.build(userSavedSearch1.getWrappedRecord(), VIEW_MODE.FORM, sessionContext);
 	}
 
-	public SavedSearch newSavedSearch(String userId, boolean isPublic)
+	private SavedSearch newSavedSearch(User user, boolean isPublic) throws RecordServicesException {
+		return newSavedSearch(user, isPublic, null, null);
+	}
+
+	private SavedSearch newSavedSearch(User user, boolean isPublic, List<String> users, List<String> groups)
 			throws RecordServicesException {
 		SavedSearch savedSearch = new SavedSearch(recordServices.newRecordWithSchema(setup.getSchema(
 				SavedSearch.DEFAULT_SCHEMA)), setup.getTypes());
 		savedSearch.setAdvancedSearch(Arrays.asList(stringCriterion()));
-		if (userId != null) {
-			savedSearch.setUser(adminUser.getId());
+		if (user != null) {
+			savedSearch.setUser(user.getId());
+		}
+		if (users != null) {
+			savedSearch.setSharedUsers(users);
+		}
+		if (groups != null) {
+			savedSearch.setSharedGroups(groups);
 		}
 		savedSearch.setPublic(isPublic);
-		recordServices.add(savedSearch, adminUser);
+		recordServices.add(savedSearch, user);
 		return savedSearch;
 	}
 

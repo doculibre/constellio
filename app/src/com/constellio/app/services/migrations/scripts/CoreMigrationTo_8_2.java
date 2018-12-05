@@ -7,6 +7,7 @@ import com.constellio.app.modules.core.CoreTypes;
 import com.constellio.app.modules.rm.model.calculators.UserDocumentContentSizeCalculator;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.model.entities.calculators.SavedSearchRestrictedCalculator;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
@@ -15,6 +16,7 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.Group;
+import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.schemas.LegacyGlobalMetadatas;
@@ -198,6 +200,20 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 				userSchema.createUndeletable(User.USER_DOCUMENT_SIZE_SUM)
 						.setType(MetadataValueType.NUMBER).setEssential(false).defineDataEntry()
 						.asSum(userDocumentSchema.getMetadata(UserDocument.USER), userDocumentContentSize);
+			}
+
+			MetadataSchemaBuilder savedSearchSchema = typesBuilder.getDefaultSchema(SavedSearch.SCHEMA_TYPE);
+			if (!savedSearchSchema.hasMetadata(SavedSearch.SHARED_USERS)) {
+				savedSearchSchema.createUndeletable(SavedSearch.SHARED_USERS).setType(MetadataValueType.STRING)
+						.setMultivalue(true);
+			}
+			if (!savedSearchSchema.hasMetadata(SavedSearch.SHARED_GROUPS)) {
+				savedSearchSchema.createUndeletable(SavedSearch.SHARED_GROUPS).setType(MetadataValueType.STRING)
+						.setMultivalue(true);
+			}
+			if (!savedSearchSchema.hasMetadata(SavedSearch.RESTRICTED)) {
+				savedSearchSchema.createUndeletable(SavedSearch.RESTRICTED).setType(MetadataValueType.BOOLEAN)
+						.setEssential(false).defineDataEntry().asCalculated(SavedSearchRestrictedCalculator.class);
 			}
 		}
 	}
