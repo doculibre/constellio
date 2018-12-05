@@ -133,8 +133,7 @@ public class DocumentContentVersionPresenter implements Serializable {
 	}
 
 	private boolean isCheckOutLinkVisible() {
-		return hasWritePermission() && !isCheckedOut() && isLatestVersion() && !Email.SCHEMA
-				.equals(documentVO.getSchema().getCode());
+		return hasWritePermission() && !isCheckedOut() && isLatestVersion() && !rmSchemasRecordsServices.isEmail(contentVersionVO.getFileName());
 	}
 
 	public void displayDocumentLinkClicked() {
