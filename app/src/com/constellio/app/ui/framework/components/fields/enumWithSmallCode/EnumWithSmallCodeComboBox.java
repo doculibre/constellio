@@ -34,13 +34,10 @@ public class EnumWithSmallCodeComboBox<E extends EnumWithSmallCode> extends Base
 	@Override
 	public void setOptions(List<EnumWithSmallCode> enumConstants) {
 		if (!enumConstants.isEmpty()) {
-			final Class enumClass = enumConstants.get(0).getClass();
 			Collections.sort(enumConstants, new Comparator<EnumWithSmallCode>() {
 				@Override
 				public int compare(EnumWithSmallCode o1, EnumWithSmallCode o2) {
-					String caption1 = $(enumWithSmallCodeClass.getSimpleName() + "." + o1.getCode());
-					String caption2 = $(enumWithSmallCodeClass.getSimpleName() + "." + o2.getCode());
-					return caption1.compareTo(caption2);
+					return EnumWithSmallCodeComboBox.this.compare(o1, o2);
 				}
 			});
 		}
@@ -69,4 +66,9 @@ public class EnumWithSmallCodeComboBox<E extends EnumWithSmallCode> extends Base
 		return ConstellioUI.getCurrentSessionContext();
 	}
 
+	protected int compare(EnumWithSmallCode o1, EnumWithSmallCode o2) {
+		String caption1 = $(enumWithSmallCodeClass.getSimpleName() + "." + o1.getCode());
+		String caption2 = $(enumWithSmallCodeClass.getSimpleName() + "." + o2.getCode());
+		return caption1.compareTo(caption2);
+	}
 }
