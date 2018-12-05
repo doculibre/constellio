@@ -219,21 +219,23 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 			List<String> ancestorsAndSelf = new ArrayList<>(record.<String>getList(Schemas.ATTACHED_ANCESTORS));
 
 			for (String ancestorId : ancestorsAndSelf) {
-				Record ancestor = recordServices().getDocumentById(ancestorId);
-				MetadataSchema metadataSchema = schema(ancestor.getSchemaCode());
+				if (!ancestorId.startsWith("-")) {
+					Record ancestor = recordServices().getDocumentById(ancestorId);
+					MetadataSchema metadataSchema = schema(ancestor.getSchemaCode());
 
-				for (Metadata metadata : metadataSchema.getMetadatas().onlyWithType(MetadataValueType.REFERENCE)) {
-					if (metadata.isRelationshipProvidingSecurity()) {
-						for (String referenceId : ancestor.<String>getValues(metadata)) {
-							Record reference = recordServices().getDocumentById(referenceId);
-							List<Authorization> referenceAuthorizations = authorizationsServices()
-									.getRecordAuthorizations(reference);
-							for (Authorization authorization : referenceAuthorizations) {
-								AuthorizationReceivedFromMetadata auth = new AuthorizationReceivedFromMetadata();
-								auth.authorization = authorization;
-								auth.metadata = metadata;
-								auth.receivedFrom = reference;
-								authorizationsReceivedFromMetadatas.add(auth);
+					for (Metadata metadata : metadataSchema.getMetadatas().onlyWithType(MetadataValueType.REFERENCE)) {
+						if (metadata.isRelationshipProvidingSecurity()) {
+							for (String referenceId : ancestor.<String>getValues(metadata)) {
+								Record reference = recordServices().getDocumentById(referenceId);
+								List<Authorization> referenceAuthorizations = authorizationsServices()
+										.getRecordAuthorizations(reference);
+								for (Authorization authorization : referenceAuthorizations) {
+									AuthorizationReceivedFromMetadata auth = new AuthorizationReceivedFromMetadata();
+									auth.authorization = authorization;
+									auth.metadata = metadata;
+									auth.receivedFrom = reference;
+									authorizationsReceivedFromMetadatas.add(auth);
+								}
 							}
 						}
 					}
