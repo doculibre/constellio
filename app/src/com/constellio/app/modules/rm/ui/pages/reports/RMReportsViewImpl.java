@@ -1,13 +1,13 @@
 package com.constellio.app.modules.rm.ui.pages.reports;
 
-import com.constellio.app.modules.rm.ui.pages.reports.CategoryReportParams.Selected;
+import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleListAddRemoveAdministrativeUnitLookupField;
+import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
-import com.constellio.app.ui.framework.components.BaseForm;
-import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
@@ -15,7 +15,6 @@ import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeListener;
@@ -28,11 +27,13 @@ import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Field;
-import com.vaadin.ui.Field.ValueChangeEvent;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.OptionGroup;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.Reindeer;
 import com.vaadin.ui.themes.ValoTheme;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 
@@ -45,6 +46,11 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 
 	public RMReportsViewImpl() {
 		presenter = new RMNewReportsPresenter(this);
+	}
+
+	public enum Selected {
+		All,
+		Select
 	}
 
 	@Override
@@ -60,7 +66,59 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 
 		for (ReportWithCaptionVO report : presenter.getSupportedReports()) {
 			if(presenter.isDetailedClassificationPlan(report.getTitle())) {
-				WindowButton windowButton = getCategoryRootLookupButton(report);
+				final Field field = new ListAddRemoveRecordLookupField(AdministrativeUnit.SCHEMA_TYPE) {
+					@Override
+					protected LookupRecordField newAddEditField() {
+						LookupRecordField field = new LookupRecordField(
+								new RecordTextInputDataProvider(getConstellioFactories(), getSessionContext(),
+										Category.SCHEMA_TYPE, null, false, false) {
+									@Override
+									public LogicalSearchQuery getQuery(User user, String text, int startIndex, int count) {
+										LogicalSearchQuery logicalSearchQuery = super.getQuery(user, text, startIndex, count);
+										MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
+												.getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
+										logicalSearchQuery.setCondition(logicalSearchQuery.getCondition().andWhere(type
+												.getAllMetadatas().getMetadataWithLocalCode(Schemas.PATH_PARTS.getLocalCode())).isContaining(Arrays
+												.asList("R")));
+
+										return logicalSearchQuery;
+									}
+								},
+								LookupRecordField.getTreeDataProvider(Category.SCHEMA_TYPE, null, false, true, true)); {
+
+								}
+
+						for(ValueChangeListener listener: lookupFieldListenerList) {
+							field.addValueChangeListener(listener);
+						}
+						field.setWidth("100%");
+						field.setIgnoreLinkability(ignoreLinkability);
+						return field;
+					}
+
+					@Override
+					protected String getReadOnlyMessage() {
+						String readOnlyMessage = super.getReadOnlyMessage();
+						if(!StringUtils.isBlank(readOnlyMessage)) {
+							return readOnlyMessage;
+						} else {
+							return super.getReadOnlyMessage();
+						}
+					}
+				} ;
+
+
+				field.setCaption($("RMReportsViewImpl.category"));
+
+				WindowButton windowButton = getParametersFromUser(field, $("RMReportsViewImpl.allCategory"), $("RMReportsViewImpl.onlyCategory"), report);
+
+				setReportButtonStyle(report.getTitle(), windowButton);
+				panel.addComponent(windowButton);
+			} else if(presenter.isAdministrativeUnitExcelReport(report.getTitle())) {
+				final Field field = new ListAddRemoveRecordLookupField(AdministrativeUnit.SCHEMA_TYPE);
+
+				WindowButton windowButton = getParametersFromUser(field, $("RMReportsViewImpl.allAdministrativeUnit"), $("RMReportsViewImpl.onlyAdministrativeUnit"), report);
+
 
 				setReportButtonStyle(report.getTitle(), windowButton);
 				panel.addComponent(windowButton);
@@ -143,50 +201,33 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 		};
 	}
 
-
-	private WindowButton getCategoryRootLookupButton(final ReportWithCaptionVO report) {
+	private WindowButton getParametersFromUser(final Field field, final String allCaption, final String onlyCaption, final ReportWithCaptionVO report) {
 		WindowButton windowButton = new WindowButton($(report.getCaption()),
-				$(report.getCaption()), new WindowConfiguration(true, true, "600px", "300px")) {
+				$(report.getCaption()), new WindowConfiguration(true, true, "600px", "500px")) {
 			@Override
 			protected Component buildWindowContent() {
 				VerticalLayout verticalLayout = new VerticalLayout();
-				verticalLayout.setSpacing(true);
 				verticalLayout.setWidth("100%");
 				verticalLayout.setHeight("100%");
 
+				VerticalLayout verticalLayout2 = new VerticalLayout();
+				verticalLayout2.setSpacing(true);
+
 				final OptionGroup optionGroup = new OptionGroup();
 				optionGroup.addItem(Selected.All);
-				optionGroup.setItemCaption(Selected.All, $("RMReportsViewImpl.All"));
+				optionGroup.setItemCaption(Selected.All, allCaption);
 				optionGroup.addItem(Selected.Select);
-				optionGroup.setItemCaption(Selected.Select, $("RMReportsViewImpl.SelectOne"));
+				optionGroup.setItemCaption(Selected.Select, onlyCaption);
 				optionGroup.setMultiSelect(false);
-				verticalLayout.addComponent(optionGroup);
-
-				final LookupRecordField lookupRecordField = new LookupRecordField(
-						new RecordTextInputDataProvider(getConstellioFactories(), getSessionContext(),
-								Category.SCHEMA_TYPE, null, false, false) {
-							@Override
-							public LogicalSearchQuery getQuery(User user, String text, int startIndex, int count) {
-								LogicalSearchQuery logicalSearchQuery = super.getQuery(user, text, startIndex, count);
-								MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
-										.getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
-								logicalSearchQuery.setCondition(logicalSearchQuery.getCondition().andWhere(type
-										.getAllMetadatas().getMetadataWithLocalCode(Schemas.PATH_PARTS.getLocalCode())).isContaining(Arrays
-										.asList("R")));
-
-								return logicalSearchQuery;
-							}
-						},
-						LookupRecordField.getTreeDataProvider(Category.SCHEMA_TYPE, null, false, true, true));
-				lookupRecordField.setCaption($("RMReportsViewImpl.category"));
+				verticalLayout2.addComponent(optionGroup);
 
 				final Button okButton = new Button($("Ok"));
 
 
 				okButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 				Button cancelButton = new Button($("cancel"));
-				cancelButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-				verticalLayout.addComponent(lookupRecordField);
+				verticalLayout2.addComponent(field);
+
 				HorizontalLayout horizontalLayout1 = new HorizontalLayout();
 				horizontalLayout1.setWidth("195px");
 				horizontalLayout1.setSpacing(true);
@@ -199,11 +240,11 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 						Selected selected = (Selected) optionGroup.getValue();
 
 						if(selected == Selected.All) {
-							lookupRecordField.setVisible(false);
-							lookupRecordField.setRequired(false);
+							field.setVisible(false);
+							field.setRequired(false);
 						} else {
-							lookupRecordField.setVisible(true);
-							lookupRecordField.setRequired(true);
+							field.setVisible(true);
+							field.setRequired(true);
 						}
 					}
 				});
@@ -219,10 +260,13 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 							reportButton.click();
 							getWindow().close();
 						} else {
-							if(lookupRecordField.getValue() == null) {
-								showErrorMessage($("requiredFieldWithName", "\"" + lookupRecordField.getCaption() + "\""));
+							if(field.getValue() == null) {
+								showErrorMessage($("requiredFieldWithName", "\"" + field.getCaption() + "\""));
 							} else {
-								// TODO
+								ReportButton reportButton = new ReportButton(report, presenter);
+								reportButton.setParams(field.getValue());
+
+								reportButton.click();
 							}
 						}
 					}
@@ -240,7 +284,9 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 				horizontalLayout2.addComponent(horizontalLayout1);
 				horizontalLayout2.setComponentAlignment(horizontalLayout1, Alignment.MIDDLE_CENTER);
 
-				verticalLayout.addComponent(horizontalLayout2);
+				verticalLayout2.addComponent(horizontalLayout2);
+
+				verticalLayout.addComponent(verticalLayout2);
 
 				return verticalLayout;
 			}

@@ -28,6 +28,7 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 
 	private static final boolean BY_ADMINISTRATIVE_UNIT = true;
 	private String schemaTypeValue;
+	private Object userParams;
 
 	public RMNewReportsPresenter(RMReportsView view) {
 		super(view);
@@ -115,10 +116,27 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 		throw new RuntimeException("BUG: Unknown report: " + report);
 	}
 
+	public void setUserReportParameters(Object userParams) {
+		this.userParams = userParams;
+	}
+
+	public Object getUserReportParameters() {
+		return userParams;
+	}
+
 	public boolean isWithSchemaType(String report) {
 		switch (report) {
 			case "Reports.ConservationRulesListByAdministrativeUnit":
 			case "Reports.ClassificationPlanByAdministrativeUnit":
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	public boolean isAdministrativeUnitExcelReport(String reports) {
+		switch (reports) {
+			case "Reports.administrativeUnitExcelFormat":
 				return true;
 			default:
 				return false;
