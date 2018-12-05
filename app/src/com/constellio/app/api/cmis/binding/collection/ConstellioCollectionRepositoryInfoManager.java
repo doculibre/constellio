@@ -34,8 +34,6 @@ import static com.constellio.app.api.cmis.builders.object.AclBuilder.CMIS_WRITE;
 
 public class ConstellioCollectionRepositoryInfoManager {
 
-	private static final String ROOT_ID = "@root@";
-
 	private final String collection;
 	private final String constellioVersion;
 
