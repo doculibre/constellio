@@ -3,6 +3,8 @@ package com.constellio.app.ui.pages.setup;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.entities.modules.ProgressInfo;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -11,6 +13,11 @@ import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.LogoUtils;
+import com.constellio.app.ui.pages.management.updates.UploadWaitWindow;
+import com.constellio.app.utils.ManualUpdateHandler;
+import com.constellio.app.utils.ManualUpdateHandlerView;
+import com.constellio.model.entities.Language;
+import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -47,7 +54,9 @@ import java.util.Locale;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static java.util.Arrays.asList;
 
-public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioSetupView {
+public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioSetupView, ManualUpdateHandlerView {
+
+	public static final String UPDATE_WAR = "/updatewar";
 
 	private ConstellioSetupBean bean = new ConstellioSetupBean();
 
@@ -68,6 +77,8 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 	private VerticalLayout formLayout;
 
 	private Label welcomeLabel;
+
+	private UploadWaitWindow uploadWaitWindow;
 
 	@PropertyId("modules")
 	private OptionGroup modulesField;
@@ -100,10 +111,14 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 
 	private boolean threadIsRunning = false;
 
-	public ConstellioSetupViewImpl() {
+	private boolean isUpdateWar;
+
+	public ConstellioSetupViewImpl(String parameter) {
 		this.presenter = new ConstellioSetupPresenter(this);
 
 		setSizeFull();
+
+		isUpdateWar = parameter.equals(UPDATE_WAR);
 
 		mainLayout = new VerticalLayout();
 		mainLayout.addStyleName("setup-panel");
@@ -159,6 +174,25 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		preSetupButtonsLayout = new VerticalLayout();
 		preSetupButtonsLayout.setSpacing(true);
 
+		if (isUpdateWar) {
+			WindowButton updateButton = new WindowButton($("ConstellioSetupView.setup.update." + Language.English.getCode()),
+					$("ConstellioSetupView.setup.update." + Language.English.getCode())) {
+				@Override
+				protected Component buildWindowContent() {
+					VerticalLayout verticalLayout = new VerticalLayout();
+					ManualUpdateHandler manualUpdateHandler = new ManualUpdateHandler(
+							getConstellioFactories().getAppLayerFactory(),
+							ConstellioSetupViewImpl.this);
+					verticalLayout.addComponent(manualUpdateHandler.buildUpdatePanel());
+					verticalLayout.setHeight("400px");
+					return verticalLayout;
+				}
+			};
+			updateButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+			preSetupButtonsLayout.addComponent(updateButton);
+		}
+
 		for (final String localeCode : localeCodes) {
 			Button languageButton = new Button($("ConstellioSetupView.setup." + localeCode));
 			languageButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -169,6 +203,7 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 					presenter.languageButtonClicked(localeCode);
 				}
 			});
+
 			preSetupButtonsLayout.addComponent(languageButton);
 		}
 
@@ -189,6 +224,11 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		}
 		buildFields();
 		mainLayout.addComponent(formLayout);
+	}
+
+	@Override
+	public void navigateToMonitoring() {
+		Page.getCurrent().setLocation("/constellio/serviceMonitoring");
 	}
 
 	private void buildFields() {
@@ -335,6 +375,34 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 				ConstellioSetupViewImpl.super.showMessage(message);
 			}
 		});
+	}
+
+	@Override
+	public void showRestartRequiredPanel() {
+		presenter.restart();
+	}
+
+	@Override
+	public ProgressInfo openProgressPopup() {
+		uploadWaitWindow = new UploadWaitWindow();
+		final ProgressInfo progressInfo = new ProgressInfo() {
+			@Override
+			public void setTask(String task) {
+				uploadWaitWindow.setTask(task);
+			}
+
+			@Override
+			public void setProgressMessage(String progressMessage) {
+				uploadWaitWindow.setProgressMessage(progressMessage);
+			}
+		};
+		UI.getCurrent().addWindow(uploadWaitWindow);
+		return progressInfo;
+	}
+
+	@Override
+	public void closeProgressPopup() {
+		uploadWaitWindow.close();
 	}
 
 	@Override

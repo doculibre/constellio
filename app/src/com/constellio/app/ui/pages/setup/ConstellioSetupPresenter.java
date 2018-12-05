@@ -5,6 +5,9 @@ import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.services.appManagement.AppManagementServiceException;
 import com.constellio.app.services.collections.CollectionsManagerRuntimeException.CollectionsManagerRuntimeException_InvalidCode;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.servlet.ConstellioMonitoringServlet;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.setup.ConstellioSetupPresenterException.ConstellioSetupPresenterException_AdminConfirmationPasswordNotEqualToAdminPassword;
@@ -34,7 +37,7 @@ import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
-import com.jgoodies.common.base.Strings;
+import com.vaadin.server.Page;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
@@ -86,6 +89,16 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 
 		view.setLocaleCodes(localeCodes);
 		view.setModuleIds(moduleIds);
+	}
+
+	public void restart() {
+		try {
+			appLayerFactory.newApplicationService().restart();
+		} catch (AppManagementServiceException e) {
+			view.showErrorMessage($("UpdateManagerViewImpl.error.restart"));
+		}
+		ConstellioMonitoringServlet.systemRestarting = true;
+		Page.getCurrent().setLocation("/constellio/serviceMonitoring");
 	}
 
 	@Override
@@ -194,7 +207,7 @@ public class ConstellioSetupPresenter extends BasePresenter<ConstellioSetupView>
 			throw new ConstellioSetupPresenterException_MustSelectAtLeastOneModule();
 		} else if (modules.size() == 1 && modules.contains("tasks")) {
 			throw new ConstellioSetupPresenterException_TasksCannotBeTheOnlySelectedModule();
-		} else if((Strings.isNotBlank(adminPassword) || Strings.isNotBlank(adminPasswordConfirmation))
+		} else if((StringUtils.isNotBlank(adminPassword) || StringUtils.isNotBlank(adminPasswordConfirmation))
 				&& !adminPassword.equals(adminPasswordConfirmation)){
 			throw new ConstellioSetupPresenterException_AdminConfirmationPasswordNotEqualToAdminPassword();
 		}
