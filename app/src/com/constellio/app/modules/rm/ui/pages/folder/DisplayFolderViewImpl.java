@@ -311,6 +311,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					protected void confirmButtonClick(ConfirmDialog dialog) {
 						presenter.deleteFolderButtonClicked(null);
 					}
+
+					@Override
+					protected String getConfirmDialogMessage() {
+						return $("ConfirmDialog.confirmDeleteWithRecord", recordVO.getTitle());
+					}
 				};
 			} else {
 				deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
