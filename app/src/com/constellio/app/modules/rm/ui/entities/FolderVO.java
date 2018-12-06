@@ -33,7 +33,6 @@ import static com.constellio.app.modules.rm.wrappers.Folder.COPY_RULES_EXPECTED_
 import static com.constellio.app.modules.rm.wrappers.Folder.COPY_RULES_EXPECTED_TRANSFER_DATES;
 import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS;
 import static com.constellio.app.modules.rm.wrappers.Folder.COPY_STATUS_ENTERED;
-import static com.constellio.app.modules.rm.wrappers.Folder.DECOMMISSIONING_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.DESCRIPTION;
 import static com.constellio.app.modules.rm.wrappers.Folder.ENTERED_CLOSING_DATE;
 import static com.constellio.app.modules.rm.wrappers.Folder.EXPECTED_DEPOSIT_DATE;
@@ -294,10 +293,6 @@ public class FolderVO extends RecordVO {
 
 	public CopyType getCopyStatus() {
 		return get(COPY_STATUS);
-	}
-
-	public LocalDate getDecommissioningDate() {
-		return get(DECOMMISSIONING_DATE);
 	}
 
 	public void setBorrowed(Boolean borrowed) {

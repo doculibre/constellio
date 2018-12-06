@@ -15,6 +15,7 @@ import org.joda.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
+@Deprecated
 public class FolderDecommissioningDateCalculator implements MetadataValueCalculator<LocalDate> {
 
 	LocalDependency<LocalDate> openingDateParam = LocalDependency.toADate(Folder.OPENING_DATE);
