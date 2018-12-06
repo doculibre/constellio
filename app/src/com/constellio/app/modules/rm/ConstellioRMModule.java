@@ -1,18 +1,5 @@
 package com.constellio.app.modules.rm;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.records.cache.VolatileCacheInvalidationMethod.FIFO;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import com.constellio.app.modules.rm.extensions.RMUserProfileFieldsExtension;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.constellio.app.entities.modules.ComboMigrationScript;
 import com.constellio.app.entities.modules.InstallableSystemModule;
 import com.constellio.app.entities.modules.InstallableSystemModuleWithRecordMigrations;
@@ -48,6 +35,7 @@ import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
 import com.constellio.app.modules.rm.extensions.RMSelectionPanelExtension;
 import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
+import com.constellio.app.modules.rm.extensions.RMUserProfileFieldsExtension;
 import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
 import com.constellio.app.modules.rm.extensions.RemoveClickableNotificationsWhenChangingPage;
 import com.constellio.app.modules.rm.extensions.SessionContextRecordExtension;
@@ -154,6 +142,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_666;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;

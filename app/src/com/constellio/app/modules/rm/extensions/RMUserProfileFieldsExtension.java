@@ -12,10 +12,8 @@ import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.framework.components.fields.enumWithSmallCode.EnumWithSmallCodeOptionGroup;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.app.ui.pages.profile.ModifyProfileView;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.AgentStatus;
-import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -23,7 +21,6 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.users.UserServices;
 import com.constellio.model.utils.EnumWithSmallCodeUtils;
 import com.vaadin.ui.CheckBox;
-import com.vaadin.ui.Field;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +40,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 	@Override
 	public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
 		ArrayList<AdditionnalRecordField> additionnalFields = new ArrayList<>();
-		if(params.getMainComponent() instanceof ModifyProfileView) {
+		if (params.getMainComponent() instanceof ModifyProfileView) {
 			AdditionnalRecordField defaultTabInFolderDisplayField = buildDefaultTabInFolderDisplayField(params);
 			AdditionnalRecordField defaultAdministrativeUnitField = buildDefaultAdministrativeUnitField(params);
 			AdditionnalRecordField hideNotActiveField = buildHideNotActiveField(params);
@@ -78,7 +75,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		HideNotActiveAdditionalFieldImpl hideNotActiveField = new HideNotActiveAdditionalFieldImpl();
 		hideNotActiveField.setImmediate(true);
 
-		if(Boolean.TRUE.equals(isHidingNotActive)) {
+		if (Boolean.TRUE.equals(isHidingNotActive)) {
 			hideNotActiveField.setValue(true);
 		} else {
 			hideNotActiveField.setValue(false);
@@ -90,7 +87,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 	private AdditionnalRecordField buildAgentManuallyDisabledField(RecordFieldsExtensionParams params) {
 		User user = new SchemasRecordsServices(collection, appLayerFactory.getModelLayerFactory()).wrapUser(params.getRecord());
 
-		SolrUserCredential userCredentials = (SolrUserCredential) appLayerFactory.getModelLayerFactory().newUserServices().getUser(user.getUsername());
+		UserCredential userCredentials = appLayerFactory.getModelLayerFactory().newUserServices().getUser(user.getUsername());
 		AgentStatus agentStatus = userCredentials.getAgentStatus();
 
 		AgentManuallyDisabledFieldImpl agentManuallyDisabledField = new AgentManuallyDisabledFieldImpl(agentStatus);
@@ -108,7 +105,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
 
 		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-		SolrUserCredential userCredentials = (SolrUserCredential) userServices.getUser(user.getUsername());
+		UserCredential userCredentials = userServices.getUser(user.getUsername());
 		AgentStatus agentStatus = userCredentials.getAgentStatus();
 		if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
 			agentStatus = AgentStatus.ENABLED;
@@ -127,14 +124,14 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 
 		@Override
-        public String getMetadataLocalCode() {
-            return RMUser.DEFAULT_TAB_IN_FOLDER_DISPLAY;
-        }
+		public String getMetadataLocalCode() {
+			return RMUser.DEFAULT_TAB_IN_FOLDER_DISPLAY;
+		}
 
 		@Override
 		public String getCommittableValue() {
 			DefaultTabInFolderDisplay value = getValue();
-			return value == null? DefaultTabInFolderDisplay.METADATA.getCode():value.getCode();
+			return value == null ? DefaultTabInFolderDisplay.METADATA.getCode() : value.getCode();
 		}
 
 		@Override
@@ -170,7 +167,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class HideNotActiveAdditionalFieldImpl extends CheckBox implements AdditionnalRecordField<Boolean>{
+	private class HideNotActiveAdditionalFieldImpl extends CheckBox implements AdditionnalRecordField<Boolean> {
 
 		public HideNotActiveAdditionalFieldImpl() {
 			super($("ModifyProfileView.hideNotActive"));
@@ -187,7 +184,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 		}
 	}
 
-	private class AgentManuallyDisabledFieldImpl extends CheckBox implements AdditionnalRecordField<Boolean>{
+	private class AgentManuallyDisabledFieldImpl extends CheckBox implements AdditionnalRecordField<Boolean> {
 		AgentStatus previousAgentStatus;
 
 		public AgentManuallyDisabledFieldImpl(AgentStatus previousAgentStatus) {
@@ -199,7 +196,7 @@ public class RMUserProfileFieldsExtension extends PagesComponentsExtension {
 
 		@Override
 		public String getMetadataLocalCode() {
-			return SolrUserCredential.AGENT_STATUS;
+			return UserCredential.AGENT_STATUS;
 		}
 
 		@Override

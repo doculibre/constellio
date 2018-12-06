@@ -1,21 +1,12 @@
 package com.constellio.app.ui.pages.profile;
 
-import com.constellio.app.entities.navigation.PageItem;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
-import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.RMUser;
-import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
-import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
-import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
-import com.constellio.app.ui.entities.TaxonomyVO;
-import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
-import com.constellio.app.ui.framework.data.TaxonomyVODataProvider;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
@@ -35,7 +26,6 @@ import org.apache.commons.collections.CollectionUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -97,12 +87,12 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			Iterator<Entry<String, Object>> additionnalMetadatasIterator = additionnalMetadataValues.entrySet().iterator();
 			while (additionnalMetadatasIterator.hasNext()) {
 				Map.Entry<String, Object> metadataValue = additionnalMetadatasIterator.next();
-				if(userSchema.hasMetadataWithCode(metadataValue.getKey())) {
+				if (userSchema.hasMetadataWithCode(metadataValue.getKey())) {
 					user.set(metadataValue.getKey(), metadataValue.getValue());
 				}
 			}
 
-            recordServices.update(user.getWrappedRecord());
+			recordServices.update(user.getWrappedRecord());
 
 			changePhoto(profileVO.getImage());
 
@@ -139,7 +129,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		Iterator<Entry<String, Object>> additionnalMetadatasIterator = additionnalMetadataValues.entrySet().iterator();
 		while (additionnalMetadatasIterator.hasNext()) {
 			Map.Entry<String, Object> metadataValue = additionnalMetadatasIterator.next();
-			if(userCredentialSchema.hasMetadataWithCode(metadataValue.getKey())) {
+			if (userCredentialSchema.hasMetadataWithCode(metadataValue.getKey())) {
 				userCredential.set(metadataValue.getKey(), metadataValue.getValue());
 			}
 		}
@@ -312,25 +302,8 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		authenticationService = modelLayerFactory.newAuthenticationService();
 		recordServices = modelLayerFactory.newRecordServices();
 		userPhotosServices = modelLayerFactory.newUserPhotosServices();
-
-		view.setAgentManuallyDisabledVisible(isAgentManuallyDisabledVisible());
 	}
 
-	private boolean isAgentManuallyDisabledVisible() {
-		UserServices userServices = modelLayerFactory.newUserServices();
-		SystemConfigurationsManager systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
-
-		RMConfigs rmConfigs = new RMConfigs(systemConfigurationsManager);
-
-		String username = view.getSessionContext().getCurrentUser().getUsername();
-		UserCredential userCredentials = (UserCredential) userServices.getUser(username);
-		AgentStatus agentStatus = userCredentials.getAgentStatus();
-		if (agentStatus == AgentStatus.DISABLED && !rmConfigs.isAgentDisabledUntilFirstConnection()) {
-			agentStatus = AgentStatus.ENABLED;
-		}
-
-		return rmConfigs.isAgentEnabled() && ConstellioAgentUtils.isAgentSupported() && agentStatus != AgentStatus.DISABLED;
-	}
 
 	private void readObject(java.io.ObjectInputStream stream)
 			throws IOException, ClassNotFoundException {
@@ -350,7 +323,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		return !ADMIN.equals(username) || new ConstellioEIMConfigs(modelLayerFactory).isAdminPasswordChangeEnabled();
 	}
 
-    public User getUserRecord() {
-        return getCurrentUser();
-    }
+	public User getUserRecord() {
+		return getCurrentUser();
+	}
 }
