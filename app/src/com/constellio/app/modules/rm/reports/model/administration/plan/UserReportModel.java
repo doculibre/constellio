@@ -3,6 +3,8 @@ package com.constellio.app.modules.rm.reports.model.administration.plan;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class UserReportModel {
 	private List<UserReportModel_User> users = new ArrayList<>();
 
@@ -12,6 +14,51 @@ public class UserReportModel {
 
 	public void setUsers(List<UserReportModel_User> users) {
 		this.users = users;
+	}
+
+	public List<String> getColumnsTitles() {
+		List<String> header = new ArrayList<>();
+		header.add($("id"));
+		header.add($("UserReport.lastname"));
+		header.add($("UserReport.firstname"));
+		header.add($("UserReport.username"));
+		header.add($("UserReport.unit"));
+		header.add($("UserReport.status"));
+
+		return header;
+	}
+
+	public List<List<Object>> getResults() {
+		List<List<Object>> result = new ArrayList<>();
+
+		for(UserReportModel_User userReportModel_user : users) {
+			List<Object> columnObjectList = new ArrayList<>();
+			columnObjectList.add(userReportModel_user.userId);
+			columnObjectList.add(userReportModel_user.lastName);
+			columnObjectList.add(userReportModel_user.firstName);
+			columnObjectList.add(userReportModel_user.userName);
+			columnObjectList.add(getAdminUnits(userReportModel_user));
+			columnObjectList.add(userReportModel_user.status);
+			result.add(columnObjectList);
+		}
+
+		return result;
+	}
+
+	private String getAdminUnits(UserReportModel_User user) {
+
+		StringBuilder administrativeUnitListBuilder = new StringBuilder();
+
+
+		for (UserReportModel_AdministrativeUnit adminUnit : user.getAdministrativeUnits()) {
+			if(administrativeUnitListBuilder.length() != 0) {
+				administrativeUnitListBuilder.append(", ");
+			}
+
+			administrativeUnitListBuilder.append(adminUnit.getCode());
+		}
+
+		return administrativeUnitListBuilder.toString();
 	}
 
 	public static class UserReportModel_User {

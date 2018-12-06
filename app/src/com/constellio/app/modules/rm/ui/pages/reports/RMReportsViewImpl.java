@@ -1,14 +1,15 @@
 package com.constellio.app.modules.rm.ui.pages.reports;
 
-import com.constellio.app.modules.rm.ui.components.retentionRule.RetentionRuleListAddRemoveAdministrativeUnitLookupField;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.modules.rm.wrappers.RetentionRule;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ReportButton;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
+import com.constellio.app.ui.framework.components.fields.lookup.RecordTextInputDataProviderFactory;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
@@ -29,13 +30,12 @@ import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.OptionGroup;
-import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.themes.Reindeer;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -70,28 +70,18 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 					@Override
 					protected LookupRecordField newAddEditField() {
 						LookupRecordField field = new LookupRecordField(
-								new RecordTextInputDataProvider(getConstellioFactories(), getSessionContext(),
-										Category.SCHEMA_TYPE, null, false, false) {
-									@Override
-									public LogicalSearchQuery getQuery(User user, String text, int startIndex, int count) {
-										LogicalSearchQuery logicalSearchQuery = super.getQuery(user, text, startIndex, count);
-										MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
-												.getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
-										logicalSearchQuery.setCondition(logicalSearchQuery.getCondition().andWhere(type
-												.getAllMetadatas().getMetadataWithLocalCode(Schemas.PATH_PARTS.getLocalCode())).isContaining(Arrays
-												.asList("R")));
-
-										return logicalSearchQuery;
-									}
-								},
-								LookupRecordField.getTreeDataProvider(Category.SCHEMA_TYPE, null, false, true, true)); {
-
-								}
+								getTextInputDataProviderForRootCategory(),
+								LookupRecordField.getTreeDataProviderRootItemsOnly(Category.SCHEMA_TYPE, null, false, true,
+										new RecordTextInputDataProviderFactory() {
+											@Override
+											public RecordTextInputDataProvider getProvider() {
+												return getTextInputDataProviderForRootCategory();
+											}
+										}));
 
 						for(ValueChangeListener listener: lookupFieldListenerList) {
 							field.addValueChangeListener(listener);
 						}
-						field.setWidth("100%");
 						field.setIgnoreLinkability(ignoreLinkability);
 						return field;
 					}
@@ -116,9 +106,15 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 				panel.addComponent(windowButton);
 			} else if(presenter.isAdministrativeUnitExcelReport(report.getTitle())) {
 				final Field field = new ListAddRemoveRecordLookupField(AdministrativeUnit.SCHEMA_TYPE);
-
+				field.setCaption($("RMReportsViewImpl.administrativeUnit"));
 				WindowButton windowButton = getParametersFromUser(field, $("RMReportsViewImpl.allAdministrativeUnit"), $("RMReportsViewImpl.onlyAdministrativeUnit"), report);
 
+				setReportButtonStyle(report.getTitle(), windowButton);
+				panel.addComponent(windowButton);
+			} else if (presenter.isRetentionRuleReport(report.getTitle())) {
+				final Field field = new ListAddRemoveRecordLookupField(RetentionRule.SCHEMA_TYPE);
+				field.setCaption($("RMReportsViewImpl.retetnionRule"));
+				WindowButton windowButton = getParametersFromUser(field, $("RMReportsViewImpl.allConservation"), $("RMReportsViewImpl.onlyConservation"), report);
 
 				setReportButtonStyle(report.getTitle(), windowButton);
 				panel.addComponent(windowButton);
@@ -137,6 +133,23 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 
 		layout.addComponent(panel);
 		return layout;
+	}
+
+	private RecordTextInputDataProvider getTextInputDataProviderForRootCategory() {
+		return new RecordTextInputDataProvider(getConstellioFactories(), getSessionContext(),
+				Category.SCHEMA_TYPE, null, false, false) {
+			@Override
+			public LogicalSearchQuery getQuery(User user, String text, int startIndex, int count) {
+				LogicalSearchQuery logicalSearchQuery = super.getQuery(user, text, startIndex, count);
+				MetadataSchemaType type = getModelLayerFactory().getMetadataSchemasManager()
+						.getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
+				logicalSearchQuery.setCondition(logicalSearchQuery.getCondition().andWhere(type
+						.getAllMetadatas().getMetadataWithLocalCode(Schemas.PATH_PARTS.getLocalCode())).isContaining(Arrays
+						.asList("R")));
+
+				return logicalSearchQuery;
+			}
+		};
 	}
 
 	@Override
@@ -254,17 +267,17 @@ public class RMReportsViewImpl extends BaseViewImpl implements RMReportsView {
 					@Override
 					public void buttonClick(ClickEvent event) {
 						Selected selected = (Selected) optionGroup.getValue();
-
+						presenter.setUserReportParameters(null);
 						if(selected == Selected.All) {
 							ReportButton reportButton = new ReportButton(report, presenter);
 							reportButton.click();
 							getWindow().close();
 						} else {
-							if(field.getValue() == null) {
+							if(field.getValue() == null || (field.getValue() instanceof List && ((List)field.getValue()).size() <= 0)) {
 								showErrorMessage($("requiredFieldWithName", "\"" + field.getCaption() + "\""));
 							} else {
 								ReportButton reportButton = new ReportButton(report, presenter);
-								reportButton.setParams(field.getValue());
+								presenter.setUserReportParameters(field.getValue());
 
 								reportButton.click();
 							}
