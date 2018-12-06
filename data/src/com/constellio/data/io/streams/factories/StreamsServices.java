@@ -210,9 +210,9 @@ public class StreamsServices {
 		return (BufferedInputStream) newFileInputStream(file, name, true);
 	}
 
-	public OutputStream newFileOutputStream(final File file, final String name)
+	public OutputStream newFileOutputStream(final File file, final String name, boolean appendToFile)
 			throws FileNotFoundException {
-		FileOutputStream fileOutputStream = OpenedResourcesWatcher.onOpen(new FileOutputStream(file) {
+		FileOutputStream fileOutputStream = OpenedResourcesWatcher.onOpen(new FileOutputStream(file, appendToFile) {
 
 			@Override
 			public String toString() {
@@ -229,6 +229,11 @@ public class StreamsServices {
 		});
 
 		return newBufferedOutputStream(fileOutputStream, name);
+	}
+
+	public OutputStream newFileOutputStream(final File file, final String name)
+			throws FileNotFoundException {
+		return newFileOutputStream(file, name, false);
 	}
 
 	public OutputStream newBufferedFileOutputStream(File file, String name)

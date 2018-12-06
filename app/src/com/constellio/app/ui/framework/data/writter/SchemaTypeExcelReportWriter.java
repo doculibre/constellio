@@ -72,7 +72,7 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 			List<List<Object>> lines = new ArrayList<>();
 
 
-			for (Metadata metadata : currentMetadataSchema.getMetadatas().onlyEnabled()) {
+			for (Metadata metadata : currentMetadataSchema.getMetadatas()) {
 				List<Object> returnList = new ArrayList<>();
 				returnList.add(metadata.getCode());
 				returnList.add(metadata.getLabel(Language.withLocale(locale)));

@@ -249,7 +249,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 			addStyleName("right-to-left");
 		}
 		if (isSetupRequired()) {
-			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl();
+			ConstellioSetupViewImpl setupView = new ConstellioSetupViewImpl(VaadinService.getCurrentRequest().getPathInfo());
 			setContent(setupView);
 			addStyleName("setupview");
 		} else {
@@ -342,7 +342,8 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 
 	private boolean isSetupRequired() {
 		ConstellioFactories constellioFactories = getConstellioFactories();
-		return constellioFactories.getAppLayerFactory().getCollectionsManager().getCollectionCodesExcludingSystem().isEmpty();
+		return constellioFactories.getAppLayerFactory().getCollectionsManager().getCollectionCodesExcludingSystem().isEmpty()
+				&& constellioFactories.getAppLayerFactory().isInitializationFinished();
 	}
 
 	public ConstellioHeader getHeader() {

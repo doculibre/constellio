@@ -134,7 +134,7 @@ public class I18NAcceptationAcceptTest extends ConstellioTest {
 						"AdvancedSearchView.unclosedParentheses", "BatchProcessingEntryTable.index",
 						"DisplayDocumentWindow.sign.password", "ContainersByAdministrativeUnitsView.tableTitle",
 						"DocumentContextMenu.sign", "traversalCode", "Name", "ImportConfigsView.OnlyXmlAccepted",
-						"BatchProcessingEntryTable.type", "facerOrder", "BatchProcessingEntryTable.mapping"));
+						"BatchProcessingEntryTable.type", "facerOrder", "BatchProcessingEntryTable.mapping", "id"));
 	}
 
 	private void scanJavaFileRetrievingKeys(Set<String> keys, File javaFile) {

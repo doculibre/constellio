@@ -111,6 +111,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 
 	private final CorrectorExcluderManager correctorExcluderManager;
 
+	private boolean initializationFinished;
+
 	public AppLayerFactoryImpl(AppLayerConfiguration appLayerConfiguration, ModelLayerFactory modelLayerFactory,
 							   DataLayerFactory dataLayerFactory, StatefullServiceDecorator statefullServiceDecorator,
 							   String instanceName) {
@@ -165,6 +167,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		dataLayerFactory.getConfigManager().keepInCache(MigrationServices.VERSION_PROPERTIES_FILE);
 
 		correctorExcluderManager = add(new CorrectorExcluderManager(modelLayerFactory));
+
+		initializationFinished = false;
 	}
 
 	private void setDefaultLocale() {
@@ -243,6 +247,8 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 		}
 		dataLayerFactory.getEventBusManager().resume();
 		upgradeAppRecoveryService.close();
+
+		initializationFinished = true;
 	}
 
 	private void startupWithPossibleRecovery(UpgradeAppRecoveryServiceImpl recoveryService) {
@@ -363,6 +369,10 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 	public void close() {
 		Scripts.removeScripts();
 		super.close();
+	}
+
+	public boolean isInitializationFinished() {
+		return initializationFinished;
 	}
 
 	public ConstellioPluginManager getPluginManager() {

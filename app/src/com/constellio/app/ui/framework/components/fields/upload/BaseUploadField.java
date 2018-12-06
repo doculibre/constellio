@@ -206,7 +206,9 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 					UI.getCurrent().getNavigator().removeViewChangeListener(viewChangeListener);
 				}
 			};
-			UI.getCurrent().getNavigator().addViewChangeListener(viewChangeListener);
+			if (UI.getCurrent().getNavigator() != null) {
+				UI.getCurrent().getNavigator().addViewChangeListener(viewChangeListener);
+			}
 		}
 	}
 

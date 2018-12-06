@@ -12,6 +12,7 @@ import com.constellio.app.services.importExport.settings.SettingsExportOptions;
 import com.constellio.app.services.importExport.settings.SettingsExportServices;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
+import com.constellio.app.services.importExport.systemStateExport.CompleteSystemStateExporter;
 import com.constellio.app.services.importExport.systemStateExport.PartialSystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.PartialSystemStateExporter;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
@@ -177,6 +178,30 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		}
 	}
 
+	void exportCompleteClicked() {
+		try {
+			String filename = "exportedComplete-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+			StreamResource.StreamSource streamSource = new StreamResource.StreamSource() {
+				@Override
+				public InputStream getStream() {
+					try {
+						CompleteSystemStateExporter exporter = new CompleteSystemStateExporter(appLayerFactory);
+						return exporter.exportCompleteSaveState();
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				}
+			};
+			StreamResource resource = new StreamResource(streamSource, filename);
+			resource.setMIMEType("application/zip");
+			Resource downloadedResource = DownloadLink.wrapForDownload(resource);
+			Page.getCurrent().open(downloadedResource, null, false);
+		} catch (Exception e) {
+			LOGGER.error(e);
+			view.showErrorMessage($("ExportView.errorWhileExportingComplete"));
+		}
+	}
+
 	void exportAdministrativeUnitXMLButtonClicked(boolean isSameCollection, List<String> unitIds) {
 		RecordExportOptions options = new RecordExportOptions();
 		options.setForSameSystem(isSameCollection);
@@ -262,26 +287,19 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 	private void exportToXML(RecordExportOptions options) {
 		String filename = "exportedData-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
 
-		if (appLayerFactory.getSystemGlobalConfigsManager().hasLastReindexingFailed()) {
-			view.showErrorMessage($("ExportView.lastReindexingFailed"));
-
-		} else {
-
-			ExportAudit newExportAudit = createNewExportAudit();
-			File zip = null;
-			try {
-				RecordExportServices recordExportServices = new RecordExportServices(appLayerFactory);
-				zip = recordExportServices.exportRecordsAndZip("SDK Stream", options);
-				view.startDownload(filename, new FileInputStream(zip), "application/zip");
-			} catch (Throwable t) {
-				String error = "Error while generating savestate";
-				//				newExportAudit.setErrors(asList(error));
-				LOGGER.error(error, t);
-				view.showErrorMessage($("ExportView.error"));
-			} finally {
-				if (zip != null) {
-					completeImportExportAudit(newExportAudit, zip);
-				}
+		ExportAudit newExportAudit = createNewExportAudit();
+		File zip = null;
+		try {
+			RecordExportServices recordExportServices = new RecordExportServices(appLayerFactory);
+			zip = recordExportServices.exportRecordsAndZip("SDK Stream", options);
+			view.startDownload(filename, new FileInputStream(zip), "application/zip");
+		} catch (Throwable t) {
+			String error = "Error while generating savestate";
+			LOGGER.error(error, t);
+			view.showErrorMessage($("ExportView.error"));
+		} finally {
+			if (zip != null) {
+				completeImportExportAudit(newExportAudit, zip);
 			}
 		}
 	}

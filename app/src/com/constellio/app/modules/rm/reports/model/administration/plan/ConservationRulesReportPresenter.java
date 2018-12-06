@@ -40,19 +40,20 @@ public class ConservationRulesReportPresenter {
 	private boolean byAdministrativeUnit;
 	private DecommissioningService decommissioningService;
 	private String administrativeUnitId;
-	private Locale locale;
+	private List<String> rulesToIncludes = null;
 
 	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory, Locale locale) {
-		this(collection, appLayerFactory, false, null, locale);
+		this(collection, appLayerFactory, false, null, locale, null);
 	}
 
 	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory,
 											boolean byAdministrativeUnit, Locale locale) {
-		this(collection, appLayerFactory, byAdministrativeUnit, null, locale);
+		this(collection, appLayerFactory, byAdministrativeUnit, null, locale, null);
 	}
 
 	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory,
-											boolean byAdministrativeUnit, String administrativeUnitId, Locale locale) {
+											boolean byAdministrativeUnit, String administrativeUnitId, Locale locale,
+											List<String> rulesToIncludes) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -61,7 +62,7 @@ public class ConservationRulesReportPresenter {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory, locale);
 		this.byAdministrativeUnit = byAdministrativeUnit;
 		this.administrativeUnitId = administrativeUnitId;
-		this.locale = locale;
+		this.rulesToIncludes = rulesToIncludes;
 	}
 
 	public ConservationRulesReportModel build() {
@@ -105,7 +106,9 @@ public class ConservationRulesReportPresenter {
 	private List<ConservationRulesReportModel_Rule> convertRulesToModelRules(List<RetentionRule> retentionRules) {
 		List<ConservationRulesReportModel_Rule> conservationRulesReportModel_Rules = new ArrayList<>();
 		for (RetentionRule retentionRule : retentionRules) {
-			if (retentionRule != null) {
+			if (retentionRule != null &&
+					((rulesToIncludes != null && rulesToIncludes.contains(retentionRule.getId()))
+							|| rulesToIncludes == null || rulesToIncludes.isEmpty()) ) {
 				try {
 					ConservationRulesReportModel_Rule conservationRulesReportModel_Rule = new ConservationRulesReportModel_Rule();
 					String code = StringUtils.defaultString(retentionRule.getCode());

@@ -1,5 +1,6 @@
 package com.constellio.model.frameworks.validation;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,19 @@ public class DecoratedValidationsErrors extends ValidationErrors {
 	}
 
 	public void buildExtraParams(Map<String, Object> params) {
+		if (errors instanceof DecoratedValidationsErrors) {
+			((DecoratedValidationsErrors) errors).buildExtraParams(params);
+		}
+	}
+
+	@Override
+	public ValidationError create(Class<?> validatorClass, String code, Map<String, Object> parameters) {
+
+		parameters.putAll(extraParams);
+
+		buildExtraParams(parameters);
+
+		return super.create(validatorClass, code, parameters);
 	}
 
 	@Override
@@ -55,7 +69,7 @@ public class DecoratedValidationsErrors extends ValidationErrors {
 		return errors.getValidationErrors();
 	}
 
-	public void addAll(List<ValidationError> validationErrors) {
+	public void addAll(Collection<ValidationError> validationErrors) {
 		for (ValidationError error : validationErrors) {
 			add(error.getValidatorClass(), error.getValidatorErrorCode(), error.getParameters());
 		}
@@ -77,7 +91,7 @@ public class DecoratedValidationsErrors extends ValidationErrors {
 	}
 
 	@Override
-	public void addAllWarnings(List<ValidationError> validationWarnings) {
+	public void addAllWarnings(Collection<ValidationError> validationWarnings) {
 		for (ValidationError error : validationWarnings) {
 			addWarning(error.getValidatorClass(), error.getValidatorErrorCode(), error.getParameters());
 		}
