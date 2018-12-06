@@ -442,7 +442,7 @@ public class ConstellioUI extends UI implements SessionContextProvider, UIContex
 		return mainLayout;
 	}
 
-	public void runAsync(Runnable runnable, int pollInterval) {
+	public void runAsync(final Runnable runnable, int pollInterval) {
 		final boolean stopPolling;
 		if (getPollInterval() <= 0) {
 			setPollInterval(pollInterval);

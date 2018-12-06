@@ -1,5 +1,10 @@
 package com.constellio.app.ui.pages.setup;
 
+import com.constellio.app.entities.modules.ProgressInfo;
+import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
+import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
+import com.constellio.app.ui.entities.UserVO;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -8,7 +13,12 @@ import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.LogoUtils;
-import com.constellio.model.frameworks.validation.ValidationException;
+import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.management.updates.UploadWaitWindow;
+import com.constellio.app.utils.ManualUpdateHandler;
+import com.constellio.app.utils.ManualUpdateHandlerView;
+import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.fieldgroup.PropertyId;
@@ -33,6 +43,15 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioSetupView, ManualUpdateHandlerView {
 
@@ -89,13 +108,11 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 
 	private ConstellioSetupPresenter presenter;
 
+	private boolean threadIsRunning = false;
+
 	private boolean isUpdateWar;
 
 	public ConstellioSetupViewImpl(String parameter) {
-
-
-	}
-	public ConstellioSetupViewImpl() {
 		this.presenter = new ConstellioSetupPresenter(this);
 
 		setSizeFull();
@@ -349,6 +366,16 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 	}
 
 	@Override
+	public void showMessage(final String message) {
+		UI.getCurrent().access(new Runnable() {
+			@Override
+			public void run() {
+				ConstellioSetupViewImpl.super.showMessage(message);
+			}
+		});
+	}
+
+	@Override
 	public void showRestartRequiredPanel() {
 		presenter.restart();
 	}
@@ -374,6 +401,26 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 	@Override
 	public void closeProgressPopup() {
 		uploadWaitWindow.close();
+	}
+
+	@Override
+	public void showErrorMessage(final String errorMessage) {
+		UI.getCurrent().access(new Runnable() {
+			@Override
+			public void run() {
+				ConstellioSetupViewImpl.super.showErrorMessage(errorMessage);
+			}
+		});
+	}
+
+	@Override
+	public void updateUI() {
+		UI.getCurrent().access(new Runnable() {
+			@Override
+			public void run() {
+				ConstellioSetupViewImpl.super.updateUI();
+			}
+		});
 	}
 
 	@Override
