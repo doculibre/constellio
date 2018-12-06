@@ -1,7 +1,15 @@
 package com.constellio.app.ui.pages.setup;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.constellio.app.entities.modules.ProgressInfo;
-import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -38,14 +46,6 @@ import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
-
-import java.io.File;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
 
 public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioSetupView, ManualUpdateHandlerView {
 
@@ -162,24 +162,23 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		preSetupButtonsLayout.setSpacing(true);
 
 		if (isUpdateWar) {
-			WindowButton updateButton = new WindowButton($("ConstellioSetupView.setup.update." + Language.English.getCode()),
-					$("ConstellioSetupView.setup.update." + Language.English.getCode())) {
+			Button updateButton = new BaseButton($("ConstellioSetupView.setup.update." + Language.English.getCode())) {
 				@Override
-				protected Component buildWindowContent() {
-					VerticalLayout verticalLayout = new VerticalLayout();
+				protected void buttonClick(ClickEvent event) {
+					preSetupButtonsLayout.removeAllComponents();
+					if (formLayout != null) {
+						mainLayout.removeComponent(formLayout);
+					}
 					ManualUpdateHandler manualUpdateHandler = new ManualUpdateHandler(
 							getConstellioFactories().getAppLayerFactory(),
 							ConstellioSetupViewImpl.this);
-					verticalLayout.addComponent(manualUpdateHandler.buildUpdatePanel());
-					verticalLayout.setHeight("400px");
-					return verticalLayout;
+					preSetupButtonsLayout.addComponent(manualUpdateHandler.buildUpdatePanel());
 				}
 			};
 			updateButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
 			preSetupButtonsLayout.addComponent(updateButton);
-		}
-
+		}	
+		
 		for (final String localeCode : localeCodes) {
 			Button languageButton = new Button($("ConstellioSetupView.setup." + localeCode));
 			languageButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -268,37 +267,31 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 			@Override
 			protected void saveButtonClick(ConstellioSetupBean viewObject)
 					throws ValidationException {
-				new Thread() {
-					@Override
-					public void run() {
-						if (!presenter.isLoadSaveState()) {
-							List<String> modules = bean.getModules();
-							List<String> languages = bean.getLanguages();
-							String collectionTitle = bean.getCollectionTitle();
-							String collectionCode = bean.getCollectionCode();
-							String adminPassword = bean.getAdminPassword();
-							boolean demoData = bean.isDemoData();
+				if (!presenter.isLoadSaveState()) {
+					List<String> modules = bean.getModules();
+					List<String> languages = bean.getLanguages();
+					String collectionTitle = bean.getCollectionTitle();
+					String collectionCode = bean.getCollectionCode();
+					String adminPassword = bean.getAdminPassword();
+					boolean demoData = bean.isDemoData();
 
-							try {
-								presenter.saveRequested(languages, modules, collectionTitle, collectionCode,
-										adminPassword, demoData);
-							} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
-								showMessage(constellioSetupPresenterException.getMessage());
-
-							}
-						} else {
-							TempFileUpload saveState = bean.getSaveState();
-							File saveStateFile = saveState.getTempFile();
-							try {
-								presenter.loadSaveStateRequested(saveStateFile);
-							} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
-								showErrorMessage(constellioSetupPresenterException.getMessage());
-							} finally {
-								saveState.delete();
-							}
-						}
+					try {
+						presenter.saveRequested(languages, modules, collectionTitle, collectionCode,
+								adminPassword, demoData);
+					} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
+						showMessage(constellioSetupPresenterException.getMessage());
 					}
-				}.start();
+				} else {
+					TempFileUpload saveState = bean.getSaveState();
+					File saveStateFile = saveState.getTempFile();
+					try {
+						presenter.loadSaveStateRequested(saveStateFile);
+					} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
+						showErrorMessage(constellioSetupPresenterException.getMessage());
+					} finally {
+						saveState.delete();
+					}
+				}
 			}
 
 			@Override
@@ -307,16 +300,6 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		};
 
 		formLayout.addComponents(form);
-	}
-
-	@Override
-	public void showMessage(final String message) {
-		UI.getCurrent().access(new Runnable() {
-			@Override
-			public void run() {
-				ConstellioSetupViewImpl.super.showMessage(message);
-			}
-		});
 	}
 
 	@Override
@@ -345,26 +328,6 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 	@Override
 	public void closeProgressPopup() {
 		uploadWaitWindow.close();
-	}
-
-	@Override
-	public void showErrorMessage(final String errorMessage) {
-		UI.getCurrent().access(new Runnable() {
-			@Override
-			public void run() {
-				ConstellioSetupViewImpl.super.showErrorMessage(errorMessage);
-			}
-		});
-	}
-
-	@Override
-	public void updateUI() {
-		UI.getCurrent().access(new Runnable() {
-			@Override
-			public void run() {
-				ConstellioSetupViewImpl.super.updateUI();
-			}
-		});
 	}
 
 	@Override
