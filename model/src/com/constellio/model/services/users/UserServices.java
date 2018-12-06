@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
@@ -106,46 +107,46 @@ public class UserServices {
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-													  List<String> globalGroups, List<String> collections,
-													  UserCredentialStatus status) {
+											   List<String> globalGroups, List<String> collections,
+											   UserCredentialStatus status) {
 		return userCredentialsManager.create(username, firstName, lastName, email, globalGroups, collections, status);
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-													  List<String> globalGroups, List<String> collections,
-													  UserCredentialStatus status, String domain,
-													  List<String> msExchDelegateListBL, String dn) {
+											   List<String> globalGroups, List<String> collections,
+											   UserCredentialStatus status, String domain,
+											   List<String> msExchDelegateListBL, String dn) {
 		return userCredentialsManager.create(
 				username, firstName, lastName, email, globalGroups, collections, status, domain, msExchDelegateListBL, dn);
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-													  String serviceKey,
-													  boolean systemAdmin, List<String> globalGroups, List<String> collections,
-													  Map<String, LocalDateTime> tokens,
-													  UserCredentialStatus status) {
+											   String serviceKey,
+											   boolean systemAdmin, List<String> globalGroups, List<String> collections,
+											   Map<String, LocalDateTime> tokens,
+											   UserCredentialStatus status) {
 		return userCredentialsManager.create(
 				username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status);
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-													  String serviceKey, boolean systemAdmin, List<String> globalGroups,
-													  List<String> collections,
-													  Map<String, LocalDateTime> tokens, UserCredentialStatus status,
-													  String domain, List<String> msExchDelegateListBL,
-													  String dn) {
+											   String serviceKey, boolean systemAdmin, List<String> globalGroups,
+											   List<String> collections,
+											   Map<String, LocalDateTime> tokens, UserCredentialStatus status,
+											   String domain, List<String> msExchDelegateListBL,
+											   String dn) {
 		return userCredentialsManager.create(
 				username, firstName, lastName, email, serviceKey, systemAdmin, globalGroups, collections, tokens, status, domain,
 				msExchDelegateListBL, dn);
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-													  List<String> personalEmails,
-													  String serviceKey, boolean systemAdmin, List<String> globalGroups,
-													  List<String> collections,
-													  Map<String, LocalDateTime> tokens, UserCredentialStatus status,
-													  String domain, List<String> msExchDelegateListBL,
-													  String dn) {
+											   List<String> personalEmails,
+											   String serviceKey, boolean systemAdmin, List<String> globalGroups,
+											   List<String> collections,
+											   Map<String, LocalDateTime> tokens, UserCredentialStatus status,
+											   String domain, List<String> msExchDelegateListBL,
+											   String dn) {
 		return userCredentialsManager.create(
 				username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens,
 				status, domain,
@@ -153,17 +154,28 @@ public class UserServices {
 	}
 
 	public UserCredential createUserCredential(String username, String firstName, String lastName, String email,
-													  List<String> personalEmails,
-													  String serviceKey, boolean systemAdmin, List<String> globalGroups,
-													  List<String> collections,
-													  Map<String, LocalDateTime> tokens, UserCredentialStatus status,
-													  String domain, List<String> msExchDelegateListBL,
-													  String dn, String jobTitle, String phone, String fax, String address) {
+											   List<String> personalEmails,
+											   String serviceKey, boolean systemAdmin, List<String> globalGroups,
+											   List<String> collections,
+											   Map<String, LocalDateTime> tokens, UserCredentialStatus status,
+											   String domain, List<String> msExchDelegateListBL,
+											   String dn, String jobTitle, String phone, String fax, String address) {
 		return userCredentialsManager.create(
 				username, firstName, lastName, email, personalEmails, serviceKey, systemAdmin, globalGroups, collections, tokens,
 				status, domain,
 				msExchDelegateListBL, dn, jobTitle, phone, fax, address);
 	}
+
+	public UserCredential newUserCredential() {
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(SYSTEM_COLLECTION);
+		return new UserCredential(recordServices.newRecordWithSchema(types.getSchema(UserCredential.DEFAULT_SCHEMA)), types);
+	}
+
+	public GlobalGroup newGlobalGroup() {
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(SYSTEM_COLLECTION);
+		return new GlobalGroup(recordServices.newRecordWithSchema(types.getSchema(GlobalGroup.DEFAULT_SCHEMA)), types);
+	}
+
 
 	public void addUpdateUserCredential(UserCredential userCredential) {
 		List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
@@ -1141,7 +1153,7 @@ public class UserServices {
 			globalGroup = globalGroupsManager.getGlobalGroupWithCode(group.getCode());
 		} else {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(
-					com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
+					SYSTEM_COLLECTION, modelLayerFactory);
 			globalGroup = schemas.wrapGlobalGroup(record);
 		}
 

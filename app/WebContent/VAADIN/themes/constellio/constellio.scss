@@ -60,6 +60,18 @@ $popup-view-z-index: 3;
 	}
 }
 
+@mixin folder2-icon($file-name) {
+	background-image: url('images/icons/folder2/#{$file-name}.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+
+	.v-table-cell-wrapper {
+		position: relative;
+		text-align: left;
+		left: 20px;
+	}
+}
+
 @mixin constellio {
 
 	.v-Notification-caption {
@@ -424,13 +436,236 @@ $popup-view-z-index: 3;
 		@include folder-icon(folder_purple_locked);
 	}
 
-	.v-table-cell-content-file-icon-document_frozen {
-		@include file-icon(unquote("document_frozen.gif"));
-	}
 
-	.v-table-cell-content-file-icon-document_locked {
-		@include file-icon(unquote("document_locked.gif"));
-	}
+
+    .v-table-cell-content-file-icon-grey_analog_folder_closed {
+        @include folder2-icon(grey_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-grey_analog_folder_opened {
+        @include folder2-icon(grey_analog_folder_opened);
+    }
+
+
+
+    .v-table-cell-content-file-icon-grey_empty_folder_closed {
+       @include folder2-icon(grey_empty_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-grey_empty_folder_opened {
+       @include folder2-icon(grey_empty_folder_opened);
+    }
+
+
+
+
+    .v-table-cell-content-file-icon-grey_hybrid_folder_closed {
+       @include folder2-icon(grey_hybrid_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-grey_hybrid_folder_opend {
+       @include folder2-icon(grey_hybrid_folder_opend);
+    }
+
+    .v-table-cell-content-file-icon-orange_analog_folder_closed {
+        @include folder2-icon(orange_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_analog_folder_frozen_closed {
+        @include folder2-icon(orange_analog_folder_frozen_closed);
+    }
+
+    .v-table-cell-content-file-orange_analog_folder_frozen_opened {
+       @include folder2-icon(orange_analog_folder_frozen_opened);
+    }
+
+    .v-table-cell-content-file-orange_analog_folder_locked_close {
+       @include folder2-icon(orange_analog_folder_locked_close);
+    }
+
+    .v-table-cell-content-file-icon-orange_analog_folder_locked_opened {
+       @include folder2-icon(orange_analog_folder_locked_opened);
+    }
+
+    .v-table-cell-content-file-icon-orange_analog_folder_opened {
+       @include folder2-icon(grey_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_empty_folder_closed {
+        @include folder2-icon(grey_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_empty_folder_opened {
+        @include folder2-icon(orange_empty_folder_opened);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .v-table-cell-content-file-icon-orange_hybrid_folder_closed {
+       @include folder2-icon(orange_empty_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_opened {
+       @include folder2-icon(orange_hybrid_folder_frozen_opened);
+    }
+
+    .v-table-cell-content-file-icon-orange_hybrid_folder_locked_closed {
+       @include folder2-icon(orange_hybrid_folder_locked_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_hybrid_folder_locked_opened {
+       @include folder2-icon(orange_hybrid_folder_locked_opened);
+    }
+
+    .v-table-cell-content-file-icon-orange_hybrid_folder_opened {
+       @include folder2-icon(orange_hybrid_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-orange_numerical_folder_closed {
+       @include folder2-icon(orange_numerical_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_numerical_folder_frozen_closed {
+       @include folder2-icon(orange_numerical_folder_frozen_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_numerical_folder_frozen_opened {
+       @include folder2-icon(orange_numerical_folder_frozen_opened);
+    }
+    .v-table-cell-content-file-icon-orange_numerical_folder_locked_closed {
+       @include folder2-icon(orange_numerical_folder_locked_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_numerical_folder_locked_opened {
+       @include folder2-icon(orange_numerical_folder_locked_opened);
+    }
+
+    .v-table-cell-content-file-icon-orange_numerical_folder_opened {
+       @include folder2-icon(orange_numerical_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-purple_analog_folder_closed {
+       @include folder2-icon(purple_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-purple_analog_folder_opened {
+       @include folder2-icon(purple_analog_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-purple_empty_folder_closed {
+       @include folder2-icon(purple_empty_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-purple_empty_folder_opened {
+       @include folder2-icon(purple_empty_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-purple_hybrid_folder_closed {
+       @include folder2-icon(purple_hybrid_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-purple_hybrid_folder_opened {
+       @include folder2-icon(purple_hybrid_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_analog_folder_closed {
+       @include folder2-icon(yellow_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_analog_folder_frozen_closed {
+       @include folder2-icon(yellow_analog_folder_frozen_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_analog_folder_frozen_opened {
+       @include folder2-icon(yellow_analog_folder_frozen_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_analog_folder_locked_opened {
+       @include folder2-icon(yellow_analog_folder_locked_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_analog_folder_opened {
+       @include folder2-icon(yellow_analog_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_empty_folder_closed {
+       @include folder2-icon(yellow_empty_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_empty_folder_opened {
+       @include folder2-icon(yellow_empty_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_analog_folder_locked_opened {
+       @include folder2-icon(yellow_analog_folder_locked_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_empty_folder_closed {
+       @include folder2-icon(yellow_empty_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_empty_folder_opened {
+       @include folder2-icon(yellow_empty_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_hybrid_folder_closed {
+       @include folder2-icon(yellow_hybrid_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_hybrid_folder_frozen_closed {
+       @include folder2-icon(yellow_hybrid_folder_frozen_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_hybrid_folder_frozen_opened {
+       @include folder2-icon(yellow_hybrid_folder_frozen_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_hybrid_folder_locked_closed {
+       @include folder2-icon(yellow_hybrid_folder_locked_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_hybrid_folder_locked_opened {
+       @include folder2-icon(yellow_hybrid_folder_locked_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_hybrid_folder_opened {
+       @include folder2-icon(yellow_hybrid_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_numerical_folder_closed {
+       @include folder2-icon(yellow_numerical_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_numerical_folder_frozen_closed {
+       @include folder2-icon(yellow_numerical_folder_frozen_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_numerical_folder_frozen_opened {
+       @include folder2-icon(grey_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_numerical_folder_locked_closed {
+       @include folder2-icon(grey_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_numerical_folder_locked_opened {
+       @include folder2-icon(grey_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_numerical_folder_opened {
+       @include folder2-icon(yellow_numerical_folder_opened);
+    }
 
 
 	.v-table-cell-content-error {
@@ -1813,6 +2048,12 @@ $popup-view-z-index: 3;
 	    	}
     	}
 
+    	.folder-content-table {
+	    	.v-scrollable {
+	    		overflow-x: auto;
+	    	}
+    	}
+
 		.batch-processes {
 	    	.v-table {
 		    	.v-scrollable {
@@ -1915,6 +2156,12 @@ $popup-view-z-index: 3;
     	.v-table {
 	    	.v-scrollable {
 	    		overflow-x: hidden;
+	    	}
+    	}
+
+    	.folder-content-table {
+	    	.v-scrollable {
+	    		overflow-x: auto;
 	    	}
     	}
 

@@ -8,7 +8,7 @@ public class SystemConfigurationGroupVO implements Serializable {
 
 	String groupCode;
 
-	List<SystemConfigurationVO> configs = new ArrayList<>();
+	List<SystemConfigurationVO> configs;
 
 	List<Integer> updatedSystemConfigurationVOIndexes = new ArrayList<>();
 
@@ -42,6 +42,17 @@ public class SystemConfigurationGroupVO implements Serializable {
 		SystemConfigurationVO config = configs.get(i);
 		config.setStringValue(newStringValue);
 		updatedSystemConfigurationVOIndexes.add(i);
+	}
+
+	public SystemConfigurationVO getSystemConfigurationVO(String code) {
+		for(Integer index : updatedSystemConfigurationVOIndexes){
+			SystemConfigurationVO systemConfigurationVO = configs.get(index);
+			if(systemConfigurationVO.getCode().equals(code)) {
+				return systemConfigurationVO;
+			}
+		}
+
+		return null;
 	}
 
 	public boolean isUpdated() {

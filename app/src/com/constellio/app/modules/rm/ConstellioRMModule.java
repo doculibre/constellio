@@ -142,6 +142,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_666;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
@@ -180,7 +181,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
-import com.constellio.model.services.security.GlobalSecurizedTypeCondition;
+import com.constellio.model.services.security.GlobalSecuredTypeCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -311,6 +312,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_1_2());
 		scripts.add(new RMMigrationTo8_1_1_1());
 		scripts.add(new RMMigrationTo8_2());
+		scripts.add(new RMMigrationTo8_2_666());
 
 		return scripts;
 	}
@@ -541,7 +543,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	public void start(AppLayerFactory appLayerFactory) {
 		RMNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
 		appLayerFactory.getModelLayerFactory().getSecurityTokenManager().registerPublicTypeWithCondition(
-				ContainerRecord.SCHEMA_TYPE, new GlobalSecurizedTypeCondition() {
+				ContainerRecord.SCHEMA_TYPE, new GlobalSecuredTypeCondition() {
 					@Override
 					public boolean hasGlobalAccess(User user, String access) {
 						if (Role.READ.equals(access)) {
@@ -558,7 +560,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				});
 
 		appLayerFactory.getModelLayerFactory().getSecurityTokenManager().registerPublicTypeWithCondition(
-				StorageSpace.SCHEMA_TYPE, new GlobalSecurizedTypeCondition() {
+				StorageSpace.SCHEMA_TYPE, new GlobalSecuredTypeCondition() {
 					@Override
 					public boolean hasGlobalAccess(User user, String access) {
 						if (Role.READ.equals(access) || Role.WRITE.equals(access) || Role.DELETE.equals(access)) {

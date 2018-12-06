@@ -54,7 +54,7 @@ public class AppSchemasServicesAcceptanceTest extends ConstellioTest {
 
 	public void setUpWithoutRecords()
 			throws Exception {
-		defineSchemasManager().using(schemas.andCustomSchema().withAStringMetadataInCustomSchema(whichIsUnmodifiable));
+		defineFrenchSystemBilingualCollection(zeCollection).using(schemas.andCustomSchema().withAStringMetadataInCustomSchema(whichIsUnmodifiable));
 		appSchemasServices = getAppLayerFactory().newSchemasServices();
 		recordServices = getModelLayerFactory().newRecordServices();
 		schemasManager = getModelLayerFactory().getMetadataSchemasManager();

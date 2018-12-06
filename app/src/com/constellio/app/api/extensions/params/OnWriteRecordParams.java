@@ -9,10 +9,14 @@ public class OnWriteRecordParams {
 
 	ModifiableImportRecord modifiableImportRecord;
 
+	boolean isForSameSystem;
+
 	public OnWriteRecordParams(Record record,
-							   ModifiableImportRecord modifiableImportRecord) {
+							   ModifiableImportRecord modifiableImportRecord,
+							   boolean isForSameSystem) {
 		this.record = record;
 		this.modifiableImportRecord = modifiableImportRecord;
+		this.isForSameSystem = isForSameSystem;
 	}
 
 	public Record getRecord() {
@@ -25,5 +29,9 @@ public class OnWriteRecordParams {
 
 	public boolean isRecordOfType(String schemaType) {
 		return record.getTypeCode().equals(schemaType);
+	}
+
+	public boolean isForSameSystem() {
+		return isForSameSystem;
 	}
 }

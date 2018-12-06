@@ -29,6 +29,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -207,7 +208,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 	public void removeRecord(String itemId, String schema) {
 		SchemaPresenterUtils utils = new SchemaPresenterUtils(PrintableLabel.SCHEMA_NAME, view.getConstellioFactories(), view.getSessionContext());
 		Record record = utils.toRecord(this.getRecordsWithIndex(schema, itemId));
-		delete(record);
+		recordServices().physicallyDeleteNoMatterTheStatus(record, null, new RecordPhysicalDeleteOptions());
 		view.navigate().to().manageLabels();
 	}
 

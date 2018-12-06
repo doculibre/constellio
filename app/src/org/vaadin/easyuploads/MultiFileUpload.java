@@ -73,6 +73,9 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 			private LinkedList<ProgressIndicator> indicators;
 
 			public void streamingStarted(StreamingStartEvent event) {
+				if (isSpaceLimitReached(event)) {
+					throw new SpaceLimitException();
+				}
 			}
 
 			public void streamingFinished(StreamingEndEvent event) {
@@ -88,7 +91,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 			public void streamingFailed(StreamingErrorEvent event) {
 				Logger.getLogger(getClass().getName()).log(Level.FINE,
 						"Streaming failed", event.getException());
-
+				displayStreamingFailedMessage();
 				for (ProgressIndicator progressIndicator : indicators) {
 					progressBars.removeComponent(progressIndicator);
 				}
@@ -133,6 +136,17 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 		uploads.addComponent(upload);
 
 	}
+
+	protected void displayStreamingFailedMessage() {
+	}
+
+	;
+
+	protected boolean isSpaceLimitReached(StreamingStartEvent event) {
+		return true;
+	}
+
+	;
 
 	private ProgressIndicator createProgressIndicator() {
 		ProgressIndicator progressIndicator = new ProgressIndicator();

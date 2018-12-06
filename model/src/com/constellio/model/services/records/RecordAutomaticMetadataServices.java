@@ -1,6 +1,7 @@
 package com.constellio.model.services.records;
 
 import com.constellio.data.utils.ImpossibleRuntimeException;
+import com.constellio.data.utils.KeyListMap;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.DynamicDependencyValues;
@@ -73,6 +74,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import static com.constellio.model.entities.enums.GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD;
 import static com.constellio.model.services.records.aggregations.MetadataAggregationHandlerFactory.getHandlerFor;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -442,7 +444,7 @@ public class RecordAutomaticMetadataServices {
 
 			if (securityModel == null) {
 
-				securityModel = buildTransactionSecurityModel(context.getTransaction(), roles, types, recordProvider);
+				securityModel = buildTransactionSecurityModel(context.getTransaction(), roles, types);
 				context.setTransactionSecurityModel(securityModel);
 			}
 			return securityModel;
@@ -453,33 +455,40 @@ public class RecordAutomaticMetadataServices {
 
 	}
 
-	private TransactionSecurityModel buildTransactionSecurityModel(Transaction tx, Roles roles,
-																   MetadataSchemaTypes types,
-																   RecordProvider recordProvider) {
+	public SingletonSecurityModel getSecurityModel(String collection) {
 
 		SecurityModelCache cache = modelLayerFactory.getSecurityModelCache();
-		SingletonSecurityModel model = cache.getCached(tx.getCollection());
+		SingletonSecurityModel model = cache.getCached(collection);
 
 		if (model == null) {
 
+			MetadataSchemaTypes types = schemasManager.getSchemaTypes(collection);
+			Roles roles = modelLayerFactory.getRolesManager().getCollectionRoles(collection);
+
 			synchronized (SingletonSecurityModel.class) {
 
-				model = cache.getCached(tx.getCollection());
+				model = cache.getCached(collection);
 				if (model == null) {
 					//TODO Put in singleton
-					model = buildSingletonSecurityModel(roles, types, recordProvider, tx.getCollection());
+					model = buildSingletonSecurityModel(roles, types, collection);
 					cache.insert(model);
 				}
 			}
 		}
-		return new TransactionSecurityModel(types, roles, model, tx);
+
+		return model;
+	}
+
+	private TransactionSecurityModel buildTransactionSecurityModel(Transaction tx, Roles roles,
+																   MetadataSchemaTypes types) {
+
+		SingletonSecurityModel singletonSecurityModel = getSecurityModel(types.getCollection());
+		return new TransactionSecurityModel(types, roles, singletonSecurityModel, tx);
 	}
 
 	private SingletonSecurityModel buildSingletonSecurityModel(Roles roles, MetadataSchemaTypes types,
-															   RecordProvider recordProvider, String collection) {
+															   String collection) {
 
-		List<Group> groups = new ArrayList<>();
-		List<User> users = new ArrayList<>();
 		List<Authorization> authorizationDetails = new ArrayList<>();
 		List<String> disabledGroups = new ArrayList<>();
 
@@ -487,6 +496,7 @@ public class RecordAutomaticMetadataServices {
 		RecordsCache systemCollectionCache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
 		SchemasRecordsServices systemCollectionSchemasRecordServices = new SchemasRecordsServices(
 				Collection.SYSTEM_COLLECTION, modelLayerFactory);
+
 		if (systemCollectionCache.isConfigured(GlobalGroup.SCHEMA_TYPE)) {
 			for (Record record : searchServices.getAllRecordsInUnmodifiableState(systemCollectionSchemasRecordServices.getTypes()
 					.getSchemaType(GlobalGroup.SCHEMA_TYPE))) {
@@ -497,19 +507,30 @@ public class RecordAutomaticMetadataServices {
 			}
 		}
 
-		for (Record record : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
-			if (record != null) {
-				groups.add(Group.wrapNullable(record, types));
+		GroupAuthorizationsInheritance groupInheritanceMode =
+				systemConfigurationsManager.getValue(ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE);
+		KeyListMap<String, String> groupsReceivingAccessToGroup = new KeyListMap<>();
+		KeyListMap<String, String> groupsGivingAccessToGroup = new KeyListMap<>();
+		Metadata groupAncestorMetadata = types.getSchema(Group.DEFAULT_SCHEMA).getMetadata(Group.ANCESTORS);
+		Map<String, Boolean> globalGroupDisabledMap = new HashMap<>();
+		for (Record group : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(Group.SCHEMA_TYPE))) {
+			if (group != null) {
+				globalGroupDisabledMap.put(group.getId(), !disabledGroups.contains(group.<String>get(Schemas.CODE)));
+
+				for (String ancestor : group.<String>getList(groupAncestorMetadata)) {
+					if (groupInheritanceMode == FROM_PARENT_TO_CHILD) {
+						groupsGivingAccessToGroup.add(group.getId(), ancestor);
+						groupsReceivingAccessToGroup.add(ancestor, group.getId());
+
+					} else {
+						groupsReceivingAccessToGroup.add(group.getId(), ancestor);
+						groupsGivingAccessToGroup.add(ancestor, group.getId());
+					}
+
+				}
+
 			} else {
 				LOGGER.warn("Null record returned while getting all groups");
-			}
-		}
-
-		for (Record record : searchServices.getAllRecordsInUnmodifiableState(types.getSchemaType(User.SCHEMA_TYPE))) {
-			if (record != null) {
-				users.add(User.wrapNullable(record, types, roles));
-			} else {
-				LOGGER.warn("Null record returned while getting all users");
 			}
 		}
 
@@ -522,13 +543,18 @@ public class RecordAutomaticMetadataServices {
 			}
 		}
 
-		GroupAuthorizationsInheritance groupInheritanceMode =
-				systemConfigurationsManager.getValue(ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE);
 
 		Taxonomy principalTaxonomy = taxonomiesManager.getPrincipalTaxonomy(types.getCollection());
 
-		return new SingletonSecurityModel(authorizationDetails, users, groups, groupInheritanceMode, disabledGroups,
-				principalTaxonomy, recordProvider, collection);
+		List<String> securableRecordSchemaTypes = new ArrayList<>();
+		for (MetadataSchemaType schemaType : schemasManager.getSchemaTypes(collection).getSchemaTypes()) {
+			if (schemaType.hasSecurity() && (principalTaxonomy == null || !principalTaxonomy.getSchemaTypes().contains(schemaType.getCode()))) {
+				securableRecordSchemaTypes.add(schemaType.getCode());
+			}
+		}
+
+		return new SingletonSecurityModel(authorizationDetails, globalGroupDisabledMap, groupsReceivingAccessToGroup, groupsGivingAccessToGroup, groupInheritanceMode,
+				securableRecordSchemaTypes, collection);
 	}
 
 

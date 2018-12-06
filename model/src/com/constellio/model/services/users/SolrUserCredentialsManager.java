@@ -151,6 +151,10 @@ public class SolrUserCredentialsManager {
 		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).returnAll()).sortAsc(schemas.credentialUsername());
 	}
 
+	public LogicalSearchQuery getUserCredentialsWithAgreedToPolicyQuery() {
+		return new LogicalSearchQuery(from(schemas.credentialSchemaType()).where(schemas.credentialSchemaType().getAllMetadatas().getMetadataWithLocalCode(UserCredential.HAS_AGREED_TO_PRIVACY_POLICY)).isTrue());
+	}
+
 	public List<UserCredential> getUserCredentials() {
 		return schemas.wrapCredentials(searchServices.search(getUserCredentialsQuery()));
 	}

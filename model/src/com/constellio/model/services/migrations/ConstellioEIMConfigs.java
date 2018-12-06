@@ -138,6 +138,7 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
 
+
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
 		add(DEFAULT_PARSING_BEHAVIOR = others.createEnum("defaultParsingBehavior", ParsingBehavior.class)
@@ -218,7 +219,8 @@ public class ConstellioEIMConfigs {
 
 		add(GROUP_AUTHORIZATIONS_INHERITANCE = others
 				.createEnum("groupAuthorizationsInheritance", GroupAuthorizationsInheritance.class)
-				.withDefaultValue(GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD));
+				.withDefaultValue(GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD)
+				.scriptedBy(GroupAuthorizationsInheritanceScript.class));
 
 		add(TRANSACTION_DELAY = others.createInteger("transactionDelay").withDefaultValue(3));
 		//add(DEFAULT_FONT_SIZE = others.createInteger("defaultFontSize").withDefaultValue(16));
@@ -261,6 +263,7 @@ public class ConstellioEIMConfigs {
 
 		add(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE = advanced.createInteger("batchProcessMaximumHistorySize")
 				.withDefaultValue(20).whichIsHidden());
+
 
 		add(SPACE_QUOTA_FOR_USER_DOCUMENTS = others.createInteger("spaceQuotaForUserDocuments").withDefaultValue(-1));
 
@@ -510,11 +513,12 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(SPACE_QUOTA_FOR_USER_DOCUMENTS);
 	}
 
+	public int getBatchProcessMaximumHistorySize() {
+		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
+	}
+
 	public boolean isNegativeAuthorizationEnabled() {
 		return manager.getValue(NEGATIVE_AUTHORIZATION);
 	}
 
-	public int getBatchProcessMaximumHistorySize() {
-		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
-	}
 }

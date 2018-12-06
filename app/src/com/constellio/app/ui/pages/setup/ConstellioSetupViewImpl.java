@@ -1,15 +1,5 @@
 package com.constellio.app.ui.pages.setup;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.io.File;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.constellio.app.entities.modules.ProgressInfo;
-import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -18,12 +8,9 @@ import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.LogoUtils;
-import com.constellio.app.ui.pages.management.updates.UploadWaitWindow;
-import com.constellio.app.utils.ManualUpdateHandler;
-import com.constellio.app.utils.ManualUpdateHandlerView;
-import com.constellio.model.entities.Language;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.users.UserServices;
 import com.vaadin.data.fieldgroup.PropertyId;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.server.ExternalResource;
@@ -88,6 +75,10 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 	@PropertyId("adminPassword")
 	private PasswordField adminPasswordField;
 
+
+	@PropertyId("adminPasswordConfirmation")
+	private PasswordField adminPasswordConfirmationField;
+
 	@PropertyId("demoData")
 	private CheckBox demoDataField;
 
@@ -101,6 +92,10 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 	private boolean isUpdateWar;
 
 	public ConstellioSetupViewImpl(String parameter) {
+
+
+	}
+	public ConstellioSetupViewImpl() {
 		this.presenter = new ConstellioSetupPresenter(this);
 
 		setSizeFull();
@@ -177,8 +172,8 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 			};
 			updateButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 			preSetupButtonsLayout.addComponent(updateButton);
-		}	
-		
+		}
+
 		for (final String localeCode : localeCodes) {
 			Button languageButton = new Button($("ConstellioSetupView.setup." + localeCode));
 			languageButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -252,10 +247,12 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 
 			adminPasswordField = new BasePasswordField($("ConstellioSetupView.adminPassword"));
 
+			adminPasswordConfirmationField = new BasePasswordField($("ConstellioSetupView.adminPasswordConfirmation"));
+
 			demoDataField = new CheckBox($("ConstellioSetupView.demoData"));
 
 			formFields = new Field[]{languagesField, modulesField, collectionCodeField, collectionTitleField,
-									 adminPasswordField, demoDataField};
+					adminPasswordField, adminPasswordConfirmationField, demoDataField};
 		} else {
 			saveStateField = new BaseUploadField();
 			saveStateField.setCaption($("ConstellioSetupView.saveState"));
@@ -265,37 +262,86 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 
 		form = new BaseForm<ConstellioSetupBean>(bean, this, formFields) {
 			@Override
-			protected void saveButtonClick(ConstellioSetupBean viewObject)
-					throws ValidationException {
-				if (!presenter.isLoadSaveState()) {
-					List<String> modules = bean.getModules();
-					List<String> languages = bean.getLanguages();
-					String collectionTitle = bean.getCollectionTitle();
-					String collectionCode = bean.getCollectionCode();
-					String adminPassword = bean.getAdminPassword();
-					boolean demoData = bean.isDemoData();
+			protected void saveButtonClick(ConstellioSetupBean viewObject) {
 
-					try {
-						presenter.saveRequested(languages, modules, collectionTitle, collectionCode,
-								adminPassword, demoData);
-					} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
-						showMessage(constellioSetupPresenterException.getMessage());
-					}
-				} else {
-					TempFileUpload saveState = bean.getSaveState();
-					File saveStateFile = saveState.getTempFile();
-					try {
-						presenter.loadSaveStateRequested(saveStateFile);
-					} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
-						showErrorMessage(constellioSetupPresenterException.getMessage());
-					} finally {
-						saveState.delete();
-					}
+				final List<String> modules = bean.getModules();
+				final List<String> languages = bean.getLanguages();
+				final String collectionTitle = bean.getCollectionTitle();
+				final String collectionCode = bean.getCollectionCode();
+
+
+				String nonFinaladminPassword = "";
+				String nonFinalAdminConfirmationPassword = "";
+
+				if(nonFinaladminPassword != null) {
+					nonFinaladminPassword = bean.getAdminPassword();
 				}
+
+				if(nonFinalAdminConfirmationPassword != null) {
+					nonFinalAdminConfirmationPassword = bean.getAdminPasswordConfirmation();
+				}
+
+				final String adminPassword = nonFinaladminPassword;
+				final String adminPasswordConfirmation = nonFinalAdminConfirmationPassword;
+
+				final boolean demoData = bean.isDemoData();
+				try {
+					presenter.validUserEntry(modules, collectionCode, adminPassword, adminPasswordConfirmation);
+					if(!threadIsRunning) {
+						new Thread() {
+							@Override
+							public void run() {
+								threadIsRunning = true;
+								try {
+									if (!presenter.isLoadSaveState()) {
+
+										try {
+											presenter.saveRequested(languages, modules, collectionTitle, collectionCode,
+													adminPassword, adminPasswordConfirmation, demoData);
+											UI.getCurrent().access(new Runnable() {
+												@Override
+												public void run() {
+													UserServices userServices = getConstellioFactories().getModelLayerFactory().newUserServices();
+													SessionContext sessionContext = getSessionContext();
+													UserToVOBuilder userToVOBuilder = new UserToVOBuilder();
+													User user = userServices.getUserRecordInCollection("admin", collectionCode);
+													UserVO userVO = userToVOBuilder.build(user.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
+													sessionContext.setCurrentCollection(collectionCode);
+													sessionContext.setCurrentLocale(new Locale(presenter.getSetupLocaleCode()));
+													sessionContext.setCurrentUser(userVO);
+
+													Page.getCurrent().setLocation("/constellio/");
+												}
+											});
+										} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
+											showMessage(constellioSetupPresenterException.getMessage());
+										}
+									} else {
+										TempFileUpload saveState = bean.getSaveState();
+										File saveStateFile = saveState.getTempFile();
+										try {
+											presenter.loadSaveStateRequested(saveStateFile);
+										} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
+											showErrorMessage(constellioSetupPresenterException.getMessage());
+										} finally {
+											saveState.delete();
+										}
+									}
+								} finally {
+									threadIsRunning = false;
+								}
+							}
+						}.start();
+					}
+				} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
+					showMessage(constellioSetupPresenterException.getMessage());
+				}
+
 			}
 
 			@Override
 			protected void cancelButtonClick(ConstellioSetupBean viewObject) {
+
 			}
 		};
 
@@ -347,9 +393,19 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 
 		private String adminPassword;
 
+		private String adminPasswordConfirmation;
+
 		private boolean demoData = true;
 
 		private TempFileUpload saveState;
+
+		public final String getAdminPasswordConfirmation() {
+			return adminPasswordConfirmation;
+		}
+
+		public final void setAdminPasswordConfirmation(String adminPasswordConfirmation) {
+			this.adminPasswordConfirmation = adminPasswordConfirmation;
+		}
 
 		public final List<String> getModules() {
 			return modules;

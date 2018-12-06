@@ -24,6 +24,7 @@ import com.constellio.model.extensions.events.records.RecordPhysicalDeletionVali
 import com.constellio.model.extensions.events.records.RecordReindexationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.extensions.events.records.RecordSetCategoryEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutedEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
@@ -32,7 +33,6 @@ import com.constellio.model.extensions.events.schemas.SchemaEvent;
 import com.constellio.model.extensions.events.schemas.SearchFieldPopulatorParams;
 import com.constellio.model.extensions.params.BatchProcessingSpecialCaseParams;
 import com.constellio.model.extensions.params.GetCaptionForRecordParams;
-import com.constellio.model.frameworks.validation.ExtensionValidationErrors;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
@@ -115,22 +115,6 @@ public class ModelLayerCollectionExtensions {
 		}
 	}
 
-	public void callTransactionExecuted(TransactionExecutionBeforeSaveEvent event,
-												   RecordUpdateOptions options) {
-		for (RecordExtension extension : recordExtensions) {
-			try {
-				extension.transactionExecutionBeforeSave(event);
-
-			} catch (RuntimeException e) {
-				if (options.isCatchExtensionsExceptions()) {
-					LOGGER.warn("Exception while calling extension of class '" + extension.getClass().getName()
-								+ "' on transaction ", e);
-				} else {
-					throw e;
-				}
-			}
-		}
-	}
 
 	public void callRecordInCreationBeforeSave(RecordInCreationBeforeSaveEvent event, RecordUpdateOptions options) {
 		for (RecordExtension extension : recordExtensions) {
@@ -170,19 +154,15 @@ public class ModelLayerCollectionExtensions {
 
 	public static void handleException(RuntimeException e, String recordId, String extensionClassname,
 									   RecordUpdateOptions options) {
-		//if (e instanceof ValidationRuntimeException) {
-		//	if (options.isCatchExtensionsValidationsErrors()) {
-		//		LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "' on record " + recordId, e);
-		//			} else {
-		//		throw e;
-		//		}
-		//} else {
 		if (options.isCatchExtensionsExceptions()) {
-			LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "' on record " + recordId, e);
+			if (recordId == null) {
+				LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "'", e);
+			} else {
+				LOGGER.warn("Exception while calling extension of class '" + extensionClassname + "' on record " + recordId, e);
+			}
 		} else {
 			throw e;
 		}
-		//}
 	}
 
 	public void callRecordInModificationBeforeValidationAndAutomaticValuesCalculation(
@@ -213,6 +193,16 @@ public class ModelLayerCollectionExtensions {
 				extension.recordModified(event);
 			} catch (RuntimeException e) {
 				handleException(e, event.getRecord().getId(), extension.getClass().getName(), options);
+			}
+		}
+	}
+
+	public void callTransactionExecuted(TransactionExecutedEvent event, RecordUpdateOptions options) {
+		for (RecordExtension extension : recordExtensions) {
+			try {
+				extension.transactionExecuted(event);
+			} catch (RuntimeException e) {
+				handleException(e, null, extension.getClass().getName(), options);
 			}
 		}
 	}
@@ -252,64 +242,34 @@ public class ModelLayerCollectionExtensions {
 		return modifyBlocked;
 	}
 
-	public boolean isDeleteAuthorized(final Record record, final User user) {
-		return recordExtensions.getBooleanValue(true, new BooleanCaller<RecordExtension>() {
-			@Override
-			public ExtensionBooleanResult call(RecordExtension behavior) {
-				return behavior.validateDeleteAuthorized(record, user).getExtensionBooleanResult();
-			}
-		});
-	}
-
-	public ValidationErrors getDeletionAuthorizationValidationErrors(final Record record, final User user) {
-		ValidationErrors validationErrors = new ValidationErrors();
+	public ValidationErrors validateDeleteAuthorized(final Record record, final User user) {
 		for (RecordExtension extension : recordExtensions.getExtensions()) {
-			ExtensionValidationErrors extensionValidationErrors = extension.validateDeleteAuthorized(record, user);
-			if (extensionValidationErrors.getExtensionBooleanResult() != null && extensionValidationErrors.getExtensionBooleanResult().equals(ExtensionBooleanResult.FALSE)) {
-				return extensionValidationErrors.getValidationErrors();
+			ValidationErrors validationErrors = extension.validateDeleteAuthorized(record, user);
+			if (validationErrors != null && !validationErrors.isEmpty()) {
+				return validationErrors;
 			}
 		}
-		return validationErrors;
+		return new ValidationErrors();
 	}
 
-	public boolean isLogicallyDeletable(final RecordLogicalDeletionValidationEvent event) {
-		return recordExtensions.getBooleanValue(true, new BooleanCaller<RecordExtension>() {
-			@Override
-			public ExtensionBooleanResult call(RecordExtension behavior) {
-				return behavior.isLogicallyDeletable(event).getExtensionBooleanResult();
-			}
-		});
-	}
-
-	public ValidationErrors getLogicalDeletionValidationErrors(RecordLogicalDeletionValidationEvent event) {
-		ValidationErrors validationErrors = new ValidationErrors();
+	public ValidationErrors validateLogicallyDeletable(final RecordLogicalDeletionValidationEvent event) {
 		for (RecordExtension extension : recordExtensions.getExtensions()) {
-			ExtensionValidationErrors extensionValidationErrors = extension.isLogicallyDeletable(event);
-			if (extensionValidationErrors.getExtensionBooleanResult() != null && extensionValidationErrors.getExtensionBooleanResult().equals(ExtensionBooleanResult.FALSE)) {
-				return extensionValidationErrors.getValidationErrors();
+			ValidationErrors validationErrors = extension.validateLogicallyDeletable(event);
+			if (validationErrors != null && !validationErrors.isEmpty()) {
+				return extension.validateLogicallyDeletable(event);
 			}
 		}
-		return validationErrors;
+		return new ValidationErrors();
 	}
 
-	public boolean isPhysicallyDeletable(final RecordPhysicalDeletionValidationEvent event) {
-		return recordExtensions.getBooleanValue(true, new BooleanCaller<RecordExtension>() {
-			@Override
-			public ExtensionBooleanResult call(RecordExtension behavior) {
-				return behavior.isPhysicallyDeletable(event).getExtensionBooleanResult();
-			}
-		});
-	}
-
-	public ValidationErrors getPhysicalDeletionValidationErrors(RecordPhysicalDeletionValidationEvent event) {
-		ValidationErrors validationErrors = new ValidationErrors();
+	public ValidationErrors validatePhysicallyDeletable(final RecordPhysicalDeletionValidationEvent event) {
 		for (RecordExtension extension : recordExtensions.getExtensions()) {
-			ExtensionValidationErrors extensionValidationErrors = extension.isPhysicallyDeletable(event);
-			if (extensionValidationErrors.getExtensionBooleanResult() != null && extensionValidationErrors.getExtensionBooleanResult().equals(ExtensionBooleanResult.FALSE)) {
-				return extensionValidationErrors.getValidationErrors();
+			ValidationErrors validationErrors = extension.validatePhysicallyDeletable(event);
+			if (validationErrors != null && !validationErrors.isEmpty()) {
+				return validationErrors;
 			}
 		}
-		return validationErrors;
+		return new ValidationErrors();
 	}
 
 	public boolean isPutInTrashBeforePhysicalDelete(final SchemaEvent event) {

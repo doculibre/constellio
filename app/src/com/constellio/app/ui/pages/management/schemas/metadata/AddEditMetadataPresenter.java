@@ -7,6 +7,7 @@ import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
+import com.constellio.app.modules.rm.extensions.params.RMSchemaTypesPageExtensionExclusionByPropertyParams;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
@@ -79,7 +80,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	private String schemaCode;
 	private String schemaTypeCode;
 	private Map<String, String> parameters;
-	private String metadataCode;
+	private String metadataCode = "";
 	private MetadataSchemaTypes types;
 	private Metadata metadata;
 
@@ -120,18 +121,29 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	public void setMetadataCode(String metadataCode) {
 		this.metadataCode = metadataCode;
 
-		if(this.metadataCode.split("_").length == 1) {
+		if (this.metadataCode.split("_").length == 1) {
 			this.metadataCode = getSchemaCode() + "_" + metadataCode;
 		}
 
-		this.metadata = types.getMetadata(this.metadataCode);
+		try {
+			this.metadata = types.getMetadata(this.metadataCode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public boolean isRoleAccessSupportedOnThisMetadata() {
 		List<MetadataFilter> metadataThatDontSupportRoleAccessRetValueList = view.getConstellioFactories().getAppLayerFactory()
 				.getExtensions().forCollection(view.getCollection()).getMetadataAccessExclusionFilters();
 
-		return !metadata.isFilteredByAny(metadataThatDontSupportRoleAccessRetValueList);
+		if(metadata == null) {
+			return false;
+		}
+
+		boolean isMetadataExcludedByProperty = view.getConstellioFactories().getAppLayerFactory()
+				.getExtensions().forCollection(view.getCollection()).isMetadataAccessExclusionByPropertyFilter(new RMSchemaTypesPageExtensionExclusionByPropertyParams(metadata));
+
+		return !isMetadataExcludedByProperty && !metadata.isFilteredByAny(metadataThatDontSupportRoleAccessRetValueList);
 	}
 
 	public FormMetadataVO getFormMetadataVO() {
@@ -155,13 +167,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	public List<RoleVO> getAllCollectionRole() {
 
-			List<RoleVO> result = new ArrayList<>();
-			for (Role role : modelLayerFactory.getRolesManager().getAllRoles(view.getCollection())) {
-				result.add(new RoleVO(role.getCode(), role.getTitle(), role.getOperationPermissions()));
-			}
-			return result;
+		List<RoleVO> result = new ArrayList<>();
+		for (Role role : modelLayerFactory.getRolesManager().getAllRoles(view.getCollection())) {
+			result.add(new RoleVO(role.getCode(), role.getTitle(), role.getOperationPermissions()));
+		}
+		return result;
 	}
-
 
 
 	public FormMetadataVO getParentFormMetadataVO() {
@@ -288,7 +299,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 			builder.setUniqueValue(formMetadataVO.isUniqueValue());
 			builder.setMultiLingual(formMetadataVO.isMultiLingual());
 
-			if(formMetadataVO.getReadAccessRoles() != null) {
+			if (formMetadataVO.getReadAccessRoles() != null) {
 				MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(formMetadataVO.getReadAccessRoles(), originalMetadataAccessRestrictionBuilder.getRequiredWriteRoles(),
 						originalMetadataAccessRestrictionBuilder.getRequiredModificationRoles(), originalMetadataAccessRestrictionBuilder.getRequiredDeleteRoles());
 
@@ -358,7 +369,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 	private void setReadRoleAccessRestriction(FormMetadataVO formMetadataVO, MetadataBuilder builder) {
 		MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder;
-		if(formMetadataVO.getReadAccessRoles() != null) {
+		if (formMetadataVO.getReadAccessRoles() != null) {
 			MetadataAccessRestriction metadataAccessRestriction = new MetadataAccessRestriction(formMetadataVO.getReadAccessRoles(), new ArrayList<String>(),
 					new ArrayList<String>(), new ArrayList<String>());
 			metadataAccessRestrictionBuilder = MetadataAccessRestrictionBuilder.modify(metadataAccessRestriction);
@@ -603,7 +614,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 	}
 
 	public boolean isMetadataRequiredStatusModifiable() {
-		return metadataCode.isEmpty()
+		return metadataCode == null || metadataCode.isEmpty()
 			   || !getMetadata(metadataCode).isEssential()
 			   || getMetadata(metadataCode).hasSameCode(LEGACY_ID)
 			   || isBuiltInMetadataStatusModifiable(REQUIRED);
@@ -671,8 +682,6 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		} catch (Exception ex) {
 
 
-
-
 			return null;
 		}
 	}
@@ -691,7 +700,7 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 
 		if (types != null && Strings.isNotBlank(metadataCode)) {
 			Metadata metadata = types.getMetadata(metadataCode);
-			if(metadata.getAccessRestrictions() != null) {
+			if (metadata.getAccessRestrictions() != null) {
 				return metadata.getAccessRestrictions().getRequiredReadRoles();
 			}
 		}

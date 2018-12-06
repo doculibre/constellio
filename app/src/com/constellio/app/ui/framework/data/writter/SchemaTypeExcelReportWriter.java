@@ -26,7 +26,8 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 	Locale locale;
 	AppLayerFactory appLayerFactory;
 
-	public SchemaTypeExcelReportWriter(MetadataSchemaType metadataSchemaType, AppLayerFactory appLayerFactory, Locale locale) {
+	public SchemaTypeExcelReportWriter(MetadataSchemaType metadataSchemaType, AppLayerFactory appLayerFactory,
+									   Locale locale) {
 		this.metadataSchemaType = metadataSchemaType;
 		this.locale = locale;
 		this.appLayerFactory = appLayerFactory;
@@ -50,13 +51,13 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 		List<String> titles = new ArrayList<>();
 		titles.add(i18n.$("code"));
 		titles.add(i18n.$("title"));
-		titles.add(i18n.$("SchemaTypeExcelGenerator.type"));
-		titles.add(i18n.$("SchemaTypeExcelGenerator.multivalue"));
-		titles.add(i18n.$("SchemaTypeExcelGenerator.readonly"));
-		titles.add(i18n.$("SchemaTypeExcelGenerator.obligatoire"));
-		titles.add(i18n.$("SchemaTypeExcelGenerator.activated"));
+		titles.add(i18n.$("SchemaTypeExcelReportWriter.type"));
+		titles.add(i18n.$("SchemaTypeExcelReportWriter.multivalue"));
+		titles.add(i18n.$("SchemaTypeExcelReportWriter.readonly"));
+		titles.add(i18n.$("SchemaTypeExcelReportWriter.obligatoire"));
+		titles.add(i18n.$("SchemaTypeExcelReportWriter.activated"));
 
-		for(int i = 0; i < metadataSchemaList.size(); i++) {
+		for (int i = 0; i < metadataSchemaList.size(); i++) {
 
 			MetadataSchema currentMetadataSchema = metadataSchemaList.get(i);
 			WritableSheet excelSheet = workbook.createSheet(currentMetadataSchema.getLabel(Language.withLocale(locale)), i);
@@ -71,11 +72,11 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 			List<List<Object>> lines = new ArrayList<>();
 
 
-			for(Metadata metadata : currentMetadataSchema.getMetadatas().onlyEnabled()) {
+			for (Metadata metadata : currentMetadataSchema.getMetadatas().onlyEnabled()) {
 				List<Object> returnList = new ArrayList<>();
 				returnList.add(metadata.getCode());
 				returnList.add(metadata.getLabel(Language.withLocale(locale)));
-				returnList.add(MetadataValueType.getCaptionFor(metadata.getType()));
+				returnList.add(i18n.$(MetadataValueType.getCaptionFor(metadata.getType())));
 				returnList.add(metadata.isMultivalue());
 				returnList.add(metadata.getDataEntry().getType() != DataEntryType.MANUAL);
 				returnList.add(metadata.isDefaultRequirement());

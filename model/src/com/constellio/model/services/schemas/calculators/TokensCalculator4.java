@@ -1,20 +1,19 @@
 package com.constellio.model.services.schemas.calculators;
 
+import com.constellio.data.utils.LazyIterator;
 import com.constellio.model.entities.calculators.CalculatorParameters;
 import com.constellio.model.entities.calculators.MetadataValueCalculator;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.LocalDependency;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependencies;
 import com.constellio.model.entities.calculators.dependencies.SpecialDependency;
-import com.constellio.model.entities.records.wrappers.Authorization;
-import com.constellio.model.entities.records.wrappers.Group;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SecurityModelAuthorization;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,29 +53,36 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		List<SecurityModelAuthorization> authorizations = new ArrayList<>();
 		List<SecurityModelAuthorization> removedOrDetachedAuthorizations = new ArrayList<>();
 		calculateAppliedAuthorizations(parameters, securityModel, authorizations, removedOrDetachedAuthorizations);
-		return buildTokens(parameters, securityModel, authorizations, removedOrDetachedAuthorizations);
+
+		List<String> manualTokens = parameters.get(manualTokensParam);
+
+		final String typeSmallCode = getSchemaTypeSmallCode(parameters);
+		final Set<String> negativeTokens = buildNegativeTokens(securityModel, authorizations, typeSmallCode);
+		final Set<String> removedNegativeTokens = buildRemovedNegativeTokens(securityModel, removedOrDetachedAuthorizations, typeSmallCode);
+		final Set<String> positiveTokens = buildPositiveTokens(securityModel, authorizations, typeSmallCode, negativeTokens);
+
+		return mergeTokens(manualTokens, removedNegativeTokens, negativeTokens, positiveTokens);
 	}
 
 	private List<SecurityModelAuthorization> getInheritedAuthorizationsTargettingSecurisedRecords(
 			SecurityModel securityModel,
-			List<String> allRemovedAuths,
 			List<String> attachedAncestors,
 			boolean detached) {
 
 		List<SecurityModelAuthorization> returnedAuths = new ArrayList<>();
 
 		if (!detached) {
-			for(String attachedAncestor : attachedAncestors) {
+			for (String attachedAncestor : attachedAncestors) {
 				if (!attachedAncestor.startsWith("-")) {
 					for (SecurityModelAuthorization inheritedNonTaxonomyAuth : securityModel.getAuthorizationsOnTarget(attachedAncestor)) {
-						if (inheritedNonTaxonomyAuth.isSecurizedRecord()) {
+						if (inheritedNonTaxonomyAuth.isSecurableRecord()) {
 							returnedAuths.add(inheritedNonTaxonomyAuth);
 						}
 					}
 				}
 			}
 		}
-		return  returnedAuths;
+		return returnedAuths;
 	}
 
 	private List<SecurityModelAuthorization> getInheritedAuthorizationsTargettingAnyRecordsNoMatterIfDetached(
@@ -85,37 +91,23 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 
 		List<SecurityModelAuthorization> returnedAuths = new ArrayList<>();
 
-		for(String attachedAncestor : attachedAncestors) {
+		for (String attachedAncestor : attachedAncestors) {
 
 			String ancestor = attachedAncestor;
 			if (attachedAncestor.startsWith("-")) {
 				ancestor = attachedAncestor.substring(1);
 			}
 
-			for (SecurityModelAuthorization inheritedNonTaxonomyAuth : securityModel.getAuthorizationsOnTarget(ancestor)) {
-				//if ( !allRemovedAuths.contains(inheritedNonTaxonomyAuth)) {
-					returnedAuths.add(inheritedNonTaxonomyAuth);
-				//}
-			}
+			returnedAuths.addAll(securityModel.getAuthorizationsOnTarget(ancestor));
 		}
-		return  returnedAuths;
-	}
-
-	protected void addActiveAuthorizations(List<String> returnedIds,
-										   List<SecurityModelAuthorization> metadataAuths) {
-		for (SecurityModelAuthorization auth : metadataAuths) {
-			Authorization authorizationDetails = (Authorization) auth.getDetails();
-			if (authorizationDetails.isActiveAuthorization()) {
-				returnedIds.add(authorizationDetails.getId());
-			}
-		}
+		return returnedAuths;
 	}
 
 	private void calculateAppliedAuthorizations(CalculatorParameters parameters,
 												SecurityModel securityModel,
 												List<SecurityModelAuthorization> authorizations,
 												List<SecurityModelAuthorization> removedOrDetachedAuthorizations) {
-		//HierarchyDependencyValue hierarchyDependencyValue = parameters.get(hierarchyDependencyValuesParam);
+
 		authorizations.addAll(securityModel.getAuthorizationsOnTarget(parameters.getId()));
 		boolean detached = TRUE.equals(parameters.get(isDetachedParams));
 
@@ -130,19 +122,14 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		if (!hasActiveOverridingAuth(authsFromMetadatas)) {
 
 
-
 			if (!detached) {
 				List<SecurityModelAuthorization> inheritedAuthorizationsTargettingSecurisedRecords =
-						getInheritedAuthorizationsTargettingSecurisedRecords(securityModel,  allRemovedAuths, attachedAncestors, detached);
+						getInheritedAuthorizationsTargettingSecurisedRecords(securityModel, attachedAncestors, detached);
 				for (SecurityModelAuthorization auth : inheritedAuthorizationsTargettingSecurisedRecords) {
 					if (!allRemovedAuths.contains(auth.getDetails().getId())) {
-						if (auth != null) {
-							authorizations.add(auth);
-						}
+						authorizations.add(auth);
 					} else {
-						if (auth != null) {
-							removedOrDetachedAuthorizations.add(auth);
-						}
+						removedOrDetachedAuthorizations.add(auth);
 					}
 				}
 			} else {
@@ -153,88 +140,85 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		}
 	}
 
-	private List<String> buildTokens(CalculatorParameters parameters, SecurityModel securityModel,
-									 List<SecurityModelAuthorization> authorizations,
-									 List<SecurityModelAuthorization> removedOrDetachedAuthorizations) {
 
-		List<String> manualTokens = parameters.get(manualTokensParam);
+	private String getSchemaTypeSmallCode(CalculatorParameters parameters) {
+		final String typeSmallCode;
+		if (parameters.getSchemaType().getSmallCode() != null) {
+			typeSmallCode = parameters.getSchemaType().getSmallCode();
 
-
-		String typeSmallCode = parameters.getSchemaType().getSmallCode();
-		if (typeSmallCode == null) {
+		} else {
 			typeSmallCode = parameters.getSchemaType().getCode();
+
 		}
+		return typeSmallCode;
+	}
 
-		Set<String> removedNegativeTokens = new HashSet<>();
-		Set<String> negativeTokens = new HashSet<>();
-
+	@NotNull
+	private Set<String> buildPositiveTokens(SecurityModel securityModel,
+											List<SecurityModelAuthorization> authorizations, final String typeSmallCode,
+											final Set<String> negativeTokens) {
+		final Set<String> positiveTokens = new HashSet<>();
 		for (SecurityModelAuthorization authorization : authorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurizedRecord()
-				&& authorization.getDetails().isNegative()) {
-				for (String access : authorization.getDetails().getRoles()) {
-					for (User user : authorization.getUsers()) {
-						addPrincipalNegativeTokens(negativeTokens, typeSmallCode, access, user.getId());
-					}
-
-					for (Group group : authorization.getGroups()) {
-						if (securityModel.isGroupActive(group)) {
-							addPrincipalNegativeTokens(negativeTokens, typeSmallCode, access, group.getId());
-
-							for (Group aGroup : securityModel.getGroupsInheritingAuthorizationsFrom(group)) {
-								addPrincipalNegativeTokens(negativeTokens, typeSmallCode, access, aGroup.getId());
-							}
-						}
-					}
-				}
-			}
-		}
-
-
-		for (SecurityModelAuthorization authorization : removedOrDetachedAuthorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurizedRecord()
-				&& authorization.getDetails().isNegative()) {
-				for (String access : authorization.getDetails().getRoles()) {
-					for (User user : authorization.getUsers()) {
-						addPrincipalNegativeTokens(removedNegativeTokens, typeSmallCode, access, user.getId());
-					}
-
-					for (Group group : authorization.getGroups()) {
-						if (securityModel.isGroupActive(group)) {
-							addPrincipalNegativeTokens(removedNegativeTokens, typeSmallCode, access, group.getId());
-
-							for (Group aGroup : securityModel.getGroupsInheritingAuthorizationsFrom(group)) {
-								addPrincipalNegativeTokens(removedNegativeTokens, typeSmallCode, access, aGroup.getId());
-							}
-						}
-					}
-				}
-			}
-		}
-
-		Set<String> positiveTokens = new HashSet<>();
-		for (SecurityModelAuthorization authorization : authorizations) {
-			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurizedRecord()
+			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurableRecord()
 				&& !authorization.getDetails().isNegative()) {
-				for (String access : authorization.getDetails().getRoles()) {
-					for (User user : authorization.getUsers()) {
-						addPrincipalPositiveTokens(positiveTokens, negativeTokens, typeSmallCode, access, user.getId());
-					}
 
-					for (Group group : authorization.getGroups()) {
-						if (securityModel.isGroupActive(group)) {
-							addPrincipalPositiveTokens(positiveTokens, negativeTokens, typeSmallCode, access, group.getId());
-
-							for (Group aGroup : securityModel.getGroupsInheritingAuthorizationsFrom(group)) {
-								addPrincipalPositiveTokens(positiveTokens, negativeTokens, typeSmallCode, access, aGroup.getId());
-							}
-						}
+				forEachAccessAndPrincipalInheriting(securityModel, authorization, new Caller() {
+					@Override
+					public void call(String access, String principalId) {
+						addPrincipalPositiveTokens(positiveTokens, negativeTokens, typeSmallCode, access, principalId);
 					}
-				}
+				});
 			}
 		}
+		return positiveTokens;
+	}
 
-		Set<String> tokens = new HashSet<>();
-		tokens.addAll(positiveTokens);
+	@NotNull
+	private Set<String> buildNegativeTokens(SecurityModel securityModel,
+											List<SecurityModelAuthorization> authorizations,
+											final String typeSmallCode) {
+		final Set<String> negativeTokens = new HashSet<>();
+
+		for (SecurityModelAuthorization authorization : authorizations) {
+			if (authorization.getDetails().isActiveAuthorization()
+				&& authorization.isSecurableRecord()
+				&& authorization.getDetails().isNegative()) {
+
+				forEachAccessAndPrincipalInheriting(securityModel, authorization, new Caller() {
+					@Override
+					public void call(String access, String principalId) {
+						addPrincipalNegativeTokens(negativeTokens, typeSmallCode, access, principalId);
+					}
+				});
+			}
+		}
+		return negativeTokens;
+	}
+
+	@NotNull
+	private Set<String> buildRemovedNegativeTokens(SecurityModel securityModel,
+												   List<SecurityModelAuthorization> removedOrDetachedAuthorizations,
+												   final String typeSmallCode) {
+		final Set<String> removedNegativeTokens = new HashSet<>();
+		for (SecurityModelAuthorization authorization : removedOrDetachedAuthorizations) {
+			if (authorization.getDetails().isActiveAuthorization() && authorization.isSecurableRecord()
+				&& authorization.getDetails().isNegative()) {
+
+				forEachAccessAndPrincipalInheriting(securityModel, authorization, new Caller() {
+					@Override
+					public void call(String access, String principalId) {
+						addPrincipalNegativeTokens(removedNegativeTokens, typeSmallCode, access, principalId);
+					}
+				});
+			}
+		}
+		return removedNegativeTokens;
+	}
+
+	@NotNull
+	private List<String> mergeTokens(List<String> manualTokens, Set<String> removedNegativeTokens,
+									 Set<String> negativeTokens, Set<String> positiveTokens) {
+		Set<String> tokens = new HashSet<>(positiveTokens);
 		for (String negativeToken : negativeTokens) {
 			tokens.add("n" + negativeToken);
 		}
@@ -252,44 +236,88 @@ public class TokensCalculator4 implements MetadataValueCalculator<List<String>> 
 		return tokensList;
 	}
 
+	private void forEachAccessAndPrincipalInheriting(SecurityModel securityModel,
+													 SecurityModelAuthorization authorization, Caller caller) {
+		for (String access : authorization.getDetails().getRoles()) {
+			for (String userId : authorization.getUserIds()) {
+				caller.call(access, userId);
+			}
+
+			for (String groupId : authorization.getGroupIds()) {
+				if (securityModel.isGroupActive(groupId)) {
+					for (String aGroup : securityModel.getGroupsInheritingAuthorizationsFrom(groupId)) {
+						caller.call(access, aGroup);
+					}
+				}
+			}
+		}
+	}
+
+	private interface Caller {
+		void call(String access, String principalIdInheritingIt);
+	}
+
+	private class PrincipalsInheritingAuthorizationIterator extends LazyIterator<String> {
+
+		@Override
+		protected String getNextOrNull() {
+			return null;
+		}
+	}
+
 	private void addPrincipalPositiveTokens(Set<String> positiveTokens, Set<String> negativeTokens,
 											String typeSmallCode, String access, String principalId) {
 
 		if (Role.READ.equals(access)) {
-			String readOnRecordsOfAnyTypeToken = "r_" + principalId;
-			String readOnRecordsOfRecordTypeToken = "r" + typeSmallCode + "_" + principalId;
-
-			if (!negativeTokens.contains(readOnRecordsOfAnyTypeToken)) {
-				positiveTokens.add(readOnRecordsOfAnyTypeToken);
-				positiveTokens.add(readOnRecordsOfRecordTypeToken);
-			}
+			addPrincipalPositiveReadTokens(positiveTokens, negativeTokens, typeSmallCode, principalId);
 
 		} else if (Role.WRITE.equals(access)) {
-			String readOnRecordsOfAnyTypeToken = "r_" + principalId;
-			String readOnRecordsOfRecordTypeToken = "r" + typeSmallCode + "_" + principalId; //TODO Check to remove this token
-			if (!negativeTokens.contains(readOnRecordsOfAnyTypeToken)) {
-				positiveTokens.add(readOnRecordsOfAnyTypeToken);
-				positiveTokens.add(readOnRecordsOfRecordTypeToken);
-			}
-
-			String writeOnRecordsOfAnyTypeToken = "w_" + principalId; //TODO Check to remove this token
-			String writeOnRecordsOfRecordTypeToken = "w" + typeSmallCode + "_" + principalId;
-			if (!negativeTokens.contains(writeOnRecordsOfAnyTypeToken)) {
-				positiveTokens.add(writeOnRecordsOfAnyTypeToken);
-				positiveTokens.add(writeOnRecordsOfRecordTypeToken);
-			}
+			addPrincipalPositiveWriteTokens(positiveTokens, negativeTokens, typeSmallCode, principalId);
 
 		} else if (Role.DELETE.equals(access)) {
-			String readOnRecordsOfAnyTypeToken = "r_" + principalId;
-			String readOnRecordsOfRecordTypeToken = "r" + typeSmallCode + "_" + principalId;
-
-			if (!negativeTokens.contains(readOnRecordsOfAnyTypeToken)) {
-				positiveTokens.add(readOnRecordsOfAnyTypeToken);
-				positiveTokens.add(readOnRecordsOfRecordTypeToken);
-			}
+			addPrincipalPositiveDeleteTokens(positiveTokens, negativeTokens, typeSmallCode, principalId);
 
 		} else {
 			positiveTokens.add(access + "_" + principalId);
+		}
+	}
+
+	private void addPrincipalPositiveWriteTokens(Set<String> positiveTokens, Set<String> negativeTokens,
+												 String typeSmallCode, String principalId) {
+		String readOnRecordsOfAnyTypeToken = "r_" + principalId;
+		String readOnRecordsOfRecordTypeToken = "r" + typeSmallCode + "_" + principalId; //TODO Check to remove this token
+		if (!negativeTokens.contains(readOnRecordsOfAnyTypeToken)) {
+			positiveTokens.add(readOnRecordsOfAnyTypeToken);
+			positiveTokens.add(readOnRecordsOfRecordTypeToken);
+		}
+
+		String writeOnRecordsOfAnyTypeToken = "w_" + principalId; //TODO Check to remove this token
+		String writeOnRecordsOfRecordTypeToken = "w" + typeSmallCode + "_" + principalId;
+		if (!negativeTokens.contains(writeOnRecordsOfAnyTypeToken)) {
+			positiveTokens.add(writeOnRecordsOfAnyTypeToken);
+			positiveTokens.add(writeOnRecordsOfRecordTypeToken);
+		}
+	}
+
+	private void addPrincipalPositiveDeleteTokens(Set<String> positiveTokens, Set<String> negativeTokens,
+												  String typeSmallCode, String principalId) {
+		String readOnRecordsOfAnyTypeToken = "r_" + principalId;
+		String readOnRecordsOfRecordTypeToken = "r" + typeSmallCode + "_" + principalId;
+
+		if (!negativeTokens.contains(readOnRecordsOfAnyTypeToken)) {
+			positiveTokens.add(readOnRecordsOfAnyTypeToken);
+			positiveTokens.add(readOnRecordsOfRecordTypeToken);
+		}
+	}
+
+	private void addPrincipalPositiveReadTokens(Set<String> positiveTokens, Set<String> negativeTokens,
+												String typeSmallCode, String principalId) {
+		String readOnRecordsOfAnyTypeToken = "r_" + principalId;
+		String readOnRecordsOfRecordTypeToken = "r" + typeSmallCode + "_" + principalId;
+
+		if (!negativeTokens.contains(readOnRecordsOfAnyTypeToken)) {
+			positiveTokens.add(readOnRecordsOfAnyTypeToken);
+			positiveTokens.add(readOnRecordsOfRecordTypeToken);
 		}
 	}
 

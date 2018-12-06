@@ -11,9 +11,9 @@ import java.util.List;
 import static com.constellio.data.dao.services.bigVault.BigVaultRecordDao.DATE_SEARCH_FIELD;
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
-import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.MetadataValueType.TEXT;
+import static java.util.Arrays.asList;
 
 public class
 Schemas {
@@ -35,18 +35,14 @@ Schemas {
 	public static final Metadata PATH_PARTS = add(new Metadata("pathParts_ss", STRING, true));
 	public static final Metadata PRINCIPAL_PATH = add(new Metadata("principalpath_s", STRING, false));
 	public static final Metadata REMOVED_AUTHORIZATIONS = add(new Metadata("removedauthorizations_ss", STRING, true));
-	public static final Metadata NON_TAXONOMY_AUTHORIZATIONS = add(
-			new Metadata("nonTaxonomyAuthorizationsId_ss", REFERENCE, true));
 	public static final Metadata ALL_REMOVED_AUTHS = add(new Metadata("allRemovedAuths_ss", STRING, true));
 	public static final Metadata IS_DETACHED_AUTHORIZATIONS = add(new Metadata("detachedauthorizations_s", STRING, false));
 	public static final Metadata TOKENS = add(new Metadata("tokens_ss", STRING, true));
 	public static final Metadata TOKENS_OF_HIERARCHY = add(new Metadata("tokensHierarchy_ss", STRING, true));
-	public static final Metadata MANUAL_TOKENS = add(new Metadata("manualTokens_ss", STRING, true));
 	public static final Metadata ATTACHED_ANCESTORS = add(new Metadata("attachedAncestors_ss", STRING, true));
 
 	public static final Metadata COLLECTION = add(new Metadata("collection_s", STRING, false));
 	public static final Metadata LOGICALLY_DELETED_STATUS = add(new Metadata("deleted_s", BOOLEAN, false));
-
 
 	public static final String CREATED_ON_CODE = "createdOn_dt";
 	public static final Metadata CREATED_ON = add(new Metadata(CREATED_ON_CODE, DATE_TIME, false));
@@ -60,6 +56,8 @@ Schemas {
 	public static final Metadata FRENCH_SEARCH_FIELD = add(new Metadata("search_txt_fr", TEXT, true));
 	public static final Metadata ENGLISH_SEARCH_FIELD = add(new Metadata("search_txt_en", TEXT, true));
 	public static final Metadata SPELL_CHECK_FIELD = add(new Metadata("_spell_text", TEXT, true));
+
+	public static final Metadata MANUAL_TOKENS = add(new Metadata("manualTokens_ss", STRING, true));
 
 
 	//Move in SMB documents/folders:
@@ -173,7 +171,7 @@ Schemas {
 	}
 
 	public static boolean isValueTypeSearchable(Metadata metadata) {
-		return metadata.getType() != MetadataValueType.ENUM;
+		return !asList(MetadataValueType.ENUM, MetadataValueType.BOOLEAN).contains(metadata.getType());
 	}
 
 	public static Metadata getSecondaryLanguageMetadata(Metadata metadata, String language) {

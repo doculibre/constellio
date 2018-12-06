@@ -509,7 +509,7 @@ public class AuthorizationsServices {
 		String authId = authorization.getId();
 		boolean directlyTargetted = authTarget.equals(record.getId());
 		boolean inherited = !directlyTargetted && record.getList(ATTACHED_ANCESTORS).contains(authTarget);
-		if (!directlyTargetted && !inherited && Authorization.isSecurizedSchemaType(authorization.getTargetSchemaType())) {
+		if (!directlyTargetted && !inherited && Authorization.isSecurableSchemaType(authorization.getTargetSchemaType())) {
 			throw new AuthorizationsServicesRuntimeException.NoSuchAuthorizationWithIdOnRecord(authId, record);
 		}
 
@@ -554,7 +554,7 @@ public class AuthorizationsServices {
 	 * - Future modifications on a parent record won't affect the detached record.
 	 * - If the detached record is reassigned to a new parent, there will be no effects on authorizations
 	 *
-	 * @param record A securized record to detach
+	 * @param record A securable record to detach
 	 * @return A mapping of previous authorization ids to the new authorizations created by this service
 	 */
 	public Map<String, String> detach(Record record) {
@@ -632,10 +632,10 @@ public class AuthorizationsServices {
 	}
 
 	/**
-	 * Reset a securized record.
+	 * Reset a securable record.
 	 * The resetted record will be reattached (inheriting all authorizations) and all its specific authorizations will be lost
 	 *
-	 * @param record The securized record
+	 * @param record The securable record
 	 */
 	public void reset(Record record) {
 		AuthTransaction transaction = new AuthTransaction();

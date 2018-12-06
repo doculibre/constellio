@@ -49,8 +49,8 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 		User currentUser = getCurrentUser();
 		String username = currentUser.getUsername();
 		LocalDateTime startDate = (view.getEventStartDate() == null) ?
-								  null :
-								  LocalDateTime.fromDateFields(view.getEventStartDate()).withTime(0, 0, 0, 0);
+				null :
+				LocalDateTime.fromDateFields(view.getEventStartDate()).withTime(0, 0, 0, 0);
 		LocalDateTime endDate = (view.getEventEndDate() == null) ? null : LocalDateTime.fromDateFields(view.getEventEndDate()).withTime(23, 59, 59, 59);
 		return EventsListDataProviderFactory
 				.getEventsListDataProviderFactory(eventCategory, modelLayerFactory, collection, username,
@@ -76,24 +76,24 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 
 	public boolean isByRangeDate(EventCategory eventCategory) {
 		switch (eventCategory) {
-			case CURRENTLY_BORROWED_FOLDERS:
-			case CURRENTLY_BORROWED_DOCUMENTS:
-			case CONNECTED_USERS_EVENT:
-				return false;
-			default:
-				return true;
+		case CURRENTLY_BORROWED_FOLDERS:
+		case CURRENTLY_BORROWED_DOCUMENTS:
+		case CONNECTED_USERS_EVENT:
+			return false;
+		default:
+			return true;
 		}
 	}
 
 	public boolean hasFetchById(EventCategory eventCategory) {
 		switch (eventCategory) {
-			case EVENTS_BY_ADMINISTRATIVE_UNIT:
-			case EVENTS_BY_FOLDER:
-			case EVENTS_BY_USER:
-			case EVENTS_BY_CONTAINER:
-				return true;
-			default:
-				return false;
+		case EVENTS_BY_ADMINISTRATIVE_UNIT:
+		case EVENTS_BY_FOLDER:
+		case EVENTS_BY_USER:
+		case EVENTS_BY_CONTAINER:
+			return true;
+		default:
+			return false;
 		}
 	}
 

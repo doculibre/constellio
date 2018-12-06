@@ -11,6 +11,7 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.records.RecordServicesException.ValidationException;
 import com.constellio.model.services.records.cache.RecordsCaches;
@@ -175,4 +176,6 @@ public interface RecordServices {
 	void loadLazyTransientMetadatas(Record record);
 
 	void reloadEagerTransientMetadatas(Record record);
+
+	SecurityModel getSecurityModel(String collection);
 }

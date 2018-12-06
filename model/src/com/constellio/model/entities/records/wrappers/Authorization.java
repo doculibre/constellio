@@ -199,7 +199,7 @@ public class Authorization extends RecordWrapper {
 	}
 
 	//TODO Temporaire
-	public static boolean isSecurizedSchemaType(String schemaType) {
+	public static boolean isSecurableSchemaType(String schemaType) {
 		return "folder".equals(schemaType) || "document".equals(schemaType);
 	}
 }

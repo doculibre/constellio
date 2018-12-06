@@ -87,7 +87,6 @@ import java.util.List;
 
 import static com.constellio.app.ui.framework.components.ComponentState.enabledIf;
 import static com.constellio.app.ui.framework.components.ComponentState.visibleIf;
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class RMNavigationConfiguration implements Serializable {
 
@@ -300,7 +299,7 @@ public class RMNavigationConfiguration implements Serializable {
 				return new CheckedOutDocumentsTable(appLayerFactory, sessionContext).getDataProvider();
 			}
 		});
-		config.add(HomeView.TABS, new PageItem.CustomItem($("HomeView.tab.defaultFavorites")) {
+		config.add(HomeView.TABS, new PageItem.CustomItem("defaultFavorites") {
 			@Override
 			public Component buildCustomComponent(ConstellioFactories factories, SessionContext context,
 												  ItemClickEvent.ItemClickListener itemClickListener) {

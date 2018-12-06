@@ -150,7 +150,8 @@ public class RMMigrationTo8_2 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder builder) {
-			builder.getDefaultSchema(Folder.SCHEMA_TYPE)
+			MetadataSchemaBuilder defaultFolderSchema = builder.getDefaultSchema(Folder.SCHEMA_TYPE);
+			defaultFolderSchema
 					.createUndeletable(Folder.FAVORITES).setType(MetadataValueType.STRING).setMultivalue(true).setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true);
 			builder.getDefaultSchema(Document.SCHEMA_TYPE)
 					.createUndeletable(Document.FAVORITES).setType(MetadataValueType.STRING).setMultivalue(true).setDefaultRequirement(true).setSystemReserved(true).setUndeletable(true);
@@ -195,6 +196,8 @@ public class RMMigrationTo8_2 implements MigrationScript {
 			metadatasByRefMetadata.put(documentSchema.get(Document.FOLDER), singletonList(documentSchema.get(Document.HAS_CONTENT)));
 			metadatasByRefMetadata.put(folderSchema.get(Folder.PARENT_FOLDER), singletonList(folderHasContent));
 			folderHasContent.defineDataEntry().asAggregatedOr(metadatasByRefMetadata);
+
+			defaultFolderSchema.getMetadata(Folder.MEDIA_TYPE).setEssentialInSummary(true);
 		}
 	}
 

@@ -412,4 +412,9 @@ public class ListUserDocumentsPresenter extends SingleSchemaBasePresenter<ListUs
 		return new UserDocumentsServices(modelLayerFactory)
 				.isSpaceLimitReached(getCurrentUser().getUsername(), collection, totalLength);
 	}
+
+	public boolean isSpaceLimitReached(long length) {
+		return new UserDocumentsServices(modelLayerFactory)
+				.isSpaceLimitReached(getCurrentUser().getUsername(), collection, length);
+	}
 }

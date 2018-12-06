@@ -137,8 +137,8 @@ public class Metadata implements DataStoreField {
 	}
 
 	public boolean isFilteredByAny(List<MetadataFilter> metadataFilterList) {
-		for(MetadataFilter metadataFilter : metadataFilterList) {
-			if(metadataFilter.isFiltered(this)) {
+		for (MetadataFilter metadataFilter : metadataFilterList) {
+			if (metadataFilter.isFiltered(this)) {
 				return true;
 			}
 		}
@@ -473,7 +473,7 @@ public class Metadata implements DataStoreField {
 	}
 
 	public boolean isSameLocalCode(Metadata metadata) {
-		return localCode.equals(metadata.getLocalCode());
+		return metadata != null && localCode.equals(metadata.getLocalCode());
 	}
 
 	public boolean isSameLocalCodeThanAny(Metadata... metadatas) {

@@ -11,7 +11,6 @@ import com.constellio.app.modules.rm.wrappers.type.ContainerRecordType;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.modules.tasks.services.TasksSearchServices;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServices;
@@ -178,16 +177,15 @@ public class ContainerAcceptanceTest extends ConstellioTest {
 		recordServices.add(zeBoite);
 		recordServices.add(zeContainer);
 
-		String containerLinkedToTaskError = "Ce contenant ne peut pas être supprimé car il est lié à une tâche\n";
 		Task task = rm.newRMTask().setLinkedContainers(asList(zeContainer.getId())).setTitle("Task");
 		recordServices.add(task);
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(containerLinkedToTaskError);
+		assertThat(recordServices.validateLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isFalse();
 
 		recordServices.logicallyDelete(task.getWrappedRecord(), users.adminIn(zeCollection));
 		assertThat(recordServices.validateLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isTrue();
 
 		recordServices.restore(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection)))).isEqualTo(containerLinkedToTaskError);
+		assertThat(recordServices.validateLogicallyDeletable(zeContainer.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isFalse();
 
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		TasksSearchServices taskSearchServices = new TasksSearchServices(tasksSchemas);
