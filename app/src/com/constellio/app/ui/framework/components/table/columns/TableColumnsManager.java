@@ -64,7 +64,6 @@ public class TableColumnsManager implements Serializable {
 		userServices = modelLayerFactory.newUserServices();
 
 		String collection = null;
-
 		if (sessionContext.getCurrentCollection() != null) {
 			metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(sessionContext.getCurrentCollection());
@@ -166,15 +165,16 @@ public class TableColumnsManager implements Serializable {
 	}
 
 	private List<String> getVisibleColumnIdsForCurrentUser(Table table, String tableId) {
-		if (currentUser == null) {
-			return new ArrayList<>();
-		}
-
-		List<String> visibleColumnIds = currentUser.getVisibleTableColumnsFor(tableId);
-		if (visibleColumnIds == null) {
-			visibleColumnIds = new ArrayList<>();
-		}
-		if (visibleColumnIds.isEmpty()) {
+		List<String> visibleColumnIds;
+		if (currentUser != null) {
+			visibleColumnIds = currentUser.getVisibleTableColumnsFor(tableId);
+			if (visibleColumnIds == null) {
+				visibleColumnIds = new ArrayList<>();
+			}
+			if (visibleColumnIds.isEmpty()) {
+				visibleColumnIds = getDefaultVisibleColumnIds(table);
+			}
+		} else {
 			visibleColumnIds = getDefaultVisibleColumnIds(table);
 		}
 		return visibleColumnIds;

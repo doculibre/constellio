@@ -1,16 +1,7 @@
 package com.constellio.app.ui.framework.components.fields.upload;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.vaadin.dialogs.ConfirmDialog;
-import org.vaadin.easyuploads.FileBuffer;
-
 import com.constellio.app.ui.framework.buttons.DeleteButton;
+import com.constellio.app.ui.framework.components.table.BaseTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
 import com.vaadin.data.Item;
@@ -31,6 +22,15 @@ import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.ColumnHeaderMode;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
+import org.vaadin.dialogs.ConfirmDialog;
+import org.vaadin.easyuploads.FileBuffer;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("serial")
 public class BaseUploadField extends CustomField<Object> implements DropHandler {
@@ -176,7 +176,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 				}
 			});
 		}
-		fileUploadsTable = new Table();
+		fileUploadsTable = new BaseTable(getClass().getName());
 		fileUploadsTable.setContainerDataSource(fileUploadsContainer);
 		fileUploadsTable.setPageLength(0);
 		fileUploadsTable.setWidth("100%");

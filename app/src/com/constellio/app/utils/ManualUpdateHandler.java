@@ -116,7 +116,7 @@ public class ManualUpdateHandler implements UpdateModeHandler {
 			uploadButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 			addComponents(uploadField, uploadButton);
-			setComponentAlignment(uploadButton, Alignment.TOP_RIGHT);
+			setComponentAlignment(uploadButton, Alignment.MIDDLE_RIGHT);
 		}
 
 	}
