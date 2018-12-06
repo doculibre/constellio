@@ -218,7 +218,7 @@ public class SavedSearchViewImpl extends BaseViewImpl implements SavedSearchView
 		if (!publicSearch) {
 			return ShareType.NONE;
 		}
-		boolean restricted = recordVO.get(SavedSearch.RESTRICTED);
-		return restricted ? ShareType.RESTRICTED : ShareType.ALL;
+		Boolean restricted = recordVO.get(SavedSearch.RESTRICTED);
+		return Boolean.TRUE.equals(restricted) ? ShareType.RESTRICTED : ShareType.ALL;
 	}
 }

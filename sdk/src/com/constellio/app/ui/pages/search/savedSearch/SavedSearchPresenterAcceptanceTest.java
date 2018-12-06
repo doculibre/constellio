@@ -72,8 +72,8 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 			throws Exception {
 		SavedSearch userSavedSearch1 = newSavedSearch(adminUser, false);
 		SavedSearch userSavedSearch2 = newSavedSearch(adminUser, false);
-		SavedSearch publicSavedSearch1 = newSavedSearch(adminUser, true);
-		SavedSearch publicSavedSearch2 = newSavedSearch(adminUser, true);
+		SavedSearch publicSavedSearch1 = newSavedSearch(null, true);
+		SavedSearch publicSavedSearch2 = newSavedSearch(adminUser, true, singletonList(aliceUser.getId()), null);
 
 		verifyThat(presenter.getUserSearchesDataProvider()).containsOnly(userSavedSearch1, userSavedSearch2);
 		verifyThat(presenter.getPublicSearchesDataProvider()).containsOnly(publicSavedSearch1, publicSavedSearch2);
@@ -153,7 +153,7 @@ public class SavedSearchPresenterAcceptanceTest extends ConstellioTest {
 			savedSearch.setSharedGroups(groups);
 		}
 		savedSearch.setPublic(isPublic);
-		recordServices.add(savedSearch, user);
+		recordServices.add(savedSearch, (user != null ? user : adminUser));
 		return savedSearch;
 	}
 
