@@ -43,18 +43,17 @@ public class ClassificationPlanReportPresenter {
 	private RMSchemasRecordsServices rm;
 	private Locale locale;
 
-
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, Locale locale) {
 		this(collection, modelLayerFactory, false, locale);
 	}
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
-											 Locale locale) {
+			Locale locale) {
 		this(collection, modelLayerFactory, detailed, null, locale);
 	}
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
-											 String administrativeUnitId, Locale locale) {
+			String administrativeUnitId, Locale locale) {
 
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;

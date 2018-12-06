@@ -5,8 +5,6 @@ import com.vaadin.server.StreamResource;
 import java.io.InputStream;
 
 public class LazyStreamRessource extends StreamResource {
-	private static final String STREAM_NAME = "ContentVersionVOResource-InputStream";
-	private boolean actionDone = false;
 
 	public LazyStreamRessource(final InputStreamWrapper inputStreamWrapper, String title) {
 		super(new StreamSource() {
