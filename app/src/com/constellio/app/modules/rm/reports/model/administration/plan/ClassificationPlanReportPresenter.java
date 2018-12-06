@@ -42,6 +42,7 @@ public class ClassificationPlanReportPresenter {
 	private String administrativeUnitId;
 	private RMSchemasRecordsServices rm;
 	private Locale locale;
+	private List<String> categoryList;
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, Locale locale) {
 		this(collection, modelLayerFactory, false, locale);
@@ -49,17 +50,18 @@ public class ClassificationPlanReportPresenter {
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
 			Locale locale) {
-		this(collection, modelLayerFactory, detailed, null, locale);
+		this(collection, modelLayerFactory, detailed, null, locale, null);
 	}
 
 	public ClassificationPlanReportPresenter(String collection, ModelLayerFactory modelLayerFactory, boolean detailed,
-			String administrativeUnitId, Locale locale) {
+			String administrativeUnitId, Locale locale, List<String> categoryList) {
 
 		this.collection = collection;
 		this.modelLayerFactory = modelLayerFactory;
 		this.detailed = (detailed || StringUtils.isNotBlank(administrativeUnitId) ? true : false);
 		this.administrativeUnitId = administrativeUnitId;
 		this.locale = locale;
+		this.categoryList = categoryList;
 	}
 
 	public ClassificationPlanReportModel build() {
@@ -135,7 +137,7 @@ public class ClassificationPlanReportPresenter {
 
 					if (taxonomyRecord != null) {
 						Record record = taxonomyRecord.getRecord();
-						if (record != null) {
+						if (record != null && ((categoryList != null && categoryList.contains(record.getId())) || categoryList == null || categoryList.isEmpty())) {
 							Category recordCategory = new Category(record, types, locale);
 
 							if (recordCategory != null) {
