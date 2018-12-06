@@ -831,16 +831,19 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return appLayerFactory.getLabelTemplateManager().listTemplates(null);
 	}
 
-	protected boolean saveSearch(String title, boolean publicAccess) {
+	protected boolean saveSearch(String title, boolean publicAccess, List<String> sharedUsers,
+								 List<String> sharedGroups) {
 		Record record = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		SavedSearch search = new SavedSearch(record, types())
 				.setTitle(title)
-				.setUser(publicAccess ? null : getCurrentUser().getId())
+				.setUser(getCurrentUser().getId())
 				.setPublic(publicAccess)
 				.setSortField(sortCriterion)
 				.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
 				.setSelectedFacets(facetSelections.getNestedMap())
-				.setTemporary(false);
+				.setTemporary(false)
+				.setSharedUsers(!sharedUsers.isEmpty() ? sharedUsers : null)
+				.setSharedGroups(!sharedGroups.isEmpty() ? sharedGroups : null);
 
 		try {
 			recordServices().add(prepareSavedSearch(search));
