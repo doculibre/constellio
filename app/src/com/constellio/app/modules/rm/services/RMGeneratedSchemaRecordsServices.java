@@ -1393,10 +1393,6 @@ public class RMGeneratedSchemaRecordsServices extends SchemasRecordsServices {
 			return metadata("copyStatusEntered");
 		}
 
-		public Metadata decommissioningDate() {
-			return metadata("decommissioningDate");
-		}
-
 		public Metadata description() {
 			return metadata("description");
 		}
