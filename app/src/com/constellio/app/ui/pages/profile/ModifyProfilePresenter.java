@@ -6,6 +6,9 @@ import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DefaultTabInFolderDisplay;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.wrappers.RMUser;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
+import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
+import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.TaxonomyVO;
@@ -16,6 +19,7 @@ import com.constellio.app.ui.pages.home.HomeView;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.enums.SearchPageLength;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.security.global.AgentStatus;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
@@ -34,8 +38,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	public static final String CHANGE_PHOTO_STREAM = "ConstellioMenuPresenter-ChangePhotoStream";
@@ -57,15 +63,7 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 	}
 
-	public List<String> getAvailableHomepageTabs() {
-		List<String> result = new ArrayList<>();
-		for (PageItem tab : navigationConfig().getFragments(HomeView.TABS)) {
-			result.add(tab.getCode());
-		}
-		return result;
-	}
-
-	public void saveButtonClicked(ProfileVO profileVO) {
+	public void saveButtonClicked(ProfileVO profileVO, HashMap<String, Object> additionnalMetadataValues) {
 		User user = userServices.getUserInCollection(profileVO.getUsername(), view.getCollection());
 		user.setPhone(profileVO.getPhone());
 		user.setJobTitle(profileVO.getJobTitle());
@@ -95,11 +93,20 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 				authenticationService.changePassword(profileVO.getUsername(), profileVO.getOldPassword(), profileVO.getPassword());
 			}
 
-			recordServices.update(user.getWrappedRecord());
+			MetadataSchema userSchema = user.getSchema();
+			Iterator<Entry<String, Object>> additionnalMetadatasIterator = additionnalMetadataValues.entrySet().iterator();
+			while (additionnalMetadatasIterator.hasNext()) {
+				Map.Entry<String, Object> metadataValue = additionnalMetadatasIterator.next();
+				if(userSchema.hasMetadataWithCode(metadataValue.getKey())) {
+					user.set(metadataValue.getKey(), metadataValue.getValue());
+				}
+			}
+
+            recordServices.update(user.getWrappedRecord());
 
 			changePhoto(profileVO.getImage());
 
-			updateUserCredential(profileVO);
+			updateUserCredential(profileVO, additionnalMetadataValues);
 
 			view.updateUI();
 		} catch (RecordServicesException e) {
@@ -110,7 +117,8 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 
 	}
 
-	private void updateUserCredential(final ProfileVO profileVO) {
+	private void updateUserCredential(final ProfileVO profileVO,
+									  HashMap<String, Object> additionnalMetadataValues) {
 		String username = profileVO.getUsername();
 		UserCredential userCredential = (UserCredential) userServices.getUserCredential(username);
 
@@ -127,12 +135,13 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 			userCredential = (UserCredential) userCredential.setPersonalEmails(Arrays.asList(profileVO.getPersonalEmails().split("\n")));
 		}
 
-		boolean agentManuallyDisabled = profileVO.isAgentManuallyDisabled();
-		AgentStatus previousAgentStatus = userCredential.getAgentStatus();
-		if (previousAgentStatus == AgentStatus.MANUALLY_DISABLED && !agentManuallyDisabled) {
-			userCredential.setAgentStatus(AgentStatus.ENABLED);
-		} else if (previousAgentStatus != AgentStatus.MANUALLY_DISABLED && agentManuallyDisabled) {
-			userCredential.setAgentStatus(AgentStatus.MANUALLY_DISABLED);
+		MetadataSchema userCredentialSchema = userCredential.getSchema();
+		Iterator<Entry<String, Object>> additionnalMetadatasIterator = additionnalMetadataValues.entrySet().iterator();
+		while (additionnalMetadatasIterator.hasNext()) {
+			Map.Entry<String, Object> metadataValue = additionnalMetadatasIterator.next();
+			if(userCredentialSchema.hasMetadataWithCode(metadataValue.getKey())) {
+				userCredential.set(metadataValue.getKey(), metadataValue.getValue());
+			}
 		}
 
 		userServices.addUpdateUserCredential(userCredential);
@@ -243,20 +252,6 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 		navigateToBackPage();
 	}
 
-	List<TaxonomyVO> getEnabledTaxonomies() {
-		TaxonomyVODataProvider provider = newDataProvider();
-		return provider.getTaxonomyVOs();
-	}
-
-	TaxonomyVODataProvider newDataProvider() {
-		return new TaxonomyVODataProvider(newVoBuilder(), modelLayerFactory,
-				view.getCollection(), view.getSessionContext().getCurrentUser().getUsername());
-	}
-
-	private TaxonomyToVOBuilder newVoBuilder() {
-		return new TaxonomyToVOBuilder();
-	}
-
 	public InputStream newUserPhotoInputStream() {
 		String username = getUsername();
 		UserPhotosServices photosServices = ConstellioFactories.getInstance().getModelLayerFactory().newUserPhotosServices();
@@ -354,4 +349,8 @@ public class ModifyProfilePresenter extends BasePresenter<ModifyProfileView> {
 	public boolean isPasswordChangeEnabled() {
 		return !ADMIN.equals(username) || new ConstellioEIMConfigs(modelLayerFactory).isAdminPasswordChangeEnabled();
 	}
+
+    public User getUserRecord() {
+        return getCurrentUser();
+    }
 }

@@ -14,6 +14,7 @@ import com.constellio.app.modules.tasks.extensions.TaskRecordExtension;
 import com.constellio.app.modules.tasks.extensions.TaskRecordNavigationExtension;
 import com.constellio.app.modules.tasks.extensions.TaskSchemaTypesPageExtension;
 import com.constellio.app.modules.tasks.extensions.TaskStatusSchemasExtension;
+import com.constellio.app.modules.tasks.extensions.TaskUserProfileFieldsExtension;
 import com.constellio.app.modules.tasks.extensions.WorkflowRecordExtension;
 import com.constellio.app.modules.tasks.extensions.schema.TaskTrashSchemaExtension;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationCombo;
@@ -35,6 +36,7 @@ import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_7_3;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_7_4;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo7_7_4_1;
 import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_2;
+import com.constellio.app.modules.tasks.migrations.TasksMigrationTo8_1_4;
 import com.constellio.app.modules.tasks.model.managers.TaskReminderEmailManager;
 import com.constellio.app.modules.tasks.navigation.TasksNavigationConfiguration;
 import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
@@ -80,6 +82,7 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		scripts.add(new TasksMigrationTo7_7_4());
 		scripts.add(new TasksMigrationTo7_7_4_1());
 		scripts.add(new TasksMigrationTo8_1_2());
+		scripts.add(new TasksMigrationTo8_1_4());
 
 		return scripts;
 	}
@@ -110,6 +113,8 @@ public class TaskModule implements InstallableSystemModule, ModuleWithComboMigra
 		extensions.recordAppExtensions.add(new TaskRecordAppExtension(collection, appLayerFactory));
 		extensions.recordNavigationExtensions.add(new TaskRecordNavigationExtension(appLayerFactory, collection));
 		extensions.schemaTypesPageExtensions.add(new TaskSchemaTypesPageExtension());
+		extensions.pagesComponentsExtensions.add(new TaskUserProfileFieldsExtension(collection, appLayerFactory));
+
 	}
 
 	private void setupModelLayerExtensions(String collection, AppLayerFactory appLayerFactory) {

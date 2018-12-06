@@ -3,6 +3,7 @@ package com.constellio.app.ui.framework.components.fields;
 import com.constellio.model.utils.MaskUtils;
 import com.vaadin.annotations.JavaScript;
 import com.vaadin.data.Property;
+import com.vaadin.data.Validator.InvalidValueException;
 import com.vaadin.ui.TextField;
 import org.apache.commons.lang.StringUtils;
 
@@ -81,4 +82,9 @@ public class BaseTextField extends TextField {
 		}
 	}
 
+	@Override
+	public void commit() throws SourceException, InvalidValueException {
+		setInternalValue(StringUtils.trim(getValue()));
+		super.commit();
+	}
 }

@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.wrappers;
 
+import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
