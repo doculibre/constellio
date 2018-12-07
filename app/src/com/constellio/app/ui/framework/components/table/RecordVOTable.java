@@ -1,5 +1,14 @@
 package com.constellio.app.ui.framework.components.table;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
+
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -18,6 +27,7 @@ import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.schemas.Schemas;
@@ -34,14 +44,6 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.peter.contextmenu.ContextMenu;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class RecordVOTable extends BaseTable {
 
@@ -127,6 +129,13 @@ public class RecordVOTable extends BaseTable {
 				if (isTitleColumn(propertyId)) {
 					RecordVO recordVO = getRecordVOForTitleColumn(getItem(itemId));
 					columnStyle = getTitleColumnStyle(recordVO);
+					
+					String id = recordVO.getId();
+					SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+					if (sessionContext.isVisited(id)) {
+						String visitedStyleName = "v-table-cell-visited-link";
+						columnStyle = StringUtils.isNotBlank(columnStyle) ? columnStyle + " " + visitedStyleName : visitedStyleName; 
+					}
 				} else {
 					columnStyle = null;
 				}

@@ -84,11 +84,14 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 		setContainerDataSource(container);
 		setColumnHeaderMode(ColumnHeaderMode.HIDDEN);
 		if (withCheckBoxes) {
-			setVisibleColumns(CHECKBOX_PROPERTY, SearchResultContainer.SEARCH_RESULT_PROPERTY);
+			setVisibleColumns(CHECKBOX_PROPERTY, SearchResultContainer.INDEX_PROPERTY_ID, SearchResultContainer.SEARCH_RESULT_PROPERTY);
+			setColumnWidth(CHECKBOX_PROPERTY, 44);
 		} else {
-			setVisibleColumns(SearchResultContainer.SEARCH_RESULT_PROPERTY);
+			setVisibleColumns(SearchResultContainer.INDEX_PROPERTY_ID, SearchResultContainer.SEARCH_RESULT_PROPERTY);
 		}
+		setColumnWidth(SearchResultContainer.INDEX_PROPERTY_ID, 40);
 		setColumnExpandRatio(SearchResultContainer.SEARCH_RESULT_PROPERTY, 1);
+		setColumnAlignment(SearchResultContainer.INDEX_PROPERTY_ID, Align.LEFT);
 		setPageLength(Math.min(container.size(), DEFAULT_PAGE_LENGTH));
 		addStyleName(TABLE_STYLE);
 	}

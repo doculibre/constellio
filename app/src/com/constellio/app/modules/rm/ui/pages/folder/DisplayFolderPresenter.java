@@ -190,6 +190,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		} else {
 			id = params;
 		}
+		
+		view.getSessionContext().addVisited(id);
 
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);

@@ -29,6 +29,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.schemas.Schemas;
@@ -50,6 +51,8 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
+
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
@@ -407,18 +410,31 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			setCellStyleGenerator(new CellStyleGenerator() {
 				@Override
 				public String getStyle(Table source, Object itemId, Object propertyId) {
+					String columnStyle;
 					if (RecentItem.CAPTION.equals(propertyId)) {
 						RecordVO recordVO = getRecordVO(itemId);
 						try {
 							String extension = FileIconUtils.getExtension(recordVO);
 							if (extension != null) {
-								return "file-icon v-table-cell-content-file-icon-" + extension.toLowerCase();
+								columnStyle = "file-icon v-table-cell-content-file-icon-" + extension.toLowerCase();
+							} else {
+								columnStyle = null;
 							}
 						} catch (Exception e) {
 							// Ignore the exception
+							columnStyle = null;
 						}
+						
+						String id = recordVO.getId();
+						SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+						if (sessionContext.isVisited(id)) {
+							String visitedStyleName = "v-table-cell-visited-link";
+							columnStyle = StringUtils.isNotBlank(columnStyle) ? columnStyle + " " + visitedStyleName : visitedStyleName; 
+						}
+					} else {
+						columnStyle = null;
 					}
-					return null;
+					return columnStyle;
 				}
 			});
 

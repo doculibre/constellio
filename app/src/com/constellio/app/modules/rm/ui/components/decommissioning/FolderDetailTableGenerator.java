@@ -114,17 +114,17 @@ public class FolderDetailTableGenerator implements ColumnGenerator {
 			visibleColumns.add(CHECKBOX);
 		}
 
+		if (displayOrderNumber) {
+			table.addGeneratedColumn(ORDER, this);
+			table.setColumnHeader(ORDER, "#");
+			table.setColumnAlignment(ORDER, Align.CENTER);
+			visibleColumns.add(ORDER);
+		}
+
 		if (displayValidation) {
 			table.addGeneratedColumn(VALIDATION_CHECKBOX, this);
 			table.setColumnHeader(VALIDATION_CHECKBOX, $("DecommissioningListView.folderDetails.checkbox"));
 			visibleColumns.add(VALIDATION_CHECKBOX);
-		}
-
-		if (displayOrderNumber) {
-			table.addGeneratedColumn(ORDER, this);
-			table.setColumnHeader(ORDER, $(""));
-			table.setColumnAlignment(ORDER, Align.CENTER);
-			visibleColumns.add(ORDER);
 		}
 
 		table.addGeneratedColumn(FOLDER_ID, this);

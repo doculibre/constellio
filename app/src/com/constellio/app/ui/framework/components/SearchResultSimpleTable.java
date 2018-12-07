@@ -444,4 +444,9 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 		view.showErrorMessage(errorMessage);
 	}
 
+	@Override
+	protected boolean isIndexProperty() {
+		return true;
+	}
+
 }

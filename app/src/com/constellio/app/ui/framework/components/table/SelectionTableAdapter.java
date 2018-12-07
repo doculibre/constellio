@@ -25,6 +25,8 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 
 	public static final String SELECT_PROPERTY_ID = "select";
 
+	public static final String INDEX_PROPERTY_ID = "index";
+
 	protected SelectDeselectAllButton toggleButton;
 
 	protected ContainerAdapter<?> dataSourceAdapter;
@@ -76,6 +78,8 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			if (table.size() == 0) {
 				toggleButton.setVisible(false);
 			}
+			
+			final boolean indexProperty = isIndexProperty();
 
 			Container tableDataSource = table.getContainerDataSource();
 			dataSourceAdapter = new ContainerAdapter(tableDataSource) {
@@ -83,13 +87,18 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 				public Collection<?> getContainerPropertyIds() {
 					List<Object> propertyIds = new ArrayList<>(super.getContainerPropertyIds());
 					propertyIds.add(0, SELECT_PROPERTY_ID);
+					if (indexProperty) {
+						propertyIds.add(1, INDEX_PROPERTY_ID);
+					}
 					return propertyIds;
 				}
 
 				@Override
 				public Property getContainerProperty(final Object itemId, Object propertyId) {
 					Property<?> property;
-					if (SELECT_PROPERTY_ID.equals(propertyId)) {
+					if (INDEX_PROPERTY_ID.equals(propertyId)) {
+						property = new ObjectProperty<>(indexOfId(itemId) + 1);
+					} else if (SELECT_PROPERTY_ID.equals(propertyId)) {
 						property = itemSelectProperties.get(itemId);
 						if (property == null) {
 							Property<?> selectProperty = new AbstractProperty<Boolean>() {
@@ -134,6 +143,8 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 					Class<?> propertyType;
 					if (SELECT_PROPERTY_ID.equals(propertyId)) {
 						propertyType = CheckBox.class;
+					} else if (INDEX_PROPERTY_ID.equals(propertyId)) {
+						propertyType = Integer.class;
 					} else {
 						propertyType = super.getType(propertyId);
 					}
@@ -146,10 +157,18 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 			table.setColumnHeader(SELECT_PROPERTY_ID, "");
 			table.setColumnWidth(SELECT_PROPERTY_ID, 44);
 			table.setColumnCollapsible(SELECT_PROPERTY_ID, false);
+			if (indexProperty) {
+				table.setColumnHeader(INDEX_PROPERTY_ID, "#");
+				table.setColumnWidth(INDEX_PROPERTY_ID, 40);
+				table.setColumnCollapsible(INDEX_PROPERTY_ID, false);
+			}
 
 			if (!oldVisibleColumns.contains(SELECT_PROPERTY_ID)) {
 				List<Object> newVisibleColumns = new ArrayList<>(oldVisibleColumns);
 				newVisibleColumns.add(0, SELECT_PROPERTY_ID);
+				if (indexProperty) {
+					newVisibleColumns.add(1, INDEX_PROPERTY_ID);
+				}
 				table.setVisibleColumns(newVisibleColumns.toArray(new Object[0]));
 			}
 
@@ -262,6 +281,10 @@ public abstract class SelectionTableAdapter extends VerticalLayout {
 				}
 			}
 		}
+	}
+	
+	protected boolean isIndexProperty() {
+		return false;
 	}
 
 	public abstract void selectAll();
