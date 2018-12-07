@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 
@@ -39,6 +40,8 @@ public class FakeSessionContext extends BaseSessionContext {
 	Record searchEvent = null;
 
 	private Map<String, Object> attributes = new HashMap<>();
+	
+	private Set<String> visited = new HashSet<>();
 
 	private static FakeSessionContext current;
 
@@ -277,6 +280,11 @@ public class FakeSessionContext extends BaseSessionContext {
 	@Override
 	protected Map<String, Long> ensureSelectedRecordSchemaTypeCodes() {
 		return selectedRecordSchemaTypeCodes;
+	}
+
+	@Override
+	protected Set<String> ensureVisited() {
+		return visited;
 	}
 
 	@SuppressWarnings("unchecked")
