@@ -78,8 +78,6 @@ public class RMConfigs {
 			COPY_RULES_ALWAYS_VISIBLE_IN_ADD_FORM,
 			NEED_REASON_BEFORE_DELETING_FOLDERS,
 			IS_DECOMMISSIONING_TYPE_REQUIRED_IN_CONTAINERS,
-			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE,
-			NEED_REASON_BEFORE_DELETING_FOLDERS;
 			DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE;
 
 	// Category configs
@@ -308,12 +306,9 @@ public class RMConfigs {
 
 		add(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE = decommissioning
 				.createBooleanTrueByDefault("depositAndDestructionDatesBasedOnActualTransferDate").withReIndexionRequired());
-				advanced.createBooleanTrueByDefault("showFolderUnicityAndFolderSummaryConfig").whichIsHidden());
 
 		add(NEED_REASON_BEFORE_DELETING_FOLDERS = others.createBooleanTrueByDefault("needReasonBeforeDeletingFolders"));
 
-		add(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE = decommissioning
-				.createBooleanTrueByDefault("depositAndDestructionDatesBasedOnActualTransferDate").withReIndexionRequired());
 	}
 
 	static void add(SystemConfiguration configuration) {
@@ -582,8 +577,4 @@ public class RMConfigs {
 		return manager.getValue(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE);
 	}
 
-
-	public boolean isNeedingAReasonBeforeDeletingFolders() {
-		return manager.getValue(NEED_REASON_BEFORE_DELETING_FOLDERS);
-	}
 }
