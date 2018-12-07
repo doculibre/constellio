@@ -44,6 +44,8 @@ public class SearchResultDetailedTable extends BasePagedTable<SearchResultContai
 
 	public SearchResultDetailedTable(SearchResultContainer container, boolean withCheckBoxes) {
 		super("SearchResultDetailedTable", container);
+		
+		addStyleName(ValoTheme.TABLE_BORDERLESS);
 
 		listeners = new HashSet<>();
 		selected = new LinkedHashSet<>();

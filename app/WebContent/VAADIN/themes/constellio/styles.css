@@ -14310,7 +14310,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 5px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table * {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-cell-content {
 	border: none;
 }
 
@@ -14323,11 +14323,15 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-table .v-table-cell-content .v-checkbox {
-	margin-top: 13px;
+	margin-top: 23px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-table .v-table-cell-content .row-index {
+	margin-top: 23px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-title {
-	padding-top: 8px;
+	padding-top: 16px;
 	font-size: 18px;
 	text-align: left;
 }

@@ -18,6 +18,7 @@ import com.vaadin.data.Property.ValueChangeNotifier;
 import com.vaadin.data.util.AbstractContainer;
 import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.data.util.filter.UnsupportedFilterException;
+import com.vaadin.ui.Label;
 
 @SuppressWarnings("serial")
 public class ContainerAdapter<T extends Container & Indexed & Sortable> extends AbstractContainer
@@ -60,7 +61,10 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 	public Property<?> getContainerProperty(Object itemId, Object propertyId) {
 		Property<?> result;
 		if (INDEX_PROPERTY_ID.equals(propertyId)) {
-			result = new ObjectProperty<>(indexOfId(itemId) + 1);
+			int index = indexOfId(itemId) + 1;
+			Label label = new Label("" + index);
+			label.addStyleName("row-index");
+			result = new ObjectProperty<>(label);
 		} else {
 			Property<?> ownProperty = getOwnContainerProperty(itemId, propertyId);
 			result = ownProperty != null ? ownProperty : adapted.getContainerProperty(itemId, propertyId);
@@ -72,7 +76,7 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 	public Class<?> getType(Object propertyId) {
 		Class<?> result;
 		if (INDEX_PROPERTY_ID.equals(propertyId)) {
-			result = Integer.class;
+			result = Label.class;
 		} else {
 			Class<?> ownType = getOwnType(propertyId);
 			result = ownType != null ? ownType : adapted.getType(propertyId);
