@@ -308,7 +308,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					String recordId = (String) event.getItemId();
 					clickNavigating = presenter.recordClicked(recordId, provider.getTaxonomyCode());
 				} else {
-					clickNavigating = false;
+					clickNavigating = true;
 				}
 			}
 		});

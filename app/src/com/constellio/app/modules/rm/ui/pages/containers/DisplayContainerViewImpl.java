@@ -5,7 +5,6 @@ import com.constellio.app.modules.rm.ui.breadcrumb.ContainerByAdministrativeUnit
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -174,20 +173,6 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	@Override
 	protected List<Button> buildActionMenuButtons(ViewChangeEvent event) {
 		List<Button> buttons = super.buildActionMenuButtons(event);
-
-		DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
-			@Override
-			public void addToDefaultFavorites() {
-				presenter.addToDefaultFavorite();
-			}
-			@Override
-			public void removeFromDefaultFavorites() {
-				presenter.removeFromDefaultFavorites();
-			}
-		};
-		favoriteStar.setStarred(presenter.containerInDefaultFavorites());
-		buttons.add(favoriteStar);
-
 		Button edit = new EditButton($("DisplayContainerView.edit")) {
 			@Override
 			protected void buttonClick(ClickEvent event) {

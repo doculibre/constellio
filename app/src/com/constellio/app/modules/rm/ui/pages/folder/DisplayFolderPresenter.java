@@ -58,8 +58,8 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
@@ -1079,6 +1079,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void addToCartRequested(RecordVO recordVO) {
 		Cart cart = rmSchemasRecordsServices.getCart(recordVO.getId());
+		addToCartRequested(cart);
+	}
+
+	public void addToCartRequested(Cart cart) {
 		if (rmSchemasRecordsServices.numberOfFoldersInFavoritesReachesLimit(cart.getId(), 1)) {
 			view.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
 		} else {
@@ -1315,18 +1319,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return folder.getFavorites().contains(getCurrentUser().getId());
 	}
 
-	public void removeFromDefaultFavorites() {
-		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
-		folder.removeFavorite(getCurrentUser().getId());
-		try {
-			recordServices.update(folder);
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-		view.showMessage($("DisplayFolderViewImpl.folderRemovedFromDefaultFavorites"));
-	}
-
 	public RMSelectionPanelReportPresenter buildReportPresenter() {
 		return new RMSelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
 			@Override
@@ -1347,5 +1339,22 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public boolean isNeedingAReasonToDeleteFolder() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
+	}
+
+	public List<Cart> getOwnedCarts() {
+		return rmSchemasRecordsServices().wrapCarts(searchServices().search(new LogicalSearchQuery(from(schema(Cart.DEFAULT_SCHEMA)).where(schema(Cart.DEFAULT_SCHEMA).getMetadata(Cart.OWNER))
+				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
+	}
+
+	public Record getCreatedBy(Cart cart) {
+		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getCreatedBy()));
+	}
+
+	public Record getModifiedBy(Cart cart) {
+		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getModifiedBy()));
+	}
+
+	public Record getOwner(Cart cart) {
+		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getOwner()));
 	}
 }

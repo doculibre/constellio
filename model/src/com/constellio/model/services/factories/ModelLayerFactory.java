@@ -55,15 +55,10 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
 
 import java.security.Key;
-import java.util.List;
 
 public interface ModelLayerFactory extends LayerFactory {
 
 	RecordMigrationsManager getRecordMigrationsManager();
-
-	List<SystemCollectionListener> getSystemCollectionListeners();
-
-	void addSystemCollectionListener(SystemCollectionListener listener);
 
 	ModelLayerExtensions getExtensions();
 

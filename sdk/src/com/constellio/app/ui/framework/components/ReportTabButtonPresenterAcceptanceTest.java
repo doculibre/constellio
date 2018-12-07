@@ -100,7 +100,6 @@ public class ReportTabButtonPresenterAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void checkIfGetAllReportReturnsCorrectReport() throws Exception {
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		PrintableReport defaultFolderReport = rm.newPrintableReport();
 		PrintableReport defaultDocumentReport = rm.newPrintableReport();
 		defaultDocumentReport.setTitle("default document report").set(PrintableReport.RECORD_TYPE, "document").set(PrintableReport.RECORD_SCHEMA, Document.DEFAULT_SCHEMA);

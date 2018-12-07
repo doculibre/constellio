@@ -363,7 +363,6 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	public void markNewPluginsInNewWarAsInstalled(FoldersLocator foldersLocator) {
 		File webapp = foldersLocator.getConstellioWebappFolder();
 		File plugins = foldersLocator.getPluginsJarsFolder();
-		LOGGER.info("markNewPluginsInNewWarAsInstalled(" + webapp.getAbsolutePath() + ")");
 		List<String> newPluginsFileNames = PluginManagementUtils.getNewPluginsInNewWar(webapp);
 
 		if (!newPluginsFileNames.isEmpty()) {

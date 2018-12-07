@@ -87,6 +87,7 @@ import static com.constellio.model.services.security.SecurityAcceptanceTestSetup
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2_1;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -507,8 +508,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void givenRolesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
-
-		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("00000000053"));
 
 		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).giving(ROLE1));
 		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
@@ -2666,7 +2665,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(setup.folderSchema.instance()).where(Schemas.IDENTIFIER).isEqualTo("folder4"));
 		query.filteredWithUser(users.aliceIn(zeCollection));
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		assertThat(searchServices.hasResults(query)).isTrue();
 
@@ -4005,6 +4003,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void whenCacheIsInvalidatedThenInvalidatedOnAllInstances()
 			throws Exception {
+		linkEventBus(getModelLayerFactory(), getModelLayerFactory("other-instance"));
 
 		SecurityModelCache instance1Cache = getModelLayerFactory().getSecurityModelCache();
 		auth1 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
@@ -4028,7 +4027,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void whenAuthIsCreatedOrDeletedThenCacheIsUpdated()
 			throws Exception {
-
+		linkEventBus(getModelLayerFactory(), getModelLayerFactory("other-instance"));
 		String aliceId = users.aliceIn(zeCollection).getId();
 		String bobId = users.bobIn(zeCollection).getId();
 

@@ -99,23 +99,24 @@ public class AddEditContainerViewImpl extends BaseViewImpl implements AddEditCon
 	}
 
 	private void prepareCapacityField(final Field<String> field) {
-		if(field == null) {
-			return;
-		}
-
-		field.addValueChangeListener(new ValueChangeListener() {
-			@Override
-			public void valueChange(ValueChangeEvent event) {
-				String value = (String) event.getProperty().getValue();
-				container = getUpdatedContainer();
-				if (value == null) {
-					container.set(ContainerRecord.CAPACITY, null);
-				} else if (value.matches("-?\\d+(\\.\\d+)?")) {
-					container.set(ContainerRecord.CAPACITY, Double.parseDouble(value));
+		if(field != null) {
+			field.addValueChangeListener(new ValueChangeListener() {
+				@Override
+				public void valueChange(ValueChangeEvent event) {
+					String value = (String) event.getProperty().getValue();
+					container = getUpdatedContainer();
+					if (value == null) {
+						container.set(ContainerRecord.CAPACITY, null);
+					} else if (value.matches("-?\\d+(\\.\\d+)?")) {
+						container.set(ContainerRecord.CAPACITY, Double.parseDouble(value));
+					}
+					form.replaceStorageSpaceField(container, presenter);
 				}
-				form.replaceStorageSpaceField(container, presenter);
-			}
-		});
+			});
+		} else if(form != null){
+			container = getUpdatedContainer();
+			form.replaceStorageSpaceField(container, presenter);
+		}
 	}
 
 

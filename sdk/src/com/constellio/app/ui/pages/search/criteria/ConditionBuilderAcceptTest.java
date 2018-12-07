@@ -99,8 +99,6 @@ public class ConditionBuilderAcceptTest extends ConstellioTest {
 	public void whenSearchingAnalyzedFieldAndExactExpressionThenGoodResults()
 			throws Exception {
 
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
 		recordServices.update(records.getFolder_A48().setTitle("Gorille rose"));
 
 		assertWhenSearchingFolderTitleWithExactMatch("Gorille rose").containsOnly("A48");

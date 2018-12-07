@@ -376,16 +376,6 @@ public class DisplayFolderPresenterAcceptTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenFolderWhenAddAndRemoveFromDefaultFavoritesThenIsRemoved() {
-		Map<String, String> params = new HashMap<>();
-		params.put("id", "C30");
-		presenter.forParams("C30");
-		presenter.addToDefaultFavorite();
-		presenter.removeFromDefaultFavorites();
-		assertThat(presenter.inDefaultFavorites()).isFalse();
-	}
-
-	@Test
 	public void whenGetTemplatesThenReturnFolderTemplates()
 			throws Exception {
 

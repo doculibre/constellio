@@ -36,6 +36,8 @@ import static com.constellio.model.services.taxonomies.TaxonomiesSearchOptions.H
 
 public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList> {
 
+	public static final String LEGACY_ROOT_ID = "@root@";
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
 	private final String folderId;
 	private final Set<String> filter;
@@ -76,7 +78,7 @@ public class GetChildrenRequest extends CmisCollectionRequest<ObjectInFolderList
 				.setLinkableFlagCalculated(false);
 
 		List<Record> childRecords;
-		if (collection.equals(folderId)) {
+		if (collection.equals(folderId) || collection.equals(LEGACY_ROOT_ID)) {
 			List<Taxonomy> taxonomies = taxonomiesManager.getEnabledTaxonomies(collection);
 			for (Taxonomy taxonomy : taxonomies) {
 				ObjectData object = newTaxonomyObjectBuilder().build(taxonomy, objectInfo, Language.withCode(modelLayerFactory.getCollectionsListManager().getMainDataLanguage()));

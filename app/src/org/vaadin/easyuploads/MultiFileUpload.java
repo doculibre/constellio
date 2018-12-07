@@ -143,10 +143,8 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 	;
 
 	protected boolean isSpaceLimitReached(StreamingStartEvent event) {
-		return true;
+		return false;
 	}
-
-	;
 
 	private ProgressIndicator createProgressIndicator() {
 		ProgressIndicator progressIndicator = new ProgressIndicator();

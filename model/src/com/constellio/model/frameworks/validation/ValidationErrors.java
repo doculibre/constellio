@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,11 @@ public class ValidationErrors {
 		this.validationWarnings.addAll(new ArrayList<>(copy.getValidationWarnings()));
 	}
 
+	public ValidationError create(Class<?> validatorClass, String code, Map<String, Object> parameters) {
+
+		return new ValidationError(validatorClass, code, parameters);
+	}
+
 	public final void add(Class<?> validatorClass, String code) {
 		add(validatorClass, code, new HashMap<String, Object>());
 	}
@@ -33,7 +39,7 @@ public class ValidationErrors {
 	}
 
 	public void add(Class<?> validatorClass, String code, Map<String, Object> parameters) {
-		validationErrors.add(new ValidationError(validatorClass, code, parameters));
+		validationErrors.add(create(validatorClass, code, parameters));
 	}
 
 	public final void addWarning(Class<?> validatorClass, String code) {
@@ -45,7 +51,7 @@ public class ValidationErrors {
 	}
 
 	public void addWarning(Class<?> validatorClass, String code, Map<String, Object> parameters) {
-		validationWarnings.add(new ValidationError(validatorClass, code, parameters));
+		validationWarnings.add(create(validatorClass, code, parameters));
 	}
 
 	public final String toMultilineErrorsSummaryString() {
@@ -99,7 +105,7 @@ public class ValidationErrors {
 		return Collections.unmodifiableList(validationWarnings);
 	}
 
-	public void addAllWarnings(List<ValidationError> validationWarnings) {
+	public void addAllWarnings(Collection<ValidationError> validationWarnings) {
 		this.validationWarnings.addAll(validationWarnings);
 	}
 
@@ -107,7 +113,7 @@ public class ValidationErrors {
 		return Collections.unmodifiableList(validationErrors);
 	}
 
-	public void addAll(List<ValidationError> validationErrors) {
+	public void addAll(Collection<ValidationError> validationErrors) {
 		this.validationErrors.addAll(validationErrors);
 	}
 

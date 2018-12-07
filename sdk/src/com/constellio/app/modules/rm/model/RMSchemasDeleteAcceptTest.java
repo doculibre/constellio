@@ -154,7 +154,6 @@ public class RMSchemasDeleteAcceptTest extends ConstellioTest {
 
 		User admin = users.adminIn(zeCollection);
 		RecordServices recordServices = getModelLayerFactory().newRecordServices();
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		//unitId_10a : 63,
 		//unitId_30c : 21
 		//unitId_11b : 11

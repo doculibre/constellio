@@ -858,8 +858,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return document.getContent() == null ? null : document.getContent().getCheckoutUserId();
 	}
 
-	public void addToCartRequested(RecordVO cartVO) {
-		Cart cart = rmSchemasRecordsServices.getCart(cartVO.getId());
+	public void addToCartRequested(Cart cart) {
 		if (rmSchemasRecordsServices.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
 			actionsComponent.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {

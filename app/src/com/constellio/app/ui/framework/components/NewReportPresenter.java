@@ -12,6 +12,4 @@ public interface NewReportPresenter extends Serializable {
 	NewReportWriterFactory getReport(String report);
 
 	Object getReportParameters(String report);
-
-
 }

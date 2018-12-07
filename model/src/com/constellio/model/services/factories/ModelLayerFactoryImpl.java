@@ -81,14 +81,11 @@ import java.io.IOException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.constellio.data.conf.HashingEncoding.BASE64;
 
 public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLayerFactory {
 	private static final Logger LOGGER = LogManager.getLogger(ModelLayerFactoryImpl.class);
-	private final List<SystemCollectionListener> systemCollectionListeners;
 	private final DataLayerFactory dataLayerFactory;
 	private final IOServicesFactory ioServicesFactory;
 	private final FoldersLocator foldersLocator;
@@ -146,7 +143,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 		dataLayerFactory.getEventBusManager().getEventDataSerializer().register(new RecordEventDataSerializerExtension(this));
 
 		this.modelLayerCachesManager = new ModelLayerCachesManager();
-		this.systemCollectionListeners = new ArrayList<>();
 
 		this.dataLayerFactory = dataLayerFactory;
 		this.modelLayerFactoryFactory = modelLayerFactoryFactory;
@@ -228,14 +224,6 @@ public class ModelLayerFactoryImpl extends LayerFactoryImpl implements ModelLaye
 
 	public RecordMigrationsManager getRecordMigrationsManager() {
 		return recordMigrationsManager;
-	}
-
-	public List<SystemCollectionListener> getSystemCollectionListeners() {
-		return systemCollectionListeners;
-	}
-
-	public void addSystemCollectionListener(SystemCollectionListener listener) {
-		systemCollectionListeners.add(listener);
 	}
 
 	public ModelLayerExtensions getExtensions() {

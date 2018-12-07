@@ -59,7 +59,6 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	public void setUp()
 			throws Exception {
 		prepareSystem(withZeCollection().withTasksModule().withAllTest(users));
-		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("taskWithCharlesInAssignationGroupCandidates"));
 		givenTimeIs(now);
 		inCollection(zeCollection).giveWriteAndDeleteAccessTo(admin);
 
@@ -197,7 +196,6 @@ public class TasksSearchServicesAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenSearchTasksAssignedToCharlesThenReturnTaskWithCharlesInAssignationGroupCandidates()
 			throws Exception {
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		List<Record> results = searchServices
 				.search(tasksSearchServices.getTasksAssignedToUserQuery(charles));
 		assertThat(results.size()).isEqualTo(1);

@@ -698,7 +698,6 @@ public class DecommissioningServiceFolderDecommissioningAcceptTest extends Const
 	@Test
 	public void givenListToDestroyWhenFolderDeletionIsEnabledThenFoldersAreDeleted()
 			throws Exception {
-		getDataLayerFactory().getDataLayerLogger().logAllTransactions();
 		User processingUser = records.getChuckNorris();
 		LocalDate processingDate = new LocalDate();
 		givenTimeIs(processingDate);

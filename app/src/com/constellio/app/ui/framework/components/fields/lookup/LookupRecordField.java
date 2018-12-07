@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.components.fields.autocomplete.RecordAuto
 import com.constellio.app.ui.framework.components.tree.LazyTree;
 import com.constellio.app.ui.framework.components.tree.RecordLazyTree;
 import com.constellio.app.ui.framework.data.LazyTreeDataProvider;
+import com.constellio.app.ui.framework.data.ObjectsResponse;
 import com.constellio.app.ui.framework.data.RecordLookupTreeDataProvider;
 import com.constellio.app.ui.framework.data.RecordTextInputDataProvider;
 import com.constellio.app.ui.pages.base.SessionContext;
@@ -62,6 +63,7 @@ public class LookupRecordField extends LookupField<String> {
 		this(schemaTypeCode, schemaCode, writeAccess, true, true);
 	}
 
+
 	public LookupRecordField(String schemaTypeCode, String schemaCode, boolean writeAccess, boolean showDeactivated,
 							 boolean isShowAllIfHasAccessToManageSecurity) {
 		super(new RecordTextInputDataProvider(getInstance(), getCurrentSessionContext(), schemaTypeCode, schemaCode, writeAccess, showDeactivated),
@@ -83,9 +85,9 @@ public class LookupRecordField extends LookupField<String> {
 		setItemConverter(itemConverter);
 	}
 
-	private static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,
-																		boolean writeAccess,
-																		boolean isShowAllIfHasAccessToManageSecurity) {
+	public static LookupTreeDataProvider<String>[] getTreeDataProvider(String schemaTypeCode, String schemaCode,
+			boolean writeAccess,
+			boolean isShowAllIfHasAccessToManageSecurity) {
 		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 		String collection = sessionContext.getCurrentCollection();
 		UserVO currentUserVO = sessionContext.getCurrentUser();
@@ -109,6 +111,65 @@ public class LookupRecordField extends LookupField<String> {
 			String taxonomyCode = taxonomy.getCode();
 			if (StringUtils.isNotBlank(taxonomyCode)) {
 				dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess, isShowAllIfHasAccessToManageSecurity));
+			}
+		}
+
+		return !dataProviders.isEmpty() ? dataProviders.toArray(new RecordLookupTreeDataProvider[0]) : null;
+	}
+
+
+	public static LookupTreeDataProvider<String>[] getTreeDataProviderRootItemsOnly(String schemaTypeCode, String schemaCode,
+			boolean writeAccess,
+			boolean isShowAllIfHasAccessToManageSecurity, final RecordTextInputDataProviderFactory recordTextInputDataProviderFactory) {
+		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+		String collection = sessionContext.getCurrentCollection();
+		UserVO currentUserVO = sessionContext.getCurrentUser();
+
+		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		ModelLayerFactory modelLayerFactory = constellioFactories.getModelLayerFactory();
+		UserServices userServices = modelLayerFactory.newUserServices();
+		MetadataSchemasManager metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
+		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
+
+		User currentUser = userServices.getUserInCollection(currentUserVO.getUsername(), collection);
+		List<Taxonomy> taxonomies = new ArrayList<>();
+		if (schemaTypeCode != null) {
+			taxonomies = taxonomiesManager
+					.getAvailableTaxonomiesForSelectionOfType(schemaTypeCode, currentUser, metadataSchemasManager);
+		} else if (schemaCode != null) {
+			taxonomies = taxonomiesManager.getAvailableTaxonomiesForSchema(schemaCode, currentUser, metadataSchemasManager);
+		}
+		List<RecordLookupTreeDataProvider> dataProviders = new ArrayList<>();
+		for (Taxonomy taxonomy : taxonomies) {
+			String taxonomyCode = taxonomy.getCode();
+			if (StringUtils.isNotBlank(taxonomyCode)) {
+					dataProviders.add(new RecordLookupTreeDataProvider(schemaTypeCode, taxonomyCode, writeAccess,
+							isShowAllIfHasAccessToManageSecurity) {
+						@Override
+						public ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
+							return new ObjectsResponse<>(new ArrayList<String>(), 0L);
+						}
+
+						@Override
+						public boolean hasChildren(String parent) {
+							return false;
+						}
+
+						@Override
+						public boolean isLeaf(String parent) {
+							return true;
+						}
+
+						@Override
+						public TextInputDataProvider<String> search() {
+							return recordTextInputDataProviderFactory.getProvider();
+						}
+
+						@Override
+						public TextInputDataProvider<String> searchWithoutDisabled() {
+							return recordTextInputDataProviderFactory.getProvider();
+						}
+					});
 			}
 		}
 

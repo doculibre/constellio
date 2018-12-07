@@ -1,20 +1,41 @@
 package com.constellio.app.ui.pages.events;
 
+import au.com.bytecode.opencsv.CSVWriter;
 import com.constellio.app.modules.rm.navigation.RMViews;
+import com.constellio.app.ui.framework.components.content.InputStreamWrapper;
+import com.constellio.app.ui.framework.components.content.InputStreamWrapper.SimpleAction;
+import com.constellio.app.ui.framework.data.DataProvider;
+import com.constellio.app.ui.framework.data.event.EventStatistics;
 import com.constellio.app.ui.framework.data.event.category.EventsListDataProviderFactory;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
+import org.apache.commons.lang.CharEncoding;
 import org.joda.time.LocalDateTime;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+
 public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryView> {
+
+	private IOServices ioServices;
+	public static final String STREAM_NAME = BaseEventCategoryPresenter.class.getName() + "-stream";
+	public static final String TEMPORARY_FILE = BaseEventCategoryPresenter.class.getName() + "-file";
 
 	public BaseEventCategoryPresenter(BaseEventCategoryView view) {
 		super(view);
 		recordServices().flush();
+		ioServices = view.getConstellioFactories().getAppLayerFactory().getModelLayerFactory().getIOServicesFactory().newIOServices();
 	}
 
 	public void displayEvent(Integer itemId, EventCategory eventCategory) {
@@ -104,6 +125,69 @@ public class BaseEventCategoryPresenter extends BasePresenter<BaseEventCategoryV
 
 	public void eventAudit() {
 		view.navigate().to(RMViews.class).eventAudit();
+	}
+
+	public InputStreamWrapper createInputStreamWrapper() {
+		InputStreamWrapper inputStreamWrapper = new InputStreamWrapper();
+		inputStreamWrapper.addSimpleAction(new SimpleAction() {
+			@Override
+			public void action(InputStreamWrapper inputStreamWrapper) {
+				try {
+					final File tempFile = generateCsvReport();
+					InputStream inputStream = new FileInputStream(tempFile) {
+						@Override
+						public void close()
+								throws IOException {
+							super.close();
+							ioServices.deleteQuietly(tempFile);
+						}
+					};
+					inputStreamWrapper.setInputStream(inputStream);
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+					throw new RuntimeException(e);
+				}
+			}
+		});
+
+		return inputStreamWrapper;
+	}
+
+	public File generateCsvReport() {
+
+		OutputStreamWriter outputStreamWriter = null;
+		CSVWriter csvWriter = null;
+		OutputStream byteArrayOutputStream = null;
+		File temporaryFile = null;
+		try {
+			temporaryFile = ioServices.newTemporaryFile(TEMPORARY_FILE);
+			byteArrayOutputStream = ioServices.newFileOutputStream(temporaryFile, STREAM_NAME);
+			outputStreamWriter = new OutputStreamWriter(byteArrayOutputStream, CharEncoding.ISO_8859_1);
+			csvWriter = new CSVWriter(outputStreamWriter, ',', CSVWriter.NO_QUOTE_CHARACTER);
+			writeCsvReport(csvWriter);
+			csvWriter.flush();
+			ioServices.closeQuietly(csvWriter);
+			ioServices.closeQuietly(outputStreamWriter);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			ioServices.closeQuietly(csvWriter);
+			ioServices.closeQuietly(outputStreamWriter);
+			ioServices.closeQuietly(byteArrayOutputStream);
+		}
+
+		return temporaryFile;
+	}
+
+	public void writeCsvReport(CSVWriter csvWriter) {
+		DataProvider dataProvider = getEventListDataProvider(view.getEventViewParameters().getEventCategory());
+
+		String[] headerRecord = {$("title"), $("value")};
+		csvWriter.writeNext(headerRecord);
+		for(EventStatistics eventStatistics : ((EventsCategoryDataProvider) dataProvider).getEvents()) {
+			csvWriter.writeNext(eventStatistics.getLabel(), eventStatistics.getValue().toString());
+		}
 	}
 
 	@Override

@@ -298,8 +298,6 @@ public class AppLayerFactoryImpl extends LayerFactoryImpl implements AppLayerFac
 			throw new RuntimeException(optimisticLockingConfiguration);
 		}
 
-		LOGGER.info("initializeCollectionsAndGetInvalidModules");
-
 		invalidPlugins.addAll(collectionsManager.initializeCollectionsAndGetInvalidModules());
 		getModulesManager().enableComplementaryModules();
 

@@ -9,6 +9,7 @@ import com.constellio.app.services.appManagement.AppManagementServiceRuntimeExce
 import com.constellio.app.services.recovery.UpdateRecoveryImpossibleCause;
 import com.constellio.app.services.recovery.UpgradeAppRecoveryService;
 import com.constellio.app.services.systemInformations.SystemInformationsService;
+import com.constellio.app.services.recovery.UpgradeAppRecoveryServiceImpl;
 import com.constellio.app.servlet.ConstellioMonitoringServlet;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.data.utils.TimeProvider;
@@ -310,7 +311,11 @@ public class UpdateManagerPresenter extends BasePresenter<UpdateManagerView> {
 	}
 
 	public boolean isRestartWithReindexButtonEnabled() {
-		return !recoveryModeEnabled();
+		if(appLayerFactory.getModelLayerFactory().getDataLayerFactory().getDataLayerConfiguration().isSystemDistributed()) {
+			return !UpgradeAppRecoveryServiceImpl.HAS_UPLOADED_A_WAR_SINCE_REBOOTING;
+		} else {
+			return !recoveryModeEnabled();
+		}
 	}
 
 	private boolean recoveryModeEnabled() {

@@ -181,6 +181,7 @@ public class SeleniumTestFeatures {
 
 	public SolrClient newSearchClient() {
 		disableAllServices();
+		resetServletsAndFiltersAfterTest = false;
 		if (!applicationStarted) {
 			startApplication();
 		}

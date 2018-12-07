@@ -16,8 +16,8 @@ public class ListAddRemoveRecordLookupField extends ListAddRemoveField<String, L
 
 	private String schemaTypeCode;
 	private String schemaCode;
-	private boolean ignoreLinkability;
-	private List<ValueChangeListener> lookupFieldListenerList;
+	protected boolean ignoreLinkability;
+	protected List<ValueChangeListener> lookupFieldListenerList;
 
 	public ListAddRemoveRecordLookupField(String schemaTypeCode) {
 		this(schemaTypeCode, null);

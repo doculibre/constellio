@@ -35,6 +35,7 @@ import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
 import com.constellio.app.modules.rm.extensions.RMSelectionPanelExtension;
 import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
+import com.constellio.app.modules.rm.extensions.RMUserProfileFieldsExtension;
 import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
 import com.constellio.app.modules.rm.extensions.RemoveClickableNotificationsWhenChangingPage;
 import com.constellio.app.modules.rm.extensions.SessionContextRecordExtension;
@@ -141,6 +142,7 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_666;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
@@ -167,7 +169,6 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
@@ -310,6 +311,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_1_0_1());
 		scripts.add(new RMMigrationTo8_1_1());
 		scripts.add(new RMMigrationTo8_1_2());
+		scripts.add(new RMMigrationTo8_1_4());
 		scripts.add(new RMMigrationTo8_1_1_1());
 		scripts.add(new RMMigrationTo8_2());
 		scripts.add(new RMMigrationTo8_2_666());
@@ -435,6 +437,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.schemaTypesPageExtensions.add(new RMSchemaTypesPageExtension());
 		extensions.recordDisplayFactoryExtensions.add(new RMRecordDisplayFactoryExtension(appLayerFactory, collection));
 		extensions.listSchemaCommandExtensions.add(new RMListSchemaExtention());
+		extensions.pagesComponentsExtensions.add(new RMUserProfileFieldsExtension(collection, appLayerFactory));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
@@ -486,10 +489,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				cache.removeCache(type.getCode());
 			}
 			cache.configureCache(CacheConfig.permanentCache(type));
-		}
-
-		if (!cache.isConfigured(Facet.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.facet.schemaType()));
 		}
 
 		if (cache.isConfigured(AdministrativeUnit.SCHEMA_TYPE)) {

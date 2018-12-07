@@ -10,7 +10,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.factories.SystemCollectionListener;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.search.SearchServices;
@@ -28,21 +27,20 @@ import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EX
 import static com.constellio.data.utils.LangUtils.valueOrDefault;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
-public class SolrGlobalGroupsManager implements StatefulService, SystemCollectionListener {
+public class SolrGlobalGroupsManager implements StatefulService {
 	private final ModelLayerFactory modelLayerFactory;
 	private final SearchServices searchServices;
 	private final SchemasRecordsServices schemas;
 
 	public SolrGlobalGroupsManager(final ModelLayerFactory modelLayerFactory) {
 		this.modelLayerFactory = modelLayerFactory;
-		modelLayerFactory.addSystemCollectionListener(this);
 		searchServices = modelLayerFactory.newSearchServices();
 		schemas = SchemasRecordsServices.usingMainModelLayerFactory(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 	}
 
 	public GlobalGroup create(String code, String name, List<String> collections, String parent,
-									 GlobalGroupStatus status,
-									 boolean locallyCreated) {
+							  GlobalGroupStatus status,
+							  boolean locallyCreated) {
 		return ((GlobalGroup) valueOrDefault(getGlobalGroupWithCode(code), schemas.newGlobalGroup()))
 				.setCode(code)
 				.setName(name)
@@ -165,10 +163,6 @@ public class SolrGlobalGroupsManager implements StatefulService, SystemCollectio
 	@Override
 	public void close() {
 		// Nothing to be done
-	}
-
-	public void systemCollectionCreated() {
-
 	}
 
 	private List<GlobalGroup> getGroupHierarchy(GlobalGroup group) {

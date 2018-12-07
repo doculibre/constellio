@@ -60,7 +60,6 @@ public class StartDemoRMConstellioAcceptTest extends ConstellioTest {
 		AppLayerFactory appLayerFactory = getAppLayerFactory();
 
 		DataLayerFactory dataLayerFactory = appLayerFactory.getModelLayerFactory().getDataLayerFactory();
-		dataLayerFactory.getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		UserServices userServices = getModelLayerFactory().newUserServices();
 		String token = userServices.generateToken("admin");

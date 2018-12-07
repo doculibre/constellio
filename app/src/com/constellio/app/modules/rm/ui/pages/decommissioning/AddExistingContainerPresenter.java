@@ -192,7 +192,8 @@ public class AddExistingContainerPresenter extends SearchPresenter<AddExistingCo
 	}
 
 	@Override
-	protected boolean saveSearch(String title, boolean publicAccess) {
+	protected boolean saveSearch(String title, boolean publicAccess, List<String> sharedUsers,
+								 List<String> sharedGroups) {
 		throw new UnsupportedOperationException();
 	}
 

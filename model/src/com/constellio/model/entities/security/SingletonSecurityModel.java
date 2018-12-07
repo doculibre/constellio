@@ -41,7 +41,6 @@ public class SingletonSecurityModel implements SecurityModel {
 	String collection;
 	List<String> securableRecordSchemaTypes;
 
-	static int REFRESH_COUNTER = 0;
 
 	public static SingletonSecurityModel empty(String collection) {
 		return new SingletonSecurityModel(collection);
@@ -63,7 +62,6 @@ public class SingletonSecurityModel implements SecurityModel {
 								  GroupAuthorizationsInheritance groupAuthorizationsInheritance,
 								  List<String> securableRecordSchemaTypes,
 								  String collection) {
-		System.out.println("Security model refresh #" + ++REFRESH_COUNTER);
 
 		this.groupAuthorizationsInheritance = groupAuthorizationsInheritance;
 		this.collection = collection;
