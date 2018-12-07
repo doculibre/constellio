@@ -577,8 +577,4 @@ public class RMConfigs {
 		return manager.getValue(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE);
 	}
 
-	public boolean isDepositAndDestructionDatesBasedOnActualTransferDate() {
-		return manager.getValue(DEPOSIT_AND_DESTRUCTION_DATES_BASED_ON_ACTUAL_TRANSFER_DATE);
-	}
-
 }
