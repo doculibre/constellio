@@ -43,10 +43,6 @@ public class RMMigrationTo8_1_1 implements MigrationScript {
 			super(collection, migrationResourcesProvider, appLayerFactory);
 		}
 
-		public String getVersion() {
-			return "8.1";
-		}
-
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			if (!typesBuilder.getSchemaType(TemporaryRecord.SCHEMA_TYPE).hasSchema(DocumentListPDF.SCHEMA)) {

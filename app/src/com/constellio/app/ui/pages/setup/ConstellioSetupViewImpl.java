@@ -1,10 +1,12 @@
 package com.constellio.app.ui.pages.setup;
 
+import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.modules.rm.ui.builders.UserToVOBuilder;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.entities.modules.ProgressInfo;
 import com.constellio.app.ui.framework.buttons.WindowButton;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.BasePasswordField;
 import com.constellio.app.ui.framework.components.fields.BaseTextField;
@@ -13,6 +15,7 @@ import com.constellio.app.ui.framework.components.fields.upload.BaseUploadField;
 import com.constellio.app.ui.framework.components.fields.upload.TempFileUpload;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.base.LogoUtils;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.updates.UploadWaitWindow;
 import com.constellio.app.utils.ManualUpdateHandler;
 import com.constellio.app.utils.ManualUpdateHandlerView;
@@ -175,21 +178,20 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		preSetupButtonsLayout.setSpacing(true);
 
 		if (isUpdateWar) {
-			WindowButton updateButton = new WindowButton($("ConstellioSetupView.setup.update." + Language.English.getCode()),
-					$("ConstellioSetupView.setup.update." + Language.English.getCode())) {
+			Button updateButton = new BaseButton($("ConstellioSetupView.setup.update." + Language.English.getCode())) {
 				@Override
-				protected Component buildWindowContent() {
-					VerticalLayout verticalLayout = new VerticalLayout();
+				protected void buttonClick(ClickEvent event) {
+					preSetupButtonsLayout.removeAllComponents();
+					if (formLayout != null) {
+						mainLayout.removeComponent(formLayout);
+					}
 					ManualUpdateHandler manualUpdateHandler = new ManualUpdateHandler(
 							getConstellioFactories().getAppLayerFactory(),
 							ConstellioSetupViewImpl.this);
-					verticalLayout.addComponent(manualUpdateHandler.buildUpdatePanel());
-					verticalLayout.setHeight("400px");
-					return verticalLayout;
+					preSetupButtonsLayout.addComponent(manualUpdateHandler.buildUpdatePanel());
 				}
 			};
 			updateButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
 			preSetupButtonsLayout.addComponent(updateButton);
 		}
 

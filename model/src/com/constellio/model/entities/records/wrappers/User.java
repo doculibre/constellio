@@ -61,6 +61,7 @@ public class User extends RecordWrapper {
 
 	private Logger LOGGER = LoggerFactory.getLogger(User.class);
 
+
 	private transient Roles roles;
 	AuthorizationsServices authorizationsServices;
 

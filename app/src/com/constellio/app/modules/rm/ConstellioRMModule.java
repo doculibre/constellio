@@ -35,6 +35,7 @@ import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
 import com.constellio.app.modules.rm.extensions.RMSelectionPanelExtension;
 import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
+import com.constellio.app.modules.rm.extensions.RMUserProfileFieldsExtension;
 import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
 import com.constellio.app.modules.rm.extensions.RemoveClickableNotificationsWhenChangingPage;
 import com.constellio.app.modules.rm.extensions.SessionContextRecordExtension;
@@ -140,13 +141,15 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_0_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_666;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
-import com.constellio.app.modules.rm.migrations.records.RMFolderMigrationTo8_1_1_1;
+import com.constellio.app.modules.rm.migrations.records.RMFolderMigrationTo8_1_1_2;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
@@ -308,8 +311,10 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_1());
 		scripts.add(new RMMigrationTo8_1_0_1());
 		scripts.add(new RMMigrationTo8_1_1());
-		scripts.add(new RMMigrationTo8_1_2());
 		scripts.add(new RMMigrationTo8_1_1_1());
+		scripts.add(new RMMigrationTo8_1_1_2());
+		scripts.add(new RMMigrationTo8_1_2());
+		scripts.add(new RMMigrationTo8_1_4());
 		scripts.add(new RMMigrationTo8_2());
 		scripts.add(new RMMigrationTo8_2_666());
 
@@ -323,7 +328,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMContainerRecordMigrationTo7_3(collection, appLayerFactory));
 		scripts.add(new RMDocumentMigrationTo7_6_10(collection, appLayerFactory));
 		scripts.add(new RMEmailMigrationTo7_7_1(collection, appLayerFactory));
-		scripts.add(new RMFolderMigrationTo8_1_1_1(collection, appLayerFactory));
+		scripts.add(new RMFolderMigrationTo8_1_1_2(collection, appLayerFactory));
 
 		return scripts;
 	}
@@ -434,6 +439,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.schemaTypesPageExtensions.add(new RMSchemaTypesPageExtension());
 		extensions.recordDisplayFactoryExtensions.add(new RMRecordDisplayFactoryExtension(appLayerFactory, collection));
 		extensions.listSchemaCommandExtensions.add(new RMListSchemaExtention());
+		extensions.pagesComponentsExtensions.add(new RMUserProfileFieldsExtension(collection, appLayerFactory));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);

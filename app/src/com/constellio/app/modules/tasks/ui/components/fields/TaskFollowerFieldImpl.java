@@ -1,5 +1,9 @@
 package com.constellio.app.modules.tasks.ui.components.fields;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.registerBundle;
+
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupRecordField;
 import com.constellio.model.entities.records.wrappers.User;
@@ -18,7 +22,7 @@ import static com.constellio.app.ui.i18n.i18n.$;
 
 public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implements TaskFollowerField {
 
-	private TaskFollowerVO taskFollowerVO;
+	protected TaskFollowerVO taskFollowerVO;
 
 	private BeanItem<TaskFollowerVO> taskFollowerItem;
 
@@ -82,6 +86,9 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 
 		followerIdField = new LookupRecordField(User.SCHEMA_TYPE);
 		followerIdField.setCaption($("TaskFollowerField.followerId"));
+		if(!isFollowerIdFieldVisible()) {
+			followerIdField.setVisible(false);
+		}
 
 		followTaskStatusModifiedField = new CheckBox();
 		followTaskStatusModifiedField.setCaption($("TaskFollowerField.followTaskStatusModified"));
@@ -115,8 +122,8 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 	public Class<? extends TaskFollowerVO> getType() {
 		return TaskFollowerVO.class;
 	}
-
-	private boolean isInvalidFieldValue() {
+	
+	protected boolean isInvalidFieldValue() {
 		boolean invalidFieldValue;
 		String followerIdValue = followerIdField.getValue();
 		Boolean followTaskStatusModifiedValue = (Boolean) followTaskStatusModifiedField.getValue();
@@ -157,4 +164,11 @@ public class TaskFollowerFieldImpl extends CustomField<TaskFollowerVO> implement
 		}
 	}
 
+	public void setTaskFollowerVO(TaskFollowerVO taskFollowerVO) {
+		this.taskFollowerVO = taskFollowerVO;
+	}
+
+	protected boolean isFollowerIdFieldVisible() {
+		return true;
+	}
 }

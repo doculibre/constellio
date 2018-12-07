@@ -429,10 +429,15 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void addToCartRequested(RecordVO recordVO) {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(rm.getCart(recordVO.getId()).getId(), 1)) {
+		Cart cart = rm.getCart(recordVO.getId());
+		addToCartRequested(cart);
+	}
+
+	public void addToCartRequested(Cart cart) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
 			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {
-			presenterUtils.addToCartRequested(recordVO);
+			presenterUtils.addToCartRequested(cart);
 		}
 	}
 
@@ -605,5 +610,22 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public AppLayerFactory getApplayerFactory() {
 		return appLayerFactory;
+	}
+
+	public List<Cart> getOwnedCarts() {
+		return rm.wrapCarts(searchServices().search(new LogicalSearchQuery(from(schema(Cart.DEFAULT_SCHEMA)).where(schema(Cart.DEFAULT_SCHEMA).getMetadata(Cart.OWNER))
+				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
+	}
+
+	public Record getCreatedBy(Cart cart) {
+		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(rm.userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getCreatedBy()));
+	}
+
+	public Record getModifiedBy(Cart cart) {
+		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(rm.userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getModifiedBy()));
+	}
+
+	public Record getOwner(Cart cart) {
+		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(rm.userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getOwner()));
 	}
 }

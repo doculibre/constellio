@@ -12,6 +12,7 @@ import com.constellio.app.services.importExport.settings.SettingsExportOptions;
 import com.constellio.app.services.importExport.settings.SettingsExportServices;
 import com.constellio.app.services.importExport.settings.model.ImportedSettings;
 import com.constellio.app.services.importExport.settings.utils.SettingsXMLFileWriter;
+import com.constellio.app.services.importExport.systemStateExport.CompleteSystemStateExporter;
 import com.constellio.app.services.importExport.systemStateExport.PartialSystemStateExportParams;
 import com.constellio.app.services.importExport.systemStateExport.PartialSystemStateExporter;
 import com.constellio.app.services.importExport.systemStateExport.SystemStateExportParams;
@@ -174,6 +175,30 @@ public class ExportPresenter extends BasePresenter<ExportView> {
 		} catch (Exception e) {
 			view.showErrorMessage($("ExportView.errorWhileExportingSchemas"));
 			e.printStackTrace();
+		}
+	}
+
+	void exportCompleteClicked() {
+		try {
+			String filename = "exportedComplete-" + new SimpleDateFormat("yyyyMMdd").format(new Date()) + ".zip";
+			StreamResource.StreamSource streamSource = new StreamResource.StreamSource() {
+				@Override
+				public InputStream getStream() {
+					try {
+						CompleteSystemStateExporter exporter = new CompleteSystemStateExporter(appLayerFactory);
+						return exporter.exportCompleteSaveState();
+					} catch (Exception e) {
+						throw new RuntimeException(e);
+					}
+				}
+			};
+			StreamResource resource = new StreamResource(streamSource, filename);
+			resource.setMIMEType("application/zip");
+			Resource downloadedResource = DownloadLink.wrapForDownload(resource);
+			Page.getCurrent().open(downloadedResource, null, false);
+		} catch (Exception e) {
+			LOGGER.error(e);
+			view.showErrorMessage($("ExportView.errorWhileExportingComplete"));
 		}
 	}
 

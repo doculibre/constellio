@@ -177,7 +177,6 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 			});
 		}
 		fileUploadsTable = new BaseTable(getClass().getName());
-
 		fileUploadsTable.setContainerDataSource(fileUploadsContainer);
 		fileUploadsTable.setPageLength(0);
 		fileUploadsTable.setWidth("100%");
@@ -193,7 +192,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 	public void attach() {
 		super.attach();
 
-		if (viewChangeListener == null) {
+		if (UI.getCurrent().getNavigator() != null && viewChangeListener == null) {
 			viewChangeListener = new ViewChangeListener() {
 				@Override
 				public boolean beforeViewChange(ViewChangeEvent event) {
@@ -206,9 +205,7 @@ public class BaseUploadField extends CustomField<Object> implements DropHandler 
 					UI.getCurrent().getNavigator().removeViewChangeListener(viewChangeListener);
 				}
 			};
-			if (UI.getCurrent().getNavigator() != null) {
-				UI.getCurrent().getNavigator().addViewChangeListener(viewChangeListener);
-			}
+			UI.getCurrent().getNavigator().addViewChangeListener(viewChangeListener);
 		}
 	}
 

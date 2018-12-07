@@ -35,6 +35,7 @@ import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnPara
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
@@ -72,6 +73,7 @@ import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -733,4 +735,12 @@ public class AppLayerCollectionExtensions {
 
 		return false;
 	}
+
+    public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
+		List<AdditionnalRecordField> additionnalFields = new ArrayList<>();
+		for(PagesComponentsExtension extension: pagesComponentsExtensions) {
+			additionnalFields.addAll(extension.getAdditionnalFields(params));
+		}
+		return additionnalFields;
+    }
 }

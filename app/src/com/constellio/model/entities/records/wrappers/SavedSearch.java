@@ -29,6 +29,9 @@ public class SavedSearch extends RecordWrapper {
 	public static final String PAGE_NUMBER = "pageNumber";
 	public static final String RESULTS_VIEW_MODE = "resultsViewMode";
 	public static final String PAGE_LENGTH = "pageLength";
+	public static final String SHARED_USERS = "sharedUsers";
+	public static final String SHARED_GROUPS = "sharedGroups";
+	public static final String RESTRICTED = "restricted";
 
 	//testing only
 	public static final String CRITERION = "criterions";
@@ -182,5 +185,23 @@ public class SavedSearch extends RecordWrapper {
 		public String getCode() {
 			return code;
 		}
+	}
+
+	public SavedSearch setSharedUsers(List<String> userIds) {
+		set(SHARED_USERS, userIds);
+		return this;
+	}
+
+	public List<String> getSharedUsers() {
+		return getList(SHARED_USERS);
+	}
+
+	public SavedSearch setSharedGroups(List<String> userIds) {
+		set(SHARED_GROUPS, userIds);
+		return this;
+	}
+
+	public List<String> getSharedGroups() {
+		return getList(SHARED_GROUPS);
 	}
 }

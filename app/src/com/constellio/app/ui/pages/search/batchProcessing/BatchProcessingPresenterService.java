@@ -312,7 +312,7 @@ public class BatchProcessingPresenterService {
 								final LogicalSearchQuery query) {
 		final MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
 				.getSchema(schemaCode);
-		Record tmpRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(schema);
+		Record tmpRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(schema, false);
 
 		final Map<String, String> customizedLabels = getCustomizedLabels(schemaCode, locale);
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder() {

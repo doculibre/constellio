@@ -106,4 +106,15 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(getMetadata("id")).isEqualTo(userId));
 	}
 
+	public Record getCreatedBy(Cart cart) {
+		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(getMetadata("id")).isEqualTo(cart.getCreatedBy()));
+	}
+
+	public Record getModifiedBy(Cart cart) {
+		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(getMetadata("id")).isEqualTo(cart.getModifiedBy()));
+	}
+
+	public Record getOwner(Cart cart) {
+		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(getMetadata("id")).isEqualTo(cart.getOwner()));
+	}
 }

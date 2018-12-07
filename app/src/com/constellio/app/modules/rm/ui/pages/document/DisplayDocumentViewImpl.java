@@ -8,10 +8,11 @@ import com.constellio.app.modules.rm.services.decommissioning.SearchType;
 import com.constellio.app.modules.rm.ui.components.RMMetadataDisplayFactory;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
+import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.breadcrumb.DecommissionBreadcrumbTrail;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -73,6 +74,7 @@ import com.vaadin.ui.Upload.Receiver;
 import com.vaadin.ui.Upload.SucceededEvent;
 import com.vaadin.ui.Upload.SucceededListener;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -564,20 +566,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		};
 		finalizeButton.addStyleName(ValoTheme.BUTTON_LINK);
 
-		DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
-			@Override
-			public void addToDefaultFavorites() {
-				presenter.addToDefaultFavorite();
-			}
-
-			@Override
-			public void removeFromDefaultFavorites() {
-				presenter.removeFromDefaultFavorites();
-			}
-		};
-		favoriteStar.setStarred(presenter.inDefaultFavorites());
-		actionMenuButtons.add(favoriteStar);
-
 		actionMenuButtons.add(editDocumentButton);
 
 		copyContentButton = new LinkButton($("DocumentContextMenu.copyContent")) {
@@ -778,18 +766,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 				TabSheet tabSheet = new TabSheet();
-				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(presenter.getOwnedCartsDataProvider());
-				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
-				ownedCartsTable.addItemClickListener(new ItemClickListener() {
-					@Override
-					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(ownedCartsContainer.getRecordVO((int) event.getItemId()));
-						getWindow().close();
-					}
-				});
-
-				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
-				ownedCartsTable.setWidth("100%");
+				Table ownedCartsTable = buildOwnedFavoritesTable(getWindow());
 
 				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(presenter.getSharedCartsDataProvider());
 				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
@@ -801,7 +778,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 					}
 				});
 
-				sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				sharedCartsTable.setPageLength(Math.min(15, sharedCartsContainer.size()));
 				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
@@ -810,6 +787,32 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 				return layout;
 			}
 		};
+	}
+
+	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window) {
+		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
+		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		for (Cart cart : presenter.getOwnedCarts()) {
+			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle(), presenter.getCreatedBy(cart), presenter.getModifiedBy(cart), presenter.getOwner(cart)));
+		}
+		final DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
+		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTable", container);
+		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
+		defaultFavoritesTable.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Cart cart = container.getCart((DefaultFavoritesTable.CartItem) event.getItemId());
+				if (cart == null) {
+					presenter.addToDefaultFavorite();
+				} else {
+					presenter.addToCartRequested(cart);
+				}
+				window.close();
+			}
+		});
+		defaultFavoritesTable.setPageLength(Math.min(15, container.size()));
+		defaultFavoritesTable.setWidth("100%");
+		return defaultFavoritesTable;
 	}
 
 	private void initUploadWindow() {
