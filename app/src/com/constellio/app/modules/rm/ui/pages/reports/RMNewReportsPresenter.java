@@ -121,7 +121,7 @@ public class RMNewReportsPresenter extends BasePresenter<RMReportsView> implemen
 			case "Reports.AvailableSpaceReportAll":
 				return new AvailableSpaceReportParameters(true);
 			case "Reports.administrativeUnitExcelFormat":
-				return 	new AdministrativeUnitExcelReportParameters();
+				return 	new AdministrativeUnitExcelReportParameters((List<String>) userParams);
 		}
 
 		throw new RuntimeException("BUG: Unknown report: " + report);
