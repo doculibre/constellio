@@ -45,7 +45,7 @@ public class SchemaCaptionUtils implements Serializable {
 				Record record = recordServices.getDocumentById(recordId);
 				String schemaCode = record.getSchemaCode();
 				String schemaTypeCode = SchemaUtils.getSchemaTypeCode(schemaCode);
-				String captionForSchemaTypeCode = getCaptionForSchemaTypeCode(schemaTypeCode);
+				String captionForSchemaTypeCode = getCaptionForSchemaTypeCode(schemaTypeCode, locale);
 
 				String captionFormatKey = "caption." + schemaTypeCode + ".record";
 				String captionFormat = $(captionFormatKey);
@@ -79,13 +79,13 @@ public class SchemaCaptionUtils implements Serializable {
 			try {
 				String schemaCode = record.getSchemaCode();
 				String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
-				String captionForSchemaTypeCode = getCaptionForSchemaTypeCode(schemaTypeCode);
+				String captionForSchemaTypeCode = getCaptionForSchemaTypeCode(schemaTypeCode, locale);
 
 				String captionFormatKey = "caption." + schemaTypeCode + ".record";
-				String captionFormat = $(captionFormatKey);
+				String captionFormat = $(captionFormatKey, locale);
 				if (captionFormatKey.equals(captionFormat)) {
 					captionFormatKey = "caption.allTypes.record";
-					captionFormat = $(captionFormatKey);
+					captionFormat = $(captionFormatKey, locale);
 				}
 
 				caption = applyPattern(captionFormat, record, locale);
@@ -113,7 +113,7 @@ public class SchemaCaptionUtils implements Serializable {
 			try {
 				String schemaCode = record.getSchemaCode();
 				String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
-				String captionForSchemaTypeCode = getCaptionForSchemaTypeCode(schemaTypeCode);
+				String captionForSchemaTypeCode = getCaptionForSchemaTypeCode(schemaTypeCode, locale);
 
 				String captionFormatKey = "caption." + schemaTypeCode + ".record.short";
 				String captionFormat = $(captionFormatKey);
@@ -150,7 +150,7 @@ public class SchemaCaptionUtils implements Serializable {
 			try {
 				String schemaCode = recordVO.getSchema().getCode();
 				String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
-				String captionForSchemaTypeCode = getCaptionForSchemaTypeCode(schemaTypeCode);
+				String captionForSchemaTypeCode = getCaptionForSchemaTypeCode(schemaTypeCode, locale);
 
 				String captionFormatKey = "caption." + schemaTypeCode + ".record";
 				String captionFormat = $(captionFormatKey);
@@ -177,20 +177,21 @@ public class SchemaCaptionUtils implements Serializable {
 		return caption;
 	}
 
-	public static String getCaptionForSchema(String schemaCode) {
+	public static String getCaptionForSchema(String schemaCode, Locale locale) {
 		String schemaTypeCode = new SchemaUtils().getSchemaTypeCode(schemaCode);
-		return getCaptionForSchemaTypeCode(schemaTypeCode);
+		return getCaptionForSchemaTypeCode(schemaTypeCode, locale);
 	}
 
-	public static String getCaptionForSchemaTypeCode(String schemaTypeCode) {
+	public static String getCaptionForSchemaTypeCode(String schemaTypeCode, Locale locale) {
 		String key = "caption." + schemaTypeCode;
-		String caption = $(key);
+		String caption = $(key, locale);
 		if (key.equals(caption)) {
 			key = "caption.allTypes";
-			caption = $(key);
+			caption = $(key, locale);
 		}
 		return caption;
 	}
+
 
 	private static String applyPattern(String pattern, Record record, Locale locale) {
 		String collection = record.getCollection();

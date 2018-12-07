@@ -1,6 +1,7 @@
 package com.constellio.app.api.admin.services;
 
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -24,6 +25,10 @@ public class SystemAnalysisUtils {
 
 	public static String getAllocatedMemoryForConstellio() {
 		FoldersLocator foldersLocator = new FoldersLocator();
+		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
+			return null;
+		}
+
 		String allocatedMemory = findValueOfParameter(foldersLocator.getWrapperConf().getAbsolutePath(), CONSTELLIO_MEMORY_PARAMETER, "=");
 		if (allocatedMemory != null) {
 			allocatedMemory = toHumanReadleNumbers(allocatedMemory, "MB");
@@ -32,6 +37,10 @@ public class SystemAnalysisUtils {
 	}
 
 	public static String getAllocatedMemoryForSolr() {
+		FoldersLocator foldersLocator = new FoldersLocator();
+		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
+			return null;
+		}
 		String allocatedMemory = findValueOfParameter(SOLR_CONF_PATH, SOLR_MEMORY_PARAMETER, "=");
 		if (allocatedMemory == null) {
 			allocatedMemory = findValueOfParameter(SOLR_CURRENT_CONF_PATH, SOLR_MEMORY_PARAMETER, "=");
