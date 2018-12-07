@@ -10,14 +10,14 @@ import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
-public class RMFolderMigrationTo8_1_1_1 extends RecordMigrationScript {
+public class RMFolderMigrationTo8_1_1_2 extends RecordMigrationScript {
 
 	private RMSchemasRecordsServices rm;
 	private static final String FOLDER_DECOMMISSIONING_DATE = "decommissioningDate";
 	private MetadataSchemasManager metadataSchemasManager;
 	private String collection;
 
-	public RMFolderMigrationTo8_1_1_1(String collection, AppLayerFactory appLayerFactory) {
+	public RMFolderMigrationTo8_1_1_2(String collection, AppLayerFactory appLayerFactory) {
 		this.collection = collection;
 		this.rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		this.metadataSchemasManager = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager();
