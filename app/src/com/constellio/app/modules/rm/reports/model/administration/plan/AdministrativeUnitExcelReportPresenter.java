@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.reports.model.administration.plan;
 
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.extensions.AppLayerSystemExtensions;
+import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.reports.model.excel.BaseExcelReportPresenter;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -16,10 +17,16 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.search.query.ReturnedMetadatasFilter;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.security.roles.RolesManager;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
+import com.constellio.model.services.taxonomies.TaxonomiesSearchServices;
+import com.constellio.model.services.taxonomies.TaxonomySearchRecord;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,11 +39,14 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPresenter implements NewReportPresenter {
 	private RMSchemasRecordsServices rmSchemasRecordsServices;
 	private AuthorizationsServices authorizationsServices;
-	private List<String> administrativeUnitToIncludes = null;
+	private List<String> administrativeUnitToIncludes;
 	protected transient ModelLayerFactory modelLayerFactory;
 	protected transient AppLayerCollectionExtensions appCollectionExtentions;
 	protected transient AppLayerSystemExtensions appSystemExtentions;
-
+	private TaxonomiesSearchServices taxonomiesSearchServices;
+	private TaxonomiesSearchOptions searchOptions;
+	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(AdministrativeUnitExcelReportPresenter.class);
+	private MetadataSchemaTypes types;
 
 	public AdministrativeUnitExcelReportPresenter(String collection, AppLayerFactory appLayerFactory,
 												  Locale locale, List<String> administrativeUnitToIncludes) {
@@ -50,6 +60,9 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 	private void init() {
 		rmSchemasRecordsServices = new RMSchemasRecordsServices(collection, modelLayerFactory, locale);
 		authorizationsServices = modelLayerFactory.newAuthorizationsServices();
+		taxonomiesSearchServices = modelLayerFactory.newTaxonomiesSearchService();
+		types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
+		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all());
 	}
 
 	public AdministrativeUnitExcelReportModel build() {
@@ -75,19 +88,53 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 		model.addTitle(i18n.$("Reports.administrativeUnitExcelGroupWithPermission"));
 
 
-		if(administrativeUnitToIncludes != null || !administrativeUnitToIncludes.isEmpty()) {
+		if(administrativeUnitToIncludes != null && !administrativeUnitToIncludes.isEmpty()) {
 			for (String administrativeUnitId : administrativeUnitToIncludes) {
 				AdministrativeUnit administrativeUnit1 = rmSchemasRecordsServices.getAdministrativeUnit(administrativeUnitId);
-				List<Object> recordLine = getRecordLine(administrativeUnit1.getWrappedRecord(), metadataListed);
-				getExtraLineData(recordLine, administrativeUnit1);
-				model.addLine(recordLine);
+				List<Object> recordLine = administrativeUnitToCellContentList(metadataListed, administrativeUnit1);
+				model.addLine($(AdministrativeUnitExcelReportModel.SINGLE_SHEET_CAPTION_KEY),recordLine);
 			}
 
 		} else {
 
+			List<AdministrativeUnit> rootAmdinistrativeUnit = new ArrayList<>();
+			List<TaxonomySearchRecord> taxonomySearchRecords = taxonomiesSearchServices
+					.getLinkableRootConcept(User.GOD, collection,
+							RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
+
+			if (taxonomySearchRecords != null) {
+				for (TaxonomySearchRecord taxonomyRecord : taxonomySearchRecords) {
+
+					if (taxonomyRecord != null) {
+						Record record = taxonomyRecord.getRecord();
+						AdministrativeUnit recordAdministrativeUnit = new AdministrativeUnit(record, types, locale);
+
+							if (recordAdministrativeUnit != null) {
+								rootAmdinistrativeUnit.add(recordAdministrativeUnit);
+							}
+						}
+				}
+			}
+
+			for(AdministrativeUnit rootAdministrativeUnit : rootAmdinistrativeUnit) {
+				List<AdministrativeUnit> administrativeUnitsList = new ArrayList<>();
+				getCategoriesForRecord(rootAdministrativeUnit.getWrappedRecord(), administrativeUnitsList);
+				model.addLine(rootAdministrativeUnit.getCode(), administrativeUnitToCellContentList(metadataListed, rootAdministrativeUnit));
+
+				for(AdministrativeUnit currentAdministrativeUnit : administrativeUnitsList) {
+					model.addLine(rootAdministrativeUnit.getCode(), administrativeUnitToCellContentList(metadataListed, currentAdministrativeUnit));
+				}
+			}
 		}
 
-		return model;
+			return model;
+		}
+
+	private List<Object> administrativeUnitToCellContentList(List<Metadata> metadataListed,
+			AdministrativeUnit administrativeUnit1) {
+		List<Object> recordLine = getRecordLine(administrativeUnit1.getWrappedRecord(), metadataListed);
+		getExtraLineData(recordLine, administrativeUnit1);
+		return recordLine;
 	}
 
 	private List<String> getAccess(Authorization authorization) {
@@ -146,6 +193,35 @@ public class AdministrativeUnitExcelReportPresenter extends BaseExcelReportPrese
 			for(String currentNewAccess : newAcessList) {
 				if(!currentAcces.contains(currentNewAccess)) {
 					currentAcces.add(currentNewAccess);
+				}
+			}
+		}
+	}
+	private void getCategoriesForRecord(Record record, List<AdministrativeUnit> administrativeUnits) {
+
+		searchOptions = new TaxonomiesSearchOptions().setReturnedMetadatasFilter(ReturnedMetadatasFilter.all())
+				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
+
+		List<TaxonomySearchRecord> children = taxonomiesSearchServices.getLinkableChildConcept(User.GOD, record,
+				RMTaxonomies.ADMINISTRATIVE_UNITS, AdministrativeUnit.SCHEMA_TYPE, searchOptions);
+
+		if (children != null) {
+			for (TaxonomySearchRecord child : children) {
+				if (child != null) {
+					try {
+						Record childRecord = child.getRecord();
+						if (childRecord != null) {
+							AdministrativeUnit administrativeUnit = new AdministrativeUnit(childRecord, types, locale);
+
+							if (administrativeUnit != null) {
+								administrativeUnits.add(administrativeUnit);
+								getCategoriesForRecord(childRecord, administrativeUnits);
+							}
+						}
+					} catch (Exception e) {
+						// throw new RuntimeException(e);
+						LOGGER.info("This is not a category. It's a " + child.getRecord().getSchemaCode());
+					}
 				}
 			}
 		}

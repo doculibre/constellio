@@ -151,6 +151,11 @@ public class LookupRecordField extends LookupField<String> {
 						}
 
 						@Override
+						public boolean isSelectable(String selection) {
+							return true;
+						}
+
+						@Override
 						public boolean hasChildren(String parent) {
 							return false;
 						}
