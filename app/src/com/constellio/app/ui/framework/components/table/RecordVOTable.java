@@ -1,14 +1,5 @@
 package com.constellio.app.ui.framework.components.table;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.vaadin.peter.contextmenu.ContextMenu;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
-import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
-
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -44,6 +35,14 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Table;
+import org.apache.commons.lang3.StringUtils;
+import org.vaadin.peter.contextmenu.ContextMenu;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
+import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableRowEvent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecordVOTable extends BaseTable {
 
@@ -129,12 +128,12 @@ public class RecordVOTable extends BaseTable {
 				if (isTitleColumn(propertyId)) {
 					RecordVO recordVO = getRecordVOForTitleColumn(getItem(itemId));
 					columnStyle = getTitleColumnStyle(recordVO);
-					
+
 					String id = recordVO.getId();
 					SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
 					if (sessionContext.isVisited(id)) {
 						String visitedStyleName = "v-table-cell-visited-link";
-						columnStyle = StringUtils.isNotBlank(columnStyle) ? columnStyle + " " + visitedStyleName : visitedStyleName; 
+						columnStyle = StringUtils.isNotBlank(columnStyle) ? columnStyle + " " + visitedStyleName : visitedStyleName;
 					}
 				} else {
 					columnStyle = null;
@@ -259,7 +258,7 @@ public class RecordVOTable extends BaseTable {
 				RecordVO titleRecordVO = getRecordVOForTitleColumn(getItem(itemId));
 				if (titleRecordVO != null) {
 					MetadataSchemaVO recordSchemaVO = titleRecordVO.getSchema();
-					String prefix = SchemaCaptionUtils.getCaptionForSchema(recordSchemaVO.getCode());
+					String prefix = SchemaCaptionUtils.getCaptionForSchema(recordSchemaVO.getCode(), getLocale());
 					Label titleLabel = (Label) metadataDisplay;
 					String titleForRecordVO = getTitleForRecordVO(titleRecordVO, prefix, titleLabel.getValue());
 					titleLabel.setValue(titleForRecordVO);
