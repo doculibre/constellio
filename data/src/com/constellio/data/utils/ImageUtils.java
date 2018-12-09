@@ -18,16 +18,13 @@ public class ImageUtils {
 	private final static int OVERSIZED_HEIGHT_LIMIT = 1080;
 
 	public static Dimension getImageDimension(File file) {
-		long t0 = System.currentTimeMillis();
 		try (ImageInputStream in = ImageIO.createImageInputStream(file)) {
 			final Iterator<ImageReader> readers = ImageIO.getImageReaders(in);
 			if (readers.hasNext()) {
 				ImageReader reader = readers.next();
 				try {
 					reader.setInput(in);
-					Dimension dimension = new Dimension(reader.getWidth(0), reader.getHeight(0));
-					log.info("ImageUtils.getImageDimension executed in " + (System.currentTimeMillis() - t0) + " ms");
-					return dimension;
+					return new Dimension(reader.getWidth(0), reader.getHeight(0));
 				} finally {
 					reader.dispose();
 				}
