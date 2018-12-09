@@ -385,6 +385,10 @@ public class ConservationRulesReportPresenter {
 		if (rule != null) {
 			CopyRetentionRule copyRetentionRule = rule.getSecondaryCopy();
 
+			if(copyRetentionRule == null) {
+				return null;
+			}
+
 			commentMap = buildCommentMap(rule);
 
 			observations = buildObservations(copyRetentionRule, commentMap);
