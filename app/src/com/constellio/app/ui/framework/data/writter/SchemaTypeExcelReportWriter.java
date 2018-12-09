@@ -59,6 +59,7 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 		List<String> titles = new ArrayList<>();
 		titles.add(i18n.$("code"));
 		titles.add(i18n.$("title"));
+		titles.add(i18n.$("SchemaTypeExcelReportWriter.specification"));
 		titles.add(i18n.$("SchemaTypeExcelReportWriter.type"));
 		titles.add(i18n.$("SchemaTypeExcelReportWriter.multivalue"));
 		titles.add(i18n.$("SchemaTypeExcelReportWriter.readonly"));

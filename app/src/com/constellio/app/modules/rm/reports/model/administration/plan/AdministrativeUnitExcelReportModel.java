@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.reports.model.administration.plan;
 
 import com.constellio.app.ui.i18n.i18n;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,12 +11,12 @@ import java.util.Map;
 
 public class AdministrativeUnitExcelReportModel {
 	private final List<String> columnsTitles = new ArrayList<>();
-	private Map<String, List<Object>> resultBysheet = new HashMap<>();
+	private Map<String, List<List<Object>>> resultBysheet = new HashMap<>();
 	public static final String SINGLE_SHEET_CAPTION_KEY = "Report.sheetName";
 
 	public List<List<Object>> getResults(String sheet) {
 		if(resultBysheet.keySet().size() > 0) {
-			return new ArrayList<>(CollectionUtils.unmodifiableCollection(resultBysheet.get(sheet)));
+			return resultBysheet.get(sheet);
 		} else {
 			return Collections.emptyList();
 		}
@@ -32,7 +31,7 @@ public class AdministrativeUnitExcelReportModel {
 	}
 
 	public List<String> getColumnsTitles() {
-		return new ArrayList<>(CollectionUtils.unmodifiableCollection(columnsTitles));
+		return new ArrayList<>(columnsTitles);
 	}
 
 	public void addTitle(String title) {
@@ -41,7 +40,7 @@ public class AdministrativeUnitExcelReportModel {
 
 	public void addLine(String sheet, List<Object> recordLine) {
 		if(resultBysheet.get(sheet) == null) {
-			resultBysheet.put(sheet, new ArrayList<>());
+			resultBysheet.put(sheet, new ArrayList<List<Object>>());
 		}
 
 		resultBysheet.get(sheet).add(recordLine);
