@@ -5,6 +5,7 @@ import com.constellio.data.dao.services.idGenerator.UUIDV1Generator;
 import com.constellio.data.extensions.DataLayerSystemExtensions;
 import com.constellio.data.extensions.extensions.configManager.ExtensionConverter;
 import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.data.utils.ImageUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.util.StringUtils;
@@ -29,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -324,13 +326,20 @@ public class ConversionManager implements StatefulService {
 		}
 	}
 
-	public File convertToJPEG(InputStream inputStream, String originalName, File workingFolder) throws Exception {
-		File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
-
+	public File convertToJPEG(InputStream inputStream, Dimension dimension, String mimetype, String originalName,
+							  File workingFolder) throws Exception {
 		BufferedImage bufferedImage = ImageIO.read(inputStream);
-		ImageIO.write(bufferedImage, "jpg", outputfile);
-
-		return outputfile;
+		if (dimension != null && ImageUtils.isImageOversized(dimension.getHeight())) {
+			String ext = FilenameUtils.getExtension(originalName);
+			File outputfile = createTempFile("jpegConversion", originalName + "." + ext, workingFolder);
+			BufferedImage resizedImage = ImageUtils.resize(bufferedImage);
+			ImageIO.write(resizedImage, ext, outputfile);
+			return outputfile;
+		} else {
+			File outputfile = createTempFile("jpegConversion", originalName + ".jpg", workingFolder);
+			ImageIO.write(bufferedImage, "jpg", outputfile);
+			return outputfile;
+		}
 	}
 
 	@Override

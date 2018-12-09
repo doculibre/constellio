@@ -25,6 +25,7 @@ import com.constellio.data.threads.BackgroundThreadExceptionHandling;
 import com.constellio.data.threads.BackgroundThreadsManager;
 import com.constellio.data.utils.BatchBuilderIterator;
 import com.constellio.data.utils.Factory;
+import com.constellio.data.utils.ImageUtils;
 import com.constellio.data.utils.ImpossibleRuntimeException;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.data.utils.hashing.HashingService;
@@ -72,6 +73,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -805,15 +807,19 @@ public class ContentManager implements StatefulService {
 			}
 		}
 
-		if (mimeType.equals(MimeTypes.MIME_IMAGE_TIFF) &&
-			!contentDao.isDocumentExisting(hash + ".jpegConversion")) {
-			try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
-				File convertedJPEGFile = conversionManager.convertToJPEG(inputStream, filename, tempFolder);
-				contentDao.moveFileToVault(convertedJPEGFile, hash + ".jpegConversion");
-				LOGGER.info("Generated a JPEG conversion for content '" + filename + "' with hash '" + hash + "'");
-			} catch (Throwable t) {
-				LOGGER.warn("Cannot generate JPEG conversion for content '" + filename + "' with hash '" + hash + "'", t);
-				return false;
+		if (mimeType.startsWith("image/")) {
+			Dimension dimension = ImageUtils.getImageDimension(contentDao.getFileOf(hash));
+			if ((mimeType.equals(MimeTypes.MIME_IMAGE_TIFF) || dimension.getHeight() > 1080) &&
+				!contentDao.isDocumentExisting(hash + ".jpegConversion")) {
+				try (InputStream inputStream = contentDao.getContentInputStream(hash, READ_CONTENT_FOR_PREVIEW_CONVERSION)) {
+					File convertedJPEGFile =
+							conversionManager.convertToJPEG(inputStream, dimension, mimeType, filename, tempFolder);
+					contentDao.moveFileToVault(convertedJPEGFile, hash + ".jpegConversion");
+					LOGGER.info("Generated a JPEG conversion for content '" + filename + "' with hash '" + hash + "'");
+				} catch (Throwable t) {
+					LOGGER.warn("Cannot generate JPEG conversion for content '" + filename + "' with hash '" + hash + "'", t);
+					return false;
+				}
 			}
 		}
 

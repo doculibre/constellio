@@ -76,7 +76,8 @@ public class ImageViewer extends CustomComponent {
 			if (recordVO != null) {
 				String version = contentVersionVO.getVersion();
 				String filename = contentVersionVO.getFileName();
-				if (Arrays.asList(NEED_CONVERSION_EXTENSIONS).contains(recordVO.getExtension())) {
+				if (Arrays.asList(NEED_CONVERSION_EXTENSIONS).contains(recordVO.getExtension()) ||
+					ConstellioResourceHandler.isContentOversized(recordVO.getId(), metadataCode, version)) {
 					if (ConstellioResourceHandler.hasContentJpegConversion(recordVO.getId(), metadataCode, version)) {
 						contentResource = ConstellioResourceHandler.createConvertedResource(recordVO.getId(), metadataCode, version, filename);
 					} else {
