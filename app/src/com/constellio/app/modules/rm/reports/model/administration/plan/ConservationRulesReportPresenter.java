@@ -106,9 +106,7 @@ public class ConservationRulesReportPresenter {
 	private List<ConservationRulesReportModel_Rule> convertRulesToModelRules(List<RetentionRule> retentionRules) {
 		List<ConservationRulesReportModel_Rule> conservationRulesReportModel_Rules = new ArrayList<>();
 		for (RetentionRule retentionRule : retentionRules) {
-			if (retentionRule != null &&
-					((rulesToIncludes != null && rulesToIncludes.contains(retentionRule.getId()))
-							|| rulesToIncludes == null || rulesToIncludes.isEmpty()) ) {
+			if (retentionRule != null) {
 				try {
 					ConservationRulesReportModel_Rule conservationRulesReportModel_Rule = new ConservationRulesReportModel_Rule();
 					String code = StringUtils.defaultString(retentionRule.getCode());
@@ -141,6 +139,10 @@ public class ConservationRulesReportPresenter {
 		LogicalSearchQuery allRetentionRules = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(retentionRuleSchemaType).returnAll())
 				.sortAsc(Schemas.CODE);
+
+		if(rulesToIncludes != null && !rulesToIncludes.isEmpty()) {
+			allRetentionRules.setCondition(allRetentionRules.getCondition().andWhere(Schemas.IDENTIFIER).isIn(rulesToIncludes));
+		}
 
 		List<RetentionRule> retentionRules = rm.wrapRetentionRules(searchServices
 				.search(allRetentionRules));
@@ -382,6 +384,10 @@ public class ConservationRulesReportPresenter {
 
 		if (rule != null) {
 			CopyRetentionRule copyRetentionRule = rule.getSecondaryCopy();
+
+			if(copyRetentionRule == null) {
+				return null;
+			}
 
 			commentMap = buildCommentMap(rule);
 
