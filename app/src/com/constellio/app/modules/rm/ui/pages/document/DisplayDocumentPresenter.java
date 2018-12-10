@@ -627,4 +627,12 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	public Record getOwner(Cart cart) {
 		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(rm.userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getOwner()));
 	}
+
+	public MetadataSchemaVO getSchema() {
+		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+	}
+
+	public User getCurrentUser() {
+		return super.getCurrentUser();
+	}
 }

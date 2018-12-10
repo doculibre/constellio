@@ -1,24 +1,34 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
 import com.constellio.app.modules.rm.wrappers.Cart;
+import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.framework.components.table.BaseTable;
+import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.vaadin.data.Container;
 import com.vaadin.data.util.BeanItemContainer;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class DefaultFavoritesTable extends BaseTable {
-	public DefaultFavoritesTable(String tableId, final Container container) {
-		super(tableId);
+	List<MetadataSchemaVO> schemas;
 
+	public DefaultFavoritesTable(String tableId, final Container container, MetadataSchemaVO schemas, User user) {
+		super(tableId);
+		List<MetadataSchemaVO> metadataSchemaVOs = new ArrayList<>();
+		metadataSchemaVOs.add(schemas);
+		setSchemas(metadataSchemaVOs);
 		setContainerDataSource(container);
 		setWidth("100%");
 		setVisibleColumns(CartItem.TITLE, CartItem.MODIFIED_ON, CartItem.CREATED_BY, CartItem.CREATED_ON, CartItem.MODIFIED_BY, CartItem.SHARED_WITH, CartItem.OWNER, CartItem.DISPLAY_BUTTON);
+		setColumnCollapsingAllowed(true);
 		setColumnHeader(CartItem.TITLE, $(CartItem.TITLE));
 		setColumnHeader(CartItem.CREATED_BY, $("CartsListView." + CartItem.CREATED_BY));
 		setColumnHeader(CartItem.CREATED_ON, $("CartsListView." + CartItem.CREATED_ON));
@@ -28,6 +38,9 @@ public class DefaultFavoritesTable extends BaseTable {
 		setColumnHeader(CartItem.OWNER, $("CartsListView." + CartItem.OWNER));
 		setColumnHeader(CartItem.DISPLAY_BUTTON, "");
 		setColumnExpandRatio(CartItem.TITLE, 1);
+		user.setVisibleTableColumns(tableId, asList(CartItem.TITLE, CartItem.MODIFIED_ON, CartItem.DISPLAY_BUTTON));
+		user.getVisibleTableColumnsFor(tableId);
+		new RecordVOTableColumnsManager().manage(this, tableId);
 	}
 
 	public static class CartItem {
@@ -129,4 +142,13 @@ public class DefaultFavoritesTable extends BaseTable {
 		}
 		return stringBuffer.toString();
 	}
+
+	public List<MetadataSchemaVO> getSchemas() {
+		return schemas;
+	}
+
+	public void setSchemas(List<MetadataSchemaVO> schemas) {
+		this.schemas = schemas;
+	}
+
 }
