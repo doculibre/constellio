@@ -12,7 +12,17 @@ import java.io.StringReader;
 
 public class TLSConfigUtils {
 
-	public static void setAdditionalSettings(File originalFile, FileService fileService) {
+	// Should not be used without changing parameter number because we already have a second item.
+	@Deprecated
+	public static void setSettingAdditional2EphemeralDHKeySize(File originalFile, FileService fileService) {
+		setSetting(originalFile, fileService, "wrapper.java.additional.1", "wrapper.java.additional.2=-Djdk.tls.ephemeralDHKeySize=2048");
+	}
+
+	public static void setSettingAdditional2TemporaryDirectory(File originalFile, FileService fileService) {
+		setSetting(originalFile, fileService, "wrapper.java.additional.1", "wrapper.java.additional.2=-Djava.io.tmpdir=/opt/constellio_tmp");
+	}
+
+	public static void setSetting(File originalFile, FileService fileService, String lineBefore, String lineToAdd) {
 		File backup = new File(originalFile.getAbsolutePath() + ".bak");
 		File newFile = fileService.newTemporaryFile("newWraper.conf");
 
@@ -23,10 +33,10 @@ public class TLSConfigUtils {
 			String line;
 			boolean found = false;
 			while ((line = reader.readLine()) != null) {
-				if (line.startsWith("wrapper.java.additional.1")) {
+				if (line.startsWith(lineBefore)) {
 					found = true;
 				} else if (found) {
-					newWriter.write("wrapper.java.additional.2=-Djdk.tls.ephemeralDHKeySize=2048");
+					newWriter.write(lineToAdd);
 					newWriter.newLine();
 					found = false;
 				}

@@ -1,5 +1,6 @@
 package com.constellio.app.services.migrations.scripts;
 
+import com.constellio.app.api.admin.services.TLSConfigUtils;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -32,6 +33,7 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -128,6 +130,11 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 					recordServices.executeWithoutImpactHandling(tx);
 				}
 			}.execute(from(schemas.group.schemaType()).returnAll());
+
+
+			File currentWrapper = appLayerFactory.getModelLayerFactory().getFoldersLocator().getWrapperConf();
+							TLSConfigUtils.setSettingAdditional2EphemeralDHKeySize(currentWrapper,
+									appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService());
 		}
 	}
 
