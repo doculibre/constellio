@@ -41,6 +41,10 @@ public interface BaseView extends ViewComponent {
 	MainLayout getMainLayout();
 
 	void removeViewEnterListener(ViewEnterListener listener);
+	
+	void runAsync(Runnable runnable);
+	
+	void runAsync(Runnable runnable, int pollIntervall);
 
 	public interface ViewEnterListener extends Serializable {
 
