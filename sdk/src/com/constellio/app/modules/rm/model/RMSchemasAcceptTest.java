@@ -38,7 +38,7 @@ public class RMSchemasAcceptTest extends ConstellioTest {
 		SchemasDisplayManager schemasDisplayManager = getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		assertThat(schemasDisplayManager.getReturnedFieldsForSearch(zeCollection)).containsOnly(
-				"archivisticStatus_s", "title_s", "assigneeId_s", "code_s", "content_s", "modifiedOn_dt", "dueDate_da",
+				"archivisticStatus_s", "title_s", "assigneeId_s", "code_s", "content_s", "mediaType_s", "modifiedOn_dt", "dueDate_da",
 				"statusId_s", "description_s", "description_t", "mimetype_s", "migrationDataVersion_d", "deleted_s", "question_s"
 		);
 	}
