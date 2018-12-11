@@ -123,9 +123,14 @@ public class ImageViewer extends CustomComponent {
 				js.append("\n");
 				js.append("    var iv1 = $('#" + divId + "').iviewer({");
 				js.append("\n");
-				js.append("        src: '" + contentURL + "'");
+				js.append("        src: '" + contentURL + "',");
+				js.append("\n");
+				js.append("        zoom_min: '1'");
 				js.append("\n");
 				js.append("    });");
+				js.append("\n");
+				js.append("    $('#" + divId + "').bind('ivieweronfinishload', function(ev, src) { $('#" + divId + ">img').css('top', '0'); });");
+				// $('#viewer').bind('ivieweronfinishload', function(ev, src) { /* handle this */ })
 				js.append("\n");
 				js.append("});");
 				js.append("\n");

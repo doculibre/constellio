@@ -1,7 +1,10 @@
 package com.constellio.app.ui.framework.data;
 
+import com.constellio.app.api.extensions.params.RecordTextInputDataProviderSortMetadatasParam;
 import com.constellio.app.modules.rm.wrappers.Category;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.converters.ConverterWithCache;
 import com.constellio.app.ui.framework.components.fields.lookup.LookupField.TextInputDataProvider;
@@ -36,6 +39,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 	private transient String lastQuery;
 	private transient SPEQueryResponse response;
 
+	private transient AppLayerFactory appLayerFactory;
 	private transient ModelLayerFactory modelLayerFactory;
 	protected SessionContext sessionContext;
 	protected String schemaTypeCode;
@@ -74,6 +78,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		this.sessionContext = sessionContext;
 		this.schemaTypeCode = schemaTypeCode;
 		this.schemaCode = schemaCode;
+		this.appLayerFactory = constellioFactories.getAppLayerFactory();
 		this.modelLayerFactory = constellioFactories.getModelLayerFactory();
 		this.security = determineIfSecurity();
 		this.includeDeactivated = includeDeactivated;
@@ -116,6 +121,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 
 	private void init() {
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
+		appLayerFactory = constellioFactories.getAppLayerFactory();
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
 	}
 
@@ -165,9 +171,7 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 		LogicalSearchCondition condition;
 
 		Metadata sort = null;
-
 		if (schemaTypeCode != null) {
-
 			MetadataSchemaType type = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(getCurrentCollection()).getSchemaType(schemaTypeCode);
 			List<Metadata> extraMetadatas = type.getDefaultSchema().getMetadatas().onlySearchable().onlySchemaAutocomplete();
@@ -189,7 +193,6 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 						.isFalseOrNull();
 			}
 		} else {
-
 			MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager()
 					.getSchemaTypes(getCurrentCollection()).getSchema(schemaCode);
 			List<Metadata> extraMetadatas = schema.getMetadatas().onlySearchable().onlySchemaAutocomplete();
@@ -209,9 +212,17 @@ public class RecordTextInputDataProvider extends TextInputDataProvider<String> {
 				.setStartRow(startIndex)
 				.setNumberOfRows(count);
 
-		query.sortAsc(Schemas.CAPTION).sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE);
-		if (sort != null) {
+		String collection = sessionContext.getCurrentCollection();
+		RecordTextInputDataProviderSortMetadatasParam sortParams = new RecordTextInputDataProviderSortMetadatasParam(schemaCode, schemaTypeCode, ConstellioUI.getCurrent());
+		Metadata[] sortMetadatas = appLayerFactory.getExtensions().forCollection(collection).getRecordTextInputDataProviderSortMetadatas(sortParams);
+		if (sortMetadatas != null) {
+			for (Metadata sortMetadata : sortMetadatas) {
+				query.sortAsc(sortMetadata);
+			}
+		} else if (sort != null) {
 			query.sortAsc(sort);
+		} else {
+			query.sortAsc(Schemas.CAPTION).sortAsc(Schemas.CODE).sortAsc(Schemas.TITLE);
 		}
 
 		if (security) {

@@ -927,8 +927,10 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 
 		ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(taxonomy);
 		Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(taxonomy);
-		for (Metadata sortMetadata : sortMetadatas) {
-			query.sortAsc(sortMetadata);
+		if (sortMetadatas != null) {
+			for (Metadata sortMetadata : sortMetadatas) {
+				query.sortAsc(sortMetadata);
+			}
 		}
 
 		HasChildrenQueryHandler hasChildrenQueryHandler = newHasChildrenQueryHandler(user, cacheMode, query);
@@ -1012,8 +1014,10 @@ public class TaxonomiesSearchServicesOldImpl implements TaxonomiesSearchServices
 
 			ModelLayerCollectionExtensions collectionExtensions = extensions.forCollectionOf(ctx.taxonomy);
 			Metadata[] sortMetadatas = collectionExtensions.getSortMetadatas(ctx.taxonomy);
-			for (Metadata sortMetadata : sortMetadatas) {
-				mainQuery.sortAsc(sortMetadata);
+			if (sortMetadatas != null) {
+				for (Metadata sortMetadata : sortMetadatas) {
+					mainQuery.sortAsc(sortMetadata);
+				}
 			}
 
 			Iterator<List<Record>> iterator;

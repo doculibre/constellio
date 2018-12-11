@@ -27,7 +27,7 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 
 	private final AddEditDocumentPresenter presenter;
 	private RecordVO recordVO;
-//	private Panel recordFormPanel;
+	private ContentViewer contentViewer;
 	private DocumentFormImpl recordForm;
 	private I18NHorizontalLayout mainLayout;
 	private boolean popup;
@@ -89,11 +89,10 @@ public class AddEditDocumentViewImpl extends BaseViewImpl implements AddEditDocu
 		if (contentVersionVO != null) {
 			mainLayout.setSpacing(true);
 			
-			ContentViewer contentViewer = new ContentViewer(recordVO, Document.CONTENT, contentVersionVO);
+			contentViewer = new ContentViewer(recordVO, Document.CONTENT, contentVersionVO);
 			mainLayout.addComponents(contentViewer, recordForm);
 			
 			recordForm.setWidth("700px");
-			mainLayout.setExpandRatio(contentViewer, 1);
 		} else {
 			mainLayout.addComponent(recordForm);
 		}
