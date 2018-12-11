@@ -9,6 +9,7 @@ import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.model.entities.CorePermissions;
+import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
@@ -76,7 +77,9 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 
 	public void deleteButtonClicked(String taxonomyCode) throws MetadataDeletionException {
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
-		if (hasConcepts(taxonomy)) {
+		if ("containers".equals(taxonomyCode)) {
+			view.showMessage($("ListTaxonomyView.cannotDeleteContainersTaxonomy", taxonomy.getTitle(Language.withCode(getCurrentLocale().getLanguage()))));
+		} else if (hasConcepts(taxonomy)) {
 			view.showMessage($("ListTaxonomyView.cannotDeleteTaxonomy"));
 		} else {
 			deleteMetadatasInClassifiedObjects(taxonomy);
