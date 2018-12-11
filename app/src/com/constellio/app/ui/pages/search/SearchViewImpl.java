@@ -576,6 +576,9 @@ public abstract class SearchViewImpl<T extends SearchPresenter<? extends SearchV
 			criterion.setItemCaption(metadata.getCode(), metadata.getLabel());
 		}
 		//		criterion.setPageLength(criterion.size());
+		criterion.addItem("SearchSortType.RELEVENCE");
+		criterion.setNullSelectionItemId("SearchSortType.RELEVENCE");
+		criterion.setItemCaption("SearchSortType.RELEVENCE", $("SearchSortType.RELEVENCE"));
 		criterion.setValue(presenter.getSortCriterionValueAmong(sortableMetadata));
 
 		final OptionGroup order = new OptionGroup();

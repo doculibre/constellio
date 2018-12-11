@@ -114,6 +114,7 @@ public class SearchResultDisplay extends VerticalLayout {
 		CssLayout titleLayout = new CssLayout();
 		Component titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
+		
 		titleLink.setWidthUndefined();
 		titleLayout.addComponent(titleLink);
 
@@ -163,7 +164,14 @@ public class SearchResultDisplay extends VerticalLayout {
 		}
 		return titleLayout;
 	}
-
+	
+	protected void addVisitedStyleNameIfNecessary(Component titleLink, String id) {
+		SessionContext sessionContext = getCurrent().getSessionContext();
+		if (sessionContext.isVisited(id)) {
+			titleLink.addStyleName("visited-link");
+		}
+	}
+	
 	protected Component newTitleLink(SearchResultVO searchResultVO) {
 		return new ReferenceDisplay(searchResultVO.getRecordVO(), true, extraParam);
 	}

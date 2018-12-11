@@ -190,6 +190,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		} else {
 			id = params;
 		}
+		
+		view.getSessionContext().addVisited(id);
 
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
@@ -1356,5 +1358,13 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public Record getOwner(Cart cart) {
 		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getOwner()));
+	}
+
+	public MetadataSchemaVO getSchema() {
+		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+	}
+
+	public User getCurrentUser() {
+		return super.getCurrentUser();
 	}
 }

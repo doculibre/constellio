@@ -58,6 +58,8 @@ public class DocumentSearchResultDisplay extends SearchResultDisplay {
 			String agentURL = ConstellioAgentUtils.getAgentURL(recordVO, contentVersionVO);
 			if (agentURL != null) {
 				titleLink = new ConstellioAgentLink(agentURL, recordVO, contentVersionVO, recordVO.getTitle(), false, new BaseUpdatableContentVersionPresenter(getAppLayerFactory()));
+				addVisitedStyleNameIfNecessary(titleLink, recordVO.getId());
+				((ConstellioAgentLink) titleLink).addVisitedClickListener(recordVO.getId());
 			} else {
 				titleLink = super.newTitleLink(searchResultVO);
 			}

@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class BaseSessionContext implements SessionContext {
 
 	private List<SelectedRecordIdsChangeListener> selectedRecordIdsChangeListeners = new ArrayList<>();
-
+	
 	@Override
 	public List<String> getSelectedRecordIds() {
 		return Collections.unmodifiableList(ensureSelectedRecordIds());
@@ -80,7 +81,33 @@ public abstract class BaseSessionContext implements SessionContext {
 		this.selectedRecordIdsChangeListeners.remove(listener);
 	}
 
+	@Override
+	public void addVisited(String id) {
+		Set<String> visited = ensureVisited();
+		visited.add(id);
+	}
+
+	@Override
+	public boolean isVisited(String id) {
+		Set<String> visited = ensureVisited();
+		return visited.contains(id);
+	}
+
+	@Override
+	public void clearVisited(String id) {
+		Set<String> visited = ensureVisited();
+		visited.remove(id);
+	}
+
+	@Override
+	public void clearAllVisited() {
+		Set<String> visited = ensureVisited();
+		visited.clear();
+	}
+
 	protected abstract List<String> ensureSelectedRecordIds();
 
 	protected abstract Map<String, Long> ensureSelectedRecordSchemaTypeCodes();
+	
+	protected abstract Set<String> ensureVisited();
 }

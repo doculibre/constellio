@@ -21,6 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static com.constellio.model.entities.schemas.Schemas.CREATED_BY;
+import static com.constellio.model.entities.schemas.Schemas.CREATED_ON;
+import static com.constellio.model.entities.schemas.Schemas.IDENTIFIER;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.entities.schemas.Schemas.MODIFIED_BY;
+import static com.constellio.model.entities.schemas.Schemas.MODIFIED_ON;
+import static com.constellio.model.entities.schemas.Schemas.PATH;
+
 public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 	MetadataSchemaType metadataSchemaType;
 	Locale locale;
@@ -51,6 +59,7 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 		List<String> titles = new ArrayList<>();
 		titles.add(i18n.$("code"));
 		titles.add(i18n.$("title"));
+		titles.add(i18n.$("SchemaTypeExcelReportWriter.specification"));
 		titles.add(i18n.$("SchemaTypeExcelReportWriter.type"));
 		titles.add(i18n.$("SchemaTypeExcelReportWriter.multivalue"));
 		titles.add(i18n.$("SchemaTypeExcelReportWriter.readonly"));
@@ -73,9 +82,13 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 
 
 			for (Metadata metadata : currentMetadataSchema.getMetadatas()) {
+				if(!isNotAHiddenSystemReserved(metadata)) {
+					continue;
+				}
 				List<Object> returnList = new ArrayList<>();
 				returnList.add(metadata.getCode());
 				returnList.add(metadata.getLabel(Language.withLocale(locale)));
+				returnList.add(getMetadataType(metadata));
 				returnList.add(i18n.$(MetadataValueType.getCaptionFor(metadata.getType())));
 				returnList.add(metadata.isMultivalue());
 				returnList.add(metadata.getDataEntry().getType() != DataEntryType.MANUAL);
@@ -100,5 +113,54 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 			throw new RuntimeException(e);
 		}
 
+	}
+
+	public String getMetadataType(Metadata metadata) {
+		if(metadata.getLocalCode().startsWith("USR")
+				&& !isDDVOrTaxonomy(metadata)) {
+			return i18n.$("SchemaTypeExcelReportWriter.custom");
+		} else if (!metadata.getLocalCode().startsWith("USR")
+				&& !isDDVOrTaxonomy(metadata)) {
+			return i18n.$("SchemaTypeExcelReportWriter.system");
+		} else if (isDDV(metadata)) {
+			return i18n.$("SchemaTypeExcelReportWriter.ddv");
+		} else if(isTaxonomy(metadata)) {
+			return i18n.$("SchemaTypeExcelReportWriter.taxonomy");
+		} else {
+			return i18n.$("SchemaTypeExcelReportWriter.undefined");
+		}
+	}
+
+
+	private boolean isDDVOrTaxonomy(Metadata metadata) {
+		if (metadata.getType() == MetadataValueType.REFERENCE) {
+			return isTaxonomy(metadata) || isDDV(metadata);
+		} else {
+			return false;
+		}
+
+	}
+
+	private boolean isTaxonomy(Metadata metadata) {
+		if (metadata.getType() == MetadataValueType.REFERENCE) {
+			String referencedSchemaType = metadata.getReferencedSchemaType();
+			return referencedSchemaType.startsWith("taxo");
+		} else {
+			return false;
+		}
+	}
+
+	private boolean isDDV(Metadata metadata) {
+		if (metadata.getType() == MetadataValueType.REFERENCE) {
+			String referencedSchemaType = metadata.getReferencedSchemaType();
+			return (metadata.getLocalCode().startsWith("USR") && referencedSchemaType.startsWith("ddv"));
+		} else {
+			return false;
+		}
+	}
+
+	private boolean isNotAHiddenSystemReserved(Metadata metadata) {
+		return !metadata.isSystemReserved() || metadata.isSameLocalCodeThanAny(
+				IDENTIFIER, CREATED_BY, MODIFIED_BY, CREATED_ON, MODIFIED_ON, LEGACY_ID, PATH);
 	}
 }

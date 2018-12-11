@@ -119,6 +119,11 @@ public class RMFavoritesTable implements Serializable {
 				selectionChanged(recordId, selected);
 				adjustSelectAllButton(selected);
 			}
+
+			@Override
+			protected boolean isIndexProperty() {
+				return true;
+			}
 		};
 	}
 

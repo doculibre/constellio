@@ -117,4 +117,8 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 	public Record getOwner(Cart cart) {
 		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(getMetadata("id")).isEqualTo(cart.getOwner()));
 	}
+
+	public MetadataSchemaVO getSchema() {
+		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+	}
 }

@@ -787,6 +787,7 @@ public class DecommissioningListViewImpl extends BaseViewImpl implements Decommi
 
 		BaseTable tableGenerator = new FolderDetailTableGenerator(presenter, this, containerizable)
 				.withExtension(presenter.getFolderDetailTableExtension())
+				.displayingOrderNumber(presenter.shouldDisplayOrder())
 				.displayingRetentionRule(presenter.shouldDisplayRetentionRuleInDetails())
 				.displayingCategory(presenter.shouldDisplayCategoryInDetails())
 				.displayingSort(presenter.shouldDisplaySort())

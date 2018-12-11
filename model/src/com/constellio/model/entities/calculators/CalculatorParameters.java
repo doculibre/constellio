@@ -1,5 +1,6 @@
 package com.constellio.model.entities.calculators;
 
+import com.constellio.model.entities.CollectionInfo;
 import com.constellio.model.entities.calculators.dependencies.ConfigDependency;
 import com.constellio.model.entities.calculators.dependencies.Dependency;
 import com.constellio.model.entities.calculators.dependencies.DynamicLocalDependency;
@@ -81,5 +82,9 @@ public class CalculatorParameters {
 
 	public Metadata getMetadata() {
 		return metadata;
+	}
+
+	public CollectionInfo getCollectionInfo() {
+		return schemaType.getCollectionInfo();
 	}
 }

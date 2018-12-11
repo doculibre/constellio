@@ -702,6 +702,10 @@ $popup-view-z-index: 3;
 		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffed7c', endColorstr='#ffdd00',GradientType=0 ); /* IE6-9 */
 	}
 
+   .v-table-cell-visited-link {
+		color: #551A8B;
+   }	
+
 	.v-slot-disabled-button {
 	    opacity: 0.4;
 	    filter: alpha(opacity=40); /* msie */
@@ -1719,7 +1723,14 @@ $popup-view-z-index: 3;
 							.reference-display {
             					white-space: normal;
             					height: inherit;
-            					color: inherit;
+							}
+   
+						   	.reference-display-link {
+						   		color: rgb(25, 125, 225);
+						   	}
+													
+							.visited-link {
+								color: #551A8B;
 							}
 							
 							.agent-action-link {
@@ -1769,7 +1780,7 @@ $popup-view-z-index: 3;
 							} 
 
 							.search-result-table {
-								* {
+								.v-table-cell-content {
 									border: none;
 								}
 
@@ -1780,16 +1791,19 @@ $popup-view-z-index: 3;
 										vertical-align: top;
 
 										.v-checkbox {
-											margin-top: 13px;
+											margin-top: 23px;
+										}
+									
+										.row-index {
+											margin-top: 23px;
 										}
 									}
 								}
 							
 								.search-result-title {
-									padding-top: 8px;
+									padding-top: 16px;
 									font-size: 18px;
 									text-align: left;
-									color: rgb(25, 125, 225);
 								}
 								
 								.document-search-result-title {
@@ -1988,8 +2002,7 @@ $popup-view-z-index: 3;
 	    	background-color: #999;
 	    }
 
-// Admin RM Module
-
+		// Admin RM Module
 	    .user-management {
 	    	text-align: center;
 

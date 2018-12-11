@@ -628,6 +628,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 		return decommissioningService().canEditContainers(decommissioningList(), getCurrentUser());
 	}
 
+	public boolean shouldDisplayOrder() {
+		return true;
+	}	
+
 	public boolean shouldDisplayRetentionRuleInDetails() {
 		return StringUtils.isBlank(decommissioningList().getUniformRule());
 	}

@@ -139,7 +139,7 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 				return deleteButton;
 			}
 		});
-		return new DefaultFavoritesTable("favoritesTable", buttonsContainer);
+		return new DefaultFavoritesTable("favoritesTable", buttonsContainer, presenter.getSchema(), presenter.getCurrentUser());
 	}
 
 	private Layout buildSharedCartsTab() {

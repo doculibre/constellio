@@ -18,6 +18,7 @@ import com.constellio.app.ui.framework.containers.ContainerAdapter;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.items.RecordVOItem;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.app.ui.util.SchemaCaptionUtils;
 import com.constellio.model.entities.schemas.Schemas;
@@ -127,6 +128,13 @@ public class RecordVOTable extends BaseTable {
 				if (isTitleColumn(propertyId)) {
 					RecordVO recordVO = getRecordVOForTitleColumn(getItem(itemId));
 					columnStyle = getTitleColumnStyle(recordVO);
+
+					String id = recordVO.getId();
+					SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+					if (sessionContext.isVisited(id)) {
+						String visitedStyleName = "v-table-cell-visited-link";
+						columnStyle = StringUtils.isNotBlank(columnStyle) ? columnStyle + " " + visitedStyleName : visitedStyleName;
+					}
 				} else {
 					columnStyle = null;
 				}
@@ -250,7 +258,7 @@ public class RecordVOTable extends BaseTable {
 				RecordVO titleRecordVO = getRecordVOForTitleColumn(getItem(itemId));
 				if (titleRecordVO != null) {
 					MetadataSchemaVO recordSchemaVO = titleRecordVO.getSchema();
-					String prefix = SchemaCaptionUtils.getCaptionForSchema(recordSchemaVO.getCode());
+					String prefix = SchemaCaptionUtils.getCaptionForSchema(recordSchemaVO.getCode(), getLocale());
 					Label titleLabel = (Label) metadataDisplay;
 					String titleForRecordVO = getTitleForRecordVO(titleRecordVO, prefix, titleLabel.getValue());
 					titleLabel.setValue(titleForRecordVO);

@@ -36,6 +36,7 @@ public class SmbSearchResultDisplay extends SearchResultDisplay {
 			String agentURL = ConstellioAgentUtils.getAgentSmbURL(recordVO, smbPathMetadata);
 			if (agentURL != null) {
 				titleComponent = new ConstellioAgentLink(agentURL, null, recordVO.getTitle(), false);
+				((ConstellioAgentLink) titleComponent).addVisitedClickListener(recordVO.getId());
 			} else {
 				titleComponent = super.newTitleComponent(searchResultVO);
 			}

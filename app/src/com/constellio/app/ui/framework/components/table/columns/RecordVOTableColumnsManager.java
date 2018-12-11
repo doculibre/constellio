@@ -1,6 +1,7 @@
 package com.constellio.app.ui.framework.components.table.columns;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.ConstellioUI;
@@ -47,8 +48,14 @@ public class RecordVOTableColumnsManager extends TableColumnsManager {
 	@Override
 	protected List<String> getDefaultVisibleColumnIds(Table table) {
 		List<String> defaultVisibleColumnIds;
-		RecordVOTable recordVOTable = (RecordVOTable) table;
-		List<MetadataSchemaVO> schemaVOs = recordVOTable.getSchemas();
+		List<MetadataSchemaVO> schemaVOs;
+		if (table instanceof DefaultFavoritesTable) {
+			DefaultFavoritesTable defaultFavoritesTable = (DefaultFavoritesTable) table;
+			schemaVOs = defaultFavoritesTable.getSchemas();
+		} else {
+			RecordVOTable recordVOTable = (RecordVOTable) table;
+			schemaVOs = recordVOTable.getSchemas();
+		}
 		if (!schemaVOs.isEmpty()) {
 			defaultVisibleColumnIds = new ArrayList<>();
 			SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();

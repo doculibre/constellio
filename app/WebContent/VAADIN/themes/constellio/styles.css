@@ -13367,6 +13367,10 @@ div.v-layout.v-horizontal.v-widget {
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffed7c', endColorstr='#ffdd00',GradientType=0 );
 }
 
+.constellio .v-table-cell-visited-link {
+	color: #551A8B;
+}
+
 .constellio .v-slot-disabled-button {
 	opacity: 0.4;
 	filter: alpha(opacity=40);
@@ -14268,7 +14272,14 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .reference-display {
 	white-space: normal;
 	height: inherit;
-	color: inherit;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .reference-display-link {
+	color: #197de1;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .visited-link {
+	color: #551A8B;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .agent-action-link {
@@ -14299,7 +14310,7 @@ div.v-layout.v-horizontal.v-widget {
 	padding-left: 5px;
 }
 
-.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table * {
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-cell-content {
 	border: none;
 }
 
@@ -14312,14 +14323,17 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-table .v-table-cell-content .v-checkbox {
-	margin-top: 13px;
+	margin-top: 23px;
+}
+
+.constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .v-table-table .v-table-cell-content .row-index {
+	margin-top: 23px;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-title {
-	padding-top: 8px;
+	padding-top: 16px;
 	font-size: 18px;
 	text-align: left;
-	color: #197de1;
 }
 
 .constellio .constellio-layout .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .document-search-result-title {
