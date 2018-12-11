@@ -72,6 +72,7 @@ import java.util.Map;
 
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_EAGER;
 import static com.constellio.model.entities.schemas.MetadataTransiency.TRANSIENT_LAZY;
+import static com.constellio.model.entities.schemas.Schemas.ESTIMATED_SIZE;
 import static com.constellio.model.entities.schemas.Schemas.MARKED_FOR_REINDEXING;
 import static com.constellio.model.entities.schemas.Schemas.TITLE;
 import static com.constellio.model.frameworks.validation.Validator.METADATA_CODE;
@@ -2259,6 +2260,31 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 
 		assertThat(recordsDataStore.get("record3")).isNotNull();
 		assertThat(recordsDataStore.get("record4")).isNotNull();
+	}
+
+	@Test
+	public void whenCreateAndUpdateRecordsThenEstimatedRecordSizeBasedOnStringAndTextFields()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata()
+				.withALargeTextMetadata()
+				.withAMultivaluedLargeTextMetadata()
+				.withAMultivalueContentMetadata());
+
+		Record emptyRecord1 = recordServices.newRecordWithSchema(zeSchema.instance());
+		Record emptyRecord2 = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(emptyRecord1);
+		recordServices.add(emptyRecord2);
+
+		int emptyRecordSize = emptyRecord1.<Integer>get(ESTIMATED_SIZE);
+		assertThat(emptyRecordSize)
+				.isGreaterThan(0)
+				.isEqualTo(emptyRecord2.<Integer>get(ESTIMATED_SIZE));
+
+		Record record = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(emptyRecord1.set(zeSchema.stringMetadata(), "This is a simple value"));
+
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(42);
+
 	}
 
 	private MetadataSchemaTypesConfigurator aMetadataInAnotherSchemaContainingAReferenceToZeSchemaAndACalculatorRetreivingIt() {

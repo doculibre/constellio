@@ -13,6 +13,9 @@ public class FakeDataStoreTypeFactory implements DataStoreTypesFactory {
 	public static final String DOUBLE = "double";
 	public static final String DOUBLES = "doubles";
 
+	public static final String INTEGER = "integer";
+	public static final String INTEGERS = "integers";
+
 	public static final String DATE_TIME = "date";
 	public static final String DATE_TIMES = "dates";
 
@@ -35,6 +38,11 @@ public class FakeDataStoreTypeFactory implements DataStoreTypesFactory {
 	@Override
 	public String forDouble(boolean multivalue) {
 		return multivalue ? DOUBLES : DOUBLE;
+	}
+
+	@Override
+	public String forInteger(boolean multivalue) {
+		return multivalue ? INTEGERS : INTEGER;
 	}
 
 	@Override
