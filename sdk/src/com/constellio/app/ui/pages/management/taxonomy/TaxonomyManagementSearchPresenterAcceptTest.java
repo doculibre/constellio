@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.constellio.app.ui.i18n.i18n.$;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -154,7 +153,7 @@ public class TaxonomyManagementSearchPresenterAcceptTest extends ConstellioTest 
 	//
 
 	@Test
-	public void whenDeletingANotDeletableTaxonomyThenShowErrorMessage() {
+	public void whenDeletingANotDeletableTaxonomyThenReturnValidationErrors() {
 		when(recordVO.getId()).thenReturn(records.categoryId_X100);
 
 		String freeText = "X*";
@@ -162,9 +161,7 @@ public class TaxonomyManagementSearchPresenterAcceptTest extends ConstellioTest 
 		String viewPath = configurePathWithParams(freeText, taxonmyCode);
 		presenter.forParams(viewPath);
 
-		presenter.deleteButtonClicked(recordVO);
-
-		verify(view).showErrorMessage($("TaxonomyManagementView.cannotDelete"));
+		assertThat(presenter.validateDeletable(recordVO).isEmpty()).isFalse();
 	}
 
 	@Test
