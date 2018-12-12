@@ -133,7 +133,7 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 
 
 			File currentWrapper = appLayerFactory.getModelLayerFactory().getFoldersLocator().getWrapperConf();
-							TLSConfigUtils.setSettingAdditionalEphemeralDHKeySize(currentWrapper,
+							TLSConfigUtils.setSettingAdditionalTemporaryDirectory(currentWrapper,
 									appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService());
 		}
 	}

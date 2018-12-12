@@ -15,6 +15,10 @@ public class TLSConfigUtils {
 
 	// Should not be used without changing parameter number because we already have a second item.
 	public static void setSettingAdditionalEphemeralDHKeySize(File originalFile, FileService fileService) {
+		if(!originalFile.exists()) {
+			return;
+		}
+
 		int currentIndexOfAdditionalSetting = getLastAdditionalSettingNumber(originalFile);
 
 		setSetting(originalFile, fileService, "wrapper.java.additional." + getLastAdditionalSettingNumber(originalFile), "wrapper.java.additional."
@@ -23,6 +27,10 @@ public class TLSConfigUtils {
 	}
 
 	public static void setSettingAdditionalTemporaryDirectory(File originalFile, FileService fileService) {
+		if(!originalFile.exists()) {
+			return;
+		}
+
 		int currentIndexOfAdditionalSetting = getLastAdditionalSettingNumber(originalFile);
 
 		setSetting(originalFile, fileService, "wrapper.java.additional."
