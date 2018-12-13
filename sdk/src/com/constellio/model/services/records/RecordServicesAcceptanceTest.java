@@ -95,7 +95,10 @@ import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichHasTransie
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsCalculatedUsing;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsEncrypted;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsMultivalue;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsNotSearchable;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsScripted;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSearchable;
+import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsSortable;
 import static com.constellio.sdk.tests.schemas.TestsSchemasSetup.whichIsUnmodifiable;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -2263,12 +2266,11 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
-	public void whenCreateAndUpdateRecordsThenEstimatedRecordSizeBasedOnStringAndTextFields()
+	public void whenCreateRecordsThenEstimatedRecordSizeBasedOnStringAndTextFields()
 			throws Exception {
-		defineSchemasManager().using(schemas.withAStringMetadata()
-				.withALargeTextMetadata()
-				.withAMultivaluedLargeTextMetadata()
-				.withAMultivalueContentMetadata());
+		defineSchemasManager().using(schemas.withAStringMetadata(whichIsNotSearchable)
+				.withALargeTextMetadata(whichIsNotSearchable)
+				.withAMultivaluedLargeTextMetadata(whichIsNotSearchable));
 
 		Record emptyRecord1 = recordServices.newRecordWithSchema(zeSchema.instance());
 		Record emptyRecord2 = recordServices.newRecordWithSchema(zeSchema.instance());
@@ -2281,10 +2283,112 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 				.isEqualTo(emptyRecord2.<Integer>get(ESTIMATED_SIZE));
 
 		Record record = recordServices.newRecordWithSchema(zeSchema.instance());
-		recordServices.add(emptyRecord1.set(zeSchema.stringMetadata(), "This is a simple value"));
+		recordServices.add(record.set(zeSchema.stringMetadata(), "This is a simple value"));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(60);
 
-		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(42);
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(record.set(zeSchema.stringMetadata(), "This is a little bit longer value"));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(82);
 
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(record.set(zeSchema.largeTextMetadata(), "This is a simple value"));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(60);
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(record.set(zeSchema.multivaluedLargeTextMetadata(),
+				asList("This is a simple value", "This is an other simple value")));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(138);
+	}
+
+	@Test
+	public void whenUpdateRecordsThenEstimatedRecordSizeUpdated()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichIsNotSearchable)
+				.withALargeTextMetadata(whichIsNotSearchable)
+				.withAMultivaluedLargeTextMetadata(whichIsNotSearchable));
+
+		Record record = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(record);
+
+		int emptyRecordSize = record.<Integer>get(ESTIMATED_SIZE);
+		assertThat(emptyRecordSize).isGreaterThan(0);
+
+		recordServices.update(record.set(zeSchema.stringMetadata(), "This is a simple value"));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(60);
+
+		recordServices.update(record.set(zeSchema.stringMetadata(), "This is a little bit longer value"));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(82);
+
+		recordServices.update(record.set(zeSchema.largeTextMetadata(), "This is a simple value"));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(142);
+
+		recordServices.update(record.set(zeSchema.stringMetadata(), null));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(60);
+
+		recordServices.update(record.set(zeSchema.multivaluedLargeTextMetadata(),
+				asList("This is a simple value", "This is an other simple value")));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(198);
+	}
+
+	@Test
+	public void whenCreatingRecordSearchableFieldsThenBigger()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichIsSearchable)
+				.withALargeTextMetadata(whichIsSearchable)
+				.withAMultivaluedLargeTextMetadata(whichIsSearchable));
+
+		Record emptyRecord1 = recordServices.newRecordWithSchema(zeSchema.instance());
+		Record emptyRecord2 = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(emptyRecord1);
+		recordServices.add(emptyRecord2);
+
+		int emptyRecordSize = emptyRecord1.<Integer>get(ESTIMATED_SIZE);
+		assertThat(emptyRecordSize)
+				.isGreaterThan(0)
+				.isEqualTo(emptyRecord2.<Integer>get(ESTIMATED_SIZE));
+
+		Record record = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(record.set(zeSchema.stringMetadata(), "This is a simple value"));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(120);
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(record.set(zeSchema.stringMetadata(), "This is a little bit longer value"));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(164);
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(record.set(zeSchema.largeTextMetadata(), "This is a simple value"));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(120);
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(record.set(zeSchema.multivaluedLargeTextMetadata(),
+				asList("This is a simple value", "This is an other simple value")));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(276);
+	}
+
+
+	@Test
+	public void whenCreatingRecordSortFieldsThenBigger()
+			throws Exception {
+		defineSchemasManager().using(schemas.withAStringMetadata(whichIsSortable)
+				.withALargeTextMetadata(whichIsSortable));
+
+		Record emptyRecord1 = recordServices.newRecordWithSchema(zeSchema.instance());
+		Record emptyRecord2 = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(emptyRecord1);
+		recordServices.add(emptyRecord2);
+
+		int emptyRecordSize = emptyRecord1.<Integer>get(ESTIMATED_SIZE);
+		assertThat(emptyRecordSize)
+				.isGreaterThan(0)
+				.isEqualTo(emptyRecord2.<Integer>get(ESTIMATED_SIZE));
+
+		Record record = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(record.set(zeSchema.stringMetadata(), "1234 is a simple value"));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(130);
+
+		record = recordServices.newRecordWithSchema(zeSchema.instance());
+		recordServices.add(record.set(zeSchema.stringMetadata(), "12345 is a little bit longer value"));
+		assertThat(record.<Integer>get(ESTIMATED_SIZE) - emptyRecordSize).isEqualTo(176);
 	}
 
 	private MetadataSchemaTypesConfigurator aMetadataInAnotherSchemaContainingAReferenceToZeSchemaAndACalculatorRetreivingIt() {
