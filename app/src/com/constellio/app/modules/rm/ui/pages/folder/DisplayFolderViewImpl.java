@@ -1102,7 +1102,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 	@Override
 	public void setTaxonomyCode(String taxonomyCode) {
-		this.presenter.setTaxonomyCode(taxonomyCode);
 		this.taxonomyCode = taxonomyCode;
 	}
 

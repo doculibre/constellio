@@ -148,6 +148,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		this.popup = popup;
 		initTransientObjects();
 		if (recordVO != null) {
+			this.taxonomyCode = recordVO.getId();
 			forParams(recordVO.getId());
 		}
 
