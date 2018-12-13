@@ -290,7 +290,6 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 				final String collectionTitle = bean.getCollectionTitle();
 				final String collectionCode = bean.getCollectionCode();
 
-
 				String nonFinaladminPassword = "";
 				String nonFinalAdminConfirmationPassword = "";
 
@@ -306,58 +305,25 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 				final String adminPasswordConfirmation = nonFinalAdminConfirmationPassword;
 
 				final boolean demoData = bean.isDemoData();
-				try {
-					presenter.validUserEntry(modules, collectionCode, adminPassword, adminPasswordConfirmation);
-					if(!threadIsRunning) {
-						new Thread() {
-							@Override
-							public void run() {
-								threadIsRunning = true;
-								try {
-									if (!presenter.isLoadSaveState()) {
+				if (!presenter.isLoadSaveState()) {
 
-										try {
-											presenter.saveRequested(languages, modules, collectionTitle, collectionCode,
-													adminPassword, adminPasswordConfirmation, demoData);
-											UI.getCurrent().access(new Runnable() {
-												@Override
-												public void run() {
-													UserServices userServices = getConstellioFactories().getModelLayerFactory().newUserServices();
-													SessionContext sessionContext = getSessionContext();
-													UserToVOBuilder userToVOBuilder = new UserToVOBuilder();
-													User user = userServices.getUserRecordInCollection("admin", collectionCode);
-													UserVO userVO = userToVOBuilder.build(user.getWrappedRecord(), VIEW_MODE.DISPLAY, sessionContext);
-													sessionContext.setCurrentCollection(collectionCode);
-													sessionContext.setCurrentLocale(new Locale(presenter.getSetupLocaleCode()));
-													sessionContext.setCurrentUser(userVO);
-
-													Page.getCurrent().setLocation("/constellio/");
-												}
-											});
-										} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
-											showMessage(constellioSetupPresenterException.getMessage());
-										}
-									} else {
-										TempFileUpload saveState = bean.getSaveState();
-										File saveStateFile = saveState.getTempFile();
-										try {
-											presenter.loadSaveStateRequested(saveStateFile);
-										} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
-											showErrorMessage(constellioSetupPresenterException.getMessage());
-										} finally {
-											saveState.delete();
-										}
-									}
-								} finally {
-									threadIsRunning = false;
-								}
-							}
-						}.start();
+					try {
+						presenter.saveRequested(languages, modules, collectionTitle, collectionCode,
+								adminPassword, adminPasswordConfirmation, demoData);
+					} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
+						showMessage(constellioSetupPresenterException.getMessage());
 					}
-				} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
-					showMessage(constellioSetupPresenterException.getMessage());
+				} else {
+					TempFileUpload saveState = bean.getSaveState();
+					File saveStateFile = saveState.getTempFile();
+					try {
+						presenter.loadSaveStateRequested(saveStateFile);
+					} catch (ConstellioSetupPresenterException constellioSetupPresenterException) {
+						showErrorMessage(constellioSetupPresenterException.getMessage());
+					} finally {
+						saveState.delete();
+					}
 				}
-
 			}
 
 			@Override
@@ -367,6 +333,10 @@ public class ConstellioSetupViewImpl extends BaseViewImpl implements ConstellioS
 		};
 
 		formLayout.addComponents(form);
+	}
+
+	public void setSubmitButtonEnabled(boolean enabled) {
+		form.getSaveButton().setEnabled(enabled);
 	}
 
 	@Override
