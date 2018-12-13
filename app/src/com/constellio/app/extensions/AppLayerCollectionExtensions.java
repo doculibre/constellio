@@ -47,6 +47,7 @@ import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassif
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
+import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
 import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
@@ -75,6 +76,7 @@ import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
@@ -93,6 +95,7 @@ import com.constellio.model.entities.schemas.MetadataFilterFactory;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
@@ -445,6 +448,18 @@ public class AppLayerCollectionExtensions {
 				return behavior.displayTaxonomy(user, taxonomy);
 			}
 		});
+	}
+
+	public ValidationErrors validateTaxonomyDeletable(Taxonomy taxonomy,
+													  SessionContextProvider sessionContextProvider) {
+		ValidationErrors validationErrors = new ValidationErrors();
+		for (TaxonomyPageExtension taxonomyPageExtension : taxonomyAccessExtensions.getExtensions()) {
+			validationErrors = taxonomyPageExtension.validateTaxonomyDeletable(new ValidateTaxonomyDeletableParams(taxonomy, sessionContextProvider));
+			if (!validationErrors.isEmpty()) {
+				return validationErrors;
+			}
+		}
+		return validationErrors;
 	}
 
 	public void decorateView(PagesComponentsExtensionParams params) {

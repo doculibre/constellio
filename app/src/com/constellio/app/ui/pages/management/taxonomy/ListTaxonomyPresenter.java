@@ -8,21 +8,16 @@ import com.constellio.app.services.metadata.MetadataDeletionService;
 import com.constellio.app.ui.entities.TaxonomyVO;
 import com.constellio.app.ui.framework.builders.TaxonomyToVOBuilder;
 import com.constellio.app.ui.pages.base.BasePresenter;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.CorePermissions;
-import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
-import com.constellio.model.services.search.SearchServices;
-import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
 
 public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 
@@ -77,15 +72,23 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 
 	public void deleteButtonClicked(String taxonomyCode) throws MetadataDeletionException {
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
-		if ("containers".equals(taxonomyCode)) {
-			view.showMessage($("ListTaxonomyView.cannotDeleteContainersTaxonomy", taxonomy.getTitle(Language.withCode(getCurrentLocale().getLanguage()))));
-		} else if (hasConcepts(taxonomy)) {
-			view.showMessage($("ListTaxonomyView.cannotDeleteTaxonomy"));
-		} else {
+		ValidationErrors validationErrors = validateDeletable(taxonomyCode);
+		if (validationErrors.isEmpty()) {
 			deleteMetadatasInClassifiedObjects(taxonomy);
 			taxonomiesManager.deleteWithoutValidations(taxonomy);
 			view.navigate().to().listTaxonomies();
+		} else {
+			displayErrorWindow(validationErrors);
 		}
+	}
+
+	protected void displayErrorWindow(ValidationErrors validationErrors) {
+		MessageUtils.getCannotDeleteWindow(validationErrors).openWindow();
+	}
+
+	protected ValidationErrors validateDeletable(String taxonomyCode) {
+		TaxonomyPresentersService presentersService = new TaxonomyPresentersService(appLayerFactory);
+		return presentersService.validateDeletable(taxonomyCode, getCurrentUser(), view);
 	}
 
 	protected void deleteMetadatasInClassifiedObjects(Taxonomy taxonomy) throws MetadataDeletionException {
@@ -102,15 +105,6 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 		if (defaultDocumentSchema.metadataExists(localDocumentCode)) {
 			metadataDeletionService().deleteMetadata(localDocumentCode);
 		}
-	}
-
-	protected boolean hasConcepts(Taxonomy taxonomy) {
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		LogicalSearchQuery query = new ConceptNodesTaxonomySearchServices(modelLayerFactory)
-				.getRootConceptsQuery(view.getSessionContext().getCurrentCollection(), taxonomy.getCode(),
-						new TaxonomiesSearchOptions());
-		Long numberOfConcepts = searchServices.getResultsCount(query);
-		return !numberOfConcepts.equals(0L);
 	}
 
 	private MetadataDeletionService metadataDeletionService() {

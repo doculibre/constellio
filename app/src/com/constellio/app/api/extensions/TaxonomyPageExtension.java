@@ -4,9 +4,11 @@ import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
+import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -29,5 +31,9 @@ public class TaxonomyPageExtension implements Serializable {
 
 	public ExtensionBooleanResult displayTaxonomy(User user, Taxonomy taxonomy) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public ValidationErrors validateTaxonomyDeletable(ValidateTaxonomyDeletableParams validateTaxonomyDeletableParams) {
+		return new ValidationErrors();
 	}
 }
