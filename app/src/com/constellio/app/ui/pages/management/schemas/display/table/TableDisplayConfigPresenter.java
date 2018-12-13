@@ -110,21 +110,7 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 
 		result = !restrictedType.contains(metadataVO.getValueType()) && !localCodes.contains(metadataVO.getLocalcode());
 
-		return result && (isEnabledInAtLeastOneSchema(metadataVO, metadata, schemaType));
-	}
-
-	private boolean isEnabledInAtLeastOneSchema(FormMetadataVO metadataVO, Metadata metadata, MetadataSchemaType schemaType) {
-		if(metadataVO.isEnabled()) {
-			return true;
-		} else {
-			List<MetadataSchema> allSchemas = schemaType.getAllSchemas();
-			for(MetadataSchema schema: allSchemas) {
-				if(schema.hasMetadataWithCode(metadata.getLocalCode()) && schema.getMetadata(metadata.getLocalCode()).isEnabled()) {
-					return true;
-				}
-			}
-		}
-		return false;
+		return result && (isEnabledInAtLeastOneSchema(metadata, schemaType));
 	}
 
 	public void saveButtonClicked(List<FormMetadataVO> formMetadataVOs) {

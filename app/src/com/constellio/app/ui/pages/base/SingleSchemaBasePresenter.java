@@ -2,6 +2,7 @@ package com.constellio.app.ui.pages.base;
 
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.entities.ContentVersionVO;
+import com.constellio.app.ui.entities.FormMetadataVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.util.MessageUtils;
@@ -13,6 +14,7 @@ import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.services.records.RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord;
 
 import java.util.List;
@@ -42,6 +44,20 @@ public abstract class SingleSchemaBasePresenter<T extends BaseView> extends Base
 	public final String getLabel() {
 		Language language = Language.withCode(view.getSessionContext().getCurrentLocale().getLanguage());
 		return schema().getLabel(language);
+	}
+
+	protected boolean isEnabledInAtLeastOneSchema(Metadata metadata, MetadataSchemaType schemaType) {
+		if(metadata.isEnabled()) {
+			return true;
+		} else {
+			List<MetadataSchema> allSchemas = schemaType.getAllSchemas();
+			for(MetadataSchema schema: allSchemas) {
+				if(schema.hasMetadataWithCode(metadata.getLocalCode()) && schema.getMetadata(metadata.getLocalCode()).isEnabled()) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public final void setSchemaCode(String schemaCode) {
