@@ -5,6 +5,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 
 public class TaxonomyPresentersService {
 
@@ -38,11 +39,11 @@ public class TaxonomyPresentersService {
 
 	}
 
-	public void validateDeletable(String taxonomyCode, User user) {
+	public ValidationErrors validateDeletable(String taxonomyCode, User user) {
 		final Taxonomy taxonomy = appLayerFactory.getModelLayerFactory().getTaxonomiesManager()
 				.getEnabledTaxonomyWithCode(user.getCollection(), taxonomyCode);
 
 		AppLayerCollectionExtensions extensions = appLayerFactory.getExtensions().forCollectionOf(user);
-		extensions.validateTaxonomyDeletable(taxonomy);
+		return extensions.validateTaxonomyDeletable(taxonomy);
 	}
 }

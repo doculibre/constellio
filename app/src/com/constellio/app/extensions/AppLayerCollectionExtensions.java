@@ -449,14 +449,12 @@ public class AppLayerCollectionExtensions {
 		});
 	}
 
-	public void validateTaxonomyDeletable(Taxonomy taxonomy) {
+	public ValidationErrors validateTaxonomyDeletable(Taxonomy taxonomy) {
 		ValidationErrors validationErrors = new ValidationErrors();
 		for (TaxonomyPageExtension taxonomyPageExtension : taxonomyAccessExtensions.getExtensions()) {
 			taxonomyPageExtension.validateTaxonomyDeletable(new ValidateTaxonomyDeletableParams(taxonomy, validationErrors));
-			if (!validationErrors.isEmpty()) {
-				throw new CannotDeleteTaxonomyException(validationErrors.getValidationErrors().get(0).getCode());
-			}
 		}
+		return validationErrors;
 	}
 
 	public void decorateView(PagesComponentsExtensionParams params) {

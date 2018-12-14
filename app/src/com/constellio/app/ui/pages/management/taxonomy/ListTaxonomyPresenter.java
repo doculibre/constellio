@@ -1,6 +1,5 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
-import com.constellio.app.extensions.CannotDeleteTaxonomyException;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -14,6 +13,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
@@ -78,8 +78,8 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 
 	public void deleteButtonClicked(String taxonomyCode) throws MetadataDeletionException {
 		Taxonomy taxonomy = taxonomiesManager.getEnabledTaxonomyWithCode(collection, taxonomyCode);
-		try {
-			validateDeletable(taxonomyCode);
+		ValidationErrors validationErrors = validateDeletable(taxonomyCode);
+		if (validationErrors.isEmpty()) {
 			if (hasConcepts(taxonomy)) {
 				view.showMessage($("ListTaxonomyView.cannotDeleteTaxonomy"));
 			} else {
@@ -87,14 +87,14 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 				taxonomiesManager.deleteWithoutValidations(taxonomy);
 				view.navigate().to().listTaxonomies();
 			}
-		} catch (CannotDeleteTaxonomyException e) {
-			view.showMessage(MessageUtils.toMessage(e));
+		} else {
+			displayErrorWindow(validationErrors);
 		}
 	}
 
-	protected void validateDeletable(String taxonomyCode) {
+	protected ValidationErrors validateDeletable(String taxonomyCode) {
 		TaxonomyPresentersService presentersService = new TaxonomyPresentersService(appLayerFactory);
-		presentersService.validateDeletable(taxonomyCode, getCurrentUser());
+		return presentersService.validateDeletable(taxonomyCode, getCurrentUser());
 	}
 
 	protected void deleteMetadatasInClassifiedObjects(Taxonomy taxonomy) throws MetadataDeletionException {
@@ -129,4 +129,7 @@ public class ListTaxonomyPresenter extends BasePresenter<ListTaxonomyView> {
 		return !numberOfConcepts.equals(0L);
 	}
 
+	public void displayErrorWindow(ValidationErrors validationErrors) {
+		MessageUtils.getCannotDeleteWindow(validationErrors).openWindow();
+	}
 }
