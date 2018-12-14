@@ -193,6 +193,11 @@ public class FoldersLocator {
 	}*/
 
 	public File getDefaultTempFolder() {
+		String tempFileProperty = System.getProperty("java.io.tmpdir");
+		if(tempFileProperty != null) {
+			return new File(tempFileProperty);
+		}
+
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
 			return new File(getWrapperInstallationFolder(), "temp");
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
