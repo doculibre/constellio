@@ -29,19 +29,12 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.frameworks.validation.ValidationErrors;
-import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordUtils;
-import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
-import com.constellio.model.services.taxonomies.ConceptNodesTaxonomySearchServices;
-import com.constellio.model.services.taxonomies.TaxonomiesSearchOptions;
 import com.vaadin.ui.Component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -127,18 +120,11 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 	}
 
 	@Override
-	public ValidationErrors validateTaxonomyDeletable(ValidateTaxonomyDeletableParams validateTaxonomyDeletableParams) {
+	public void validateTaxonomyDeletable(ValidateTaxonomyDeletableParams validateTaxonomyDeletableParams) {
 		Taxonomy taxonomy = validateTaxonomyDeletableParams.getTaxonomy();
-		SessionContextProvider contextProvider = validateTaxonomyDeletableParams.getSessionContextProvider();
-		ValidationErrors validationErrors = new ValidationErrors();
 		if (taxonomy.getCode().equals(CONTAINERS_TAXONOMY_CODE)) {
-			Map<String, Object> titleParameter = new HashMap<>();
-			titleParameter.put("title", taxonomy.getTitle());
-			validationErrors.add(RMTaxonomyPageExtension.class, "cannotDeleteContainersTaxonomy", titleParameter);
-		} else if (hasConcepts(taxonomy, contextProvider)) {
-			validationErrors.add(RMTaxonomyPageExtension.class, "cannotDeleteTaxonomy");
+			validateTaxonomyDeletableParams.getValidationErrors().add(RMTaxonomyPageExtension.class, "cannotDeleteContainersTaxonomy");
 		}
-		return validationErrors;
 	}
 
 	public List<String> getRetentionRules(String conceptId, SessionContextProvider sessionContextProvider) {
@@ -335,16 +321,4 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 			}
 		};
 	}
-
-	private boolean hasConcepts(Taxonomy taxonomy, SessionContextProvider contextProvider) {
-		ModelLayerFactory modelLayerFactory = contextProvider.getConstellioFactories().getModelLayerFactory();
-		SearchServices searchServices = modelLayerFactory.newSearchServices();
-		LogicalSearchQuery query = new ConceptNodesTaxonomySearchServices(modelLayerFactory)
-				.getRootConceptsQuery(contextProvider.getSessionContext().getCurrentCollection(), taxonomy.getCode(),
-						new TaxonomiesSearchOptions());
-		Long numberOfConcepts = searchServices.getResultsCount(query);
-		return !numberOfConcepts.equals(0L);
-	}
-
-
 }

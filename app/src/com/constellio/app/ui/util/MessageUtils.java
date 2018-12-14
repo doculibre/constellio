@@ -1,5 +1,6 @@
 package com.constellio.app.ui.util;
 
+import com.constellio.app.extensions.CannotDeleteTaxonomyException;
 import com.constellio.app.ui.pages.management.schemas.type.CannotDeleteWindow;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.frameworks.validation.ValidationError;
@@ -31,6 +32,9 @@ public class MessageUtils {
 			return $(e.getMessage());
 
 		} else if (e instanceof RecordServicesRuntimeException.RecordServicesRuntimeException_CannotRestoreRecord) {
+			return $(e.getMessage());
+
+		} else if (e instanceof CannotDeleteTaxonomyException) {
 			return $(e.getMessage());
 
 		} else {

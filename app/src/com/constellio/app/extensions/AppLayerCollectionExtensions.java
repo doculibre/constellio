@@ -76,7 +76,6 @@ import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.pages.base.BasePresenter;
-import com.constellio.app.ui.pages.base.SessionContextProvider;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.data.frameworks.extensions.ExtensionUtils;
@@ -450,16 +449,14 @@ public class AppLayerCollectionExtensions {
 		});
 	}
 
-	public ValidationErrors validateTaxonomyDeletable(Taxonomy taxonomy,
-													  SessionContextProvider sessionContextProvider) {
+	public void validateTaxonomyDeletable(Taxonomy taxonomy) {
 		ValidationErrors validationErrors = new ValidationErrors();
 		for (TaxonomyPageExtension taxonomyPageExtension : taxonomyAccessExtensions.getExtensions()) {
-			validationErrors = taxonomyPageExtension.validateTaxonomyDeletable(new ValidateTaxonomyDeletableParams(taxonomy, sessionContextProvider));
+			taxonomyPageExtension.validateTaxonomyDeletable(new ValidateTaxonomyDeletableParams(taxonomy, validationErrors));
 			if (!validationErrors.isEmpty()) {
-				return validationErrors;
+				throw new CannotDeleteTaxonomyException(validationErrors.getValidationErrors().get(0).getCode());
 			}
 		}
-		return validationErrors;
 	}
 
 	public void decorateView(PagesComponentsExtensionParams params) {

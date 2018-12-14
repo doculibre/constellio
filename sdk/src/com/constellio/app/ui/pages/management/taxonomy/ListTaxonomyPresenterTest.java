@@ -1,11 +1,12 @@
 package com.constellio.app.ui.pages.management.taxonomy;
 
+import com.constellio.app.extensions.CannotDeleteTaxonomyException;
 import com.constellio.app.modules.rm.services.ValueListServices;
 import com.constellio.app.services.metadata.MetadataDeletionException;
 import com.constellio.app.ui.entities.TaxonomyVO;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
@@ -18,8 +19,10 @@ import org.mockito.Mock;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -83,17 +86,29 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 	@Test
 	public void whenDeleteButtonClickedAndTaxonomyHasValidationErrorsThenDisplayErrorWindow()
 			throws MetadataDeletionException {
-		ValidationErrors validationErrors = new ValidationErrors();
-		validationErrors.add(ListTaxonomyPresenterTest.class, "cannotDeleteError");
+		CannotDeleteTaxonomyException exception = new CannotDeleteTaxonomyException("errorMessage");
 		presenter = spy(new ListTaxonomyPresenter(view, taxonomiesManager));
 		when(taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, "taxo1Code")).thenReturn(taxonomy1);
-		doReturn(validationErrors).when(presenter).validateDeletable("taxo1Code");
-		doNothing().when(presenter).displayErrorWindow(validationErrors);
+		doThrow(exception).when(presenter).validateDeletable("taxo1Code");
 
 		presenter.deleteButtonClicked("taxo1Code");
 
 		verify(taxonomiesManager, never()).deleteWithoutValidations(taxonomy1);
-		verify(presenter).displayErrorWindow(validationErrors);
+		verify(view).showMessage(MessageUtils.toMessage(exception));
+	}
+
+	@Test
+	public void whenDeleteButtonClickedAndTaxonomyHasConceptsThenDisplayErrorWindow()
+			throws MetadataDeletionException {
+		presenter = spy(new ListTaxonomyPresenter(view, taxonomiesManager));
+		when(taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, "taxo1Code")).thenReturn(taxonomy1);
+		doNothing().when(presenter).validateDeletable("taxo1Code");
+		doReturn(true).when(presenter).hasConcepts(taxonomy1);
+
+		presenter.deleteButtonClicked("taxo1Code");
+
+		verify(taxonomiesManager, never()).deleteWithoutValidations(taxonomy1);
+		verify(view).showMessage($("ListTaxonomyView.cannotDeleteTaxonomy"));
 	}
 
 	@Test
@@ -102,8 +117,8 @@ public class ListTaxonomyPresenterTest extends ConstellioTest {
 		presenter = spy(new ListTaxonomyPresenter(view, taxonomiesManager));
 		when(taxonomiesManager.getEnabledTaxonomyWithCode(zeCollection, "taxo1Code")).thenReturn(taxonomy1);
 		doNothing().when(presenter).deleteMetadatasInClassifiedObjects(taxonomy1);
-		ValidationErrors validationErrors = new ValidationErrors();
-		doReturn(validationErrors).when(presenter).validateDeletable("taxo1Code");
+		doNothing().when(presenter).validateDeletable("taxo1Code");
+		doReturn(false).when(presenter).hasConcepts(taxonomy1);
 
 		presenter.deleteButtonClicked("taxo1Code");
 

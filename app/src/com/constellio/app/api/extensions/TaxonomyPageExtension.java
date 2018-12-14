@@ -8,7 +8,6 @@ import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletablePar
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.User;
-import com.constellio.model.frameworks.validation.ValidationErrors;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -33,7 +32,7 @@ public class TaxonomyPageExtension implements Serializable {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
 	}
 
-	public ValidationErrors validateTaxonomyDeletable(ValidateTaxonomyDeletableParams validateTaxonomyDeletableParams) {
-		return new ValidationErrors();
+	public void validateTaxonomyDeletable(ValidateTaxonomyDeletableParams validateTaxonomyDeletableParams) {
 	}
+
 }
