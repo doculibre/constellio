@@ -441,6 +441,8 @@ public class LDAPServicesImpl implements LDAPServices {
 			}
 		} catch (NamingException namEx) {
 			namEx.printStackTrace();
+
+		} finally {
 			closeQuietly(srchResponse);
 		}
 		return null;
@@ -578,8 +580,10 @@ public class LDAPServicesImpl implements LDAPServices {
 
 		} finally {
 			try {
-				ldapContext.setRequestControls(null);
-				ldapContext.close();
+				if(ldapContext != null) {
+					ldapContext.setRequestControls(null);
+					ldapContext.close();
+				}
 			} catch (NamingException e) {
 				LOGGER.warn("Naming exception", e);
 			}
