@@ -131,6 +131,8 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 					return displayButton(metadataValue);
 				} else if (presenter.isTypeMetadata(metadataValue)) {
 					return newEventTypeLabel(metadataValue);
+				} else if (presenter.isNegativeAuthorizationMetadata(metadataValue)) {
+					return negativeAuthorizationLabel(metadataValue);
 				} else {
 					RecordVO linkedRecordVO = presenter.getLinkedRecordVO(recordVO);
 					if (presenter.isTitleMetadata(metadataValue) && isRecordEvent && linkedRecordVO != null) {
@@ -196,6 +198,14 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 							defaultVisibleColumnIds.add(EVENT_DEFAULT_USERNAME);
 							return defaultVisibleColumnIds;
 						}
+
+						@Override
+						public void manage(Table table, String tableId) {
+							super.manage(table, tableId);
+							if (presenter.isNegativeAuthorizationConfigEnabled()) {
+								setColumnCollapsed("event_default_negative", false);
+							}
+						}
 					};
 				}
 			}
@@ -205,7 +215,6 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 				return null;
 			}
 		};
-
 
 		if (isRecordEvent) {
 			table.addItemClickListener(new ItemClickListener() {
@@ -233,6 +242,11 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 			e.printStackTrace();
 		}
 		return new Label(eventTypeCaption);
+	}
+
+	private static Component negativeAuthorizationLabel(MetadataValueVO metadataValue) {
+		final String negative = (metadataValue.getValue() != null) ? $("yes") : $("no");
+		return new Label(negative);
 	}
 
 	private static Component displayButton(MetadataValueVO metadataValue) {
