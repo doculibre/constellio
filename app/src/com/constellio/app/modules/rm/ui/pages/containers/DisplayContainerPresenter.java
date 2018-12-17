@@ -382,23 +382,6 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		}
 	}
 
-	public void removeFromDefaultFavorites() {
-		ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
-		container.removeFavorite(getCurrentUser().getId());
-		try {
-			recordServices().update(container);
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-		view.showMessage($("DisplayContainerViewImpl.containerRemovedFromDefaultFavorites"));
-	}
-
-	public boolean containerInDefaultFavorites() {
-		ContainerRecord container = rmRecordServices().getContainerRecord(containerId);
-		return container.getFavorites().contains(getCurrentUser().getId());
-	}
-
 	public void createNewCartAndAddToItRequested(String title) {
 		Cart cart = rmRecordServices().newCart();
 		ContainerRecord container = rmRecordServices().wrapContainerRecord(getContainer().getRecord());
@@ -454,24 +437,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
 	}
 
-	public Record getCreatedBy(Cart cart) {
-		return searchServices().searchSingleResult(from(rmRecordServices().userSchemaType()).where(rmRecordServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getCreatedBy()));
-	}
-
-	public Record getModifiedBy(Cart cart) {
-		return searchServices().searchSingleResult(from(rmRecordServices().userSchemaType()).where(rmRecordServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getModifiedBy()));
-	}
-
-	public Record getOwner(Cart cart) {
-		return searchServices().searchSingleResult(from(rmRecordServices().userSchemaType()).where(rmRecordServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getOwner()));
-	}
-
 	public MetadataSchemaVO getSchema() {
 		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-	}
-
-	public User getCurrentUser() {
-		return super.getCurrentUser();
 	}
 
 }

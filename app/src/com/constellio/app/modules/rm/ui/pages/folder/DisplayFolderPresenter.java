@@ -1348,23 +1348,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
 	}
 
-	public Record getCreatedBy(Cart cart) {
-		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getCreatedBy()));
-	}
-
-	public Record getModifiedBy(Cart cart) {
-		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getModifiedBy()));
-	}
-
-	public Record getOwner(Cart cart) {
-		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getOwner()));
-	}
-
 	public MetadataSchemaVO getSchema() {
 		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-	}
-
-	public User getCurrentUser() {
-		return super.getCurrentUser();
 	}
 }

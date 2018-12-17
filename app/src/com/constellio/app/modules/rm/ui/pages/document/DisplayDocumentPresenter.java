@@ -398,17 +398,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
-	public RecordVODataProvider getOwnedCartsDataProvider() {
-		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartOwner())
-						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
-			}
-		};
-	}
-
 	public RecordVODataProvider getSharedCartsDataProvider() {
 		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
@@ -579,21 +568,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
-	public void removeFromDefaultFavorites() {
-		document.removeFavorite(getCurrentUser().getId());
-		try {
-			recordServices.update(document);
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-		view.showMessage($("DisplayDocumentView.documentRemovedFromDefaultFavorites"));
-	}
-
-	public boolean inDefaultFavorites() {
-		return document.getFavorites().contains(getCurrentUser().getId());
-	}
-
 	public RMSelectionPanelReportPresenter buildReportPresenter() {
 		return new RMSelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
 			@Override
@@ -617,23 +591,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
 	}
 
-	public Record getCreatedBy(Cart cart) {
-		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(rm.userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getCreatedBy()));
-	}
-
-	public Record getModifiedBy(Cart cart) {
-		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(rm.userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getModifiedBy()));
-	}
-
-	public Record getOwner(Cart cart) {
-		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(rm.userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getOwner()));
-	}
-
 	public MetadataSchemaVO getSchema() {
 		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-	}
-
-	public User getCurrentUser() {
-		return super.getCurrentUser();
 	}
 }

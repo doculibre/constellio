@@ -430,10 +430,10 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
 		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
 		for (Cart cart : presenter.getOwnedCarts()) {
-			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle(), presenter.getCreatedBy(cart), presenter.getModifiedBy(cart), presenter.getOwner(cart)));
+			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
 		}
 		final DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
-		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTableContainerDisplay", container, presenter.getSchema(), presenter.getCurrentUser());
+		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTableContainerDisplay", container, presenter.getSchema());
 		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
 		defaultFavoritesTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
 			@Override
