@@ -39,7 +39,7 @@ public class CoreMigrationTo_7_7_6 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder typesBuilder) {
 			if (Collection.SYSTEM_COLLECTION.equals(collection)) {
 				File currentWrapper = appLayerFactory.getModelLayerFactory().getFoldersLocator().getWrapperConf();
-				//				TLSConfigUtils.setAdditionalSettings(currentWrapper,
+				//				WrapperConfUpdateUtils.setAdditionalSettings(currentWrapper,
 				//						appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService());
 			}
 

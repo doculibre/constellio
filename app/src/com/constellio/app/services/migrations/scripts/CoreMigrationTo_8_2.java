@@ -1,6 +1,6 @@
 package com.constellio.app.services.migrations.scripts;
 
-import com.constellio.app.api.admin.services.TLSConfigUtils;
+import com.constellio.app.api.admin.services.WrapperConfUpdateUtils;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -8,6 +8,8 @@ import com.constellio.app.modules.core.CoreTypes;
 import com.constellio.app.modules.rm.model.calculators.UserDocumentContentSizeCalculator;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.calculators.SavedSearchRestrictedCalculator;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
@@ -130,11 +132,21 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 					recordServices.executeWithoutImpactHandling(tx);
 				}
 			}.execute(from(schemas.group.schemaType()).returnAll());
+		} else {
+			FoldersLocator foldersLocator = appLayerFactory.getModelLayerFactory()
+					.getFoldersLocator();
+			if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+				File constellioParentFolder = foldersLocator.getWrapperInstallationFolder().getParentFile();
 
+				File temporaryFolder = new File(constellioParentFolder, FoldersLocator.CONSTELLIO_TMP);
 
-			File currentWrapper = appLayerFactory.getModelLayerFactory().getFoldersLocator().getWrapperConf();
-							TLSConfigUtils.setSettingAdditionalTemporaryDirectory(currentWrapper,
-									appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService());
+				if (temporaryFolder.exists() || temporaryFolder.mkdirs()) {
+					File currentWrapper = foldersLocator.getWrapperConf();
+
+					WrapperConfUpdateUtils.setSettingAdditionalTemporaryDirectory(currentWrapper, constellioParentFolder,
+							appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService());
+				}
+			}
 		}
 	}
 

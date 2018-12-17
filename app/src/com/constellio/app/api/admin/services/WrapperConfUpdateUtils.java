@@ -1,6 +1,7 @@
 package com.constellio.app.api.admin.services;
 
 import com.constellio.data.io.services.facades.FileService;
+import com.constellio.model.conf.FoldersLocator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -11,7 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 
-public class TLSConfigUtils {
+public class WrapperConfUpdateUtils {
 
 	// Should not be used without changing parameter number because we already have a second item.
 	public static void setSettingAdditionalEphemeralDHKeySize(File originalFile, FileService fileService) {
@@ -26,16 +27,18 @@ public class TLSConfigUtils {
 				+ "=-Djdk.tls.ephemeralDHKeySize=2048");
 	}
 
-	public static void setSettingAdditionalTemporaryDirectory(File originalFile, FileService fileService) {
+	public static void setSettingAdditionalTemporaryDirectory(File originalFile, File parentDirectory, FileService fileService) {
 		if(!originalFile.exists()) {
 			return;
 		}
+
+		String path = new File(parentDirectory, FoldersLocator.CONSTELLIO_TMP).getAbsolutePath();
 
 		int currentIndexOfAdditionalSetting = getLastAdditionalSettingNumber(originalFile);
 
 		setSetting(originalFile, fileService, "wrapper.java.additional."
 				+ currentIndexOfAdditionalSetting, "wrapper.java.additional."
-				+ (currentIndexOfAdditionalSetting + 1) + "=-Djava.io.tmpdir=/opt/constellio_tmp");
+				+ (currentIndexOfAdditionalSetting + 1) + "=-Djava.io.tmpdir=" + path);
 	}
 
 	private static int getLastAdditionalSettingNumber(File originalFile) {
