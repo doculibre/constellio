@@ -15,7 +15,6 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.schemas.SchemaUtils;
-import com.constellio.model.services.search.SPEQueryResponse;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.cache.SerializableSearchCache;
 import com.constellio.model.services.search.cache.SerializedCacheSearchService;
@@ -116,7 +115,7 @@ public abstract class RecordVODataProvider extends AbstractDataProvider {
 	}
 
 	protected void initializeQuery() {
-		query = getQuery();
+		query = getFilteredQuery();
 		query.setLanguage(sessionContext.getCurrentLocale());
 		size = null;
 		cache.clear();

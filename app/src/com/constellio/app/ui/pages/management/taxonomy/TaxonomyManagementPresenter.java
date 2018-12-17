@@ -218,8 +218,12 @@ public class TaxonomyManagementPresenter extends BasePresenter<TaxonomyManagemen
 				view.refreshTable();
 			}
 		} else {
-			MessageUtils.getCannotDeleteWindow(validationErrors).openWindow();
+			displayErrorWindow(validationErrors);
 		}
+	}
+
+	protected void displayErrorWindow(ValidationErrors validationErrors) {
+		MessageUtils.getCannotDeleteWindow(validationErrors).openWindow();
 	}
 
 	public void addLinkClicked(String taxonomyCode, String schemaCode) {

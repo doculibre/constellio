@@ -552,10 +552,10 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
 		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
 		for (Cart cart : presenter.getOwnedCarts()) {
-			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle(), presenter.getCreatedBy(cart), presenter.getModifiedBy(cart), presenter.getOwner(cart)));
+			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
 		}
 		final DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
-		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTable", container);
+		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTableFolderDisplay", container, presenter.getSchema());
 		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
 		defaultFavoritesTable.addItemClickListener(new ItemClickListener() {
 			@Override
@@ -569,6 +569,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				window.close();
 			}
 		});
+		container.removeContainerProperty(DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
 		defaultFavoritesTable.setWidth("100%");
 		return defaultFavoritesTable;
 	}

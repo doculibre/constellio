@@ -23,7 +23,6 @@ import com.constellio.model.entities.records.ConditionnedActionExecutorInBatchBu
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.RecordUpdateOptions;
 import com.constellio.model.entities.schemas.Metadata;
-import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataTransiency;
@@ -86,8 +85,6 @@ public class RMMigrationTo8_2 implements MigrationScript {
 		modifyRecords(rm.document.schemaType(), Document.FAVORITES, modelLayerFactory);
 		modifyRecords(rm.containerRecord.schemaType(), ContainerRecord.FAVORITES, modelLayerFactory);
 
-		updateAllMediumTypes(collection, appLayerFactory.getModelLayerFactory());
-
 		new SchemaAlterationFor8_2b(collection, provider, appLayerFactory).migrate();
 	}
 
@@ -109,25 +106,6 @@ public class RMMigrationTo8_2 implements MigrationScript {
 				}
 			}
 		});
-	}
-
-	private void updateAllMediumTypes(String collection, ModelLayerFactory modelLayerFactory) throws Exception {
-		MetadataSchemaTypes types = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection);
-		MetadataSchemaType mediumTypeSchemaType = types.getSchemaType(MediumType.SCHEMA_TYPE);
-		MetadataSchema mediumTypeSchema = mediumTypeSchemaType.getDefaultSchema();
-		List<Record> mediumTypes = modelLayerFactory.newSearchServices().getAllRecords(mediumTypeSchemaType);
-
-		List<Record> nonAnalogicalMediumTypes = new ArrayList<>();
-		for (Record mediumType : mediumTypes) {
-			if (Boolean.FALSE.equals(mediumType.<Boolean>get(mediumTypeSchema.getMetadata(MediumType.ANALOGICAL)))) {
-				nonAnalogicalMediumTypes.add(mediumType);
-			}
-		}
-
-		if (nonAnalogicalMediumTypes.size() == 1) {
-			nonAnalogicalMediumTypes.get(0).set(mediumTypeSchema.getMetadata(MediumType.ACTIVATED_ON_CONTENT), true);
-			modelLayerFactory.newRecordServices().update(nonAnalogicalMediumTypes.get(0));
-		}
 	}
 
 	public ConditionnedActionExecutorInBatchBuilder onCondition(ModelLayerFactory modelLayerFactory,

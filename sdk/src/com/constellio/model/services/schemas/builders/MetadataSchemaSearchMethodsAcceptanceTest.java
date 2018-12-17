@@ -564,7 +564,9 @@ public class MetadataSchemaSearchMethodsAcceptanceTest extends ConstellioTest {
 			assertEquals(schemaCode, schema.getCode());
 			Metadata metadata = schema.getMetadata(codeOrCode);
 			if (expectedCode.contains("_")) {
-				assertThat(metadata.getCode()).isEqualTo(expectedCode);
+				if (!metadata.getCode().equals(expectedCode)) {
+					throw new RuntimeException("Expected code not found");
+				}
 			} else {
 				assertThat(metadata.getLocalCode()).isEqualTo(expectedCode);
 			}

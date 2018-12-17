@@ -3,22 +3,28 @@ package com.constellio.app.modules.rm.ui.pages.containers;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.ui.breadcrumb.ContainerByAdministrativeUnitBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
 import com.constellio.app.modules.rm.ui.pages.decommissioning.DecommissioningBuilderViewImpl;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
+import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
 import com.constellio.app.ui.framework.buttons.ReportButton;
+import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.buttons.report.LabelButtonV2;
 import com.constellio.app.ui.framework.components.ComponentState;
 import com.constellio.app.ui.framework.components.MetadataDisplayFactory;
 import com.constellio.app.ui.framework.components.RecordDisplay;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
+import com.constellio.app.ui.framework.components.fields.BaseTextField;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.ButtonsContainer.ContainerButton;
@@ -27,17 +33,24 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.reports.ReportWithCaptionVO;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.pages.breadcrumb.BreadcrumbTrailUtil;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.Factory;
+import com.vaadin.event.ItemClickEvent;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
+import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -47,7 +60,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 	private final DisplayContainerPresenter presenter;
 	private Label borrowedLabel;
 	private boolean popup = false;
-
+	private MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder();
 	public DisplayContainerViewImpl() {
 		this(null, false);
 	}
@@ -210,7 +223,8 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 				getSessionContext().getCurrentCollection(), presenter.getContainer());
 		labels.setEnabled(presenter.canPrintReports());
 		buttons.add(labels);
-
+		WindowButton addToCartButton = buildAddToCartButton();
+		buttons.add(addToCartButton);
 		Button empty = new ConfirmDialogButton($("DisplayContainerView.empty")) {
 			@Override
 			protected String getConfirmDialogMessage() {
@@ -359,4 +373,83 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 			};
 		}
 	}
+
+	private WindowButton buildAddToCartButton() {
+		WindowButton.WindowConfiguration configuration = new WindowButton.WindowConfiguration(true, true, "50%", "750px");
+		return new WindowButton($("DisplayContainerView.addToCart"), $("DisplayContainerView.selectCart"), configuration) {
+			@Override
+			protected Component buildWindowContent() {
+				VerticalLayout layout = new VerticalLayout();
+				layout.setSizeFull();
+
+				HorizontalLayout newCartLayout = new HorizontalLayout();
+				newCartLayout.setSpacing(true);
+				newCartLayout.addComponent(new Label($("CartView.newCart")));
+				final BaseTextField newCartTitleField;
+				newCartLayout.addComponent(newCartTitleField = new BaseTextField());
+				newCartTitleField.setRequired(true);
+				BaseButton saveButton;
+				newCartLayout.addComponent(saveButton = new BaseButton($("save")) {
+					@Override
+					protected void buttonClick(ClickEvent event) {
+						try {
+							presenter.createNewCartAndAddToItRequested(newCartTitleField.getValue());
+							getWindow().close();
+						} catch (Exception e) {
+							showErrorMessage(MessageUtils.toMessage(e));
+						}
+					}
+				});
+				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
+				TabSheet tabSheet = new TabSheet();
+				Table ownedCartsTable = buildOwnedFavoritesTable(getWindow());
+
+				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
+						presenter.getSharedCartsDataProvider());
+				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
+				sharedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+					@Override
+					public void itemClick(ItemClickEvent event) {
+						presenter.addToCartRequested(sharedCartsContainer.getRecordVO((int) event.getItemId()));
+						getWindow().close();
+					}
+				});
+
+				sharedCartsTable.setWidth("100%");
+				tabSheet.addTab(ownedCartsTable);
+				tabSheet.addTab(sharedCartsTable);
+				layout.addComponents(newCartLayout, tabSheet);
+				layout.setExpandRatio(tabSheet, 1);
+				return layout;
+			}
+		};
+	}
+
+	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window) {
+		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
+		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		for (Cart cart : presenter.getOwnedCarts()) {
+			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
+		}
+		final DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
+		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTableContainerDisplay", container, presenter.getSchema());
+		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
+		defaultFavoritesTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Cart cart = container.getCart((DefaultFavoritesTable.CartItem) event.getItemId());
+				if (cart == null) {
+					presenter.addToDefaultFavorite();
+				} else {
+					presenter.addToCartRequested(cart);
+				}
+				window.close();
+			}
+		});
+		container.removeContainerProperty(DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
+		defaultFavoritesTable.setWidth("100%");
+		return defaultFavoritesTable;
+	}
+
 }
