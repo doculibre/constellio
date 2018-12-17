@@ -58,6 +58,8 @@ public class User extends RecordWrapper {
 	public static final String ADDRESS = "address";
 	public static final String AGENT_ENABLED = "agentEnabled";
 	public static final String DEFAULT_PAGE_LENGTH = "defaultPageLength";
+	public static final String TAXONOMY_DISPLAY_ORDER = "taxonomyDisplayOrder";
+	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
 
 
 	private transient Roles roles;
@@ -559,5 +561,17 @@ public class User extends RecordWrapper {
 
 	public boolean isActiveUser() {
 		return getStatus() == UserCredentialStatus.ACTIVE || getStatus() == null;
+	}
+
+	public List<String> getTaxonomyDisplayOrder() {
+		return get(TAXONOMY_DISPLAY_ORDER);
+	}
+
+	public boolean isNotReceivingEmails() {
+		return Boolean.TRUE.equals(DO_NOT_RECEIVE_EMAILS);
+	}
+
+	public boolean getDoNotReceiveEmails() {
+		return Boolean.TRUE.equals(DO_NOT_RECEIVE_EMAILS);
 	}
 }

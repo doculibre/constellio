@@ -359,15 +359,18 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 			}
 		}
 
-		return sortTaxonomies(taxonomies);
+		return sortTaxonomies(taxonomies, user);
 	}
 
-	private List<Taxonomy> sortTaxonomies(List<Taxonomy> taxonomies) {
+	private List<Taxonomy> sortTaxonomies(List<Taxonomy> taxonomies, User user) {
 		final List<String> taxonomiesInOrder = new ArrayList<>();
 
-		String stringOrder = eimConfigs.getTaxonomyOrderInHomeView();
-		if (stringOrder != null) {
-			taxonomiesInOrder.addAll(asList(stringOrder.replaceAll("\\s", "").split(",")));
+		String globalConfigOrder = eimConfigs.getTaxonomyOrderInHomeView();
+		List<String> userTaxonomyDisplayOrder = user.getTaxonomyDisplayOrder();
+		if(userTaxonomyDisplayOrder != null && !userTaxonomyDisplayOrder.isEmpty()) {
+			taxonomiesInOrder.addAll(userTaxonomyDisplayOrder);
+		} else if (globalConfigOrder != null) {
+			taxonomiesInOrder.addAll(asList(globalConfigOrder.replaceAll("\\s", "").split(",")));
 		}
 
 		Collections.sort(taxonomies, new Comparator<Taxonomy>() {
@@ -400,7 +403,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 		List<Taxonomy> schemaTaxonomies = getAvailableTaxonomiesForSelectionOfType(schemaType, user, metadataSchemasManager);
 		taxonomies.addAll(schemaTaxonomies);
 
-		return sortTaxonomies(new ArrayList<>(taxonomies));
+		return sortTaxonomies(new ArrayList<>(taxonomies), user);
 	}
 
 	public List<Taxonomy> getAvailableTaxonomiesForSelectionOfType(String schemaType, User user,
@@ -410,7 +413,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 
 		Taxonomy taxonomyWithType = getTaxonomyFor(user.getCollection(), schemaType);
 		if (taxonomyWithType != null) {
-			return sortTaxonomies(asList(taxonomyWithType));
+			return sortTaxonomies(asList(taxonomyWithType), user);
 		} else {
 
 			MetadataSchemaType type = types.getSchemaType(schemaType);
@@ -432,7 +435,7 @@ public class TaxonomiesManager implements StatefulService, OneXMLConfigPerCollec
 				}
 			}
 
-			return sortTaxonomies(new ArrayList<>(taxonomies));
+			return sortTaxonomies(new ArrayList<>(taxonomies), user);
 		}
 
 	}
