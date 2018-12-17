@@ -1344,27 +1344,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public List<Cart> getOwnedCarts() {
-		return rmSchemasRecordsServices().wrapCarts(searchServices().search(new LogicalSearchQuery(from(schema(Cart.DEFAULT_SCHEMA)).where(schema(Cart.DEFAULT_SCHEMA).getMetadata(Cart.OWNER))
+		return rmSchemasRecordsServices().wrapCarts(searchServices().search(new LogicalSearchQuery(from(rmSchemasRecordsServices().cartSchema()).where(rmSchemasRecordsServices().cart.owner())
 				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
-	}
-
-	public Record getCreatedBy(Cart cart) {
-		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getCreatedBy()));
-	}
-
-	public Record getModifiedBy(Cart cart) {
-		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getModifiedBy()));
-	}
-
-	public Record getOwner(Cart cart) {
-		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getOwner()));
 	}
 
 	public MetadataSchemaVO getSchema() {
 		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-	}
-
-	public User getCurrentUser() {
-		return super.getCurrentUser();
 	}
 }
