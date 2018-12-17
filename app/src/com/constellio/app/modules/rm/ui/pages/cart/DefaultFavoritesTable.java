@@ -34,7 +34,6 @@ public class DefaultFavoritesTable extends BaseTable {
 		setColumnHeader(CartItem.SHARED_WITH, $("CartsListView." + CartItem.SHARED_WITH));
 		setColumnHeader(CartItem.OWNER, $("CartsListView." + CartItem.OWNER));
 		setColumnHeader(CartItem.DISPLAY_BUTTON, "");
-		setColumnExpandRatio(CartItem.TITLE, 1);
 		new RecordVOTableColumnsManager().manage(this, tableId);
 	}
 

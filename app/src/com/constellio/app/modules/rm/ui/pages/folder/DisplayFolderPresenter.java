@@ -1344,7 +1344,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public List<Cart> getOwnedCarts() {
-		return rmSchemasRecordsServices().wrapCarts(searchServices().search(new LogicalSearchQuery(from(schema(Cart.DEFAULT_SCHEMA)).where(schema(Cart.DEFAULT_SCHEMA).getMetadata(Cart.OWNER))
+		return rmSchemasRecordsServices().wrapCarts(searchServices().search(new LogicalSearchQuery(from(rmSchemasRecordsServices().cartSchema()).where(rmSchemasRecordsServices().cart.owner())
 				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
 	}
 

@@ -433,7 +433,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	}
 
 	public List<Cart> getOwnedCarts() {
-		return rmRecordServices().wrapCarts(searchServices().search(new LogicalSearchQuery(from(schema(Cart.DEFAULT_SCHEMA)).where(schema(Cart.DEFAULT_SCHEMA).getMetadata(Cart.OWNER))
+		return rmRecordServices().wrapCarts(searchServices().search(new LogicalSearchQuery(from(rmRecordServices().cartSchema()).where(rmRecordServices().cart.owner())
 				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
 	}
 

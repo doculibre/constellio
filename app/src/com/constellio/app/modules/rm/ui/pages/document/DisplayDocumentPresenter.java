@@ -587,7 +587,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public List<Cart> getOwnedCarts() {
-		return rm.wrapCarts(searchServices().search(new LogicalSearchQuery(from(schema(Cart.DEFAULT_SCHEMA)).where(schema(Cart.DEFAULT_SCHEMA).getMetadata(Cart.OWNER))
+		return rm.wrapCarts(searchServices().search(new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cart.owner())
 				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
 	}
 
