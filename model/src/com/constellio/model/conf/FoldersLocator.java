@@ -197,7 +197,7 @@ public class FoldersLocator {
 
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
 			File file = new File(getWrapperInstallationFolder().getParentFile(), CONSTELLIO_TMP);
-			if (file.exists()) {
+			if (file.exists() && file.isDirectory()) {
 				return file;
 			} else {
 				return new File(getWrapperInstallationFolder(), "temp");

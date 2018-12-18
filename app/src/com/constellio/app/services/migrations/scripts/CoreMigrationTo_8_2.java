@@ -34,6 +34,8 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -44,6 +46,8 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class CoreMigrationTo_8_2 implements MigrationScript {
+	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_7_1.class);
+
 	@Override
 	public String getVersion() {
 		return "8.2";
@@ -139,8 +143,7 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 				File constellioParentFolder = foldersLocator.getWrapperInstallationFolder().getParentFile();
 
 				File temporaryFolder = new File(constellioParentFolder, FoldersLocator.CONSTELLIO_TMP);
-
-				if (temporaryFolder.exists() || temporaryFolder.mkdirs()) {
+				if (temporaryFolder.exists() && temporaryFolder.isDirectory() || temporaryFolder.mkdirs()) {
 					File currentWrapper = foldersLocator.getWrapperConf();
 
 					WrapperConfUpdateUtils.setSettingAdditionalTemporaryDirectory(currentWrapper, constellioParentFolder,
