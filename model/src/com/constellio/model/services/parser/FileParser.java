@@ -527,7 +527,7 @@ public class FileParser {
 		// mode 2
 		pdfConfig.setOcrStrategy(OCR_STRATEGY.OCR_AND_TEXT_EXTRACTION);
 		pdfConfig.setOcrImageType("rgb");
-		pdfConfig.setOcrDPI(300);
+		pdfConfig.setOcrDPI(300); // FIXME can be adjusted, 300 seems to be the best value overall
 		parseContext.set(PDFParserConfig.class, pdfConfig);
 
 		// need to add this to activate recursive parsing
