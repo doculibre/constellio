@@ -9,13 +9,13 @@ import java.util.List;
 
 public class SystemMemory {
 
-	Memory totalSystemMemory;
-	Memory constellioAllocatedMemory;
-	Memory solrAllocatedMemory;
+	MemoryDetails totalSystemMemory;
+	MemoryDetails constellioAllocatedMemory;
+	MemoryDetails solrAllocatedMemory;
 
 	private SystemMemory() {};
 
-	private SystemMemory(Memory totalSystemMemory, Memory constellioAllocatedMemory, Memory solrAllocatedMemory) {
+	private SystemMemory(MemoryDetails totalSystemMemory, MemoryDetails constellioAllocatedMemory, MemoryDetails solrAllocatedMemory) {
 		this.totalSystemMemory = totalSystemMemory;
 		this.constellioAllocatedMemory = constellioAllocatedMemory;
 		this.solrAllocatedMemory = solrAllocatedMemory;
@@ -27,28 +27,28 @@ public class SystemMemory {
 				SystemAnalysisUtils.getAllocatedMemoryForSolr());
 	}
 
-	public Memory getTotalSystemMemory() {
+	public MemoryDetails getTotalSystemMemory() {
 		return totalSystemMemory;
 	}
 
-	public Memory getConstellioAllocatedMemory() {
+	public MemoryDetails getConstellioAllocatedMemory() {
 		return constellioAllocatedMemory;
 	}
 
-	public Memory getSolrAllocatedMemory() {
+	public MemoryDetails getSolrAllocatedMemory() {
 		return solrAllocatedMemory;
 	}
 
-	public static class Memory {
+	public static class MemoryDetails {
 		Double amount;
 		MemoryUnit unit;
 
-		public Memory(int amount, MemoryUnit unit) {
+		public MemoryDetails(int amount, MemoryUnit unit) {
 			this.amount = Double.valueOf(amount);
 			this.unit = unit;
 		}
 
-		static public Memory build(String amountAsString, String defaultUnit) {
+		static public MemoryDetails build(String amountAsString, String defaultUnit) {
 			try {
 				if(amountAsString == null) {
 					return buildUnrecognizableMemoryAmount(amountAsString);
@@ -56,10 +56,10 @@ public class SystemMemory {
 				String regex = "((?<=[a-zA-Z])(?=[0-9]))|((?<=[0-9])(?=[a-zA-Z]))";
 				List<String> numericalAndAlphabeticBits = Arrays.asList(amountAsString.trim().replace(" ", "").split(regex));
 				if(numericalAndAlphabeticBits.size() == 1 && StringUtils.isNumeric(numericalAndAlphabeticBits.get(0)) && defaultUnit != null) {
-					return new Memory(Integer.parseInt(numericalAndAlphabeticBits.get(0)), MemoryUnit.getCorrespondingMemoryUnit(defaultUnit));
+					return new MemoryDetails(Integer.parseInt(numericalAndAlphabeticBits.get(0)), MemoryUnit.getCorrespondingMemoryUnit(defaultUnit));
 				} else if(numericalAndAlphabeticBits.size() == 2 && StringUtils.isNumeric(numericalAndAlphabeticBits.get(0)) &&
 						  StringUtils.isAlpha(numericalAndAlphabeticBits.get(1))){
-					return new Memory(Integer.parseInt(numericalAndAlphabeticBits.get(0)), MemoryUnit.getCorrespondingMemoryUnit(numericalAndAlphabeticBits.get(1)));
+					return new MemoryDetails(Integer.parseInt(numericalAndAlphabeticBits.get(0)), MemoryUnit.getCorrespondingMemoryUnit(numericalAndAlphabeticBits.get(1)));
 				} else {
 					return buildUnrecognizableMemoryAmount(amountAsString);
 				}
@@ -105,8 +105,8 @@ public class SystemMemory {
 			return amount + " " + unit.getCode();
 		}
 
-		public static Memory buildUnrecognizableMemoryAmount(final String unrecognizableAmount) {
-			return new Memory(-1, null) {
+		public static MemoryDetails buildUnrecognizableMemoryAmount(final String unrecognizableAmount) {
+			return new MemoryDetails(-1, null) {
 				@Override
 				public String toString() {
 					return unrecognizableAmount;
@@ -170,7 +170,7 @@ public class SystemMemory {
 	}
 
 	public static void main(String[] args) {
-		SystemMemory systemInfo = new SystemMemory(Memory.build("15728640", "k"), Memory.build("5120mb", null), Memory.build("5 G", null));
+		SystemMemory systemInfo = new SystemMemory(MemoryDetails.build("15728640", "k"), MemoryDetails.build("5120mb", null), MemoryDetails.build("5 G", null));
 		System.out.println(systemInfo.getPercentageOfAllocatedMemory() + " %");
 		System.out.println(systemInfo.getTotalSystemMemory().toNumberOfGigaBytes() + " GB");
 		System.out.println(systemInfo.getConstellioAllocatedMemory().toNumberOfGigaBytes() + " GB");

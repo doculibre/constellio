@@ -1,7 +1,6 @@
 package com.constellio.app.api.admin.services;
 
-import com.constellio.app.entities.system.SystemMemory;
-import com.constellio.app.entities.system.SystemMemory.Memory;
+import com.constellio.app.entities.system.SystemMemory.MemoryDetails;
 import com.constellio.model.conf.FoldersLocator;
 
 import java.io.BufferedReader;
@@ -16,18 +15,18 @@ public class SystemAnalysisUtils {
 	private static final String SOLR_CURRENT_CONF_PATH = "/opt/solr-current/bin/solr.in.sh";
 	private static final String SOLR_MEMORY_PARAMETER = "SOLR_JAVA_MEM";
 
-	public static Memory getTotalSystemMemory() {
+	public static MemoryDetails getTotalSystemMemory() {
 		String memTotal = findValueOfParameter(MEMINFO_PATH, MEMTOTAL_PARAMETER, ":");
-		return SystemMemory.Memory.build(memTotal, "KB");
+		return MemoryDetails.build(memTotal, "KB");
 	}
 
-	public static Memory getAllocatedMemoryForConstellio() {
+	public static MemoryDetails getAllocatedMemoryForConstellio() {
 		FoldersLocator foldersLocator = new FoldersLocator();
 		String allocatedMemory = findValueOfParameter(foldersLocator.getWrapperConf().getAbsolutePath(), CONSTELLIO_MEMORY_PARAMETER, "=");
-		return SystemMemory.Memory.build(allocatedMemory, "MB");
+		return MemoryDetails.build(allocatedMemory, "MB");
 	}
 
-	public static Memory getAllocatedMemoryForSolr() {
+	public static MemoryDetails getAllocatedMemoryForSolr() {
 		String allocatedMemory = findValueOfParameter(SOLR_CONF_PATH, SOLR_MEMORY_PARAMETER, "=");
 		if (allocatedMemory == null) {
 			allocatedMemory = findValueOfParameter(SOLR_CURRENT_CONF_PATH, SOLR_MEMORY_PARAMETER, "=");
@@ -39,7 +38,7 @@ public class SystemAnalysisUtils {
 				allocatedMemory = splittedValue[1];
 			}
 		}
-		return SystemMemory.Memory.build(allocatedMemory, "MB");
+		return MemoryDetails.build(allocatedMemory, "MB");
 	}
 
 	private static String findValueOfParameter(String fileUrl, String parameter, String separator) {
