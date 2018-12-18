@@ -133,18 +133,20 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return params;
 	}
 
-	public void forParams(String params) {
-		String id;
-
+	private String extractIdFromParams(String params) {
 		if (params.contains("id")) {
 			this.params = ParamUtils.getParamsMap(params);
-			id = this.params.get("id");
+			return this.params.get("id");
 		} else {
-			id = params;
+			return params;
 		}
-		
+	}
+
+	public void forParams(String params) {
+		String id = extractIdFromParams(params);
+
 		view.getSessionContext().addVisited(id);
-		
+
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
 
@@ -257,7 +259,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	@Override
 	protected List<String> getRestrictedRecordIds(String params) {
 		DocumentVO documentVO = presenterUtils.getDocumentVO();
-		return Arrays.asList(documentVO.getId());
+		return Arrays.asList(documentVO == null ? extractIdFromParams(params) : documentVO.getId());
 	}
 
 	public void viewAssembled() {
