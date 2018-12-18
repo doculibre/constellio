@@ -132,8 +132,6 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
 
-	public static final SystemConfiguration NEGATIVE_AUTHORIZATION;
-
 	public static final SystemConfiguration SPACE_QUOTA_FOR_USER_DOCUMENTS;
 
 	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
@@ -267,8 +265,6 @@ public class ConstellioEIMConfigs {
 
 		add(SPACE_QUOTA_FOR_USER_DOCUMENTS = others.createInteger("spaceQuotaForUserDocuments").withDefaultValue(-1));
 
-		add(NEGATIVE_AUTHORIZATION = others.createBooleanFalseByDefault("enableNegativeAuthorization")
-				.whichIsHidden());
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -518,7 +514,7 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isNegativeAuthorizationEnabled() {
-		return manager.getValue(NEGATIVE_AUTHORIZATION);
+		return true;
 	}
 
 }
