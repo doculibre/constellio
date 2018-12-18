@@ -1202,7 +1202,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
 			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
-			parameters.put(Validator.METADATA_LABEL, TestUtils.asMap("fr", "A toAString metadata", "en", "stringMetadata"));
+			parameters.put(Validator.METADATA_LABEL, TestUtils.asMap("fr", "A toAString metadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class, UNMODIFIABLE_METADATA,
 					parameters)
@@ -1214,7 +1214,7 @@ public class RecordServicesAcceptanceTest extends ConstellioTest {
 			fail("ValidationException expected");
 		} catch (ValidationException e) {
 			Map<String, Object> parameters = asMap(METADATA_CODE, "zeSchemaType_default_stringMetadata");
-			parameters.put(Validator.METADATA_LABEL, TestUtils.asMap("fr", "A toAString metadata", "en", "stringMetadata"));
+			parameters.put(Validator.METADATA_LABEL, TestUtils.asMap("fr", "A toAString metadata"));
 			assertThat(e.getErrors().getValidationErrors()).containsOnly(new ValidationError(
 					MetadataUnmodifiableValidator.class, UNMODIFIABLE_METADATA,
 					parameters)

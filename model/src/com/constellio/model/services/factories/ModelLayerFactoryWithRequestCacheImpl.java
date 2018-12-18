@@ -56,7 +56,6 @@ import com.constellio.model.services.users.UserServices;
 import com.constellio.model.services.users.sync.LDAPUserSyncManager;
 
 import java.security.Key;
-import java.util.List;
 
 public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory {
 
@@ -74,24 +73,12 @@ public class ModelLayerFactoryWithRequestCacheImpl implements ModelLayerFactory 
 	}
 
 	@Override
-	public List<SystemCollectionListener> getSystemCollectionListeners() {
-		return modelLayerFactory.getSystemCollectionListeners();
-	}
-
-	@Override
-	public void addSystemCollectionListener(SystemCollectionListener listener) {
-		modelLayerFactory.addSystemCollectionListener(listener);
-	}
-
-	@Override
 	public ModelLayerExtensions getExtensions() {
 		return modelLayerFactory.getExtensions();
 	}
 
 	@Override
 	public RecordServices newRecordServices() {
-		//RecordServices nestedRecordServices = modelLayerFactory.newRecordServices();
-		//RecordServices nestedRecordServices = new CachedRecordServices(this, , requestCache);
 		return new CachedRecordServices(this, newCachelessRecordServices(requestCache), requestCache);
 	}
 

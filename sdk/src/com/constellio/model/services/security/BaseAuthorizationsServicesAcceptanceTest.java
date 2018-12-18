@@ -26,7 +26,6 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException.NoSuchRecordWithId;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.records.SchemasRecordsServices;
-import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
@@ -67,7 +66,6 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
@@ -184,8 +182,6 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				schemas = new SchemasRecordsServices(zeCollection, modelLayerFactory);
 				users.setUp(modelLayerFactory.newUserServices());
 
-
-				linkEventBus(modelLayerFactory, getModelLayerFactory("other-instance"));
 			}
 
 			@Override
@@ -194,14 +190,6 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 				setup.refresh(schemasManager);
 				anothercollectionSetup.refresh(schemasManager);
 				anothercollectionSetup.loadTaxonomies(taxonomiesManager);
-
-				for (String collection : TestUtils.asList(zeCollection, anotherCollection)) {
-					RecordsCache cache = getModelLayerFactory().getRecordsCaches().getCache(collection);
-					MetadataSchemaTypes types = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(collection);
-					cache.configureCache(permanentCache(types.getSchemaType(Authorization.SCHEMA_TYPE)));
-					cache.configureCache(permanentCache(types.getSchemaType(User.SCHEMA_TYPE)));
-					cache.configureCache(permanentCache(types.getSchemaType(Group.SCHEMA_TYPE)));
-				}
 			}
 		});
 
@@ -211,11 +199,6 @@ public class BaseAuthorizationsServicesAcceptanceTest extends ConstellioTest {
 			initialFinishedBatchProcesses.add(batchProcess.getId());
 		}
 		givenTaxonomy1IsThePrincipalAndSomeRecords();
-		recordServices.getRecordsCaches().getCache(zeCollection)
-				.configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
-		recordServices.getRecordsCaches().getCache(anotherCollection)
-				.configureCache(CacheConfig.permanentCache(schemas.authorizationDetails.schemaType()));
-
 	}
 
 

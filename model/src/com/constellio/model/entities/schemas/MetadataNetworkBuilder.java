@@ -95,8 +95,6 @@ public class MetadataNetworkBuilder {
 					if (link.mustBeOdd && level % 2 == 0) {
 						level++;
 					}
-					//					System.out.println("setting level of " + link.fromMetadata.getCode()
-					//							+ "->" + link.toMetadata.getCode() + " to " + level);
 
 					if (link.level != level) {
 						noLinksModified = false;
@@ -105,10 +103,6 @@ public class MetadataNetworkBuilder {
 					link.setLevel(level);
 				}
 			}
-
-			//			List<ModifiableMetadataNetworkLink> links = new ArrayList<>();
-			//			KeyListMap<String, ModifiableMetadataNetworkLink> linksFromMetadata = new KeyListMap<>();
-			//			KeyListMap<String, ModifiableMetadataNetworkLink> linksToMetadata = new KeyListMap<>();
 
 		}
 
@@ -142,11 +136,6 @@ public class MetadataNetworkBuilder {
 
 	int getDependencyLevelRequiredFor(Metadata from, List<Metadata> tos, boolean mustBeOdd, boolean mustBeEven) {
 		int level = 0;
-
-		String fromSchemaType = schemaUtils.getSchemaTypeCode(from);
-		if (schemaUtils.getSchemaTypeCode(from).equals("aThirdSchemaType")) {
-			System.out.println();
-		}
 
 		for (Metadata to : tos) {
 

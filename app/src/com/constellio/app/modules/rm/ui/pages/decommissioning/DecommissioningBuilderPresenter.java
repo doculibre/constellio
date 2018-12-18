@@ -79,7 +79,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	public DecommissioningBuilderPresenter forRequestParameters(String params) {
 		String[] parts = params.split("/", 3);
 		List<String> partsList = Arrays.asList(parts);
-		if(partsList.contains("new")) {
+		if (partsList.contains("new")) {
 			view.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 			view.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 		}
@@ -87,7 +87,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 		String saveSearchFromSession = view.getUIContext().getAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
 
 		if (!addMode) {
-			if(saveSearchFromSession == null || Strings.isBlank(saveSearchFromSession)) {
+			if (saveSearchFromSession == null || Strings.isBlank(saveSearchFromSession)) {
 				searchType = SearchType.valueOf(parts[0]);
 				view.setCriteriaSchemaType(getSchemaType());
 				view.addEmptyCriterion();
@@ -113,7 +113,7 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 
 		} else {
 
-			if(saveSearchFromSession != null) {
+			if (saveSearchFromSession != null) {
 				searchType = SearchType.valueOf(params);
 				SavedSearch savedSearch = getSavedSearch(saveSearchFromSession);
 				setSavedSearch(savedSearch);
@@ -311,7 +311,8 @@ public class DecommissioningBuilderPresenter extends SearchPresenter<Decommissio
 	}
 
 	@Override
-	protected boolean saveSearch(String title, boolean publicAccess) {
+	protected boolean saveSearch(String title, boolean publicAccess, List<String> sharedUsers,
+								 List<String> sharedGroups) {
 		throw new UnsupportedOperationException();
 	}
 

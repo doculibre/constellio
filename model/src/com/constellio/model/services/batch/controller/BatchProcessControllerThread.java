@@ -200,7 +200,6 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			StoredBatchProcessPart storedBatchProcessPart = new StoredBatchProcessPart(batchProcess.getId(), index, firstId,
 					lastId, false, false);
 
-			//System.out.println("processing batch #" + index + " [" + firstId + "-" + lastId + "]");
 			batchProcessProgressionServices.markNewPartAsStarted(storedBatchProcessPart);
 			List<BatchProcessTask> tasks = newBatchProcessTasksFactory(taskList).createBatchProcessTasks(batchProcess,
 					records, recordsWithErrors, numberOfRecordsPerTask, schemasManager, report);
@@ -258,7 +257,6 @@ public class BatchProcessControllerThread extends ConstellioThread {
 			StoredBatchProcessPart storedBatchProcessPart = new StoredBatchProcessPart(batchProcess.getId(), index, firstId,
 					lastId, false, false);
 
-			//System.out.println("processing batch #" + index + " [" + firstId + "-" + lastId + "]");
 			batchProcessProgressionServices.markNewPartAsStarted(storedBatchProcessPart);
 			List<BatchProcessTask> tasks = newBatchProcessTasksFactory(taskList).createBatchProcessTasks(batchProcess,
 					records, recordsWithErrors, numberOfRecordsPerTask, schemasManager, report);

@@ -1328,7 +1328,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 			authsServices.add(authorizationForUsers(alice).givingReadWriteAccess().on(recordServices.getDocumentById(record)));
 		}
 		waitForBatchProcess();
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
 
 		recordServices.refresh(alice);
@@ -1386,9 +1385,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 		facetsCount.set(0);
 		queriesCount.set(0);
 		returnedDocumentsCount.set(0);
-
-		getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(true);
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X13, withWriteAccess)
 				.has(resultsInOrder(folderNearEnd.getId(), subFolderNearEnd.getParentFolder()))
@@ -1987,8 +1983,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		recordServices.refresh(alice);
 
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_Z999, options.setStartRow(70).setRows(20)
 				.setFastContinueInfos(null))
 				.has(resultsInOrder("category_71", "category_72", "category_73", "category_74", "category_75", "category_76",
@@ -2347,7 +2341,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
 
-		getDataLayerFactory().getDataLayerLogger().setQueryDebuggingMode(true);
 		assertThatRootWhenSelectingAFolderUsingUnitTaxonomy()
 				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.unitId_10, records.unitId_30))
@@ -2772,8 +2765,6 @@ public class TaxonomiesSearchServices_LinkableTreesAcceptTest extends Constellio
 	@Test
 	public void whenUserIsNavigatingAdminUnitTaxonomyAlwaysDisplayingConceptsWithReadAccessThenOnlySeeConceptsContainingAccessibleRecordsAndThoseWithReadAccess()
 			throws Exception {
-
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);

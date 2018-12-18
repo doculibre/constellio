@@ -67,7 +67,6 @@ public class SearchServiceInEnglishCollectionAcceptanceTest extends ConstellioTe
 	public void whenSearchingWithPrefereAnalyzedFlagInEnglishCollectionThenUseAnalyzedFields()
 			throws Exception {
 		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata());
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		transaction.addUpdate(record1 = givenARecord("record1")
 				.set(zeSchema.stringMetadata(),
 						"When Alexander Bell invented the telephone he had 3 missed calls from Chuck Norris"));

@@ -2,6 +2,7 @@ package com.constellio.app.modules.rm.extensions;
 
 import com.constellio.app.api.extensions.SchemaTypesPageExtension;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
+import com.constellio.app.modules.rm.extensions.params.RMSchemaTypesPageExtensionExclusionByPropertyParams;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -38,6 +39,12 @@ public class RMSchemaTypesPageExtension extends SchemaTypesPageExtension {
 		return Arrays.asList(MetadataFilterFactory.excludeMetadataOfSchemaType(Document.SCHEMA_TYPE, Document.FOLDER),
 				MetadataFilterFactory.excludeMetadataOfSchemaType(Folder.SCHEMA_TYPE, Folder.PARENT_FOLDER),
 				MetadataFilterFactory.excludeMetadataOfSchemaType(AdministrativeUnit.SCHEMA_TYPE, AdministrativeUnit.PARENT),
-				MetadataFilterFactory.excludeMetadataOfSchemaType(Category.SCHEMA_TYPE, Category.PARENT));
+				MetadataFilterFactory.excludeMetadataOfSchemaType(Category.SCHEMA_TYPE, Category.PARENT),
+				MetadataFilterFactory.excludeMetadataOfSchemaType(Document.SCHEMA_TYPE, Document.TYPE));
+	}
+
+	@Override
+	public boolean getMetadataAccessExclusionPropertyFilter(RMSchemaTypesPageExtensionExclusionByPropertyParams rmSchemaTypesPageExtensionExclusionByPropertyParams) {
+		return rmSchemaTypesPageExtensionExclusionByPropertyParams.getMetadata().isEssentialInSummary();
 	}
 }

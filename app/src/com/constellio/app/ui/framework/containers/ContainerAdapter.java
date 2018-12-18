@@ -1,5 +1,10 @@
 package com.constellio.app.ui.framework.containers;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 import com.vaadin.data.Container;
 import com.vaadin.data.Container.Filterable;
 import com.vaadin.data.Container.Indexed;
@@ -11,23 +16,28 @@ import com.vaadin.data.Property;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.Property.ValueChangeNotifier;
 import com.vaadin.data.util.AbstractContainer;
+import com.vaadin.data.util.ObjectProperty;
 import com.vaadin.data.util.filter.UnsupportedFilterException;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import com.vaadin.ui.Label;
 
 @SuppressWarnings("serial")
 public class ContainerAdapter<T extends Container & Indexed & Sortable> extends AbstractContainer
 		implements Indexed, Sortable, Filterable, PropertySetChangeNotifier, ValueChangeNotifier, ItemSetChangeNotifier, RefreshableContainer {
+	
+	public static final String INDEX_PROPERTY_ID = "index";
 
 	protected T adapted;
+	private boolean indexProperty;
 
 	private List<Container.ItemSetChangeListener> itemSetChangeListeners = new ArrayList<>();
 
 	public ContainerAdapter(T adapted) {
+		this(adapted, false);
+	}
+
+	public ContainerAdapter(T adapted, boolean indexProperty) {
 		this.adapted = adapted;
+		this.indexProperty = indexProperty;
 	}
 
 	public T getNestedContainer() {
@@ -39,6 +49,9 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 		List<Object> propertyIds = new ArrayList<>();
 		Collection<?> adaptedPropertyIds = adapted.getContainerPropertyIds();
 		Collection<?> ownPropertyIds = getOwnContainerPropertyIds();
+		if (indexProperty) {
+			propertyIds.add(INDEX_PROPERTY_ID);
+		}
 		propertyIds.addAll(adaptedPropertyIds);
 		propertyIds.addAll(ownPropertyIds);
 		return propertyIds;
@@ -46,14 +59,29 @@ public class ContainerAdapter<T extends Container & Indexed & Sortable> extends 
 
 	@Override
 	public Property<?> getContainerProperty(Object itemId, Object propertyId) {
-		Property<?> ownProperty = getOwnContainerProperty(itemId, propertyId);
-		return ownProperty != null ? ownProperty : adapted.getContainerProperty(itemId, propertyId);
+		Property<?> result;
+		if (INDEX_PROPERTY_ID.equals(propertyId)) {
+			int index = indexOfId(itemId) + 1;
+			Label label = new Label("" + index);
+			label.addStyleName("row-index");
+			result = new ObjectProperty<>(label);
+		} else {
+			Property<?> ownProperty = getOwnContainerProperty(itemId, propertyId);
+			result = ownProperty != null ? ownProperty : adapted.getContainerProperty(itemId, propertyId);
+		}
+		return result;
 	}
 
 	@Override
 	public Class<?> getType(Object propertyId) {
-		Class<?> ownType = getOwnType(propertyId);
-		return ownType != null ? ownType : adapted.getType(propertyId);
+		Class<?> result;
+		if (INDEX_PROPERTY_ID.equals(propertyId)) {
+			result = Label.class;
+		} else {
+			Class<?> ownType = getOwnType(propertyId);
+			result = ownType != null ? ownType : adapted.getType(propertyId);
+		}
+		return result;
 	}
 
 	@Override

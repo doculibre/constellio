@@ -35,6 +35,7 @@ import com.constellio.app.api.extensions.params.ListSchemaExtraCommandReturnPara
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.api.extensions.params.PagesComponentsExtensionParams;
 import com.constellio.app.api.extensions.params.RecordFieldFactoryExtensionParams;
+import com.constellio.app.api.extensions.params.RecordFieldsExtensionParams;
 import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.api.extensions.params.TryRepairAutomaticValueParams;
 import com.constellio.app.api.extensions.params.UpdateComponentExtensionParams;
@@ -46,6 +47,7 @@ import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassif
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
+import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
 import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
@@ -65,12 +67,14 @@ import com.constellio.app.extensions.sequence.AvailableSequence;
 import com.constellio.app.extensions.sequence.AvailableSequenceForRecordParams;
 import com.constellio.app.extensions.sequence.CollectionSequenceExtension;
 import com.constellio.app.extensions.treenode.TreeNodeExtension;
+import com.constellio.app.modules.rm.extensions.params.RMSchemaTypesPageExtensionExclusionByPropertyParams;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.components.MetadataFieldFactory;
 import com.constellio.app.ui.framework.components.RecordFieldFactory;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
+import com.constellio.app.ui.framework.components.fields.AdditionnalRecordField;
 import com.constellio.app.ui.pages.base.BasePresenter;
 import com.constellio.app.ui.pages.search.criteria.Criterion;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
@@ -90,6 +94,7 @@ import com.constellio.model.entities.schemas.MetadataFilterFactory;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
@@ -444,6 +449,14 @@ public class AppLayerCollectionExtensions {
 		});
 	}
 
+	public ValidationErrors validateTaxonomyDeletable(Taxonomy taxonomy) {
+		ValidationErrors validationErrors = new ValidationErrors();
+		for (TaxonomyPageExtension taxonomyPageExtension : taxonomyAccessExtensions.getExtensions()) {
+			taxonomyPageExtension.validateTaxonomyDeletable(new ValidateTaxonomyDeletableParams(taxonomy, validationErrors));
+		}
+		return validationErrors;
+	}
+
 	public void decorateView(PagesComponentsExtensionParams params) {
 		for (PagesComponentsExtension extension : pagesComponentsExtensions) {
 			extension.decorateView(params);
@@ -712,6 +725,7 @@ public class AppLayerCollectionExtensions {
 		}
 		return null;
 	}
+
 	public List<MetadataFilter> getMetadataAccessExclusionFilters() {
 		List<MetadataFilter> metadataFilter = new ArrayList<>();
 		metadataFilter.add(MetadataFilterFactory.excludeMetadataWithLocalCode(Schemas.TITLE_CODE));
@@ -722,5 +736,21 @@ public class AppLayerCollectionExtensions {
 		return metadataFilter;
 	}
 
+	public boolean isMetadataAccessExclusionByPropertyFilter(RMSchemaTypesPageExtensionExclusionByPropertyParams rmSchemaTypesPageExtensionExclusionByPropertyParams) {
+		for (SchemaTypesPageExtension schemaTypesPageExtension : schemaTypesPageExtensions) {
+			if(schemaTypesPageExtension.getMetadataAccessExclusionPropertyFilter(rmSchemaTypesPageExtensionExclusionByPropertyParams)) {
+				return true;
+			}
+		}
 
+		return false;
+	}
+
+    public List<AdditionnalRecordField> getAdditionnalFields(RecordFieldsExtensionParams params) {
+		List<AdditionnalRecordField> additionnalFields = new ArrayList<>();
+		for(PagesComponentsExtension extension: pagesComponentsExtensions) {
+			additionnalFields.addAll(extension.getAdditionnalFields(params));
+		}
+		return additionnalFields;
+    }
 }

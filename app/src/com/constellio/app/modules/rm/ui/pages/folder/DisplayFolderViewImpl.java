@@ -7,9 +7,10 @@ import com.constellio.app.modules.rm.ui.components.content.DocumentContentVersio
 import com.constellio.app.modules.rm.ui.components.folder.fields.LookupFolderField;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.entities.FolderVO;
+import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
-import com.constellio.app.modules.tasks.ui.components.fields.DefaultFavoritesButton;
 import com.constellio.app.modules.tasks.ui.components.fields.StarredFieldImpl;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
@@ -96,7 +97,6 @@ import java.util.List;
 
 import static com.constellio.app.ui.framework.buttons.WindowButton.WindowConfiguration.modalDialog;
 import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.app.ui.util.SchemaCaptionUtils.getCaptionForRecordVO;
 
 public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolderView, DropHandler {
 	private final static Logger LOGGER = LoggerFactory.getLogger(DisplayFolderViewImpl.class);
@@ -302,6 +302,11 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 					protected void confirmButtonClick(ConfirmDialog dialog) {
 						presenter.deleteFolderButtonClicked(null);
 					}
+
+					@Override
+					protected String getConfirmDialogMessage() {
+						return $("ConfirmDialog.confirmDeleteWithRecord", recordVO.getTitle());
+					}
 				};
 			} else {
 				deleteFolderButton = new DeleteWithJustificationButton($("DisplayFolderView.deleteFolder"), false) {
@@ -442,19 +447,6 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 
 			boolean isAFolderAndDestroyed = (recordVO instanceof FolderVO
 											 && ((FolderVO) recordVO).getArchivisticStatus().isDestroyed());
-			DefaultFavoritesButton favoriteStar = new DefaultFavoritesButton() {
-				@Override
-				public void addToDefaultFavorites() {
-					presenter.addToDefaultFavorite();
-				}
-
-				@Override
-				public void removeFromDefaultFavorites() {
-					presenter.removeFromDefaultFavorites();
-				}
-			};
-			favoriteStar.setStarred(presenter.inDefaultFavorites());
-			actionMenuButtons.add(favoriteStar);
 			actionMenuButtons.add(editFolderButton);
 
 			if (!isAFolderAndDestroyed) {
@@ -533,18 +525,7 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 				TabSheet tabSheet = new TabSheet();
-				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(
-						presenter.getOwnedCartsDataProvider());
-				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
-				ownedCartsTable.addItemClickListener(new ItemClickListener() {
-					@Override
-					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(ownedCartsContainer.getRecordVO((int) event.getItemId()));
-						getWindow().close();
-					}
-				});
-
-				ownedCartsTable.setWidth("100%");
+				Table ownedCartsTable = buildOwnedFavoritesTable(getWindow());
 
 				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
 						presenter.getSharedCartsDataProvider());
@@ -565,6 +546,32 @@ public class DisplayFolderViewImpl extends BaseViewImpl implements DisplayFolder
 				return layout;
 			}
 		};
+	}
+
+	private DefaultFavoritesTable buildOwnedFavoritesTable(final Window window) {
+		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
+		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		for (Cart cart : presenter.getOwnedCarts()) {
+			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
+		}
+		final DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
+		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTableFolderDisplay", container, presenter.getSchema());
+		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
+		defaultFavoritesTable.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Cart cart = container.getCart((DefaultFavoritesTable.CartItem) event.getItemId());
+				if (cart == null) {
+					presenter.addToDefaultFavorite();
+				} else {
+					presenter.addToCartRequested(cart);
+				}
+				window.close();
+			}
+		});
+		container.removeContainerProperty(DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
+		defaultFavoritesTable.setWidth("100%");
+		return defaultFavoritesTable;
 	}
 
 	@Override

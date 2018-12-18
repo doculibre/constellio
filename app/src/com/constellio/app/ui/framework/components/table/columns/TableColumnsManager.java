@@ -62,12 +62,24 @@ public class TableColumnsManager implements Serializable {
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
 		recordServices = modelLayerFactory.newRecordServices();
 		userServices = modelLayerFactory.newUserServices();
-		metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection());
-		String collection = sessionContext.getCurrentCollection();
-		UserVO currentUserVO = sessionContext.getCurrentUser();
-		String username = currentUserVO.getUsername();
 
-		currentUser = userServices.getUserInCollection(username, collection);
+		String collection = null;
+		if (sessionContext.getCurrentCollection() != null) {
+			metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager()
+					.getSchemaTypes(sessionContext.getCurrentCollection());
+			collection = sessionContext.getCurrentCollection();
+		}
+
+
+		UserVO currentUserVO = sessionContext.getCurrentUser();
+		String username = null;
+		if (currentUserVO != null) {
+			username = currentUserVO.getUsername();
+		}
+
+		if (currentUserVO != null && username != null) {
+			currentUser = userServices.getUserInCollection(username, collection);
+		}
 	}
 
 	protected void decorateVisibleColumns(List<String> visibleColumnForUser, String tableId) {
@@ -127,6 +139,9 @@ public class TableColumnsManager implements Serializable {
 		table.addColumnReorderListener(new ColumnReorderListener() {
 			@Override
 			public void columnReorder(ColumnReorderEvent event) {
+				if (currentUser == null) {
+					return;
+				}
 				Object[] visibleColumnIds = table.getVisibleColumns();
 				List<String> visibleColumnIdsForUser = new ArrayList<>();
 				for (Object visiblePropertyId : visibleColumnIds) {
@@ -150,11 +165,16 @@ public class TableColumnsManager implements Serializable {
 	}
 
 	private List<String> getVisibleColumnIdsForCurrentUser(Table table, String tableId) {
-		List<String> visibleColumnIds = currentUser.getVisibleTableColumnsFor(tableId);
-		if (visibleColumnIds == null) {
-			visibleColumnIds = new ArrayList<>();
-		}
-		if (visibleColumnIds.isEmpty()) {
+		List<String> visibleColumnIds;
+		if (currentUser != null) {
+			visibleColumnIds = currentUser.getVisibleTableColumnsFor(tableId);
+			if (visibleColumnIds == null) {
+				visibleColumnIds = new ArrayList<>();
+			}
+			if (visibleColumnIds.isEmpty()) {
+				visibleColumnIds = getDefaultVisibleColumnIds(table);
+			}
+		} else {
 			visibleColumnIds = getDefaultVisibleColumnIds(table);
 		}
 		return visibleColumnIds;

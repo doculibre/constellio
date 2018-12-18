@@ -5,6 +5,7 @@ import com.constellio.app.api.extensions.taxonomies.GetTaxonomyExtraFieldsParam;
 import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassifiedTypesParams;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
+import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMTaxonomies;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
@@ -40,6 +41,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 
+	private static final String CONTAINERS_TAXONOMY_CODE = "containers";
 	private String collection;
 
 	public RMTaxonomyPageExtension(String collection) {
@@ -114,6 +116,14 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 			return ExtensionBooleanResult.FALSE;
 		} else {
 			return ExtensionBooleanResult.NOT_APPLICABLE;
+		}
+	}
+
+	@Override
+	public void validateTaxonomyDeletable(ValidateTaxonomyDeletableParams validateTaxonomyDeletableParams) {
+		Taxonomy taxonomy = validateTaxonomyDeletableParams.getTaxonomy();
+		if (taxonomy.getCode().equals(CONTAINERS_TAXONOMY_CODE)) {
+			validateTaxonomyDeletableParams.getValidationErrors().add(RMTaxonomyPageExtension.class, "cannotDeleteContainersTaxonomy");
 		}
 	}
 
@@ -311,5 +321,4 @@ public class RMTaxonomyPageExtension extends TaxonomyPageExtension {
 			}
 		};
 	}
-
 }

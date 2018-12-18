@@ -3,17 +3,39 @@ package com.constellio.model.extensions.events.records;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.frameworks.validation.ValidationErrors;
+import com.constellio.model.services.schemas.MetadataList;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class TransactionExecutedEvent {
 
 	Transaction transaction;
 
-	ValidationErrors validationErrors;
 
-	public TransactionExecutedEvent(Transaction transaction, ValidationErrors validationErrors) {
+	List<Record> newRecords;
+	List<Record> updatedRecords;
+	Map<String, MetadataList> modifiedMetadatasOfModifiedRecords;
+
+	public TransactionExecutedEvent(Transaction transaction, List<Record> newRecords, List<Record> modifiedRecords,
+									Map<String, MetadataList> modifiedMetadatasOfModifiedRecords) {
 		this.transaction = transaction;
-		this.validationErrors = validationErrors;
+		this.newRecords = Collections.unmodifiableList(newRecords);
+		this.updatedRecords = Collections.unmodifiableList(modifiedRecords);
+		this.modifiedMetadatasOfModifiedRecords = modifiedMetadatasOfModifiedRecords;
+	}
+
+	public List<Record> getNewRecords() {
+		return newRecords;
+	}
+
+	public List<Record> getUpdatedRecords() {
+		return updatedRecords;
+	}
+
+	public MetadataList getModifiedMetadataListOf(Record record) {
+		return modifiedMetadatasOfModifiedRecords.get(record.getId());
 	}
 
 	public boolean isOnlySchemaType(String schemaType) {
@@ -27,10 +49,6 @@ public class TransactionExecutedEvent {
 
 	public Transaction getTransaction() {
 		return transaction;
-	}
-
-	public ValidationErrors getValidationErrors() {
-		return validationErrors;
 	}
 
 	public boolean isNewRecordImport() {

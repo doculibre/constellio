@@ -8,7 +8,6 @@ import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.assertj.core.api.Assertions;
@@ -60,7 +59,7 @@ public class ListSchemaTypePresenterAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void whenWriteSchemaTypeExcelReportOnStreamTest()
-			throws IOException, InvalidFormatException {
+			throws IOException {
 		ByteArrayOutputStream byteArrayOutputStream = presenter.writeSchemaTypeExcelReportOnStream(Folder.SCHEMA_TYPE);
 
 		File file = getTestResourceFile("folder.xls");

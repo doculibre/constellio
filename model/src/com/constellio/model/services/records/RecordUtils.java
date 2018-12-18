@@ -22,6 +22,8 @@ import com.constellio.model.services.taxonomies.TaxonomiesSearchServicesCache;
 import com.constellio.model.utils.DependencyUtils;
 import com.constellio.model.utils.DependencyUtilsParams;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,6 +39,8 @@ import static com.constellio.model.entities.schemas.entries.DataEntryType.SEQUEN
 import static java.util.Arrays.asList;
 
 public class RecordUtils {
+
+	private static Logger LOGGER = LoggerFactory.getLogger(RecordUtils.class);
 
 	private SchemaUtils schemaUtils;
 
@@ -216,54 +220,19 @@ public class RecordUtils {
 			List<Record> sortedRecordsById = new ArrayList<>();
 
 			for (int i = unsortedRecords.size() - 1; i >= 0; i--) {
-				//for (int i = 0; i < unsortedRecords.size(); i++) {
 				if (!ids.contains(unsortedRecords.get(i).getId())) {
 					ids.add(unsortedRecords.get(i).getId());
 					sortedRecordsById.add(unsortedRecords.get(i));
 				} else {
-					System.out.println("Same record added twice in a collection");
+					LOGGER.error("Same record added twice in a collection");
 				}
 			}
-			//
 			Collections.sort(sortedRecordsById, new Comparator<Record>() {
 				@Override
 				public int compare(Record o1, Record o2) {
 					return o1.getId().compareTo(o2.getId());
 				}
 			});
-			//
-			//			Set<String> ids = new HashSet<>();
-			//			Iterator<Record> recordIterator = sortedRecordsById.iterator();
-			//			while(recordIterator.hasNext()) {
-			//				Record record = recordIterator.next();
-			//				if (ids.contains(record.getId())) {
-			//					recordIterator.remove();
-			//				} else {
-			//
-			//				}
-			//			}
-			//
-			//			List<Record> sortedRecords = new ArrayList<>();
-			//
-			//			List<Metadata> referenceMetadatas = schemaType.getAllParentReferences();
-			//
-			//			Map<String, Set<String>> dependencyMap = new HashMap<>();
-			//			for (Record record : unsortedRecords) {
-			//				String parentDependencyId = record.getNonNullValueIn(referenceMetadatas);
-			//				dependencyMap.put(record.getId(), Collections.singleton(parentDependencyId));
-			//			}
-			//			List<String> sortedIds = new DependencyUtils<String>().sortByDependency(dependencyMap);
-			//			Map<String, Record> idRecordMap = toIdRecordMap(unsortedRecords);
-			//			for (String recordId : sortedIds) {
-			//				sortedRecords.add(idRecordMap.get(recordId));
-			//			}
-			//
-			//			List<String> idsOfSortedByIds = toIdList(sortedRecordsById);
-			//			List<String> idsOfSorted = toIdList(sortedRecords);
-			//
-			//			if (!idsOfSortedByIds.equals(idsOfSorted)) {
-			//				System.out.println("bobo!");
-			//			}
 
 			return sortedRecordsById;
 		}

@@ -4,7 +4,6 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.enums.CopyType;
 import com.constellio.app.modules.rm.model.enums.FolderMediaType;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.type.MediumType;
@@ -48,8 +47,9 @@ public class RMMediumTypeRecordExtensionAcceptanceTest extends ConstellioTest {
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		recordServices = getModelLayerFactory().newRecordServices();
 
-		digitalMediumType = rm.getMediumTypeByCode("DM");
 		paperMediumType = rm.getMediumTypeByCode("PA");
+		digitalMediumType = rm.getMediumTypeByCode("DM").setActivatedOnContent(true);
+		recordServices.update(digitalMediumType);
 
 		File file = newTempFileWithContent("test.txt", "This is a test");
 		ContentManager contentManager = getModelLayerFactory().getContentManager();
@@ -60,7 +60,7 @@ public class RMMediumTypeRecordExtensionAcceptanceTest extends ConstellioTest {
 	@Test
 	public void whenCheckingIfMediumTypeLogicallyDeletableThenFalse() {
 		Record mediumType = rm.getMediumTypeByCode("DM").getWrappedRecord();
-		assertThat(MessageUtils.getUserDisplayErrorMessage(recordServices.validateLogicallyDeletable(mediumType, User.GOD))).isEqualTo("Vous ne pouvez pas supprimer le disque magnétique\n");
+		assertThat(recordServices.validateLogicallyDeletable(mediumType, User.GOD).isEmpty()).isFalse();
 
 		mediumType = rm.getMediumTypeByCode("FI").getWrappedRecord();
 		assertThat(recordServices.validateLogicallyDeletable(mediumType, User.GOD).isEmpty()).isTrue();

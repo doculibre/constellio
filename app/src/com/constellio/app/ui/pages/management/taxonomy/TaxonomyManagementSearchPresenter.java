@@ -146,8 +146,12 @@ public class TaxonomyManagementSearchPresenter extends BasePresenter<TaxonomyMan
 			utils.delete(utils.toRecord(recordVO), null, false);
 			view.refreshTable();
 		} else {
-			view.showErrorMessage(MessageUtils.getUserDisplayErrorMessage(validationErrors));
+			displayErrorWindow(validationErrors);
 		}
+	}
+
+	private void displayErrorWindow(ValidationErrors validationErrors) {
+		MessageUtils.getCannotDeleteWindow(validationErrors).openWindow();
 	}
 
 	public boolean isPrincipalTaxonomy() {

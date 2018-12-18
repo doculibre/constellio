@@ -379,4 +379,9 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 	public ElectionServiceType getElectionServiceType() {
 		return (ElectionServiceType) getEnum("leaderElectionMethod.type", ElectionServiceType.STANDALONE);
 	}
+
+	@Override
+	public boolean isSystemDistributed() {
+		return getElectionServiceType() != ElectionServiceType.STANDALONE;
+	}
 }

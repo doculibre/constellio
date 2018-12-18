@@ -10,7 +10,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
 import com.constellio.model.entities.schemas.entries.AggregationType;
-import com.constellio.model.entities.schemas.entries.DataEntryType;
+import com.constellio.model.services.schemas.MetadataList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,6 +20,8 @@ import java.util.Set;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
+import static com.constellio.model.entities.schemas.entries.AggregationType.REFERENCE_COUNT;
+import static com.constellio.model.entities.schemas.entries.DataEntryType.AGGREGATED;
 import static java.util.Arrays.asList;
 
 public class RecordsLinksResolver {
@@ -57,7 +59,7 @@ public class RecordsLinksResolver {
 		Set<String> metadatasToReindex = new HashSet<>();
 		Set<String> metadatasToIncrement = new HashSet<>();
 
-		List<Metadata> metadatas = allMetadatas ? schema.getMetadatas() : record.getModifiedMetadatas(types);
+		MetadataList metadatas = allMetadatas ? schema.getMetadatas() : record.getModifiedMetadatas(types);
 		for (Metadata metadata : metadatas) {
 			Metadata currentMetadata = metadata.getInheritance() != null ? metadata.getInheritance() : metadata;
 
@@ -67,7 +69,8 @@ public class RecordsLinksResolver {
 				}
 			} else {
 				for (MetadataNetworkLink link : types.getMetadataNetwork().getLinksTo(currentMetadata)) {
-					addToReindexedOrIncrementedSet(link, metadatasToReindex, metadatasToIncrement, reindexOnly);
+					addToReindexedOrIncrementedSet(link, metadatasToReindex, metadatasToIncrement, metadatas,
+							record.isSaved(), reindexOnly);
 				}
 			}
 		}
@@ -82,14 +85,15 @@ public class RecordsLinksResolver {
 					isSumAggregationMetadata(reverseLink.getFromMetadata()) &&
 					schema.hasMetadataWithCode(reverseLink.getToMetadata().getCode())) {
 
-					// fallback to reindex mode if reference record is in current transaction
+					Metadata fromMetadata = reverseLink.getFromMetadata();
+
+					// fallback to reindex mode if reference record's metadata is already modified in transaction
 					String referenceRecordId = record.get(reverseLink.getRefMetadata());
-					if (isRecordInCurrentTransaction(transaction, referenceRecordId)) {
+					if (isRecordMetadataAlreadyModifiedInCurrentTransaction(transaction, referenceRecordId, fromMetadata)) {
 						break;
 					}
 					String originalReferenceRecordId = originalRecord != null ?
 													   originalRecord.<String>get(reverseLink.getRefMetadata()) : null;
-					Metadata fromMetadata = reverseLink.getFromMetadata();
 					boolean deleted = !record.isActive() && (originalRecord != null && originalRecord.isActive());
 					boolean restored = record.isActive() && (originalRecord != null && !originalRecord.isActive());
 
@@ -138,28 +142,46 @@ public class RecordsLinksResolver {
 			double delta = calculateDelta(referenceRecordId, originalReferenceRecordId, current, previous, deleted, restored);
 			if (delta != 0) {
 				String recordId = referenceRecordId != null ? referenceRecordId : originalReferenceRecordId;
-				incrementations.add(createAggregatedMetadataIncrementation(recordId, metadata, delta));
-				return true;
+				if (recordId != null) {
+					incrementations.add(createAggregatedMetadataIncrementation(recordId, metadata, delta));
+					return true;
+				} else {
+					return false;
+				}
+
 			}
 			return false;
 		}
 	}
 
 	private void addToReindexedOrIncrementedSet(MetadataNetworkLink link, Set<String> metadatasToReindex,
-												Set<String> metadatasToIncrement, boolean reindexOnly) {
+												Set<String> metadatasToIncrement, MetadataList modifiedMetadatas,
+												boolean savedRecord, boolean reindexOnly) {
 		if (link.getLevel() > 0 &&
 			!metadatasToIncrement.contains(link.getFromMetadata().getCode()) &&
 			!metadatasToReindex.contains(link.getFromMetadata().getCode())) {
-			if (!reindexOnly && isSumAggregationMetadata(link.getFromMetadata())) {
-				metadatasToIncrement.add(link.getFromMetadata().getCode());
-			} else {
-				metadatasToReindex.add(link.getFromMetadata().getCode());
+
+			if (!link.getToMetadata().isSameLocalCode(link.getRefMetadata())
+				|| isReferenceCountAggregation(link.getFromMetadata())
+				|| (savedRecord && modifiedMetadatas.containsMetadataWithLocalCode(link.getRefMetadata().getLocalCode()))) {
+
+				if (!reindexOnly && isSumAggregationMetadata(link.getFromMetadata())) {
+					metadatasToIncrement.add(link.getFromMetadata().getCode());
+				} else {
+					metadatasToReindex.add(link.getFromMetadata().getCode());
+				}
 			}
 		}
 	}
 
+	private boolean isReferenceCountAggregation(Metadata metadata) {
+		return metadata.getDataEntry().getType() == AGGREGATED
+			   && ((AggregatedDataEntry) metadata.getDataEntry()).getAgregationType() == REFERENCE_COUNT;
+
+	}
+
 	private boolean isSumAggregationMetadata(Metadata metadata) {
-		if (metadata.getDataEntry().getType() == DataEntryType.AGGREGATED &&
+		if (metadata.getDataEntry().getType() == AGGREGATED &&
 			((AggregatedDataEntry) metadata.getDataEntry()).getAgregationType() == AggregationType.SUM) {
 			List<MetadataNetworkLink> links = types.getMetadataNetwork().getLinksTo(metadata);
 			return links.isEmpty();
@@ -168,16 +190,18 @@ public class RecordsLinksResolver {
 	}
 
 	private boolean isNumberAndNonAggregatedMetadata(Metadata metadata) {
-		return metadata.getType() == NUMBER && metadata.getDataEntry().getType() != DataEntryType.AGGREGATED;
+		return metadata.getType() == NUMBER && metadata.getDataEntry().getType() != AGGREGATED;
 	}
 
-	private boolean isRecordInCurrentTransaction(Transaction transaction, String referenceRecordId) {
-		if (transaction == null || referenceRecordId == null) {
+	private boolean isRecordMetadataAlreadyModifiedInCurrentTransaction(Transaction transaction, String recordId,
+																		Metadata metadata) {
+		if (transaction == null || recordId == null) {
 			return false;
 		}
 
-		Record recordInTransaction = transaction.getRecord(referenceRecordId);
-		return (recordInTransaction != null && !recordInTransaction.isSaved());
+		Record recordInTransaction = transaction.getRecord(recordId);
+		return (recordInTransaction != null &&
+				(!recordInTransaction.isSaved() || recordInTransaction.isModified(metadata)));
 	}
 
 	private double calculateDelta(String referenceRecordId, String originalReferenceRecordId,
@@ -209,7 +233,8 @@ public class RecordsLinksResolver {
 		return value != null ? value : 0.0;
 	}
 
-	private AggregatedMetadataIncrementation createAggregatedMetadataIncrementation(String recordId, Metadata metadata,
+	private AggregatedMetadataIncrementation createAggregatedMetadataIncrementation(String recordId, Metadata
+			metadata,
 																					double delta) {
 		AggregatedMetadataIncrementation incrementation = new AggregatedMetadataIncrementation();
 		incrementation.setRecordId(recordId);

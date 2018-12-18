@@ -101,7 +101,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		prepareSystem(withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus()
 		);
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryLoggingEnabled(true).setQueryDebuggingMode(true);
 		authsServices = getModelLayerFactory().newAuthorizationsServices();
 		recordServices = getModelLayerFactory().newRecordServices();
 
@@ -1234,8 +1233,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
 
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(optionsWithNoInvisibleRecords)
 				.has(numFoundAndListSize(2))
 				.has(unlinkable(records.categoryId_X, records.categoryId_Z))
@@ -1682,8 +1679,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(true));
 		TaxonomiesSearchOptions withWriteAccess = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
-		System.out.println("-----");
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryLoggingEnabled(true);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy()
 				.has(numFoundAndListSize(2))
@@ -1697,9 +1692,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				.is(empty())
 				.has(solrQueryCounts(1, 0, 2))
 				.has(secondSolrQueryCounts(0, 0, 0));
-
-		System.out.println("-----");
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryLoggingEnabled(true);
 
 		assertThatChildWhenSelectingAFolderUsingPlanTaxonomy(records.categoryId_X)
 				.has(numFoundAndListSize(1))
@@ -2889,8 +2881,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 	public void whenUserIsNavigatingAdminUnitTaxonomyAlwaysDisplayingConceptsWithReadAccessThenOnlySeeConceptsContainingAccessibleRecordsAndThoseWithReadAccess()
 			throws Exception {
 
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 		User sasquatch = users.sasquatchIn(zeCollection);
@@ -3726,7 +3716,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
-				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix("First call");
 				firstCallAnswer = call();
 				firstCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 				queriesCount.set(0);
@@ -3742,7 +3731,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
-				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix("Second call");
 				secondCallAnswer = call();
 				secondCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 				queriesCount.set(0);

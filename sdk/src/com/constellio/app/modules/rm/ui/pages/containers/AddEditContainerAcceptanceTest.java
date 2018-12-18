@@ -65,7 +65,6 @@ public class AddEditContainerAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTestUsers().withRMTest(records)
 						.withFoldersAndContainersOfEveryStatus().withEvents()
 		);
-		getDataLayerFactory().getDataLayerLogger().monitor("idx_rfc_00000000001");
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 

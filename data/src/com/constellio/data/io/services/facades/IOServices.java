@@ -166,6 +166,11 @@ public class IOServices {
 		}
 	}
 
+	public OutputStream newFileOutputStream(File file, String name, boolean append)
+			throws FileNotFoundException {
+		return streamsServices.newFileOutputStream(file, uniqueIdWith(name), append);
+	}
+
 	public OutputStream newFileOutputStream(File file, String name)
 			throws FileNotFoundException {
 		return streamsServices.newFileOutputStream(file, uniqueIdWith(name));

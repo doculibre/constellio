@@ -20,6 +20,7 @@ public class ReportButton extends WindowButton {
 	//	private final RMReportsPresenter presenter;
 	private final ReportPresenter presenter;
 	private final NewReportPresenter newPresenter;
+	private Object params;
 
 	public ReportButton(ReportWithCaptionVO report, ReportPresenter presenter) {
 		super(report.getCaption(), report.getCaption(), new WindowConfiguration(true, true, "75%", "90%"));
@@ -76,5 +77,13 @@ public class ReportButton extends WindowButton {
 				return new ReportViewer(reportWriter, reportBuilderFactory.getFilename(parameters));
 			}
 		}
+	}
+
+	public Object getParams() {
+		return params;
+	}
+
+	public void setParams(Object params) {
+		this.params = params;
 	}
 }

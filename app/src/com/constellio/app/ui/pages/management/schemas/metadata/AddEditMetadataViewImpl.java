@@ -1,12 +1,5 @@
 package com.constellio.app.ui.pages.management.schemas.metadata;
 
-import static com.constellio.app.ui.i18n.i18n.$;
-import static java.util.Arrays.asList;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.constellio.app.entities.schemasDisplay.enums.MetadataDisplayType;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.ui.entities.FormMetadataVO;
@@ -38,6 +31,14 @@ import com.vaadin.ui.Field;
 import com.vaadin.ui.OptionGroup;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
 
 public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMetadataView {
 	final AddEditMetadataPresenter presenter;
@@ -112,7 +113,9 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		Map<String, String> params = ParamUtils.getParamsMap(event.getParameters());
 		presenter.setSchemaCode(params.get("schemaCode"));
 		presenter.setParameters(params);
-		presenter.setMetadataCode(params.get("metadataCode"));
+		if (StringUtils.isNotBlank(params.get("metadataCode"))) {
+			presenter.setMetadataCode(params.get("metadataCode"));
+		}
 	}
 
 	@Override
@@ -121,7 +124,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		viewLayout.setSizeFull();
 		viewLayout.addComponents(buildTables());
 
-		if(!presenter.isRoleAccessSupportedOnThisMetadata()) {
+		if (!presenter.isRoleAccessSupportedOnThisMetadata()) {
 			listOptionGroupRole.setVisible(false);
 		}
 
@@ -170,7 +173,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				}
 			}
 
-			if(value == MetadataValueType.CONTENT) {
+			if (value == MetadataValueType.CONTENT) {
 				listOptionGroupRole.setVisible(false);
 			}
 
@@ -552,11 +555,11 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 		listOptionGroupRole.setMultiSelect(true);
 		listOptionGroupRole.setImmediate(true);
 		List<String> initialSelectedRoles = new ArrayList<>();
-		for(RoleVO role : roleList) {
+		for (RoleVO role : roleList) {
 			listOptionGroupRole.addItem(role.getCode());
 			listOptionGroupRole.setItemCaption(role.getCode(), role.getTitle());
-			for(String roleCode : presenter.getMetadataReadRole()){
-				if(roleCode.equals(role.getCode())) {
+			for (String roleCode : presenter.getMetadataReadRole()) {
+				if (roleCode.equals(role.getCode())) {
 					initialSelectedRoles.add(role.getCode());
 				}
 			}
@@ -608,8 +611,13 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 					}
 				}
 
-				if(!listOptionGroupRole.isVisible()) {
+				if (!listOptionGroupRole.isVisible()) {
 					formMetadataVO.setReadAccessRoles(new ArrayList<String>());
+				}
+
+				if(presenter.isAccessRoleAndRequired(formMetadataVO)) {
+					showErrorMessage($("AddEditMetadataView.requiredMetadataCannotBeSecureByRole"));
+					return;
 				}
 
 				try {
@@ -715,7 +723,7 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				List<IntermediateBreadCrumbTailItem> intermediateBreadCrumbTailItemList = BreadcrumbTrailUtil.llistSchemaTypeSchemaList(presenter.getSchemaCode());
 				intermediateBreadCrumbTailItemList.add(BreadcrumbTrailUtil
 						.editSchemaMetadata(presenter.getParamSchemaCode(), presenter.getSchemaTypeCode(),
-						presenter.getSchemaVO().getLabel(getSessionContext().getCurrentLocale().getLanguage())));
+								presenter.getSchemaVO().getLabel(getSessionContext().getCurrentLocale().getLanguage())));
 
 				return intermediateBreadCrumbTailItemList;
 			}

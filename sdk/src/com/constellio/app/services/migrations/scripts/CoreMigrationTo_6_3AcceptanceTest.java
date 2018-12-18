@@ -62,8 +62,7 @@ public class CoreMigrationTo_6_3AcceptanceTest extends ConstellioTest {
 		assertThat(allMetadata.onlyPopulated()).extracting("localCode")
 				.containsOnly("author", "emailObject", "emailCCTo", "subject", "company", "emailTo", "emailFrom", "emailBCCTo", "keywords", "title");
 		assertThat(allMetadata.getMetadataWithLocalCode("author").getLabels()).containsOnly(
-				entry(Language.French, "zAuthor fr"),
-				entry(Language.English, "zAuthor en")
+				entry(Language.French, "zAuthor fr")
 		);
 
 		schemasManager.modify(zeCollection, new MetadataSchemaTypesAlteration() {

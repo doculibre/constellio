@@ -19,7 +19,6 @@ import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.data.SchemaTypeVODataProvider;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.model.conf.FoldersLocator;
 import com.constellio.model.entities.schemas.Schemas;
@@ -296,7 +295,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 			public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
 				String schemaType;
 
-				if(tabSheet.getSelectedTab().equals(tableFolder)) {
+				if (tabSheet.getSelectedTab().equals(tableFolder)) {
 					schemaType = Folder.SCHEMA_TYPE;
 				} else if (tabSheet.getSelectedTab().equals(tableContainer)) {
 					schemaType = ContainerRecord.SCHEMA_TYPE;

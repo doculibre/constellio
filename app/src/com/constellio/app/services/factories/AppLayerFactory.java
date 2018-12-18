@@ -90,4 +90,5 @@ public interface AppLayerFactory extends LayerFactory {
 
 	CorrectorExcluderManager getCorrectorExcluderManager();
 
+	boolean isInitializationFinished();
 }

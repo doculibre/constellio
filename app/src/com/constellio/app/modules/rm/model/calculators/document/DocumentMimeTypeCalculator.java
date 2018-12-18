@@ -10,6 +10,7 @@ import com.constellio.model.entities.schemas.MetadataValueType;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -23,7 +24,7 @@ public class DocumentMimeTypeCalculator implements MetadataValueCalculator<Strin
 	public String calculate(CalculatorParameters parameters) {
 		Content content = parameters.get(contentParam);
 		String mimeType = content != null && content.getCurrentVersion() != null ? content.getCurrentVersion().getMimetype() : null;
-		mimeType = mimeType != null ? regroupMicrosoftMimeTypes(mimeType) : null;
+		mimeType = mimeType != null ? regroupMicrosoftMimeTypes(mimeType, parameters.getCollectionInfo().getMainSystemLocale()) : null;
 		return mimeType;
 	}
 
@@ -47,7 +48,7 @@ public class DocumentMimeTypeCalculator implements MetadataValueCalculator<Strin
 		return Arrays.asList(contentParam);
 	}
 
-	private String regroupMicrosoftMimeTypes(String mimeType) {
+	private String regroupMicrosoftMimeTypes(String mimeType, Locale locale) {
 		String newMimeType = mimeType;
 		if (mimeType != null) {
 			switch (mimeType) {
@@ -56,7 +57,7 @@ public class DocumentMimeTypeCalculator implements MetadataValueCalculator<Strin
 				case "application/vnd.ms-word.template.macroenabled.12":
 				case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
 				case "application/vnd.openxmlformats-officedocument.wordprocessingml.template":
-					newMimeType = $("Mimetype.microsoftWord");
+					newMimeType = $("Mimetype.microsoftWord", locale);
 					break;
 
 				case "application/vnd.ms-excel.sheet.binary.macroenabled.12":
@@ -65,7 +66,7 @@ public class DocumentMimeTypeCalculator implements MetadataValueCalculator<Strin
 				case "application/vnd.ms-excel.sheet.macroenabled.12":
 				case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
 				case "application/vnd.openxmlformats-officedocument.spreadsheetml.template":
-					newMimeType = $("Mimetype.microsoftExcel");
+					newMimeType = $("Mimetype.microsoftExcel", locale);
 					break;
 
 				case "application/vnd.openxmlformats-officedocument.presentationml.presentation":
@@ -76,7 +77,7 @@ public class DocumentMimeTypeCalculator implements MetadataValueCalculator<Strin
 				case "application/vnd.ms-powerpoint.presentation.macroenabled.12":
 				case "application/vnd.ms-powerpoint.slideshow.macroenabled.12":
 				case "application/vnd.ms-powerpoint.template.macroenabled.12":
-					newMimeType = $("Mimetype.microsoftPowerPoint");
+					newMimeType = $("Mimetype.microsoftPowerPoint", locale);
 					break;
 			}
 		}

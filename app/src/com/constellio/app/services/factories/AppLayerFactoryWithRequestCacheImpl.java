@@ -147,6 +147,11 @@ public class AppLayerFactoryWithRequestCacheImpl implements AppLayerFactory {
 	}
 
 	@Override
+	public boolean isInitializationFinished() {
+		return appLayerFactory.isInitializationFinished();
+	}
+
+	@Override
 	public void initialize() {
 		appLayerFactory.initialize();
 	}

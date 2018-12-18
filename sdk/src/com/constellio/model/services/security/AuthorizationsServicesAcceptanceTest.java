@@ -57,7 +57,6 @@ import static com.constellio.model.entities.security.Role.WRITE;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.entities.security.global.AuthorizationDeleteRequest.authorizationDeleteRequest;
 import static com.constellio.model.entities.security.global.AuthorizationModificationRequest.modifyAuthorizationOnRecord;
-import static com.constellio.model.entities.security.global.GlobalGroupStatus.ACTIVE;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -88,6 +87,7 @@ import static com.constellio.model.services.security.SecurityAcceptanceTestSetup
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2;
 import static com.constellio.model.services.security.SecurityAcceptanceTestSetup.TAXO2_STATION2_1;
 import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static com.constellio.sdk.tests.TestUtils.linkEventBus;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -197,7 +197,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenRecordIsSecurizedThenHasAncestors()
+	public void whenRecordIsSecurableThenHasAncestors()
 			throws Exception {
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
@@ -228,25 +228,25 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
 				.extractingMetadatas(IDENTIFIER, ATTACHED_ANCESTORS).containsOnly(
-				tuple(TAXO1_FOND1, asList(TAXO1_FOND1)),
-				tuple(TAXO1_FOND1_1, asList(TAXO1_FOND1, TAXO1_FOND1_1)),
-				tuple(FOLDER4_1, asList(FOLDER4, FOLDER4_1)),
-				tuple(FOLDER4_2, asList(FOLDER4, FOLDER4_2)),
-				tuple(FOLDER2, asList(FOLDER2)),
-				tuple(FOLDER1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1)),
-				tuple(TAXO1_CATEGORY1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1)),
-				tuple(FOLDER2_2_DOC2, asList(FOLDER2, FOLDER2_2, FOLDER2_2_DOC2)),
-				tuple(FOLDER3, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3)),
-				tuple(FOLDER4, asList(FOLDER4)),
-				tuple(FOLDER2_2_DOC1, asList(FOLDER2, FOLDER2_2, FOLDER2_2_DOC1)),
-				tuple(FOLDER4_2_DOC1, asList(FOLDER4, FOLDER4_2, FOLDER4_2_DOC1)),
-				tuple(FOLDER1_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1, FOLDER1_DOC1)),
-				tuple(FOLDER2_1, asList(FOLDER2, FOLDER2_1)),
-				tuple(FOLDER2_2, asList(FOLDER2, FOLDER2_2)),
-				tuple(TAXO1_CATEGORY2, asList(TAXO1_FOND1, TAXO1_CATEGORY2)),
-				tuple(TAXO1_CATEGORY2_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1)),
-				tuple(FOLDER3_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)),
-				tuple(FOLDER4_1_DOC1, asList(FOLDER4, FOLDER4_1, FOLDER4_1_DOC1))
+				tuple("taxo1_fond1", asList("taxo1_fond1")),
+				tuple("taxo1_fond1_1", asList("taxo1_fond1", "taxo1_fond1_1")),
+				tuple("taxo1_category1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1")),
+				tuple("taxo1_category2", asList("taxo1_fond1", "taxo1_category2")),
+				tuple("taxo1_category2_1", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1")),
+				tuple("folder1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1")),
+				tuple("folder3", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3")),
+				tuple("folder1_doc1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1", "folder1_doc1")),
+				tuple("folder3_doc1", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3", "folder3_doc1")),
+				tuple("folder4", asList("folder4", "-taxo1_fond1", "-taxo1_category2")),
+				tuple("folder4_1", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_1")),
+				tuple("folder4_2", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2")),
+				tuple("folder4_1_doc1", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_1", "folder4_1_doc1")),
+				tuple("folder4_2_doc1", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2", "folder4_2_doc1")),
+				tuple("folder2", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1")),
+				tuple("folder2_1", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_1")),
+				tuple("folder2_2", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_2")),
+				tuple("folder2_2_doc2", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_2", "folder2_2_doc2")),
+				tuple("folder2_2_doc1", asList("folder2", "-taxo1_fond1", "-taxo1_fond1_1", "-taxo1_category1", "folder2_2", "folder2_2_doc1"))
 		);
 
 		reset(FOLDER2);
@@ -254,30 +254,30 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		assertThatRecords(searchServices.search(recordsWithPrincipalPath))
 				.extractingMetadatas(IDENTIFIER, ATTACHED_ANCESTORS).containsOnly(
-				tuple(TAXO1_FOND1, asList(TAXO1_FOND1)),
-				tuple(TAXO1_FOND1_1, asList(TAXO1_FOND1, TAXO1_FOND1_1)),
-				tuple(FOLDER4_1, asList(FOLDER4_1)),
-				tuple(FOLDER4_2, asList(FOLDER4, FOLDER4_2)),
-				tuple(FOLDER2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2)),
-				tuple(FOLDER1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1)),
-				tuple(TAXO1_CATEGORY1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1)),
-				tuple(FOLDER2_2_DOC2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2, FOLDER2_2_DOC2)),
-				tuple(FOLDER3, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3)),
-				tuple(FOLDER4, asList(FOLDER4)),
-				tuple(FOLDER2_2_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2, FOLDER2_2_DOC1)),
-				tuple(FOLDER4_2_DOC1, asList(FOLDER4, FOLDER4_2, FOLDER4_2_DOC1)),
-				tuple(FOLDER1_DOC1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER1, FOLDER1_DOC1)),
-				tuple(FOLDER2_1, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_1)),
-				tuple(FOLDER2_2, asList(TAXO1_FOND1, TAXO1_FOND1_1, TAXO1_CATEGORY1, FOLDER2, FOLDER2_2)),
-				tuple(TAXO1_CATEGORY2, asList(TAXO1_FOND1, TAXO1_CATEGORY2)),
-				tuple(TAXO1_CATEGORY2_1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1)),
-				tuple(FOLDER3_DOC1, asList(TAXO1_FOND1, TAXO1_CATEGORY2, TAXO1_CATEGORY2_1, FOLDER3, FOLDER3_DOC1)),
-				tuple(FOLDER4_1_DOC1, asList(FOLDER4_1, FOLDER4_1_DOC1))
+				tuple("taxo1_fond1", asList("taxo1_fond1")),
+				tuple("taxo1_fond1_1", asList("taxo1_fond1", "taxo1_fond1_1")),
+				tuple("taxo1_category1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1")),
+				tuple("taxo1_category2", asList("taxo1_fond1", "taxo1_category2")),
+				tuple("taxo1_category2_1", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1")),
+				tuple("folder1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1")),
+				tuple("folder3", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3")),
+				tuple("folder1_doc1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder1", "folder1_doc1")),
+				tuple("folder3_doc1", asList("taxo1_fond1", "taxo1_category2", "taxo1_category2_1", "folder3", "folder3_doc1")),
+				tuple("folder2", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2")),
+				tuple("folder2_1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_1")),
+				tuple("folder2_2", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2")),
+				tuple("folder2_2_doc2", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2", "folder2_2_doc2")),
+				tuple("folder2_2_doc1", asList("taxo1_fond1", "taxo1_fond1_1", "taxo1_category1", "folder2", "folder2_2", "folder2_2_doc1")),
+				tuple("folder4_1", asList("folder4_1", "-folder4", "--taxo1_fond1", "--taxo1_category2")),
+				tuple("folder4_1_doc1", asList("folder4_1", "-folder4", "--taxo1_fond1", "--taxo1_category2", "folder4_1_doc1")),
+				tuple("folder4", asList("folder4", "-taxo1_fond1", "-taxo1_category2")),
+				tuple("folder4_2", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2")),
+				tuple("folder4_2_doc1", asList("folder4", "-taxo1_fond1", "-taxo1_category2", "folder4_2", "folder4_2_doc1"))
 		);
 	}
 
 	@Test
-	public void whenRecordIsSecurizedThenHasInheritedRemovedAuths()
+	public void whenRecordIsSecurableThenHasInheritedRemovedAuths()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(bob).on(TAXO1_FOND1).giving(ROLE1));
@@ -343,7 +343,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenRecordIsSecurizedThenHasAccuratePrincipalsWithSpecificAuthorization()
+	public void whenRecordIsSecurableThenHasAccuratePrincipalsWithSpecificAuthorization()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(bob).on(TAXO1_FOND1).giving(ROLE1));
@@ -508,8 +508,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void givenRolesOfAuthorizationAreModifiedOnSameRecordOfAuthorizationThenNotDuplicatedAndInstantaneousEffectOnSecurity()
 			throws Exception {
-
-		getDataLayerFactory().getDataLayerLogger().setMonitoredIds(asList("00000000053"));
 
 		auth1 = add(authorizationForUser(bob).on(TAXO1_CATEGORY2).giving(ROLE1));
 		auth2 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).giving(ROLE1));
@@ -867,7 +865,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void whenAddingAndRemovingAuthorizationToAGroupThenAppliedToAllUsers()
 			throws Exception {
 
-		GlobalGroup group = userServices.createGlobalGroup("vilains", "Vilains", new ArrayList<String>(), null, ACTIVE, true);
+		GlobalGroup group = userServices.createGlobalGroup("vilains", "Vilains", new ArrayList<String>(), null, GlobalGroupStatus.ACTIVE, true);
 		userServices.addUpdateGlobalGroup(group);
 		userServices.setGlobalGroupUsers("vilains", asList(users.bob()));
 		forUser(bob).assertThatRecordsWithReadAccess().isEmpty();
@@ -974,7 +972,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenDetachingASecurizedRecordThenCustomAuthKeptAndRemovedAuthNotCopied()
+	public void whenDetachingASecurableRecordThenCustomAuthKeptAndRemovedAuthNotCopied()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(alice).on(FOLDER4).givingReadAccess());
@@ -1031,7 +1029,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenDetachingARootSecurizedRecordThenCustomAuthKeptAndRemovedAuthNotCopied()
+	public void whenDetachingARootSecurableRecordThenCustomAuthKeptAndRemovedAuthNotCopied()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadAccess());
@@ -1068,7 +1066,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenResettingASecurizedRecordThenCustomAuthDeletedAndRemovedAuthReenabled()
+	public void whenResettingASecurableRecordThenCustomAuthDeletedAndRemovedAuthReenabled()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(alice).on(FOLDER4).givingReadAccess());
@@ -1098,7 +1096,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void whenResettingARootSecurizedRecordThenCustomAuthDeletedAndRemovedAuthReenabled()
+	public void whenResettingARootSecurableRecordThenCustomAuthDeletedAndRemovedAuthReenabled()
 			throws Exception {
 
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadAccess());
@@ -2667,7 +2665,6 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 
 		LogicalSearchQuery query = new LogicalSearchQuery(from(setup.folderSchema.instance()).where(Schemas.IDENTIFIER).isEqualTo("folder4"));
 		query.filteredWithUser(users.aliceIn(zeCollection));
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		assertThat(searchServices.hasResults(query)).isTrue();
 
@@ -2830,6 +2827,8 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		auth2 = add(authorizationForGroup(rumors).on(FOLDER4).givingReadAccess());
 		auth3 = add(authorizationForGroup(rumors).on(FOLDER3).givingReadDeleteAccess());
 
+		getModelLayerFactory().getSecurityModelCache().models.remove(zeCollection);
+
 		for (RecordVerifier verifyRecord : $(TAXO1_CATEGORY1, FOLDER2, FOLDER4, FOLDER4_1, FOLDER3, FOLDER3_DOC1)) {
 			verifyRecord.usersWithReadAccess().contains(sasquatch, edouard);
 		}
@@ -2873,6 +2872,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		userServices.addUpdateGlobalGroup(users.rumors().setStatus(GlobalGroupStatus.INACTIVE));
 
 		//TODO Should not be required
+		//Cache invalidation problemgetModelLayerFactory().getSecurityModelCache().invalidate(zeCollection);
 		reindex();
 
 		assertThat(users.edouardIn(zeCollection).hasReadAccess().on(record(TAXO1_CATEGORY1))).isFalse();
@@ -3232,7 +3232,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	}
 
 	@Test
-	public void givenRecordProvidingSecurityHasItsAuthsModifiedThenChangesAlwaysAppliedToSecurizedRecords()
+	public void givenRecordProvidingSecurityHasItsAuthsModifiedThenChangesAlwaysAppliedToSecurableRecords()
 			throws Exception {
 		auth1 = add(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
 		auth2 = add(authorizationForUser(bob).on(FOLDER4).givingReadWriteAccess());
@@ -3800,6 +3800,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		add(authorizationForGroupInAnotherCollection(heroes).on(otherCollectionRecords.folder4_1()).givingNegativeReadWriteDeleteAccess());
 		add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder2_1()).givingNegativeReadWriteDeleteAccess());
 
+		waitForBatchProcess();
 
 		assertThatAllFoldersVisibleBy(charles).containsOnly(
 				"folder4", "folder4_1", "folder4_2", "anotherCollection_folder2", "anotherCollection_folder2_2",
@@ -4002,15 +4003,13 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@Test
 	public void whenCacheIsInvalidatedThenInvalidatedOnAllInstances()
 			throws Exception {
+		linkEventBus(getModelLayerFactory(), getModelLayerFactory("other-instance"));
 
 		SecurityModelCache instance1Cache = getModelLayerFactory().getSecurityModelCache();
 		auth1 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+
 		SecurityModelCache instance2Cache = getModelLayerFactory("other-instance").getSecurityModelCache();
 
-		assertThat(instance1Cache.getCached(zeCollection)).isNull();
-		assertThat(instance2Cache.getCached(zeCollection)).isNull();
-
-		createAFolderOnInstance1();
 		assertThat(instance1Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
 		assertThat(instance2Cache.getCached(zeCollection)).isNull();
 
@@ -4018,18 +4017,85 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		assertThat(instance1Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
 		assertThat(instance2Cache.getCached(zeCollection)).is(containingAuthWithId(auth1));
 
-
-		//An auth is created, both caches are removed
-		auth2 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		GlobalGroup group = userServices.newGlobalGroup().setCode("zeGroup").setName("Ze ultimate group");
+		userServices.addUpdateGlobalGroup(group);
 		assertThat(instance1Cache.getCached(zeCollection)).isNull();
 		assertThat(instance2Cache.getCached(zeCollection)).isNull();
 
 	}
 
-	private void createAFolderOnBothInstance() {
+	@Test
+	public void whenAuthIsCreatedOrDeletedThenCacheIsUpdated()
+			throws Exception {
+		linkEventBus(getModelLayerFactory(), getModelLayerFactory("other-instance"));
+		String aliceId = users.aliceIn(zeCollection).getId();
+		String bobId = users.bobIn(zeCollection).getId();
+
 		createAFolderOnInstance1();
 		createAFolderOnInstance2();
+
+		SecurityModelCache instance1Cache = getModelLayerFactory().getSecurityModelCache();
+		auth1 = addWithoutUser(authorizationForUser(alice).on(TAXO1_CATEGORY2).givingReadWriteAccess());
+		SecurityModelCache instance2Cache = getModelLayerFactory("other-instance").getSecurityModelCache();
+
+		assertThat(instance1Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance2Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsOnTarget(TAXO1_CATEGORY2))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsToPrincipal(aliceId, false))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationWithId(auth1).getDetails().getRoles())
+				.containsOnly(Role.READ, Role.WRITE);
+
+		assertThat(instance2Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsOnTarget(TAXO1_CATEGORY2))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsToPrincipal(aliceId, false))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationWithId(auth1).getDetails().getRoles())
+				.containsOnly(Role.READ, Role.WRITE);
+
+		services.execute(modifyAuthorizationOnRecord(auth1, record(TAXO1_CATEGORY2))
+				.withNewPrincipalIds(bobId).withNewAccessAndRoles(Role.READ, Role.DELETE));
+
+		assertThat(instance1Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance2Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsOnTarget(TAXO1_CATEGORY2))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsToPrincipal(aliceId, false)).isEmpty();
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsToPrincipal(bobId, false))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationWithId(auth1).getDetails().getRoles())
+				.containsOnly(Role.READ, Role.DELETE);
+
+		assertThat(instance2Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsOnTarget(TAXO1_CATEGORY2))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsToPrincipal(aliceId, false)).isEmpty();
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsToPrincipal(bobId, false))
+				.extracting("details.id").contains(auth1);
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationWithId(auth1).getDetails().getRoles())
+				.containsOnly(Role.READ, Role.DELETE);
+
+		services.execute(modifyAuthorizationOnRecord(auth1, record(TAXO1_CATEGORY2)).removingItOnRecord());
+
+		assertThat(instance1Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance2Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsOnTarget(TAXO1_CATEGORY2))
+				.extracting("details.id").doesNotContain(auth1);
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationsToPrincipal(aliceId, false))
+				.extracting("details.id").doesNotContain(auth1);
+		assertThat(instance1Cache.getCached(zeCollection).getAuthorizationWithId(auth1)).isNull();
+
+		assertThat(instance2Cache.getCached(zeCollection)).isNotNull();
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsOnTarget(TAXO1_CATEGORY2))
+				.extracting("details.id").doesNotContain(auth1);
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationsToPrincipal(aliceId, false))
+				.extracting("details.id").doesNotContain(auth1);
+		assertThat(instance2Cache.getCached(zeCollection).getAuthorizationWithId(auth1)).isNull();
+
 	}
+
 
 	private void createAFolderOnInstance1() {
 

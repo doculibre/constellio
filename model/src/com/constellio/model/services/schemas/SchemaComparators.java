@@ -1,6 +1,7 @@
 package com.constellio.model.services.schemas;
 
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.RecordWrapper;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -41,6 +42,16 @@ public class SchemaComparators {
 				Integer index1 = schemaTypes.getSchemaTypesSortedByDependency().indexOf(schemaType1);
 				Integer index2 = schemaTypes.getSchemaTypesSortedByDependency().indexOf(schemaType2);
 				return index1.compareTo(index2);
+			}
+		};
+	}
+
+
+	public static final Comparator<? extends RecordWrapper> sortRecordWrappersByIds() {
+		return new Comparator<RecordWrapper>() {
+			@Override
+			public int compare(RecordWrapper r1, RecordWrapper r2) {
+				return r1.getId().compareTo(r2.getId());
 			}
 		};
 	}

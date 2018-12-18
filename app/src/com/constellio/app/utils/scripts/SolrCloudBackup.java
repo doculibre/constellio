@@ -1,5 +1,6 @@
 package com.constellio.app.utils.scripts;
 
+import com.constellio.data.utils.SolrDataUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrClient;
@@ -104,7 +105,7 @@ public class SolrCloudBackup {
 
 			QueryResponse resp = client.query(params);
 			List<SolrDocument> documents = resp.getResults();
-			final List<SolrInputDocument> inputDocuments = toInputDocuments(documents);
+			final List<SolrInputDocument> inputDocuments = SolrDataUtils.toInputDocuments(documents);
 			Runnable writeDocs = new Runnable() {
 				@Override
 				public void run() {
@@ -216,21 +217,7 @@ public class SolrCloudBackup {
 		return subFolderName;
 	}
 
-	private static List<SolrInputDocument> toInputDocuments(List<SolrDocument> documents) {
-		List<SolrInputDocument> inputDocuments = new ArrayList<>();
-		for (SolrDocument document : documents) {
-			SolrInputDocument inputDocument = new SolrInputDocument();
-			for (String fieldName : document.getFieldNames()) {
-				if (!fieldName.equals("_version_")) {
-					Object value = document.get(fieldName);
-					inputDocument.addField(fieldName, value);
-				}
-			}
-			inputDocuments.add(inputDocument);
-		}
 
-		return inputDocuments;
-	}
 
 	private static boolean validateArgs(String argv[])
 			throws Exception {

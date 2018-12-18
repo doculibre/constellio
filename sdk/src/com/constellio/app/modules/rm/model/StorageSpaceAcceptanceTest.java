@@ -332,10 +332,14 @@ public class StorageSpaceAcceptanceTest extends ConstellioTest {
 		Transaction transaction = new Transaction();
 		transaction.addAll(parentStorageSpace, childStorageSpace, container1);
 		recordServices.execute(transaction);
-		reindex();
-
 
 		waitForBatchProcess();
+		assertThat(rm.getStorageSpace(parentStorageSpace.getId()).getNumberOfChild()).isEqualTo(1);
+		assertThat(rm.getStorageSpace(childStorageSpace.getId()).getNumberOfChild()).isEqualTo(0);
+
+		reindex();
+		waitForBatchProcess();
+		assertThat(rm.getStorageSpace(parentStorageSpace.getId()).getNumberOfChild()).isEqualTo(1);
 		assertThat(rm.getStorageSpace(childStorageSpace.getId()).getNumberOfChild()).isEqualTo(0);
 	}
 

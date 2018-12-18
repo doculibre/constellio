@@ -7,9 +7,11 @@ import javax.servlet.http.HttpSession;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_COLLECTION_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.CURRENT_USER_ATTRIBUTE;
@@ -17,6 +19,7 @@ import static com.constellio.app.ui.pages.base.VaadinSessionContext.FORCED_SIGN_
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_RECORD_IDS_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.SELECTED_RECORD_SCHEMA_TYPE_CODES_ATTRIBUTE;
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.USER_PRINCIPAL_ATTRIBUTE;
+import static com.constellio.app.ui.pages.base.VaadinSessionContext.VISITED_ATTRIBUTE;
 
 public class HttpSessionContext extends BaseSessionContext {
 
@@ -113,4 +116,16 @@ public class HttpSessionContext extends BaseSessionContext {
 		}
 		return selectedRecordSchemaTypeCodes;
 	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	protected Set<String> ensureVisited() {
+		Set<String> visited = (Set<String>) getAttribute(VISITED_ATTRIBUTE);
+		if (visited == null) {
+			visited = new HashSet<>();
+			setAttribute(VISITED_ATTRIBUTE, visited);
+		}
+		return visited;
+	}
+	
 }

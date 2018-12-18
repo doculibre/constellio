@@ -237,11 +237,11 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	protected ValidationErrors validateDeleteDocumentPossible() {
 		ValidationErrors validationErrors = new ValidationErrors();
-		if (!getCurrentUser().hasDeleteAccess().on(currentDocument())) {
+		boolean userHasDeleteAccess = !getCurrentUser().hasDeleteAccess().on(currentDocument());
+		if (!userHasDeleteAccess) {
 			validationErrors.add(DocumentActionsPresenterUtils.class, "userDoesNotHaveDeleteAccess");
-		}
-		if (!extensions.isDeleteAuthorized(currentDocument(), getCurrentUser())) {
-			validationErrors.addAll(extensions.getDeletionAuthorizationValidationErrors(currentDocument(), getCurrentUser()).getValidationErrors());
+		} else {
+			validationErrors = extensions.validateDeleteAuthorized(currentDocument(), getCurrentUser());
 		}
 		return validationErrors;
 	}
@@ -309,7 +309,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 				actionsComponent.navigate().to().recordsManagement();
 			}
 		} else {
-			actionsComponent.showMessage(MessageUtils.getUserDisplayErrorMessage(validateDeleteDocumentPossibleExtensively()));
+			MessageUtils.getCannotDeleteWindow(validateDeleteDocumentPossibleExtensively()).openWindow();
 		}
 	}
 
@@ -858,8 +858,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 		return document.getContent() == null ? null : document.getContent().getCheckoutUserId();
 	}
 
-	public void addToCartRequested(RecordVO cartVO) {
-		Cart cart = rmSchemasRecordsServices.getCart(cartVO.getId());
+	public void addToCartRequested(Cart cart) {
 		if (rmSchemasRecordsServices.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
 			actionsComponent.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {

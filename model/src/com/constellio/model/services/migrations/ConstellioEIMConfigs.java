@@ -132,11 +132,10 @@ public class ConstellioEIMConfigs {
 
 	public static final SystemConfiguration ENABLE_INACTIF_SCHEMAS_IN_SEARCH;
 
-	public static final SystemConfiguration NEGATIVE_AUTHORIZATION;
-
 	public static final SystemConfiguration SPACE_QUOTA_FOR_USER_DOCUMENTS;
 
 	public static final SystemConfiguration BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE;
+
 
 	static {
 		SystemConfigurationGroup others = new SystemConfigurationGroup(null, "others");
@@ -218,7 +217,8 @@ public class ConstellioEIMConfigs {
 
 		add(GROUP_AUTHORIZATIONS_INHERITANCE = others
 				.createEnum("groupAuthorizationsInheritance", GroupAuthorizationsInheritance.class)
-				.withDefaultValue(GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD));
+				.withDefaultValue(GroupAuthorizationsInheritance.FROM_PARENT_TO_CHILD)
+				.scriptedBy(GroupAuthorizationsInheritanceScript.class));
 
 		add(TRANSACTION_DELAY = others.createInteger("transactionDelay").withDefaultValue(3));
 		//add(DEFAULT_FONT_SIZE = others.createInteger("defaultFontSize").withDefaultValue(16));
@@ -262,10 +262,9 @@ public class ConstellioEIMConfigs {
 		add(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE = advanced.createInteger("batchProcessMaximumHistorySize")
 				.withDefaultValue(20).whichIsHidden());
 
-		add(NEGATIVE_AUTHORIZATION = others.createBooleanFalseByDefault("enableNegativeAuthorization")
-				.whichIsHidden());
 
 		add(SPACE_QUOTA_FOR_USER_DOCUMENTS = others.createInteger("spaceQuotaForUserDocuments").withDefaultValue(-1));
+
 
 		configurations = Collections.unmodifiableList(modifiableConfigs);
 	}
@@ -515,6 +514,7 @@ public class ConstellioEIMConfigs {
 	}
 
 	public boolean isNegativeAuthorizationEnabled() {
-		return manager.getValue(NEGATIVE_AUTHORIZATION);
+		return true;
 	}
+
 }

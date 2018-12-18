@@ -266,12 +266,7 @@ public class SearchServices {
 		querCompatibleWithCache.setNumberOfRows(100000);
 		querCompatibleWithCache.setReturnedMetadatas(ReturnedMetadatasFilter.all());
 
-		//final List<Record> original = search(query);
 		final List<Record> records = cachedSearch(querCompatibleWithCache);
-
-		//		if (original.size() != records.size()) {
-		//			System.out.println("different");
-		//		}
 
 		final Iterator<Record> nestedIterator = records.iterator();
 		return new SearchResponseIterator<Record>() {
@@ -318,15 +313,6 @@ public class SearchServices {
 			iterator.next();
 		}
 		return iterator;
-		//		ModifiableSolrParams params = addSolrModifiableParams(query);
-		//		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		//		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize, skipping) {
-		//
-		//			@Override
-		//			public Record convert(RecordDTO recordDTO) {
-		//				return recordServices.toRecord(recordDTO, fullyLoaded);
-		//			}
-		//		};
 	}
 
 	public long getResultsCount(LogicalSearchCondition condition) {
@@ -390,7 +376,6 @@ public class SearchServices {
 
 	public List<String> getLanguages(LogicalSearchQuery query) {
 		if (query.getLanguage() != null) {
-			//return Collections.singletonList(query.getLanguage());
 			return getLanguageCodes(query.getCondition().getCollection());
 
 		} else if (query.getCondition().isCollectionSearch()) {
@@ -524,24 +509,6 @@ public class SearchServices {
 				params.add(DisMaxParams.BQ, boost.getKey() + "^" + boost.getValue());
 			}
 		}
-
-		//		String userCondition = "";
-		//		if (query.getQueryCondition() != null) {
-		//			userCondition = " AND " + query.getQueryCondition().getSolrQuery(new SolrQueryBuilderParams(false, "?")) + " AND (";
-		//			if (query.getUserFilters() != null) {
-		//				if (!userCondition.endsWith("(")) {
-		//					userCondition += " OR ";
-		//				}
-		//				for (UserFilter userFilter : query.getUserFilters()) {
-		//					userCondition += userFilter.buildFQ(securityTokenManager);
-		//				}
-		//
-		//			}
-		//			if (userCondition.endsWith("(")) {
-		//				userCondition += "*:*";
-		//			}
-		//			userCondition += ")";
-		//		}
 
 		if (query.getUserFilters() != null) {
 			for (UserFilter userFilter : query.getUserFilters()) {
