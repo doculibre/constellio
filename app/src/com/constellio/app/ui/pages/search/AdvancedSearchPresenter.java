@@ -387,16 +387,21 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		// TODO: Create an extension for this
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Cart cart = rm.getOrCreateCart(getCurrentUser(), cartVO.getId());
+		addToCartRequested(recordIds, cart);
+	}
+
+	public void addToCartRequested(List<String> recordIds, Cart cart) {
 		List<Record> records = getRecords(recordIds);
+		String cartId = cart.getId();
 		switch (schemaTypeCode) {
 			case Folder.SCHEMA_TYPE:
-				addFoldersToCart(cart, records);
+				addFoldersToCart(cartId, records);
 				break;
 			case Document.SCHEMA_TYPE:
-				addDocumentsToCart(cart, records);
+				addDocumentsToCart(cartId, records);
 				break;
 			case ContainerRecord.SCHEMA_TYPE:
-				addContainersToCart(cart, records);
+				addContainersToCart(cartId, records);
 				break;
 		}
 		try {
@@ -413,16 +418,17 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
+		String cartId = cart.getId();
 		List<Record> records = getRecords(view.getSelectedRecordIds());
 		switch (schemaTypeCode) {
 			case Folder.SCHEMA_TYPE:
-				addFoldersToCart(cart, records);
+				addFoldersToCart(cartId, records);
 				break;
 			case Document.SCHEMA_TYPE:
-				addDocumentsToCart(cart, records);
+				addDocumentsToCart(cartId, records);
 				break;
 			case ContainerRecord.SCHEMA_TYPE:
-				addContainersToCart(cart, records);
+				addContainersToCart(cartId, records);
 				break;
 		}
 		try {
@@ -439,32 +445,32 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return modelLayerFactory.newRecordServices().getRecordsById(collection, recordIds);
 	}
 
-	private void addFoldersToCart(Cart cart, List<Record> records) {
-		if (rm().numberOfFoldersInFavoritesReachesLimit(cart.getId(), records.size())) {
+	private void addFoldersToCart(String cartId, List<Record> records) {
+		if (rm().numberOfFoldersInFavoritesReachesLimit(cartId, records.size())) {
 			view.showMessage("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders");
 		} else {
 			for (Record record : records) {
-				rm().wrapFolder(record).addFavorite(cart.getId());
+				rm().wrapFolder(record).addFavorite(cartId);
 			}
 		}
 	}
 
-	private void addDocumentsToCart(Cart cart, List<Record> records) {
-		if (rm().numberOfDocumentsInFavoritesReachesLimit(cart.getId(), records.size())) {
+	private void addDocumentsToCart(String cartId, List<Record> records) {
+		if (rm().numberOfDocumentsInFavoritesReachesLimit(cartId, records.size())) {
 			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {
 			for (Record record : records) {
-				rm().wrapDocument(record).addFavorite(cart.getId());
+				rm().wrapDocument(record).addFavorite(cartId);
 			}
 		}
 	}
 
-	private void addContainersToCart(Cart cart, List<Record> records) {
-		if (rm().numberOfContainersInFavoritesReachesLimit(cart.getId(), records.size())) {
+	private void addContainersToCart(String cartId, List<Record> records) {
+		if (rm().numberOfContainersInFavoritesReachesLimit(cartId, records.size())) {
 			view.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
 		} else {
 			for (Record record : records) {
-				rm().wrapContainerRecord(record).addFavorite(cart.getId());
+				rm().wrapContainerRecord(record).addFavorite(cartId);
 			}
 		}
 	}
@@ -881,4 +887,34 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return rm;
 	}
 
+	public List<Cart> getOwnedCarts() {
+		return rm().wrapCarts(searchServices().search(new LogicalSearchQuery(from(rm().cartSchema()).where(rm().cart.owner())
+				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
+	}
+
+	public void addToDefaultFavorite(List<String> selectedRecordIds) {
+		List<Record> records = getRecords(selectedRecordIds);
+		String currentUserId = getCurrentUser().getId();
+		switch (schemaTypeCode) {
+			case Folder.SCHEMA_TYPE:
+				addFoldersToCart(currentUserId, records);
+				break;
+			case Document.SCHEMA_TYPE:
+				addDocumentsToCart(currentUserId, records);
+				break;
+			case ContainerRecord.SCHEMA_TYPE:
+				addContainersToCart(currentUserId, records);
+				break;
+		}
+		try {
+			recordServices().execute(new Transaction(records));
+			view.showMessage($("SearchView.addedToDefaultFavorites"));
+		} catch (RecordServicesException e) {
+			view.showErrorMessage($(e));
+		}
+	}
+
+	public MetadataSchemaVO getSchema() {
+		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+	}
 }

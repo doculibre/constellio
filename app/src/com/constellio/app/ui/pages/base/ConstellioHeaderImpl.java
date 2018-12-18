@@ -4,6 +4,8 @@ import com.constellio.app.api.extensions.SelectionPanelExtension;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.entities.navigation.NavigationItem;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
+import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -587,28 +589,9 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 
 	private void buildSelectionPanelButtons(VerticalLayout actionMenuLayout) {
 		WindowButton addToCartButton = buildAddToCartButton(actionMenuLayout);
-		Button addToDefaultFavorites = addToDefaultFavoritesButton();
 		SelectionPanelExtension.setStyles(addToCartButton);
-		SelectionPanelExtension.setStyles(addToDefaultFavorites);
-		actionMenuLayout.addComponents(addToDefaultFavorites, addToCartButton);
+		actionMenuLayout.addComponents(addToCartButton);
 		presenter.buildSelectionPanelActionButtons(actionMenuLayout);
-	}
-
-	private Button addToDefaultFavoritesButton() {
-		final AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
-		Button addToDefaultFavoritesButton = new Button();
-		addToDefaultFavoritesButton.addClickListener(new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.addToDefaultFavoriteRequested(param.getIds());
-			}
-		});
-		addToDefaultFavoritesButton.setCaption($("ConstellioHeader.selection.addToDefaultFavorites"));
-		addToDefaultFavoritesButton.setEnabled(
-				presenter.getCurrentUser().has(RMPermissionsTo.USE_CART).globally() && containsOnly(param.getSchemaTypeCodes(),
-						asList(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, ContainerRecord.SCHEMA_TYPE)));
-		addToDefaultFavoritesButton.setVisible(addToDefaultFavoritesButton.isEnabled());
-		return addToDefaultFavoritesButton;
 	}
 
 	private WindowButton buildAddToCartButton(final VerticalLayout actionMenuLayout) {
@@ -644,18 +627,6 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 				TabSheet tabSheet = new TabSheet();
-				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(
-						presenter.getOwnedCartsDataProvider());
-				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
-				ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
-					@Override
-					public void itemClick(ItemClickEvent event) {
-						AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
-						presenter.addToCartRequested(param.getIds(), ownedCartsContainer.getRecordVO((int) event.getItemId()));
-						getWindow().close();
-					}
-				});
-
 				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
 						presenter.getSharedCartsDataProvider());
 				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
@@ -668,6 +639,7 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 					}
 				});
 
+				Table ownedCartsTable = buildOwnedFavoritesTable(getWindow());
 				ownedCartsTable.setWidth("100%");
 				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
@@ -932,6 +904,34 @@ public class ConstellioHeaderImpl extends I18NHorizontalLayout implements Conste
 			}
 		}
 	}
+
+	private Table buildOwnedFavoritesTable(final Window window) {
+		final AvailableActionsParam param = presenter.buildAvailableActionsParam(actionMenuLayout);
+		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
+		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		for (Cart cart : presenter.getOwnedCarts()) {
+			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
+		}
+		final DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
+		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesConstellioHeader", container, presenter.getSchema());
+		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
+		defaultFavoritesTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Cart cart = container.getCart((DefaultFavoritesTable.CartItem) event.getItemId());
+				if (cart == null) {
+					presenter.addToDefaultFavoriteRequested(param.getIds());
+				} else {
+					presenter.addToCartRequested(param.getIds(), cart);
+				}
+				window.close();
+			}
+		});
+		container.removeContainerProperty(DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
+		defaultFavoritesTable.setWidth("100%");
+		return defaultFavoritesTable;
+	}
+
 
 	public ConstellioHeaderPresenter getPresenter() {
 		return presenter;
