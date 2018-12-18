@@ -16,7 +16,7 @@ import java.util.Collection;
 public class FilterTableAdapter extends FilterTable {
 	private final Table adaptedTable;
 
-	public FilterTableAdapter(Table adaptedTable, FilterDecorator decorator, FilterGenerator generator) {
+	public FilterTableAdapter(final Table adaptedTable, FilterDecorator decorator, FilterGenerator generator) {
 		this.adaptedTable = adaptedTable;
 
 		if (decorator != null) {
@@ -65,6 +65,15 @@ public class FilterTableAdapter extends FilterTable {
 		}
 
 		setCellStyleGenerator(new CellStyleGeneratorAdapter(adaptedTable, adaptedTable.getCellStyleGenerator()));
+
+		addColumnCollapseListener(new ColumnCollapseListener() {
+			@Override
+			public void columnCollapseStateChange(ColumnCollapseEvent event) {
+				Object propertyId = event.getPropertyId();
+				boolean collapsed = FilterTableAdapter.this.isColumnCollapsed(propertyId);
+				adaptedTable.setColumnCollapsed(propertyId, collapsed);
+			}
+		});
 
 		addStyleName(adaptedTable.getStyleName());
 
