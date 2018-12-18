@@ -37,6 +37,7 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	public static final String ADDRESS = "address";
 	public static final String AGENT_STATUS = "agentStatus";
 	public static final String HAS_AGREED_TO_PRIVACY_POLICY = "hasAgreedToPrivacyPolicy";
+	public static final String DO_NOT_RECEIVE_EMAILS = "doNotReceiveEmails";
 
 	public SolrUserCredential(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -373,5 +374,9 @@ public class SolrUserCredential extends RecordWrapper implements UserCredential 
 	public UserCredential withAgreedPrivacyPolicy(Boolean hasAgreedToPrivacyPolicy) {
 		set(HAS_AGREED_TO_PRIVACY_POLICY, hasAgreedToPrivacyPolicy);
 		return this;
+	}
+
+	public boolean isNotReceivingEmails() {
+		return Boolean.TRUE.equals(get(DO_NOT_RECEIVE_EMAILS));
 	}
 }

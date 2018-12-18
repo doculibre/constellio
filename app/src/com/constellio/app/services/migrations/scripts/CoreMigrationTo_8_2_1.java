@@ -4,8 +4,10 @@ import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
+import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 public class CoreMigrationTo_8_2_1 implements MigrationScript {
@@ -31,6 +33,13 @@ public class CoreMigrationTo_8_2_1 implements MigrationScript {
 		protected void migrate(MetadataSchemaTypesBuilder builder) {
 			builder.getDefaultSchema(User.SCHEMA_TYPE).createUndeletable(User.TAXONOMY_DISPLAY_ORDER)
 					.setType(MetadataValueType.STRING).setMultivalue(true);
+			builder.getDefaultSchema(User.SCHEMA_TYPE).createUndeletable(User.DO_NOT_RECEIVE_EMAILS)
+					.setType(MetadataValueType.BOOLEAN);
+
+			if(Collection.SYSTEM_COLLECTION.equals(builder.getCollection())) {
+				builder.getDefaultSchema(SolrUserCredential.SCHEMA_TYPE).createUndeletable(SolrUserCredential.DO_NOT_RECEIVE_EMAILS)
+						.setType(MetadataValueType.BOOLEAN);
+			}
 		}
 	}
 }
