@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.modules.rm.wrappers.structures.FolderDetailWithType;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
@@ -362,10 +363,28 @@ public class DecommissioningList extends RecordWrapper {
 		return this;
 	}
 
+	public DecommissioningList setAlreadyIncludedFolderDetailsForIds(List<String> folders) {
+		List<DecomListFolderDetail> details = new ArrayList<>();
+		for (String folder : folders) {
+			details.add(new DecomListFolderDetail().setFolderId(folder).setFolderDetailStatus(FolderDetailStatus.INCLUDED));
+		}
+		setFolderDetails(details);
+		return this;
+	}
+
 	public DecommissioningList setFolderDetailsForIds(String... folders) {
 		List<DecomListFolderDetail> details = new ArrayList<>();
 		for (String folder : folders) {
 			details.add(new DecomListFolderDetail().setFolderId(folder));
+		}
+		setFolderDetails(details);
+		return this;
+	}
+
+	public DecommissioningList setAlreadyIncludedFolderDetailsForIds(String... folders) {
+		List<DecomListFolderDetail> details = new ArrayList<>();
+		for (String folder : folders) {
+			details.add(new DecomListFolderDetail().setFolderId(folder).setFolderDetailStatus(FolderDetailStatus.INCLUDED));
 		}
 		setFolderDetails(details);
 		return this;

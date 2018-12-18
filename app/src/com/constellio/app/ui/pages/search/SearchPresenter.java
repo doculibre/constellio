@@ -270,7 +270,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+		SessionContext sessionContext = view.getSessionContext();
 		init(constellioFactories, sessionContext);
 	}
 
@@ -492,14 +492,14 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			searchEvent.setNumFound(response.getNumFound());
 			UIContext uiContext = view.getUIContext();
 
-			SearchEvent oldSearchEventRecord = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			SearchEvent oldSearchEventRecord = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 			SearchEvent oldSearchEvent = null;
 			if (oldSearchEventRecord != null && oldSearchEventRecord.getCollection().equals(collection)) {
 				oldSearchEvent = oldSearchEventRecord;
 			}
 
 			if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
-				ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent);
+				view.getSessionContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent);
 				SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
 				searchEventServices.save(searchEvent);
 
@@ -831,16 +831,19 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return appLayerFactory.getLabelTemplateManager().listTemplates(null);
 	}
 
-	protected boolean saveSearch(String title, boolean publicAccess) {
+	protected boolean saveSearch(String title, boolean publicAccess, List<String> sharedUsers,
+								 List<String> sharedGroups) {
 		Record record = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		SavedSearch search = new SavedSearch(record, types())
 				.setTitle(title)
-				.setUser(publicAccess ? null : getCurrentUser().getId())
+				.setUser(getCurrentUser().getId())
 				.setPublic(publicAccess)
 				.setSortField(sortCriterion)
 				.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
 				.setSelectedFacets(facetSelections.getNestedMap())
-				.setTemporary(false);
+				.setTemporary(false)
+				.setSharedUsers(!sharedUsers.isEmpty() ? sharedUsers : null)
+				.setSharedGroups(!sharedGroups.isEmpty() ? sharedGroups : null);
 
 		try {
 			recordServices().add(prepareSavedSearch(search));
@@ -941,7 +944,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
 			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			SearchEvent searchEvent = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 
 			searchEventServices.incrementClickCounter(searchEvent.getId());
 
@@ -959,7 +962,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	public void searchNavigationButtonClicked() {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			SearchEvent searchEvent = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
 					appLayerFactory.getModelLayerFactory());
 
@@ -993,7 +996,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			newSearchEvent.setCapsule(searchEvent.getCapsule());
 
 			if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
-				ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
+				view.getSessionContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
 				searchEventServices.save(newSearchEvent);
 			} else {
 				searchEventServices.setLastPageNavigation(searchEvent.getId(), pageNumber);

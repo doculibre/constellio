@@ -9,6 +9,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
+import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
@@ -16,6 +17,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
@@ -45,6 +47,15 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 		view.navigate().to(RMViews.class).listCarts();
 	}
 
+	public void displayButtonClicked(Cart cart) {
+		view.navigate().to(RMViews.class).cart(cart.getId());
+	}
+
+	public void deleteButtonClicked(Cart cart) {
+		delete(cart.getWrappedRecord());
+		view.navigate().to(RMViews.class).listCarts();
+	}
+
 	public RecordVODataProvider getOwnedCartsDataProvider() {
 		return new RecordVODataProvider(schemaVO, recordToVOBuilder, modelLayerFactory, view.getSessionContext()) {
 			@Override
@@ -65,6 +76,11 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 		};
 	}
 
+	public List<Cart> getOwnedCarts() {
+		return rm.wrapCarts(searchServices().search(new LogicalSearchQuery(from(defaultSchema()).where(getMetadata(Cart.OWNER))
+				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
+	}
+
 	public void saveButtonClicked(String title) {
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
@@ -80,5 +96,29 @@ public class CartsListPresenter extends SingleSchemaBasePresenter<CartsListView>
 
 	public void displayDefaultFavorites() {
 		view.navigate().to(RMViews.class).cart(getCurrentUser().getId());
+	}
+
+	public User getCurrentUser() {
+		return super.getCurrentUser();
+	}
+
+	public Record getUser(String userId) {
+		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(getMetadata("id")).isEqualTo(userId));
+	}
+
+	public Record getCreatedBy(Cart cart) {
+		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(getMetadata("id")).isEqualTo(cart.getCreatedBy()));
+	}
+
+	public Record getModifiedBy(Cart cart) {
+		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(getMetadata("id")).isEqualTo(cart.getModifiedBy()));
+	}
+
+	public Record getOwner(Cart cart) {
+		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(getMetadata("id")).isEqualTo(cart.getOwner()));
+	}
+
+	public MetadataSchemaVO getSchema() {
+		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 	}
 }

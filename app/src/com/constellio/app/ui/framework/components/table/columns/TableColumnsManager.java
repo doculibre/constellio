@@ -9,7 +9,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
-import com.constellio.model.services.schemas.SchemaUtils;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Table.Align;
@@ -63,32 +62,28 @@ public class TableColumnsManager implements Serializable {
 		modelLayerFactory = constellioFactories.getModelLayerFactory();
 		recordServices = modelLayerFactory.newRecordServices();
 		userServices = modelLayerFactory.newUserServices();
-		metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(sessionContext.getCurrentCollection());
-		String collection = sessionContext.getCurrentCollection();
-		UserVO currentUserVO = sessionContext.getCurrentUser();
-		String username = currentUserVO.getUsername();
 
-		currentUser = userServices.getUserInCollection(username, collection);
+		String collection = null;
+		if (sessionContext.getCurrentCollection() != null) {
+			metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager()
+					.getSchemaTypes(sessionContext.getCurrentCollection());
+			collection = sessionContext.getCurrentCollection();
+		}
+
+
+		UserVO currentUserVO = sessionContext.getCurrentUser();
+		String username = null;
+		if (currentUserVO != null) {
+			username = currentUserVO.getUsername();
+		}
+
+		if (currentUserVO != null && username != null) {
+			currentUser = userServices.getUserInCollection(username, collection);
+		}
 	}
 
-	private void checkIfColumnIsMetadataAndAsAccessRestriction(List<String> visibleColumnForUser, String tableId) {
-		List<String> toRemove = new ArrayList<>();
+	protected void decorateVisibleColumns(List<String> visibleColumnForUser, String tableId) {
 
-		for(String id : visibleColumnForUser) {
-			String[] parsedCode = SchemaUtils.underscoreSplitWithCache(id);
-			if (parsedCode.length == 3 && metadataSchemaTypes.hasMetadata(id) && !currentUser.hasGlobalAccessToMetadata(metadataSchemaTypes.getMetadata(id))) {
-				toRemove.add(id);
-			}
-		}
-
-
-		for(String itemToRemove : toRemove) {
-			visibleColumnForUser.remove(itemToRemove);
-		}
-
-		if(toRemove.size() > 0) {
-			currentUser.setVisibleTableColumns(tableId, visibleColumnForUser);
-		}
 	}
 
 	public void manage(final Table table, final String tableId) {
@@ -109,7 +104,7 @@ public class TableColumnsManager implements Serializable {
 
 		List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
 		Collection<?> propertyIds = table.getContainerPropertyIds();
-		checkIfColumnIsMetadataAndAsAccessRestriction(visibleColumnIdsForUser, tableId);
+		decorateVisibleColumns(visibleColumnIdsForUser, tableId);
 
 		for (Object propertyId : propertyIds) {
 			String columnId = toColumnId(propertyId);
@@ -144,6 +139,9 @@ public class TableColumnsManager implements Serializable {
 		table.addColumnReorderListener(new ColumnReorderListener() {
 			@Override
 			public void columnReorder(ColumnReorderEvent event) {
+				if (currentUser == null) {
+					return;
+				}
 				Object[] visibleColumnIds = table.getVisibleColumns();
 				List<String> visibleColumnIdsForUser = new ArrayList<>();
 				for (Object visiblePropertyId : visibleColumnIds) {
@@ -167,11 +165,16 @@ public class TableColumnsManager implements Serializable {
 	}
 
 	private List<String> getVisibleColumnIdsForCurrentUser(Table table, String tableId) {
-		List<String> visibleColumnIds = currentUser.getVisibleTableColumnsFor(tableId);
-		if (visibleColumnIds == null) {
-			visibleColumnIds = new ArrayList<>();
-		}
-		if (visibleColumnIds.isEmpty()) {
+		List<String> visibleColumnIds;
+		if (currentUser != null) {
+			visibleColumnIds = currentUser.getVisibleTableColumnsFor(tableId);
+			if (visibleColumnIds == null) {
+				visibleColumnIds = new ArrayList<>();
+			}
+			if (visibleColumnIds.isEmpty()) {
+				visibleColumnIds = getDefaultVisibleColumnIds(table);
+			}
+		} else {
 			visibleColumnIds = getDefaultVisibleColumnIds(table);
 		}
 		return visibleColumnIds;

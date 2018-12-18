@@ -21,6 +21,7 @@ import com.constellio.app.modules.rm.extensions.RMEventRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMFolderExtension;
 import com.constellio.app.modules.rm.extensions.RMGenericRecordPageExtension;
 import com.constellio.app.modules.rm.extensions.RMListSchemaTypeExtension;
+import com.constellio.app.modules.rm.extensions.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMModulePageExtension;
 import com.constellio.app.modules.rm.extensions.RMOldSchemasBlockageRecordExtension;
 import com.constellio.app.modules.rm.extensions.RMRecordAppExtension;
@@ -34,6 +35,7 @@ import com.constellio.app.modules.rm.extensions.RMSearchPageExtension;
 import com.constellio.app.modules.rm.extensions.RMSelectionPanelExtension;
 import com.constellio.app.modules.rm.extensions.RMSystemCheckExtension;
 import com.constellio.app.modules.rm.extensions.RMTaxonomyPageExtension;
+import com.constellio.app.modules.rm.extensions.RMUserProfileFieldsExtension;
 import com.constellio.app.modules.rm.extensions.RMUserRecordExtension;
 import com.constellio.app.modules.rm.extensions.RemoveClickableNotificationsWhenChangingPage;
 import com.constellio.app.modules.rm.extensions.SessionContextRecordExtension;
@@ -53,7 +55,6 @@ import com.constellio.app.modules.rm.extensions.imports.ReportImportExtension;
 import com.constellio.app.modules.rm.extensions.imports.RetentionRuleImportExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMAvailableCapacityExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMExcelReportSchemaExtension;
-import com.constellio.app.modules.rm.extensions.schema.RMMediumTypeRecordExtension;
 import com.constellio.app.modules.rm.extensions.schema.RMTrashSchemaExtension;
 import com.constellio.app.modules.rm.migrations.RMMigrationCombo;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo5_0_1;
@@ -138,19 +139,19 @@ import com.constellio.app.modules.rm.migrations.RMMigrationTo8_0_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_0_3;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_0_1;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_0_34;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_1_2;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_2;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_1_4;
 import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2;
-import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_1;
+import com.constellio.app.modules.rm.migrations.RMMigrationTo8_2_666;
 import com.constellio.app.modules.rm.migrations.records.RMContainerRecordMigrationTo7_3;
 import com.constellio.app.modules.rm.migrations.records.RMDocumentMigrationTo7_6_10;
 import com.constellio.app.modules.rm.migrations.records.RMEmailMigrationTo7_7_1;
-import com.constellio.app.modules.rm.migrations.records.RMFolderMigrationTo8_1_1_1;
+import com.constellio.app.modules.rm.migrations.records.RMFolderMigrationTo8_1_1_2;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleBuilder;
-import com.constellio.app.modules.rm.navigation.DefaultFavoritesNavigationConfiguration;
 import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
@@ -169,7 +170,6 @@ import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.RecordMigrationScript;
 import com.constellio.model.entities.records.Transaction;
-import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
@@ -183,7 +183,7 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.ignite.RecordsCacheIgniteImpl;
-import com.constellio.model.services.security.GlobalSecurizedTypeCondition;
+import com.constellio.model.services.security.GlobalSecuredTypeCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -312,10 +312,11 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMMigrationTo8_1_0_1());
 		scripts.add(new RMMigrationTo8_1_1());
 		scripts.add(new RMMigrationTo8_1_1_1());
-		scripts.add(new RMMigrationTo8_2());
-		scripts.add(new RMMigrationTo8_2_1());
-		scripts.add(new RMMigrationTo8_1_0_34());
+		scripts.add(new RMMigrationTo8_1_1_2());
 		scripts.add(new RMMigrationTo8_1_2());
+		scripts.add(new RMMigrationTo8_1_4());
+		scripts.add(new RMMigrationTo8_2());
+		scripts.add(new RMMigrationTo8_2_666());
 
 		return scripts;
 	}
@@ -327,7 +328,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		scripts.add(new RMContainerRecordMigrationTo7_3(collection, appLayerFactory));
 		scripts.add(new RMDocumentMigrationTo7_6_10(collection, appLayerFactory));
 		scripts.add(new RMEmailMigrationTo7_7_1(collection, appLayerFactory));
-		scripts.add(new RMFolderMigrationTo8_1_1_1(collection, appLayerFactory));
+		scripts.add(new RMFolderMigrationTo8_1_1_2(collection, appLayerFactory));
 
 		return scripts;
 	}
@@ -365,7 +366,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	@Override
 	public void configureNavigation(NavigationConfig config) {
 		RMNavigationConfiguration.configureNavigation(config);
-		DefaultFavoritesNavigationConfiguration.configureNavigation(config);
 	}
 
 	@Override
@@ -439,6 +439,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.schemaTypesPageExtensions.add(new RMSchemaTypesPageExtension());
 		extensions.recordDisplayFactoryExtensions.add(new RMRecordDisplayFactoryExtension(appLayerFactory, collection));
 		extensions.listSchemaCommandExtensions.add(new RMListSchemaExtention());
+		extensions.pagesComponentsExtensions.add(new RMUserProfileFieldsExtension(collection, appLayerFactory));
 
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_REQUEST);
 		extensions.lockedRecords.add(RMTaskType.SCHEMA_TYPE, RMTaskType.BORROW_EXTENSION_REQUEST);
@@ -474,7 +475,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 		extensions.schemaExtensions.add(new RMTrashSchemaExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMAvailableCapacityExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMRequestTaskApprovedExtension(collection, appLayerFactory));
-		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, modelLayerFactory));
+		extensions.recordExtensions.add(new RMMediumTypeRecordExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMEventRecordExtension(collection, modelLayerFactory));
 		extensions.recordExtensions.add(new RMRecordCaptionExtension(collection, appLayerFactory));
 		extensions.recordExtensions.add(new RMContainerRecordExtension(collection, appLayerFactory));
@@ -490,10 +491,6 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				cache.removeCache(type.getCode());
 			}
 			cache.configureCache(CacheConfig.permanentCache(type));
-		}
-
-		if (!cache.isConfigured(Facet.SCHEMA_TYPE)) {
-			cache.configureCache(CacheConfig.permanentCache(rm.facet.schemaType()));
 		}
 
 		if (cache.isConfigured(AdministrativeUnit.SCHEMA_TYPE)) {
@@ -547,7 +544,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 	public void start(AppLayerFactory appLayerFactory) {
 		RMNavigationConfiguration.configureNavigation(appLayerFactory.getNavigatorConfigurationService());
 		appLayerFactory.getModelLayerFactory().getSecurityTokenManager().registerPublicTypeWithCondition(
-				ContainerRecord.SCHEMA_TYPE, new GlobalSecurizedTypeCondition() {
+				ContainerRecord.SCHEMA_TYPE, new GlobalSecuredTypeCondition() {
 					@Override
 					public boolean hasGlobalAccess(User user, String access) {
 						if (Role.READ.equals(access)) {
@@ -555,6 +552,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 									.onSomething();
 						} else if (Role.WRITE.equals(access)) {
 							return user.has(RMPermissionsTo.MANAGE_CONTAINERS).onSomething();
+
 						} else if (Role.DELETE.equals(access)) {
 							return user.has(RMPermissionsTo.DELETE_CONTAINERS).onSomething();
 						}
@@ -563,7 +561,7 @@ public class ConstellioRMModule implements InstallableSystemModule, ModuleWithCo
 				});
 
 		appLayerFactory.getModelLayerFactory().getSecurityTokenManager().registerPublicTypeWithCondition(
-				StorageSpace.SCHEMA_TYPE, new GlobalSecurizedTypeCondition() {
+				StorageSpace.SCHEMA_TYPE, new GlobalSecuredTypeCondition() {
 					@Override
 					public boolean hasGlobalAccess(User user, String access) {
 						if (Role.READ.equals(access) || Role.WRITE.equals(access) || Role.DELETE.equals(access)) {

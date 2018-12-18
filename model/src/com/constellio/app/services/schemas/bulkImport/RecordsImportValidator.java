@@ -14,6 +14,7 @@ import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.CannotGetMetadatasOfAnotherSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.recordsImport.PrevalidationParams;
 import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
@@ -197,7 +198,9 @@ public class RecordsImportValidator {
 				KeySetMap<String, String> unresolved = new KeySetMap<>(
 						resolverCache.getUnresolvableUniqueValues(schemaType.getCode(), uniqueValueMetadata.getLocalCode()));
 
-				if (!unresolved.isEmpty()) {
+				//If the metadata is not manual, it means that the value will never be in imported files since it is read only.
+				//The validation of the reference will only be done during the import
+				if (!unresolved.isEmpty() && uniqueValueMetadata.getDataEntry().getType() == DataEntryType.MANUAL) {
 					for (Map.Entry<String, Set<String>> entry : unresolved.getMapEntries()) {
 						String value = entry.getKey();
 						for (String usedBy : entry.getValue()) {
@@ -229,11 +232,6 @@ public class RecordsImportValidator {
 		} else {
 			parameters.put("prefix", usedBySchemaType.getLabel(language) + " : ");
 		}
-
-
-		//							List<String> schemaTypes = schemasManager.getSchemaTypes(metadata.getCollection()).getSchemaTypesSortedByDependency();
-		//							int schemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getSchemaTypeCode());
-		//							int targettingSchemaTypeDependencyIndex = schemaTypes.indexOf(metadata.getReferencedSchemaType());
 
 		if (usedByMetadata.equals("zeSchemaType_default_secondaryReferenceToAnotherSchema")) {
 			return;

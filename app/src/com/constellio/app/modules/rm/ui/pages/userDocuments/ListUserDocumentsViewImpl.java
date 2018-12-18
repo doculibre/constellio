@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.userDocuments;
 
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.ui.components.userDocument.DeclareUserContentContainerButton;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
@@ -25,6 +26,7 @@ import com.vaadin.event.dd.DragAndDropEvent;
 import com.vaadin.event.dd.DropHandler;
 import com.vaadin.event.dd.acceptcriteria.AcceptCriterion;
 import com.vaadin.navigator.ViewChangeListener.ViewChangeEvent;
+import com.vaadin.server.StreamVariable;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.Button;
@@ -93,6 +95,17 @@ public class ListUserDocumentsViewImpl extends BaseViewImpl implements ListUserD
 		mainLayout.setSpacing(true);
 
 		multiFileUpload = new BaseMultiFileUpload() {
+			@Override
+			protected void displayStreamingFailedMessage() {
+				navigate().to(RMViews.class).listUserDocuments();
+				showErrorMessage($("ListUserDocumentsView.spaceLimitReached"));
+			}
+
+			@Override
+			protected boolean isSpaceLimitReached(StreamVariable.StreamingStartEvent event) {
+				return presenter.isSpaceLimitReached(event.getContentLength());
+			}
+
 			@Override
 			protected void handleFile(File file, String fileName, String mimeType, long length) {
 				presenter.handleFile(file, fileName, mimeType, length);

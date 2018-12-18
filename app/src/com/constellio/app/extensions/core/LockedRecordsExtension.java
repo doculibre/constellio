@@ -2,13 +2,13 @@ package com.constellio.app.extensions.core;
 
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.services.factories.AppLayerFactory;
-import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.extensions.behaviors.RecordExtension;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionValidationEvent;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 
 import static com.constellio.data.utils.LangUtils.isEqual;
 
@@ -18,6 +18,7 @@ import static com.constellio.data.utils.LangUtils.isEqual;
 public class LockedRecordsExtension extends RecordExtension {
 
 	public static final String CODE_OR_LINKED_SCHEMA_MUST_NOT_BE_MODIFIED = "codeOrLinkedSchemaMustNotBeModified";
+	public static final String CANNOT_DELETE_LOCKED_RECORD = "cannotDeleteLockedRecord";
 	AppLayerFactory appLayerFactory;
 	AppLayerCollectionExtensions collectionExtensions;
 
@@ -44,17 +45,20 @@ public class LockedRecordsExtension extends RecordExtension {
 	}
 
 	@Override
-	public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+	public ValidationErrors validateLogicallyDeletable(RecordLogicalDeletionValidationEvent event) {
+		ValidationErrors validationErrors = new ValidationErrors();
 		if (collectionExtensions.lockedRecords.contains(event.getSchemaTypeCode())) {
 			Record record = event.getRecord();
 			MetadataSchema schema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager().getSchemaOf(record);
 			if (schema.hasMetadataWithCode(Schemas.CODE.getLocalCode()) &&
 				collectionExtensions.lockedRecords.get(event.getSchemaTypeCode()).contains(record.get(Schemas.CODE))) {
-				return ExtensionBooleanResult.FALSE;
+				validationErrors.add(LockedRecordsExtension.class, CANNOT_DELETE_LOCKED_RECORD);
+				return validationErrors;
 			} else if (collectionExtensions.lockedRecords.get(event.getSchemaTypeCode()).contains(record.getId())) {
-				return ExtensionBooleanResult.FALSE;
+				validationErrors.add(LockedRecordsExtension.class, CANNOT_DELETE_LOCKED_RECORD);
+				return validationErrors;
 			}
 		}
-		return super.isLogicallyDeletable(event);
+		return super.validateLogicallyDeletable(event);
 	}
 }

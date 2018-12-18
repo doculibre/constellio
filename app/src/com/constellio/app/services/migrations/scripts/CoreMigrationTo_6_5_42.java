@@ -7,7 +7,7 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.Collection;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
@@ -24,7 +24,7 @@ public class CoreMigrationTo_6_5_42 implements MigrationScript {
 
 		if (Collection.SYSTEM_COLLECTION.equals(collection)) {
 			MetadataSchema userCredentialSchema = appLayerFactory.getModelLayerFactory().getMetadataSchemasManager()
-					.getSchemaTypes(collection).getSchema(SolrUserCredential.DEFAULT_SCHEMA);
+					.getSchemaTypes(collection).getSchema(UserCredential.DEFAULT_SCHEMA);
 
 			new CoreSchemaAlterationFor6_5_42(collection, migrationResourcesProvider, appLayerFactory).migrate();
 		}
@@ -39,9 +39,9 @@ public class CoreMigrationTo_6_5_42 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder builder) {
-			MetadataSchemaBuilder credentialsSchemaBuilder = builder.getSchema(SolrUserCredential.DEFAULT_SCHEMA);
-			if (!credentialsSchemaBuilder.hasMetadata(SolrUserCredential.PERSONAL_EMAILS)) {
-				credentialsSchemaBuilder.createUndeletable(SolrUserCredential.PERSONAL_EMAILS).setType(MetadataValueType.STRING)
+			MetadataSchemaBuilder credentialsSchemaBuilder = builder.getSchema(UserCredential.DEFAULT_SCHEMA);
+			if (!credentialsSchemaBuilder.hasMetadata(UserCredential.PERSONAL_EMAILS)) {
+				credentialsSchemaBuilder.createUndeletable(UserCredential.PERSONAL_EMAILS).setType(MetadataValueType.STRING)
 						.setMultivalue(true);
 			}
 		}

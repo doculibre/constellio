@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.data.dao.services.idGenerator.ZeroPaddedSequentialUniqueIdGenerator;
 import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
+import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Group;
@@ -124,7 +125,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 		}
 
 		authsServices = getModelLayerFactory().newAuthorizationsServices();
-
+		waitForBatchProcess();
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
 				.add(new BigVaultServerExtension() {
 					@Override
@@ -138,9 +139,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 						returnedDocumentsCount.addAndGet(params.getReturnedResultsCount());
 					}
 				});
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setLogFL(false);
-		Thread.sleep(1000);
-		System.out.println("\n\n");
 	}
 
 	private List<String> getFolderDocuments(String id) {
@@ -151,8 +149,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	@Test
 	public void whenDakotaIsNavigatingATaxonomyWithVisibleRecordsThenSeesRecords()
 			throws Exception {
-
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		assertThatRootWhenUserNavigateUsingPlanTaxonomy(records.getDakota_managerInA_userInB())
 				.has(recordsInOrder(records.categoryId_X, records.categoryId_Z))
@@ -501,8 +497,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	@Test
 	public void whenUserIsNavigatingAdminUnitTaxonomyAlwaysDisplayingConceptsWithReadAccessThenOnlySeeConceptsContainingAccessibleRecordsAndThoseWithReadAccess()
 			throws Exception {
-
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
 				.setLinkableFlagCalculated(false).setHasChildrenFlagCalculated(NEVER)
@@ -997,7 +991,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 			throws Exception {
 
 		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
-		givenConfig(RMConfigs.DISPLAY_SEMI_ACTIVE_RECORDS_IN_TREES, false);
 
 		getModelLayerFactory().newRecordServices()
 				.execute(new Transaction().addAll(records.getFolder_A20().setActualTransferDate(LocalDate.now())));
@@ -1102,8 +1095,6 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 	@Test
 	public void givenNoCacheAndPlethoraOfChildCategoriesThenValidGetRootResponse()
 			throws Exception {
-
-		invalidateCachesOfRMSchemas();
 		getModelLayerFactory().getRecordsCaches().getCache(zeCollection).removeCache(Category.SCHEMA_TYPE);
 
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions().setRequiredAccess(Role.WRITE);
@@ -1645,13 +1636,18 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 					assertThat(current).describedAs("Second call Queries count - Query resuts count - Facets count")
 							.isEqualTo(expected);
 				}
-				queriesCount.set(0);
-				facetsCount.set(0);
-				returnedDocumentsCount.set(0);
+				resetCounters(queriesCount, facetsCount, returnedDocumentsCount);
 
 				return true;
 			}
 		};
+	}
+
+	protected void resetCounters(AtomicInteger queriesCount, AtomicInteger facetsCount,
+								 AtomicInteger returnedDocumentsCount) {
+		queriesCount.set(0);
+		facetsCount.set(0);
+		returnedDocumentsCount.set(0);
 	}
 
 	private Condition<? super LinkableTaxonomySearchResponseCaller> solrQueryCounts(final int queries,
@@ -1668,9 +1664,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 					assertThat(current).describedAs("First call Queries count - Query resuts count - Facets count")
 							.isEqualTo(expected);
 				}
-				queriesCount.set(0);
-				facetsCount.set(0);
-				returnedDocumentsCount.set(0);
+				resetCounters();
 
 				return true;
 			}
@@ -2042,6 +2036,7 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 			final User user,
 			final String category, final TaxonomiesSearchOptions options) {
 
+		resetCounters();
 		return assertThat((LinkableTaxonomySearchResponseCaller) new LinkableTaxonomySearchResponseCaller() {
 
 			@Override
@@ -2115,10 +2110,27 @@ public class TaxonomiesSearchServices_VisibleTreesAcceptTest extends ConstellioT
 
 	private void invalidateCachesOfRMSchemas() {
 		for (MetadataSchemaType schemaType : rm.getTypes().getSchemaTypes()) {
-			if (schemaType.getCode().equals(User.SCHEMA_TYPE) || schemaType.getCode().equals(Group.SCHEMA_TYPE)) {
+			if (!schemaType.getCode().equals(User.SCHEMA_TYPE) && !schemaType.getCode().equals(Group.SCHEMA_TYPE)) {
 				getModelLayerFactory().getRecordsCaches().getCache(zeCollection).invalidateRecordsOfType(schemaType.getCode());
 			}
 		}
 	}
 
+	@Override
+	protected void givenConfig(SystemConfiguration config, Object value) {
+		super.givenConfig(config, value);
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		resetCounters();
+
+	}
+
+	private void resetCounters() {
+		queriesCount.set(0);
+		facetsCount.set(0);
+		returnedDocumentsCount.set(0);
+	}
 }

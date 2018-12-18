@@ -15,9 +15,9 @@ public class UserDocumentsServices {
 		userServices = modelLayerFactory.newUserServices();
 	}
 
-	public boolean isSpaceLimitReached(String username, String collection, long userDocumentSize) {
+	public boolean isSpaceLimitReached(String username, String collection, long userDocumentSizeInBytes) {
 		return isQuotaSpaceConfigActivated() &&
-			   convertToMegaByte(userDocumentSize) > getAvailableSpaceInMegaBytes(username, collection);
+			   convertToMegaByte(userDocumentSizeInBytes) > getAvailableSpaceInMegaBytes(username, collection);
 	}
 
 	public double getAvailableSpaceInMegaBytes(String username, String collection) {

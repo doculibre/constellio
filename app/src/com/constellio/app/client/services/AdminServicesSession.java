@@ -50,7 +50,7 @@ public class AdminServicesSession {
 	}
 
 	public void removeToken() {
-		requestJson("removeToken").method("POST");
+		requestJson("removeAccessToken").method("POST");
 	}
 
 	public CollectionServicesClient newCollectionServices() {

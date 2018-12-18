@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
+import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class LegacyGlobalMetadatas {
@@ -18,6 +19,8 @@ public class LegacyGlobalMetadatas {
 	public static final Metadata FOLLOWERS = add(new Metadata("followers_ss", STRING, true));
 	public static final Metadata SEARCHABLE = add(new Metadata("searchable_s", BOOLEAN, false));
 	public static final Metadata PARENT_PATH = add(new Metadata("parentpath_ss", STRING, true));
+	public static final Metadata NON_TAXONOMY_AUTHORIZATIONS = add(
+			new Metadata("nonTaxonomyAuthorizationsId_ss", REFERENCE, true));
 
 	public static Metadata add(Metadata metadata) {
 		String localCode = metadata.getLocalCode();

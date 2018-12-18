@@ -33,14 +33,14 @@ public class StatisticsAcceptanceTest extends ConstellioTest {
 	public void setUp() {
 		givenBackgroundThreadsEnabled();
 		prepareSystem(
-				withZeCollection().withConstellioRMModule()
+				withZeCollection().withConstellioRMModule().withAllTestUsers()
 		);
 
 		schemasRecordsServices = new SchemasRecordsServices(zeCollection, getModelLayerFactory());
 
 		inCollection(zeCollection).setCollectionTitleTo("Collection de test");
 
-		SessionContext sessionContext = FakeSessionContext.noUserInCollection(zeCollection);
+		SessionContext sessionContext = FakeSessionContext.adminInCollection(zeCollection);
 		sessionContext.setCurrentLocale(Locale.FRENCH);
 
 		when(statisticsView.getSessionContext()).thenReturn(sessionContext);

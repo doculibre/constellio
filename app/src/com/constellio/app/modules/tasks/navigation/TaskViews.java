@@ -14,6 +14,7 @@ public class TaskViews extends CoreViews {
 	}
 
 	public void taskManagement() {
+		clearBreadcrumbTrail();
 		navigator.navigateTo(TasksNavigationConfiguration.TASK_MANAGEMENT);
 	}
 

@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
+import static com.constellio.app.api.cmis.requests.navigation.GetChildrenRequest.LEGACY_ROOT_ID;
+
 public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CmisCollectionRequest.class);
@@ -60,7 +62,7 @@ public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 		boolean includeAclValue = CmisUtils.getBooleanParameter(includeAcl, false);
 		Set<String> filterCollection = CmisUtils.splitFilter(filter);
 
-		if ("@root@".equals(objectId)) {
+		if (LEGACY_ROOT_ID.equals(objectId) || collection.equals(objectId)) {
 			Record collectionRecord = appLayerFactory.getCollectionsManager().getCollection(collection).getWrappedRecord();
 			return newObjectDataBuilder()
 					.build(collectionRecord, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
@@ -82,16 +84,9 @@ public class GetObjectRequest extends CmisCollectionRequest<ObjectData> {
 			GetObjectParams params = new GetObjectParams(user, record);
 			appLayerFactory.getExtensions().forCollection(collection).onGetObject(params);
 
-			if (record.getId().equals(record.getCollection())) {
-				Record collectionRecord = appLayerFactory.getCollectionsManager().getCollection(collection).getWrappedRecord();
-				return newObjectDataBuilder()
-						.build(collectionRecord, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
-
-			} else {
-				ensureUserHasReadAccessToRecordOrADescendantOf(record);
-				return newObjectDataBuilder()
-						.build(record, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
-			}
+			ensureUserHasReadAccessToRecordOrADescendantOf(record);
+			return newObjectDataBuilder()
+					.build(record, filterCollection, includeAllowableActionsValue, includeAclValue, objectInfos);
 
 		}
 

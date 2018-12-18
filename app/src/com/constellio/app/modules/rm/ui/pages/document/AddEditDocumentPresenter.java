@@ -436,6 +436,9 @@ public class AddEditDocumentPresenter extends SingleSchemaBasePresenter<AddEditD
 	void adjustTypeField(CustomDocumentField<?> valueChangeField) {
 		String currentSchemaCode = getSchemaCode();
 		DocumentTypeField documentTypeField = getTypeField();
+		if(documentTypeField == null) {
+			return;
+		}
 		DocumentContentField contentField = getContentField();
 		String recordIdForDocumentType = documentTypeField.getFieldValue();
 		if (valueChangeField instanceof DocumentTypeField) {

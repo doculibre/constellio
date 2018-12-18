@@ -59,6 +59,7 @@ import com.constellio.app.ui.pages.base.SchemaPresenterUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
@@ -72,6 +73,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.contents.icap.IcapException;
@@ -188,6 +190,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		} else {
 			id = params;
 		}
+		
+		view.getSessionContext().addVisited(id);
 
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
@@ -568,7 +572,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	ComponentState getDeleteButtonState(User user, Folder folder) {
-		if (user.hasDeleteAccess().on(folder) && !extensions.isDeleteBlocked(folder.getWrappedRecord(), user)) {
+		if (user.hasDeleteAccess().on(folder) && extensions.validateDeleteAuthorized(folder.getWrappedRecord(), user).isEmpty()) {
 			if (folder.getPermissionStatus().isInactive()) {
 				if (folder.getBorrowed() != null && folder.getBorrowed()) {
 					return ComponentState.visibleIf(user.has(RMPermissionsTo.MODIFY_INACTIVE_BORROWED_FOLDER).on(folder) && user
@@ -717,8 +721,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void deleteFolderButtonClicked(String reason) {
 		String parentId = folderVO.get(Folder.PARENT_FOLDER);
 		Record record = toRecord(folderVO);
-
-		if (recordServices.isLogicallyDeletable(record, getCurrentUser())) {
+		ValidationErrors validateLogicallyDeletable = recordServices.validateLogicallyDeletable(record, getCurrentUser());
+		if (validateLogicallyDeletable.isEmpty()) {
 			appLayerFactory.getExtensions().forCollection(collection)
 					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
 			delete(record, reason, false, WAIT_ONE_SECOND);
@@ -728,7 +732,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 				navigate().to().home();
 			}
 		} else {
-			view.showErrorMessage($("ListSchemaRecordsView.cannotDelete"));
+			MessageUtils.getCannotDeleteWindow(validateLogicallyDeletable).openWindow();
 		}
 	}
 
@@ -819,12 +823,12 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		}
 	}
 
-	private void navigateToDocument(RecordVO recordVO) {
+	protected void navigateToDocument(RecordVO recordVO) {
 		RMNavigationUtils.navigateToDisplayDocument(recordVO.getId(), params, appLayerFactory,
 				collection);
 	}
 
-	public void navigateToFolder(String folderId) {
+	protected void navigateToFolder(String folderId) {
 		RMNavigationUtils.navigateToDisplayFolder(folderId, params, appLayerFactory, collection);
 	}
 
@@ -1077,6 +1081,10 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public void addToCartRequested(RecordVO recordVO) {
 		Cart cart = rmSchemasRecordsServices.getCart(recordVO.getId());
+		addToCartRequested(cart);
+	}
+
+	public void addToCartRequested(Cart cart) {
 		if (rmSchemasRecordsServices.numberOfFoldersInFavoritesReachesLimit(cart.getId(), 1)) {
 			view.showMessage($("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders"));
 		} else {
@@ -1313,18 +1321,6 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		return folder.getFavorites().contains(getCurrentUser().getId());
 	}
 
-	public void removeFromDefaultFavorites() {
-		Folder folder = rmSchemasRecordsServices.wrapFolder(folderVO.getRecord());
-		folder.removeFavorite(getCurrentUser().getId());
-		try {
-			recordServices.update(folder);
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-		view.showMessage($("DisplayFolderViewImpl.folderRemovedFromDefaultFavorites"));
-	}
-
 	public RMSelectionPanelReportPresenter buildReportPresenter() {
 		return new RMSelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
 			@Override
@@ -1341,5 +1337,18 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 
 	public AppLayerFactory getApplayerFactory() {
 		return appLayerFactory;
+	}
+
+	public boolean isNeedingAReasonToDeleteFolder() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
+	}
+
+	public List<Cart> getOwnedCarts() {
+		return rmSchemasRecordsServices().wrapCarts(searchServices().search(new LogicalSearchQuery(from(rmSchemasRecordsServices().cartSchema()).where(rmSchemasRecordsServices().cart.owner())
+				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
+	}
+
+	public MetadataSchemaVO getSchema() {
+		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 	}
 }

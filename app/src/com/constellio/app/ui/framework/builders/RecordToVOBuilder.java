@@ -30,7 +30,6 @@ public class RecordToVOBuilder implements Serializable {
 	}
 
 
-
 	@SuppressWarnings("unchecked")
 	public RecordVO build(Record record, VIEW_MODE viewMode, MetadataSchemaVO schemaVO, SessionContext sessionContext) {
 		String id = record.getId();
@@ -45,7 +44,11 @@ public class RecordToVOBuilder implements Serializable {
 		MetadataSchema schema = metadataSchemasManager.getSchemaTypes(collection).getSchema(schemaCode);
 		UserServices userServices = modelLayerFactory.newUserServices();
 
-		User user = userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
+		User user = null;
+
+		if (sessionContext.getCurrentUser() != null && sessionContext.getCurrentCollection() != null) {
+			user = userServices.getUserInCollection(sessionContext.getCurrentUser().getUsername(), sessionContext.getCurrentCollection());
+		}
 
 		if (schemaVO == null) {
 			schemaVO = new MetadataSchemaToVOBuilder().build(schema, viewMode, sessionContext);
@@ -83,7 +86,7 @@ public class RecordToVOBuilder implements Serializable {
 				recordVOValue = listRecordVOValue;
 			}
 			MetadataValueVO metadataValueVO = new MetadataValueVO(metadataVO, recordVOValue);
-			if(user.hasAccessToMetadata(metadata, record)) {
+			if (user == null || user.hasAccessToMetadata(metadata, record)) {
 				metadataValueVOs.add(metadataValueVO);
 			} else {
 				metadataCodeExcludedList.add(metadataVO.getCode());
@@ -110,7 +113,8 @@ public class RecordToVOBuilder implements Serializable {
 		return record.get(metadata);
 	}
 
-	protected RecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode,List<String> excludedMetadata) {
+	protected RecordVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode,
+								   List<String> excludedMetadata) {
 		return new RecordVO(id, metadataValueVOs, viewMode, excludedMetadata);
 	}
 

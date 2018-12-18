@@ -23,8 +23,10 @@ import com.constellio.data.extensions.AfterQueryParams;
 import com.constellio.data.extensions.BigVaultServerExtension;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.Taxonomy;
+import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -63,7 +65,6 @@ import static com.constellio.app.modules.rm.constants.RMTaxonomies.ADMINISTRATIV
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.CLASSIFICATION_PLAN;
 import static com.constellio.app.modules.rm.constants.RMTaxonomies.STORAGES;
 import static com.constellio.data.dao.dto.records.OptimisticLockingResolution.EXCEPTION;
-import static com.constellio.model.entities.schemas.Schemas.TOKENS_OF_HIERARCHY;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationForUsers;
 import static com.constellio.model.entities.security.global.AuthorizationAddRequest.authorizationInCollection;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
@@ -100,7 +101,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		prepareSystem(withZeCollection().withAllTest(users).withConstellioRMModule().withRMTest(records)
 				.withFoldersAndContainersOfEveryStatus()
 		);
-
 		authsServices = getModelLayerFactory().newAuthorizationsServices();
 		recordServices = getModelLayerFactory().newRecordServices();
 
@@ -119,10 +119,12 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		alice = userServices.getUserInCollection(aliceWonderland, zeCollection);
 		zeSasquatch = userServices.getUserInCollection(sasquatch, zeCollection);
 		getModelLayerFactory().newRecordServices().update(alice.setCollectionReadAccess(false));
+		waitForBatchProcess();
 		getDataLayerFactory().getExtensions().getSystemWideExtensions().bigVaultServerExtension
 				.add(new BigVaultServerExtension() {
 					@Override
 					public void afterQuery(AfterQueryParams params) {
+
 						queriesCount.incrementAndGet();
 						String[] facetQuery = params.getSolrParams().getParams("facet.query");
 						if (facetQuery != null) {
@@ -734,31 +736,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 	}
 
-	private ListAssert<String> assertThatTokensOf(String id) {
-
-		List<String> tokens = record(id).getList(TOKENS_OF_HIERARCHY);
-
-		List<String> transformedTokensReplacingIdsByNames = new ArrayList<>();
-
-		UserServices userServices = getModelLayerFactory().newUserServices();
-		for (String token : tokens) {
-			String transformedToken = token;
-
-			for (User user : userServices.getAllUsersInCollection(zeCollection)) {
-				transformedToken = transformedToken.replace(user.getId(), user.getUsername());
-			}
-
-			for (Record group : getModelLayerFactory().newSearchServices().getAllRecords(rm.group.schemaType())) {
-				transformedToken = transformedToken.replace(group.getId(), group.<String>get(Schemas.CODE));
-			}
-
-			transformedTokensReplacingIdsByNames.add(transformedToken);
-		}
-
-		return assertThat(transformedTokensReplacingIdsByNames);
-
-	}
-
 	@Test
 	public void givenUserHavePositiveAuthorizationsOnFoldersAndSubFoldersThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
 			throws Exception {
@@ -767,33 +744,53 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		createFoldersAndSubFoldersWithNegativeAuths(records.getUnit20(), records.getCategory_X13());
 		waitForBatchProcess();
 
-		//		assertThatTokensOf("f11").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
-		//		assertThatTokensOf("f1").isEmpty();
-		//
-		//		assertThatTokensOf("f21").containsOnly("nd_heroes", "nr_heroes", "nw_sidekicks", "nw_heroes", "nd_sidekicks", "nr_sidekicks");
-		//		assertThatTokensOf("f2").containsOnly("nd_heroes", "nr_heroes", "nw_sidekicks", "nw_heroes", "nd_sidekicks", "nr_sidekicks");
-		//
-		//		assertThatTokensOf("f31").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
-		//		assertThatTokensOf("f32").containsOnly("nd_heroes", "nr_heroes", "nw_sidekicks", "nw_heroes", "nd_sidekicks", "nr_sidekicks");
-		//		assertThatTokensOf("f3").isEmpty();
-		//
-		//		assertThatTokensOf("f41").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks",
-		//				"nd_legends", "nr_legends", "nw_rumors", "nw_legends", "nd_rumors", "nr_rumors");
-		//		assertThatTokensOf("f4").isEmpty();
 
-		//		assertThatTokensOf("f51").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
-		//		assertThatTokensOf("f5").isEmpty();
-		//
-		//		assertThatTokensOf("f61").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
-		//		assertThatTokensOf("f62").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
-		//		assertThatTokensOf("f6").isEmpty();
-		//
-		//		assertThatTokensOf("f71").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
-		//		assertThatTokensOf("f72").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
-		//		assertThatTokensOf("f7").isEmpty();
-
-		//		assertThatTokensOf("f81").containsOnly("-nd_heroes", "-nr_heroes", "-nw_sidekicks", "-nw_heroes", "-nd_sidekicks", "-nr_sidekicks");
-		//		assertThatTokensOf("f8").isEmpty();
+		assertThat(tokensOf("f1")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f1")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f2")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f2")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f3")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f3")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f4")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f4")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f5")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f5")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f6")).containsOnly();
+		assertThat(hierarchyTokensOf("f6")).containsOnly();
+		assertThat(tokensOf("f7")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("f7")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("f8")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("f8")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("f9")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(hierarchyTokensOf("f9")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(tokensOf("f10")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(hierarchyTokensOf("f10")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(tokensOf("f11")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks");
+		assertThat(hierarchyTokensOf("f11")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks");
+		assertThat(tokensOf("f21")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f21")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f31")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_chuck", "nr_chuck", "nw_chuck", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
+		assertThat(hierarchyTokensOf("f31")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_chuck", "nr_chuck", "nw_chuck", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
+		assertThat(tokensOf("f32")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f32")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f41")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
+		assertThat(hierarchyTokensOf("f41")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
+		assertThat(tokensOf("f51")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "r_heroes", "r_sidekicks", "rf_heroes", "rf_sidekicks");
+		assertThat(hierarchyTokensOf("f51")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "r_heroes", "r_sidekicks", "rf_heroes", "rf_sidekicks");
+		assertThat(tokensOf("f61")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("f61")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("f62")).containsOnly("r_legends", "r_rumors", "rf_legends", "rf_rumors");
+		assertThat(hierarchyTokensOf("f62")).containsOnly("r_legends", "r_rumors", "rf_legends", "rf_rumors");
+		assertThat(tokensOf("f71")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("f71")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("f72")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors");
+		assertThat(hierarchyTokensOf("f72")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors");
+		assertThat(tokensOf("f81")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors", "nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f81")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors", "nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f91")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(hierarchyTokensOf("f91")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(tokensOf("f101")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
+		assertThat(hierarchyTokensOf("f101")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rf_alice", "rf_bob", "rf_charles", "rf_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wf_alice", "wf_bob", "wf_charles", "wf_gandalf");
 
 		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(true));
 
@@ -851,6 +848,56 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 	}
 
+	private List<String> tokensOf(String recordId) {
+		return transformTokens(record(recordId).<String>getList(Schemas.TOKENS));
+	}
+
+
+	private List<String> hierarchyTokensOf(String recordId) {
+		return transformTokens(record(recordId).<String>getList(Schemas.TOKENS));
+	}
+
+	private List<String> transformTokens(List<String> tokens) {
+
+		UserServices userServices = getModelLayerFactory().newUserServices();
+		List<String> returnedTokens = new ArrayList<>();
+
+		for(String token : tokens) {
+			String transformedToken = token;
+
+			for(User user : userServices.getAllUsersInCollection(zeCollection)) {
+				transformedToken = transformedToken.replace(user.getId(), user.getUsername());
+			}
+
+			for(Group group : userServices.getAllGroupsInCollections(zeCollection)) {
+				transformedToken = transformedToken.replace(group.getId(), group.getCode());
+			}
+			returnedTokens.add(transformedToken);
+		}
+
+		return returnedTokens;
+	}
+
+	private void generateAsserts(String... ids) {
+		for(String id : ids) {
+			System.out.println("assertThat(tokensOf(\"" + id + "\")).containsOnly(" + toExpected(tokensOf(id)) + ");" );
+			System.out.println("assertThat(hierarchyTokensOf(\"" + id + "\")).containsOnly(" + toExpected(hierarchyTokensOf(id)) + ");" );
+		}
+
+	}
+
+	private String toExpected(List<String> values) {
+		StringBuilder sb = new StringBuilder();
+
+		for (String value : values) {
+			if (sb.length() > 0) {
+				sb.append(", ");
+			}
+			sb.append("\"" + value + "\"");
+		}
+
+		return sb.toString();
+	}
 
 	@Test
 	public void givenUserHavePositiveAuthorizationsOnFoldersAndDocumentsThenValidTreeForFolderSelectionUsingCategoryTaxonomy()
@@ -858,7 +905,55 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 
 
 		createFoldersAndDocumentsWithNegativeAuths(records.getUnit20(), records.getCategory_X13());
+
 		waitForBatchProcess();
+
+		assertThat(tokensOf("f1")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f1")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f2")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f2")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f3")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f3")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f4")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f4")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f5")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("f5")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("f6")).containsOnly();
+		assertThat(hierarchyTokensOf("f6")).containsOnly();
+		assertThat(tokensOf("f7")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("f7")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("f8")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("f8")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("f9")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(hierarchyTokensOf("f9")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(tokensOf("f10")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(hierarchyTokensOf("f10")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(tokensOf("d11")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks");
+		assertThat(hierarchyTokensOf("d11")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks");
+		assertThat(tokensOf("d21")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("d21")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("d31")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_chuck", "nr_chuck", "nw_chuck", "r_alice", "r_bob", "r_charles", "r_gandalf", "rd_alice", "rd_bob", "rd_charles", "rd_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wd_alice", "wd_bob", "wd_charles", "wd_gandalf");
+		assertThat(hierarchyTokensOf("d31")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_chuck", "nr_chuck", "nw_chuck", "r_alice", "r_bob", "r_charles", "r_gandalf", "rd_alice", "rd_bob", "rd_charles", "rd_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wd_alice", "wd_bob", "wd_charles", "wd_gandalf");
+		assertThat(tokensOf("d32")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("d32")).containsOnly("nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("d41")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rd_alice", "rd_bob", "rd_charles", "rd_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wd_alice", "wd_bob", "wd_charles", "wd_gandalf");
+		assertThat(hierarchyTokensOf("d41")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rd_alice", "rd_bob", "rd_charles", "rd_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wd_alice", "wd_bob", "wd_charles", "wd_gandalf");
+		assertThat(tokensOf("d51")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "r_heroes", "r_sidekicks", "rd_heroes", "rd_sidekicks");
+		assertThat(hierarchyTokensOf("d51")).containsOnly("-nd_heroes", "-nd_sidekicks", "-nr_heroes", "-nr_sidekicks", "-nw_heroes", "-nw_sidekicks", "r_heroes", "r_sidekicks", "rd_heroes", "rd_sidekicks");
+		assertThat(tokensOf("d61")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("d61")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("d62")).containsOnly("r_legends", "r_rumors", "rd_legends", "rd_rumors");
+		assertThat(hierarchyTokensOf("d62")).containsOnly("r_legends", "r_rumors", "rd_legends", "rd_rumors");
+		assertThat(tokensOf("d71")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(hierarchyTokensOf("d71")).containsOnly("nd_legends", "nd_rumors", "nr_legends", "nr_rumors", "nw_legends", "nw_rumors");
+		assertThat(tokensOf("d72")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors");
+		assertThat(hierarchyTokensOf("d72")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors");
+		assertThat(tokensOf("d81")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors", "nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(hierarchyTokensOf("d81")).containsOnly("-nd_legends", "-nd_rumors", "-nr_legends", "-nr_rumors", "-nw_legends", "-nw_rumors", "nd_heroes", "nd_sidekicks", "nr_heroes", "nr_sidekicks", "nw_heroes", "nw_sidekicks");
+		assertThat(tokensOf("d91")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(hierarchyTokensOf("d91")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors");
+		assertThat(tokensOf("d101")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rd_alice", "rd_bob", "rd_charles", "rd_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wd_alice", "wd_bob", "wd_charles", "wd_gandalf");
+		assertThat(hierarchyTokensOf("d101")).containsOnly("nd_heroes", "nd_legends", "nd_sidekicks", "nd_rumors", "nr_heroes", "nr_legends", "nr_sidekicks", "nr_rumors", "nw_heroes", "nw_legends", "nw_sidekicks", "nw_rumors", "r_alice", "r_bob", "r_charles", "r_gandalf", "rd_alice", "rd_bob", "rd_charles", "rd_gandalf", "w_alice", "w_bob", "w_charles", "w_gandalf", "wd_alice", "wd_bob", "wd_charles", "wd_gandalf");
 
 		recordServices.update(users.aliceIn(zeCollection).setCollectionAllAccess(true));
 
@@ -1137,8 +1232,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		assertThat(subFolder2.get(Schemas.VISIBLE_IN_TREES)).isEqualTo(Boolean.FALSE);
 
 		givenUserHasReadAccessTo(records.folder_A20, records.folder_C01);
-
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		assertThatRootWhenSelectingAFolderUsingPlanTaxonomy(optionsWithNoInvisibleRecords)
 				.has(numFoundAndListSize(2))
@@ -2788,8 +2881,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 	public void whenUserIsNavigatingAdminUnitTaxonomyAlwaysDisplayingConceptsWithReadAccessThenOnlySeeConceptsContainingAccessibleRecordsAndThoseWithReadAccess()
 			throws Exception {
 
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
 		TaxonomiesSearchOptions options = new TaxonomiesSearchOptions()
 				.setAlwaysReturnTaxonomyConceptsWithReadAccessOrLinkable(true);
 		User sasquatch = users.sasquatchIn(zeCollection);
@@ -3625,7 +3716,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
-				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix("First call");
 				firstCallAnswer = call();
 				firstCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 				queriesCount.set(0);
@@ -3641,7 +3731,6 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				returnedDocumentsCount.set(0);
 				facetsCount.set(0);
-				getDataLayerFactory().getDataLayerLogger().setQueryDebuggingPrefix("Second call");
 				secondCallAnswer = call();
 				secondCallSolrQueries = queriesCount.get() + "-" + returnedDocumentsCount.get() + "-" + facetsCount.get();
 				queriesCount.set(0);
@@ -3682,7 +3771,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);
-
+				System.out.println("--------- --------- --------- --------- --------- --------- ---------");
 				return true;
 			}
 		};
@@ -3705,7 +3794,7 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 				queriesCount.set(0);
 				facetsCount.set(0);
 				returnedDocumentsCount.set(0);
-
+				System.out.println("--------- --------- --------- --------- --------- --------- ---------");
 				return true;
 			}
 		};
@@ -3733,5 +3822,19 @@ public class TaxonomiesSearchServices_CachedLinkableTreesAcceptTest extends Cons
 		} catch (RecordDaoException.OptimisticLocking optimisticLocking) {
 			optimisticLocking.printStackTrace();
 		}
+	}
+
+	@Override
+	protected void givenConfig(SystemConfiguration config, Object value) {
+		super.givenConfig(config, value);
+		try {
+			waitForBatchProcess();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		queriesCount.set(0);
+		facetsCount.set(0);
+		returnedDocumentsCount.set(0);
+
 	}
 }

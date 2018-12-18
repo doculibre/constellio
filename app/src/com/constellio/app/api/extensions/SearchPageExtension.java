@@ -27,7 +27,9 @@ public class SearchPageExtension {
 		return param.getCapsule();
 	}
 
-	public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param){
+	public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
 		return param.getCondition();
-	};
+	}
+
+	;
 }

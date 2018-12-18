@@ -73,6 +73,9 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 			private LinkedList<ProgressIndicator> indicators;
 
 			public void streamingStarted(StreamingStartEvent event) {
+				if (isSpaceLimitReached(event)) {
+					throw new SpaceLimitException();
+				}
 			}
 
 			public void streamingFinished(StreamingEndEvent event) {
@@ -88,7 +91,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 			public void streamingFailed(StreamingErrorEvent event) {
 				Logger.getLogger(getClass().getName()).log(Level.FINE,
 						"Streaming failed", event.getException());
-
+				displayStreamingFailedMessage();
 				for (ProgressIndicator progressIndicator : indicators) {
 					progressBars.removeComponent(progressIndicator);
 				}
@@ -132,6 +135,15 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 		upload.setButtonCaption(getUploadButtonCaption());
 		uploads.addComponent(upload);
 
+	}
+
+	protected void displayStreamingFailedMessage() {
+	}
+
+	;
+
+	protected boolean isSpaceLimitReached(StreamingStartEvent event) {
+		return false;
 	}
 
 	private ProgressIndicator createProgressIndicator() {
@@ -255,7 +267,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 		DragAndDropWrapper.WrapperTransferable transferable = (WrapperTransferable) event
 				.getTransferable();
 		Html5File[] files = transferable.getFiles();
-		if(files != null) {
+		if (files != null) {
 			for (final Html5File html5File : files) {
 				final ProgressIndicator pi = new ProgressIndicator();
 				pi.setCaption(html5File.getFileName());
@@ -276,7 +288,7 @@ public abstract class MultiFileUpload extends CssLayout implements DropHandler {
 
 					public void onProgress(StreamingProgressEvent event) {
 						float p = (float) event.getBytesReceived()
-								/ (float) event.getContentLength();
+								  / (float) event.getContentLength();
 						pi.setValue(p);
 					}
 

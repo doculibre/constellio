@@ -112,7 +112,7 @@ public class ListPrintableReportPresenter extends SingleSchemaBasePresenter<List
 	}
 
 	public void customDelete(Record record) {
-		if (recordServices().isLogicallyThenPhysicallyDeletable(record, User.GOD)) {
+		if (recordServices().validateLogicallyThenPhysicallyDeletable(record, User.GOD).isEmpty()) {
 			recordServices().logicallyDelete(record, User.GOD);
 			recordServices().physicallyDelete(record, User.GOD);
 		}

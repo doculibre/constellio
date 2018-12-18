@@ -747,7 +747,6 @@ public class SearchServiceAcceptanceTest extends ConstellioTest {
 	public void whenSearchingWithPrefereAnalyzedFlagThenUseAnalyzedFields()
 			throws Exception {
 		defineSchemasManager().using(schema.withAStringMetadata(whichIsSearchable).withAnotherStringMetadata());
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		transaction.addUpdate(record1 = givenARecord("record1")
 				.set(zeSchema.stringMetadata(), "Rien ne sert de jouer aux échecs avec Chuck Norris, il ne connait pas l'échec"));
 		transaction.addUpdate(record2 = givenARecord("record2")

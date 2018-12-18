@@ -7,7 +7,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.SecurityTokenManager;
-import com.constellio.model.services.taxonomies.TaxonomiesManager;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,18 +280,11 @@ public class UserAuthorizationsUtils {
 		Set<String> authsId = getAuthsReceivedBy(user);
 		KeySetMap<String, String> tokens = new KeySetMap<>();
 
-		for (
-				String authId : authsId) {
+		for (String authId : authsId) {
 			try {
 				Authorization authorizationDetails = user.getAuthorizationDetail(authId);
-
-				TaxonomiesManager taxonomiesManager = user.getRolesDetails().getSchemasRecordsServices().getModelLayerFactory()
-						.getTaxonomiesManager();
-				boolean isConcept = taxonomiesManager.isTypeInPrincipalTaxonomy(authorizationDetails.getCollection(),
-						authorizationDetails.getTargetSchemaType());
-
 				if (authorizationDetails.isActiveAuthorization() && filter.isIncluded(authorizationDetails)
-					&& (isConcept || includeSpecifics)) {
+					&& (!Authorization.isSecurableSchemaType(authorizationDetails.getTargetSchemaType()) || includeSpecifics)) {
 					tokens.add(authorizationDetails.getTarget(), authId);
 				}
 			} catch (RecordServicesRuntimeException.NoSuchRecordWithId e) {

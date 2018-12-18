@@ -46,6 +46,7 @@ import com.constellio.model.services.records.RecordServicesRuntimeException.User
 import com.constellio.model.services.records.cache.RecordsCache;
 import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
+import com.constellio.model.services.records.preparation.AggregatedMetadataIncrementation;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
@@ -528,12 +529,13 @@ public class RecordServicesTest extends ConstellioTest {
 		assertThat(transactionDTO.getModifiedRecords()).hasSize(2);
 		RecordDTO firstRecordDTO = transactionDTO.getNewRecords().get(0);
 		RecordDTO secondRecordDTO = transactionDTO.getNewRecords().get(1);
-		RecordDeltaDTO firstDeltaRecordDTO = transactionDTO.getModifiedRecords().get(0);
-		RecordDeltaDTO secondDeltaRecordDTO = transactionDTO.getModifiedRecords().get(1);
+		RecordDeltaDTO firstDeltaRecordDTO = transactionDTO.getModifiedRecords().get(1);
+		RecordDeltaDTO secondDeltaRecordDTO = transactionDTO.getModifiedRecords().get(0);
 		assertThat(firstRecordDTO.getFields()).containsEntry(zeSchema.stringMetadata().getDataStoreCode(), "recordString");
 		assertThat(firstRecordDTO.getFields()).containsEntry(zeSchema.title().getDataStoreCode(), "recordTitle");
 		assertThat(secondRecordDTO.getFields()).containsEntry(zeSchema.stringMetadata().getDataStoreCode(), "otherRecordString");
 		assertThat(secondRecordDTO.getFields()).containsEntry(zeSchema.title().getDataStoreCode(), "otherRecordTitle");
+
 		assertThat(firstDeltaRecordDTO.getModifiedFields()).containsEntry(zeSchema.stringMetadata().getDataStoreCode(),
 				"savedRecordString");
 		assertThat(firstDeltaRecordDTO.getModifiedFields())
@@ -778,7 +780,7 @@ public class RecordServicesTest extends ConstellioTest {
 		List<Record> records = asList((Record) firstUpdatedRecord, firstAddedRecord, secondAddedRecord, secondUpdatedRecord);
 		Set<String> idMarkedForReindexing = asSet("idNotInCache");
 
-		recordServices.refreshRecordsAndCaches(zeCollection, records, idMarkedForReindexing, anyList(),
+		recordServices.refreshRecordsAndCaches(zeCollection, records, idMarkedForReindexing, new ArrayList<AggregatedMetadataIncrementation>(),
 				transactionResponseDTO, metadataSchemaTypes, new RecordProvider(recordServices));
 
 		verify(firstAddedRecord).markAsSaved(firstAddedRecordVersion, zeSchema.instance());

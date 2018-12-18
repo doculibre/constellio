@@ -13,7 +13,6 @@ import com.constellio.model.services.schemas.calculators.AllRemovedAuthsCalculat
 import com.constellio.model.services.schemas.calculators.AttachedAncestorsCalculator;
 import com.constellio.model.services.schemas.calculators.AutocompleteFieldCalculator;
 import com.constellio.model.services.schemas.calculators.DefaultTokensOfHierarchyCalculator;
-import com.constellio.model.services.schemas.calculators.NonTaxonomyAuthorizationsCalculator;
 import com.constellio.model.services.schemas.calculators.PathCalculator;
 import com.constellio.model.services.schemas.calculators.PathPartsCalculator;
 import com.constellio.model.services.schemas.calculators.PrincipalPathCalculator;
@@ -64,7 +63,6 @@ public class CommonMetadataBuilder {
 	public static final String SCHEMA_AUTOCOMPLETE_FIELD = "autocomplete";
 	public static final String CAPTION = "caption";
 	public static final String DATA_VERSION = "migrationDataVersion";
-	public static final String NON_TAXONOMY_AUTHORIZATIONS = "nonTaxonomyAuthorizations";
 
 	private interface MetadataCreator {
 		void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types);
@@ -422,27 +420,6 @@ public class CommonMetadataBuilder {
 			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
 				MetadataBuilder metadataBuilder = schema.createSystemReserved(CAPTION).setType(STRING)
 						.setSortable(true);
-				for (Language language : types.getLanguages()) {
-					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
-				}
-			}
-		});
-
-		metadata.put(NON_TAXONOMY_AUTHORIZATIONS, new MetadataCreator() {
-			@Override
-			public void define(MetadataSchemaBuilder schema, MetadataSchemaTypesBuilder types) {
-				//TODO Francis : temporaire
-				//SolrAuthorizationDetails always exist, except for test migrating old savestates which we want to keep as long as possible
-				MetadataBuilder metadataBuilder = schema.createSystemReserved(NON_TAXONOMY_AUTHORIZATIONS);
-				if (!asList(Collection.SCHEMA_TYPE, User.SCHEMA_TYPE, Group.SCHEMA_TYPE).contains(schema.getTypeCode())
-					&& types.hasSchemaType(Authorization.SCHEMA_TYPE)) {
-
-					metadataBuilder.defineReferencesTo(types.getSchemaType(Authorization.SCHEMA_TYPE))
-							.setMultivalue(true).defineDataEntry().asCalculated(NonTaxonomyAuthorizationsCalculator.class);
-
-				} else {
-					metadataBuilder.setType(STRING).setMultivalue(true);
-				}
 				for (Language language : types.getLanguages()) {
 					metadataBuilder.addLabel(language, metadataBuilder.getLocalCode());
 				}

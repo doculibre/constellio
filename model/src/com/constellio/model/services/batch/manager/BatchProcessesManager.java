@@ -21,6 +21,7 @@ import com.constellio.model.services.batch.xml.detail.BatchProcessReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListReader;
 import com.constellio.model.services.batch.xml.list.BatchProcessListWriter;
 import com.constellio.model.services.factories.ModelLayerFactory;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
@@ -32,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,14 +48,13 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 	static final String BATCH_PROCESS_LIST_PATH = "/batchProcesses/list.xml";
 	private static final Logger LOGGER = LoggerFactory.getLogger(BatchProcessesManager.class);
 	private final ConfigManager configManager;
-	private final SearchServices searchServices;
 	private final List<BatchProcessesListUpdatedEventListener> listeners = new ArrayList<>();
 	private final ModelLayerFactory modelLayerFactory;
 	private ConstellioCache statusCache;
+	private List<String> finishedBatchProcessIds = new LinkedList<>();
 
 	public BatchProcessesManager(ModelLayerFactory modelLayerFactory) {
 		super();
-		this.searchServices = modelLayerFactory.newSearchServices();
 		this.configManager = modelLayerFactory.getDataLayerFactory().getConfigManager();
 		this.modelLayerFactory = modelLayerFactory;
 		statusCache = modelLayerFactory.getDataLayerFactory().getDistributedCacheManager().getCache("batchProcessesStatus");
@@ -535,6 +536,8 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 				new BatchProcessListWriter(document).markBatchProcessAsFinished(batchProcess, errorsCount);
 			}
 		});
+
+		addFinishedBatchProcessIdToHistoryList(batchProcess.getId());
 	}
 
 	public void updateProgression(final RecordBatchProcess batchProcess, final int progressionIncrement,
@@ -553,5 +556,22 @@ public class BatchProcessesManager implements StatefulService, ConfigUpdatedEven
 
 	public void updateBatchProcessState(String batchProcessId, BatchProcessState state) {
 		statusCache.put(batchProcessId, state, WAS_MODIFIED);
+	}
+
+	private void addFinishedBatchProcessIdToHistoryList(String id) {
+		int size = finishedBatchProcessIds.size();
+		int limit = getBatchProcessMaximumHistorySize();
+		if (size >= limit) {
+			List<String> finishedBatchProcessIdsToRemove = new ArrayList<>();
+			for (int i = 0; i < size - limit + 1; i++) {
+				finishedBatchProcessIdsToRemove.add(finishedBatchProcessIds.remove(0));
+			}
+			delete(finishedBatchProcessIdsToRemove);
+		}
+		finishedBatchProcessIds.add(id);
+	}
+
+	private int getBatchProcessMaximumHistorySize() {
+		return new ConstellioEIMConfigs(modelLayerFactory).getBatchProcessMaximumHistorySize();
 	}
 }

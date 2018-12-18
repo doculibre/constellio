@@ -201,7 +201,8 @@ public class BatchProcessingPresenterService {
 			protected MetadataToVOBuilder newMetadataToVOBuilder() {
 				return new MetadataToVOBuilder() {
 					@Override
-					protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode, String datastoreCode,
+					protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode,
+													   String datastoreCode,
 													   MetadataValueType type, String collection,
 													   MetadataSchemaVO schemaVO, boolean required,
 													   boolean multivalue, boolean readOnly, boolean unmodifiable,
@@ -311,7 +312,7 @@ public class BatchProcessingPresenterService {
 								final LogicalSearchQuery query) {
 		final MetadataSchema schema = modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(collection)
 				.getSchema(schemaCode);
-		Record tmpRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(schema);
+		Record tmpRecord = modelLayerFactory.newRecordServices().newRecordWithSchema(schema, false);
 
 		final Map<String, String> customizedLabels = getCustomizedLabels(schemaCode, locale);
 		MetadataSchemaToVOBuilder schemaVOBuilder = new MetadataSchemaToVOBuilder() {
@@ -319,7 +320,8 @@ public class BatchProcessingPresenterService {
 			protected MetadataToVOBuilder newMetadataToVOBuilder() {
 				return new MetadataToVOBuilder() {
 					@Override
-					protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode, String datastoreCode,
+					protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode,
+													   String datastoreCode,
 													   MetadataValueType type, String collection,
 													   MetadataSchemaVO schemaVO, boolean required,
 													   boolean multivalue, boolean readOnly, boolean unmodifiable,

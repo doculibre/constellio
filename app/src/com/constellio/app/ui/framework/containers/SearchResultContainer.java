@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyContainer> {
+	
 	public final static String SEARCH_RESULT_PROPERTY = "searchResult";
 
 	private RecordDisplayFactory displayFactory;
@@ -20,7 +21,7 @@ public class SearchResultContainer extends ContainerAdapter<SearchResultVOLazyCo
 
 	public SearchResultContainer(SearchResultVOLazyContainer adapted, RecordDisplayFactory displayFactory,
 								 String query) {
-		super(adapted);
+		super(adapted, true);
 		this.displayFactory = displayFactory;
 		this.query = query;
 	}

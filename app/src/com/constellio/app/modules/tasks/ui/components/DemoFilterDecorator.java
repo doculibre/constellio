@@ -28,7 +28,7 @@ public class DemoFilterDecorator implements FilterDecorator {
 	@Override
 	public String getBooleanFilterDisplayName(Object propertyId, boolean value) {
 		if (((MetadataVO) propertyId).codeMatches(Task.READ_BY_USER)) {
-			return value ? "Oui" : "Non";
+			return value ? $("yes") : $("no");
 		}
 		// returning null will output default value
 		return null;
@@ -47,23 +47,23 @@ public class DemoFilterDecorator implements FilterDecorator {
 
 	@Override
 	public String getFromCaption() {
-		return ":"+$("StatisticsView.startDate");
+		return $("DemoFilterDecorator.startDate");
 	}
 
 	@Override
 	public String getToCaption() {
-		return ":"+$("StatisticsView.endDate");
+		return $("DemoFilterDecorator.endDate");
 	}
 
 	@Override
 	public String getSetCaption() {
 		// use default caption
-		return null;
+		return $("DemoFilterDecorator.set");
 	}
 
 	@Override
 	public String getClearCaption() {
-		return null;
+		return $("DemoFilterDecorator.clear");
 	}
 
 	@Override
@@ -94,11 +94,11 @@ public class DemoFilterDecorator implements FilterDecorator {
 	@Override
 	public NumberFilterPopupConfig getNumberFilterPopupConfig() {
 		NumberFilterPopupConfig config = new NumberFilterPopupConfig();
-		config.setLtPrompt("Plus petit que");
-		config.setGtPrompt("Plus grand que");
-		config.setEqPrompt("Égal à");
-		config.setResetCaption("Annuler");
-		config.setOkCaption("Appliquer");
+		config.setLtPrompt($("DemoFilterDecorator.lesserThan"));
+		config.setGtPrompt($("DemoFilterDecorator.greaterThan"));
+		config.setEqPrompt($("DemoFilterDecorator.equalTo"));
+		config.setResetCaption($("cancel"));
+		config.setOkCaption($("apply"));
 		return config;
 	}
 

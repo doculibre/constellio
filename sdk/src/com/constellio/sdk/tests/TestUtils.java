@@ -1076,7 +1076,9 @@ public class TestUtils {
 
 			if (!link.getToMetadata().isGlobal()
 				&& !link.getFromMetadata().isGlobal()
+				&& !link.getFromMetadata().getCode().startsWith("savedSearch_")
 				&& !link.getFromMetadata().getCode().startsWith("user_")
+				&& !link.getFromMetadata().getCode().startsWith("userDocument_")
 				&& !link.getFromMetadata().getCode().startsWith("user_")
 				&& !link.getFromMetadata().getCode().startsWith("temporaryRecord_")) {
 				Tuple tuple = new Tuple();

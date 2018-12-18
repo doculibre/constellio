@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.app.ui.util.SchemaCaptionUtils.getCaptionForRecord;
 import static com.constellio.model.entities.Language.withLocale;
 import static java.util.Arrays.asList;
@@ -99,10 +100,10 @@ public class AuthorizationToVOBuilder implements Serializable {
 
 		String recordCaption = receivedFromValue == null ? null : getCaptionForRecord(receivedFromValue,
 				sessionContext.getCurrentLocale());
-
+		String authorizationType = authorization.isNegative() ? $(DISABLE) : $(ENABLE);
 		AuthorizationVO authorizationVO = new AuthorizationVO(users, groups, records, accessRoles, userRoles, userRolesTitles,
 				authorization.getId(), authorization.getStartDate(),
-				authorization.getEndDate(), authorization.isSynced(), metadataLabel, recordCaption, authorization.isNegative());
+				authorization.getEndDate(), authorization.isSynced(), metadataLabel, recordCaption, authorizationType);
 
 		return authorizationVO;
 	}

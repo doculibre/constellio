@@ -12,7 +12,6 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.FilingSpace;
 import com.constellio.app.modules.rm.wrappers.Folder;
-import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.rm.wrappers.RMUserFolder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -22,7 +21,6 @@ import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
 import com.constellio.model.entities.schemas.Metadata;
@@ -32,7 +30,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
@@ -42,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.constellio.model.entities.schemas.MetadataValueType.ENUM;
-import static com.constellio.model.entities.security.global.SolrUserCredential.AGENT_STATUS;
+import static com.constellio.model.entities.security.global.UserCredential.AGENT_STATUS;
 import static com.constellio.sdk.tests.TestUtils.noDuplicates;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -161,7 +159,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 
 		if (testCase.contains("rm") && !testCase.contains("es")) {
 			assertThat(allSchemaTypesWithSecurity()).containsOnly(Folder.SCHEMA_TYPE, Document.SCHEMA_TYPE, Task.SCHEMA_TYPE,
-					AdministrativeUnit.SCHEMA_TYPE, Authorization.SCHEMA_TYPE, Printable.SCHEMA_TYPE);
+					AdministrativeUnit.SCHEMA_TYPE);
 		} else {
 			assertThat(allSchemaTypesWithSecurity()).doesNotContain(ContainerRecord.SCHEMA_TYPE, Category.SCHEMA_TYPE);
 		}
@@ -177,7 +175,7 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		assertThat(retentionRuleSchema.getMetadata(RetentionRule.TITLE).isUniqueValue()).isFalse();
 
 		assertThat(getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION)
-				.getSchema(SolrUserCredential.DEFAULT_SCHEMA).getMetadata(AGENT_STATUS).getType()).isEqualTo(ENUM);
+				.getSchema(UserCredential.DEFAULT_SCHEMA).getMetadata(AGENT_STATUS).getType()).isEqualTo(ENUM);
 
 	}
 
@@ -187,8 +185,8 @@ public class RMMigrationsAcceptanceTest extends ConstellioTest {
 		MetadataSchemaTypes metadataSchemaTypes = getModelLayerFactory().getMetadataSchemasManager().getSchemaTypes(
 				Collection.SYSTEM_COLLECTION);
 
-		assertThat(metadataSchemaTypes.getSchema(SolrUserCredential.DEFAULT_SCHEMA)
-				.getMetadata(SolrUserCredential.PERSONAL_EMAILS).getLabel(Language.French)).isEqualTo("Courriels personnels");
+		assertThat(metadataSchemaTypes.getSchema(UserCredential.DEFAULT_SCHEMA)
+				.getMetadata(UserCredential.PERSONAL_EMAILS).getLabel(Language.French)).isEqualTo("Courriels personnels");
 
 	}
 

@@ -15,7 +15,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
+import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -358,7 +358,7 @@ public class UserServicesUnitTest extends ConstellioTest {
 			throws Exception {
 
 		when(globalGroupsManager.getActiveGroups()).thenReturn(Arrays.asList(legends, heroes));
-		doNothing().when(userServices).sync(any(SolrGlobalGroup.class));
+		doNothing().when(userServices).sync(any(GlobalGroup.class));
 
 		userServices.addGlobalGroupsInCollection("collection1");
 

@@ -1,5 +1,33 @@
 package com.constellio.app.modules.tasks.ui.pages.tasks;
 
+import static com.constellio.app.ui.entities.RecordVO.VIEW_MODE.FORM;
+import static com.constellio.app.ui.i18n.i18n.$;
+import static java.util.Arrays.asList;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.constellio.app.modules.tasks.model.wrappers.TaskStatusType;
+import com.constellio.app.modules.tasks.model.wrappers.TaskUser;
+import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
+import com.constellio.app.modules.tasks.ui.builders.TaskFollowerFromVOBuilder;
+import com.constellio.app.modules.tasks.ui.components.TaskFieldFactory;
+import com.constellio.app.modules.tasks.ui.components.fields.*;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveTaskFollowerField;
+import com.constellio.app.modules.tasks.ui.components.fields.list.ListAddRemoveWorkflowInclusiveDecisionFieldImpl;
+import com.constellio.app.modules.tasks.ui.entities.TaskFollowerVO;
+import com.constellio.app.ui.framework.components.RecordForm;
+import com.constellio.model.entities.records.RecordUpdateOptions;
+import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.records.RecordUtils;
+import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
+import com.jgoodies.common.base.Strings;
+import com.vaadin.ui.Field;
+import org.apache.commons.lang.StringUtils;
+
 import com.constellio.app.modules.rm.wrappers.RMTask;
 import com.constellio.app.modules.tasks.model.wrappers.BetaWorkflowTask;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
@@ -30,6 +58,7 @@ import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.components.RecordForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveField;
+import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.data.utils.TimeProvider;
@@ -216,7 +245,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 					} else if (task.getWrappedRecord().isModified(tasksSchemas.userTask.assigner())) {
 						Field<?> field = getAssignerField();
 						task.setAssigner((String) field.getValue());
-						if(task.getAssignedOn() == null) {
+						if (task.getAssignedOn() == null) {
 							task.setAssignationDate(TimeProvider.getLocalDate());
 						}
 					}
@@ -264,7 +293,12 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		} else {
 			editMode = false;
 			task = tasksSchemas.newTask();
-			task.setAssignee(getCurrentUser().getId());
+			TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
+					modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
+			if(!Boolean.FALSE.equals(taskUser.getAssignTaskAutomatically())) {
+				task.setAssignee(getCurrentUser().getId());
+			}
+
 			task.setDueDate(TimeProvider.getLocalDate());
 			parentId = paramsMap.get("parentId");
 			task.setParentTask(parentId);
@@ -315,6 +349,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 		adjustAcceptedField();
 		adjustReasonField();
 		adjustAssignerField();
+		adjustFollowersField();
 		adjustRequiredUSRMetadatasFields();
 	}
 
@@ -375,7 +410,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private void adjustProgressPercentageField() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
-		if(progressPercentageField != null) {
+		if (progressPercentageField != null) {
 			progressPercentageField.setVisible(editMode);
 		}
 	}
@@ -490,8 +525,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 
 	private void adjustRelativeDueDate() {
 		TaskRelativeDueDateField field = (TaskRelativeDueDateField) view.getForm().getCustomField(Task.RELATIVE_DUE_DATE);
-
-		if(field != null) {
+		if (field != null) {
 			try {
 				Task task = loadTask();
 
@@ -499,6 +533,16 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			} catch (NoSuchRecordWithId e) {
 				field.setVisible(false);
 			}
+		}
+	}
+
+	private void adjustFollowersField() {
+		ListAddRemoveTaskFollowerField field = (ListAddRemoveTaskFollowerField) ((TaskFormImpl) view.getForm()).getField(Task.TASK_FOLLOWERS);
+		TaskUser taskUser = new TaskUser(getCurrentUser().getWrappedRecord(), types(),
+				modelLayerFactory.getRolesManager().getCollectionRoles(collection, modelLayerFactory));
+		TaskFollower defaultFollower = taskUser.getDefaultFollowerWhenCreatingTask();
+		if(!editMode && field != null && defaultFollower != null) {
+			field.addTaskFollower(defaultFollower);
 		}
 	}
 
@@ -533,35 +577,25 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 			StringUtils.isNotBlank(assignee.getValue());
 		}
 
-		ListAddRemoveField group = (ListAddRemoveField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
-		boolean groupValue = false;
-		if(group!= null) {
-			groupValue = CollectionUtils.isNotEmpty(group.getValue());
-		}
+		ListAddRemoveRecordLookupField group = (ListAddRemoveRecordLookupField) view.getForm().getField(Task.ASSIGNEE_GROUPS_CANDIDATES);
+		boolean groupValue = group != null && (CollectionUtils.isNotEmpty(group.getValue()) || group.getLookupFieldValue() != null);
 
-		ListAddRemoveField user = (ListAddRemoveField) view.getForm().getField(Task.ASSIGNEE_USERS_CANDIDATES);
-		boolean userValue = false;
-		if(user!= null) {
-			userValue = CollectionUtils.isNotEmpty(user.getValue());
-		}
+		ListAddRemoveRecordLookupField user = (ListAddRemoveRecordLookupField) view.getForm().getField(Task.ASSIGNEE_USERS_CANDIDATES);
+		boolean userValue = user != null && (CollectionUtils.isNotEmpty(user.getValue()) || user.getLookupFieldValue() != null);
 
 		ListAddRemoveField priorite = (ListAddRemoveField) view.getForm().getField(ASSIGNATION_MODES);
-		boolean prioriteValue = false;
-		if(priorite != null) {
-			prioriteValue = CollectionUtils.isNotEmpty(priorite.getValue());
-		}
-		if(assignee != null) {
+		boolean prioriteValue = priorite != null && CollectionUtils.isNotEmpty(priorite.getValue());
+
+		if (assignee != null) {
 			assignee.setReadOnly(groupValue || userValue || prioriteValue);
 		}
-		if(group != null) {
+		if (group != null) {
 			group.setReadOnly(assigneeValue);
 		}
-
-		if(user != null) {
+		if (user != null) {
 			user.setReadOnly(assigneeValue);
 		}
-
-		if(priorite != null) {
+		if (priorite != null) {
 			priorite.setReadOnly(assigneeValue);
 		}
 
@@ -662,7 +696,7 @@ public class AddEditTaskPresenter extends SingleSchemaBasePresenter<AddEditTaskV
 	private BetaWorkflowTask loadTask() {
 		TaskProgressPercentageField progressPercentageField = (TaskProgressPercentageField) view.getForm()
 				.getCustomField(Task.PROGRESS_PERCENTAGE);
-		if(progressPercentageField != null) {
+		if (progressPercentageField != null) {
 			progressPercentageField.setVisible(editMode);
 		}
 

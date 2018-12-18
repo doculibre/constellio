@@ -5,7 +5,7 @@ import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.records.wrappers.Collection;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilderRuntimeException;
@@ -41,8 +41,8 @@ public class CoreMigrationTo_6_4_1 implements MigrationScript {
 		private void nonUniqueEmailMetadata(MetadataSchemaTypesBuilder typesBuilder) {
 			try {
 				MetadataSchemaBuilder userCredential = typesBuilder
-						.getSchema(SolrUserCredential.DEFAULT_SCHEMA);
-				userCredential.getMetadata(SolrUserCredential.EMAIL).setUniqueValue(false);
+						.getSchema(UserCredential.DEFAULT_SCHEMA);
+				userCredential.getMetadata(UserCredential.EMAIL).setUniqueValue(false);
 			} catch (MetadataSchemaTypesBuilderRuntimeException.NoSuchSchemaType e) {
 				//OK
 			}

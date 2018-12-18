@@ -133,16 +133,19 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return params;
 	}
 
-	public void forParams(String params) {
-		String id;
-
+	private String extractIdFromParams(String params) {
 		if (params.contains("id")) {
 			this.params = ParamUtils.getParamsMap(params);
-			id = this.params.get("id");
+			return this.params.get("id");
 		} else {
-			id = params;
+			return params;
 		}
+	}
 
+	public void forParams(String params) {
+		String id = extractIdFromParams(params);
+
+		view.getSessionContext().addVisited(id);
 
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
@@ -256,7 +259,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	@Override
 	protected List<String> getRestrictedRecordIds(String params) {
 		DocumentVO documentVO = presenterUtils.getDocumentVO();
-		return Arrays.asList(documentVO.getId());
+		return Arrays.asList(documentVO == null ? extractIdFromParams(params) : documentVO.getId());
 	}
 
 	public void viewAssembled() {
@@ -397,17 +400,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
-	public RecordVODataProvider getOwnedCartsDataProvider() {
-		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartOwner())
-						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
-			}
-		};
-	}
-
 	public RecordVODataProvider getSharedCartsDataProvider() {
 		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
 		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
@@ -428,10 +420,15 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public void addToCartRequested(RecordVO recordVO) {
-		if (rm.numberOfDocumentsInFavoritesReachesLimit(rm.getCart(recordVO.getId()).getId(), 1)) {
+		Cart cart = rm.getCart(recordVO.getId());
+		addToCartRequested(cart);
+	}
+
+	public void addToCartRequested(Cart cart) {
+		if (rm.numberOfDocumentsInFavoritesReachesLimit(cart.getId(), 1)) {
 			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
 		} else {
-			presenterUtils.addToCartRequested(recordVO);
+			presenterUtils.addToCartRequested(cart);
 		}
 	}
 
@@ -573,21 +570,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
-	public void removeFromDefaultFavorites() {
-		document.removeFavorite(getCurrentUser().getId());
-		try {
-			recordServices.update(document);
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-		view.showMessage($("DisplayDocumentView.documentRemovedFromDefaultFavorites"));
-	}
-
-	public boolean inDefaultFavorites() {
-		return document.getFavorites().contains(getCurrentUser().getId());
-	}
-
 	public RMSelectionPanelReportPresenter buildReportPresenter() {
 		return new RMSelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
 			@Override
@@ -604,5 +586,14 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 
 	public AppLayerFactory getApplayerFactory() {
 		return appLayerFactory;
+	}
+
+	public List<Cart> getOwnedCarts() {
+		return rm.wrapCarts(searchServices().search(new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cart.owner())
+				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
+	}
+
+	public MetadataSchemaVO getSchema() {
+		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
 	}
 }

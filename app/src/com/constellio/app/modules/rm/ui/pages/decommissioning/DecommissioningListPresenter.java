@@ -123,7 +123,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public List<User> getAvailableManagers() throws DecommissioningEmailServiceException {
 		SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 
-		Record administrativeUnit = schemasRecordsServices.get(decommissioningList.getAdministrativeUnit());
+		Record administrativeUnit = schemasRecordsServices.get(decommissioningList().getAdministrativeUnit());
 
 		List<User> managerEmailForAdministrativeUnit = decommissioningEmailService.filterUserWithoutEmail(modelLayerFactory.newAuthorizationsServices()
 				.getUsersWithPermissionOnRecord(
@@ -135,7 +135,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			}
 		}
 
-		List<User> managerEmailForList = decommissioningEmailService.getManagerEmailForList(decommissioningList);
+		List<User> managerEmailForList = decommissioningEmailService.getManagerEmailForList(decommissioningList());
 		HashSet<User> uniqueUsers = new HashSet<>();
 		if (managerEmailForList != null) {
 			uniqueUsers.addAll(managerEmailForList);
@@ -184,7 +184,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public List<String> haveCheckoutedDocument() {
-		List<String> folders = decommissioningList.getFolders();
+		List<String> folders = decommissioningList().getFolders();
 
 		List<Record> totalDocument = new ArrayList<>();
 		List<String> checkoutedDocument = new ArrayList<>();
@@ -264,7 +264,7 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 
 		if (rmModuleExtensions != null) {
 			for (DecommissioningListPresenterExtension extension : rmModuleExtensions.getDecommissioningListPresenterExtensions()) {
-				ValidateDecommissioningListProcessableParams params = new ValidateDecommissioningListProcessableParams(decommissioningList);
+				ValidateDecommissioningListProcessableParams params = new ValidateDecommissioningListProcessableParams(decommissioningList());
 				extension.validateProcessable(params);
 				if (!params.getValidationErrors().isEmpty()) {
 					view.showErrorMessage($(params.getValidationErrors().getValidationErrors().get(0)));
@@ -627,6 +627,10 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 	public boolean shouldAllowContainerEditing() {
 		return decommissioningService().canEditContainers(decommissioningList(), getCurrentUser());
 	}
+
+	public boolean shouldDisplayOrder() {
+		return true;
+	}	
 
 	public boolean shouldDisplayRetentionRuleInDetails() {
 		return StringUtils.isBlank(decommissioningList().getUniformRule());
@@ -997,13 +1001,13 @@ public class DecommissioningListPresenter extends SingleSchemaBasePresenter<Deco
 			comment.setUser(getCurrentUser());
 			comment.setDateTime(LocalDateTime.now());
 
-			List<Comment> comments = new ArrayList<>(decommissioningList.getComments());
+			List<Comment> comments = new ArrayList<>(decommissioningList().getComments());
 			comments.add(comment);
-			decommissioningList.setComments(comments);
+			decommissioningList().setComments(comments);
 		}
 
 		try {
-			decommissioningService().denyApprovalOnList(decommissioningList, getCurrentUser(), commentString);
+			decommissioningService().denyApprovalOnList(decommissioningList(), getCurrentUser(), commentString);
 		} catch (DecommissioningServiceException_TooMuchOptimisticLockingWhileAttemptingToDecommission e) {
 			view.showMessage($("DecommissioningListView.tooMuchOptimisticLocking"));
 		} catch (DecommissioningServiceException e) {

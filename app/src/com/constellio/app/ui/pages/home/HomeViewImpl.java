@@ -7,9 +7,6 @@ import com.constellio.app.entities.navigation.PageItem.RecentItemTable.RecentIte
 import com.constellio.app.entities.navigation.PageItem.RecordTable;
 import com.constellio.app.entities.navigation.PageItem.RecordTree;
 import com.constellio.app.modules.rm.ui.components.tree.RMTreeDropHandlerImpl;
-import com.constellio.app.modules.rm.wrappers.ContainerRecord;
-import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
@@ -32,6 +29,7 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.framework.decorators.contextmenu.ContextMenuDecorator;
 import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
+import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.app.ui.util.FileIconUtils;
 import com.constellio.model.entities.schemas.Schemas;
@@ -53,6 +51,8 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.TabSheet.Tab;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.Tree.TreeDragMode;
+
+import org.apache.commons.lang3.StringUtils;
 import org.vaadin.peter.contextmenu.ContextMenu;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableFooterEvent;
 import org.vaadin.peter.contextmenu.ContextMenu.ContextMenuOpenedOnTableHeaderEvent;
@@ -152,8 +152,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 				return buildRecordTreeOrRecordMultiTree((RecordTree) tabSource);
 			case CUSTOM_ITEM:
 				return buildCustomComponent((CustomItem) tabSource);
-			case CUSTOM_SHEET:
-				return buildCustomSheet((PageItem.RecordTabSheet) tabSource);
 			default:
 				throw new RuntimeException("Unsupported tab type : " + tabSource.getType());
 		}
@@ -270,27 +268,6 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 		};
 	}
 
-	private Component buildCustomSheet(PageItem.RecordTabSheet recordTabSheet) {
-		List<RecordVODataProvider> providers = recordTabSheet.getDataProviders(
-				getConstellioFactories().getAppLayerFactory(), getSessionContext());
-		TabSheet costumTabSheet = new TabSheet();
-		for (RecordVODataProvider provider : providers) {
-			switch (provider.getSchema().getTypeCode()) {
-				case Folder.SCHEMA_TYPE:
-					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.folders"));
-					break;
-				case Document.SCHEMA_TYPE:
-					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.documents"));
-					break;
-				case ContainerRecord.SCHEMA_TYPE:
-					costumTabSheet.addTab(buildTable(provider), $("HomeView.tab.customSheet.containers"));
-					break;
-			}
-
-		}
-		return costumTabSheet;
-	}
-
 	private Component buildRecordTreeOrRecordMultiTree(RecordTree recordTree) {
 		List<RecordLazyTreeDataProvider> providers = recordTree.getDataProviders(
 				getConstellioFactories().getAppLayerFactory(), getSessionContext());
@@ -334,7 +311,7 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 					String recordId = (String) event.getItemId();
 					clickNavigating = presenter.recordClicked(recordId, provider.getTaxonomyCode());
 				} else {
-					clickNavigating = false;
+					clickNavigating = true;
 				}
 			}
 		});
@@ -360,7 +337,17 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 	}
 
 	private Component buildCustomComponent(CustomItem tabSource) {
-		Component component = tabSource.buildCustomComponent(getConstellioFactories(), getSessionContext());
+		ItemClickListener itemClickListener = new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				if (event.getButton() == MouseButton.LEFT) {
+					RecordVOItem recordItem = (RecordVOItem) event.getItem();
+					RecordVO recordVO = recordItem.getRecord();
+					presenter.recordClicked(recordVO.getId(), null);
+				}
+			}
+		};
+		Component component = tabSource.buildCustomComponent(getConstellioFactories(), getSessionContext(), itemClickListener);
 		if (component instanceof BaseViewImpl) {
 			((BaseViewImpl) component).enter(null);
 		}
@@ -423,18 +410,31 @@ public class HomeViewImpl extends BaseViewImpl implements HomeView {
 			setCellStyleGenerator(new CellStyleGenerator() {
 				@Override
 				public String getStyle(Table source, Object itemId, Object propertyId) {
+					String columnStyle;
 					if (RecentItem.CAPTION.equals(propertyId)) {
 						RecordVO recordVO = getRecordVO(itemId);
 						try {
 							String extension = FileIconUtils.getExtension(recordVO);
 							if (extension != null) {
-								return "file-icon v-table-cell-content-file-icon-" + extension.toLowerCase();
+								columnStyle = "file-icon v-table-cell-content-file-icon-" + extension.toLowerCase();
+							} else {
+								columnStyle = null;
 							}
 						} catch (Exception e) {
 							// Ignore the exception
+							columnStyle = null;
 						}
+						
+						String id = recordVO.getId();
+						SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+						if (sessionContext.isVisited(id)) {
+							String visitedStyleName = "v-table-cell-visited-link";
+							columnStyle = StringUtils.isNotBlank(columnStyle) ? columnStyle + " " + visitedStyleName : visitedStyleName; 
+						}
+					} else {
+						columnStyle = null;
 					}
-					return null;
+					return columnStyle;
 				}
 			});
 

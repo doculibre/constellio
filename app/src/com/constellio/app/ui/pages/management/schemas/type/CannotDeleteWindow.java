@@ -33,7 +33,6 @@ public class CannotDeleteWindow extends VerticalLayout {
 
 	private void buildWindowConponents() {
 		setSpacing(true);
-		setWidth("90%");
 		addStyleName("CannotDeleteWindow");
 
 		okButton = new Button("Ok");
@@ -74,7 +73,6 @@ public class CannotDeleteWindow extends VerticalLayout {
 
 	private Table buildRecodsTable(List<Record> records) {
 		Table table = new Table();
-		table.setWidth("90%");
 		table.addContainerProperty($(RECORD_ID), String.class, null);
 		table.addContainerProperty($(RECORD_TITLE), String.class, null);
 		table.addContainerProperty($(IS_IN_TRASH_QUESTION), String.class, null);

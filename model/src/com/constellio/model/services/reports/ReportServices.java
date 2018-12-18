@@ -46,7 +46,7 @@ public class ReportServices {
 			delete(report, user);
 		} else {
 			if (report.getUsername() == null || hasReportManagementPermission(user)
-												&& recordServices.isLogicallyThenPhysicallyDeletable(report.getWrappedRecord(), user)) {
+												&& recordServices.validateLogicallyThenPhysicallyDeletable(report.getWrappedRecord(), user).isEmpty()) {
 				delete(report, user);
 			} else {
 				throw new CouldNotDeleteSomeoneElseReportRuntimeException(report.getUsername() + "!=" + user.getUsername());

@@ -3092,18 +3092,18 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		Task task = rm.newRMTask().setLinkedFolders(asList(folder.getId())).setTitle("Task");
 		recordServices.add(task);
-		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+		assertThat(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isFalse();
 
 		recordServices.logicallyDelete(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isTrue();
 
 		recordServices.restore(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+		assertThat(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isFalse();
 
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		TasksSearchServices taskSearchServices = new TasksSearchServices(tasksSchemas);
 		recordServices.update(task.setStatus(taskSearchServices.getFirstFinishedStatus().getId()));
-		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isTrue();
 	}
 
 	@Test

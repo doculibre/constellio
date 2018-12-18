@@ -308,10 +308,10 @@ public class CollectionsAcceptanceTest extends ConstellioTest {
 		userServices.addUserToCollection(users.chuckNorris(), "constellio");
 		userServices.addUserToCollection(users.chuckNorris(), "doculibre");
 
-		userServices.addUpdateGlobalGroup(users.legends().withUsersAutomaticallyAddedToCollections(
+		userServices.addUpdateGlobalGroup(users.legends().setUsersAutomaticallyAddedToCollections(
 				Arrays.asList("constellio", "doculibre")));
 		userServices
-				.addUpdateGlobalGroup(users.heroes().withUsersAutomaticallyAddedToCollections(Arrays.asList("doculibre")));
+				.addUpdateGlobalGroup(users.heroes().setUsersAutomaticallyAddedToCollections(Arrays.asList("doculibre")));
 
 		defineSchemasManager().using(constellioSchemas);
 		defineSchemasManager().using(doculibreSchemas);

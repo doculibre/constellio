@@ -2,20 +2,23 @@ package com.constellio.app.ui.pages.search;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrResponse;
 import org.apache.solr.client.solrj.request.schema.AbstractSchemaRequest;
+import org.apache.solr.client.solrj.request.schema.SchemaRequest;
+import org.apache.solr.client.solrj.response.schema.SchemaResponse;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.ContentStream;
 import org.apache.solr.common.util.ContentStreamBase;
+import org.apache.solr.common.util.NamedList;
 import org.apache.solr.ltr.feature.SolrFeature;
+import org.apache.solr.request.SolrQueryRequest;
+import org.noggit.CharArr;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public abstract class SolrFeatureRequest extends AbstractSchemaRequest<SolrResponse> {
 	List<SolrFeature> features;
@@ -31,7 +34,7 @@ public abstract class SolrFeatureRequest extends AbstractSchemaRequest<SolrRespo
 	@Override
 	public Collection<ContentStream> getContentStreams() throws IOException {
 		List<SolrFeatureJson> jsonObjects = new ArrayList<>();
-		for (SolrFeature sf : getFeatures()) {
+		for (SolrFeature sf: getFeatures()) {
 			SolrFeatureJson sfj = new SolrFeatureJson();
 			sfj.setName(sf.getName());
 			sfj.setClazz(sf.getClass().getCanonicalName());
@@ -46,7 +49,7 @@ public abstract class SolrFeatureRequest extends AbstractSchemaRequest<SolrRespo
 	}
 
 	public List<SolrFeature> getFeatures() {
-		if (features == null) {
+		if(features == null) {
 			features = new ArrayList<>();
 		}
 

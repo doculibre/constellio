@@ -1,6 +1,5 @@
 package com.constellio.app.api.extensions.params;
 
-import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Component;

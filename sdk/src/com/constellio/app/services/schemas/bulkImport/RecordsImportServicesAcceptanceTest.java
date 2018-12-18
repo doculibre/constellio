@@ -1,28 +1,5 @@
 package com.constellio.app.services.schemas.bulkImport;
 
-import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
-import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
-import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
-import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
-import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.model.CopyRetentionRule;
 import com.constellio.app.modules.rm.model.enums.CopyType;
@@ -52,6 +29,28 @@ import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.InternetTest;
 import com.constellio.sdk.tests.setups.Users;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import static com.constellio.app.modules.rm.model.enums.DisposalType.DEPOSIT;
+import static com.constellio.app.modules.rm.model.enums.DisposalType.DESTRUCTION;
+import static com.constellio.data.conf.HashingEncoding.BASE64_URL_ENCODED;
+import static com.constellio.model.entities.schemas.Schemas.LEGACY_ID;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.ALL;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.fromAllSchemasIn;
+import static com.constellio.sdk.tests.TestUtils.assertThatRecords;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 
@@ -81,8 +80,6 @@ public class RecordsImportServicesAcceptanceTest extends ConstellioTest {
 		prepareSystem(
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 		);
-
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		givenTimeIs(now);
 

@@ -551,15 +551,6 @@ public class MetadataSchemaBuilder {
 			}
 		}
 
-		//		for (Metadata metadata : metadatas) {
-		//			if (metadata.getDataEntry().getType() == CALCULATED && !sortedMetadataCodes.contains(metadata.getLocalCode())) {
-		//				if (!metadata.isGlobal()) {
-		//					System.out.println(metadata.getLocalCode());
-		//					sortedMetadatas.add(metadata);
-		//				}
-		//			}
-		//		}
-
 		return Collections.unmodifiableList(sortedMetadatas);
 	}
 

@@ -127,7 +127,10 @@ public class RecordWithCopyRetentionRuleParametersPresenter {
 		copyRetentionRuleField.setOptions(copyRetentionRules);
 		if (copyRetentionRules.size() == 1) {
 			copyRetentionRuleField.setFieldValue(copyRetentionRules.get(0).getId());
+		} else if(copyRetentionRules.isEmpty()) {
+			copyRetentionRuleField.setFieldValue(null);
 		}
+
 		if (copyRetentionRules.size() <= 1) {
 			copyRetentionRuleField.setVisible(false);
 		} else {

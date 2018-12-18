@@ -15,8 +15,14 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 
+import java.util.List;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.anyConditions;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.where;
+import static java.util.Collections.singletonList;
 
 public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchView> {
 
@@ -38,6 +44,7 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 				MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
 				return new LogicalSearchQuery(from(schema)
 						.where(schema.getMetadata(SavedSearch.USER)).isEqualTo(getCurrentUser())
+						.andWhere(schema.getMetadata(SavedSearch.PUBLIC)).isFalse()
 						.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isFalseOrNull())
 						.sortAsc(Schemas.TITLE);
 			}
@@ -51,10 +58,23 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 			@Override
 			protected LogicalSearchQuery getQuery() {
 				MetadataSchema schema = schema(SavedSearch.DEFAULT_SCHEMA);
+
+				User currentUser = getCurrentUser();
+
+				LogicalSearchCondition isCreator = where(schema.get(SavedSearch.USER)).isEqualTo(currentUser);
+				LogicalSearchCondition isSharedUser =
+						where(schema.get(SavedSearch.SHARED_USERS)).isContaining(singletonList(currentUser.getId()));
+				LogicalSearchCondition isSharedGroup =
+						where(schema.get(SavedSearch.SHARED_GROUPS)).isIn(currentUser.getUserGroupsOrEmpty());
+				LogicalSearchCondition isNotRestrictedAndNotCreator =
+						where(schema.get(SavedSearch.RESTRICTED)).isFalseOrNull()
+								.andWhere(schema.get(SavedSearch.USER)).isNull();
+
 				return new LogicalSearchQuery(from(schema)
-						.where(schema.getMetadata(SavedSearch.PUBLIC)).isTrue()
-						.andWhere(schema.getMetadata(SavedSearch.USER)).isNotEqual(getCurrentUser())
-						.andWhere(schema.getMetadata(SavedSearch.TEMPORARY)).isFalseOrNull())
+						.whereAllConditions(
+								where(schema.getMetadata(SavedSearch.PUBLIC)).isTrue(),
+								where(schema.getMetadata(SavedSearch.TEMPORARY)).isFalseOrNull(),
+								anyConditions(isCreator, isSharedUser, isSharedGroup, isNotRestrictedAndNotCreator)))
 						.sortAsc(Schemas.TITLE);
 			}
 		};
@@ -65,17 +85,15 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 				.build(schema(SavedSearch.DEFAULT_SCHEMA), VIEW_MODE.TABLE, view.getSessionContext());
 	}
 
-	public void searchModificationRequested(String id, String newTitle, Boolean publicSearch) {
+	public void searchModificationRequested(String id, String newTitle, boolean publicSearch, List<String> sharedGroups,
+											List<String> sharedUsers) {
 		SavedSearch savedSearch = new SavedSearch(getRecord(id), types());
 		if (newTitle != null) {
 			savedSearch.setTitle(newTitle);
 		}
-		if (publicSearch != null) {
-			savedSearch.setPublic(publicSearch);
-		}
-		if (savedSearch.isPublic()) {
-			savedSearch.setUser(null);
-		}
+		savedSearch.setPublic(publicSearch);
+		savedSearch.setSharedGroups(!sharedGroups.isEmpty() ? sharedGroups : null);
+		savedSearch.setSharedUsers(!sharedUsers.isEmpty() ? sharedUsers : null);
 		addOrUpdate(savedSearch.getWrappedRecord());
 		view.navigate().to().listSavedSearches();
 	}
@@ -98,5 +116,16 @@ public class SavedSearchPresenter extends SingleSchemaBasePresenter<SavedSearchV
 
 	public boolean hasUserAcessToDeletePublicSearches() {
 		return getCurrentUser().has(CorePermissions.DELETE_PUBLIC_SAVED_SEARCH).globally();
+	}
+
+	public boolean isSavedSearchEditable(boolean publicSearch) {
+		if (!publicSearch) {
+			return true;
+		}
+		return hasUserAccessToModifyPublicSearches();
+	}
+
+	private boolean hasUserAccessToModifyPublicSearches() {
+		return getCurrentUser().has(CorePermissions.MODIFY_PUBLIC_SAVED_SEARCH).globally();
 	}
 }

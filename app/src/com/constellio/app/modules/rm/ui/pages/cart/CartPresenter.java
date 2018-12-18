@@ -5,6 +5,7 @@ import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
 import com.constellio.app.modules.rm.model.enums.DecomListStatus;
@@ -44,6 +45,7 @@ import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenter;
 import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingPresenterService;
 import com.constellio.app.ui.pages.search.batchProcessing.entities.BatchProcessResults;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.data.dao.dto.records.OptimisticLockingResolution;
 import com.constellio.data.dao.services.bigVault.solr.SolrUtils;
 import com.constellio.model.entities.Language;
@@ -201,8 +203,9 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			return;
 		}
 		for (Record record : recordServices().getRecordsById(view.getCollection(), getAllCartItems())) {
-			if (modelLayerExtensions.isDeleteBlocked(record, getCurrentUser())) {
-				view.showErrorMessage($("CartView.actionBlockedByExtension"));
+			ValidationErrors validateDeleteAuthorized = modelLayerExtensions.validateDeleteAuthorized(record, getCurrentUser());
+			if (!validateDeleteAuthorized.isEmpty()) {
+				MessageUtils.getCannotDeleteWindow(validateDeleteAuthorized).openWindow();
 				return;
 			}
 		}
@@ -916,6 +919,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 			}
 		}
 		return true;
+	}
+
+	public boolean isNeedingAReasonToDeleteRecords() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
 	}
 
 	public List<String> getCartFolderIds() {

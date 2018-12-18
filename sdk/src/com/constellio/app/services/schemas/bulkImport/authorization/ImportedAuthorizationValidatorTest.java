@@ -180,14 +180,14 @@ public class ImportedAuthorizationValidatorTest extends ConstellioTest {
 	}
 
 	@Test(expected = ImportedAuthorizationValidatorRuntimeException_InvalidTargetType.class)
-	public void givenAuthorizationWithUnsecurizedTargetTypeWhenValidatingThenAdequateException()
+	public void givenAuthorizationWithUnsecurableTargetTypeWhenValidatingThenAdequateException()
 			throws Exception {
 		validAuthorization.setTargets(asList(new ImportedAuthorizationTarget("category", "legacyId")));
 		validator.validate(validAuthorization);
 	}
 
 	@Test
-	public void givenAuthorizationWithUnsecurizedTargetTypeProvidingSecurityWithMetadataWhenValidatingThenNoException()
+	public void givenAuthorizationWithUnsecurableTargetTypeProvidingSecurityWithMetadataWhenValidatingThenNoException()
 			throws Exception {
 
 		Metadata metadataProvidingSecurity = TestUtils.mockManualMetadata("folder_default_category", MetadataValueType.REFERENCE);

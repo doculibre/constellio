@@ -4,6 +4,9 @@ import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.framework.buttons.DisplayWindowButton;
+import com.constellio.app.ui.framework.buttons.DownloadLink;
+import com.constellio.app.ui.framework.components.content.InputStreamWrapper;
+import com.constellio.app.ui.framework.components.content.LazyStreamRessource;
 import com.constellio.app.ui.framework.components.display.ReferenceDisplay;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.components.table.columns.RecordVOTableColumnsManager;
@@ -16,7 +19,6 @@ import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
-import com.vaadin.data.Container;
 import com.vaadin.data.Item;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
@@ -27,12 +29,16 @@ import com.vaadin.ui.Component;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.themes.ValoTheme;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static com.constellio.app.ui.i18n.i18n.$;
 
 public class EventViewImpl extends BaseViewImpl implements EventView {
 
@@ -47,6 +53,12 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 	public static final String EVENT_DEFAULT_TYPE = "event_default_type";
 	public static final String EVENT_DEFAULT_USERNAME = "event_default_username";
 
+	private DownloadLink generateCSVDownloadLink;
+	private LazyStreamRessource lazyStreamRessource;
+	private InputStreamWrapper inputStreamWrapper;
+
+	private RecordVOLazyContainer container;
+
 	public EventViewImpl() {
 		this.presenter = new EventPresenter(this);
 	}
@@ -56,15 +68,52 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		VerticalLayout page = new VerticalLayout();
 		page.setSizeFull();
 		page.setSpacing(true);
+
+
+		inputStreamWrapper = presenter.createInputStreamWrapper();
+		lazyStreamRessource = new LazyStreamRessource(inputStreamWrapper, this.getTitle() + ".csv");
+
+		generateCSVDownloadLink = new DownloadLink(lazyStreamRessource, $("generateCSVRepport"));
+		generateCSVDownloadLink.addStyleName(ValoTheme.BUTTON_PRIMARY);
+		page.addComponent(generateCSVDownloadLink);
 		table = buildTable();
 		page.addComponent(table);
 		return page;
 	}
 
+
+	public String[] getTableColumn() {
+		Object[] propertyIdCollection = table.getVisibleColumns();
+
+		ArrayList<String> containerPropertyIdArray = new ArrayList<>();
+
+		for(Object property : propertyIdCollection) {
+			if(!table.isColumnCollapsed(property)) {
+				containerPropertyIdArray.add(table.getColumnHeader(property));
+			}
+		}
+
+		return containerPropertyIdArray.toArray(new String[0]);
+	}
+
+
+	public Object[] getTableVisibleProperties() {
+		Object[] propertyIdCollection = table.getVisibleColumns();
+		List<Object> nonCollapsedPropertyList = new ArrayList<>();
+
+		for(Object propertyId : propertyIdCollection) {
+			if(!table.isColumnCollapsed(propertyId)) {
+				nonCollapsedPropertyList.add(propertyId);
+			}
+		}
+
+		return nonCollapsedPropertyList.toArray();
+	}
+
 	private Table buildTable() {
 		final RecordVODataProvider dataProvider = presenter.getDataProvider();
 		final String eventType = presenter.getEventType();
-		Container container = new RecordVOLazyContainer(dataProvider, false);
+		container = new RecordVOLazyContainer(dataProvider, false);
 
 		String eventTypeCaption;
 		try {
@@ -82,6 +131,8 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 					return displayButton(metadataValue);
 				} else if (presenter.isTypeMetadata(metadataValue)) {
 					return newEventTypeLabel(metadataValue);
+				} else if (presenter.isNegativeAuthorizationMetadata(metadataValue)) {
+					return negativeAuthorizationLabel(metadataValue);
 				} else {
 					RecordVO linkedRecordVO = presenter.getLinkedRecordVO(recordVO);
 					if (presenter.isTitleMetadata(metadataValue) && isRecordEvent && linkedRecordVO != null) {
@@ -93,6 +144,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 					}
 				}
 			}
+
 
 			@Override
 			protected RecordVO getRecordVOForTitleColumn(Item item) {
@@ -146,6 +198,14 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 							defaultVisibleColumnIds.add(EVENT_DEFAULT_USERNAME);
 							return defaultVisibleColumnIds;
 						}
+
+						@Override
+						public void manage(Table table, String tableId) {
+							super.manage(table, tableId);
+							if (presenter.isNegativeAuthorizationConfigEnabled()) {
+								setColumnCollapsed("event_default_negative", false);
+							}
+						}
 					};
 				}
 			}
@@ -155,6 +215,7 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 				return null;
 			}
 		};
+
 		if (isRecordEvent) {
 			table.addItemClickListener(new ItemClickListener() {
 				@Override
@@ -181,6 +242,11 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 			e.printStackTrace();
 		}
 		return new Label(eventTypeCaption);
+	}
+
+	private static Component negativeAuthorizationLabel(MetadataValueVO metadataValue) {
+		final String negative = (metadataValue.getValue() != null) ? $("yes") : $("no");
+		return new Label(negative);
 	}
 
 	private static Component displayButton(MetadataValueVO metadataValue) {

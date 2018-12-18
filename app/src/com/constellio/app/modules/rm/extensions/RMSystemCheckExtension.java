@@ -270,7 +270,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 						recordServices
 								.add(unit.<Boolean, RecordWrapper>set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(), false));
 
-						if (recordServices.isLogicallyThenPhysicallyDeletable(unit.getWrappedRecord(), User.GOD)) {
+						if (recordServices.validateLogicallyThenPhysicallyDeletable(unit.getWrappedRecord(), User.GOD).isEmpty()) {
 							recordServices.logicallyDelete(unit.getWrappedRecord(), User.GOD);
 							recordServices.physicallyDelete(unit.getWrappedRecord(), User.GOD);
 							params.getResultsBuilder().addListItem(DELETED_ADM_UNITS, label);
@@ -322,7 +322,7 @@ public class RMSystemCheckExtension extends SystemCheckExtension {
 					if (!category.getWrappedRecord().isDisconnected()) {
 						recordServices.add(category.<Boolean, RecordWrapper>set(Schemas.LOGICALLY_DELETED_STATUS.getLocalCode(),
 								false));
-						if (recordServices.isLogicallyThenPhysicallyDeletable(category.getWrappedRecord(), User.GOD)) {
+						if (recordServices.validateLogicallyThenPhysicallyDeletable(category.getWrappedRecord(), User.GOD).isEmpty()) {
 							recordServices.logicallyDelete(category.getWrappedRecord(), User.GOD);
 							recordServices.physicallyDelete(category.getWrappedRecord(), User.GOD);
 							params.getResultsBuilder().addListItem(DELETED_CATEGORIES, label);

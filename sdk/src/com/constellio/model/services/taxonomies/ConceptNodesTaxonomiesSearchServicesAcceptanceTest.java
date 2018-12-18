@@ -3,9 +3,9 @@ package com.constellio.model.services.taxonomies;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.batch.controller.BatchProcessController;
 import com.constellio.model.services.batch.manager.BatchProcessesManager;
@@ -130,7 +130,6 @@ public class ConceptNodesTaxonomiesSearchServicesAcceptanceTest extends Constell
 	public void whenGetRootRecordsThenReturnOnlyRecordsOfGivenTaxonomy()
 			throws Exception {
 		givenFoldersAndDocuments();
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 
 		List<Record> taxonomy1RootRecords = services.getRootConcept(records.taxo1_firstTypeItem1.getCollection(), "taxo1",
 				options);

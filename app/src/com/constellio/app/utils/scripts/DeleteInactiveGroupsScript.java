@@ -7,7 +7,7 @@ import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.GlobalGroup;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
+import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.security.AuthorizationsServices;
@@ -80,7 +80,7 @@ public class DeleteInactiveGroupsScript extends ScriptWithLogOutput {
 				List<String> userGroups = new ArrayList<>(user.getUserGroups());
 				userGroups.remove(group.getId());
 
-				recordServices.update(user.setUserGroups(!userGroups.isEmpty() ? userGroups : null));
+				recordServices.update(user.getCopyOfOriginalRecord().setUserGroups(!userGroups.isEmpty() ? userGroups : null));
 			}
 
 			recordServices.logicallyDelete(group.getWrappedRecord(), User.GOD);
@@ -88,7 +88,7 @@ public class DeleteInactiveGroupsScript extends ScriptWithLogOutput {
 		}
 
 		globalGroupsManager.logicallyRemoveGroup(globalGroup);
-		recordServices.physicallyDelete(((SolrGlobalGroup) globalGroup).getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(((GlobalGroup) globalGroup).getWrappedRecord(), User.GOD);
 
 		outputLogger.info(String.format("Global group '%s' deleted", globalGroup.getCode()));
 	}

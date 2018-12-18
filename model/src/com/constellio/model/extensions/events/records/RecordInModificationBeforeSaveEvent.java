@@ -8,7 +8,9 @@ import com.constellio.model.services.records.RecordImpl;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.SchemaUtils;
 
-public class RecordInModificationBeforeSaveEvent extends BaseConsumableEventImpl implements RecordEvent {
+import java.util.List;
+
+public abstract class RecordInModificationBeforeSaveEvent extends BaseConsumableEventImpl implements RecordEvent {
 
 	MetadataList modifiedMetadatas;
 
@@ -81,4 +83,6 @@ public class RecordInModificationBeforeSaveEvent extends BaseConsumableEventImpl
 			super("Metadata '" + metadataLocalCode + "' was not modified");
 		}
 	}
+
+	public abstract void recalculateRecord(List<String> metadatas);
 }

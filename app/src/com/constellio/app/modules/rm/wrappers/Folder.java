@@ -116,6 +116,7 @@ public class Folder extends RMObject {
 	public static final String DOCUMENTS_TOKENS = "documentsTokens";
 	public static final String UNIQUE_KEY = "uniqueKey";
 	public static final String SUMMARY = "summary";
+	public static final String HAS_CONTENT = "hasContent";
 
 	public Folder(Record record,
 				  MetadataSchemaTypes types) {
@@ -851,10 +852,12 @@ public class Folder extends RMObject {
 	}
 
 	public void addFavorite(String favoriteToAdd) {
-		List<String> favorites = new ArrayList<>();
-		favorites.addAll(getFavorites());
-		favorites.add(favoriteToAdd);
-		setFavorites(favorites);
+		List<String> newFavorites = new ArrayList<>();
+		newFavorites.addAll(getFavorites());
+		if (!newFavorites.contains(favoriteToAdd)) {
+			newFavorites.add(favoriteToAdd);
+		}
+		setFavorites(newFavorites);
 	}
 
 	public void removeFavorites(List<String> favoritesToDelete) {
@@ -862,6 +865,10 @@ public class Folder extends RMObject {
 		favorites.addAll(getFavorites());
 		favorites.removeAll(favoritesToDelete);
 		setFavorites(favorites);
+	}
+
+	public boolean hasContent() {
+		return getBooleanWithDefaultValue(HAS_CONTENT, false);
 	}
 }
 

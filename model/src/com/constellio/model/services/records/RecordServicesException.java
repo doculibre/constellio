@@ -29,14 +29,6 @@ public class RecordServicesException extends Exception {
 		super(cause);
 	}
 
-	public static class PreviouslySavedContentCouldNotBeCommitted extends RecordServicesException {
-
-		public PreviouslySavedContentCouldNotBeCommitted(Throwable cause) {
-			super(cause);
-		}
-
-	}
-
 	public static class OptimisticLocking extends RecordServicesException {
 
 		final String id;

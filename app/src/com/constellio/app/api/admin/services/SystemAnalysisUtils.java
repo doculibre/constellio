@@ -2,6 +2,7 @@ package com.constellio.app.api.admin.services;
 
 import com.constellio.app.entities.system.SystemMemory.MemoryDetails;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,6 +23,10 @@ public class SystemAnalysisUtils {
 
 	public static MemoryDetails getAllocatedMemoryForConstellio() {
 		FoldersLocator foldersLocator = new FoldersLocator();
+		if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.PROJECT) {
+			return null;
+		}
+
 		String allocatedMemory = findValueOfParameter(foldersLocator.getWrapperConf().getAbsolutePath(), CONSTELLIO_MEMORY_PARAMETER, "=");
 		return MemoryDetails.build(allocatedMemory, "MB");
 	}

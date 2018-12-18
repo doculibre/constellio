@@ -327,7 +327,6 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 	@Test
 	public void whenDeleteFolderThenReturnValidEvents()
 			throws Exception {
-		getDataLayerFactory().getDataLayerLogger().monitor("00000000279");
 		Folder folder_A01 = records.getFolder_A01();
 		User adminUser = users.adminIn(zeCollection);
 		loggingServices.logDeleteRecordWithJustification(folder_A01.getWrappedRecord(), adminUser, "");
@@ -350,8 +349,6 @@ public class LoggingServicesAcceptTest extends ConstellioTest {
 	@Test
 	public void whenCreateFolderThenCreateValidEvent()
 			throws Exception {
-
-		getDataLayerFactory().getDataLayerLogger().monitor("00000000279");
 
 		Folder folder = rm.newFolder().setTitle("Ze Folder").setRetentionRuleEntered(records.ruleId_1)
 				.setAdministrativeUnitEntered(records.unitId_10a)

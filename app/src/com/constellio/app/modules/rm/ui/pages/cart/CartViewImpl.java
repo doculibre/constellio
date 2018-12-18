@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -569,29 +570,57 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 	}
 
 	private Button buildBatchDeleteButton() {
-		Button button = new DeleteWithJustificationButton(false) {
-			@Override
-			protected void deletionConfirmed(String reason) {
-				presenter.deletionRequested(reason);
-			}
-
-			@Override
-			protected String getConfirmDialogMessage() {
-				List<String> cartFolderIds = presenter.getCartFolderIds();
-				List<String> cartDocumentIds = presenter.getCartDocumentIds();
-
-				StringBuilder stringBuilder = new StringBuilder();
-				String prefix = "";
-				if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
-					stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
-					prefix = " " + $("CartView.andAll") + " ";
+		Button button = new Button();
+		if(!presenter.isNeedingAReasonToDeleteRecords()) {
+			button = new DeleteButton(false) {
+				@Override
+				protected void confirmButtonClick(ConfirmDialog dialog) {
+					presenter.deletionRequested(null);
 				}
-				if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
-					stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
+
+				@Override
+				protected String getConfirmDialogMessage() {
+					List<String> cartFolderIds = presenter.getCartFolderIds();
+					List<String> cartDocumentIds = presenter.getCartDocumentIds();
+
+					StringBuilder stringBuilder = new StringBuilder();
+					String prefix = "";
+					if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
+						stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
+						prefix = " " + $("CartView.andAll") + " ";
+					}
+					if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
+						stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
+					}
+					return $("CartView.deleteConfirmationMessageWithoutJustification", stringBuilder.toString());
 				}
-				return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
-			}
-		};
+			};
+		} else {
+			button = new DeleteWithJustificationButton(false) {
+				@Override
+				protected void deletionConfirmed(String reason) {
+					presenter.deletionRequested(reason);
+				}
+
+				@Override
+				protected String getConfirmDialogMessage() {
+					List<String> cartFolderIds = presenter.getCartFolderIds();
+					List<String> cartDocumentIds = presenter.getCartDocumentIds();
+
+					StringBuilder stringBuilder = new StringBuilder();
+					String prefix = "";
+					if (cartFolderIds != null && !cartFolderIds.isEmpty()) {
+						stringBuilder.append(prefix + cartFolderIds.size() + " " + $("CartView.folders"));
+						prefix = " " + $("CartView.andAll") + " ";
+					}
+					if (cartDocumentIds != null && !cartDocumentIds.isEmpty()) {
+						stringBuilder.append(prefix + cartDocumentIds.size() + " " + $("CartView.documents"));
+					}
+					return $("CartView.deleteConfirmationMessage", stringBuilder.toString());
+				}
+			};
+		}
+
 		button.setEnabled(presenter.canDelete());
 		button.setVisible(presenter.canDelete());
 		return button;

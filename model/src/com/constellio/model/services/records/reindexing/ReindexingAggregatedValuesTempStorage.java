@@ -14,7 +14,7 @@ public interface ReindexingAggregatedValuesTempStorage {
 
 	List<AggregatedValuesEntry> getAllEntriesWithValues(String recordIdAggregatingValues);
 
-	void incrementReferenceCount(String recordIdAggregatingValues);
+	void incrementReferenceCount(String recordIdAggregatingValues, String aggregatedMetadataLocalCode);
 
-	int getReferenceCount(String recordIdAggregatingValues);
+	int getReferenceCount(String recordIdAggregatingValues, String aggregatedMetadataLocalCode);
 }

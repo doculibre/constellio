@@ -186,11 +186,11 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 		assertThat(content.getCurrentVersion().getHash()).isEqualTo(doc.getContent().getHash());
 
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
-		assertThat(authorizations).extracting("grantedToPrincipals").usingElementComparator(comparingListAnyOrder).containsOnly(
+		assertThat(authorizations).extracting("principals").usingElementComparator(comparingListAnyOrder).containsOnly(
 				toPrincipalIds(fullDocumentToUpdate.getDirectAces().get(0).getPrincipals()));
-		assertThat(authorizations).extracting("detail.roles").usingElementComparator(comparingListAnyOrder).containsOnly(
+		assertThat(authorizations).extracting("roles").usingElementComparator(comparingListAnyOrder).containsOnly(
 				Lists.newArrayList(fullDocumentToUpdate.getDirectAces().get(0).getPermissions()));
-		assertThat(authorizations).extracting("detail.startDate", "detail.endDate").containsOnly(
+		assertThat(authorizations).extracting("startDate", "endDate").containsOnly(
 				tuple(toLocalDate(fullDocumentToUpdate.getDirectAces().get(0).getStartDate()), toLocalDate(fullDocumentToUpdate.getDirectAces().get(0).getEndDate())));
 	}
 
@@ -905,8 +905,8 @@ public class DocumentRestfulServicePUTAcceptanceTest extends BaseDocumentRestful
 
 		Record record = recordServices.getDocumentById(doc.getId());
 		List<Authorization> authorizations = filterInheritedAuthorizations(authorizationsServices.getRecordAuthorizations(record), record.getId());
-		assertThat(authorizations).extracting("detail.startDate").containsOnly(toLocalDate(minDocumentToUpdate.getDirectAces().get(0).getStartDate()));
-		assertThat(authorizations).extracting("detail.endDate").containsNull();
+		assertThat(authorizations).extracting("startDate").containsOnly(toLocalDate(minDocumentToUpdate.getDirectAces().get(0).getStartDate()));
+		assertThat(authorizations).extracting("endDate").containsNull();
 	}
 
 	@Test

@@ -33,20 +33,14 @@ import com.constellio.sdk.tests.setups.Users;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 
@@ -167,9 +161,33 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		transaction.add(aDocument);
 		recordServices.execute(transaction);
 
-		assertThat(deleteService.isLogicallyThenPhysicallyDeletable(childConcept, users.adminIn(zeCollection))).isFalse();
-		assertThat(deleteService.isLogicallyDeletable(childConcept, users.adminIn(zeCollection))).isTrue();
+
+		assertThat(deleteService.validateLogicallyThenPhysicallyDeletable(childConcept, users.adminIn(zeCollection)).isEmpty()).isFalse();
+		assertThat(deleteService.validateLogicallyDeletable(childConcept, users.adminIn(zeCollection)).isEmpty()).isTrue();
+
 	}
+
+	//@Test
+	public void givenRecordRefereedByOtherRecordsWhenPhysicallyDeleteFromTrashAndGetNonBreakableLinksThenOk()
+			throws Exception {
+		deleteService.logicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null);
+		recordServices.refresh(parentFolderInCategory_A);
+		try {
+			deleteService.physicallyDelete(parentFolderInCategory_A.getWrappedRecord(), null,
+					new RecordPhysicalDeleteOptions().setMostReferencesToNull(true));
+			fail("should find dependent references");
+		} catch (RecordServicesRuntimeException_CannotPhysicallyDeleteRecord_CannotSetNullOnRecords e) {
+			Set<String> relatedRecords = e.getRecordsIdsWithUnremovableReferences();
+			assertThat(relatedRecords).contains(taskReferencesFolderB.getId())
+					.doesNotContain(subFolder_B.getId(), category.getId());
+
+			recordServices.refresh(parentFolderInCategory_A);
+
+			//TODO Nouha, pourquoi la catégorie serait nulle, c'est un champ obligatoire??
+			assertThat(parentFolderInCategory_A.getCategory()).isNull();
+		}
+	}
+
 
 	@Test
 	public void givenRecordsWithSimilarNamesThenMakeSureThatOnlyCorrectRecordsAreDeleted() {
@@ -181,8 +199,8 @@ public class RecordDeleteServicesAcceptanceTest extends ConstellioTest {
 		recordServices.logicallyDelete(document.getWrappedRecord(), User.GOD);
 		recordServices.physicallyDelete(document.getWrappedRecord(), User.GOD);
 
-		assertThat(rm.getFolder("fakeDocument2b")).isNotNull();
-		assertThat(rm.getFolder("fakeDocument2bb")).isNotNull();
+		assertThat(rm.getDocument("fakeDocument2b")).isNotNull();
+		assertThat(rm.getDocument("fakeDocument2bb")).isNotNull();
 	}
 
 	@Test

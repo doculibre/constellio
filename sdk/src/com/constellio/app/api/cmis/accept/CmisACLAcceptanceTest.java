@@ -126,7 +126,7 @@ public class CmisACLAcceptanceTest extends ConstellioTest {
 		recordServices.update(users.adminIn(zeCollection).setCollectionAllAccess(true));
 		recordServices.update(users.chuckNorrisIn(zeCollection).setCollectionReadAccess(true));
 
-		userServices.addUpdateUserCredential(users.admin().withServiceKey("admin-key"));
+		userServices.addUpdateUserCredential(users.admin().setServiceKey("admin-key"));
 		getModelLayerFactory().newAuthenticationService().changePassword(admin, "1qaz2wsx");
 		adminToken = userServices.generateToken(admin);
 		authorizationsServices = getModelLayerFactory().newAuthorizationsServices();

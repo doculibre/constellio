@@ -89,7 +89,7 @@ public class BaseRecordTreeDataProvider extends AbstractDataProvider implements 
 	}
 
 	@Override
-	public final ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
+	public ObjectsResponse<String> getChildren(String parent, int start, int maxSize) {
 
 		FastContinueInfos infos = fastContinueInfosMap.get(parent + "-" + start);
 		LinkableTaxonomySearchResponse response = nodesDataProvider.getChildrenNodes(parent, start, maxSize, infos);
@@ -118,12 +118,12 @@ public class BaseRecordTreeDataProvider extends AbstractDataProvider implements 
 	}
 
 	@Override
-	public final boolean hasChildren(String parent) {
+	public boolean hasChildren(String parent) {
 		return getNode(parent).hasChildren();
 	}
 
 	@Override
-	public final boolean isLeaf(String parent) {
+	public boolean isLeaf(String parent) {
 		return !getNode(parent).hasChildren();
 	}
 

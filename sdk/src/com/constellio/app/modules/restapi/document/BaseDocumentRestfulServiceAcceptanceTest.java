@@ -17,9 +17,9 @@ import com.constellio.app.modules.rm.wrappers.type.DocumentType;
 import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.enums.ParsingBehavior;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.contents.ContentVersionDataSummary;
@@ -125,10 +125,10 @@ public class BaseDocumentRestfulServiceAcceptanceTest extends ConstellioTest {
 		dateFormat = getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_FORMAT);
 		dateTimeFormat = getModelLayerFactory().getSystemConfigurationsManager().getValue(ConstellioEIMConfigs.DATE_TIME_FORMAT);
 
-		userServices.addUpdateUserCredential(users.bob().withServiceKey(serviceKey)
-				.withAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
-		userServices.addUpdateUserCredential(users.sasquatch().withServiceKey(sasquatchServiceKey)
-				.withAccessToken(sasquatchToken, TimeProvider.getLocalDateTime().plusYears(1)));
+		userServices.addUpdateUserCredential(users.bob().setServiceKey(serviceKey)
+				.addAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
+		userServices.addUpdateUserCredential(users.sasquatch().setServiceKey(sasquatchServiceKey)
+				.addAccessToken(sasquatchToken, TimeProvider.getLocalDateTime().plusYears(1)));
 
 		givenConfig(RestApiConfigs.REST_API_URLS, "localhost:7070; localhost2");
 		givenTimeIs(fakeDate);
@@ -279,9 +279,9 @@ public class BaseDocumentRestfulServiceAcceptanceTest extends ConstellioTest {
 	}
 
 	protected void switchToCustomSchema(String id) throws Exception {
-		DocumentType documentType = records.documentTypeForm();
 		Record record = recordServices.getDocumentById(id);
-		record.set(rm.document.type(), documentType.getId());
+		record.changeSchema(records.getSchemas().defaultDocumentSchema(),
+				records.getSchemas().documentSchemaFor(records.documentTypeForm()));
 		recordServices.update(record);
 	}
 

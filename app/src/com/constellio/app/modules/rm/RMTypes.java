@@ -1,6 +1,7 @@
 package com.constellio.app.modules.rm;
 
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
+import com.constellio.app.modules.rm.wrappers.BagInfo;
 import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
@@ -24,6 +25,8 @@ import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,6 +59,7 @@ public class RMTypes {
 		codesList.add(YearType.SCHEMA_TYPE);
 		codesList.add(Cart.SCHEMA_TYPE);
 		codesList.add(FilingSpace.SCHEMA_TYPE);
+		codesList.add(BagInfo.SCHEMA_TYPE);
 
 		schemaTypesCodes = Collections.unmodifiableList(codesList);
 
@@ -75,6 +79,18 @@ public class RMTypes {
 
 		for (String code : schemaTypesCodes) {
 			if (types.hasType(code)) {
+				schemaTypes.add(types.getSchemaType(code));
+			}
+		}
+
+		return Collections.unmodifiableList(schemaTypes);
+	}
+
+	public static List<MetadataSchemaTypeBuilder> rmSchemaTypes(MetadataSchemaTypesBuilder types) {
+		List<MetadataSchemaTypeBuilder> schemaTypes = new ArrayList<>();
+
+		for (String code : schemaTypesCodes) {
+			if (types.hasSchemaType(code)) {
 				schemaTypes.add(types.getSchemaType(code));
 			}
 		}

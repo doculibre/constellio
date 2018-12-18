@@ -23,7 +23,8 @@ public class EventSchemaToVOBuilder extends MetadataSchemaToVOBuilder {
 	protected MetadataToVOBuilder newMetadataToVOBuilder() {
 		return new MetadataToVOBuilder() {
 			@Override
-			protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode, String datastoreCode, MetadataValueType type,
+			protected MetadataVO newMetadataVO(String metadataCode, String metadataLocalCode, String datastoreCode,
+											   MetadataValueType type,
 											   String collection, MetadataSchemaVO schemaVO, boolean required,
 											   boolean multivalue,
 											   boolean readOnly, boolean unmodifiable, Map<Locale, String> labels,
