@@ -16,9 +16,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.content.InputStreamWrapper;
 import com.constellio.app.ui.framework.components.content.InputStreamWrapper.SimpleAction;
-import com.constellio.app.ui.framework.data.DataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.data.event.EventStatistics;
 import com.constellio.app.ui.framework.data.event.EventTypeUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -33,6 +31,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -129,6 +128,9 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		}
 		if (metadataCodes == null) {
 			metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(defaultSchema(), getEventType());
+			if (!isNegativeAuthorizationConfigEnabled()) {
+				metadataCodes.remove("event_default_negative");
+			}
 			schemaVO = new MetadataSchemaToVOBuilder()
 					.build(defaultSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
 		}
@@ -324,6 +326,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		return metadataValue.getMetadata().getCode().contains(Event.TYPE);
 	}
 
+	public boolean isNegativeAuthorizationMetadata(MetadataValueVO metadataValue) {
+		return metadataValue.getMetadata().getCode().contains(Event.NEGATIVE_AUTHORIZATION);
+	}
+
 	public boolean isTaskMetadata(MetadataValueVO metadataValue) {
 		return metadataValue.getMetadata().getCode().contains(Event.TASK);
 	}
@@ -467,6 +473,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			}
 		};
 		return voBuilder;
+	}
+
+	public boolean isNegativeAuthorizationConfigEnabled() {
+		return new ConstellioEIMConfigs(modelLayerFactory).isNegativeAuthorizationEnabled();
 	}
 
 }
