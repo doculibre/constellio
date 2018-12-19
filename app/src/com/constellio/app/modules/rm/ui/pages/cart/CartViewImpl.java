@@ -1,7 +1,6 @@
 package com.constellio.app.modules.rm.ui.pages.cart;
 
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
-import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.model.enums.DecommissioningListType;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
@@ -13,7 +12,6 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
-import com.constellio.app.ui.entities.RecordVORuntimeException;
 import com.constellio.app.ui.framework.buttons.BaseButton;
 import com.constellio.app.ui.framework.buttons.ConfirmDialogButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
@@ -171,7 +169,8 @@ public class CartViewImpl extends BaseViewImpl implements CartView {
 				customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory,
 				getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection()
+				getSessionContext().getCurrentCollection(),
+				presenter.getUser()
 		);
 		labelsButton.setElementsWithIds(presenter.getNotDeletedRecordsIds(schemaType), schemaType, getSessionContext());
 		labelsButton.setEnabled(presenter.isLabelsButtonVisible(schemaType));

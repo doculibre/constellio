@@ -11,6 +11,7 @@ import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.utils.ReportGeneratorUtils;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Validator;
@@ -44,21 +45,23 @@ public class ReportGeneratorButton extends WindowButton {
 	private Button generateButton, cancelButton;
 	private PrintableReportListPossibleType currentSchema;
 	private BaseView view;
+	private User user;
 
 	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory,
 								 String collection,
-								 PrintableReportListPossibleType currentSchema) {
+								 PrintableReportListPossibleType currentSchema, User user) {
 		super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "90%"));
 		this.factory = factory;
 		this.collection = collection;
 		this.currentSchema = currentSchema;
 		this.view = view;
+		this.user = user;
 	}
 
 	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory,
 								 String collection,
-								 PrintableReportListPossibleType currentSchema, RecordVO... elements) {
-		this(caption, windowCaption, view, factory, collection, currentSchema);
+								 PrintableReportListPossibleType currentSchema, User user, RecordVO... elements) {
+		this(caption, windowCaption, view, factory, collection, currentSchema, user);
 		this.setElements(elements);
 	}
 
@@ -157,7 +160,7 @@ public class ReportGeneratorButton extends WindowButton {
 			getWindow().setContent(
 					ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getTypeCode(),
 							(PrintableReportTemplate) parent.printableItemsFields.getValue(), 1, getIdsFromRecordVO(), null,
-							view.getSessionContext().getCurrentLocale()));
+							view.getSessionContext().getCurrentLocale(), user));
 		}
 
 		@Override

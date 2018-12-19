@@ -90,7 +90,7 @@ public class ListSchemaTypePresenter extends SingleSchemaBasePresenter<ListSchem
 	@NotNull
 	public ByteArrayOutputStream writeSchemaTypeExcelReportOnStream(String schemaTypeCode) {
 
-		SchemaTypeExcelReportWriter schemaTypeExcelGenerator = new SchemaTypeExcelReportWriter(schemaManager.getSchemaTypes(collection).getSchemaType(schemaTypeCode), appLayerFactory, getCurrentLocale());
+		SchemaTypeExcelReportWriter schemaTypeExcelGenerator = new SchemaTypeExcelReportWriter(schemaManager.getSchemaTypes(collection).getSchemaType(schemaTypeCode), appLayerFactory, getCurrentLocale(), getCurrentUser());
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		schemaTypeExcelGenerator.write(byteArrayOutputStream);
 

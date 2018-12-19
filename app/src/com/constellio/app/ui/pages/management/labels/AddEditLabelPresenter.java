@@ -1,9 +1,5 @@
 package com.constellio.app.ui.pages.management.labels;
 
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.borrowingServices.BorrowingServices;
@@ -34,6 +30,9 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import org.apache.commons.lang3.StringUtils;
+
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabelView> {
 	private MetadataSchemaToVOBuilder schemaVOBuilder;
@@ -45,7 +44,7 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 	private transient ModelLayerCollectionExtensions extensions;
 	protected RecordVO container;
 	private RecordVODataProvider folderDataProvider, containerDataProvider, documentDataProvider;
-
+	private User user;
 
 	public AddEditLabelPresenter(AddEditLabelView view) {
 		super(view);
@@ -67,6 +66,11 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 		recordServices = modelLayerFactory.newRecordServices();
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
+	}
+
+	public User getUser() {
+		return user;
 	}
 
 	@Override

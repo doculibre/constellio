@@ -96,12 +96,14 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 	private transient BatchProcessingPresenterService batchProcessingPresenterService;
 	private transient ModelLayerCollectionExtensions modelLayerExtensions;
 	private transient RMModuleExtensions rmModuleExtensions;
+	private User user;
 
 	public CartPresenter(CartView view) {
 		super(view, Cart.DEFAULT_SCHEMA);
 
 		modelLayerExtensions = modelLayerFactory.getExtensions().forCollection(view.getCollection());
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
+		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
 	}
 
 	public void itemRemovalRequested(RecordVO recordVO) {
@@ -109,6 +111,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		removeFromFavorite(record);
 		addOrUpdate(record);
 		view.navigate().to(RMViews.class).cart(cartId);
+	}
+
+	public User getUser() {
+		return user;
 	}
 
 	public boolean canEmptyCart() {

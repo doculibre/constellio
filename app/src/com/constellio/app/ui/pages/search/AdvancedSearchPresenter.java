@@ -110,6 +110,7 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 	private transient VaultBehaviorsList<BatchProcessingExtension> batchProcessingExtensions;
 	private transient RMModuleExtensions rmModuleExtensions;
 	private transient RMSchemasRecordsServices rm;
+	private User user;
 
 	public AdvancedSearchPresenter(AdvancedSearchView view) {
 		super(view);
@@ -117,7 +118,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).forModule(ConstellioRMModule.ID);
 		modelLayerExtensions = modelLayerFactory.getExtensions().forCollection(view.getCollection());
 		batchProcessingExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).batchProcessingExtensions;
+		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
 	}
+
+
 
 	public void setSchemaType(String schemaType) {
 		this.schemaTypeCode = schemaType;

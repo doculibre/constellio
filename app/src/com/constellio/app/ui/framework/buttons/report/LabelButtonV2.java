@@ -27,6 +27,7 @@ import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
@@ -90,10 +91,12 @@ public class LabelButtonV2 extends WindowButton {
 
 	private String schemaType;
 
+	private User user;
+
 	public LabelButtonV2(String caption, String windowsCaption,
 						 Factory<List<LabelTemplate>> customLabelTemplatesFactory,
 						 Factory<List<LabelTemplate>> defaultLabelTemplatesFactory, AppLayerFactory factory,
-						 String collection) {
+						 String collection, User user) {
 		super(caption, windowsCaption);
 		this.factory = factory;
 		this.collection = collection;
@@ -106,15 +109,15 @@ public class LabelButtonV2 extends WindowButton {
 
 		this.customLabelTemplatesFactory = customLabelTemplatesFactory;
 		this.defaultLabelTemplatesFactory = defaultLabelTemplatesFactory;
-
+		this.user = user;
 
 	}
 
 	public LabelButtonV2(String caption, String windowsCaption,
 						 Factory<List<LabelTemplate>> customLabelTemplatesFactory,
 						 Factory<List<LabelTemplate>> defaultLabelTemplatesFactory, AppLayerFactory factory,
-						 String collection, RecordVO... elements) {
-		this(caption, windowsCaption, customLabelTemplatesFactory, defaultLabelTemplatesFactory, factory, collection);
+						 String collection, User user, RecordVO... elements) {
+		this(caption, windowsCaption, customLabelTemplatesFactory, defaultLabelTemplatesFactory, factory, collection, user);
 		this.setElements(elements);
 	}
 
@@ -323,7 +326,7 @@ public class LabelButtonV2 extends WindowButton {
 		private VerticalLayout generateLabelFromPrintableLabel(Dimensionnable selectedTemplate) throws Exception {
 			VerticalLayout layout = null;
 			if (validateInputs(selectedTemplate)) {
-				LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(collection, factory, getLocale()).setStartingPosition((Integer) startPositionField.getValue())
+				LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(collection, factory, getLocale(), user).setStartingPosition((Integer) startPositionField.getValue())
 						.setNumberOfCopies(Integer.parseInt(copiesField.getValue().trim())).setElements(getRecordFromElements(elements));
 				PrintableLabel selectedTemplateAsPrintableLabel = ((PrintableLabel) selectedTemplate);
 				JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(labelXmlGenerator);

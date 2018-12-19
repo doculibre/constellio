@@ -57,6 +57,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	transient private TaskPresenterServices taskPresenterServices;
 	transient Record currentRecord;
 	transient private LoggingServices loggingServices;
+	private User user;
 
 	public DisplayTaskPresenter(DisplayTaskView view) {
 		super(view, Task.DEFAULT_SCHEMA);
@@ -89,6 +90,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		tasksSearchServices = new TasksSearchServices(tasksSchemas);
 		loggingServices = modelLayerFactory.newLoggingServices();
 		taskPresenterServices = new TaskPresenterServices(tasksSchemas, recordServices(), tasksSearchServices, loggingServices);
+		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
 	}
 
 	public String getPreviousSelectedTab() {
@@ -154,7 +156,7 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	@Override
 	public void generateReportButtonClicked(RecordVO recordVO) {
 		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
-				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK,
+				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, user,
 				recordVO);
 		button.click();
 	}

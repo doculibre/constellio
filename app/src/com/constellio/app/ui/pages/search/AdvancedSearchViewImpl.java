@@ -163,7 +163,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					customLabelTemplatesFactory,
 					defaultLabelTemplatesFactory,
 					getConstellioFactories().getAppLayerFactory(),
-					getSessionContext().getCurrentCollection());
+					getSessionContext().getCurrentCollection(), presenter.getUser());
 			labelsButton.setSchemaType(schemaType);
 			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 			labelsButton.addStyleName(LABELS_BUTTONSTYLE);

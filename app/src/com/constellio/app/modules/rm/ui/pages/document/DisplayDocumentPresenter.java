@@ -86,6 +86,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	private Long lastKnownLength;
 	private Document document;
 	private Map<String, String> params = null;
+	private User user;
 
 	public DisplayDocumentPresenter(final DisplayDocumentView view, RecordVO recordVO, boolean popup) {
 		super(view);
@@ -102,10 +103,14 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-
+		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
 		if (recordVO != null && params == null) {
 			forParams(recordVO.getId());
 		}
+	}
+
+	public User getUser() {
+		return user;
 	}
 
 	private void initTransientObjects() {

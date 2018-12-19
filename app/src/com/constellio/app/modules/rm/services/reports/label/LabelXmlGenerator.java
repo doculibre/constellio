@@ -14,6 +14,7 @@ import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.EnumWithSmallCode;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataValueType;
@@ -71,24 +72,27 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 
 	private String type;
 
-	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale) {
+	private User user;
+
+	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale, User user) {
 		super(appLayerFactory, collection, locale);
 		this.collection = collection;
 		this.factory = appLayerFactory;
 		this.recordServices = factory.getModelLayerFactory().newRecordServices();
 		this.metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
+		this.user = user;
 	}
 
-	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale,
+	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale, User user,
 							 Record... recordElements) {
-		this(collection, appLayerFactory, locale);
+		this(collection, appLayerFactory, locale, user);
 		this.setElements(recordElements);
 	}
 
 	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale, int startingPosition,
-							 int numberOfCopies,
+							 int numberOfCopies, User user,
 							 Record... recordElements) {
-		this(collection, appLayerFactory, locale, recordElements);
+		this(collection, appLayerFactory, locale, user, recordElements);
 		this.startingPosition = startingPosition;
 		this.numberOfCopies = numberOfCopies;
 	}
@@ -150,7 +154,7 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 							recordElement, xmlSingularElement, XMLMetadatasOfSingularElement));
 
 					// List of all metadatas of current RecordElement
-					List<Metadata> listOfMetadataOfRecordElement = getListOfMetadataForElement(recordElement);
+					List<Metadata> listOfMetadataOfRecordElement = getListOfMetadataForElement(recordElement).onlyAccessibleOnRecordBy(user, recordElement);
 
 					//Add the additional informations to the metadatas.
 					XMLMetadatasOfSingularElement.addContent(getAdditionalInformations(recordElement));
