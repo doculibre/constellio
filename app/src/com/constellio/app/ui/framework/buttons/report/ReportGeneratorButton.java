@@ -11,7 +11,6 @@ import com.constellio.app.ui.framework.components.fields.BaseComboBox;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.utils.ReportGeneratorUtils;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.vaadin.data.Validator;
@@ -45,7 +44,6 @@ public class ReportGeneratorButton extends WindowButton {
 	private Button generateButton, cancelButton;
 	private PrintableReportListPossibleType currentSchema;
 	private BaseView view;
-	private User user;
 
 	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory,
 								 String collection,
@@ -55,7 +53,6 @@ public class ReportGeneratorButton extends WindowButton {
 		this.collection = collection;
 		this.currentSchema = currentSchema;
 		this.view = view;
-		this.user = user;
 	}
 
 	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory,
