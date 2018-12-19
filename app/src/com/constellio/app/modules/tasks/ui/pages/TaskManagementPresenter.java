@@ -79,13 +79,11 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	private transient BetaWorkflowServices workflowServices;
 	private RecordVODataProvider provider;
 	private transient SearchServices searchServices;
-	private User user;
 
 	public TaskManagementPresenter(TaskManagementView view) {
 		super(view, DEFAULT_SCHEMA);
 		initTransientObjects();
 		tasksSchemasRecordsServices = new TasksSchemasRecordsServices(collection, appLayerFactory);
-		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
 	}
 
 	@Override
@@ -287,7 +285,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void generateReportButtonClicked(RecordVO recordVO) {
 		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
-				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, user,
+				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, view.getSessionContext().getCurrentUser(),
 				recordVO);
 		button.click();
 	}

@@ -13,6 +13,7 @@ import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.buttons.WindowButton;
 import com.constellio.app.ui.framework.components.BaseForm;
@@ -27,7 +28,6 @@ import com.constellio.data.io.IOServicesFactory;
 import com.constellio.data.utils.Factory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
@@ -91,12 +91,12 @@ public class LabelButtonV2 extends WindowButton {
 
 	private String schemaType;
 
-	private User user;
+	private UserVO userVO;
 
 	public LabelButtonV2(String caption, String windowsCaption,
 						 Factory<List<LabelTemplate>> customLabelTemplatesFactory,
 						 Factory<List<LabelTemplate>> defaultLabelTemplatesFactory, AppLayerFactory factory,
-						 String collection, User user) {
+						 String collection, UserVO userVO) {
 		super(caption, windowsCaption);
 		this.factory = factory;
 		this.collection = collection;
@@ -109,15 +109,15 @@ public class LabelButtonV2 extends WindowButton {
 
 		this.customLabelTemplatesFactory = customLabelTemplatesFactory;
 		this.defaultLabelTemplatesFactory = defaultLabelTemplatesFactory;
-		this.user = user;
+		this.userVO = userVO;
 
 	}
 
 	public LabelButtonV2(String caption, String windowsCaption,
 						 Factory<List<LabelTemplate>> customLabelTemplatesFactory,
 						 Factory<List<LabelTemplate>> defaultLabelTemplatesFactory, AppLayerFactory factory,
-						 String collection, User user, RecordVO... elements) {
-		this(caption, windowsCaption, customLabelTemplatesFactory, defaultLabelTemplatesFactory, factory, collection, user);
+						 String collection, UserVO userVO, RecordVO... elements) {
+		this(caption, windowsCaption, customLabelTemplatesFactory, defaultLabelTemplatesFactory, factory, collection, userVO);
 		this.setElements(elements);
 	}
 
@@ -326,7 +326,7 @@ public class LabelButtonV2 extends WindowButton {
 		private VerticalLayout generateLabelFromPrintableLabel(Dimensionnable selectedTemplate) throws Exception {
 			VerticalLayout layout = null;
 			if (validateInputs(selectedTemplate)) {
-				LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(collection, factory, getLocale(), user).setStartingPosition((Integer) startPositionField.getValue())
+				LabelXmlGenerator labelXmlGenerator = new LabelXmlGenerator(collection, factory, getLocale(), userVO).setStartingPosition((Integer) startPositionField.getValue())
 						.setNumberOfCopies(Integer.parseInt(copiesField.getValue().trim())).setElements(getRecordFromElements(elements));
 				PrintableLabel selectedTemplateAsPrintableLabel = ((PrintableLabel) selectedTemplate);
 				JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(labelXmlGenerator);

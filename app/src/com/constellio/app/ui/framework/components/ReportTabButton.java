@@ -12,7 +12,6 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.app.ui.pages.search.AdvancedSearchView;
 import com.constellio.app.utils.ReportGeneratorUtils;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.vaadin.data.Property;
 import com.vaadin.data.Validator;
@@ -44,7 +43,6 @@ public class ReportTabButton extends WindowButton {
 	private NewReportPresenter viewPresenter;
 	private ReportTabButtonPresenter buttonPresenter;
 	private SessionContext sessionContext;
-	private User user;
 
 	public ReportTabButton(String caption, String windowCaption, BaseView view) {
 		this(caption, windowCaption, view.getConstellioFactories().getAppLayerFactory(), view.getCollection(), false, false, null,
@@ -82,9 +80,6 @@ public class ReportTabButton extends WindowButton {
 		this.noPDFButton = noPDFButton;
 		this.sessionContext = sessionContext;
 		this.buttonPresenter = new ReportTabButtonPresenter(this);
-		this.user = appLayerFactory.getModelLayerFactory().newUserServices()
-				.getUserInCollection(sessionContext.getCurrentUser().getUsername(), collection);
-
 	}
 
 	public ReportTabButton setRecordVoList(RecordVO... recordVOS) {
@@ -287,7 +282,7 @@ public class ReportTabButton extends WindowButton {
 				getWindow().setContent(ReportGeneratorUtils
 						.saveButtonClick(factory, collection, selectedSchema.getTypeCode(), template, 1,
 								buttonPresenter.getRecordVOIdFilteredList(selectedSchema),
-								getLogicalSearchQuery(selectedSchema.getCode()), sessionContext.getCurrentLocale(), user));
+								getLogicalSearchQuery(selectedSchema.getCode()), sessionContext.getCurrentLocale(), view.getSessionContext().getCurrentUser()));
 			}
 		});
 		return button;

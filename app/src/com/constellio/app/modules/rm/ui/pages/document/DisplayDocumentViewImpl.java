@@ -519,7 +519,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		Button labels = new LabelButtonV2($("DisplayFolderView.printLabel"),
 				$("DisplayFolderView.printLabel"), customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(), presenter.getUser(), presenter.getDocumentVO());
+				getSessionContext().getCurrentCollection(), getSessionContext().getCurrentUser(), presenter.getDocumentVO());
 
 		addToCartButton = buildAddToCartButton();
 

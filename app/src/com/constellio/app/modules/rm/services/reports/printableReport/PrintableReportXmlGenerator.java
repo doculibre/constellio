@@ -6,6 +6,7 @@ import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGenera
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
@@ -39,10 +40,10 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 	private User user;
 
 	public PrintableReportXmlGenerator(AppLayerFactory appLayerFactory, String collection,
-									   XmlReportGeneratorParameters xmlGeneratorParameters, Locale locale, User user) {
+									   XmlReportGeneratorParameters xmlGeneratorParameters, Locale locale, UserVO user) {
 		super(appLayerFactory, collection, locale);
 		this.xmlGeneratorParameters = xmlGeneratorParameters;
-		this.user = user;
+		this.user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(user.getUsername(), collection);
 	}
 
 	@Override

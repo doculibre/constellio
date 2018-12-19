@@ -7,12 +7,12 @@ import com.constellio.app.modules.rm.services.reports.printableReport.PrintableR
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.data.io.IOServicesFactory;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.contents.ContentManager;
@@ -39,7 +39,7 @@ public class ReportGeneratorUtils {
 	public static Component saveButtonClick(AppLayerFactory factory, String collection, String schemaType,
 											PrintableReportTemplate selectedTemplate, int numberOfCopies,
 											List<String> ids, LogicalSearchQuery query,
-											Locale locale, User user) {
+											Locale locale, UserVO user) {
 		InputStream selectedJasperFileContentInputStream = null;
 		File temporaryJasperFile = null;
 		try {

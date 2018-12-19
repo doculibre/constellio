@@ -62,7 +62,7 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 		getXMLButton = new GetXMLButton($("DisplayLabelViewImpl.menu.getXMLButton"),
 				$("DisplayLabelViewImpl.menu.getXMLButton"),
 				getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(),
-				this, true, presenter.getUser());
+				this, true, getSessionContext().getCurrentUser());
 	}
 
 	@Override

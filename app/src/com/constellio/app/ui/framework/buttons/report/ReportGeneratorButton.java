@@ -49,7 +49,7 @@ public class ReportGeneratorButton extends WindowButton {
 
 	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory,
 								 String collection,
-								 PrintableReportListPossibleType currentSchema, User user) {
+								 PrintableReportListPossibleType currentSchema) {
 		super(caption, windowCaption, new WindowConfiguration(true, true, "75%", "90%"));
 		this.factory = factory;
 		this.collection = collection;
@@ -60,8 +60,8 @@ public class ReportGeneratorButton extends WindowButton {
 
 	public ReportGeneratorButton(String caption, String windowCaption, BaseView view, AppLayerFactory factory,
 								 String collection,
-								 PrintableReportListPossibleType currentSchema, User user, RecordVO... elements) {
-		this(caption, windowCaption, view, factory, collection, currentSchema, user);
+								 PrintableReportListPossibleType currentSchema, RecordVO... elements) {
+		this(caption, windowCaption, view, factory, collection, currentSchema);
 		this.setElements(elements);
 	}
 
@@ -160,7 +160,7 @@ public class ReportGeneratorButton extends WindowButton {
 			getWindow().setContent(
 					ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getTypeCode(),
 							(PrintableReportTemplate) parent.printableItemsFields.getValue(), 1, getIdsFromRecordVO(), null,
-							view.getSessionContext().getCurrentLocale(), user));
+							view.getSessionContext().getCurrentLocale(), view.getSessionContext().getCurrentUser()));
 		}
 
 		@Override

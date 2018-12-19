@@ -60,7 +60,6 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 	private String containerId;
 	private String tabName;
 	private String administrativeUnitId;
-	private User user;
 
 	public DisplayContainerPresenter(DisplayContainerView view) {
 		this(view, null, false);
@@ -71,13 +70,8 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		if (recordVO != null) {
 			forParams(recordVO.getId());
 		}
-
-		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
 	}
 
-	public User getUser() {
-		return user;
-	}
 
 	String getBorrowMessageState(RecordVO containerRecord) {
 		String borrowedMessage = null;

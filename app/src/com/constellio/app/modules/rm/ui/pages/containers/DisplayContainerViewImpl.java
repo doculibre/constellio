@@ -221,7 +221,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		};
 		Button labels = new LabelButtonV2($("SearchView.labels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(),presenter.getUser(), presenter.getContainer());
+				getSessionContext().getCurrentCollection(),getSessionContext().getCurrentUser(), presenter.getContainer());
 		labels.setEnabled(presenter.canPrintReports());
 		buttons.add(labels);
 		WindowButton addToCartButton = buildAddToCartButton();

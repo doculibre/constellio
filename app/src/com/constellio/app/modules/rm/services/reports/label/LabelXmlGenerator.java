@@ -10,6 +10,7 @@ import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.data.utils.AccentApostropheCleaner;
 import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.EnumWithSmallCode;
@@ -74,25 +75,25 @@ public class LabelXmlGenerator extends AbstractXmlGenerator {
 
 	private User user;
 
-	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale, User user) {
+	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale, UserVO userVO) {
 		super(appLayerFactory, collection, locale);
 		this.collection = collection;
 		this.factory = appLayerFactory;
 		this.recordServices = factory.getModelLayerFactory().newRecordServices();
 		this.metadataSchemasManager = factory.getModelLayerFactory().getMetadataSchemasManager();
-		this.user = user;
+		this.user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(userVO.getUsername(), collection);
 	}
 
-	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale, User user,
+	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale, UserVO userVO,
 							 Record... recordElements) {
-		this(collection, appLayerFactory, locale, user);
+		this(collection, appLayerFactory, locale, userVO);
 		this.setElements(recordElements);
 	}
 
 	public LabelXmlGenerator(String collection, AppLayerFactory appLayerFactory, Locale locale, int startingPosition,
-							 int numberOfCopies, User user,
+							 int numberOfCopies, UserVO userVO,
 							 Record... recordElements) {
-		this(collection, appLayerFactory, locale, user, recordElements);
+		this(collection, appLayerFactory, locale, userVO, recordElements);
 		this.startingPosition = startingPosition;
 		this.numberOfCopies = numberOfCopies;
 	}

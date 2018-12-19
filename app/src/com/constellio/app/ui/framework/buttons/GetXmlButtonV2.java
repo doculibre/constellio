@@ -16,7 +16,6 @@ import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecor
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -51,7 +50,6 @@ public class GetXmlButtonV2 extends WindowButton {
 	private Field elementLookUpField;
 	private BaseView view;
 	private boolean isXmlForTest;
-	private User user;
 
 	public GetXmlButtonV2(String caption, String windowCaption, AppLayerFactory appLayerFactory, String collection,
 						  BaseView view, PrintableReportListPossibleType currentSchema) {
@@ -68,7 +66,6 @@ public class GetXmlButtonV2 extends WindowButton {
 		this.currentSchema = currentSchema;
 		this.view = view;
 		this.isXmlForTest = isXmlForTest;
-		user = this.view.getConstellioFactories().getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
 	}
 
 	public void setCurrentSchema(PrintableReportListPossibleType schema) {
@@ -125,7 +122,7 @@ public class GetXmlButtonV2 extends WindowButton {
 
 					AbstractXmlGenerator xmlGenerator = new PrintableReportXmlGenerator(parent.factory,
 							parent.collection, xmlGeneratorParameters, view.getSessionContext().getCurrentLocale(),
-							user);
+							view.getSessionContext().getCurrentUser());
 					String xml = xmlGenerator.generateXML();
 					String filename = "Constellio-Test.xml";
 					StreamResource source = createResource(xml, filename);

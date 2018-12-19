@@ -9,11 +9,11 @@ import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.PrintableLabel;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.entities.LabelParametersVO;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.BaseForm;
 import com.constellio.app.ui.framework.components.fields.list.ListAddRemoveRecordLookupField;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.model.entities.records.Record;
-import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.frameworks.validation.ValidationException;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -64,7 +64,7 @@ public class GetXMLButton extends WindowButton {
 	private RecordServices recordServices;
 
 	public GetXMLButton(String caption, String windowsCaption, AppLayerFactory factory, String collection,
-						BaseView view, boolean isForTest, User user) {
+						BaseView view, boolean isForTest, UserVO user) {
 		super(caption, windowsCaption, WindowConfiguration.modalDialog("75%", "75%"));
 		this.model = factory.getModelLayerFactory();
 		this.collection = collection;

@@ -44,7 +44,6 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 	private transient ModelLayerCollectionExtensions extensions;
 	protected RecordVO container;
 	private RecordVODataProvider folderDataProvider, containerDataProvider, documentDataProvider;
-	private User user;
 
 	public AddEditLabelPresenter(AddEditLabelView view) {
 		super(view);
@@ -66,11 +65,6 @@ public class AddEditLabelPresenter extends SingleSchemaBasePresenter<AddEditLabe
 		recordServices = modelLayerFactory.newRecordServices();
 		extensions = modelLayerFactory.getExtensions().forCollection(collection);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
-		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
-	}
-
-	public User getUser() {
-		return user;
 	}
 
 	@Override
