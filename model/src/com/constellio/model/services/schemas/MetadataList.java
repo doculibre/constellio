@@ -648,6 +648,18 @@ public class MetadataList implements List<Metadata>, Serializable {
 		return new MetadataList(metadataList).unModifiable();
 	}
 
+	public MetadataList onlyNotAccessibleGloballyBy(User user) {
+		List<Metadata> metadataList = new ArrayList<>();
+
+		for (Metadata metadataListItem : nestedList) {
+			if (!user.hasGlobalAccessToMetadata(metadataListItem)) {
+				metadataList.add(metadataListItem);
+			}
+		}
+
+		return new MetadataList(metadataList).unModifiable();
+	}
+
 	public MetadataList onlyAccessibleOnRecordBy(User user, Record record) {
 		List<Metadata> metadataList = new ArrayList<>();
 
