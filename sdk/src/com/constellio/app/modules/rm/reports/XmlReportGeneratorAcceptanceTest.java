@@ -11,9 +11,16 @@ import com.constellio.app.modules.tasks.services.TasksSchemasRecordsServices;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
+import com.constellio.model.entities.schemas.MetadataAccessRestriction;
 import com.constellio.model.services.records.RecordServices;
+import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
+import com.constellio.model.services.schemas.builders.MetadataAccessRestrictionBuilder;
+import com.constellio.model.services.schemas.builders.MetadataBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.FakeSessionContext;
 import org.assertj.core.groups.Tuple;
@@ -46,7 +53,8 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 	MetadataSchemasManager metadataSchemasManager;
 	TasksSchemasRecordsServices schemas;
 	RecordServices recordServices;
-	UserVO adminInZeCollection;
+	UserVO adminInZeCollectionVO;
+	User adminInZeCollection;
 
 
 	@Before
@@ -61,7 +69,9 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		this.metadataSchemasManager = getModelLayerFactory().getMetadataSchemasManager();
 		schemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		this.recordServices = getModelLayerFactory().newRecordServices();
-		this.adminInZeCollection = FakeSessionContext.adminInCollection(zeCollection).getCurrentUser();
+		this.adminInZeCollectionVO = FakeSessionContext.adminInCollection(zeCollection).getCurrentUser();
+		this.adminInZeCollection = getModelLayerFactory().newUserServices()
+				.getUserInCollection(adminInZeCollectionVO.getUsername(), zeCollection);
 	}
 
 	@Test
@@ -69,7 +79,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		int numberOfCopies = 20;
 		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(numberOfCopies);
 		PrintableReportXmlGenerator reportGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection,
-				xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollection);
+				xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollectionVO);
 		assertThat(reportGenerator.getXmlGeneratorParameters()).isNotNull();
 		assertThat(reportGenerator.getXmlGeneratorParameters().getNumberOfCopies()).isEqualTo(numberOfCopies);
 	}
@@ -78,7 +88,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 	public void testThatCoreElementOfTheGeneratorAreAccessibleAndNotNull() {
 		XmlReportGeneratorParameters xmlGeneratorParameters = new XmlReportGeneratorParameters(0);
 		AbstractXmlGenerator reportGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection,
-				xmlGeneratorParameters, Locale.FRENCH, adminInZeCollection);
+				xmlGeneratorParameters, Locale.FRENCH, adminInZeCollectionVO);
 		assertThat(reportGenerator.getFactory()).isNotNull();
 		assertThat(reportGenerator.getFactory()).isEqualTo(getAppLayerFactory());
 
@@ -91,7 +101,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1,
 				records.getFolder_A01().getWrappedRecord());
 		PrintableReportXmlGenerator reportGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(), zeCollection,
-				xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollection);
+				xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollectionVO);
 		assertThat(reportGenerator.getXmlGeneratorParameters().getRecordsElements()).isNotEmpty();
 		assertThat(reportGenerator.getXmlGeneratorParameters().getRecordsElements()[0])
 				.isEqualTo(records.getFolder_A01().getWrappedRecord());
@@ -105,7 +115,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 				.setRecordsElements(records.getFolder_A11().getWrappedRecord(), records.getFolder_A01().getWrappedRecord(),
 						records.getFolder_A08().getWrappedRecord());
 		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
-				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollection);
+				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollectionVO);
 
 		try {
 			String xmlString = printableReportXmlGenerator.generateXML();
@@ -142,13 +152,76 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 	}
 
 	@Test
+	public void testGenerateXmlForDocumnetWhenSomeMetadataAreSecured() {
+		getModelLayerFactory().getMetadataSchemasManager().modify(zeCollection, new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				MetadataSchemaBuilder folderRecordSchema = types
+						.getSchema(com.constellio.app.modules.rm.wrappers.Document.DEFAULT_SCHEMA);
+				MetadataBuilder metadataBuilder = folderRecordSchema
+						.getMetadata(com.constellio.app.modules.rm.wrappers.Document.FOLDER_CATEGORY);
+
+				MetadataAccessRestrictionBuilder allowedReferencesBuilder = MetadataAccessRestrictionBuilder
+						.modify(new MetadataAccessRestriction());
+				allowedReferencesBuilder.getRequiredReadRoles().add("M");
+				metadataBuilder.setAccessRestrictionBuilder(allowedReferencesBuilder);
+			}
+		});
+
+		InputStream inputStream = null;
+		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
+		xmlReportGeneratorParameters.setRecordsElements(records.getDocumentWithContent_A19().getWrappedRecord(),
+				records.getDocumentWithContent_A79().getWrappedRecord(), records.getDocumentWithContent_B33().getWrappedRecord());
+		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
+				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollectionVO);
+
+		try {
+			String xmlString = printableReportXmlGenerator.generateXML();
+			assertThat(xmlString).isNotEmpty();
+			inputStream = new ByteArrayInputStream(xmlString.getBytes("UTF-8"));
+			Document xmlDocument = saxBuilder.build(inputStream);
+			// Assert that document contains correct tags;
+			assertThat(xmlDocument.getRootElement().getName()).isEqualTo(AbstractXmlGenerator.XML_ROOT_RECORD_ELEMENTS);
+			assertThat(xmlDocument.getRootElement().getChildren(AbstractXmlGenerator.XML_EACH_RECORD_ELEMENTS)).hasSize(3);
+
+			Element xmlRecordElement = xmlDocument.getRootElement().getChild(AbstractXmlGenerator.XML_EACH_RECORD_ELEMENTS);
+			List<Tuple> xmlRecordValues = new ArrayList<>();
+			for (Object ob : xmlRecordElement.getChild(AbstractXmlGenerator.XML_METADATA_TAGS).getChildren()) {
+				Element element = (Element) ob;
+				//exclude content because it changes every time,
+				if (!element.getName().equals("content")) {
+					xmlRecordValues.add(tuple(element.getName(), element.getText()));
+				}
+			}
+			List<Tuple> listOfMetadataInFolder = new ArrayList<>();
+			for (Metadata metadata : metadataSchemasManager.getSchemaOf(records.getDocumentWithContent_A19().getWrappedRecord())
+					.getMetadatas().onlyAccessibleGloballyBy(adminInZeCollection)) {
+				List<Element> elementOfMetadata = printableReportXmlGenerator
+						.createMetadataTagsFromMetadata(metadata, records.getDocumentWithContent_A19().getWrappedRecord());
+				for (Element element : elementOfMetadata) {
+					//exclude content because it changes every time,
+					if (!element.getName().equals("content")) {
+						listOfMetadataInFolder.add(tuple(element.getName(), element.getText()));
+					}
+				}
+			}
+			assertThat(xmlRecordValues).contains(listOfMetadataInFolder.toArray(new Tuple[0]));
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail();
+		} finally {
+			ioServices.closeQuietly(inputStream);
+		}
+	}
+
+	@Test
 	public void testGenerateXmlWithDocument() {
 		InputStream inputStream = null;
 		XmlReportGeneratorParameters xmlReportGeneratorParameters = new XmlReportGeneratorParameters(1);
 		xmlReportGeneratorParameters.setRecordsElements(records.getDocumentWithContent_A19().getWrappedRecord(),
 				records.getDocumentWithContent_A79().getWrappedRecord(), records.getDocumentWithContent_B33().getWrappedRecord());
 		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
-				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollection);
+				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollectionVO);
 
 		try {
 			String xmlString = printableReportXmlGenerator.generateXML();
@@ -219,7 +292,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		xmlReportGeneratorParameters
 				.setRecordsElements(zeTask.getWrappedRecord(), zeSecondTask.getWrappedRecord(), zeThirdTask.getWrappedRecord());
 		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
-				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollection);
+				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollectionVO);
 		try {
 			String xmlString = printableReportXmlGenerator.generateXML();
 			assertThat(xmlString).isNotEmpty();
@@ -259,7 +332,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
 		xmlReportGeneratorParameters.markAsTestXml();
 		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
-				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollection);
+				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollectionVO);
 		try {
 			String xmlString = printableReportXmlGenerator.generateXML();
 			assertThat(xmlString).isNotEmpty();
@@ -284,7 +357,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
 		xmlReportGeneratorParameters.markAsTestXml();
 		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
-				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollection);
+				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollectionVO);
 		try {
 			String xmlString = printableReportXmlGenerator.generateXML();
 			assertThat(xmlString).isNotEmpty();
@@ -311,7 +384,7 @@ public class XmlReportGeneratorAcceptanceTest extends ConstellioTest {
 		xmlReportGeneratorParameters.setRecordsElements(records.getFolder_C30().getWrappedRecord());
 		xmlReportGeneratorParameters.markAsTestXml();
 		PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(getAppLayerFactory(),
-				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollection);
+				zeCollection, xmlReportGeneratorParameters, Locale.FRENCH, adminInZeCollectionVO);
 
 		assertThat(printableReportXmlGenerator.getPath(records.getFolder_C30().getWrappedRecord()))
 				.isEqualTo("Xe category > X100 > X110 > Haricot");
