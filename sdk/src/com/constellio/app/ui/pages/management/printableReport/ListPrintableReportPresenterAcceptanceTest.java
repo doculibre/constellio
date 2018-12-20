@@ -47,9 +47,9 @@ public class ListPrintableReportPresenterAcceptanceTest extends ConstellioTest {
 	@Mock
 	Navigation navigator;
 
-	File jasperFile;
-	IOServices ioServices;
-	ContentManager contentManager;
+	private File jasperFile;
+	private IOServices ioServices;
+	private ContentManager contentManager;
 
 	@Before
 	public void setUp() {

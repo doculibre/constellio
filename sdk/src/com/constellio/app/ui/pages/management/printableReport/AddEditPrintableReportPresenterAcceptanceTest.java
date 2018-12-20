@@ -38,9 +38,9 @@ public class AddEditPrintableReportPresenterAcceptanceTest extends ConstellioTes
 	AddEditPrintableReportView viewMock;
 	@Mock
 	Navigation navigator;
-	IOServices ioServices;
-	ContentManager contentManager;
-	File jasperFile;
+	private IOServices ioServices;
+	private ContentManager contentManager;
+	private File jasperFile;
 
 
 	@Before
