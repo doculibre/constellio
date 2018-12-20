@@ -35,9 +35,9 @@ public class DisplayPrintableReportPresenterAcceptanceTest extends ConstellioTes
 	Navigation navigator;
 	DisplayPrintableReportPresenter presenter;
 	RMSchemasRecordsServices rm;
-	IOServices ioServices;
-	ContentManager contentManager;
-	File jasperFile;
+	private IOServices ioServices;
+	private ContentManager contentManager;
+	private File jasperFile;
 
 	@Before
 	public void setUp() {
