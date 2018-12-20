@@ -10,6 +10,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.BagInfoVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
+import com.constellio.app.ui.pages.base.ConstellioHeader;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.batchprocess.AsyncTaskBatchProcess;
 import com.constellio.model.entities.batchprocess.AsyncTaskCreationRequest;
@@ -23,7 +24,6 @@ import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import com.vaadin.ui.Component;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -62,8 +62,11 @@ public class SIPButtonPresenter {
 
 	private void updateComponent() {
 		AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
-		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
-		appLayerFactory.getExtensions().forCollection(sessionContext.getCurrentCollection()).updateComponent(new UpdateComponentExtensionParams(null, button));
+		ConstellioHeader view = button.getView();
+		SessionContext sessionContext = (view != null && view.getSessionContext() != null) ?
+										view.getSessionContext() : ConstellioUI.getCurrentSessionContext();
+		appLayerFactory.getExtensions().forCollection(sessionContext.getCurrentCollection())
+				.updateComponent(new UpdateComponentExtensionParams(null, button));
 	}
 
 	protected List<String> getDocumentIDListFromObjectList() {

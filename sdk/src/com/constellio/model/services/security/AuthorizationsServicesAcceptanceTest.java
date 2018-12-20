@@ -1,6 +1,7 @@
 package com.constellio.model.services.security;
 
 import com.constellio.app.services.factories.ConstellioFactories;
+import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.Authorization;
@@ -9,6 +10,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
+import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.entities.security.SingletonSecurityModel;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
@@ -17,6 +19,8 @@ import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.SchemasRecordsServices;
+import com.constellio.model.services.records.reindexing.ReindexationMode;
+import com.constellio.model.services.records.reindexing.ReindexingServices;
 import com.constellio.model.services.search.FreeTextSearchServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.FreeTextQuery;
@@ -117,6 +121,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			throws Exception {
 
 		if (records != null && checkIfChuckNorrisHasAccessToEverythingInZeCollection) {
+			getDataLayerFactory().getDataLayerLogger().setQueryLoggingEnabled(false).setQueryDebuggingMode(false);
 			List<String> foldersWithReadFound = findAllFoldersAndDocuments(users.chuckNorrisIn(zeCollection));
 			List<String> foldersWithWriteFound = findAllFoldersAndDocumentsWithWritePermission(
 					users.chuckNorrisIn(zeCollection));
@@ -133,6 +138,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	public void checkIfAliceSeeAndCanModifyEverythingInCollection2()
 			throws Exception {
 		if (otherCollectionRecords != null) {
+			getDataLayerFactory().getDataLayerLogger().setQueryLoggingEnabled(false).setQueryDebuggingMode(false);
 			List<String> foldersWithReadFound = findAllFoldersAndDocuments(users.aliceIn(anotherCollection));
 			List<String> foldersWithWriteFound = findAllFoldersAndDocumentsWithWritePermission(users.aliceIn(anotherCollection));
 			List<String> foldersWithDeleteFound = findAllFoldersAndDocumentsWithDeletePermission(
@@ -149,7 +155,9 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 	@After
 	public void checkIfBobSeeAndCanDeleteEverythingInCollection2()
 			throws Exception {
+
 		if (otherCollectionRecords != null) {
+			getDataLayerFactory().getDataLayerLogger().setQueryLoggingEnabled(false).setQueryDebuggingMode(false);
 			List<String> foldersWithReadFound = findAllFoldersAndDocuments(users.bobIn(anotherCollection));
 			List<String> foldersWithWriteFound = findAllFoldersAndDocumentsWithWritePermission(users.bobIn(anotherCollection));
 			List<String> foldersWithDeleteFound = findAllFoldersAndDocumentsWithDeletePermission(users.bobIn(anotherCollection));
@@ -170,6 +178,7 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 			throws Exception {
 		if (otherCollectionRecords != null && checkIfDakotaSeeAndCanDeleteEverythingInCollection2
 			&& taxonomiesManager.getPrincipalTaxonomy(anotherCollection) == null) {
+			getDataLayerFactory().getDataLayerLogger().setQueryLoggingEnabled(false).setQueryDebuggingMode(false);
 			List<String> foldersWithReadFound = findAllFoldersAndDocuments(users.dakotaIn(anotherCollection));
 			List<String> foldersWithWriteFound = findAllFoldersAndDocumentsWithWritePermission(users.dakotaIn(anotherCollection));
 			List<String> foldersWithDeleteFound = findAllFoldersAndDocumentsWithDeletePermission(
@@ -3787,20 +3796,40 @@ public class AuthorizationsServicesAcceptanceTest extends BaseAuthorizationsServ
 		if (anothercollectionSetup.getTaxonomy2() == null) {
 			anothercollectionSetup.setUp();
 		}
+
 		getModelLayerFactory().getTaxonomiesManager().setPrincipalTaxonomy(anothercollectionSetup.getTaxonomy2(), getModelLayerFactory().getMetadataSchemasManager());
+		ReindexingServices reindexingServices = new ReindexingServices(getModelLayerFactory());
+		reindexingServices.reindexCollections(ReindexationMode.RECALCULATE);
 
-		add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadDeleteAccess());
-		add(authorizationForGroup(legends).on(FOLDER3).givingNegativeReadWriteAccess());
+		Taxonomy principalTaxoInAnotherCollection = getModelLayerFactory().getTaxonomiesManager().getPrincipalTaxonomy(anotherCollection);
+		assertThat(principalTaxoInAnotherCollection.getCode()).isEqualTo("taxo2");
 
-		add(authorizationForUser(charles).on(FOLDER3).givingNegativeReadWriteAccess());
+		auth1 = add(authorizationForGroup(heroes).on(TAXO1_CATEGORY2).givingReadDeleteAccess());
+		auth2 = add(authorizationForGroup(legends).on(FOLDER3).givingNegativeReadWriteAccess());
 
-		add(authorizationForGroupInAnotherCollection(heroes).on(otherCollectionRecords.taxo2_station2_1()).givingReadWriteDeleteAccess());
-		add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder4()).givingReadWriteDeleteAccess());
+		auth3 = add(authorizationForUser(charles).on(FOLDER3).givingNegativeReadWriteAccess());
 
-		add(authorizationForGroupInAnotherCollection(heroes).on(otherCollectionRecords.folder4_1()).givingNegativeReadWriteDeleteAccess());
-		add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder2_1()).givingNegativeReadWriteDeleteAccess());
+		auth4 = add(authorizationForGroupInAnotherCollection(heroes).on(otherCollectionRecords.taxo2_station2_1()).givingReadWriteDeleteAccess());
+		auth5 = add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder4()).givingReadWriteDeleteAccess());
+
+		auth6 = add(authorizationForGroupInAnotherCollection(heroes).on(otherCollectionRecords.folder4_1()).givingNegativeReadWriteDeleteAccess());
+		auth7 = add(authorizationForUserInAnotherCollection(charles).on(otherCollectionRecords.folder2_1()).givingNegativeReadWriteDeleteAccess());
 
 		waitForBatchProcess();
+
+		SecurityModel securityModel = getModelLayerFactory().newRecordServices().getSecurityModel(zeCollection);
+		assertThat(securityModel.getAuthorizationsToPrincipal(users.charlesIn(zeCollection).getId(), false))
+				.extracting("details.id").containsOnly(auth3);
+		assertThat(securityModel.getAuthorizationsToPrincipal(users.heroesIn(zeCollection).getId(), false))
+				.extracting("details.id").containsOnly(auth1);
+
+		securityModel = getModelLayerFactory().newRecordServices().getSecurityModel(anotherCollection);
+		assertThat(securityModel.getAuthorizationsToPrincipal(users.charlesIn(anotherCollection).getId(), false))
+				.extracting("details.id").containsOnly(auth5, auth7);
+		assertThat(securityModel.getAuthorizationsToPrincipal(users.heroesIn(anotherCollection).getId(), false))
+				.extracting("details.id").containsOnly(auth4, auth6);
+
+		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0).setQueryLoggingEnabled(true).setQueryDebuggingMode(true);
 
 		assertThatAllFoldersVisibleBy(charles).containsOnly(
 				"folder4", "folder4_1", "folder4_2", "anotherCollection_folder2", "anotherCollection_folder2_2",
