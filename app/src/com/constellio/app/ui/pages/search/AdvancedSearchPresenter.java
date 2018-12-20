@@ -119,6 +119,8 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		batchProcessingExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).batchProcessingExtensions;
 	}
 
+
+
 	public void setSchemaType(String schemaType) {
 		this.schemaTypeCode = schemaType;
 		setSchemaTypeOnPresenterService();

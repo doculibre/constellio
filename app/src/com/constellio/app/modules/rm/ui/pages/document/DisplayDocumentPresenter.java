@@ -102,7 +102,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-
 		if (recordVO != null && params == null) {
 			forParams(recordVO.getId());
 		}

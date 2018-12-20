@@ -6,7 +6,9 @@ import com.constellio.app.modules.rm.services.reports.parameters.XmlReportGenera
 import com.constellio.app.modules.rm.wrappers.Category;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
@@ -35,13 +37,13 @@ import static java.util.Arrays.asList;
 public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 
 	static final public String EMPTY_METADATA_VALUE_TAG = "This will not appear on the final report";
-
+	private User user;
 
 	public PrintableReportXmlGenerator(AppLayerFactory appLayerFactory, String collection,
-									   XmlReportGeneratorParameters xmlGeneratorParameters, Locale locale) {
+									   XmlReportGeneratorParameters xmlGeneratorParameters, Locale locale, UserVO user) {
 		super(appLayerFactory, collection, locale);
 		this.xmlGeneratorParameters = xmlGeneratorParameters;
-
+		this.user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(user.getUsername(), collection);
 	}
 
 	@Override
@@ -77,7 +79,7 @@ public class PrintableReportXmlGenerator extends AbstractXmlGenerator {
 				//Add additional informations
 				xmlSingularElementMetadata.addContent(getAdditionalInformations(recordElement));
 
-				MetadataList listOfMetadataOfTheCurrentElement = getListOfMetadataForElement(recordElement);
+				MetadataList listOfMetadataOfTheCurrentElement = getListOfMetadataForElement(recordElement).onlyAccessibleOnRecordBy(user, recordElement);
 
 				for (Metadata metadata : listOfMetadataOfTheCurrentElement) {
 					List<Element> metadataTags = createMetadataTagsFromMetadata(metadata, recordElement);

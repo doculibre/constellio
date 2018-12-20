@@ -111,6 +111,7 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		view.navigate().to(RMViews.class).cart(cartId);
 	}
 
+
 	public boolean canEmptyCart() {
 		return cartHasRecords();
 	}

@@ -4,6 +4,7 @@ import com.constellio.app.modules.rm.reports.builders.excel.BaseExcelReportWrite
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.i18n.i18n;
 import com.constellio.model.entities.Language;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -33,12 +34,14 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 	MetadataSchemaType metadataSchemaType;
 	Locale locale;
 	AppLayerFactory appLayerFactory;
+	User user;
 
 	public SchemaTypeExcelReportWriter(MetadataSchemaType metadataSchemaType, AppLayerFactory appLayerFactory,
-									   Locale locale) {
+									   Locale locale, User user) {
 		this.metadataSchemaType = metadataSchemaType;
 		this.locale = locale;
 		this.appLayerFactory = appLayerFactory;
+		this.user = user;
 	}
 
 	public void write(OutputStream output) {
@@ -81,7 +84,7 @@ public class SchemaTypeExcelReportWriter extends BaseExcelReportWriter {
 			List<List<Object>> lines = new ArrayList<>();
 
 
-			for (Metadata metadata : currentMetadataSchema.getMetadatas()) {
+			for (Metadata metadata : currentMetadataSchema.getMetadatas().onlyAccessibleGloballyBy(user)) {
 				if(!isNotAHiddenSystemReserved(metadata)) {
 					continue;
 				}

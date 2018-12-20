@@ -285,7 +285,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void generateReportButtonClicked(RecordVO recordVO) {
 		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
-				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK,
+				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, view.getSessionContext().getCurrentUser(),
 				recordVO);
 		button.click();
 	}
