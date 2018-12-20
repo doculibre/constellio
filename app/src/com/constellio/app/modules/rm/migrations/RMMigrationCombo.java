@@ -146,6 +146,13 @@ public class RMMigrationCombo implements ComboMigrationScript {
 		scripts.add(new RMMigrationTo8_0_2());
 		scripts.add(new RMMigrationTo8_0_3());
 		scripts.add(new RMMigrationTo8_1());
+		scripts.add(new RMMigrationTo8_1_0_1());
+		scripts.add(new RMMigrationTo8_1_1());
+		scripts.add(new RMMigrationTo8_1_1_1());
+		scripts.add(new RMMigrationTo8_1_1_2());
+		scripts.add(new RMMigrationTo8_1_2());
+		scripts.add(new RMMigrationTo8_1_4());
+		scripts.add(new RMMigrationTo8_2());
 
 		return scripts;
 	}
