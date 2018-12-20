@@ -31,7 +31,6 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.schemas.builders.CommonMetadataBuilder;
 import com.constellio.model.services.search.SearchServices;
@@ -128,9 +127,6 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		}
 		if (metadataCodes == null) {
 			metadataCodes = EventTypeUtils.getDisplayedMetadataCodes(defaultSchema(), getEventType());
-			if (!isNegativeAuthorizationConfigEnabled()) {
-				metadataCodes.remove("event_default_negative");
-			}
 			schemaVO = new MetadataSchemaToVOBuilder()
 					.build(defaultSchema(), VIEW_MODE.TABLE, metadataCodes, view.getSessionContext());
 		}
@@ -207,19 +203,19 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		SearchResponseIterator<Record> searchResponseIterator = dataProvider.getIterator();
 		Object[] visiblePropertyObject = view.getTableVisibleProperties();
 
-		while(searchResponseIterator.hasNext()) {
+		while (searchResponseIterator.hasNext()) {
 			Record currentRecord = searchResponseIterator.next();
 			RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-			RecordVO recordVO  = voBuilder.build(currentRecord, VIEW_MODE.TABLE, view.getSessionContext());
+			RecordVO recordVO = voBuilder.build(currentRecord, VIEW_MODE.TABLE, view.getSessionContext());
 			String[] stringArray = new String[visiblePropertyObject.length];
 
 			int counter = 0;
-			for(Object object : visiblePropertyObject) {
+			for (Object object : visiblePropertyObject) {
 				MetadataVO metadataVO = (MetadataVO) object;
 				Object metadataValue = recordVO.get(metadataVO);
 				String valueAsString = null;
 
-				if(metadataValue != null) {
+				if (metadataValue != null) {
 					valueAsString = metadataValue.toString();
 				}
 
@@ -473,10 +469,6 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			}
 		};
 		return voBuilder;
-	}
-
-	public boolean isNegativeAuthorizationConfigEnabled() {
-		return new ConstellioEIMConfigs(modelLayerFactory).isNegativeAuthorizationEnabled();
 	}
 
 }

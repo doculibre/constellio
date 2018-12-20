@@ -513,8 +513,4 @@ public class ConstellioEIMConfigs {
 		return manager.getValue(BATCH_PROCESSES_MAXIMUM_HISTORY_SIZE);
 	}
 
-	public boolean isNegativeAuthorizationEnabled() {
-		return true;
-	}
-
 }

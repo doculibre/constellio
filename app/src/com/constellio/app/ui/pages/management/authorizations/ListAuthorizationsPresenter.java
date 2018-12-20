@@ -17,7 +17,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.AuthorizationAddRequest;
 import com.constellio.model.entities.security.global.AuthorizationModificationRequest;
-import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.security.AuthorizationsServices;
 import com.constellio.model.services.taxonomies.TaxonomiesManager;
 
@@ -194,10 +193,10 @@ public abstract class ListAuthorizationsPresenter extends BasePresenter<ListAuth
 		return authorizations;
 	}
 
-	public boolean isNegativeAuthorizationConfigEnabledAndRecordIsNotATaxonomy() {
+	public boolean isRecordNotATaxonomyConcept() {
 		TaxonomiesManager taxonomiesManager = modelLayerFactory.getTaxonomiesManager();
 		Record record = presenterService().getRecord(recordId);
-		return new ConstellioEIMConfigs(modelLayerFactory).isNegativeAuthorizationEnabled() && taxonomiesManager.getTaxonomyOf(record) == null;
+		return taxonomiesManager.getTaxonomyOf(record) == null;
 	}
 
 	public boolean hasManageSecurityPermission() {
