@@ -1,16 +1,8 @@
 package com.constellio.app.modules.rm.migrations;
 
-import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
-import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
-import com.constellio.model.entities.schemas.MetadataTransiency;
-import com.constellio.model.entities.schemas.MetadataValueType;
-import com.constellio.model.services.security.roles.RolesManager;
-import java.util.ArrayList;
-import static com.constellio.data.utils.HashMapBuilder.stringObjectMap;
-import static java.util.Arrays.asList;
-
 import com.constellio.app.entities.calculators.SummaryCalculator;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
+import com.constellio.app.entities.schemasDisplay.SchemaTypesDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleFactory;
 import com.constellio.app.modules.rm.model.CopyRetentionRuleInRuleFactory;
@@ -112,7 +104,9 @@ import com.constellio.app.modules.rm.wrappers.structures.DecomListValidationFact
 import com.constellio.app.modules.rm.wrappers.structures.RetentionRuleDocumentTypeFactory;
 import com.constellio.app.modules.tasks.model.validators.TaskValidator;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.services.schemasDisplay.SchemaTypesDisplayTransactionBuilder;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
+import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.schemas.builders.MetadataBuilder;
@@ -131,7 +125,13 @@ import com.constellio.model.services.schemas.calculators.TokensCalculator4;
 import com.constellio.model.services.schemas.validators.ManualTokenValidator;
 import com.constellio.model.services.schemas.validators.metadatas.IntegerStringValidator;
 import com.constellio.model.services.security.roles.RolesManager;
-import java.lang.String;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 public final class GeneratedRMMigrationCombo {
   String collection;
@@ -515,6 +515,10 @@ public final class GeneratedRMMigrationCombo {
     folderSchema.get("filingSpace").defineDataEntry().asCalculated(FolderAppliedFilingSpaceCalculator.class);
     folderSchema.get("filingSpaceCode").defineDataEntry().asCopied(folderSchema.get("filingSpace"), typesBuilder.getMetadata("filingSpace_default_code"));
     folderSchema.get("folderType").defineDataEntry().asCopied(folderSchema.get("type"), typesBuilder.getMetadata("ddvFolderType_default_title"));
+    Map<MetadataBuilder, List<MetadataBuilder>> folder_default_hasContentRefs = new HashMap<>();;
+    folder_default_hasContentRefs.put(folderSchema.get("parentFolder"), asList(folderSchema.get("hasContent")));;
+    folder_default_hasContentRefs.put(documentSchema.get("folder"), asList(documentSchema.get("hasContent")));;
+    folderSchema.get("hasContent").defineDataEntry().asAggregatedOr(folder_default_hasContentRefs);
     folderSchema.get("inactiveDisposalType").defineDataEntry().asCalculated(FolderInactiveDisposalTypeCalculator.class);
     folderSchema.get("mainCopyRule").defineDataEntry().asCalculated(FolderMainCopyRuleCalculator2.class);
     folderSchema.get("mainCopyRuleCode").defineDataEntry().asCalculated(FolderMainCopyRuleCodeCalculator.class);

@@ -249,15 +249,15 @@ public class RMMigrationCombo implements ComboMigrationScript {
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.paperCode"))
 				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.paperTitle"))
-				.setAnalogical(true));
+				.setAnalogical(true).setActivatedOnContent(null));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.filmCode"))
 				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.filmTitle"))
-				.setAnalogical(true));
+				.setAnalogical(true).setActivatedOnContent(null));
 
 		transaction.add(rm.newMediumType().setCode(migrationResourcesProvider.getDefaultLanguageString("MediumType.driveCode"))
 				.setTitles(migrationResourcesProvider.getLanguagesString("MediumType.driveTitle"))
-				.setAnalogical(false));
+				.setAnalogical(false).setActivatedOnContent(null));
 
 		transaction.add(rm.newDocumentType().setCode(DocumentType.EMAIL_DOCUMENT_TYPE)
 				.setTitles(migrationResourcesProvider.getLanguagesString("DocumentType.emailDocumentType"))
