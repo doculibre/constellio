@@ -371,7 +371,7 @@ public class UpdateManagerViewImpl extends BaseViewImpl implements UpdateManager
 		Label captionLabel = new Label(caption);
 		captionLabel.addStyleName(ValoTheme.LABEL_BOLD);
 
-		Label valueLabel = value instanceof LocalDate ? new LocalDateLabel((LocalDate) value) : new Label(value.toString());
+		Label valueLabel = value instanceof LocalDate ? new LocalDateLabel((LocalDate) value) : new Label(value == null ? "" : value.toString());
 
 		HorizontalLayout layout = new HorizontalLayout(captionLabel, valueLabel);
 		layout.setSpacing(true);
