@@ -57,6 +57,7 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory)
 			throws Exception {
+		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 		new CoreSchemaAlterationFor_8_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
 		if (!collection.equals(Collection.SYSTEM_COLLECTION)) {
