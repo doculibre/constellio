@@ -105,7 +105,12 @@ public class RMCheckInAlertsRecordExtension extends RecordExtension {
 					parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 					parameters.add("returnDate" + EmailToSend.PARAMETER_SEPARATOR + formatDateToParameter(returnDate));
 					String rmObjectTitle = rmObject.getTitle();
-					parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(rmObjectTitle));
+					boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+					if(isAddingRecordIdInEmails) {
+						parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(rmObjectTitle) + " (" + rmObject.getId() + ")");
+					} else {
+						parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(rmObjectTitle));
+					}
 					String constellioUrl = eimConfigs.getConstellioUrl();
 					parameters.add("constellioURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl);
 					parameters.add("recordURL" + EmailToSend.PARAMETER_SEPARATOR + constellioUrl + "#!" + displayURL + "/" + record.getId());

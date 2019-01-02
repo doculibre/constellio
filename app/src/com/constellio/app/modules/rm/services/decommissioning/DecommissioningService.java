@@ -319,7 +319,12 @@ public class DecommissioningService {
 	public void approvalRequest(List<User> managerList, DecommissioningList decommissioningList, User approvalUser)
 			throws RecordServicesException {
 		List<String> parameters = new ArrayList<>();
-		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(decommissioningList.getTitle()));
+		boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+		if(isAddingRecordIdInEmails) {
+			parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(decommissioningList.getTitle()) + " (" + decommissioningList.getId() + ")");
+		} else {
+			parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(decommissioningList.getTitle()));
+		}
 
 		String constellioUrl = eimConfigs.getConstellioUrl();
 		String displayURL = RMNavigationConfiguration.DECOMMISSIONING_LIST_DISPLAY;
@@ -405,7 +410,13 @@ public class DecommissioningService {
 									  boolean saveComment) {
 		List<String> parameters = new ArrayList<>();
 		List<Comment> commentaires = new ArrayList<>();
-		parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(list.getTitle()));
+		boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+		if(isAddingRecordIdInEmails) {
+			parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(list.getTitle()) + " (" + list.getId() + ")");
+		} else {
+			parameters.add("decomList" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(list.getTitle()));
+		}
+
 		parameters.add("comments" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(comments));
 
 		String constellioUrl = eimConfigs.getConstellioUrl();
@@ -1361,7 +1372,12 @@ public class DecommissioningService {
 			emailToSend.setTemplate(fullTemplate);
 			parameters.add("subject" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(subject));
 			String recordTitle = record.getTitle();
-			parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle));
+			boolean isAddingRecordIdInEmails = eimConfigs.isAddingRecordIdInEmails();
+			if(isAddingRecordIdInEmails) {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle) + " (" + record.getId() + ")");
+			} else {
+				parameters.add("title" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(recordTitle));
+			}
 			parameters.add("currentUser" + EmailToSend.PARAMETER_SEPARATOR + StringEscapeUtils.escapeHtml4(currentUser.getFirstName() + " " + currentUser.getLastName() +
 																										   " (" + currentUser.getUsername() + ")"));
 			String constellioUrl = eimConfigs.getConstellioUrl();
