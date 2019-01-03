@@ -819,12 +819,36 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
+
+		for (Metadata metadata : schemaType.getAllMetadatas().onlyAccessibleGloballyBy(getCurrentUser())) {
+			if (metadata.isSortable()) {
+				result.add(builder.build(metadata, view.getSessionContext()));
+			}
+		}
+		return result;
+	}
+
+	protected List<MetadataVO> getMetadataAllowedInSortWithNoSecurity(MetadataSchemaType schemaType) {
+		MetadataToVOBuilder builder = new MetadataToVOBuilder();
+
+		List<MetadataVO> result = new ArrayList<>();
+
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
 			if (metadata.isSortable()) {
 				result.add(builder.build(metadata, view.getSessionContext()));
 			}
 		}
 		return result;
+	}
+
+	protected boolean isLocalCodeInMetadataList(String localCode, MetadataList nonAccessibleMetadata) {
+		for (Metadata currentMetadata : nonAccessibleMetadata) {
+			if (currentMetadata.getLocalCode().equals(localCode)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	protected List<LabelTemplate> getTemplates() {

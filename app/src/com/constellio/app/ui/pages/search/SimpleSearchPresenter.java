@@ -14,6 +14,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchMetadataWithAtomicCode;
 import com.constellio.model.services.records.RecordImpl;
+import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -159,14 +161,32 @@ public class SimpleSearchPresenter extends SearchPresenter<SimpleSearchView> {
 	private List<MetadataVO> getCommonMetadataAllowedInSort(List<MetadataSchemaType> schemaTypes) {
 		List<MetadataVO> result = new ArrayList<>();
 		Set<String> resultCodes = new HashSet<>();
+		Set<String> notAcceptedLocalCode = new HashSet<>();
 		for (MetadataSchemaType metadataSchemaType : schemaTypes) {
-			for (MetadataVO metadata : getMetadataAllowedInSort(metadataSchemaType)) {
-				if (resultCodes.add(metadata.getLocalCode())) {
+			MetadataList nonAccessibleMetadataList = metadataSchemaType.getAllMetadatas()
+					.onlyNotAccessibleGloballyBy(getCurrentUser());
+			for (MetadataVO metadata : getMetadataAllowedInSortWithNoSecurity(metadataSchemaType)) {
+				if (isLocalCodeInMetadataList(metadata.getLocalCode(), nonAccessibleMetadataList)) {
+					notAcceptedLocalCode.add(metadata.getLocalCode());
+				} else if (resultCodes.add(metadata.getLocalCode())) {
 					result.add(metadata);
 				}
 			}
 		}
+
+		filterMetadataVOWithLocalCodeSet(result, notAcceptedLocalCode);
+
 		return result;
+	}
+
+	private void filterMetadataVOWithLocalCodeSet(List<MetadataVO> result, Set<String> notAcceptedLocalCode) {
+		Iterator<MetadataVO> resultIterator = result.iterator();
+		while (resultIterator.hasNext()) {
+			MetadataVO resultItem = resultIterator.next();
+			if (notAcceptedLocalCode.contains(resultItem.getLocalCode())) {
+				resultIterator.remove();
+			}
+		}
 	}
 
 	private boolean isMetadataInAllTypes(String localCode, List<MetadataSchemaType> types) {

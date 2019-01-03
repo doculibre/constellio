@@ -184,7 +184,10 @@ public class AddEditTaxonomyPresenter extends BasePresenter<AddEditTaxonomyView>
 			MetadataBuilder metadataBuilder = types.getSchemaType(schemaType).getDefaultSchema().get(localCode);
 
 			for (Language language : schemasManager.getSchemaTypes(collection).getLanguages()) {
-				metadataBuilder.addLabel(language, taxonomy.getTitle(language));
+				String title = taxonomy.getTitle(language);
+				if (title != null) {
+					metadataBuilder.addLabel(language, taxonomy.getTitle(language));
+				}
 			}
 
 			try {

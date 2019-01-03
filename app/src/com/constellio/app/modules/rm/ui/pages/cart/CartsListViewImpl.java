@@ -104,7 +104,7 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
 		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
 		for (Cart cart : presenter.getOwnedCarts()) {
-			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle(), presenter.getCreatedBy(cart), presenter.getModifiedBy(cart), presenter.getOwner(cart)));
+			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
 		}
 		DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
 
@@ -139,7 +139,7 @@ public class CartsListViewImpl extends BaseViewImpl implements CartsListView {
 				return deleteButton;
 			}
 		});
-		return new DefaultFavoritesTable("favoritesTable", buttonsContainer, presenter.getSchema(), presenter.getCurrentUser());
+		return new DefaultFavoritesTable("favoritesTable", buttonsContainer, presenter.getSchema());
 	}
 
 	private Layout buildSharedCartsTab() {

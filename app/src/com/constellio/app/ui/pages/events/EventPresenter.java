@@ -16,9 +16,7 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.framework.components.content.InputStreamWrapper;
 import com.constellio.app.ui.framework.components.content.InputStreamWrapper.SimpleAction;
-import com.constellio.app.ui.framework.data.DataProvider;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
-import com.constellio.app.ui.framework.data.event.EventStatistics;
 import com.constellio.app.ui.framework.data.event.EventTypeUtils;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
@@ -205,19 +203,19 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 		SearchResponseIterator<Record> searchResponseIterator = dataProvider.getIterator();
 		Object[] visiblePropertyObject = view.getTableVisibleProperties();
 
-		while(searchResponseIterator.hasNext()) {
+		while (searchResponseIterator.hasNext()) {
 			Record currentRecord = searchResponseIterator.next();
 			RecordToVOBuilder voBuilder = new RecordToVOBuilder();
-			RecordVO recordVO  = voBuilder.build(currentRecord, VIEW_MODE.TABLE, view.getSessionContext());
+			RecordVO recordVO = voBuilder.build(currentRecord, VIEW_MODE.TABLE, view.getSessionContext());
 			String[] stringArray = new String[visiblePropertyObject.length];
 
 			int counter = 0;
-			for(Object object : visiblePropertyObject) {
+			for (Object object : visiblePropertyObject) {
 				MetadataVO metadataVO = (MetadataVO) object;
 				Object metadataValue = recordVO.get(metadataVO);
 				String valueAsString = null;
 
-				if(metadataValue != null) {
+				if (metadataValue != null) {
 					valueAsString = metadataValue.toString();
 				}
 
@@ -322,6 +320,10 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 
 	public boolean isTypeMetadata(MetadataValueVO metadataValue) {
 		return metadataValue.getMetadata().getCode().contains(Event.TYPE);
+	}
+
+	public boolean isNegativeAuthorizationMetadata(MetadataValueVO metadataValue) {
+		return metadataValue.getMetadata().getCode().contains(Event.NEGATIVE_AUTHORIZATION);
 	}
 
 	public boolean isTaskMetadata(MetadataValueVO metadataValue) {

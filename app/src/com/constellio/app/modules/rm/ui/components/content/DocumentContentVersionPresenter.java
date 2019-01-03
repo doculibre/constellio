@@ -2,16 +2,18 @@ package com.constellio.app.modules.rm.ui.components.content;
 
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
+import com.constellio.app.modules.rm.navigation.RMNavigationConfiguration;
+import com.constellio.app.modules.rm.navigation.RMViews;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.ui.builders.DocumentToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.DocumentVO;
 import com.constellio.app.modules.rm.ui.util.ConstellioAgentUtils;
 import com.constellio.app.modules.rm.util.RMNavigationUtils;
 import com.constellio.app.modules.rm.wrappers.Document;
-import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
 import com.constellio.app.ui.application.ConstellioUI;
+import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.entities.ContentVersionVO;
 import com.constellio.app.ui.entities.RecordVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
@@ -154,6 +156,12 @@ public class DocumentContentVersionPresenter implements Serializable {
 				window.getSessionContext().getCurrentCollection());
 
 		updateSearchResultClicked();
+	}
+
+	public boolean isNavigationStateDocumentView() {
+		String documentId = documentVO.getId();
+		Navigation navigation = new Navigation();
+		return navigation.to(RMViews.class).getState().equals(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + documentId);
 	}
 
 	void checkOutLinkClicked() {

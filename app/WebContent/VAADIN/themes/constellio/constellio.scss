@@ -1395,6 +1395,12 @@ $popup-view-z-index: 3;
 		}
 	}
 
+	.v-context-menu-container {
+		.popupContent {
+			display: flex;
+		}
+	}
+
     .v-context-menu {
     	padding: 5px;
 	    border: 1px solid #3a434d;

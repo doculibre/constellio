@@ -102,7 +102,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		contentVersionVOBuilder = new ContentVersionToVOBuilder(modelLayerFactory);
 		voBuilder = new DocumentToVOBuilder(modelLayerFactory);
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory);
-
 		if (recordVO != null && params == null) {
 			forParams(recordVO.getId());
 		}
@@ -133,18 +132,20 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		return params;
 	}
 
-	public void forParams(String params) {
-		String id;
-
+	private String extractIdFromParams(String params) {
 		if (params.contains("id")) {
 			this.params = ParamUtils.getParamsMap(params);
-			id = this.params.get("id");
+			return this.params.get("id");
 		} else {
-			id = params;
+			return params;
 		}
-		
+	}
+
+	public void forParams(String params) {
+		String id = extractIdFromParams(params);
+
 		view.getSessionContext().addVisited(id);
-		
+
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
 		view.setTaxonomyCode(taxonomyCode);
 
@@ -257,7 +258,7 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	@Override
 	protected List<String> getRestrictedRecordIds(String params) {
 		DocumentVO documentVO = presenterUtils.getDocumentVO();
-		return Arrays.asList(documentVO.getId());
+		return Arrays.asList(documentVO == null ? extractIdFromParams(params) : documentVO.getId());
 	}
 
 	public void viewAssembled() {
@@ -396,17 +397,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 			addOrUpdate(document.getWrappedRecord());
 			presenterUtils.navigateToDisplayDocument(document.getId(), params);
 		}
-	}
-
-	public RecordVODataProvider getOwnedCartsDataProvider() {
-		final MetadataSchemaVO cartSchemaVO = schemaVOBuilder.build(rm.cartSchema(), VIEW_MODE.TABLE, view.getSessionContext());
-		return new RecordVODataProvider(cartSchemaVO, new RecordToVOBuilder(), modelLayerFactory, view.getSessionContext()) {
-			@Override
-			protected LogicalSearchQuery getQuery() {
-				return new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cartOwner())
-						.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE);
-			}
-		};
 	}
 
 	public RecordVODataProvider getSharedCartsDataProvider() {
@@ -579,21 +569,6 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 		}
 	}
 
-	public void removeFromDefaultFavorites() {
-		document.removeFavorite(getCurrentUser().getId());
-		try {
-			recordServices.update(document);
-		} catch (RecordServicesException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-		view.showMessage($("DisplayDocumentView.documentRemovedFromDefaultFavorites"));
-	}
-
-	public boolean inDefaultFavorites() {
-		return document.getFavorites().contains(getCurrentUser().getId());
-	}
-
 	public RMSelectionPanelReportPresenter buildReportPresenter() {
 		return new RMSelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
 			@Override
@@ -613,27 +588,11 @@ public class DisplayDocumentPresenter extends SingleSchemaBasePresenter<DisplayD
 	}
 
 	public List<Cart> getOwnedCarts() {
-		return rm.wrapCarts(searchServices().search(new LogicalSearchQuery(from(schema(Cart.DEFAULT_SCHEMA)).where(schema(Cart.DEFAULT_SCHEMA).getMetadata(Cart.OWNER))
+		return rm.wrapCarts(searchServices().search(new LogicalSearchQuery(from(rm.cartSchema()).where(rm.cart.owner())
 				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
-	}
-
-	public Record getCreatedBy(Cart cart) {
-		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(rm.userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getCreatedBy()));
-	}
-
-	public Record getModifiedBy(Cart cart) {
-		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(rm.userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getModifiedBy()));
-	}
-
-	public Record getOwner(Cart cart) {
-		return searchServices().searchSingleResult(from(rm.userSchemaType()).where(rm.userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getOwner()));
 	}
 
 	public MetadataSchemaVO getSchema() {
 		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-	}
-
-	public User getCurrentUser() {
-		return super.getCurrentUser();
 	}
 }

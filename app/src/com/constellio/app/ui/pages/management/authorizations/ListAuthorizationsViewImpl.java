@@ -245,7 +245,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 		Table table = new BaseTable(getClass().getName(), tableCaption, container);
 		table.setPageLength(container.size());
 		table.addStyleName(source == AuthorizationSource.OWN ? AUTHORIZATIONS : INHERITED_AUTHORIZATIONS);
-		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeAccessField(), getSessionContext().getCurrentLocale()).attachTo(table, presenter.isNegativeAuthorizationConfigEnabledAndRecordIsNotATaxonomy());
+		new Authorizations(source, getDisplayMode(), presenter.seeRolesField(), presenter.seeAccessField(), getSessionContext().getCurrentLocale()).attachTo(table, presenter.isRecordNotATaxonomyConcept());
 		return table;
 	}
 
@@ -346,7 +346,7 @@ public abstract class ListAuthorizationsViewImpl extends BaseViewImpl implements
 			negative = new ComboBox();
 			negative.setCaption($("AuthorizationsView.negativeAuthotization"));
 			negative.setEnabled(presenter.hasManageSecurityPermission());
-			negative.setVisible(presenter.isNegativeAuthorizationConfigEnabledAndRecordIsNotATaxonomy());
+			negative.setVisible(presenter.isRecordNotATaxonomyConcept());
 			negative.setRequired(presenter.hasManageSecurityPermission());
 			negative.setId("negative");
 			negative.setNullSelectionAllowed(false);

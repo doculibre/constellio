@@ -519,7 +519,7 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		Button labels = new LabelButtonV2($("DisplayFolderView.printLabel"),
 				$("DisplayFolderView.printLabel"), customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(), presenter.getDocumentVO());
+				getSessionContext().getCurrentCollection(), getSessionContext().getCurrentUser(), presenter.getDocumentVO());
 
 		addToCartButton = buildAddToCartButton();
 
@@ -780,7 +780,6 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 
 				sharedCartsTable.setPageLength(Math.min(15, sharedCartsContainer.size()));
 				sharedCartsTable.setWidth("100%");
-				ownedCartsTable.setColumnExpandRatio(DefaultFavoritesTable.CartItem.TITLE, 1);
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
 				layout.addComponents(newCartLayout, tabSheet);
@@ -794,10 +793,10 @@ public class DisplayDocumentViewImpl extends BaseViewImpl implements DisplayDocu
 		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
 		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
 		for (Cart cart : presenter.getOwnedCarts()) {
-			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle(), presenter.getCreatedBy(cart), presenter.getModifiedBy(cart), presenter.getOwner(cart)));
+			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
 		}
 		final DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
-		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTable", container, presenter.getSchema(), presenter.getCurrentUser());
+		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTable", container, presenter.getSchema());
 		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
 		defaultFavoritesTable.addItemClickListener(new ItemClickListener() {
 			@Override

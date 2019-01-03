@@ -1,5 +1,6 @@
 package com.constellio.app.services.migrations.scripts;
 
+import com.constellio.app.api.admin.services.WrapperConfUpdateUtils;
 import com.constellio.app.entities.modules.MetadataSchemasAlterationHelper;
 import com.constellio.app.entities.modules.MigrationResourcesProvider;
 import com.constellio.app.entities.modules.MigrationScript;
@@ -7,6 +8,8 @@ import com.constellio.app.modules.core.CoreTypes;
 import com.constellio.app.modules.rm.model.calculators.UserDocumentContentSizeCalculator;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.utils.KeyListMap;
+import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.conf.FoldersLocatorMode;
 import com.constellio.model.entities.calculators.SavedSearchRestrictedCalculator;
 import com.constellio.model.entities.records.ActionExecutorInBatch;
 import com.constellio.model.entities.records.Record;
@@ -31,7 +34,10 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.model.services.search.SearchServices;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +46,8 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class CoreMigrationTo_8_2 implements MigrationScript {
+	private static final Logger LOGGER = LoggerFactory.getLogger(CoreMigrationTo_7_1.class);
+
 	@Override
 	public String getVersion() {
 		return "8.2";
@@ -49,6 +57,7 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 	public void migrate(String collection, MigrationResourcesProvider migrationResourcesProvider,
 						AppLayerFactory appLayerFactory)
 			throws Exception {
+		appLayerFactory.getSystemGlobalConfigsManager().setReindexingRequired(true);
 		new CoreSchemaAlterationFor_8_2(collection, migrationResourcesProvider, appLayerFactory).migrate();
 
 		if (!collection.equals(Collection.SYSTEM_COLLECTION)) {
@@ -128,6 +137,20 @@ public class CoreMigrationTo_8_2 implements MigrationScript {
 					recordServices.executeWithoutImpactHandling(tx);
 				}
 			}.execute(from(schemas.group.schemaType()).returnAll());
+		} else {
+			FoldersLocator foldersLocator = appLayerFactory.getModelLayerFactory()
+					.getFoldersLocator();
+			if (foldersLocator.getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
+				File constellioParentFolder = foldersLocator.getWrapperInstallationFolder().getParentFile();
+
+				File temporaryFolder = new File(constellioParentFolder, FoldersLocator.CONSTELLIO_TMP);
+				if (temporaryFolder.exists() && temporaryFolder.isDirectory() || temporaryFolder.mkdirs()) {
+					File currentWrapper = foldersLocator.getWrapperConf();
+
+					WrapperConfUpdateUtils.setSettingAdditionalTemporaryDirectory(currentWrapper, constellioParentFolder,
+							appLayerFactory.getModelLayerFactory().getIOServicesFactory().newFileService());
+				}
+			}
 		}
 	}
 

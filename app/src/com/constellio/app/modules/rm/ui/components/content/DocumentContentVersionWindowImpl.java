@@ -62,14 +62,6 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 		readOnlyLabel.addStyleName(ValoTheme.LABEL_H2);
 		readOnlyLabel.setVisible(readOnlyMessage != null);
 
-		displayDocumentLink = new Button($("DocumentContentVersionWindow.displayDocumentLinkCaption"), new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.displayDocumentLinkClicked();
-			}
-		});
-		displayDocumentLink.addStyleName(ValoTheme.BUTTON_LINK);
-
 		if (agentURL != null) {
 			Resource icon = FileIconUtils.getIcon(recordVO);
 			openOrDownloadLink = new Button($("DocumentContentVersionWindow.openLinkCaption"), new ClickListener() {
@@ -94,7 +86,18 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 		checkOutLink.addStyleName(ValoTheme.BUTTON_LINK);
 		checkOutLink.setVisible(checkOutLinkVisible);
 
-		addComponents(readOnlyLabel, displayDocumentLink, openOrDownloadLink, checkOutLink);
+		if (presenter.isNavigationStateDocumentView()) {
+			addComponents(readOnlyLabel, openOrDownloadLink, checkOutLink);
+		} else {
+			displayDocumentLink = new Button($("DocumentContentVersionWindow.displayDocumentLinkCaption"), new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					presenter.displayDocumentLinkClicked();
+				}
+			});
+			displayDocumentLink.addStyleName(ValoTheme.BUTTON_LINK);
+			addComponents(readOnlyLabel, displayDocumentLink, openOrDownloadLink, checkOutLink);
+		}
 	}
 
 	@Override

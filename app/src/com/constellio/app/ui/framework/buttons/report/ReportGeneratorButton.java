@@ -157,7 +157,7 @@ public class ReportGeneratorButton extends WindowButton {
 			getWindow().setContent(
 					ReportGeneratorUtils.saveButtonClick(parent.factory, parent.collection, elements[0].getSchema().getTypeCode(),
 							(PrintableReportTemplate) parent.printableItemsFields.getValue(), 1, getIdsFromRecordVO(), null,
-							view.getSessionContext().getCurrentLocale()));
+							view.getSessionContext().getCurrentLocale(), view.getSessionContext().getCurrentUser()));
 		}
 
 		@Override

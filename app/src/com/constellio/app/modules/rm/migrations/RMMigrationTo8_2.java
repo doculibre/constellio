@@ -81,19 +81,19 @@ public class RMMigrationTo8_2 implements MigrationScript {
 			}
 		}
 
-		modifyRecords(rm.folder.schemaType(), Folder.FAVORITES, modelLayerFactory);
-		modifyRecords(rm.document.schemaType(), Document.FAVORITES, modelLayerFactory);
-		modifyRecords(rm.containerRecord.schemaType(), ContainerRecord.FAVORITES, modelLayerFactory);
+		modifyRecords(rm.folder.schemaType(), Folder.FAVORITES, modelLayerFactory, 1000);
+		modifyRecords(rm.document.schemaType(), Document.FAVORITES, modelLayerFactory, 100);
+		modifyRecords(rm.containerRecord.schemaType(), ContainerRecord.FAVORITES, modelLayerFactory, 1000);
 
 		new SchemaAlterationFor8_2b(collection, provider, appLayerFactory).migrate();
 	}
 
 	private void modifyRecords(final MetadataSchemaType metadataSchemaType, final String metadataCode,
-							   final ModelLayerFactory modelLayerFactory) {
+							   final ModelLayerFactory modelLayerFactory, int batch) {
 		ConditionnedActionExecutorInBatchBuilder conditionnedActionExecutorInBatchBuilder = onCondition(modelLayerFactory, from(metadataSchemaType).returnAll());
-		conditionnedActionExecutorInBatchBuilder.setBatchSize(500);
+		conditionnedActionExecutorInBatchBuilder.setBatchSize(batch);
 		conditionnedActionExecutorInBatchBuilder.setOptions(RecordUpdateOptions.validationExceptionSafeOptions());
-		conditionnedActionExecutorInBatchBuilder.modifyingRecordsWithImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
+		conditionnedActionExecutorInBatchBuilder.modifyingRecordsWithoutImpactHandling(new ConditionnedActionExecutorInBatchBuilder.RecordScript() {
 			@Override
 			public void modifyRecord(Record record) {
 				Metadata metadata = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(record).getMetadata(metadataCode);
