@@ -238,6 +238,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				}
 				multivalueType.setEnabled(false);
 				sortableField.setEnabled(false);
+				searchableField.setValue(false);
+				searchableField.setEnabled(false);
+				autocomplete.setValue(false);
+				autocomplete.setEnabled(false);
 				break;
 			case TEXT:
 				multivalueType.setEnabled(true);
@@ -255,6 +259,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				break;
 			case INTEGER:
 				multivalueType.setEnabled(true);
+				searchableField.setValue(false);
+				searchableField.setEnabled(false);
+				autocomplete.setValue(false);
+				autocomplete.setEnabled(false);
 				break;
 			case REFERENCE:
 				if (multivalue) {
@@ -274,6 +282,10 @@ public class AddEditMetadataViewImpl extends BaseViewImpl implements AddEditMeta
 				break;
 			case NUMBER:
 				multivalueType.setEnabled(true);
+				searchableField.setValue(false);
+				searchableField.setEnabled(false);
+				autocomplete.setValue(false);
+				autocomplete.setEnabled(false);
 				break;
 			case STRUCTURE:
 				multivalueType.setEnabled(true);
