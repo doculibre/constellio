@@ -98,7 +98,7 @@ public class AddEditCapsuleViewImpl extends BaseViewImpl implements AddEditCapsu
 				};
 				((ContentVersionUploadField) field).setMajorVersionFieldVisible(false);
 			} else {
-				field = super.build(recordVO, metadataVO);
+				field = super.build(recordVO, metadataVO, locale);
 			}
 			return field;
 		}
