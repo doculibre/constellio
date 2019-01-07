@@ -597,7 +597,7 @@ public class BigVaultServer implements Cloneable {
 					LOGGER.warn("Solr thrown an unexpected exception, retrying the softCommit... in {} milliseconds",
 							waitedMillisecondsBetweenAttempts, solrServerException);
 					sleepBeforeRetrying(solrServerException);
-					trySoftCommit(currentAttempt, methodEnteranceTimeStamp);
+					trySoftCommit(currentAttempt + 1, methodEnteranceTimeStamp);
 				} else {
 					throw solrServerException;
 				}
