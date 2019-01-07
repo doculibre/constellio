@@ -1583,6 +1583,10 @@ div.v-layout.v-horizontal.v-widget {
 	color: #ff0000;
 }
 
+.autocomplete-suggestions-rtl .autocomplete-suggestion .autocomplete-suggestion-content .autocomplete-suggestion-text .autocomplete-suggestion-value {
+	text-align: right;
+}
+
 .constellio {
 	@media screen and (max-width: 480px) {
 	.notifications.v-window {
@@ -14342,11 +14346,11 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .right-to-left .v-checkbox {
-	padding-left: 25px;
+	padding-left: inherit;
 }
 
 .constellio .right-to-left .v-checkbox > label {
-	margin-right: 29px;
+	margin-right: 10px;
 }
 
 .constellio .right-to-left .v-checkbox > input {
@@ -14401,6 +14405,14 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .content-footer-wrapper .content-footer .content-view-wrapper {
 	padding-right: 10px;
+}
+
+.constellio .right-to-left .content-footer-wrapper .content-footer .search-result-title .v-icon {
+	padding-left: 8px;
+}
+
+.constellio .right-to-left .content-footer-wrapper .content-footer .search-result-highlights em {
+	text-decoration: underline;
 }
 
 .constellio .right-to-left .content-footer-wrapper .content-footer .search-result-summary {

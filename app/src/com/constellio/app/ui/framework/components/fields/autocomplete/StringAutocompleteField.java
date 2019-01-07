@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
 
 /**
  * Adapted from https://vaadin.com/forum#!/thread/897171/9060502
@@ -113,6 +114,10 @@ public class StringAutocompleteField<T> extends AutocompleteTextField {
 				return String.class;
 			}
 		});
+		
+		if (isRightToLeft()) {
+			addMenuStyleName("autocomplete-suggestions-rtl");
+		}
 	}
 
 	@Override

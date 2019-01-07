@@ -97,7 +97,7 @@ public class SearchResultDisplay extends VerticalLayout {
 	protected Component newTitleComponent(SearchResultVO searchResultVO) {
 		final RecordVO record = searchResultVO.getRecordVO();
 
-		I18NCssLayout titleLayout = new I18NCssLayout();
+		CssLayout titleLayout = new I18NCssLayout();
 		Component titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
 		titleLink.setWidthUndefined();

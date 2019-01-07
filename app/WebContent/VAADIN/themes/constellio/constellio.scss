@@ -2187,11 +2187,13 @@ $popup-view-z-index: 3;
 		}
 
 		.v-checkbox {
-			padding-left: 25px;
+			//padding-left: 25px;
+			padding-left: inherit;
 		}
 
 		.v-checkbox > label {
-			margin-right: 29px;
+			//margin-right: 29px;
+			margin-right: 10px;
 		}
 
 		.v-checkbox > input {
@@ -2248,6 +2250,18 @@ $popup-view-z-index: 3;
 				
 				.content-view-wrapper {
 					padding-right: 10px;
+				}
+			
+				.search-result-title {
+					.v-icon {
+						padding-left: 8px;
+					}
+				}
+			
+				.search-result-highlights {
+					em {
+						text-decoration: underline;
+					}
 				}
 				
 				.search-result-summary {
@@ -2775,5 +2789,17 @@ $popup-view-z-index: 3;
 }
 
 .warningLabel {
-  color: #ff0000
+  color: #ff0000;
+}
+
+.autocomplete-suggestions-rtl {
+	.autocomplete-suggestion {
+		.autocomplete-suggestion-content {
+			.autocomplete-suggestion-text {
+				.autocomplete-suggestion-value {
+					text-align: right;
+				}
+			}
+		}
+	}
 }

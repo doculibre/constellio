@@ -1,16 +1,13 @@
 package com.constellio.app.ui.framework.components.layouts;
 
-import com.vaadin.ui.Alignment;
+import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
+
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.HorizontalLayout;
-
-import static com.constellio.app.ui.i18n.i18n.isRightToLeft;
-import static com.vaadin.ui.AbstractOrderedLayout.ALIGNMENT_DEFAULT;
 
 public class I18NCssLayout extends CssLayout {
 
-	public static final String STYLE_NAME_PREFIX = "i18n-horizontal-layout-";
+	public static final String STYLE_NAME_PREFIX = "i18n-css-layout-";
 
 	public static final String STYLE_NAME_LEFT_TO_RIGHT = STYLE_NAME_PREFIX + "left-to-right";
 
