@@ -97,7 +97,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			metadataCodes.add(titleMetadata.getCode());
 
 			schemaVO = new MetadataSchemaToVOBuilder()
-					.build(documentDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), false);
+					.build(documentDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), true);
 
 		} else if (EventCategory.CURRENTLY_BORROWED_FOLDERS.equals(eventCategory) || getEventType()
 				.equals(EventType.CURRENTLY_BORROWED_FOLDERS) || getEventType()
@@ -120,7 +120,7 @@ public class EventPresenter extends SingleSchemaBasePresenter<EventView> {
 			metadataCodes.add(titleMetadata.getCode());
 
 			schemaVO = new MetadataSchemaToVOBuilder()
-					.build(folderDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), false);
+					.build(folderDefaultSchema, VIEW_MODE.TABLE, metadataCodes, view.getSessionContext(), true);
 
 		} else {
 			voBuilder = new RecordToVOBuilder();
