@@ -2193,7 +2193,7 @@ $popup-view-z-index: 3;
 
 		.v-checkbox > label {
 			//margin-right: 29px;
-			margin-right: 10px;
+			margin-right: 25px;
 		}
 
 		.v-checkbox > input {
@@ -2203,6 +2203,11 @@ $popup-view-z-index: 3;
 		.v-checkbox > input ~ label:before, .v-checkbox > input ~ label:after {
 			left: inherit;
 			right: 0;
+		}
+			
+		.h1 {
+		    padding-left: 0px;
+		    padding-right: 10px;
 		}
 
 		.selection-table {
@@ -2255,6 +2260,7 @@ $popup-view-z-index: 3;
 				.search-result-title {
 					.v-icon {
 						padding-left: 8px;
+						padding-right: 2px;
 					}
 				}
 			

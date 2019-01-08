@@ -98,9 +98,11 @@ public class SearchResultDisplay extends VerticalLayout {
 		final RecordVO record = searchResultVO.getRecordVO();
 
 		CssLayout titleLayout = new I18NCssLayout();
+		titleLayout.setWidth("100%");
 		Component titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
-		titleLink.setWidthUndefined();
+//		titleLink.setWidthUndefined();
+		titleLink.setWidth("85%");
 		titleLayout.addComponent(titleLink);
 
 		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();

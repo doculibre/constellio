@@ -14350,7 +14350,7 @@ div.v-layout.v-horizontal.v-widget {
 }
 
 .constellio .right-to-left .v-checkbox > label {
-	margin-right: 10px;
+	margin-right: 25px;
 }
 
 .constellio .right-to-left .v-checkbox > input {
@@ -14360,6 +14360,11 @@ div.v-layout.v-horizontal.v-widget {
 .constellio .right-to-left .v-checkbox > input ~ label:before, .constellio .right-to-left .v-checkbox > input ~ label:after {
 	left: inherit;
 	right: 0;
+}
+
+.constellio .right-to-left .h1 {
+	padding-left: 0px;
+	padding-right: 10px;
 }
 
 .constellio .right-to-left .selection-table .v-table-cell-content .v-checkbox > input ~ label:before, .constellio .right-to-left .selection-table .v-table-cell-content .v-checkbox > input ~ label:after {
@@ -14409,6 +14414,7 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .content-footer-wrapper .content-footer .search-result-title .v-icon {
 	padding-left: 8px;
+	padding-right: 2px;
 }
 
 .constellio .right-to-left .content-footer-wrapper .content-footer .search-result-highlights em {
