@@ -2,6 +2,7 @@ package com.constellio.app.api.admin.services;
 
 import com.constellio.data.io.services.facades.FileService;
 import com.constellio.model.conf.FoldersLocator;
+import com.constellio.model.services.appManagement.PlatformService;
 import com.constellio.sdk.tests.ConstellioTest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
@@ -27,6 +28,10 @@ public class WrapperConfUpdateUtilsAcceptTest extends ConstellioTest {
 	private File missingWrapper;
 	private File correctWrapper3;
 	private FoldersLocator foldersLocator;
+	private PlatformService platformService;
+	private String wrapperInstallationFolder;
+	private String finalPathToTmp;
+
 
 	@Before
 	public void setup() throws Exception {
@@ -34,22 +39,33 @@ public class WrapperConfUpdateUtilsAcceptTest extends ConstellioTest {
 		correctWrapper = getTestResourceFile("wrapper-correct.conf");
 		correctWrapper3 = getTestResourceFile("wrapper-correct3.conf");
 		newTempFile = newTempFileWithContent("newWrapper.conf", "");
+		platformService = new PlatformService();
 
 		when(fileService.newTemporaryFile("newWraper.conf")).thenReturn(newTempFile);
 		/**
 		 * On utilise un path windows pour tester ce qui va se passer dans le filesystem de linux.
 		 *
 		 */
+
+		if (platformService.isWindows()) {
+			wrapperInstallationFolder = "C:\\opt\\constellio";
+		} else {
+			wrapperInstallationFolder = File.separator + "opt" + File.separator + "constellio";
+		}
+
 		foldersLocator = new FoldersLocator() {
 			@Override
 			public File getWrapperInstallationFolder() {
-				return new File("C:\\opt\\constellio");
+				return new File(wrapperInstallationFolder);
 			}
 		};
 
 		doNothing().when(fileService).copyFile(newTempFile, correctWrapper);
 		doNothing().when(fileService).copyFile(newTempFile, missingWrapper);
 		doNothing().when(fileService).copyFile(newTempFile, correctWrapper3);
+
+		finalPathToTmp = new File(foldersLocator.getWrapperInstallationFolder().getParentFile(),
+				FoldersLocator.CONSTELLIO_TMP).getAbsolutePath();
 	}
 
 	@Test
@@ -58,7 +74,8 @@ public class WrapperConfUpdateUtilsAcceptTest extends ConstellioTest {
 		WrapperConfUpdateUtils.setSettingAdditionalTemporaryDirectory(correctWrapper3,
 				foldersLocator.getWrapperInstallationFolder().getParentFile(), fileService);
 		verifyFilePositionAndContent("wrapper.java.additional.2",
-				"wrapper.java.additional.3=-Djava.io.tmpdir=C:\\opt\\constellio_tmp", correctWrapper3);
+				"wrapper.java.additional.3=-Djava.io.tmpdir=" + finalPathToTmp,
+				correctWrapper3);
 	}
 
 	@Test
@@ -67,7 +84,7 @@ public class WrapperConfUpdateUtilsAcceptTest extends ConstellioTest {
 		WrapperConfUpdateUtils.setSettingAdditionalTemporaryDirectory(correctWrapper,
 				foldersLocator.getWrapperInstallationFolder().getParentFile(), fileService);
 		verifyFilePositionAndContent("wrapper.java.additional.1",
-				"wrapper.java.additional.2=-Djava.io.tmpdir=C:\\opt\\constellio_tmp", correctWrapper);
+				"wrapper.java.additional.2=-Djava.io.tmpdir=" + finalPathToTmp, correctWrapper);
 	}
 
 	@Test

@@ -54,8 +54,16 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 	private VerticalLayout mainLayout;
 	private Button addLabelButton, downloadTemplateButton;
 	private String currentSchema;
-	final private GetXMLButton getXMLButton = new GetXMLButton($("DisplayLabelViewImpl.menu.getXMLButton"), $("DisplayLabelViewImpl.menu.getXMLButton"), getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(), this, true);
+	final private GetXMLButton getXMLButton;
 	public static final String TYPE_TABLE = "types";
+
+	public ListLabelViewImpl() {
+		presenter = new AddEditLabelPresenter(this);
+		getXMLButton = new GetXMLButton($("DisplayLabelViewImpl.menu.getXMLButton"),
+				$("DisplayLabelViewImpl.menu.getXMLButton"),
+				getConstellioFactories().getAppLayerFactory(), getSessionContext().getCurrentCollection(),
+				this, true, getSessionContext().getCurrentUser());
+	}
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
@@ -85,7 +93,6 @@ public class ListLabelViewImpl extends BaseViewImpl implements AddEditLabelView 
 	@Override
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
 		mainLayout = new VerticalLayout();
-		presenter = new AddEditLabelPresenter(this);
 		folderDisplay = new CustomComponent();
 		containerDisplay = new CustomComponent();
 		this.currentSchema = Folder.SCHEMA_TYPE;

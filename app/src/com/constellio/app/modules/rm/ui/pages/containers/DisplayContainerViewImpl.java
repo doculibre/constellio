@@ -65,6 +65,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		this(null, false);
 	}
 
+
 	public DisplayContainerViewImpl(RecordVO recordVO, boolean popup) {
 		presenter = new DisplayContainerPresenter(this, recordVO, popup);
 		this.popup = popup;
@@ -220,7 +221,7 @@ public class DisplayContainerViewImpl extends BaseViewImpl implements DisplayCon
 		};
 		Button labels = new LabelButtonV2($("SearchView.labels"), $("SearchView.printLabels"), customLabelTemplatesFactory,
 				defaultLabelTemplatesFactory, getConstellioFactories().getAppLayerFactory(),
-				getSessionContext().getCurrentCollection(), presenter.getContainer());
+				getSessionContext().getCurrentCollection(),getSessionContext().getCurrentUser(), presenter.getContainer());
 		labels.setEnabled(presenter.canPrintReports());
 		buttons.add(labels);
 		WindowButton addToCartButton = buildAddToCartButton();

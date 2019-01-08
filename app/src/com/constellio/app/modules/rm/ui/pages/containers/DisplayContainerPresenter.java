@@ -72,6 +72,7 @@ public class DisplayContainerPresenter extends BasePresenter<DisplayContainerVie
 		}
 	}
 
+
 	String getBorrowMessageState(RecordVO containerRecord) {
 		String borrowedMessage = null;
 		if (containerRecord != null) {

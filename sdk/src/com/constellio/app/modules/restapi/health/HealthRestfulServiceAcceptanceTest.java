@@ -45,7 +45,7 @@ public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 		assertThat(response.getHeaderString("Access-Control-Allow-Origin"))
 				.isEqualTo("http://www.constellio.com");
 		assertThat(response.getHeaderString("Access-Control-Allow-Methods"))
-				.isEqualTo("GET,HEAD,POST,PUT,PATCH,DELETE");
+				.isEqualTo("GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS");
 		assertThat(response.getHeaderString("Access-Control-Allow-Headers"))
 				.isEqualTo(ALLOWED_HEADERS);
 	}
@@ -64,7 +64,7 @@ public class HealthRestfulServiceAcceptanceTest extends ConstellioTest {
 		assertThat(response.getHeaderString("Access-Control-Allow-Origin"))
 				.isEqualTo("http://www.constellio.com");
 		assertThat(response.getHeaderString("Access-Control-Allow-Methods"))
-				.isEqualTo("GET,HEAD,POST,PUT,PATCH,DELETE");
+				.isEqualTo("GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS");
 		assertThat(response.getHeaderString("Access-Control-Allow-Headers"))
 				.isEqualTo(ALLOWED_HEADERS);
 	}

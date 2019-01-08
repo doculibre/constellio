@@ -15,10 +15,10 @@ public class FolderConfidentialCalculatorTest extends ConstellioTest {
 	Boolean ruleConfidentialStatus;
 
 	@Test
-	public void givenRuleHasNoConfidentialStatusThenFolderNotConfidential()
+	public void givenRuleHasNoConfidentialStatusThenFolderConfidentialIsNull()
 			throws Exception {
 		ruleConfidentialStatus = null;
-		assertThat(calculate()).isEqualTo(false);
+		assertThat(calculate()).isNull();
 
 	}
 
@@ -31,16 +31,16 @@ public class FolderConfidentialCalculatorTest extends ConstellioTest {
 	}
 
 	@Test
-	public void givenRuleHasConfidentialStatusToFalseThenFolderNotConfidential()
+	public void givenRuleHasConfidentialStatusToFalseThenFolderConfidentialIsNull()
 			throws Exception {
 		ruleConfidentialStatus = false;
-		assertThat(calculate()).isEqualTo(false);
+		assertThat(calculate()).isNull();
 
 	}
 
 	//--------------------------------------------
 
-	private boolean calculate() {
+	private Boolean calculate() {
 		FolderConfidentialCalculator calculator = new FolderConfidentialCalculator();
 
 		when(parameters.get(calculator.retentionRuleConfidentialParam)).thenReturn(ruleConfidentialStatus);
