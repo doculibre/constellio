@@ -14517,6 +14517,23 @@ div.v-layout.v-horizontal.v-widget {
 	direction: rtl;
 }
 
+.constellio .right-to-left .v-treetable .v-table-cell-wrapper {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-treetable .v-table-cell-wrapper .v-menubar {
+	direction: ltr;
+}
+
+.constellio .right-to-left .v-treetable .v-table-cell-wrapper .v-treetable-treespacer {
+	margin-left: inherit;
+	margin-right: -14px;
+}
+
+.constellio .right-to-left .v-treetable .v-table-cell-wrapper .v-treetable-node-closed:before {
+	content: "\f0d9";
+}
+
 .constellio .right-to-left .v-slot-search-result-facets .facet-box {
 	direction: rtl;
 }

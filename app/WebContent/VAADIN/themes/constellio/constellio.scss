@@ -2406,6 +2406,25 @@ $popup-view-z-index: 3;
 		.v-tree-node-caption {
 			direction: rtl;
 		}
+	
+		.v-treetable {
+			.v-table-cell-wrapper {
+				direction: rtl;
+				
+				.v-menubar {
+					direction: ltr;
+				}
+				
+				.v-treetable-treespacer {
+					margin-left: inherit;
+					margin-right: -14px;	
+				}
+				
+				.v-treetable-node-closed:before {
+					content: "\f0d9";
+				}
+			}
+		}
     	
     	.v-slot-search-result-facets {
     		.facet-box {
