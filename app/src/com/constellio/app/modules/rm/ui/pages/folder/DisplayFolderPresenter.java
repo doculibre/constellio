@@ -732,11 +732,14 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		if (validateLogicallyDeletable.isEmpty()) {
 			appLayerFactory.getExtensions().forCollection(collection)
 					.notifyFolderDeletion(new FolderDeletionEvent(rmSchemasRecordsServices.wrapFolder(record)));
-			delete(record, reason, false, WAIT_ONE_SECOND);
-			if (parentId != null) {
-				navigateToFolder(parentId);
-			} else {
-				navigate().to().home();
+
+			boolean isDeleteSuccessful = delete(record, reason, false, WAIT_ONE_SECOND);
+			if(isDeleteSuccessful) {
+				if (parentId != null) {
+					navigateToFolder(parentId);
+				} else {
+					navigate().to().home();
+				}
 			}
 		} else {
 			MessageUtils.getCannotDeleteWindow(validateLogicallyDeletable).openWindow();
