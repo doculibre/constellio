@@ -102,7 +102,7 @@ public class SearchResultDisplay extends VerticalLayout {
 		Component titleLink = newTitleLink(searchResultVO);
 		titleLink.addStyleName(TITLE_STYLE);
 //		titleLink.setWidthUndefined();
-		titleLink.setWidth("85%");
+		titleLink.setWidth("80%");
 		titleLayout.addComponent(titleLink);
 
 		SessionContext currentSessionContext = ConstellioUI.getCurrentSessionContext();
