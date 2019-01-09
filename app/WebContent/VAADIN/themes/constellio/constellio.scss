@@ -2131,6 +2131,12 @@ $popup-view-z-index: 3;
 				.v-disabled {
 					text-align: right;
 				}
+			
+				.v-checkbox {
+					> label {
+						margin-right: 10px;
+					}
+				}
 			}
 		}
 
@@ -2166,6 +2172,10 @@ $popup-view-z-index: 3;
 		.v-textfield {
 			direction: rtl;
 		}
+
+		.v-radiobutton {
+    		margin-right: 25px;
+    	}
 
 		.v-radiobutton label {
     		margin-right: 13px;
