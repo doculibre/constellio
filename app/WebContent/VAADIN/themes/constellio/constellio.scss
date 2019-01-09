@@ -2265,6 +2265,16 @@ $popup-view-z-index: 3;
 				
 				.content-view-wrapper {
 					padding-right: 10px;
+					
+					.main-component-wrapper {
+						.main-component {
+							.search-result-table {
+								.search-result-title {
+									text-align: right;
+								}	
+							}
+						}
+					}
 				}
 			
 				.search-result-title {
@@ -2410,7 +2420,10 @@ $popup-view-z-index: 3;
 				label {
 					direction: ltr;
 				}
-
+			
+				.facet-value > label {
+					margin-right: 25px;
+				}
     		}
     	}
 		
