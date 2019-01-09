@@ -67,7 +67,11 @@ public class VersionsComparator implements Comparator<String> {
 		if ("beta".equals(str)) {
 			return -1;
 		} else {
-			return Integer.parseInt(str);
+			try {
+				return Integer.parseInt(str);
+			} catch (Exception e)  {
+				return 0;
+			}
 		}
 	}
 
