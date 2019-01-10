@@ -704,7 +704,7 @@ $popup-view-z-index: 3;
 
    .v-table-cell-visited-link {
 		color: #551A8B;
-   }	
+   }
 
 	.v-slot-disabled-button {
 	    opacity: 0.4;
@@ -1730,11 +1730,11 @@ $popup-view-z-index: 3;
             					white-space: normal;
             					height: inherit;
 							}
-   
+
 						   	.reference-display-link {
 						   		color: rgb(25, 125, 225);
 						   	}
-													
+
 							.visited-link {
 								color: #551A8B;
 							}
@@ -1799,13 +1799,13 @@ $popup-view-z-index: 3;
 										.v-checkbox {
 											margin-top: 23px;
 										}
-									
+
 										.row-index {
 											margin-top: 23px;
 										}
 									}
 								}
-							
+
 								.search-result-title {
 									padding-top: 16px;
 									font-size: 18px;
@@ -2680,9 +2680,28 @@ $popup-view-z-index: 3;
 		
 		.v-tree-node-caption {
 			direction: rtl;
-			
+
 			span {
 				padding-right: inherit;
+			}
+		}
+
+		.v-treetable {
+			.v-table-cell-wrapper {
+				direction: rtl;
+
+				.v-menubar {
+					direction: ltr;
+				}
+
+				.v-treetable-treespacer {
+					margin-left: inherit;
+					margin-right: -14px;
+				}
+
+				.v-treetable-node-closed:before {
+					content: "\f0d9";
+				}
 			}
 		}
 
