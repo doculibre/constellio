@@ -2,10 +2,12 @@ package com.constellio.app.api.extensions;
 
 import com.constellio.app.api.extensions.params.FilterCapsuleParam;
 import com.constellio.app.api.extensions.params.GetSearchResultSimpleTableWindowComponentParam;
+import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.api.extensions.taxonomies.GetCustomResultDisplayParam;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
 import com.constellio.app.ui.framework.components.SearchResultDisplay;
 import com.constellio.model.entities.records.wrappers.Capsule;
+import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.ui.Component;
 
 public class SearchPageExtension {
@@ -25,4 +27,9 @@ public class SearchPageExtension {
 		return param.getCapsule();
 	}
 
+	public LogicalSearchCondition adjustSearchPageCondition(SearchPageConditionParam param) {
+		return param.getCondition();
+	}
+
+	;
 }

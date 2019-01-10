@@ -84,6 +84,12 @@ public class CacheConfig {
 		return permanentCache(schemaType.getCode(), schemaType.getDefaultSchema().getMetadatas().onlyUniques());
 	}
 
+	public static CacheConfig permanentCacheNotLoadedInitially(MetadataSchemaType schemaType) {
+		return new CacheConfig(schemaType.getCode(), true, new ArrayList<Metadata>(), 0,
+				schemaType.getDefaultSchema().getMetadatas().onlyUniques(), false, null);
+	}
+
+
 	public static CacheConfig permanentCache(String schemaType, List<Metadata> indexes) {
 		return new CacheConfig(schemaType, true, new ArrayList<Metadata>(), 0, indexes, true, null);
 	}

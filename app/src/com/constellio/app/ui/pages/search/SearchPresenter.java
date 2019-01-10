@@ -270,13 +270,19 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			throws IOException, ClassNotFoundException {
 		stream.defaultReadObject();
 		ConstellioFactories constellioFactories = ConstellioFactories.getInstance();
-		SessionContext sessionContext = ConstellioUI.getCurrentSessionContext();
+		SessionContext sessionContext = view.getSessionContext();
 		init(constellioFactories, sessionContext);
 	}
 
-	private void init(ConstellioFactories constellioFactories, SessionContext sessionContext) {
+	void init(ConstellioFactories constellioFactories, SessionContext sessionContext) {
 		collection = sessionContext.getCurrentCollection();
-		service = new SearchPresenterService(collection, constellioFactories.getModelLayerFactory());
+
+		User user = view.getConstellioFactories().getAppLayerFactory()
+				.getModelLayerFactory().newUserServices().getUserInCollection(
+						view.getSessionContext().getCurrentUser().getUsername(),
+						collection);
+
+		service = new SearchPresenterService(collection, user, constellioFactories.getModelLayerFactory(), null);
 		schemasDisplayManager = constellioFactories.getAppLayerFactory().getMetadataSchemasDisplayManager();
 
 		ConstellioModulesManager modulesManager = constellioFactories.getAppLayerFactory().getModulesManager();
@@ -486,14 +492,14 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			searchEvent.setNumFound(response.getNumFound());
 			UIContext uiContext = view.getUIContext();
 
-			SearchEvent oldSearchEventRecord = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			SearchEvent oldSearchEventRecord = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 			SearchEvent oldSearchEvent = null;
 			if (oldSearchEventRecord != null && oldSearchEventRecord.getCollection().equals(collection)) {
 				oldSearchEvent = oldSearchEventRecord;
 			}
 
 			if (!areSearchEventEqual(oldSearchEvent, searchEvent)) {
-				ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent);
+				view.getSessionContext().setAttribute(CURRENT_SEARCH_EVENT, searchEvent);
 				SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
 				searchEventServices.save(searchEvent);
 
@@ -760,7 +766,9 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 				boolean isTextOrString =
 						metadata.getType() == MetadataValueType.STRING || metadata.getType() == MetadataValueType.TEXT;
 				MetadataDisplayConfig config = schemasDisplayManager().getMetadata(view.getCollection(), metadata.getCode());
-				if (config.isVisibleInAdvancedSearch() &&
+
+				if (getCurrentUser().hasGlobalAccessToMetadata(metadata)
+						&& config.isVisibleInAdvancedSearch() &&
 					isMetadataVisibleForUser(metadata, getCurrentUser()) &&
 					(!isTextOrString || isTextOrString && metadata.isSearchable() ||
 					 Schemas.PATH.getLocalCode().equals(metadata.getLocalCode()) ||
@@ -811,6 +819,20 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		MetadataToVOBuilder builder = new MetadataToVOBuilder();
 
 		List<MetadataVO> result = new ArrayList<>();
+
+		for (Metadata metadata : schemaType.getAllMetadatas().onlyAccessibleGloballyBy(getCurrentUser())) {
+			if (metadata.isSortable()) {
+				result.add(builder.build(metadata, view.getSessionContext()));
+			}
+		}
+		return result;
+	}
+
+	protected List<MetadataVO> getMetadataAllowedInSortWithNoSecurity(MetadataSchemaType schemaType) {
+		MetadataToVOBuilder builder = new MetadataToVOBuilder();
+
+		List<MetadataVO> result = new ArrayList<>();
+
 		for (Metadata metadata : schemaType.getAllMetadatas()) {
 			if (metadata.isSortable()) {
 				result.add(builder.build(metadata, view.getSessionContext()));
@@ -819,20 +841,33 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 		return result;
 	}
 
+	protected boolean isLocalCodeInMetadataList(String localCode, MetadataList nonAccessibleMetadata) {
+		for (Metadata currentMetadata : nonAccessibleMetadata) {
+			if (currentMetadata.getLocalCode().equals(localCode)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	protected List<LabelTemplate> getTemplates() {
 		return appLayerFactory.getLabelTemplateManager().listTemplates(null);
 	}
 
-	protected boolean saveSearch(String title, boolean publicAccess) {
+	protected boolean saveSearch(String title, boolean publicAccess, List<String> sharedUsers,
+								 List<String> sharedGroups) {
 		Record record = recordServices().newRecordWithSchema(schema(SavedSearch.DEFAULT_SCHEMA), newRandomId());
 		SavedSearch search = new SavedSearch(record, types())
 				.setTitle(title)
-				.setUser(publicAccess ? null : getCurrentUser().getId())
+				.setUser(getCurrentUser().getId())
 				.setPublic(publicAccess)
 				.setSortField(sortCriterion)
 				.setSortOrder(SavedSearch.SortOrder.valueOf(sortOrder.name()))
 				.setSelectedFacets(facetSelections.getNestedMap())
-				.setTemporary(false);
+				.setTemporary(false)
+				.setSharedUsers(!sharedUsers.isEmpty() ? sharedUsers : null)
+				.setSharedGroups(!sharedGroups.isEmpty() ? sharedGroups : null);
 
 		try {
 			recordServices().add(prepareSavedSearch(search));
@@ -933,7 +968,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			ConstellioUI.getCurrent().setAttribute(SEARCH_EVENT_DWELL_TIME, System.currentTimeMillis());
 
 			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			SearchEvent searchEvent = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 
 			searchEventServices.incrementClickCounter(searchEvent.getId());
 
@@ -951,7 +986,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 	public void searchNavigationButtonClicked() {
 		if (Toggle.ADVANCED_SEARCH_CONFIGS.isEnabled()) {
 			SearchEventServices searchEventServices = new SearchEventServices(view.getCollection(), modelLayerFactory);
-			SearchEvent searchEvent = ConstellioUI.getCurrentSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
+			SearchEvent searchEvent = view.getSessionContext().getAttribute(CURRENT_SEARCH_EVENT);
 			SchemasRecordsServices schemasRecordsServices = new SchemasRecordsServices(collection,
 					appLayerFactory.getModelLayerFactory());
 
@@ -985,7 +1020,7 @@ public abstract class SearchPresenter<T extends SearchView> extends BasePresente
 			newSearchEvent.setCapsule(searchEvent.getCapsule());
 
 			if (!areSearchEventEqual(searchEvent, newSearchEvent)) {
-				ConstellioUI.getCurrentSessionContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
+				view.getSessionContext().setAttribute(CURRENT_SEARCH_EVENT, newSearchEvent);
 				searchEventServices.save(newSearchEvent);
 			} else {
 				searchEventServices.setLastPageNavigation(searchEvent.getId(), pageNumber);

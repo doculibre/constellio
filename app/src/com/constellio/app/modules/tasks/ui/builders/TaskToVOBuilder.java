@@ -29,7 +29,7 @@ public class TaskToVOBuilder extends RecordToVOBuilder {
 		return value;
 	}
 
-	private TaskFollowerVO toTaskFollowerVO(TaskFollower taskFollower) {
+	public TaskFollowerVO toTaskFollowerVO(TaskFollower taskFollower) {
 		return new TaskFollowerVO(taskFollower.getFollowerId(), taskFollower.getFollowTaskAssigneeModified(),
 				taskFollower.getFollowSubTasksModified(), taskFollower.getFollowTaskStatusModified(),
 				taskFollower.getFollowTaskCompleted(), taskFollower.getFollowTaskDeleted());
@@ -46,8 +46,8 @@ public class TaskToVOBuilder extends RecordToVOBuilder {
 	}
 
 	@Override
-	protected TaskVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode) {
-		return new TaskVO(id, metadataValueVOs, viewMode);
+	protected TaskVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode, List<String> excludedMetadata) {
+		return new TaskVO(id, metadataValueVOs, viewMode, excludedMetadata);
 	}
 
 }

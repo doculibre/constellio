@@ -97,7 +97,16 @@ public class AddEditTaxonomyViewImpl extends BaseViewImpl implements AddEditTaxo
 		baseTextFieldMap = new HashMap<>();
 
 		for (String languageCode : presenter.getCollectionLanguage()) {
-			BaseTextField baseTextField = new BaseTextField($("title") + " (" + languageCode.toUpperCase() + ")");
+			BaseTextField baseTextField = new BaseTextField();
+
+			int numberOfLangauge = getConstellioFactories().getAppLayerFactory().getCollectionsManager().getCollectionLanguages(getCollection()).size();
+
+			if(numberOfLangauge > 1) {
+				baseTextField.setCaption($("title") + " (" + languageCode.toUpperCase() + ")");
+			} else {
+				baseTextField.setCaption($("title"));
+			}
+
 			baseTextField.setRequired(true);
 			if (presenter.isActionEdit()) {
 				baseTextField.setValue(taxonomyVO.getTitle(Language.withCode(languageCode)));

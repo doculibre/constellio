@@ -1,11 +1,11 @@
 package com.constellio.app.entities.schemasDisplay;
 
+import static java.util.Arrays.asList;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import static java.util.Arrays.asList;
 
 public class SchemaDisplayConfig implements Serializable {
 
@@ -165,6 +165,14 @@ public class SchemaDisplayConfig implements Serializable {
 		List<String> tableMetadatas = new ArrayList<>();
 		tableMetadatas.addAll(this.tableMetadataCodes);
 		tableMetadatas.addAll(asList(metadataCodes));
+		return withTableMetadataCodes(tableMetadatas);
+	}
+
+	public SchemaDisplayConfig withNewTableMetadatasBefore(String metadataCode, String before) {
+		int index = tableMetadataCodes.indexOf(before);
+		List<String> tableMetadatas = new ArrayList<>();
+		tableMetadatas.addAll(this.tableMetadataCodes);
+		tableMetadatas.add(index, metadataCode);
 		return withTableMetadataCodes(tableMetadatas);
 	}
 

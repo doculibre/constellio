@@ -55,7 +55,7 @@ public class CollectionGroupPresenter extends SingleSchemaBasePresenter<Collecti
 		GlobalGroup globalGroup = userServices.getGroup(code);
 		List<String> newCollections = new ArrayList<>(globalGroup.getUsersAutomaticallyAddedToCollections());
 		newCollections.remove(view.getCollection());
-		globalGroup = globalGroup.withUsersAutomaticallyAddedToCollections(newCollections);
+		globalGroup = globalGroup.setUsersAutomaticallyAddedToCollections(newCollections);
 		userServices.addUpdateGlobalGroup(globalGroup);
 	}
 

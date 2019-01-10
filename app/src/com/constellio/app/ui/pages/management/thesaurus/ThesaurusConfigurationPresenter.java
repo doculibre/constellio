@@ -394,15 +394,19 @@ public class ThesaurusConfigurationPresenter extends BasePresenter<ThesaurusConf
 		SPEQueryResponse response = searchService.query(query);
 		List<FacetValue> usedConcept = response.getFieldFacetValues().get("thesaurusMatch_ss");
 
-		Map<String, SkosConcept> allConcept = thesaurusManager.get(collection).getAllConcepts();
 
-		for (FacetValue value : usedConcept) {
-			allConcept.remove(value.getValue());
-		}
+		ThesaurusService thesaurusService = thesaurusManager.get(collection);
+		if (thesaurusService != null) {
+			Map<String, SkosConcept> allConcept = thesaurusService.getAllConcepts();
 
-		for (String conceptKey : allConcept.keySet()) {
-			SkosConcept concept = allConcept.get(conceptKey);
-			result.add(concept);
+			for (FacetValue value : usedConcept) {
+				allConcept.remove(value.getValue());
+			}
+
+			for (String conceptKey : allConcept.keySet()) {
+				SkosConcept concept = allConcept.get(conceptKey);
+				result.add(concept);
+			}
 		}
 		return result;
 	}

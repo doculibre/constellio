@@ -142,7 +142,7 @@ public abstract class BaseRecordServices implements RecordServices {
 		ValidationErrors errors = new ValidationErrors();
 		for (Record record : transaction.getModifiedRecords()) {
 			try {
-				validateRecord(record);
+				validateRecordInTransaction(record, transaction);
 			} catch (ValidationException e) {
 				errors.addAll(e.getErrors().getValidationErrors());
 			}

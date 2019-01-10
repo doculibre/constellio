@@ -11,7 +11,6 @@ import com.constellio.model.entities.schemas.MetadataTransiency;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.RegexConfig;
 import com.constellio.model.entities.schemas.RegexConfig.RegexConfigType;
-import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.StructureFactory;
 import com.constellio.model.entities.schemas.entries.AggregatedCalculator;
 import com.constellio.model.entities.schemas.entries.AggregatedDataEntry;
@@ -48,6 +47,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static com.constellio.model.entities.schemas.LegacyGlobalMetadatas.isLegacyGlobalMetadata;
+import static com.constellio.model.entities.schemas.Schemas.isGlobalMetadata;
 import static com.constellio.model.utils.EnumWithSmallCodeUtils.toEnum;
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -225,7 +226,8 @@ public class MetadataSchemaXMLReader3 {
 		MetadataBuilder globalMetadataInCollectionSchema = null;
 
 		boolean inheriteGlobalMetadata = false;
-		if (Schemas.isGlobalMetadata(metadataBuilder.getLocalCode()) && collectionSchema != null
+		if ((isGlobalMetadata(metadataBuilder.getLocalCode()) || isLegacyGlobalMetadata(metadataBuilder.getLocalCode()))
+			&& collectionSchema != null
 			&& collectionSchema.hasMetadata(metadataBuilder.getLocalCode())) {
 			globalMetadataInCollectionSchema = collectionSchema.getMetadata(metadataBuilder.getLocalCode());
 			inheriteGlobalMetadata = true;
@@ -639,10 +641,24 @@ public class MetadataSchemaXMLReader3 {
 			} else if (dataEntry.getAttributeValue("agregationType") != null) {
 				AggregationType aggregationType = (AggregationType)
 						toEnum(AggregationType.class, dataEntry.getAttributeValue("agregationType"));
+
 				String referenceMetadata = dataEntry.getAttributeValue("referenceMetadata");
 				String inputMetadataStr = dataEntry.getAttributeValue("inputMetadata");
-				List<String> inputMetadatas = isBlank(inputMetadataStr) ? new ArrayList<String>() :
-											  asList(inputMetadataStr.split(","));
+
+				Map<String, List<String>> inputMetadatasByRefMetadata = new HashMap<>();
+				if (!isBlank(referenceMetadata)) {
+					List<String> referenceMetadatas = asList(referenceMetadata.split(";"));
+					List<String> inputMetadatas = !isBlank(inputMetadataStr) ?
+												  asList(inputMetadataStr.split(";")) :
+												  new ArrayList<String>();
+
+					for (int i = 0; i < referenceMetadatas.size(); i++) {
+						inputMetadatasByRefMetadata.put(referenceMetadatas.get(i),
+								!inputMetadatas.isEmpty() ? asList(inputMetadatas.get(i).split(",")) :
+								new ArrayList<String>());
+					}
+				}
+
 				String calculatorClassName = dataEntry.getAttributeValue("aggregatedCalculator");
 				if (calculatorClassName != null) {
 					Class<? extends AggregatedCalculator<?>> calculatorClass;
@@ -652,10 +668,10 @@ public class MetadataSchemaXMLReader3 {
 						throw new MetadataBuilderRuntimeException.CannotInstanciateClass(calculatorClassName, e);
 					}
 					metadataBuilder.defineDataEntry()
-							.as(new AggregatedDataEntry(inputMetadatas, referenceMetadata, aggregationType, calculatorClass));
+							.as(new AggregatedDataEntry(inputMetadatasByRefMetadata, aggregationType, calculatorClass));
 				} else {
 					metadataBuilder.defineDataEntry()
-							.as(new AggregatedDataEntry(inputMetadatas, referenceMetadata, aggregationType));
+							.as(new AggregatedDataEntry(inputMetadatasByRefMetadata, aggregationType));
 				}
 			}
 		} else if (!isInheriting(metadataElement)) {

@@ -34,6 +34,7 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.MetadataSchemasRuntimeException.NoSuchSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.entities.schemas.entries.DataEntryType;
 import com.constellio.model.entities.schemas.entries.SequenceDataEntry;
 import com.constellio.model.entities.schemas.validation.RecordMetadataValidator;
 import com.constellio.model.entities.structures.EmailAddress;
@@ -65,6 +66,8 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.records.SimpleImportContent;
 import com.constellio.model.services.records.StructureImportContent;
 import com.constellio.model.services.records.bulkImport.ProgressionHandler;
+import com.constellio.model.services.records.cache.RecordsCache;
+import com.constellio.model.services.records.cache.TransactionRecordsCache;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.schemas.validators.MaskedMetadataValidator;
 import com.constellio.model.services.search.SearchServices;
@@ -87,10 +90,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.CONTINUE_FOR_RECORD_OF_SAME_TYPE;
 import static com.constellio.app.services.schemas.bulkImport.BulkImportParams.ImportErrorsBehavior.STOP_ON_FIRST_ERROR;
+import static com.constellio.app.services.schemas.bulkImport.RecordsImportValidator.UNRESOLVED_VALUE;
 import static com.constellio.app.services.schemas.bulkImport.Resolver.toResolver;
 import static com.constellio.data.utils.LangUtils.replacingLiteral;
 import static com.constellio.data.utils.ThreadUtils.iterateOverRunningTaskInParallel;
@@ -152,6 +157,7 @@ public class RecordsImportServicesExecutor {
 	private ConfigProvider configProvider;
 	ResolverCache resolverCache;
 	SchemasRecordsServices schemasRecordsServices;
+	RecordsCache recordsCache;
 
 	private static class TypeImportContext {
 		List<String> uniqueMetadatas;
@@ -174,6 +180,7 @@ public class RecordsImportServicesExecutor {
 		BulkUploader bulkUploader;
 		Map<String, Long> sequences = new HashMap<>();
 		TypeImportContext typeImportContext;
+		TransactionRecordsCache transactionCache;
 
 		public TypeBatchImportContext(
 				TypeImportContext typeImportContext) {
@@ -211,7 +218,7 @@ public class RecordsImportServicesExecutor {
 				return modelLayerFactory.getSystemConfigurationsManager().getValue(config);
 			}
 		};
-
+		this.recordsCache = modelLayerFactory.getRecordsCaches().getCache(collection);
 		schemasRecordsServices = new SchemasRecordsServices(collection, modelLayerFactory);
 	}
 
@@ -291,15 +298,17 @@ public class RecordsImportServicesExecutor {
 
 			ImportDataIterator importDataIterator = importDataProvider.newDataIterator(schemaType);
 			try {
-				int skipped;
+				BulkImportReturnValue bulkImportReturnValue;
 				if (params.getThreads() == 1) {
-					skipped = bulkImport(context, importDataIterator, typeImportErrors);
+					bulkImportReturnValue = bulkImport(context, importDataIterator, typeImportErrors);
 				} else {
-					skipped = bulkImportInParallel(context, importDataIterator, typeImportErrors);
+					bulkImportReturnValue = bulkImportInParallel(context, importDataIterator, typeImportErrors);
 				}
-				if (skipped > 0 && skipped == previouslySkipped) {
+				if (bulkImportReturnValue.skippedRecords > 0 && bulkImportReturnValue.skippedRecords == previouslySkipped) {
 
-					if (!typeImportErrors.hasDecoratedErrors()) {
+					typeImportErrors.addAll(bulkImportReturnValue.postponedValidationErrors.values());
+
+					if (!typeImportErrors.hasDecoratedErrors() || !bulkImportReturnValue.postponedValidationErrors.isEmpty()) {
 						Set<String> cyclicDependentIds = resolverCache
 								.getNotYetImportedLegacyIds(schemaType, importDataIterator.getOptions().isImportAsLegacyId());
 						addCyclicDependenciesValidationError(typeImportErrors, types.getSchemaType(schemaType),
@@ -309,10 +318,10 @@ public class RecordsImportServicesExecutor {
 
 					throwIfNonEmpty(typeImportErrors);
 				}
-				if (skipped == 0) {
+				if (bulkImportReturnValue.skippedRecords == 0) {
 					typeImportFinished = true;
 				}
-				previouslySkipped = skipped;
+				previouslySkipped = bulkImportReturnValue.skippedRecords;
 			} finally {
 				importDataIterator.close();
 			}
@@ -358,16 +367,18 @@ public class RecordsImportServicesExecutor {
 		errors.add(RecordsImportServices.class, CYCLIC_DEPENDENCIES_ERROR, parameters);
 	}
 
-	int bulkImport(TypeImportContext typeImportContext, ImportDataIterator importDataIterator, ValidationErrors errors)
+	BulkImportReturnValue bulkImport(TypeImportContext typeImportContext, ImportDataIterator importDataIterator,
+									 ValidationErrors errors)
 			throws ValidationException {
 
 		int skipped = 0;
 		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, params.getBatchSize());
+		final Map<String, ValidationError> postponedValidationErrors = new HashMap<>();
 		while (importDataBatches.hasNext()) {
 			try {
 				TypeBatchImportContext typeBatchImportContext = newTypeBatchImportContext(typeImportContext,
 						importDataIterator.getOptions(), importDataBatches.next());
-				skipped += importBatch(typeImportContext, typeBatchImportContext, errors);
+				skipped += importBatch(typeImportContext, typeBatchImportContext, errors, postponedValidationErrors);
 				typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipFindingRecordsToReindex(true);
 				recordServices.executeHandlingImpactsAsync(typeBatchImportContext.transaction);
 				incrementSequences(typeBatchImportContext);
@@ -381,7 +392,7 @@ public class RecordsImportServicesExecutor {
 
 		}
 
-		return skipped;
+		return new BulkImportReturnValue(skipped, postponedValidationErrors);
 	}
 
 	private void incrementSequences(TypeBatchImportContext typeBatchImportContext) {
@@ -400,6 +411,7 @@ public class RecordsImportServicesExecutor {
 		TypeBatchImportContext typeBatchImportContext = new TypeBatchImportContext(typeImportContext);
 		typeBatchImportContext.batch = batch;
 		typeBatchImportContext.transaction = new Transaction();
+		typeBatchImportContext.transactionCache = new TransactionRecordsCache(recordsCache, typeBatchImportContext.transaction);
 		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipReferenceValidation(true);
 		typeBatchImportContext.transaction.setSkippingReferenceToLogicallyDeletedValidation(true);
 		typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipMaskedMetadataValidations(true);
@@ -412,9 +424,22 @@ public class RecordsImportServicesExecutor {
 		return typeBatchImportContext;
 	}
 
-	int bulkImportInParallel(final TypeImportContext typeImportContext, ImportDataIterator importDataIterator,
-							 final ValidationErrors errors)
+	private static class BulkImportReturnValue {
+		int skippedRecords;
+		Map<String, ValidationError> postponedValidationErrors;
+
+		public BulkImportReturnValue(int skippedRecords,
+									 Map<String, ValidationError> postponedValidationErrors) {
+			this.skippedRecords = skippedRecords;
+			this.postponedValidationErrors = postponedValidationErrors;
+		}
+	}
+
+	BulkImportReturnValue bulkImportInParallel(final TypeImportContext typeImportContext,
+											   ImportDataIterator importDataIterator,
+											   final ValidationErrors errors)
 			throws ValidationException {
+
 
 		final AtomicInteger skipped = new AtomicInteger();
 
@@ -427,6 +452,7 @@ public class RecordsImportServicesExecutor {
 		}
 
 		Iterator<List<ImportData>> importDataBatches = new BatchBuilderIterator<>(importDataIterator, batchSize);
+		final Map<String, ValidationError> postponedValidationErrors = new ConcurrentHashMap<>();
 		final ImportDataOptions options = importDataIterator.getOptions();
 		try {
 			iterateOverRunningTaskInParallel(importDataBatches, threads, new IteratorElementTask<List<ImportData>>() {
@@ -434,7 +460,7 @@ public class RecordsImportServicesExecutor {
 				public void executeTask(List<ImportData> value)
 						throws Exception {
 					TypeBatchImportContext typeBatchImportContext = newTypeBatchImportContext(typeImportContext, options, value);
-					skipped.addAndGet(importBatch(typeImportContext, typeBatchImportContext, errors));
+					skipped.addAndGet(importBatch(typeImportContext, typeBatchImportContext, errors, postponedValidationErrors));
 					typeBatchImportContext.transaction.getRecordUpdateOptions().setSkipFindingRecordsToReindex(true);
 					recordServices.executeHandlingImpactsAsync(typeBatchImportContext.transaction);
 
@@ -451,11 +477,11 @@ public class RecordsImportServicesExecutor {
 			importDataIterator.next();
 		}
 
-		return skipped.get();
+		return new BulkImportReturnValue(skipped.get(), postponedValidationErrors);
 	}
 
 	private int importBatch(final TypeImportContext typeImportContext, TypeBatchImportContext typeBatchImportContext,
-							ValidationErrors errors)
+							ValidationErrors errors, Map<String, ValidationError> postponedRecordsErrors)
 			throws ValidationException {
 
 		preuploadContents(typeBatchImportContext);
@@ -486,10 +512,15 @@ public class RecordsImportServicesExecutor {
 
 				if (!this.skippedRecordsImport.isSkipped(typeImportContext.schemaType, legacyId)) {
 					importRecord(typeImportContext, typeBatchImportContext, toImport, decoratedValidationsErrors);
+					postponedRecordsErrors.remove(legacyId);
 				}
 
 			} catch (PostponedRecordException e) {
 				progressionHandler.onRecordImportPostponed(legacyId);
+				if (postponedRecordsErrors.size() < 10000) {
+					postponedRecordsErrors.put(legacyId, e.validationError);
+				}
+
 				skipped++;
 			}
 
@@ -498,10 +529,6 @@ public class RecordsImportServicesExecutor {
 			}
 
 		}
-
-		//		LOGGER.info("Splitter cache object count : " + SchemaUtils.underscoreSplitCache.size());
-		//		LOGGER.info("Record cache object count : " + modelLayerFactory.getRecordsCaches().getCacheObjectsCount());
-		//		LOGGER.info("Import cache object count : " + resolverCache.getCacheTotalSize());
 
 		String firstId = batch.get(0).getLegacyId();
 		String lastId = batch.get(batch.size() - 1).getLegacyId();
@@ -667,6 +694,7 @@ public class RecordsImportServicesExecutor {
 			throws PostponedRecordException, SkippedBecauseOfFailedDependency {
 		MetadataSchemaType schemaType = getMetadataSchemaType(typeImportContext.schemaType);
 		MetadataSchema newSchema = getMetadataSchema(typeImportContext.schemaType + "_" + toImport.getSchema());
+
 
 		Record record;
 		String legacyId = toImport.getLegacyId();
@@ -1045,7 +1073,37 @@ public class RecordsImportServicesExecutor {
 			throws PostponedRecordException, SkippedBecauseOfFailedDependency {
 
 		Resolver resolver = toResolver(value);
+
+		final MetadataSchemaType targettedSchemaType = getMetadataSchemaType(metadata.getReferencedSchemaType());
+
+		int colonIndex = value.indexOf(":");
+		final Metadata resolverMetadata;
+		final String resolverValue;
+		if (colonIndex == -1) {
+			resolverMetadata = targettedSchemaType.getDefaultSchema().getMetadata(LEGACY_ID.getLocalCode());
+			resolverValue = value;
+
+		} else {
+			resolverMetadata = targettedSchemaType.getDefaultSchema().getMetadata(value.substring(0, colonIndex));
+			resolverValue = value.substring(colonIndex + 1);
+
+		}
+
 		String referenceType = metadata.getAllowedReferences().getTypeWithAllowedSchemas();
+
+		Factory<Map<String, Object>> validationErrorParamsFactory = new Factory<Map<String, Object>>() {
+			@Override
+			public Map<String, Object> get() {
+				Map<String, Object> parameters = new HashMap<>();
+				parameters.put("referencedSchemaTypeCode", targettedSchemaType.getCode());
+				parameters.put("referencedSchemaTypeLabel", targettedSchemaType.getLabels());
+				parameters.put("uniqueMetadataCode", resolverMetadata.getLocalCode());
+				parameters.put("uniqueMetadataLabel", resolverMetadata.getLabels());
+				parameters.put("value", resolverValue);
+				return parameters;
+			}
+		};
+
 
 		if (LEGACY_ID_LOCAL_CODE.equals(resolver.metadata) && resolver.value != null) {
 			if (this.skippedRecordsImport.isSkipped(referenceType, resolver.value)) {
@@ -1065,9 +1123,11 @@ public class RecordsImportServicesExecutor {
 				}
 
 			} else {
-				throw new PostponedRecordException();
+				throw new PostponedRecordException(errors.create(RecordsImportServices.class,
+						UNRESOLVED_VALUE, validationErrorParamsFactory.get()));
 			}
 		}
+
 
 		if (!typeBatchImportContext.options.isImportAsLegacyId() && value != null && value.startsWith("id:")) {
 			return value.substring(3);
@@ -1078,30 +1138,18 @@ public class RecordsImportServicesExecutor {
 			if (resolvedValue == null && value != null
 				&& typeBatchImportContext.typeImportContext.secondPhaseImport && isReferenceInReversedOrder(metadata)) {
 
-				int colonIndex = value.indexOf(":");
+				errors.add(RecordsImportServicesExecutor.class, UNRESOLVED_DEPENDENCY_DURING_SECOND_PHASE, validationErrorParamsFactory.get());
 
-				MetadataSchemaType targettedSchemaType = getMetadataSchemaType(metadata.getReferencedSchemaType());
-				Metadata resolverMetadata;
-				String resolverValue;
-				if (colonIndex == -1) {
-					resolverMetadata = targettedSchemaType.getDefaultSchema().getMetadata(LEGACY_ID.getLocalCode());
-					resolverValue = value;
+			}
 
-				} else {
-					resolverMetadata = targettedSchemaType.getDefaultSchema().getMetadata(value.substring(0, colonIndex));
-					resolverValue = value.substring(colonIndex + 1);
+			Record record = typeBatchImportContext.transactionCache.getByMetadata(resolverMetadata, resolver.value);
+			if (record != null) {
+				resolvedValue = record.getId();
+			}
 
-				}
-
-				Map<String, Object> parameters = new HashMap<>();
-				parameters.put("referencedSchemaTypeCode", targettedSchemaType.getCode());
-				parameters.put("referencedSchemaTypeLabel", targettedSchemaType.getLabels());
-				parameters.put("uniqueMetadataCode", resolverMetadata.getLocalCode());
-				parameters.put("uniqueMetadataLabel", resolverMetadata.getLabels());
-				parameters.put("value", resolverValue);
-
-				errors.add(RecordsImportServicesExecutor.class, UNRESOLVED_DEPENDENCY_DURING_SECOND_PHASE, parameters);
-
+			if (resolvedValue == null && resolverMetadata.getDataEntry().getType() != DataEntryType.MANUAL) {
+				throw new PostponedRecordException(errors.create(RecordsImportServices.class,
+						UNRESOLVED_VALUE, validationErrorParamsFactory.get()));
 			}
 
 			return resolvedValue;
@@ -1214,6 +1262,12 @@ public class RecordsImportServicesExecutor {
 	}
 
 	private static class PostponedRecordException extends Exception {
+
+		ValidationError validationError;
+
+		public PostponedRecordException(ValidationError validationError) {
+			this.validationError = validationError;
+		}
 	}
 
 	private static class SkippedBecauseOfFailedDependency extends Exception {

@@ -81,7 +81,7 @@ public class EnterpriseSearchMigrationHelper {
 			schemaBuilder.createUndeletable(ConnectorDocument.URL).setType(STRING).setDefaultRequirement(true);
 			schemaBuilder.createUndeletable(ConnectorDocument.MIMETYPE).setType(STRING);
 			schemaBuilder.createUndeletable(ConnectorDocument.FETCHED).setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
-			//schemaBuilder.createUndeletable(ConnectorDocument.SEARCHABLE).setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
+			schemaBuilder.createUndeletable(ConnectorDocument.SEARCHABLE).setType(BOOLEAN).setDefaultValue(Boolean.TRUE);
 			schemaBuilder.createUndeletable(ConnectorDocument.FETCHED_DATETIME).setType(DATE_TIME);
 			schemaBuilder.createUndeletable(ConnectorDocument.STATUS).defineAsEnum(ConnectorDocumentStatus.class);
 			schemaBuilder.createUndeletable(ConnectorDocument.FETCH_FREQUENCY).defineAsEnum(FetchFrequency.class);

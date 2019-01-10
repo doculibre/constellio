@@ -5,6 +5,7 @@ import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
@@ -37,6 +38,8 @@ public class TableColumnsManager implements Serializable {
 
 	protected transient User currentUser;
 
+	protected transient MetadataSchemaTypes metadataSchemaTypes;
+
 	public TableColumnsManager() {
 		initTransientObjects();
 	}
@@ -60,11 +63,27 @@ public class TableColumnsManager implements Serializable {
 		recordServices = modelLayerFactory.newRecordServices();
 		userServices = modelLayerFactory.newUserServices();
 
-		String collection = sessionContext.getCurrentCollection();
-		UserVO currentUserVO = sessionContext.getCurrentUser();
-		String username = currentUserVO.getUsername();
+		String collection = null;
+		if (sessionContext.getCurrentCollection() != null) {
+			metadataSchemaTypes = modelLayerFactory.getMetadataSchemasManager()
+					.getSchemaTypes(sessionContext.getCurrentCollection());
+			collection = sessionContext.getCurrentCollection();
+		}
 
-		currentUser = userServices.getUserInCollection(username, collection);
+
+		UserVO currentUserVO = sessionContext.getCurrentUser();
+		String username = null;
+		if (currentUserVO != null) {
+			username = currentUserVO.getUsername();
+		}
+
+		if (currentUserVO != null && username != null) {
+			currentUser = userServices.getUserInCollection(username, collection);
+		}
+	}
+
+	protected void decorateVisibleColumns(List<String> visibleColumnForUser, String tableId) {
+
 	}
 
 	public void manage(final Table table, final String tableId) {
@@ -76,6 +95,7 @@ public class TableColumnsManager implements Serializable {
 			ArrayUtils.reverse(visibleColumns);
 			table.setVisibleColumns(visibleColumns);
 
+
 			for (Object propertyId : table.getContainerPropertyIds()) {
 				Align alignment = adjustAlignment(table.getColumnAlignment(propertyId));
 				table.setColumnAlignment(propertyId, alignment);
@@ -84,8 +104,11 @@ public class TableColumnsManager implements Serializable {
 
 		List<String> visibleColumnIdsForUser = getVisibleColumnIdsForCurrentUser(table, tableId);
 		Collection<?> propertyIds = table.getContainerPropertyIds();
+		decorateVisibleColumns(visibleColumnIdsForUser, tableId);
+
 		for (Object propertyId : propertyIds) {
 			String columnId = toColumnId(propertyId);
+
 			boolean collapsed = !visibleColumnIdsForUser.contains(columnId);
 			if (!collapsed || table.isColumnCollapsible(columnId)) {
 				table.setColumnCollapsed(propertyId, collapsed);
@@ -116,6 +139,9 @@ public class TableColumnsManager implements Serializable {
 		table.addColumnReorderListener(new ColumnReorderListener() {
 			@Override
 			public void columnReorder(ColumnReorderEvent event) {
+				if (currentUser == null) {
+					return;
+				}
 				Object[] visibleColumnIds = table.getVisibleColumns();
 				List<String> visibleColumnIdsForUser = new ArrayList<>();
 				for (Object visiblePropertyId : visibleColumnIds) {
@@ -139,11 +165,16 @@ public class TableColumnsManager implements Serializable {
 	}
 
 	private List<String> getVisibleColumnIdsForCurrentUser(Table table, String tableId) {
-		List<String> visibleColumnIds = currentUser.getVisibleTableColumnsFor(tableId);
-		if (visibleColumnIds == null) {
-			visibleColumnIds = new ArrayList<>();
-		}
-		if (visibleColumnIds.isEmpty()) {
+		List<String> visibleColumnIds;
+		if (currentUser != null) {
+			visibleColumnIds = currentUser.getVisibleTableColumnsFor(tableId);
+			if (visibleColumnIds == null) {
+				visibleColumnIds = new ArrayList<>();
+			}
+			if (visibleColumnIds.isEmpty()) {
+				visibleColumnIds = getDefaultVisibleColumnIds(table);
+			}
+		} else {
 			visibleColumnIds = getDefaultVisibleColumnIds(table);
 		}
 		return visibleColumnIds;

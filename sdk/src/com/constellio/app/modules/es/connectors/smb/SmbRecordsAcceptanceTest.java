@@ -234,8 +234,6 @@ public class SmbRecordsAcceptanceTest extends ConstellioTest {
 			}
 		});
 
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
 		assertThatVisibleRootRecordsFor(userWithToken1).containsOnly(folderA, folderB);
 		assertThatVisibleChildRecordsFor(userWithToken1).in(folderA).containsOnly(folderAA, documentA1, documentA2, folderAB);
 		assertThatVisibleChildRecordsFor(userWithToken1).in(folderB).containsOnly(documentB3);

@@ -13,6 +13,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Document extends RMObject {
@@ -61,6 +62,8 @@ public class Document extends RMObject {
 	public static final String ESSENTIAL = "essential";
 	public static final String CONFIDENTIAL = "confidential";
 	public static final String MIME_TYPE = "mimetype";
+	public static final String FAVORITES = "favorites";
+	public static final String HAS_CONTENT = "hasContent";
 
 	public Document(Record record,
 					MetadataSchemaTypes types) {
@@ -351,5 +354,41 @@ public class Document extends RMObject {
 
 	public String getContentCheckedOutBy() {
 		return get(CONTENT_CHECKED_OUT_BY);
+	}
+
+	public boolean hasContent() {
+		return getBooleanWithDefaultValue(HAS_CONTENT, false);
+	}
+
+	public List<String> getFavorites() {
+		return getList(FAVORITES);
+	}
+
+	public Document setFavorites(List<String> favorites) {
+		set(FAVORITES, favorites);
+		return this;
+	}
+
+	public void removeFavorite(String favoriteToDelete) {
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.remove(favoriteToDelete);
+		setFavorites(favorites);
+	}
+
+	public void addFavorite(String favoriteToAdd) {
+		List<String> newFavorites = new ArrayList<>();
+		newFavorites.addAll(getFavorites());
+		if (!newFavorites.contains(favoriteToAdd)) {
+			newFavorites.add(favoriteToAdd);
+		}
+		setFavorites(newFavorites);
+	}
+
+	public void removeFavorites(List<String> favoritesToDelete) {
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.removeAll(favoritesToDelete);
+		set(FAVORITES, favorites);
 	}
 }

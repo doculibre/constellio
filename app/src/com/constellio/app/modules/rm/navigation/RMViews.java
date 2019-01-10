@@ -17,12 +17,29 @@ public class RMViews extends CoreViews {
 
 	// FOLDER MANAGEMENT
 
+	public void displayFolderFromContainer(String id, String containerId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("containerId", containerId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_FOLDER, params));
+	}
+
 	public void displayFolder(String id) {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id);
 	}
 
 	public void displayFolder(String id, String homePageUrl, boolean isToOpenInNewTab) {
 		navigateTo(homePageUrl, RMNavigationConfiguration.DISPLAY_FOLDER + "/" + id, isToOpenInNewTab);
+	}
+
+	public void displayFolderFromDecommission(String id, String homePageUrl, boolean isToOpenInNewTab,
+			String decommissioningSearchId, String decommissioningType) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("decommissioningSearchId", decommissioningSearchId);
+		params.put("decommissioningType", decommissioningType);
+
+		navigateTo(homePageUrl, addParams(RMNavigationConfiguration.DISPLAY_FOLDER, params), isToOpenInNewTab);
 	}
 
 	public void addFolder() {
@@ -50,6 +67,15 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_FOLDER, params));
 	}
 
+	public void editFolderFromDecommission(String id, String decommissioningSearchId, String decommissioningType) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("decommissioningSearchId", decommissioningSearchId);
+		params.put("decommissioningType", decommissioningType);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_FOLDER, params));
+	}
+
+
 	public void duplicateFolder(String id, boolean structure) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
@@ -60,14 +86,47 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.DUPLICATE_FOLDER, params));
 	}
 
+	public void duplicateFolderFromDecommission(String id, boolean structure, String decommissioningSearchId,
+			String decommissioningType) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("duplicate", Boolean.TRUE.toString());
+		if (structure) {
+			params.put("structure", Boolean.TRUE.toString());
+		}
+
+		params.put("decommissioningSearchId", decommissioningSearchId);
+		params.put("decommissioningType", decommissioningType);
+
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DUPLICATE_FOLDER, params));
+	}
+
+
 	// DOCUMENT MANAGEMENT
 
 	public void displayDocument(String id) {
 		navigator.navigateTo(RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id);
 	}
 
+	public void displayDocumentFromContainer(String id, String containerId) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("containerId", containerId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.DISPLAY_DOCUMENT, params));
+	}
+
 	public void displayDocument(String id, String homePageUrl, boolean isToOpenInNewTab) {
 		navigateTo(homePageUrl, RMNavigationConfiguration.DISPLAY_DOCUMENT + "/" + id, isToOpenInNewTab);
+	}
+
+	public void displayDocumentFromDecommission(String id, String homePageUrl, boolean isToOpenInNewTab,
+			String decommissioningSearchId, String decommissioningType) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("decommissioningSearchId", decommissioningSearchId);
+		params.put("decommissioningType", decommissioningType);
+
+		navigateTo(homePageUrl, addParams(RMNavigationConfiguration.DISPLAY_DOCUMENT, params), isToOpenInNewTab);
 	}
 
 	public void newDocument() {
@@ -113,6 +172,15 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
 	}
 
+	public void addDocumentWithContentFromDecommission(String id, String decommissioningSearchId, String decommissioningType) {
+		Map<String, String> params = new HashMap<>();
+		params.put("idCopy", id);
+		params.put("decommissioningSearchId", decommissioningSearchId);
+		params.put("decommissioningType", decommissioningType);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.ADD_DOCUMENT, params));
+	}
+
+
 	public void editDocument(String id) {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
@@ -123,6 +191,15 @@ public class RMViews extends CoreViews {
 		Map<String, String> params = new HashMap<>();
 		params.put("id", id);
 		params.put("userDocumentId", userDocumentId);
+		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
+	}
+
+	public void editDocumentFromDecommission(String id, String decommissioningSearchId, String decommissioningType) {
+		Map<String, String> params = new HashMap<>();
+		params.put("id", id);
+		params.put("decommissioningSearchId", decommissioningSearchId);
+		params.put("decommissioningType", decommissioningType);
+
 		navigator.navigateTo(addParams(RMNavigationConfiguration.EDIT_DOCUMENT, params));
 	}
 
@@ -139,6 +216,7 @@ public class RMViews extends CoreViews {
 	// ARCHIVE MANAGEMENT
 
 	public void archiveManagement() {
+		clearBreadcrumbTrail();
 		navigator.navigateTo(RMNavigationConfiguration.ARCHIVES_MANAGEMENT);
 	}
 
@@ -153,7 +231,8 @@ public class RMViews extends CoreViews {
 	}
 
 	public void editDecommissioningListBuilder(String decommissioningListID, String type) {
-		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type + "/id/" + decommissioningListID);
+		navigator
+				.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_BUILDER + "/" + type + "/id/" + decommissioningListID);
 	}
 
 	public void decommissioningListBuilderReplay(String type, String searchId) {
@@ -169,18 +248,21 @@ public class RMViews extends CoreViews {
 	}
 
 	public void orderDecommissioningList(String entityId, OrderDecommissioningListPresenter.TableType type) {
-		navigator.navigateTo(NavigatorConfigurationService.ORDER_DECOMMISSIONING_LIST_CONFIGURATION + "/" + entityId + "/" + type.name());
+		navigator.navigateTo(
+				NavigatorConfigurationService.ORDER_DECOMMISSIONING_LIST_CONFIGURATION + "/" + entityId + "/" + type.name());
 	}
 
 	// USER DOCUMENTS
 
 	public void listUserDocuments() {
+		clearBreadcrumbTrail();
 		navigator.navigateTo(RMNavigationConfiguration.LIST_USER_DOCUMENTS);
 	}
 
 	// CARTS
 
 	public void listCarts() {
+		clearBreadcrumbTrail();
 		navigator.navigateTo(RMNavigationConfiguration.LIST_CARTS);
 	}
 
@@ -195,6 +277,7 @@ public class RMViews extends CoreViews {
 	// AUDIT EVENTS
 
 	public void eventAudit() {
+		clearBreadcrumbTrail();
 		navigator.navigateTo(NavigatorConfigurationService.EVENTS_LIST);
 	}
 
@@ -228,8 +311,22 @@ public class RMViews extends CoreViews {
 		navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/" + containerId);
 	}
 
+	public void editContainerFromContainerByAdminsitrativeUnit(String containerId, String tabName,
+			String fromAdministrativeUnit) {
+		navigator.navigateTo(RMNavigationConfiguration.EDIT_CONTAINER + "/" + "edit" + "/" + containerId + "/" + tabName + "/"
+				+ fromAdministrativeUnit);
+	}
+
 	public void containersByAdministrativeUnits() {
 		navigator.navigateTo(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS);
+	}
+
+	public void containersByAdministrativeUnits(String type) {
+		if (type != null) {
+			navigator.navigateTo(RMNavigationConfiguration.CONTAINERS_BY_ADMIN_UNITS + "/" + type);
+		} else {
+			containersByAdministrativeUnits();
+		}
 	}
 
 	public void displayAdminUnitWithContainers(String tabName, String entityId) {
@@ -240,7 +337,14 @@ public class RMViews extends CoreViews {
 	public void displayFilingSpaceWithContainers(String tabName, String adminUnitId, String filingSpaceId) {
 		navigator.navigateTo(
 				RMNavigationConfiguration.DISPLAY_FILING_SPACE_WITH_CONTAINERS + "/" + tabName + "/" + adminUnitId + "/"
-				+ filingSpaceId);
+						+ filingSpaceId);
+	}
+
+	public void displayContainerFromContainerByAdministrativeUnit(String containerId, String tabName,
+			String fromAdministrativeUnit) {
+		navigator
+				.navigateTo(RMNavigationConfiguration.DISPLAY_CONTAINER + "/" + containerId + "/" + tabName + "/"
+						+ fromAdministrativeUnit);
 	}
 
 	public void displayContainer(String containerId) {
@@ -254,7 +358,8 @@ public class RMViews extends CoreViews {
 	}
 
 	public void searchContainerForDecommissioningListReplay(String entityId, String searchId) {
-		navigator.navigateTo(RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER + "/" + entityId + "/s/" + searchId);
+		navigator.navigateTo(
+				RMNavigationConfiguration.DECOMMISSIONING_LIST_ADD_EXISTING_CONTAINER + "/" + entityId + "/s/" + searchId);
 	}
 
 	public void createContainerForDecommissioningList(String entityId) {

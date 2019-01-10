@@ -20,10 +20,13 @@ import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.Button.ClickListener;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.TextArea;
+import com.vaadin.ui.TextField;
 import com.vaadin.ui.VerticalLayout;
 import org.vaadin.dialogs.ConfirmDialog;
 
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.constellio.app.ui.i18n.i18n.$;
 
@@ -34,6 +37,8 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 	public static final String ADMINISTRATIVE_UNIT_OPTION = "administrativeUnitOption";
 	public static final String SCHEMA_OPTION = "schemaOption";
 	public static final String OTHERS_OPTION = "othersOption";
+	public static final String COMPLETE_OPTION = "completeOption";
+	public static final String IDS_OPTION = "idsOption";
 
 	public static final String SAME_COLLECTION = "sameCollection";
 	public static final String OTHER_COLLECTION = "otherCollection";
@@ -52,10 +57,14 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 	private Button exportTools;
 
 	private VerticalLayout toolLayout = new VerticalLayout();
+	private VerticalLayout idsLayout = new VerticalLayout();
 	private VerticalLayout folderAndDocumentsLayout = new VerticalLayout();
 	private VerticalLayout administrativeUnitLayout = new VerticalLayout();
 	private VerticalLayout schemaLayout = new VerticalLayout();
+	private VerticalLayout completeLayout = new VerticalLayout();
 	private VerticalLayout othersLayout = new VerticalLayout();
+
+	private boolean showHiddenOptions = false;
 
 	private final ExportPresenter presenter;
 
@@ -76,6 +85,11 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 				presenter.backButtonPressed();
 			}
 		};
+	}
+
+	@Override
+	protected void initBeforeCreateComponents(ViewChangeEvent event) {
+		showHiddenOptions = event != null && event.getParameters().contains("dev");
 	}
 
 	@Override
@@ -128,8 +142,16 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 			initRMLayouts();
 		}
 
+		exportationOptions.addItem(IDS_OPTION);
+		exportationOptions.setItemCaption(IDS_OPTION, $("ExportView.legacyIdsOption"));
+
 		exportationOptions.addItem(SCHEMA_OPTION);
 		exportationOptions.setItemCaption(SCHEMA_OPTION, $("ExportView.schemaOption"));
+
+		if (showHiddenOptions) {
+			exportationOptions.addItem(COMPLETE_OPTION);
+			exportationOptions.setItemCaption(COMPLETE_OPTION, $("ExportView.completeOption"));
+		}
 
 		exportationOptions.addItem(OTHERS_OPTION);
 		exportationOptions.setItemCaption(OTHERS_OPTION, $("ExportView.othersOption"));
@@ -172,7 +194,8 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 
 		mainLayout.addComponent(exportationOptions);
 		if (presenter.hasCurrentCollectionRMModule()) {
-			mainLayout.addComponents(collectionOptions, toolLayout, folderAndDocumentsLayout, administrativeUnitLayout);
+			mainLayout.addComponents(collectionOptions, toolLayout, folderAndDocumentsLayout, idsLayout, administrativeUnitLayout,
+					completeLayout);
 		}
 		mainLayout.addComponents(schemaLayout, othersLayout);
 
@@ -183,6 +206,22 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		buildToolLayout();
 		buildFolderAndDocumentLayout();
 		buildAdministrativeUnitLayout();
+		buildLegacyIdsLayout();
+		buildCompleteLayout();
+	}
+
+	private Component buildCompleteLayout() {
+		completeLayout = new VerticalLayout();
+		completeLayout.setSizeFull();
+		completeLayout.setSpacing(true);
+		BaseButton exportComplete = new BaseButton($("ExportView.complete")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				presenter.exportCompleteClicked();
+			}
+		};
+		completeLayout.addComponent(exportComplete);
+		return completeLayout;
 	}
 
 	private Component buildToolLayout() {
@@ -241,6 +280,39 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		return folderAndDocumentsLayout;
 	}
 
+	private Component buildLegacyIdsLayout() {
+		idsLayout = new VerticalLayout();
+		idsLayout.setSizeFull();
+		idsLayout.setSpacing(true);
+
+		final TextField typeCodeField = new TextField("type");
+		typeCodeField.setImmediate(true);
+		typeCodeField.setCaption($("ExportView.schemaType"));
+		typeCodeField.setSizeFull();
+		typeCodeField.setValue("folder");
+
+		final TextArea textArea = new TextArea("legacyIds");
+		textArea.setCaption($("ExportView.legacyIds"));
+		textArea.setSizeFull();
+		textArea.setRows(8);
+
+
+		BaseButton exportButton = new BaseButton($("ExportView.exportNoContents")) {
+			@Override
+			protected void buttonClick(ClickEvent event) {
+				String textAreaValue = textArea.getValue();
+				final String typeCode = typeCodeField.getValue();
+				if (textAreaValue != null) {
+					final List<String> ids = Arrays.asList(textAreaValue.split(","));
+					presenter.exportWithoutContentsXMLButtonClicked(false, typeCode, ids);
+				}
+			}
+		};
+		idsLayout.addComponents(textArea, typeCodeField, exportButton);
+		return idsLayout;
+	}
+
+
 	private Component buildAdministrativeUnitLayout() {
 		administrativeUnitLayout = new VerticalLayout();
 		administrativeUnitLayout.setSizeFull();
@@ -275,6 +347,9 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 		schemaLayout.setVisible(false);
 		othersLayout.setVisible(false);
 		collectionOptions.setVisible(false);
+		completeLayout.setVisible(false);
+
+		idsLayout.setVisible(false);
 		switch ((String) exportationOptions.getValue()) {
 			case TOOL_OPTION:
 				toolLayout.setVisible(true);
@@ -288,8 +363,15 @@ public class ExportViewImpl extends BaseViewImpl implements ExportView {
 				administrativeUnitLayout.setVisible(true);
 				collectionOptions.setVisible(true);
 				break;
+			case IDS_OPTION:
+				idsLayout.setVisible(true);
+				collectionOptions.setVisible(false);
+				break;
 			case SCHEMA_OPTION:
 				schemaLayout.setVisible(true);
+				break;
+			case COMPLETE_OPTION:
+				completeLayout.setVisible(true);
 				break;
 			case OTHERS_OPTION:
 				othersLayout.setVisible(true);

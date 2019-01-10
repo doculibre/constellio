@@ -6,6 +6,7 @@ import com.constellio.data.utils.TimeProvider;
 import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.ContentVersion;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.Event;
 import com.constellio.model.entities.records.wrappers.EventType;
 import com.constellio.model.entities.records.wrappers.User;
@@ -14,8 +15,6 @@ import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.schemas.entries.DataEntryType;
-import com.constellio.model.entities.security.Authorization;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.contents.ContentFactory;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordImpl;
@@ -240,17 +239,19 @@ public class EventFactory {
 		return false;
 	}
 
-	public Event eventPermission(Authorization authorization, Authorization authorizationBefore, User user,
+	public Event eventPermission(Authorization authorization, Authorization authorizationBefore,
+								 User user,
 								 String recordId, String eventPermissionType) {
 		SchemasRecordsServices schemasRecords = new SchemasRecordsServices(user.getCollection(), modelLayerFactory);
 
 		if (recordId == null) {
-			recordId = authorization.getGrantedOnRecord();
+			recordId = authorization.getTarget();
 		}
 		String deltaString = compareAuthorizations(authorizationBefore, authorization);
 
 		SchemaUtils schemaUtils = new SchemaUtils();
-		String authorizationRolesString = StringUtils.join(authorization.getDetail().getRoles(), "; ");
+		String authorizationRolesString = StringUtils.join(authorization.getRoles(), "; ");
+		Boolean negative = authorization.isNegative() ? true : null;
 		String authorizationPrincipalsString = getAuthorizationPrincipals(authorization);
 		String dateRangeString = getAuthorizationDateRange(authorization);
 		Event event = schemasRecords.newEvent();
@@ -259,6 +260,7 @@ public class EventFactory {
 		event.setPermissionDateRange(dateRangeString);
 		event.setPermissionRoles(authorizationRolesString);
 		event.setDelta(deltaString);
+		event.setNegative(negative);
 		Record currentRecord = recordServices.getDocumentById(recordId);
 		String recordSchema = currentRecord.getSchemaCode();
 
@@ -268,7 +270,8 @@ public class EventFactory {
 		return event;
 	}
 
-	private String compareAuthorizations(Authorization authorizationBefore, Authorization authorization) {
+	private String compareAuthorizations(Authorization authorizationBefore,
+										 Authorization authorization) {
 		StringBuilder deltaStringBuilder = new StringBuilder("");
 		if (authorizationBefore != null) {
 			String principalsDelta = getAuthorizationsPrincipalsDelta(authorizationBefore, authorization);
@@ -283,7 +286,8 @@ public class EventFactory {
 		return deltaStringBuilder.toString();
 	}
 
-	private String getAuthorizationsDatesDelta(Authorization authorizationBefore, Authorization authorization) {
+	private String getAuthorizationsDatesDelta(Authorization authorizationBefore,
+											   Authorization authorization) {
 		String datesBefore = getAuthorizationDateRange(authorizationBefore);
 		String datesAfter = getAuthorizationDateRange(authorization);
 		if (datesAfter.equals(datesBefore)) {
@@ -294,9 +298,10 @@ public class EventFactory {
 		}
 	}
 
-	private String getAuthorizationsPrincipalsDelta(Authorization authorizationBefore, Authorization authorization) {
+	private String getAuthorizationsPrincipalsDelta(Authorization authorizationBefore,
+													Authorization authorization) {
 		ListComparisonResults<String> principalsComparisonResults = new LangUtils()
-				.compare(authorizationBefore.getGrantedToPrincipals(), authorization.getGrantedToPrincipals());
+				.compare(authorizationBefore.getPrincipals(), authorization.getPrincipals());
 		if (principalsComparisonResults.getRemovedItems().size() == 0 && principalsComparisonResults.getNewItems().size() == 0) {
 			return "";
 		}
@@ -321,7 +326,7 @@ public class EventFactory {
 	}
 
 	private String getAuthorizationDateRange(Authorization authorization) {
-		AuthorizationDetails detail = authorization.getDetail();
+		Authorization detail = authorization;
 		StringBuilder dateRangeStringBuilder = new StringBuilder("[");
 		if (detail.getStartDate() != null) {
 			dateRangeStringBuilder.append(detail.getStartDate());
@@ -336,7 +341,7 @@ public class EventFactory {
 
 	private String getAuthorizationPrincipals(Authorization authorization) {
 		List<String> usersNames = new ArrayList<>();
-		for (String userId : authorization.getGrantedToPrincipals()) {
+		for (String userId : authorization.getPrincipals()) {
 			Record userRecord = recordServices.getDocumentById(userId);
 			usersNames.add((String) userRecord.get(Schemas.TITLE));
 		}

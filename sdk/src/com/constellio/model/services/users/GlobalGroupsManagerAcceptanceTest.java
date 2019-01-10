@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
 public class GlobalGroupsManagerAcceptanceTest extends ConstellioTest {
-	GlobalGroupsManager manager;
+	SolrGlobalGroupsManager manager;
 	GlobalGroup globalGroup1;
 	GlobalGroup globalGroup2;
 	GlobalGroup globalGroup3;

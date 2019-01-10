@@ -36,6 +36,8 @@ public class Toggle {
 
 	public static AvailableToggle RETENTION_RULE_DATE_TYPES = newToggle(false);
 
+	public static AvailableToggle FOLDER_SUMMARY_CONFIG = newToggle(false);
+
 	public static AvailableToggle ADVANCED_SEARCH_CONFIGS = newToggle(true);
 
 	public static AvailableToggle NEW_TAXONOMY_SERVICES = newToggle(false);
@@ -61,6 +63,7 @@ public class Toggle {
 
 	public static AvailableToggle SHOW_UNREAD_TASKS = newToggle(false);
 
+	public static AvailableToggle RETURN_EMPTY_VALUE_WHEN_KEY_IS_MISSING = newToggle(false);
 
 	// ------------------------------------------------
 

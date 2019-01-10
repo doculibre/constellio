@@ -100,6 +100,8 @@ public class DecommissioningMainPresenter extends SingleSchemaBasePresenter<Deco
 	}
 
 	public void creationRequested(SearchType type) {
+		view.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.SAVE_SEARCH_DECOMMISSIONING);
+		view.getUIContext().clearAttribute(DecommissioningBuilderViewImpl.DECOMMISSIONING_BUILDER_TYPE);
 		view.navigate().to(RMViews.class).decommissioningListBuilder(type.toString());
 	}
 

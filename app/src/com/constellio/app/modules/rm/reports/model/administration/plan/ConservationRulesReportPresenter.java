@@ -40,19 +40,20 @@ public class ConservationRulesReportPresenter {
 	private boolean byAdministrativeUnit;
 	private DecommissioningService decommissioningService;
 	private String administrativeUnitId;
-	private Locale locale;
+	private List<String> rulesToIncludes = null;
 
 	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory, Locale locale) {
-		this(collection, appLayerFactory, false, null, locale);
+		this(collection, appLayerFactory, false, null, locale, null);
 	}
 
 	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory,
 											boolean byAdministrativeUnit, Locale locale) {
-		this(collection, appLayerFactory, byAdministrativeUnit, null, locale);
+		this(collection, appLayerFactory, byAdministrativeUnit, null, locale, null);
 	}
 
 	public ConservationRulesReportPresenter(String collection, AppLayerFactory appLayerFactory,
-											boolean byAdministrativeUnit, String administrativeUnitId, Locale locale) {
+											boolean byAdministrativeUnit, String administrativeUnitId, Locale locale,
+											List<String> rulesToIncludes) {
 		this.collection = collection;
 		this.appLayerFactory = appLayerFactory;
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -61,7 +62,7 @@ public class ConservationRulesReportPresenter {
 		rm = new RMSchemasRecordsServices(collection, appLayerFactory, locale);
 		this.byAdministrativeUnit = byAdministrativeUnit;
 		this.administrativeUnitId = administrativeUnitId;
-		this.locale = locale;
+		this.rulesToIncludes = rulesToIncludes;
 	}
 
 	public ConservationRulesReportModel build() {
@@ -138,6 +139,10 @@ public class ConservationRulesReportPresenter {
 		LogicalSearchQuery allRetentionRules = new LogicalSearchQuery()
 				.setCondition(LogicalSearchQueryOperators.from(retentionRuleSchemaType).returnAll())
 				.sortAsc(Schemas.CODE);
+
+		if(rulesToIncludes != null && !rulesToIncludes.isEmpty()) {
+			allRetentionRules.setCondition(allRetentionRules.getCondition().andWhere(Schemas.IDENTIFIER).isIn(rulesToIncludes));
+		}
 
 		List<RetentionRule> retentionRules = rm.wrapRetentionRules(searchServices
 				.search(allRetentionRules));
@@ -379,6 +384,10 @@ public class ConservationRulesReportPresenter {
 
 		if (rule != null) {
 			CopyRetentionRule copyRetentionRule = rule.getSecondaryCopy();
+
+			if(copyRetentionRule == null) {
+				return null;
+			}
 
 			commentMap = buildCommentMap(rule);
 

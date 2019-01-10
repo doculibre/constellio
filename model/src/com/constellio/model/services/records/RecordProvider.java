@@ -14,6 +14,8 @@ public class RecordProvider {
 
 	Map<String, Record> memoryList;
 
+	RecordProvider nestedRecordProvider;
+
 	Transaction transaction;
 
 	public RecordProvider(RecordServices recordServices) {
@@ -25,14 +27,15 @@ public class RecordProvider {
 		this.recordServices = recordServices;
 		this.transaction = transaction;
 		this.memoryList = new HashMap<>();
+		this.nestedRecordProvider = recordProvider;
 
 		if (transaction != null) {
+			for (Record transactionRecord : transaction.getRecords()) {
+				memoryList.put(transactionRecord.getId(), transactionRecord);
+			}
 			memoryList.putAll(transaction.getReferencedRecords());
 		}
 
-		if (recordProvider != null) {
-			this.memoryList.putAll(recordProvider.memoryList);
-		}
 		if (records != null) {
 			for (Record record : records) {
 				this.memoryList.put(record.getId(), record);
@@ -46,9 +49,17 @@ public class RecordProvider {
 		if (record == null && transaction != null) {
 			record = transaction.getRecord(id);
 		}
-		if (record == null) {
+		if (record == null && nestedRecordProvider != null) {
+			record = nestedRecordProvider.getRecord(id);
+			if (record != null) {
+				memoryList.put(id, record);
+			}
+		}
+		if (record == null && recordServices != null) {
 			record = recordServices.realtimeGetRecordById(id);
-			memoryList.put(id, record);
+			if (record != null) {
+				memoryList.put(id, record);
+			}
 		}
 		return record;
 	}

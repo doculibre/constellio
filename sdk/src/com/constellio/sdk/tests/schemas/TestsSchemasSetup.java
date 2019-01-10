@@ -711,6 +711,14 @@ public class TestsSchemasSetup extends SchemasSetup {
 		return this;
 	}
 
+	public TestsSchemasSetup withANumberMetadataInAnotherSchema(MetadataBuilderConfigurator... builderConfigurators)
+			throws Exception {
+		MetadataBuilder metadataBuilder = anOtherDefaultSchemaBuilder.create("numberMetadata").setType(NUMBER)
+				.addLabel(Language.French, "A number metadata");
+		configureMetadataBuilder(metadataBuilder, typesBuilder, builderConfigurators);
+		return this;
+	}
+
 	public TestsSchemasSetup withAnIntegerMetadata(MetadataBuilderConfigurator... builderConfigurators)
 			throws Exception {
 		MetadataBuilder metadataBuilder = zeDefaultSchemaBuilder.create("integerMetadata").setType(INTEGER)

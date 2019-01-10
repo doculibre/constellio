@@ -448,7 +448,6 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
 		assertThat(folder.getOpenDate()).isEqualTo(february2_2015);
 		assertThat(folder.getCloseDate()).isEqualTo(march31_2016);
-		assertThat(folder.getDecommissioningDate()).isEqualTo(march31_2016);
 		assertThat(folder.getActualTransferDate()).isNull();
 		assertThat(folder.getActualDepositDate()).isNull();
 		assertThat(folder.getActualDestructionDate()).isNull();
@@ -491,7 +490,6 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
 		assertThat(folder.getOpenDate()).isEqualTo(february2_2015);
 		assertThat(folder.getCloseDate()).isEqualTo(march31_2016);
-		assertThat(folder.getDecommissioningDate()).isEqualTo(march31_2016);
 		assertThat(folder.getActualTransferDate()).isNull();
 		assertThat(folder.getActualDepositDate()).isNull();
 		assertThat(folder.getActualDestructionDate()).isNull();
@@ -947,7 +945,6 @@ public class FolderAcceptanceTest extends ConstellioTest {
 		assertThat(folder.getArchivisticStatus()).isEqualTo(FolderStatus.ACTIVE);
 		assertThat(folder.getOpenDate()).isEqualTo(february2_2015);
 		assertThat(folder.getCloseDate()).isEqualTo(february11_2015);
-		assertThat(folder.getDecommissioningDate()).isEqualTo(march31_2016);
 		assertThat(folder.getActualTransferDate()).isNull();
 		assertThat(folder.getActualDepositDate()).isNull();
 		assertThat(folder.getActualDestructionDate()).isNull();
@@ -3095,18 +3092,47 @@ public class FolderAcceptanceTest extends ConstellioTest {
 
 		Task task = rm.newRMTask().setLinkedFolders(asList(folder.getId())).setTitle("Task");
 		recordServices.add(task);
-		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+		assertThat(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isFalse();
 
 		recordServices.logicallyDelete(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isTrue();
 
 		recordServices.restore(task.getWrappedRecord(), users.adminIn(zeCollection));
-		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isFalse();
+		assertThat(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isFalse();
 
 		TasksSchemasRecordsServices tasksSchemas = new TasksSchemasRecordsServices(zeCollection, getAppLayerFactory());
 		TasksSearchServices taskSearchServices = new TasksSearchServices(tasksSchemas);
 		recordServices.update(task.setStatus(taskSearchServices.getFirstFinishedStatus().getId()));
-		assertThat(recordServices.isLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection))).isTrue();
+		assertThat(recordServices.validateLogicallyDeletable(folder.getWrappedRecord(), users.adminIn(zeCollection)).isEmpty()).isTrue();
+	}
+
+	@Test
+	public void givenNewParentAndChildFoldersThanValidatingTransactionShouldWork()
+			throws Exception {
+
+		Folder folder = rm.newFolder();
+		folder.setAdministrativeUnitEntered(records.unitId_11b);
+		folder.setDescription("Ze description");
+		folder.setCategoryEntered(records.categoryId_X110);
+		folder.setRetentionRuleEntered(records.ruleId_2);
+		folder.setCopyStatusEntered(CopyType.PRINCIPAL);
+		folder.setTitle("Ze folder");
+		folder.setMediumTypes(Arrays.asList(PA, MV));
+		folder.setUniformSubdivisionEntered(records.subdivId_2);
+		folder.setOpenDate(november4_2009);
+		folder.setCloseDateEntered(december12_2009);
+
+
+		Folder childFolder = rm.newFolder();
+		childFolder.setParentFolder(folder);
+		childFolder.setOpenDate(november4_2009);
+		childFolder.setTitle("Ze child folder");
+
+		Transaction transaction = new Transaction();
+		transaction.addAll(folder, childFolder);
+
+		//CHANGE validateTransaction to reflect prepareTransaction
+		recordServices.validateTransaction(transaction);
 	}
 
 	// -------------------------------------------------------------------------

@@ -5,6 +5,7 @@ import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.decommissioning.DecommissioningService;
 import com.constellio.app.modules.rm.ui.builders.FolderDetailToVOBuilder;
 import com.constellio.app.modules.rm.ui.entities.ContainerVO;
+import com.constellio.app.modules.rm.ui.entities.FolderComponent;
 import com.constellio.app.modules.rm.ui.entities.FolderDetailVO;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
@@ -15,6 +16,7 @@ import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordLogicalDeleteOptions;
 import com.constellio.model.services.records.RecordPhysicalDeleteOptions;
@@ -136,7 +138,7 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 	public void givenDeleteButtonClickedThenDeleteTheListAndReturnToMainPage() {
 		RecordServices recordServices = factories.getRecordServices();
 		when(factories.getModelLayerFactory().newLoggingServices()).thenReturn(mock(LoggingServices.class));
-		when(recordServices.isLogicallyThenPhysicallyDeletable(record, user)).thenReturn(true);
+		when(recordServices.validateLogicallyThenPhysicallyDeletable(record, user)).thenReturn(new ValidationErrors());
 
 		presenter.deleteButtonClicked();
 		verify(factories.getRecordServices(), times(1))
@@ -281,10 +283,10 @@ public class DecommissioningListPresenterTest extends ConstellioTest {
 		when(service.isFolderProcessable(list, detail4)).thenReturn(false);
 
 		FolderDetailToVOBuilder builder = mock(FolderDetailToVOBuilder.class, "FolderDetailToVOBuilder");
-		when(builder.build(detail1)).thenReturn(processable1);
-		when(builder.build(detail2)).thenReturn(packageable1);
-		when(builder.build(detail3)).thenReturn(processable2);
-		when(builder.build(detail4)).thenReturn(packageable2);
+		when(builder.build(detail1, FolderComponent.PROCESSABLE_FOLDER_COMPONENT)).thenReturn(processable1);
+		when(builder.build(detail2, FolderComponent.PACKAGEABLE_FOLDER_COMPONENT)).thenReturn(packageable1);
+		when(builder.build(detail3, FolderComponent.PROCESSABLE_FOLDER_COMPONENT)).thenReturn(processable2);
+		when(builder.build(detail4, FolderComponent.PACKAGEABLE_FOLDER_COMPONENT)).thenReturn(packageable2);
 
 		when(list.getFolderDetailsWithType()).thenReturn(Arrays.asList(detail1, detail2, detail3, detail4));
 		doReturn(builder).when(presenter).folderDetailToVOBuilder();

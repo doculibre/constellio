@@ -41,8 +41,6 @@ public class RecordImportExtensionAcceptanceTest extends ConstellioTest {
 				withZeCollection().withConstellioRMModule().withAllTest(users).withRMTest(records)
 		);
 
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
 		givenTimeIs(now);
 
 		importServices = new RecordsImportServices(getModelLayerFactory());

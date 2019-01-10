@@ -25,7 +25,7 @@ import static com.constellio.model.services.search.query.logical.LogicalSearchQu
 
 public class ResolverCache {
 
-	private static final int MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_LEGACY_IDS = 1000;
+	private static final int MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_UNIQUE_VALUES = 1000;
 
 	Map<String, Long> typesRecordsCount = new HashMap<>();
 
@@ -136,11 +136,11 @@ public class ResolverCache {
 
 	public void markUniqueValueAsRequired(String schemaType, String metadata, String uniqueValue, String usedByMetadata,
 										  String usedByLegacyId) {
-		getSchemaTypeCache(schemaType, metadata).markLegacyIdAsRequiredBy(uniqueValue, usedByMetadata, usedByLegacyId);
+		getSchemaTypeCache(schemaType, metadata).markUniqueValueAsRequiredBy(uniqueValue, usedByMetadata, usedByLegacyId);
 	}
 
 	public KeySetMap<String, String> getUnresolvableUniqueValues(String schemaType, String metadata) {
-		return getSchemaTypeCache(schemaType, metadata).getUnresolvableLegacyIds();
+		return getSchemaTypeCache(schemaType, metadata).getUnresolvableUniqueValues();
 	}
 
 	public Set<String> getNotYetImportedLegacyIds(String schemaType, boolean importAsLegacyId) {
@@ -169,7 +169,7 @@ public class ResolverCache {
 
 		Set<String> recordsInFile = new HashSet<>();
 
-		KeySetMap<String, String> unresolvedLegacyIds = new KeySetMap<>();
+		KeySetMap<String, String> unresolvedUniqueValues = new KeySetMap<>();
 
 		Set<String> legacyIds = null;
 
@@ -178,27 +178,27 @@ public class ResolverCache {
 			this.metadata = metadata;
 		}
 
-		public synchronized void mapIds(String legacyId, String id) {
-			idsMapping.put(legacyId, id);
-			mapSearch(legacyId, id);
-			recordsInFile.remove(legacyId);
-			unresolvedLegacyIds.remove(legacyId);
+		public synchronized void mapIds(String uniqueValue, String id) {
+			idsMapping.put(uniqueValue, id);
+			mapSearch(uniqueValue, id);
+			recordsInFile.remove(uniqueValue);
+			unresolvedUniqueValues.remove(uniqueValue);
 		}
 
 		public synchronized void mapSearch(String search, String id) {
 			searchMapping.put(search, id);
 		}
 
-		public synchronized void markLegacyIdAsRequiredBy(String legacyId, String usedByMetadata,
-														  String usedByLegacyId) {
-			if (!idsMapping.containsKey(legacyId) && !recordsInFile.contains(legacyId)) {
-				unresolvedLegacyIds.add(legacyId, usedByMetadata + ":" + usedByLegacyId);
+		public synchronized void markUniqueValueAsRequiredBy(String uniqueValue, String usedByMetadata,
+															 String usedByLegacyId) {
+			if (!idsMapping.containsKey(uniqueValue) && !recordsInFile.contains(uniqueValue)) {
+				unresolvedUniqueValues.add(uniqueValue, usedByMetadata + ":" + usedByLegacyId);
 			}
 		}
 
-		public synchronized KeySetMap<String, String> getUnresolvableLegacyIds() {
+		public synchronized KeySetMap<String, String> getUnresolvableUniqueValues() {
 
-			if (unresolvedLegacyIds.getNestedMap().size() > MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_LEGACY_IDS) {
+			if (unresolvedUniqueValues.getNestedMap().size() > MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_UNIQUE_VALUES) {
 				LogicalSearchQuery query = new LogicalSearchQuery();
 				MetadataSchemaType type = types.getSchemaType(schemaType);
 				Metadata resolverMetadata = type.getDefaultSchema().get(this.metadata);
@@ -212,19 +212,19 @@ public class ResolverCache {
 				}
 			}
 
-			for (String requiredLegacyId : new HashSet<>(unresolvedLegacyIds.getNestedMap().keySet())) {
-				String id = resolve(schemaType, metadata + ":" + requiredLegacyId);
+			for (String requiredUniqueValue : new HashSet<>(unresolvedUniqueValues.getNestedMap().keySet())) {
+				String id = resolve(schemaType, metadata + ":" + requiredUniqueValue);
 				if (id != null) {
-					mapIds(requiredLegacyId, id);
+					mapIds(requiredUniqueValue, id);
 				}
 			}
-			return new KeySetMap<>(unresolvedLegacyIds);
+			return new KeySetMap<>(unresolvedUniqueValues);
 		}
 
 		public synchronized void markAsRecordInFile(String legacyId) {
 			recordsInFile.add(legacyId);
 
-			unresolvedLegacyIds.remove(legacyId);
+			unresolvedUniqueValues.remove(legacyId);
 
 		}
 
@@ -237,7 +237,7 @@ public class ResolverCache {
 			if (importDataSize == -1) {
 				importDataSize = importDataProvider.size(schemaType);
 			}
-			if (importDataSize <= MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_LEGACY_IDS) {
+			if (importDataSize <= MAX_NUMBER_OF_RECORDS_BEFORE_LOADING_ALL_UNIQUE_VALUES) {
 				MetadataSchemaType type = types.getSchemaType(schemaType);
 				return searchServices.hasResults(from(type).where(LEGACY_ID).isEqualTo(legacyId));
 
@@ -271,8 +271,8 @@ public class ResolverCache {
 			if (recordsInFile != null) {
 				size += recordsInFile.size();
 			}
-			if (unresolvedLegacyIds != null) {
-				size += unresolvedLegacyIds.getNestedMap().size();
+			if (unresolvedUniqueValues != null) {
+				size += unresolvedUniqueValues.getNestedMap().size();
 			}
 			if (legacyIds != null) {
 				size += legacyIds.size();

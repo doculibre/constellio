@@ -4,7 +4,7 @@ import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.services.users.GlobalGroupsManager;
+import com.constellio.model.services.users.SolrGlobalGroupsManager;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.annotations.UiTest;
 import com.constellio.sdk.tests.selenium.adapters.constellio.ConstellioWebDriver;
@@ -23,7 +23,7 @@ public class GlobalGroupPageAcceptTest extends ConstellioTest {
 	AddEditGlobalGroupPage addEditGlobalGroupPage;
 	ListGlobalGroupPage listGlobalGroupPage;
 	DisplayGlobalGroupPage displayGlobalGroupPage;
-	GlobalGroupsManager globalGroupsManager;
+	SolrGlobalGroupsManager globalGroupsManager;
 
 	@Before
 	public void setUp()

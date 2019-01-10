@@ -5,12 +5,12 @@ import com.constellio.data.utils.LangUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.Taxonomy;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.Authorization;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
-import com.constellio.model.entities.security.global.AuthorizationDetails;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordUtils;
@@ -216,6 +216,11 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 						return FilterUtils.userHierarchyFilter(user, securityTokenManager, options.getRequiredAccess(),
 								forSelectionOfSchemaType, options.isShowInvisibleRecordsInLinkingMode());
 					}
+
+					@Override
+					public User getUser() {
+						return user;
+					}
 				});
 
 			} else {
@@ -240,7 +245,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 		//			}
 		//		}
 
-		public boolean isNonSecurizedTaxonomyRecord(Record record) {
+		public boolean isNonSecurableTaxonomyRecord(Record record) {
 			return isConceptOfNavigatedTaxonomy(record) && !principalTaxonomy;
 		}
 
@@ -415,6 +420,11 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 				return FilterUtils.userHierarchyFilter(ctx.user, securityTokenManager, ctx.options.getRequiredAccess(),
 						ctx.forSelectionOfSchemaType, ctx.options.isShowInvisibleRecordsInLinkingMode());
 			}
+
+			@Override
+			public User getUser() {
+				return ctx.user;
+			}
 		});
 		query.setName("TaxonomiesSearchServices:getNonTaxonomyRecords(" + ctx.username() + ", " + ctx.record.getId() + ")");
 		return searchServices.query(query);
@@ -574,7 +584,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 			for (int i = 0; i < batch.size(); i++) {
 				Record child = batch.get(i);
 
-				hasAccess[i] = context.isNonSecurizedTaxonomyRecord(child) || context.hasRequiredAccessOn(child);
+				hasAccess[i] = context.isNonSecurableTaxonomyRecord(child) || context.hasRequiredAccessOn(child);
 
 				if (calculateHasChildren || !hasAccess[i]) {
 					hasChildrenQueryHandler.addRecordToCheck(child);
@@ -634,7 +644,7 @@ public class TaxonomiesSearchServicesBasedOnHierarchyTokensImpl implements Taxon
 
 	}
 
-	private boolean isAuthGivingRequiredAccess(AuthorizationDetails authorizationDetails, String requiredAccess) {
+	private boolean isAuthGivingRequiredAccess(Authorization authorizationDetails, String requiredAccess) {
 
 		if (Role.READ.equals(requiredAccess)) {
 			return authorizationDetails.getRoles().contains(Role.READ)

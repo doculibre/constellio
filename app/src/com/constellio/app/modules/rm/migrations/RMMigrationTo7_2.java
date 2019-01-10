@@ -7,7 +7,6 @@ import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
 import com.constellio.app.modules.rm.RMEmailTemplateConstants;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.constants.RMRoles;
-import com.constellio.app.modules.rm.model.calculators.FolderDecommissioningDateCalculator2;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.AdministrativeUnit;
 import com.constellio.app.modules.rm.wrappers.Category;
@@ -394,8 +393,6 @@ public class RMMigrationTo7_2 implements MigrationScript {
 					.setType(MetadataValueType.DATE).setMultivalue(true);
 			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).createUndeletable(Folder.PREVIOUS_TRANSFER_DATES)
 					.setType(MetadataValueType.DATE).setMultivalue(true);
-			typesBuilder.getDefaultSchema(Folder.SCHEMA_TYPE).get(Folder.DECOMMISSIONING_DATE)
-					.defineDataEntry().asCalculated(FolderDecommissioningDateCalculator2.class);
 
 			MetadataSchemaTypeBuilder taskSchemaType = typesBuilder.getSchemaType(Task.SCHEMA_TYPE);
 			taskSchemaType.createCustomSchema(BorrowRequest.SCHEMA_NAME);

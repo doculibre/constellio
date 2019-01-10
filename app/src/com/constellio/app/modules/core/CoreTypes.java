@@ -10,8 +10,10 @@ import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Group;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
-import com.constellio.model.entities.records.wrappers.SolrAuthorizationDetails;
+import com.constellio.model.entities.records.wrappers.Authorization;
+import com.constellio.model.entities.records.wrappers.SearchEvent;
 import com.constellio.model.entities.records.wrappers.TemporaryRecord;
+import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.records.wrappers.UserDocument;
 import com.constellio.model.entities.records.wrappers.UserFolder;
@@ -19,6 +21,8 @@ import com.constellio.model.entities.records.wrappers.WorkflowTask;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypeBuilder;
+import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,8 +46,10 @@ public class CoreTypes {
 		codesList.add(UserDocument.SCHEMA_TYPE);
 		codesList.add(UserFolder.SCHEMA_TYPE);
 		codesList.add(Printable.SCHEMA_TYPE);
-		codesList.add(SolrAuthorizationDetails.SCHEMA_TYPE);
+		codesList.add(Authorization.SCHEMA_TYPE);
 		codesList.add(Report.SCHEMA_TYPE);
+		codesList.add(SearchEvent.SCHEMA_TYPE);
+		codesList.add(ThesaurusConfig.SCHEMA_TYPE);
 
 		//Deprecated types :
 		codesList.add(WorkflowTask.SCHEMA_TYPE);
@@ -62,6 +68,19 @@ public class CoreTypes {
 
 		for (String code : schemaTypesCodes) {
 			if (types.hasType(code)) {
+				schemaTypes.add(types.getSchemaType(code));
+			}
+		}
+
+		return Collections.unmodifiableList(schemaTypes);
+	}
+
+	public static List<MetadataSchemaTypeBuilder> coreSchemaTypes(MetadataSchemaTypesBuilder types) {
+
+		List<MetadataSchemaTypeBuilder> schemaTypes = new ArrayList<>();
+
+		for (String code : schemaTypesCodes) {
+			if (types.hasSchemaType(code)) {
 				schemaTypes.add(types.getSchemaType(code));
 			}
 		}

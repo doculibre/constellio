@@ -1,5 +1,19 @@
 package com.constellio.app.modules.rm.services.decommissioning;
 
+import static com.constellio.app.ui.i18n.i18n.$;
+import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.io.IOUtils;
+
 import com.constellio.app.extensions.AppLayerCollectionExtensions;
 import com.constellio.app.modules.rm.ConstellioRMModule;
 import com.constellio.app.modules.rm.extensions.api.RMModuleExtensions;
@@ -16,6 +30,7 @@ import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.framework.reports.NewReportWriterFactory;
 import com.constellio.app.ui.framework.reports.ReportWriter;
@@ -29,19 +44,6 @@ import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
-import org.apache.commons.io.IOUtils;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.constellio.app.ui.i18n.i18n.$;
-import static com.constellio.model.services.search.query.logical.LogicalSearchQueryOperators.from;
 
 public class DecomCertificateService {
 	private static final String DOCUMENTS_CERTIFICATE = "DecomCertificateService.documentsCertificate";
@@ -163,7 +165,7 @@ public class DecomCertificateService {
 	List<Folder> getFolders(List<DecomListFolderDetail> foldersDetails) {
 		List<String> foldersIds = new ArrayList<>();
 		for (DecomListFolderDetail detail : foldersDetails) {
-			if (detail.isFolderIncluded()) {
+			if (FolderDetailStatus.INCLUDED.equals(detail.getFolderDetailStatus())) {
 				foldersIds.add(detail.getFolderId());
 			}
 		}

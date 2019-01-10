@@ -14,6 +14,7 @@ import com.constellio.data.utils.BatchBuilderSearchResponseIterator;
 import com.constellio.data.utils.ThreadList;
 import com.constellio.data.utils.dev.Toggle;
 import com.constellio.model.entities.records.Record;
+import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.DataStoreField;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
@@ -109,6 +110,7 @@ public class SearchServices {
 		this.collectionsListManager = modelLayerFactory.getCollectionsListManager();
 		this.metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
+
 		this.systemConfigs = modelLayerFactory.getSystemConfigs();
 		this.disconnectableRecordsCaches = recordsCaches;
 		this.modelLayerFactory = modelLayerFactory;
@@ -264,12 +266,7 @@ public class SearchServices {
 		querCompatibleWithCache.setNumberOfRows(100000);
 		querCompatibleWithCache.setReturnedMetadatas(ReturnedMetadatasFilter.all());
 
-		//final List<Record> original = search(query);
 		final List<Record> records = cachedSearch(querCompatibleWithCache);
-
-		//		if (original.size() != records.size()) {
-		//			System.out.println("different");
-		//		}
 
 		final Iterator<Record> nestedIterator = records.iterator();
 		return new SearchResponseIterator<Record>() {
@@ -316,15 +313,6 @@ public class SearchServices {
 			iterator.next();
 		}
 		return iterator;
-		//		ModifiableSolrParams params = addSolrModifiableParams(query);
-		//		final boolean fullyLoaded = query.getReturnedMetadatas().isFullyLoaded();
-		//		return new LazyResultsKeepingOrderIterator<Record>(recordDao, params, batchSize, skipping) {
-		//
-		//			@Override
-		//			public Record convert(RecordDTO recordDTO) {
-		//				return recordServices.toRecord(recordDTO, fullyLoaded);
-		//			}
-		//		};
 	}
 
 	public long getResultsCount(LogicalSearchCondition condition) {
@@ -388,7 +376,6 @@ public class SearchServices {
 
 	public List<String> getLanguages(LogicalSearchQuery query) {
 		if (query.getLanguage() != null) {
-			//return Collections.singletonList(query.getLanguage());
 			return getLanguageCodes(query.getCondition().getCollection());
 
 		} else if (query.getCondition().isCollectionSearch()) {
@@ -495,7 +482,11 @@ public class SearchServices {
 			}
 		}
 		if (query.getFreeTextQuery() != null) {
-			String qf = getQfFor(languages, query.getLanguage(), query.getFieldBoosts(), searchedSchemaTypes);
+			User user = null;
+			if (query.getUserFilters() != null && query.getUserFilters().size() > 0) {
+				user = query.getUserFilters().get(0).getUser();
+			}
+			String qf = getQfFor(languages, query.getLanguage(), query.getFieldBoosts(), searchedSchemaTypes, user);
 			params.add(DisMaxParams.QF, qf);
 			params.add(DisMaxParams.PF, qf);
 			if (systemConfigs.isReplaceSpacesInSimpleSearchForAnds()) {
@@ -518,24 +509,6 @@ public class SearchServices {
 				params.add(DisMaxParams.BQ, boost.getKey() + "^" + boost.getValue());
 			}
 		}
-
-		//		String userCondition = "";
-		//		if (query.getQueryCondition() != null) {
-		//			userCondition = " AND " + query.getQueryCondition().getSolrQuery(new SolrQueryBuilderParams(false, "?")) + " AND (";
-		//			if (query.getUserFilters() != null) {
-		//				if (!userCondition.endsWith("(")) {
-		//					userCondition += " OR ";
-		//				}
-		//				for (UserFilter userFilter : query.getUserFilters()) {
-		//					userCondition += userFilter.buildFQ(securityTokenManager);
-		//				}
-		//
-		//			}
-		//			if (userCondition.endsWith("(")) {
-		//				userCondition += "*:*";
-		//			}
-		//			userCondition += ")";
-		//		}
 
 		if (query.getUserFilters() != null) {
 			for (UserFilter userFilter : query.getUserFilters()) {
@@ -783,24 +756,56 @@ public class SearchServices {
 		return queryTerms.size();
 	}
 
-	private String getQfFor(List<String> languages, String queryLanguage, List<SearchBoost> boosts,
-							List<MetadataSchemaType> searchedSchemaTypes) {
+	String getQfFor(List<String> languages, String queryLanguage, List<SearchBoost> boosts,
+					List<MetadataSchemaType> searchedSchemaTypes, User user) {
 		StringBuilder sb = new StringBuilder();
 
 		Set<String> fields = new HashSet<>();
 
-		for (SearchBoost boost : boosts) {
-			sb.append(boost.getKey());
-			sb.append("^");
-			sb.append(boost.getValue());
-			sb.append(" ");
-			fields.add(boost.getKey());
+		List<String> localCodeWithNoAccess = new ArrayList<>();
+		List<String> dataFieldCodeWithNoAccess = new ArrayList<>();
+		if (user != null) {
+			for (MetadataSchemaType schemaType : searchedSchemaTypes) {
+				for (Metadata metadata : schemaType.getAllMetadatas()) {
+					if (!user.hasGlobalAccessToMetadata(metadata)) {
+						localCodeWithNoAccess.add(metadata.getLocalCode());
+						dataFieldCodeWithNoAccess.add(metadata.getDataStoreCode());
+					}
+				}
+			}
 		}
+
+		for (SearchBoost boost : boosts) {
+			String dataStoreValue;
+			int lastIndexOfSemiColumn = boost.getKey().lastIndexOf(":");
+
+			if (lastIndexOfSemiColumn == -1) {
+				dataStoreValue = boost.getKey();
+			} else {
+				dataStoreValue = boost.getKey().substring(0, lastIndexOfSemiColumn);
+			}
+
+			String[] dataStoreValueSplited = dataStoreValue.split("_");
+			dataStoreValue = dataStoreValueSplited[0] + "_" + dataStoreValueSplited[1];
+
+			if (!dataFieldCodeWithNoAccess.contains(dataStoreValue)) {
+				sb.append(boost.getKey());
+				sb.append("^");
+				sb.append(boost.getValue());
+				sb.append(" ");
+				fields.add(boost.getKey());
+			}
+		}
+
 
 		for (MetadataSchemaType schemaType : searchedSchemaTypes) {
 			for (Metadata metadata : schemaType.getAllMetadatas()) {
+				if (localCodeWithNoAccess.contains(metadata.getLocalCode())) {
+					continue;
+				}
+
 				if (metadata.isSearchable()) {
-					if (metadata.hasSameCode(Schemas.LEGACY_ID)) {
+					if (metadata.hasSameCode(Schemas.LEGACY_ID) && fields.add(Schemas.LEGACY_ID.getDataStoreCode())) {
 						sb.append(Schemas.LEGACY_ID.getDataStoreCode());
 						sb.append("^20 ");
 					} else {

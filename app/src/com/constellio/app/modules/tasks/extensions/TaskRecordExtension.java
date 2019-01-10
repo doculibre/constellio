@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.extensions;
 
+import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.model.wrappers.Task;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskFollower;
 import com.constellio.app.modules.tasks.model.wrappers.structures.TaskReminder;
@@ -17,11 +18,14 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.structures.EmailAddress;
 import com.constellio.model.extensions.behaviors.RecordExtension;
+import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeSaveEvent;
 import com.constellio.model.extensions.events.records.RecordInCreationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.records.RecordInModificationBeforeValidationAndAutomaticValuesCalculationEvent;
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
+import com.constellio.model.extensions.events.records.RecordPhysicalDeletionEvent;
+import com.constellio.model.extensions.events.records.RecordRestorationEvent;
 import com.constellio.model.services.factories.ModelLayerFactory;
 import com.constellio.model.services.migrations.ConstellioEIMConfigs;
 import com.constellio.model.services.records.RecordServices;
@@ -62,6 +66,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DESCRIPT
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_DUE_DATE_TITLE;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_END_DATE;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_GROUPS_CANDIDATES;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_REASON;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_EN;
@@ -69,6 +74,7 @@ import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_F
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_STATUS_MODIFIED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_SUB_TASKS_MODIFIED;
 import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_TITLE_PARAMETER;
+import static com.constellio.app.modules.tasks.TasksEmailTemplates.TASK_USERS_CANDIDATES;
 
 public class TaskRecordExtension extends RecordExtension {
 	private static final Logger LOGGER = LogManager.getLogger(TaskRecordExtension.class);
@@ -79,6 +85,7 @@ public class TaskRecordExtension extends RecordExtension {
 	RecordServices recordServices;
 	UserServices userServices;
 	ConstellioEIMConfigs eimConfigs;
+	UnreadTasksUserCache cache;
 
 	public TaskRecordExtension(String collection, AppLayerFactory appLayerFactory) {
 		this.modelLayerFactory = appLayerFactory.getModelLayerFactory();
@@ -87,6 +94,7 @@ public class TaskRecordExtension extends RecordExtension {
 		recordServices = this.modelLayerFactory.newRecordServices();
 		userServices = appLayerFactory.getModelLayerFactory().newUserServices();
 		eimConfigs = new ConstellioEIMConfigs(appLayerFactory.getModelLayerFactory().getSystemConfigurationsManager());
+		cache = appLayerFactory.getModelLayerFactory().getCachesManager().getUserCache(UnreadTasksUserCache.NAME);
 	}
 
 	@Override
@@ -94,15 +102,41 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			sendDeletionEventToFollowers(task);
+			if (Boolean.TRUE != task.getReadByUser()) {
+				invalidateAllAssignees(task);
+			}
+		}
+	}
+
+	@Override
+	public void recordPhysicallyDeleted(RecordPhysicalDeletionEvent event) {
+		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
+			Task task = tasksSchema.wrapTask(event.getRecord());
+			if (Boolean.TRUE != task.getReadByUser()) {
+				invalidateAllAssignees(task);
+			}
 		}
 	}
 
 	@Override
 	public void recordModified(RecordModificationEvent event) {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
+
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			taskModified(task, event);
+
+			if (hasModifiedMetadataRequiringInvalidation(event)) {
+				invalidateOldAndNewAssignees(task, event);
+			}
 		}
+	}
+
+	private boolean hasModifiedMetadataRequiringInvalidation(RecordModificationEvent event) {
+		List<String> modifiedMetadatas = event.getModifiedMetadatas().toLocalCodesList();
+
+		return modifiedMetadatas.contains(Task.READ_BY_USER) || modifiedMetadatas.contains(Task.ASSIGNEE)
+			   || modifiedMetadatas.contains(Task.ASSIGNEE_USERS_CANDIDATES)
+			   || modifiedMetadatas.contains(Task.ASSIGNEE_GROUPS_CANDIDATES);
 	}
 
 	@Override
@@ -120,6 +154,88 @@ public class TaskRecordExtension extends RecordExtension {
 		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
 			Task task = tasksSchema.wrapTask(event.getRecord());
 			taskInCreation(task, event);
+		}
+	}
+
+	@Override
+	public void recordRestored(RecordRestorationEvent event) {
+		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
+			Task task = tasksSchema.wrapTask(event.getRecord());
+			if (Boolean.TRUE != task.getReadByUser()) {
+				invalidateAllAssignees(task);
+			}
+		}
+	}
+
+	@Override
+	public void recordInCreationBeforeSave(final RecordInCreationBeforeSaveEvent event) {
+		final Record record = event.getRecord();
+
+		if (record.getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
+			final Task task = tasksSchema.wrapTask(record);
+
+			//
+			addAssignerAsCompletionEventFollower(task);
+		}
+	}
+
+	@Override
+	public void recordCreated(RecordCreationEvent event) {
+		if (event.getRecord().getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
+			Task task = tasksSchema.wrapTask(event.getRecord());
+			invalidateAllAssignees(task);
+		}
+	}
+
+	private void invalidateAllAssignees(Task task) {
+		for (User user : userServices.getAllUsersInCollection(collection)) {
+			if (user.getId().equals(task.getAssignee()) || task.getAssigneeUsersCandidates().contains(user.getId())) {
+				cache.invalidateUser(user);
+			}
+		}
+		for (Group group : userServices.getAllGroupsInCollections(collection)) {
+			if (task.getAssigneeGroupsCandidates().contains(group.getId())) {
+				cache.invalidateGroup(group);
+			}
+		}
+	}
+
+	private void invalidateOldAndNewAssignees(Task task, RecordModificationEvent event) {
+		Boolean assigneeModified = event.hasModifiedMetadata(Task.ASSIGNEE);
+		Boolean assigneeUserCandidatesModified = event.hasModifiedMetadata(Task.ASSIGNEE_USERS_CANDIDATES);
+		Boolean assigneeGroupsCandidatesModified = event.hasModifiedMetadata(Task.ASSIGNEE_GROUPS_CANDIDATES);
+
+		for (User user : userServices.getAllUsersInCollection(collection)) {
+			if (assigneeModified) {
+				if (user.getId().equals(event.getPreviousValue(Task.ASSIGNEE))) {
+					cache.invalidateUser(user);
+				}
+			}
+			if (user.getId().equals(task.getAssignee())) {
+				cache.invalidateUser(user);
+			}
+
+			if (assigneeUserCandidatesModified) {
+				List<String> previousUserCandidates = event.getPreviousValue(Task.ASSIGNEE_USERS_CANDIDATES);
+				if (previousUserCandidates.contains(user.getId())) {
+					cache.invalidateUser(user);
+				}
+			}
+			if (task.getAssigneeUsersCandidates().contains(user.getId())) {
+				cache.invalidateUser(user);
+			}
+		}
+
+		for (Group group : userServices.getAllGroupsInCollections(collection)) {
+			if (assigneeGroupsCandidatesModified) {
+				List<String> previousUserCandidates = event.getPreviousValue(Task.ASSIGNEE_GROUPS_CANDIDATES);
+				if (previousUserCandidates.contains(group.getId())) {
+					cache.invalidateGroup(group);
+				}
+			}
+			if (task.getAssigneeGroupsCandidates().contains(group.getId())) {
+				cache.invalidateGroup(group);
+			}
 		}
 	}
 
@@ -170,6 +286,26 @@ public class TaskRecordExtension extends RecordExtension {
 		String parentTaskTitle = "";
 		String assignerFullName = getUserFullNameById(task.getAssigner());
 		String assigneeFullName = getUserFullNameById(task.getAssignee());
+		StringBuilder assigneeUsersCandidatesAsString = new StringBuilder();
+		List<String> assigneeUsersCandidates = task.getAssigneeUsersCandidates();
+		if(assigneeUsersCandidates != null) {
+			String separator = "";
+			for(String userId: assigneeUsersCandidates) {
+				assigneeUsersCandidatesAsString.append(separator);
+				assigneeUsersCandidatesAsString.append(getUserFullNameById(userId));
+				separator = ", ";
+			}
+		}
+		StringBuilder assigneeGroupsCandidatesAsString = new StringBuilder();
+		List<String> assigneeGroupsCandidates = task.getAssigneeGroupsCandidates();
+		if(assigneeGroupsCandidates != null) {
+			String separator = "";
+			for(String groupId: assigneeGroupsCandidates) {
+				assigneeGroupsCandidatesAsString.append(separator);
+				assigneeGroupsCandidatesAsString.append(getGroupNameById(groupId));
+				separator = ", ";
+			}
+		}
 		if (task.getParentTask() != null) {
 			Task parentTask = tasksSchema.getTask(task.getParentTask());
 			parentTaskTitle = parentTask.getTitle();
@@ -183,6 +319,8 @@ public class TaskRecordExtension extends RecordExtension {
 		newParameters.add(TASK_ASSIGNED_BY + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assignerFullName)));
 		newParameters.add(TASK_ASSIGNED_ON + ":" + formatToParameter(task.getAssignedOn()));
 		newParameters.add(TASK_ASSIGNED + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assigneeFullName)));
+		newParameters.add(TASK_USERS_CANDIDATES + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assigneeUsersCandidatesAsString.toString())));
+		newParameters.add(TASK_GROUPS_CANDIDATES + ":" + formatToParameter(StringEscapeUtils.escapeHtml4(assigneeGroupsCandidatesAsString.toString())));
 		if (task.getDueDate() != null) {
 			newParameters.add(TASK_DUE_DATE_TITLE + ":" + "(" + formatToParameter(task.getDueDate()) + ")");
 		} else {
@@ -433,6 +571,13 @@ public class TaskRecordExtension extends RecordExtension {
 			   tasksSchema.wrapUser(recordServices.getDocumentById(userId)).getLastName();
 	}
 
+	private String getGroupNameById(String groupId) {
+		if (StringUtils.isBlank(groupId)) {
+			return "";
+		}
+		return tasksSchema.wrapGroup(recordServices.getDocumentById(groupId)).getTitle();
+	}
+
 	private void sendSubTasksModification(Task parentTask, Task task) {
 		Set<String> followersIds = getTaskSubTasksModificationFollowers(parentTask);
 		if (followersIds.isEmpty()) {
@@ -534,18 +679,6 @@ public class TaskRecordExtension extends RecordExtension {
 			}
 		}
 		return followersIds;
-	}
-
-	@Override
-	public void recordInCreationBeforeSave(final RecordInCreationBeforeSaveEvent event) {
-		final Record record = event.getRecord();
-
-		if (record.getSchemaCode().startsWith(Task.SCHEMA_TYPE)) {
-			final Task task = tasksSchema.wrapTask(record);
-
-			//
-			addAssignerAsCompletionEventFollower(task);
-		}
 	}
 
 	private void addAssignerAsCompletionEventFollower(final Task task) {

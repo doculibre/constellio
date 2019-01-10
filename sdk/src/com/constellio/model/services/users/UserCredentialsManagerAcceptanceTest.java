@@ -38,7 +38,7 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 
 	String edouardServiceKey = "myKey";
 
-	UserCredentialsManager manager;
+	SolrUserCredentialsManager manager;
 	UserCredential chuckUserCredential, edouardUserCredential, bobUserCredential;
 	CollectionsListManager collectionsListManager;
 	LocalDateTime endDate = new LocalDateTime().plusMinutes(30);
@@ -158,8 +158,8 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		Users users = new Users().setUp(getModelLayerFactory().newUserServices());
 
 		ModelLayerFactory otherInstanceModelLayer = getModelLayerFactory("other");
-		UserCredentialsManager otherInstanceUserCredentialsManager = otherInstanceModelLayer.getUserCredentialsManager();
-		GlobalGroupsManager otherInstanceGlobalGroupsManager = otherInstanceModelLayer.getGlobalGroupsManager();
+		SolrUserCredentialsManager otherInstanceUserCredentialsManager = otherInstanceModelLayer.getUserCredentialsManager();
+		SolrGlobalGroupsManager otherInstanceGlobalGroupsManager = otherInstanceModelLayer.getGlobalGroupsManager();
 
 		QueryCounter queryCounter = new QueryCounter(otherInstanceModelLayer.getDataLayerFactory(),
 				ON_COLLECTION(SYSTEM_COLLECTION));
@@ -228,28 +228,28 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(chuckUserCredential);
 		manager.addUpdate(edouardUserCredential);
 
-		chuckUserCredential = chuckUserCredential.withStatus(UserCredentialStatus.DELETED);
+		chuckUserCredential = chuckUserCredential.setStatus(UserCredentialStatus.DELETED);
 		manager.addUpdate(chuckUserCredential);
 
 		assertThat(manager.getActiveUserCredentials()).hasSize(2);
 		assertThat(manager.getDeletedUserCredentials()).hasSize(1);
 		assertThat(manager.getDeletedUserCredentials().get(0).getUsername()).isEqualTo(chuckUserCredential.getUsername());
 
-		chuckUserCredential = chuckUserCredential.withStatus(UserCredentialStatus.SUSPENDED);
+		chuckUserCredential = chuckUserCredential.setStatus(UserCredentialStatus.SUSPENDED);
 		manager.addUpdate(chuckUserCredential);
 
 		assertThat(manager.getActiveUserCredentials()).hasSize(2);
 		assertThat(manager.getDeletedUserCredentials()).isEmpty();
 		assertThat(manager.getSuspendedUserCredentials().get(0).getUsername()).isEqualTo(chuckUserCredential.getUsername());
 
-		chuckUserCredential = chuckUserCredential.withStatus(UserCredentialStatus.PENDING);
+		chuckUserCredential = chuckUserCredential.setStatus(UserCredentialStatus.PENDING);
 		manager.addUpdate(chuckUserCredential);
 
 		assertThat(manager.getActiveUserCredentials()).hasSize(2);
 		assertThat(manager.getSuspendedUserCredentials()).isEmpty();
 		assertThat(manager.getPendingApprovalUserCredentials().get(0).getUsername()).isEqualTo(chuckUserCredential.getUsername());
 
-		chuckUserCredential = chuckUserCredential.withStatus(UserCredentialStatus.ACTIVE);
+		chuckUserCredential = chuckUserCredential.setStatus(UserCredentialStatus.ACTIVE);
 		manager.addUpdate(chuckUserCredential);
 
 		assertThat(manager.getActiveUserCredentials()).hasSize(3);
@@ -296,8 +296,8 @@ public class UserCredentialsManagerAcceptanceTest extends ConstellioTest {
 		manager.addUpdate(bobUserCredential);
 
 		manager.addUpdate(chuckUserCredential
-				.withAccessToken(tokenA, shishOClock).withAccessToken(tokenB, shishOClock.plusHours(1)));
-		manager.addUpdate(bobUserCredential.withAccessToken(tokenC, shishOClock.plusMinutes(1)));
+				.addAccessToken(tokenA, shishOClock).addAccessToken(tokenB, shishOClock.plusHours(1)));
+		manager.addUpdate(bobUserCredential.addAccessToken(tokenC, shishOClock.plusMinutes(1)));
 
 		givenTimeIs(shishOClock.minusSeconds(1));
 		manager.removeTimedOutTokens();

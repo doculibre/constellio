@@ -335,7 +335,7 @@ public class ModulesAndMigrationsTestFeaturesAcceptanceTest extends ConstellioTe
 
 		assertThat(metadataCodesOf(schemasDisplayManager.getAdvancedSearchMetadatas(zeCollection, Document.SCHEMA_TYPE)))
 				.contains(Document.FOLDER, Schemas.TITLE.getLocalCode(), Document.KEYWORDS)
-				.doesNotContain(Document.CONTENT, Schemas.ALL_AUTHORIZATIONS.getLocalCode());
+				.doesNotContain(Document.CONTENT, Schemas.REMOVED_AUTHORIZATIONS.getLocalCode());
 
 	}
 

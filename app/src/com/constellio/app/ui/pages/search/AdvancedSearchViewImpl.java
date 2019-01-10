@@ -3,7 +3,9 @@ package com.constellio.app.ui.pages.search;
 import com.constellio.app.api.extensions.params.AvailableActionsParam;
 import com.constellio.app.modules.rm.constants.RMPermissionsTo;
 import com.constellio.app.modules.rm.model.labelTemplate.LabelTemplate;
+import com.constellio.app.modules.rm.ui.pages.cart.DefaultFavoritesTable;
 import com.constellio.app.modules.rm.ui.pages.pdf.ConsolidatedPdfButton;
+import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
@@ -49,7 +51,9 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Link;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.TabSheet;
+import com.vaadin.ui.Table;
 import com.vaadin.ui.VerticalLayout;
+import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.io.InputStream;
@@ -145,7 +149,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		}
 		selectionActions.add(batchProcessingButton);
 
-		if (Folder.SCHEMA_TYPE.equals(schemaType) || ContainerRecord.SCHEMA_TYPE.equals(schemaType)) {
+		if (Folder.SCHEMA_TYPE.equals(schemaType) || ContainerRecord.SCHEMA_TYPE.equals(schemaType) || Document.SCHEMA_TYPE.equals(schemaType)) {
 			Factory<List<LabelTemplate>> customLabelTemplatesFactory = new Factory<List<LabelTemplate>>() {
 				@Override
 				public List<LabelTemplate> get() {
@@ -163,7 +167,8 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					customLabelTemplatesFactory,
 					defaultLabelTemplatesFactory,
 					getConstellioFactories().getAppLayerFactory(),
-					getSessionContext().getCurrentCollection());
+					getSessionContext().getCurrentCollection(),
+					getSessionContext().getCurrentUser());
 			labelsButton.setSchemaType(schemaType);
 			labelsButton.addStyleName(ValoTheme.BUTTON_LINK);
 			labelsButton.addStyleName(LABELS_BUTTONSTYLE);
@@ -416,18 +421,6 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 				saveButton.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
 				TabSheet tabSheet = new TabSheet();
-				final RecordVOLazyContainer ownedCartsContainer = new RecordVOLazyContainer(
-						presenter.getOwnedCartsDataProvider());
-				RecordVOTable ownedCartsTable = new RecordVOTable($("CartView.ownedCarts"), ownedCartsContainer);
-				ownedCartsTable.addItemClickListener(new ItemClickEvent.ItemClickListener() {
-					@Override
-					public void itemClick(ItemClickEvent event) {
-						presenter.addToCartRequested(getSelectedRecordIds(),
-								ownedCartsContainer.getRecordVO((int) event.getItemId()));
-						getWindow().close();
-					}
-				});
-
 				final RecordVOLazyContainer sharedCartsContainer = new RecordVOLazyContainer(
 						presenter.getSharedCartsDataProvider());
 				RecordVOTable sharedCartsTable = new RecordVOTable($("CartView.sharedCarts"), sharedCartsContainer);
@@ -440,9 +433,7 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 					}
 				});
 
-				ownedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
-				ownedCartsTable.setWidth("100%");
-				sharedCartsTable.setPageLength(Math.min(15, ownedCartsContainer.size()));
+				Table ownedCartsTable = buildOwnedFavoritesTable(getWindow());
 				sharedCartsTable.setWidth("100%");
 				tabSheet.addTab(ownedCartsTable);
 				tabSheet.addTab(sharedCartsTable);
@@ -453,6 +444,32 @@ public class AdvancedSearchViewImpl extends SearchViewImpl<AdvancedSearchPresent
 		};
 		windowButton.addStyleName(ValoTheme.BUTTON_LINK);
 		return windowButton;
+	}
+
+	private Table buildOwnedFavoritesTable(final Window window) {
+		List<DefaultFavoritesTable.CartItem> cartItems = new ArrayList<>();
+		cartItems.add(new DefaultFavoritesTable.CartItem($("CartView.defaultFavorites")));
+		for (Cart cart : presenter.getOwnedCarts()) {
+			cartItems.add(new DefaultFavoritesTable.CartItem(cart, cart.getTitle()));
+		}
+		final DefaultFavoritesTable.FavoritesContainer container = new DefaultFavoritesTable.FavoritesContainer(DefaultFavoritesTable.CartItem.class, cartItems);
+		DefaultFavoritesTable defaultFavoritesTable = new DefaultFavoritesTable("favoritesTableAdvancedSearch", container, presenter.getSchema());
+		defaultFavoritesTable.setCaption($("CartView.ownedCarts"));
+		defaultFavoritesTable.addItemClickListener(new ItemClickListener() {
+			@Override
+			public void itemClick(ItemClickEvent event) {
+				Cart cart = container.getCart((DefaultFavoritesTable.CartItem) event.getItemId());
+				if (cart == null) {
+					presenter.addToDefaultFavorite(getSelectedRecordIds());
+				} else {
+					presenter.addToCartRequested(getSelectedRecordIds(), cart);
+				}
+				window.close();
+			}
+		});
+		container.removeContainerProperty(DefaultFavoritesTable.CartItem.DISPLAY_BUTTON);
+		defaultFavoritesTable.setWidth("100%");
+		return defaultFavoritesTable;
 	}
 
 	private WindowButton newBatchProcessingButton() {

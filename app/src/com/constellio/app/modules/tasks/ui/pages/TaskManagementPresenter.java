@@ -28,12 +28,14 @@ import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.Language;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.FunctionLogicalSearchQuerySort;
@@ -170,7 +172,11 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 
 	@Override
 	public void deleteButtonClicked(RecordVO record) {
-		taskPresenterServices.deleteTask(toRecord(record), getCurrentUser());
+		try {
+			taskPresenterServices.deleteTask(toRecord(record), getCurrentUser());
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+			view.showErrorMessage(MessageUtils.toMessage(e));
+		}
 		refreshCurrentTab();
 	}
 
@@ -279,7 +285,7 @@ public class TaskManagementPresenter extends SingleSchemaBasePresenter<TaskManag
 	@Override
 	public void generateReportButtonClicked(RecordVO recordVO) {
 		ReportGeneratorButton button = new ReportGeneratorButton($("ReportGeneratorButton.buttonText"),
-				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK,
+				$("Générer un rapport de métadonnées"), view, appLayerFactory, collection, PrintableReportListPossibleType.TASK, view.getSessionContext().getCurrentUser(),
 				recordVO);
 		button.click();
 	}

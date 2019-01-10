@@ -5,7 +5,6 @@ import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -17,7 +16,7 @@ public class Group extends RecordWrapper {
 	public static final String ROLES = "roles";
 	public static final String TITLE = Schemas.TITLE_CODE;
 	public static final String PARENT = "parent";
-	public static final String ALL_AUTHORIZATIONS = "allauthorizations";
+	public static final String ANCESTORS = "ancestors";
 
 	public Group(Record record, MetadataSchemaTypes types) {
 		super(record, types, SCHEMA_TYPE);
@@ -40,6 +39,21 @@ public class Group extends RecordWrapper {
 	public String getCode() {
 		return get(CODE);
 	}
+
+	//TODO Replace this method in release 8.2
+	public List<String> getAncestors() {
+		List<String> ancestors = getList(ANCESTORS);
+		if (ancestors.isEmpty()) {
+			return Collections.singletonList(wrappedRecord.getId());
+		} else {
+			return ancestors;
+		}
+	}
+
+	//TODO Use this version in release 8.2, with a forced full reindexing
+	//	public List<String> getAncestors() {
+	//		return getList(ANCESTORS);
+	//	}
 
 	public List<String> getRoles() {
 		return getList(ROLES);
@@ -69,10 +83,6 @@ public class Group extends RecordWrapper {
 
 	public boolean isDirty() {
 		return wrappedRecord.isDirty();
-	}
-
-	public Collection<? extends String> getAllAuthorizations() {
-		return get(ALL_AUTHORIZATIONS);
 	}
 
 	@Override

@@ -146,7 +146,6 @@ public class SmbRecordTreeNodesDataProvider implements RecordTreeNodesDataProvid
 		metadatas.add(Schemas.VISIBLE_IN_TREES.getDataStoreCode());
 		metadatas.add(Schemas.TOKENS.getDataStoreCode());
 		metadatas.add(Schemas.ATTACHED_ANCESTORS.getDataStoreCode());
-		metadatas.add(Schemas.ALL_REMOVED_AUTHS.getDataStoreCode());
 
 		return ReturnedMetadatasFilter.onlyFields(metadatas);
 	}

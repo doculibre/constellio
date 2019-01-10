@@ -2,6 +2,7 @@ package com.constellio.app.extensions.api.scripts;
 
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
+import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
 import com.constellio.app.modules.rm.wrappers.RetentionRule;
@@ -70,6 +71,7 @@ public abstract class Script {
 		userManageableSchemaTypeCode.add(Document.SCHEMA_TYPE);
 		userManageableSchemaTypeCode.add(Task.SCHEMA_TYPE);
 		userManageableSchemaTypeCode.add(RetentionRule.SCHEMA_TYPE);
+		userManageableSchemaTypeCode.add(ContainerRecord.SCHEMA_TYPE);
 
 		return userManageableSchemaTypeCode;
 	}

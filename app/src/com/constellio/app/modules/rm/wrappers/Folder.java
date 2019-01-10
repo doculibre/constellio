@@ -62,7 +62,6 @@ public class Folder extends RMObject {
 	public static final String RETENTION_RULE = "retentionRule";
 	public static final String RETENTION_RULE_ENTERED = "retentionRuleEntered";
 
-	public static final String DECOMMISSIONING_DATE = "decommissioningDate";
 	public static final String ACTIVE_RETENTION_TYPE = "activeRetentionType";
 	public static final String ACTIVE_RETENTION_CODE = "activeRetentionPeriodCode";
 	public static final String SEMIACTIVE_RETENTION_TYPE = "semiactiveRetentionType";
@@ -98,6 +97,8 @@ public class Folder extends RMObject {
 
 	public static final String TIME_RANGE = "timerange";
 
+	public static final String FAVORITES = "favorites";
+
 	//public static final String CALENDAR_YEAR_ENTERED = "calendarYearEntered";
 	//public static final String CALENDAR_YEAR = "calendarYear";
 	//TO DELETE
@@ -115,6 +116,7 @@ public class Folder extends RMObject {
 	public static final String DOCUMENTS_TOKENS = "documentsTokens";
 	public static final String UNIQUE_KEY = "uniqueKey";
 	public static final String SUMMARY = "summary";
+	public static final String HAS_CONTENT = "hasContent";
 
 	public Folder(Record record,
 				  MetadataSchemaTypes types) {
@@ -521,10 +523,6 @@ public class Folder extends RMObject {
 		return getList(APPLICABLE_COPY_RULES);
 	}
 
-	public LocalDate getDecommissioningDate() {
-		return get(DECOMMISSIONING_DATE);
-	}
-
 	public FolderMediaType getMediaType() {
 		return get(MEDIA_TYPE);
 	}
@@ -835,6 +833,42 @@ public class Folder extends RMObject {
 
 	public static Folder wrap(Record record, MetadataSchemaTypes types) {
 		return record == null ? null : new Folder(record, types);
+	}
+
+	public List<String> getFavorites() {
+		return getList(FAVORITES);
+	}
+
+	public Folder setFavorites(List<String> favorites) {
+		set(FAVORITES, favorites);
+		return this;
+	}
+
+	public void removeFavorite(String favoriteToDelete) {
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.remove(favoriteToDelete);
+		setFavorites(favorites);
+	}
+
+	public void addFavorite(String favoriteToAdd) {
+		List<String> newFavorites = new ArrayList<>();
+		newFavorites.addAll(getFavorites());
+		if (!newFavorites.contains(favoriteToAdd)) {
+			newFavorites.add(favoriteToAdd);
+		}
+		setFavorites(newFavorites);
+	}
+
+	public void removeFavorites(List<String> favoritesToDelete) {
+		List<String> favorites = new ArrayList<>();
+		favorites.addAll(getFavorites());
+		favorites.removeAll(favoritesToDelete);
+		setFavorites(favorites);
+	}
+
+	public boolean hasContent() {
+		return getBooleanWithDefaultValue(HAS_CONTENT, false);
 	}
 }
 

@@ -562,8 +562,6 @@ public class SerializedCacheSearchServiceAcceptTest extends ConstellioTest {
 	public void givenQueryWithFacetsThenRetrievedUponFirstQueryCallButNotOnTheSecond()
 			throws Exception {
 
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-
 		queriesListener.clear();
 
 		LogicalSearchQuery query = new LogicalSearchQuery(fromAllSchemas).sortAsc(Schemas.TITLE);

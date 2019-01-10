@@ -51,6 +51,7 @@ import com.constellio.model.entities.schemas.preparationSteps.UpdateCreationModi
 import com.constellio.model.entities.schemas.preparationSteps.ValidateCyclicReferencesRecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.ValidateMetadatasRecordPreparationStep;
 import com.constellio.model.entities.schemas.preparationSteps.ValidateUsingSchemaValidatorsRecordPreparationStep;
+import com.constellio.model.entities.security.SecurityModel;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.extensions.events.records.RecordCreationEvent;
 import com.constellio.model.extensions.events.records.RecordEvent;
@@ -61,6 +62,7 @@ import com.constellio.model.extensions.events.records.RecordInModificationBefore
 import com.constellio.model.extensions.events.records.RecordLogicalDeletionEvent;
 import com.constellio.model.extensions.events.records.RecordModificationEvent;
 import com.constellio.model.extensions.events.records.RecordRestorationEvent;
+import com.constellio.model.extensions.events.records.TransactionExecutedEvent;
 import com.constellio.model.extensions.events.records.TransactionExecutionBeforeSaveEvent;
 import com.constellio.model.frameworks.validation.DecoratedValidationsErrors;
 import com.constellio.model.frameworks.validation.ValidationErrors;
@@ -87,7 +89,8 @@ import com.constellio.model.services.records.cache.RecordsCaches;
 import com.constellio.model.services.records.extractions.RecordPopulateServices;
 import com.constellio.model.services.records.populators.SearchFieldsPopulator;
 import com.constellio.model.services.records.populators.SortFieldsPopulator;
-import com.constellio.model.services.records.preparation.RecordsToReindexResolver;
+import com.constellio.model.services.records.preparation.AggregatedMetadataIncrementation;
+import com.constellio.model.services.records.preparation.RecordsLinksResolver;
 import com.constellio.model.services.schemas.MetadataList;
 import com.constellio.model.services.schemas.ModificationImpactCalculator;
 import com.constellio.model.services.schemas.ModificationImpactCalculatorResponse;
@@ -169,6 +172,21 @@ public class RecordServicesImpl extends BaseRecordServices {
 
 				}
 			});
+		}
+	}
+
+	public void executeInBatch(Transaction transaction)
+			throws RecordServicesException {
+		int size = transaction.getRecords().size();
+		if (size > 1000) {
+			for (int i = 0; i < size; i = i + 1000) {
+				Transaction embeddedTransaction = new Transaction();
+				embeddedTransaction.setOptions(transaction.getRecordUpdateOptions());
+				embeddedTransaction.addAll(transaction.getRecords().subList(i, Math.min(i + 1000, size)));
+				execute(embeddedTransaction);
+			}
+		} else {
+			execute(transaction);
 		}
 	}
 
@@ -584,7 +602,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	void prepareRecords(final Transaction transaction, String onlyValidateRecord)
 			throws RecordServicesException.ValidationException {
 
-		TransactionExecutionContext context = new TransactionExecutionContext();
+		TransactionExecutionContext context = new TransactionExecutionContext(transaction);
 		RecordPopulateServices recordPopulateServices = modelLayerFactory.newRecordPopulateServices();
 		RecordProvider recordProvider = newRecordProvider(null, transaction);
 		RecordValidationServices validationServices = newRecordValidationServices(recordProvider);
@@ -612,7 +630,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		for (Record record : transaction.getRecords()) {
 			if (record.get(Schemas.MIGRATION_DATA_VERSION) == null) {
 				if (record.isSaved()) {
-					record.set(Schemas.MIGRATION_DATA_VERSION, 0);
+					record.set(Schemas.MIGRATION_DATA_VERSION, 0.0);
 				} else {
 					record.set(Schemas.MIGRATION_DATA_VERSION, modelLayerFactory.getRecordMigrationsManager()
 							.getCurrentDataVersion(record.getCollection(), record.getTypeCode()));
@@ -729,8 +747,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 									String metadataProvidingReferenceValue = record.get(metadataProvidingReference);
 
 									if (metadataProvidingReferenceValue != null) {
-										sequenceCode = getDocumentById(metadataProvidingReferenceValue)
-												.get(metadataProvidingSequenceCode);
+										sequenceCode = getDocumentById(metadataProvidingReferenceValue).get(metadataProvidingSequenceCode);
 									}
 								} else {
 									metadataProvidingReference = schema.getMetadata(dataEntry.getMetadataProvidingSequenceCode());
@@ -775,6 +792,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 					&& schema.hasMetadataWithCode(Schemas.MARKED_FOR_REINDEXING.getLocalCode())
 					&& !record.isModified(Schemas.MARKED_FOR_REINDEXING)
 					&& !transaction.getIdsToReindex().contains(record.getId())) {
+
 					record.set(Schemas.MARKED_FOR_REINDEXING, null);
 				}
 			}
@@ -796,7 +814,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 
 		if (!transaction.getRecordUpdateOptions().isSkipFindingRecordsToReindex()) {
-			new RecordsToReindexResolver(types).findRecordsToReindex(transaction);
+			new RecordsLinksResolver(types).resolveRecordsLinks(transaction);
 		}
 
 		boolean singleRecordTransaction = transaction.getRecords().size() == 1;
@@ -810,16 +828,26 @@ public class RecordServicesImpl extends BaseRecordServices {
 			LOGGER.warn("Validating errors added by extensions : \n" + $(transactionExtensionErrors));
 		}
 
+		ValidationErrors recordErrors =
+				catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
+		List<Record> newRecords = new ArrayList<>();
+		List<Record> modifiedRecords = new ArrayList<>();
 		for (final Record record : transaction.getRecords()) {
 			if (record.isDirty()) {
-				ValidationErrors recordErrors =
-						catchValidationsErrors ? new ValidationErrors() : new DecoratedValidationsErrors(errors);
 				if (record.isSaved()) {
+					modifiedRecords.add(record);
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-					extensions.callRecordInModificationBeforeSave(
-							new RecordInModificationBeforeSaveEvent(record, modifiedMetadatas, transaction.getUser(),
-									singleRecordTransaction, recordErrors), options);
+					extensions.callRecordInModificationBeforeSave(new RecordInModificationBeforeSaveEvent(record,
+							modifiedMetadatas, transaction.getUser(), singleRecordTransaction, recordErrors) {
+						@Override
+						public void recalculateRecord(List<String> metadatas) {
+							newAutomaticMetadataServices().updateAutomaticMetadatas(
+									(RecordImpl) record, newRecordProvider(transaction),
+									metadatas, transaction);
+						}
+					}, options);
 				} else {
+					newRecords.add(record);
 					extensions.callRecordInCreationBeforeSave(new RecordInCreationBeforeSaveEvent(
 							record, transaction.getUser(), singleRecordTransaction, recordErrors) {
 						@Override
@@ -837,6 +865,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 		}
+
 		if (!errors.isEmpty()) {
 			throw new RecordServicesException.ValidationException(transaction, errors);
 		}
@@ -906,13 +935,13 @@ public class RecordServicesImpl extends BaseRecordServices {
 	}
 
 	void refreshRecordsAndCaches(String collection, List<Record> records, Set<String> idsMarkedForReindexing,
+								 List<AggregatedMetadataIncrementation> aggregationMetadatasIncremented,
 								 TransactionResponseDTO transactionResponseDTO,
 								 MetadataSchemaTypes types, RecordProvider recordProvider) {
 
 		invalidateTaxonomiesCache(records, types, recordProvider, modelLayerFactory.getTaxonomiesSearchServicesCache());
 
-		List<Record> recordsToInsert = new ArrayList<>();
-		Set<String> recordIdsInTransaction = new HashSet<>();
+		Map<String, Record> recordsToInsertById = new HashMap<>();
 		for (Record record : records) {
 			RecordImpl recordImpl = (RecordImpl) record;
 			if (transactionResponseDTO != null) {
@@ -922,27 +951,35 @@ public class RecordServicesImpl extends BaseRecordServices {
 					MetadataSchema schema = types.getSchema(record.getSchemaCode());
 
 					recordImpl.markAsSaved(version, schema);
-					recordsToInsert.add(record);
-					recordIdsInTransaction.add(record.getId());
+					recordsToInsertById.put(record.getId(), record);
 				}
 			}
 		}
 
 		for (String idMarkedForReindexing : idsMarkedForReindexing) {
-			if (transactionResponseDTO != null && !recordIdsInTransaction.contains(idMarkedForReindexing)) {
+			if (transactionResponseDTO != null && !recordsToInsertById.containsKey(idMarkedForReindexing)) {
 				Long version = transactionResponseDTO.getNewDocumentVersion(idMarkedForReindexing);
 				if (version != null) {
 
 					Record record = recordsCaches.getRecord(idMarkedForReindexing);
 					if (record != null) {
 						((RecordImpl) record).markAsSaved(version, metadataSchemasManager.getSchemaOf(record));
-						recordsToInsert.add(record);
+						recordsToInsertById.put(record.getId(), record);
 					}
 				}
 			}
 		}
 
-		insertInCache(collection, recordsToInsert, WAS_MODIFIED);
+		for (AggregatedMetadataIncrementation incrementation : aggregationMetadatasIncremented) {
+			if (transactionResponseDTO != null) {
+				Record record = getDocumentById(incrementation.getRecordId());
+				if (record != null) {
+					recordsToInsertById.put(record.getId(), record);
+				}
+			}
+		}
+
+		insertInCache(collection, new ArrayList<>(recordsToInsertById.values()), WAS_MODIFIED);
 
 	}
 
@@ -984,7 +1021,9 @@ public class RecordServicesImpl extends BaseRecordServices {
 					MetadataSchemaTypes metadataSchemaTypes = modelFactory.getMetadataSchemasManager().getSchemaTypes(
 							transaction.getCollection());
 
-					List<RecordEvent> recordEvents = prepareRecordEvents(modifiedOrUnsavedRecords, metadataSchemaTypes);
+					List<RecordEvent> recordEvents = new ArrayList<>();
+					TransactionExecutedEvent event = prepareRecordEvents(transaction, modifiedOrUnsavedRecords, metadataSchemaTypes, recordEvents);
+
 
 					TransactionResponseDTO transactionResponseDTO;
 					if (transactionDTOEntry.getKey().equals(DataStore.RECORDS)) {
@@ -998,14 +1037,15 @@ public class RecordServicesImpl extends BaseRecordServices {
 						throw new ImpossibleRuntimeException("Unsupported datastore : " + transactionDTOEntry.getKey());
 					}
 
-					refreshRecordsAndCaches(transaction.getCollection(), modifiedOrUnsavedRecords, transaction.getIdsToReindex(), transactionResponseDTO,
-							metadataSchemaTypes, newRecordProvider(null, transaction));
+					refreshRecordsAndCaches(transaction.getCollection(), modifiedOrUnsavedRecords,
+							transaction.getIdsToReindex(), transaction.getAggregatedMetadataIncrementations(),
+							transactionResponseDTO, metadataSchemaTypes, newRecordProvider(null, transaction));
 
 					if (modificationImpactHandler != null) {
 						modificationImpactHandler.handle();
 					}
 
-					callExtensions(transaction.getCollection(), recordEvents, transaction.getRecordUpdateOptions());
+					callExtensions(transaction.getCollection(), recordEvents, event, transaction.getRecordUpdateOptions());
 
 				} catch (OptimisticLocking e) {
 					if (modificationImpactHandler != null) {
@@ -1019,9 +1059,12 @@ public class RecordServicesImpl extends BaseRecordServices {
 		}
 	}
 
-	private List<RecordEvent> prepareRecordEvents(List<Record> modifiedOrUnsavedRecords, MetadataSchemaTypes types) {
-		List<RecordEvent> events = new ArrayList<>();
+	private TransactionExecutedEvent prepareRecordEvents(Transaction transaction, List<Record> modifiedOrUnsavedRecords,
+														 MetadataSchemaTypes types, List<RecordEvent> events) {
 
+		List<Record> newRecords = new ArrayList<>();
+		List<Record> modifiedRecords = new ArrayList<>();
+		Map<String, MetadataList> modifiedMetadatasOfModifiedRecords = new HashMap<>();
 		for (Record record : modifiedOrUnsavedRecords) {
 			if (record.isSaved()) {
 
@@ -1032,21 +1075,23 @@ public class RecordServicesImpl extends BaseRecordServices {
 						events.add(new RecordLogicalDeletionEvent(record));
 					}
 				} else {
-
+					modifiedRecords.add(record);
 					MetadataList modifiedMetadatas = record.getModifiedMetadatas(types);
-					events.add(
-							new RecordModificationEvent(record, modifiedMetadatas));
+					events.add(new RecordModificationEvent(record, modifiedMetadatas));
+					modifiedMetadatasOfModifiedRecords.put(record.getId(), modifiedMetadatas);
 				}
 
 			} else {
+				newRecords.add(record);
 				events.add(new RecordCreationEvent(record));
 			}
 		}
 
-		return events;
+		return new TransactionExecutedEvent(transaction, newRecords, modifiedRecords, modifiedMetadatasOfModifiedRecords);
 	}
 
-	private void callExtensions(String collection, List<RecordEvent> recordEvents, RecordUpdateOptions options) {
+	private void callExtensions(String collection, List<RecordEvent> recordEvents, TransactionExecutedEvent event,
+								RecordUpdateOptions options) {
 		ModelLayerCollectionExtensions extensions = modelFactory.getExtensions().forCollection(collection);
 
 		for (RecordEvent recordEvent : recordEvents) {
@@ -1063,6 +1108,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 				extensions.callRecordRestored((RecordRestorationEvent) recordEvent);
 			}
 		}
+
+		extensions.callTransactionExecuted(event, options);
 
 	}
 
@@ -1106,6 +1153,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 
+			Map<String, RecordDeltaDTO> modifiedRecordDTOById = new HashMap<>();
 			for (Record record : modifiedOrUnsavedRecords) {
 				MetadataSchemaType type = modelFactory.getMetadataSchemasManager().getSchemaTypeOf(record);
 				MetadataSchema schema = type.getSchema(record.getSchemaCode());
@@ -1115,7 +1163,8 @@ public class RecordServicesImpl extends BaseRecordServices {
 					} else {
 						RecordImpl recordImpl = (RecordImpl) record;
 						if (recordImpl.isDirty() && !transaction.getRecordUpdateOptions().isFullRewrite()) {
-							modifiedRecordDTOs.add(recordImpl.toRecordDeltaDTO(schema, fieldsPopulators));
+							RecordDeltaDTO modifiedRecordDto = recordImpl.toRecordDeltaDTO(schema, fieldsPopulators);
+							modifiedRecordDTOById.put(modifiedRecordDto.getId(), modifiedRecordDto);
 						} else if (transaction.getRecordUpdateOptions().isFullRewrite()) {
 							addedRecords.add(((RecordImpl) record).toDocumentDTO(schema, fieldsPopulators));
 						}
@@ -1123,15 +1172,35 @@ public class RecordServicesImpl extends BaseRecordServices {
 				}
 			}
 
+			if (dataStore.equals("records") && !transaction.getAggregatedMetadataIncrementations().isEmpty()) {
+				for (AggregatedMetadataIncrementation incrementation : transaction.getAggregatedMetadataIncrementations()) {
+					if (!modifiedRecordDTOById.containsKey(incrementation.getRecordId())) {
+						modifiedRecordDTOById.put(incrementation.getRecordId(),
+								new RecordDeltaDTO(incrementation.getRecordId(), 1L));
+					}
+					String field = incrementation.getMetadata().getDataStoreCode();
+					Map<String, Double> incrementedFields = modifiedRecordDTOById.get(incrementation.getRecordId())
+							.getIncrementedFields();
+					if (incrementedFields.containsKey(field)) {
+						incrementedFields.put(field, incrementedFields.get(field) + incrementation.getAmount());
+					} else {
+						incrementedFields.put(field, incrementation.getAmount());
+					}
+				}
+			}
+			modifiedRecordDTOs = new ArrayList<>(modifiedRecordDTOById.values());
+
 			boolean isSupportingReindexing = DataStore.RECORDS.equals(dataStore);
 
 			boolean isChangingSomething = !addedRecords.isEmpty() || !modifiedRecordDTOs.isEmpty() ||
 										  (isSupportingReindexing && !markedForReindexing.isEmpty());
 
 			if (isChangingSomething) {
-				TransactionDTO datastoreTransaction = new TransactionDTO(transaction.getId(), options.getRecordsFlushing(),
-						addedRecords, modifiedRecordDTOs).withSkippingReferenceToLogicallyDeletedValidation(
-						transaction.isSkippingReferenceToLogicallyDeletedValidation()).withFullRewrite(options.isFullRewrite());
+				TransactionDTO datastoreTransaction =
+						new TransactionDTO(transaction.getId(), options.getRecordsFlushing(), addedRecords, modifiedRecordDTOs)
+								.withSkippingReferenceToLogicallyDeletedValidation(
+										transaction.isSkippingReferenceToLogicallyDeletedValidation())
+								.withFullRewrite(options.isFullRewrite());
 
 				if (isSupportingReindexing && !markedForReindexing.isEmpty()) {
 					datastoreTransaction = datastoreTransaction.withMarkedForReindexing(markedForReindexing);
@@ -1143,24 +1212,11 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return transactions;
 	}
 
-	public Record newRecordWithSchema(MetadataSchema schema, String id) {
-		Record record = new RecordImpl(schema, id);
-
-		for (Metadata metadata : schema.getMetadatas().onlyWithDefaultValue().onlyManuals()) {
-
-			if (metadata.isMultivalue()) {
-				List<Object> values = new ArrayList<>();
-				values.addAll((List) metadata.getDefaultValue());
-				record.set(metadata, values);
-			} else {
-				record.set(metadata, metadata.getDefaultValue());
-			}
-		}
-
-		return record;
+	public Record newRecordWithSchema(MetadataSchema schema) {
+		return newRecordWithSchema(schema, true);
 	}
 
-	public Record newRecordWithSchema(MetadataSchema schema) {
+	public Record newRecordWithSchema(MetadataSchema schema, boolean isWithDefaultValues) {
 		String id;
 		if ("collection_default".equals(schema.getCode())) {
 			id = schema.getCollection();
@@ -1174,7 +1230,31 @@ public class RecordServicesImpl extends BaseRecordServices {
 		} else {
 			id = uniqueIdGenerator.next();
 		}
-		return newRecordWithSchema(schema, id);
+
+		return newRecordWithSchema(schema, id, isWithDefaultValues);
+	}
+
+	public Record newRecordWithSchema(MetadataSchema schema, String id) {
+		return newRecordWithSchema(schema, id, true);
+	}
+
+	public Record newRecordWithSchema(MetadataSchema schema, String id, boolean withDefaultValues) {
+		Record record = new RecordImpl(schema, id);
+
+		if(withDefaultValues) {
+			for (Metadata metadata : schema.getMetadatas().onlyWithDefaultValue().onlyManuals()) {
+
+				if (metadata.isMultivalue()) {
+					List<Object> values = new ArrayList<>();
+					values.addAll((List) metadata.getDefaultValue());
+					record.set(metadata, values);
+				} else {
+					record.set(metadata, metadata.getDefaultValue());
+				}
+			}
+		}
+
+		return record;
 	}
 
 	public RecordAutomaticMetadataServices newAutomaticMetadataServices() {
@@ -1321,7 +1401,7 @@ public class RecordServicesImpl extends BaseRecordServices {
 	public boolean isRestorable(Record record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().isRestorable(record, user);
+		return newRecordDeleteServices().validateRestorable(record, user).isEmpty();
 	}
 
 	public void restore(Record record, User user) {
@@ -1331,16 +1411,16 @@ public class RecordServicesImpl extends BaseRecordServices {
 		newRecordDeleteServices().restore(record, user);
 	}
 
-	public boolean isPhysicallyDeletable(Record record, User user) {
+	public ValidationErrors validatePhysicallyDeletable(Record record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().isPhysicallyDeletable(record, user);
+		return newRecordDeleteServices().validatePhysicallyDeletable(record, user);
 	}
 
-	public boolean isPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
+	public ValidationErrors validatePhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().isPhysicallyDeletable(record, user, options);
+		return newRecordDeleteServices().validatePhysicallyDeletable(record, user, options);
 	}
 
 	public void physicallyDelete(Record record, User user) {
@@ -1361,10 +1441,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 		newRecordDeleteServices().physicallyDelete(record, user, options);
 	}
 
-	public boolean isLogicallyDeletable(Record record, User user) {
+	public ValidationErrors validateLogicallyDeletable(Record record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().isLogicallyDeletable(record, user);
+		return newRecordDeleteServices().validateLogicallyDeletable(record, user);
 	}
 
 	@Override
@@ -1372,16 +1452,17 @@ public class RecordServicesImpl extends BaseRecordServices {
 		return newRecordDeleteServices().isLogicallyDeletableAndIsSkipValidation(record, user, new RecordLogicalDeleteOptions());
 	}
 
-	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user) {
+	public ValidationErrors validateLogicallyThenPhysicallyDeletable(Record record, User user) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user);
+		return newRecordDeleteServices().validateLogicallyThenPhysicallyDeletable(record, user);
 	}
 
-	public boolean isLogicallyThenPhysicallyDeletable(Record record, User user, RecordPhysicalDeleteOptions options) {
+	public ValidationErrors validateLogicallyThenPhysicallyDeletable(Record record, User user,
+																	 RecordPhysicalDeleteOptions options) {
 		refreshUsingCache(record);
 		refreshUsingCache(user);
-		return newRecordDeleteServices().isLogicallyThenPhysicallyDeletable(record, user, options);
+		return newRecordDeleteServices().validateLogicallyThenPhysicallyDeletable(record, user, options);
 	}
 
 	public boolean isPrincipalConceptLogicallyDeletableExcludingContent(Record record, User user) {
@@ -1479,5 +1560,10 @@ public class RecordServicesImpl extends BaseRecordServices {
 		newAutomaticMetadataServices()
 				.loadTransientEagerMetadatas((RecordImpl) record, newRecordProviderWithoutPreloadedRecords(),
 						new Transaction(new RecordUpdateOptions()));
+	}
+
+	@Override
+	public SecurityModel getSecurityModel(String collection) {
+		return newAutomaticMetadataServices().getSecurityModel(collection);
 	}
 }

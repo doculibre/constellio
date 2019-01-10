@@ -2,7 +2,6 @@ package com.constellio.model.services.records;
 
 import com.carrotsearch.junitbenchmarks.annotation.BenchmarkHistoryChart;
 import com.carrotsearch.junitbenchmarks.annotation.LabelType;
-import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.Transaction;
 import com.constellio.model.entities.records.wrappers.User;
@@ -252,8 +251,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		extensions.recordExtensions.add(new RecordExtension() {
 
 			@Override
-			public ExtensionBooleanResult isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent params) {
-				return ExtensionBooleanResult.FALSE;
+			public ValidationErrors validatePhysicallyDeletable(RecordPhysicalDeletionValidationEvent params) {
+				ValidationErrors validationErrors = new ValidationErrors();
+				validationErrors.add(RecordsDeleteAcceptTest.class, "Not physically deletable");
+				return validationErrors;
 			}
 		});
 		given(bob).logicallyDelete(valueListItem1);
@@ -267,8 +268,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		extensions.recordExtensions.add(new RecordExtension() {
 			@Override
-			public ExtensionBooleanResult isPhysicallyDeletable(RecordPhysicalDeletionValidationEvent params) {
-				return ExtensionBooleanResult.TRUE;
+			public ValidationErrors validatePhysicallyDeletable(RecordPhysicalDeletionValidationEvent params) {
+				return new ValidationErrors();
 			}
 		});
 		given(bob).logicallyDelete(valueListItem1);
@@ -282,8 +283,10 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		extensions.recordExtensions.add(new RecordExtension() {
 			@Override
-			public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent params) {
-				return ExtensionBooleanResult.FALSE;
+			public ValidationErrors validateLogicallyDeletable(RecordLogicalDeletionValidationEvent params) {
+				ValidationErrors validationErrors = new ValidationErrors();
+				validationErrors.add(RecordsDeleteAcceptTest.class, "Record is not logically deleted");
+				return validationErrors;
 			}
 
 		});
@@ -295,8 +298,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			throws Exception {
 		extensions.recordExtensions.add(new RecordExtension() {
 			@Override
-			public ExtensionBooleanResult isLogicallyDeletable(RecordLogicalDeletionValidationEvent params) {
-				return ExtensionBooleanResult.TRUE;
+			public ValidationErrors validateLogicallyDeletable(RecordLogicalDeletionValidationEvent params) {
+				return new ValidationErrors();
 			}
 
 		});
@@ -1600,7 +1603,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
-				return recordServices.isLogicallyDeletable(record, user);
+				return recordServices.validateLogicallyDeletable(record, user).isEmpty();
 			}
 		}.describedAs("logically deletable by " + user);
 	}
@@ -1614,7 +1617,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
-				return recordServices.isLogicallyThenPhysicallyDeletable(record, user, options);
+				return recordServices.validateLogicallyThenPhysicallyDeletable(record, user, options).isEmpty();
 			}
 		}.describedAs("logically then physically deletable by " + user);
 	}
@@ -1629,8 +1632,8 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
-				boolean deletable = recordServices.isLogicallyThenPhysicallyDeletable(record, user);
-				assertThat(deletable).describedAs("isLogicallyThenPhysicallyDeletable").isFalse();
+				boolean deletable = recordServices.validateLogicallyThenPhysicallyDeletable(record, user).isEmpty();
+				assertThat(deletable).describedAs("validateLogicallyThenPhysicallyDeletable").isFalse();
 
 				boolean logicallyDeleted = false;
 				try {
@@ -1657,7 +1660,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			@Override
 			public boolean matches(Record record) {
 
-				if (recordServices.isLogicallyDeletable(record, user)) {
+				if (recordServices.validateLogicallyDeletable(record, user).isEmpty()) {
 					return false;
 				} else {
 
@@ -1734,7 +1737,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		return new Condition<Record>() {
 			@Override
 			public boolean matches(Record record) {
-				return recordServices.isPhysicallyDeletable(record, user, options);
+				return recordServices.validatePhysicallyDeletable(record, user, options).isEmpty();
 			}
 		}.describedAs("physically deletable by " + user);
 	}
@@ -1749,7 +1752,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 			@Override
 			public boolean matches(Record record) {
 
-				if (recordServices.isPhysicallyDeletable(record, user, options)) {
+				if (recordServices.validatePhysicallyDeletable(record, user, options).isEmpty()) {
 					return false;
 				} else {
 
@@ -1943,7 +1946,7 @@ public class RecordsDeleteAcceptTest extends ConstellioTest {
 		public void hasRemovedDeletePermissionOn(Record record)
 				throws InterruptedException {
 			recordServices.refresh(record);
-			String authorizationDetailId = authorizationsServices.getRecordAuthorizations(record).get(0).getDetail().getId();
+			String authorizationDetailId = authorizationsServices.getRecordAuthorizations(record).get(0).getId();
 			authorizationsServices.execute(modifyAuthorizationOnRecord(authorizationDetailId, record).removingItOnRecord());
 			waitForBatchProcess();
 		}

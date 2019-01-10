@@ -60,6 +60,18 @@ $popup-view-z-index: 3;
 	}
 }
 
+@mixin folder2-icon($file-name) {
+	background-image: url('images/icons/folder2/#{$file-name}.png');
+	background-repeat: no-repeat;
+	background-position: 2px 10px;
+
+	.v-table-cell-wrapper {
+		position: relative;
+		text-align: left;
+		left: 20px;
+	}
+}
+
 @mixin constellio {
 
 	.v-Notification-caption {
@@ -424,17 +436,244 @@ $popup-view-z-index: 3;
 		@include folder-icon(folder_purple_locked);
 	}
 
-	.v-table-cell-content-file-icon-document_frozen {
-		@include file-icon(unquote("document_frozen.gif"));
-	}
 
-	.v-table-cell-content-file-icon-document_locked {
-		@include file-icon(unquote("document_locked.gif"));
-	}
+
+    .v-table-cell-content-file-icon-grey_analog_folder_closed {
+        @include folder2-icon(grey_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-grey_analog_folder_opened {
+        @include folder2-icon(grey_analog_folder_opened);
+    }
+
+
+
+    .v-table-cell-content-file-icon-grey_empty_folder_closed {
+       @include folder2-icon(grey_empty_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-grey_empty_folder_opened {
+       @include folder2-icon(grey_empty_folder_opened);
+    }
+
+
+
+
+    .v-table-cell-content-file-icon-grey_hybrid_folder_closed {
+       @include folder2-icon(grey_hybrid_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-grey_hybrid_folder_opend {
+       @include folder2-icon(grey_hybrid_folder_opend);
+    }
+
+    .v-table-cell-content-file-icon-orange_analog_folder_closed {
+        @include folder2-icon(orange_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_analog_folder_frozen_closed {
+        @include folder2-icon(orange_analog_folder_frozen_closed);
+    }
+
+    .v-table-cell-content-file-orange_analog_folder_frozen_opened {
+       @include folder2-icon(orange_analog_folder_frozen_opened);
+    }
+
+    .v-table-cell-content-file-orange_analog_folder_locked_close {
+       @include folder2-icon(orange_analog_folder_locked_close);
+    }
+
+    .v-table-cell-content-file-icon-orange_analog_folder_locked_opened {
+       @include folder2-icon(orange_analog_folder_locked_opened);
+    }
+
+    .v-table-cell-content-file-icon-orange_analog_folder_opened {
+       @include folder2-icon(grey_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_empty_folder_closed {
+        @include folder2-icon(grey_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_empty_folder_opened {
+        @include folder2-icon(orange_empty_folder_opened);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    .v-table-cell-content-file-icon-orange_hybrid_folder_closed {
+       @include folder2-icon(orange_empty_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-orange_hybrid_folder_frozen_opened {
+       @include folder2-icon(orange_hybrid_folder_frozen_opened);
+    }
+
+    .v-table-cell-content-file-icon-orange_hybrid_folder_locked_closed {
+       @include folder2-icon(orange_hybrid_folder_locked_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_hybrid_folder_locked_opened {
+       @include folder2-icon(orange_hybrid_folder_locked_opened);
+    }
+
+    .v-table-cell-content-file-icon-orange_hybrid_folder_opened {
+       @include folder2-icon(orange_hybrid_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-orange_numerical_folder_closed {
+       @include folder2-icon(orange_numerical_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_numerical_folder_frozen_closed {
+       @include folder2-icon(orange_numerical_folder_frozen_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_numerical_folder_frozen_opened {
+       @include folder2-icon(orange_numerical_folder_frozen_opened);
+    }
+    .v-table-cell-content-file-icon-orange_numerical_folder_locked_closed {
+       @include folder2-icon(orange_numerical_folder_locked_closed);
+    }
+
+    .v-table-cell-content-file-icon-orange_numerical_folder_locked_opened {
+       @include folder2-icon(orange_numerical_folder_locked_opened);
+    }
+
+    .v-table-cell-content-file-icon-orange_numerical_folder_opened {
+       @include folder2-icon(orange_numerical_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-purple_analog_folder_closed {
+       @include folder2-icon(purple_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-purple_analog_folder_opened {
+       @include folder2-icon(purple_analog_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-purple_empty_folder_closed {
+       @include folder2-icon(purple_empty_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-purple_empty_folder_opened {
+       @include folder2-icon(purple_empty_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-purple_hybrid_folder_closed {
+       @include folder2-icon(purple_hybrid_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-purple_hybrid_folder_opened {
+       @include folder2-icon(purple_hybrid_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_analog_folder_closed {
+       @include folder2-icon(yellow_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_analog_folder_frozen_closed {
+       @include folder2-icon(yellow_analog_folder_frozen_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_analog_folder_frozen_opened {
+       @include folder2-icon(yellow_analog_folder_frozen_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_analog_folder_locked_opened {
+       @include folder2-icon(yellow_analog_folder_locked_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_analog_folder_opened {
+       @include folder2-icon(yellow_analog_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_empty_folder_closed {
+       @include folder2-icon(yellow_empty_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_empty_folder_opened {
+       @include folder2-icon(yellow_empty_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_analog_folder_locked_opened {
+       @include folder2-icon(yellow_analog_folder_locked_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_empty_folder_closed {
+       @include folder2-icon(yellow_empty_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_empty_folder_opened {
+       @include folder2-icon(yellow_empty_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_hybrid_folder_closed {
+       @include folder2-icon(yellow_hybrid_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_hybrid_folder_frozen_closed {
+       @include folder2-icon(yellow_hybrid_folder_frozen_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_hybrid_folder_frozen_opened {
+       @include folder2-icon(yellow_hybrid_folder_frozen_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_hybrid_folder_locked_closed {
+       @include folder2-icon(yellow_hybrid_folder_locked_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_hybrid_folder_locked_opened {
+       @include folder2-icon(yellow_hybrid_folder_locked_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_hybrid_folder_opened {
+       @include folder2-icon(yellow_hybrid_folder_opened);
+    }
+
+    .v-table-cell-content-file-icon-yellow_numerical_folder_closed {
+       @include folder2-icon(yellow_numerical_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_numerical_folder_frozen_closed {
+       @include folder2-icon(yellow_numerical_folder_frozen_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_numerical_folder_frozen_opened {
+       @include folder2-icon(grey_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_numerical_folder_locked_closed {
+       @include folder2-icon(grey_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_numerical_folder_locked_opened {
+       @include folder2-icon(grey_analog_folder_closed);
+    }
+
+    .v-table-cell-content-file-icon-yellow_numerical_folder_opened {
+       @include folder2-icon(yellow_numerical_folder_opened);
+    }
 
 
 	.v-table-cell-content-error {
 		color: red;
+		font-weight: bold;
+	}
+
+	.v-table-cell-content-important {
 		font-weight: bold;
 	}
 
@@ -462,6 +701,10 @@ $popup-view-z-index: 3;
 		background: linear-gradient(to bottom,  #ffed7c 0%,#ffdd00 100%); /* W3C */
 		filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffed7c', endColorstr='#ffdd00',GradientType=0 ); /* IE6-9 */
 	}
+
+   .v-table-cell-visited-link {
+		color: #551A8B;
+   }	
 
 	.v-slot-disabled-button {
 	    opacity: 0.4;
@@ -535,6 +778,10 @@ $popup-view-z-index: 3;
 	.error-label {
 		color: red;
 		border: 1px solid red;
+	}
+
+	.important-label {
+		color: red;
 	}
 
     .lookup-window-content, .document-window-content {
@@ -891,7 +1138,7 @@ $popup-view-z-index: 3;
 			.base-window-content {
 				padding-left: 5px;
 				padding-right: 5px;
-				margin-top: 25px;
+				padding-top: 25px;
 			}
 		
 			.v-panel {
@@ -1145,6 +1392,12 @@ $popup-view-z-index: 3;
 			width: 100%;
 			text-align: center;
 			margin-bottom: 20px;
+		}
+	}
+
+	.v-context-menu-container {
+		.popupContent {
+			display: flex;
 		}
 	}
 
@@ -1476,7 +1729,14 @@ $popup-view-z-index: 3;
 							.reference-display {
             					white-space: normal;
             					height: inherit;
-            					color: inherit;
+							}
+   
+						   	.reference-display-link {
+						   		color: rgb(25, 125, 225);
+						   	}
+													
+							.visited-link {
+								color: #551A8B;
 							}
 							
 							.agent-action-link {
@@ -1526,7 +1786,7 @@ $popup-view-z-index: 3;
 							} 
 
 							.search-result-table {
-								* {
+								.v-table-cell-content {
 									border: none;
 								}
 
@@ -1537,13 +1797,17 @@ $popup-view-z-index: 3;
 										vertical-align: top;
 
 										.v-checkbox {
-											margin-top: 13px;
+											margin-top: 23px;
+										}
+									
+										.row-index {
+											margin-top: 23px;
 										}
 									}
 								}
-
+							
 								.search-result-title {
-									padding-top: 8px;
+									padding-top: 16px;
 									font-size: 18px;
 									text-align: left;
 								}
@@ -1744,8 +2008,7 @@ $popup-view-z-index: 3;
 	    	background-color: #999;
 	    }
 
-// Admin RM Module
-
+		// Admin RM Module
 	    .user-management {
 	    	text-align: center;
 
@@ -1801,6 +2064,12 @@ $popup-view-z-index: 3;
 		    	.v-scrollable {
 		    		overflow-x: auto;
 		    	}
+	    	}
+    	}
+
+    	.folder-content-table {
+	    	.v-scrollable {
+	    		overflow-x: auto;
 	    	}
     	}
 
@@ -1906,6 +2175,12 @@ $popup-view-z-index: 3;
     	.v-table {
 	    	.v-scrollable {
 	    		overflow-x: hidden;
+	    	}
+    	}
+
+    	.folder-content-table {
+	    	.v-scrollable {
+	    		overflow-x: auto;
 	    	}
     	}
 

@@ -63,8 +63,8 @@ public class ListCollectionUserPresenterTest extends ConstellioTest {
 		when(dakotaRecordVO.getId()).thenReturn("dakotaId");
 		when(heroesVO.getCode()).thenReturn("heroes");
 		when(userServices.getGroup("heroes")).thenReturn(heroes);
-		when(heroes.withUsersAutomaticallyAddedToCollections(collections)).thenReturn(heroesInZeCollection);
-		when(heroesInZeCollection.withUsersAutomaticallyAddedToCollections(emptyCollections)).thenReturn(heroes);
+		when(heroes.setUsersAutomaticallyAddedToCollections(collections)).thenReturn(heroesInZeCollection);
+		when(heroesInZeCollection.setUsersAutomaticallyAddedToCollections(emptyCollections)).thenReturn(heroes);
 		when(view.getCollection()).thenReturn(zeCollection);
 
 		presenter = spy(new ListCollectionUserPresenter(view));

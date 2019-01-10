@@ -3,6 +3,7 @@ package com.constellio.app.ui.pages.search;
 import com.constellio.app.api.extensions.BatchProcessingExtension;
 import com.constellio.app.api.extensions.BatchProcessingExtension.BatchProcessFeededByIdsParams;
 import com.constellio.app.api.extensions.BatchProcessingExtension.BatchProcessFeededByQueryParams;
+import com.constellio.app.api.extensions.params.SearchPageConditionParam;
 import com.constellio.app.entities.batchProcess.ChangeValueOfMetadataBatchAsyncTask;
 import com.constellio.app.entities.schemasDisplay.MetadataDisplayConfig;
 import com.constellio.app.entities.schemasDisplay.enums.MetadataInputType;
@@ -72,6 +73,7 @@ import com.constellio.model.services.reports.ReportServices;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
+import com.vaadin.ui.Component;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.params.ModifiableSolrParams;
 import org.slf4j.Logger;
@@ -117,8 +119,20 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		batchProcessingExtensions = appLayerFactory.getExtensions().forCollection(view.getCollection()).batchProcessingExtensions;
 	}
 
+
+
 	public void setSchemaType(String schemaType) {
 		this.schemaTypeCode = schemaType;
+		setSchemaTypeOnPresenterService();
+	}
+
+	private void setSchemaTypeOnPresenterService() {
+		if(schemaTypeCode != null) {
+			service.setMetadataSchemaTypesList(Arrays.asList(modelLayerFactory.getMetadataSchemasManager()
+					.getSchemaTypes(collection).getSchemaType(schemaTypeCode)));
+		} else {
+			service.setMetadataSchemaTypesList(new ArrayList<MetadataSchemaType>());
+		}
 	}
 
 	@Override
@@ -143,8 +157,10 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 			resultsViewMode = SearchResultsViewMode.DETAILED;
 			saveTemporarySearch(false);
 		}
+		setSchemaTypeOnPresenterService();
 		return this;
 	}
+
 
 	private void setSavedSearch(SavedSearch search) {
 		searchExpression = search.getFreeTextSearch();
@@ -309,6 +325,11 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		condition = (view.getSearchCriteria().isEmpty()) ?
 					from(type).returnAll() :
 					new ConditionBuilder(type, languageCode).build(view.getSearchCriteria());
+		condition = appCollectionExtentions.adjustSearchPageCondition(new SearchPageConditionParam((Component) view, condition, getCurrentUser()));
+	}
+
+	private boolean isRMModuleActivated() {
+		return appLayerFactory.getModulesManager().isModuleEnabled(collection, new ConstellioRMModule());
 	}
 
 	private boolean isBatchEditable(Metadata metadata) {
@@ -368,19 +389,26 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		// TODO: Create an extension for this
 		RMSchemasRecordsServices rm = new RMSchemasRecordsServices(collection, appLayerFactory);
 		Cart cart = rm.getOrCreateCart(getCurrentUser(), cartVO.getId());
+		addToCartRequested(recordIds, cart);
+	}
+
+	public void addToCartRequested(List<String> recordIds, Cart cart) {
+		List<Record> records = getRecords(recordIds);
+		String cartId = cart.getId();
 		switch (schemaTypeCode) {
 			case Folder.SCHEMA_TYPE:
-				cart.addFolders(recordIds);
+				addFoldersToCart(cartId, records);
 				break;
 			case Document.SCHEMA_TYPE:
-				cart.addDocuments(recordIds);
+				addDocumentsToCart(cartId, records);
 				break;
 			case ContainerRecord.SCHEMA_TYPE:
-				cart.addContainers(recordIds);
+				addContainersToCart(cartId, records);
 				break;
 		}
 		try {
 			recordServices().add(cart);
+			recordServices().execute(new Transaction(records));
 			view.showMessage($("SearchView.addedToCart"));
 		} catch (RecordServicesException e) {
 			view.showErrorMessage($(e));
@@ -392,24 +420,60 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		Cart cart = rm.newCart();
 		cart.setTitle(title);
 		cart.setOwner(getCurrentUser());
-		List<String> selectedRecords = view.getSelectedRecordIds();
+		String cartId = cart.getId();
+		List<Record> records = getRecords(view.getSelectedRecordIds());
 		switch (schemaTypeCode) {
 			case Folder.SCHEMA_TYPE:
-				cart.addFolders(selectedRecords);
+				addFoldersToCart(cartId, records);
 				break;
 			case Document.SCHEMA_TYPE:
-				cart.addDocuments(selectedRecords);
+				addDocumentsToCart(cartId, records);
 				break;
 			case ContainerRecord.SCHEMA_TYPE:
-				cart.addContainers(selectedRecords);
+				addContainersToCart(cartId, records);
 				break;
 		}
 		try {
 			recordServices().execute(new Transaction(cart.getWrappedRecord()).setUser(getCurrentUser()));
+			recordServices().execute(new Transaction(records));
 			view.showMessage($("SearchView.addedToCart"));
 		} catch (RecordServicesException e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
+		}
+	}
+
+	private List<Record> getRecords(List<String> recordIds) {
+		return modelLayerFactory.newRecordServices().getRecordsById(collection, recordIds);
+	}
+
+	private void addFoldersToCart(String cartId, List<Record> records) {
+		if (rm().numberOfFoldersInFavoritesReachesLimit(cartId, records.size())) {
+			view.showMessage("DisplayFolderViewImpl.cartCannotContainMoreThanAThousandFolders");
+		} else {
+			for (Record record : records) {
+				rm().wrapFolder(record).addFavorite(cartId);
+			}
+		}
+	}
+
+	private void addDocumentsToCart(String cartId, List<Record> records) {
+		if (rm().numberOfDocumentsInFavoritesReachesLimit(cartId, records.size())) {
+			view.showMessage($("DisplayDocumentView.cartCannotContainMoreThanAThousandDocuments"));
+		} else {
+			for (Record record : records) {
+				rm().wrapDocument(record).addFavorite(cartId);
+			}
+		}
+	}
+
+	private void addContainersToCart(String cartId, List<Record> records) {
+		if (rm().numberOfContainersInFavoritesReachesLimit(cartId, records.size())) {
+			view.showMessage($("DisplayContainerViewImpl.cartCannotContainMoreThanAThousandContainers"));
+		} else {
+			for (Record record : records) {
+				rm().wrapContainerRecord(record).addFavorite(cartId);
+			}
 		}
 	}
 
@@ -825,4 +889,34 @@ public class AdvancedSearchPresenter extends SearchPresenter<AdvancedSearchView>
 		return rm;
 	}
 
+	public List<Cart> getOwnedCarts() {
+		return rm().wrapCarts(searchServices().search(new LogicalSearchQuery(from(rm().cartSchema()).where(rm().cart.owner())
+				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
+	}
+
+	public void addToDefaultFavorite(List<String> selectedRecordIds) {
+		List<Record> records = getRecords(selectedRecordIds);
+		String currentUserId = getCurrentUser().getId();
+		switch (schemaTypeCode) {
+			case Folder.SCHEMA_TYPE:
+				addFoldersToCart(currentUserId, records);
+				break;
+			case Document.SCHEMA_TYPE:
+				addDocumentsToCart(currentUserId, records);
+				break;
+			case ContainerRecord.SCHEMA_TYPE:
+				addContainersToCart(currentUserId, records);
+				break;
+		}
+		try {
+			recordServices().execute(new Transaction(records));
+			view.showMessage($("SearchView.addedToDefaultFavorites"));
+		} catch (RecordServicesException e) {
+			view.showErrorMessage($(e));
+		}
+	}
+
+	public MetadataSchemaVO getSchema() {
+		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
+	}
 }

@@ -53,7 +53,6 @@ import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.model.entities.configs.SystemConfiguration;
-import com.constellio.model.entities.records.wrappers.Facet;
 import com.constellio.model.entities.records.wrappers.Report;
 import com.constellio.model.entities.records.wrappers.SavedSearch;
 import com.constellio.model.entities.records.wrappers.ThesaurusConfig;
@@ -218,10 +217,6 @@ public class ConstellioESModule implements InstallableSystemModule, ModuleWithCo
 
 		if (!recordsCache.isConfigured(es.authorizationDetails.schemaType())) {
 			recordsCache.configureCache(CacheConfig.permanentCache(es.authorizationDetails.schemaType()));
-		}
-
-		if (!recordsCache.isConfigured(Facet.SCHEMA_TYPE)) {
-			recordsCache.configureCache(CacheConfig.permanentCache(es.facet.schemaType()));
 		}
 
 		if (!recordsCache.isConfigured(Printable.SCHEMA_TYPE)) {

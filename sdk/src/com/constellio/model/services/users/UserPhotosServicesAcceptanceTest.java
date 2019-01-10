@@ -28,7 +28,7 @@ public class UserPhotosServicesAcceptanceTest extends ConstellioTest {
 
 	IOServices ioServices;
 	UserPhotosServices services;
-	UserCredentialsManager userCredentialsManager;
+	SolrUserCredentialsManager userCredentialsManager;
 	ZipService zipService;
 	List<String> msExchDelegateListBL = new ArrayList<>();
 

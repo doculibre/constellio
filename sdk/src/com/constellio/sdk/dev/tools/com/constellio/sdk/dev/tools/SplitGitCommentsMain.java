@@ -1,5 +1,11 @@
 package com.constellio.sdk.dev.tools.com.constellio.sdk.dev.tools;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 import org.apache.commons.io.FileUtils;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -14,7 +20,9 @@ import java.util.List;
 
 public class SplitGitCommentsMain {
 
-	private static File gitLog = new File("/Users/francisbaril/Downloads/log.csv");
+	//git log --since='2 years' --pretty=format:'"%h","%an","%ad","%s"' > ~/logConstellio.csv
+	private static File constellioGitLog = new File("/Users/francisbaril/logConstellio.csv");
+	private static File constellioPluginsGitLog = new File("/Users/francisbaril/logConstellioPlugins.csv");
 	private static File gitLogSplittedFolder = new File("/Users/francisbaril/Downloads/rsde/splitted/");
 
 	private static List<Sprint> sprints = new ArrayList<>();
@@ -48,18 +56,31 @@ public class SplitGitCommentsMain {
 		sprints.add(new Sprint("Janvier 2015", new LocalDate(2016, 1, 3), new LocalDate(2016, 1, 31)));
 		sprints.add(new Sprint("Année 2016", new LocalDate(2016, 2, 1), new LocalDate(2017, 1, 31)));
 		sprints.add(new Sprint("Année 2017", new LocalDate(2017, 2, 1), new LocalDate(2018, 1, 31)));
+		sprints.add(new Sprint("Année 2018", new LocalDate(2018, 2, 1), new LocalDate(2019, 1, 31)));
+		sprints.add(new Sprint("Année 2019", new LocalDate(2019, 2, 1), new LocalDate(2020, 1, 31)));
 
 	}
 
 	public static void main(String argv[])
 			throws Exception {
-		Iterator<String> iterator = FileUtils.lineIterator(gitLog);
+		List<String> commitsOfAllRepos = new ArrayList<String>();
+		commitsOfAllRepos.addAll(FileUtils.readLines(constellioGitLog));
+		commitsOfAllRepos.addAll(FileUtils.readLines(constellioPluginsGitLog));
+
+		Collections.sort(commitsOfAllRepos, new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				LocalDateTime dateTime1 = LocalDateTime.parse(o1.split("\",\"")[2].replace("\"", ""), formatter);
+				LocalDateTime dateTime2 = LocalDateTime.parse(o2.split("\",\"")[2].replace("\"", ""), formatter);
+
+				return dateTime1.compareTo(dateTime2);
+			}
+		});
 
 		FileUtils.deleteDirectory(gitLogSplittedFolder);
 		gitLogSplittedFolder.mkdirs();
 
-		while (iterator.hasNext()) {
-			String line = iterator.next();
+		for (String line : commitsOfAllRepos) {
 			String sprintName = detectSprintOfLine(line);
 			String author = detectAuthorOfLine(line);
 
@@ -80,6 +101,7 @@ public class SplitGitCommentsMain {
 	}
 
 	private static String detectSprintOfLine(String line) {
+		System.out.println(line);
 		String dateTimeStr = line.split("\",\"")[2].replace("\"", "");
 		System.out.println(dateTimeStr);
 		LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr, formatter);
@@ -98,6 +120,43 @@ public class SplitGitCommentsMain {
 		System.out.println(author);
 		if ("Maxime Cote".equals(author)) {
 			author = "Maxime Côté";
+		}
+
+		if ("jplamondon".equals(author) || "jplamondon".equals(author) || "jonathan plamondon".equals(author) || "Charles"
+				.equals(author)) {
+			author = "Jonathan Plamondon";
+		}
+
+		if ("nDamours".equals(author) || "Marco".equals(author)) {
+			author = "Nicolas d'Amours";
+		}
+
+		if ("gabrielLefrancoisConstellio".equals(author)) {
+			author = "Gabriel Lefrançois";
+		}
+
+		if ("dakota.indien".equals(author) || "dakota-indien".equals(author) || "stopping1".equals(author) || "Martin"
+				.equals(author)
+				|| "Rodrigue Mouadeu".equals(author) || "PatrickPontbriand".equals(author) || "Nabil Benyas".equals(author)
+				|| "bnouha1".equals(author) || "Nabil Benyas".equals(author) || "bennab".equals(author)
+				|| "julbaril".equals(author) || "Majid Laali".equals(author)) {
+			author = "Autres";
+		}
+
+		if ("dakota.indien".equals(author) || "dakota-indien".equals(author) || "stopping1".equals(author)) {
+			author = "Autres";
+		}
+
+		if ("michel-boutin".equals(author)) {
+			author = "Michel Boutin";
+		}
+
+		if ("rababMoubine".equals(author)) {
+			author = "Rabab Moubine";
+		}
+
+		if ("francisbaril".equals(author)) {
+			author = "Francis Baril";
 		}
 
 		return author;

@@ -21,8 +21,6 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.security.Role;
 import com.constellio.model.entities.security.global.GlobalGroup;
 import com.constellio.model.entities.security.global.GlobalGroupStatus;
-import com.constellio.model.entities.security.global.SolrGlobalGroup;
-import com.constellio.model.entities.security.global.SolrUserCredential;
 import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.entities.security.global.UserCredentialStatus;
 import com.constellio.model.services.collections.CollectionsListManager;
@@ -66,6 +64,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION;
 import static com.constellio.model.entities.records.wrappers.Group.wrapNullable;
 import static com.constellio.model.entities.schemas.Schemas.LOGICALLY_DELETED_STATUS;
 import static com.constellio.model.services.migrations.ConstellioEIMConfigs.GROUP_AUTHORIZATIONS_INHERITANCE;
@@ -77,8 +76,8 @@ public class UserServices {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserServices.class);
 	public static final String ADMIN = "admin";
-	private final UserCredentialsManager userCredentialsManager;
-	private final GlobalGroupsManager globalGroupsManager;
+	private final SolrUserCredentialsManager userCredentialsManager;
+	private final SolrGlobalGroupsManager globalGroupsManager;
 	private final CollectionsListManager collectionsListManager;
 	private final RecordServices recordServices;
 	private final SearchServices searchServices;
@@ -167,6 +166,17 @@ public class UserServices {
 				msExchDelegateListBL, dn, jobTitle, phone, fax, address);
 	}
 
+	public UserCredential newUserCredential() {
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(SYSTEM_COLLECTION);
+		return new UserCredential(recordServices.newRecordWithSchema(types.getSchema(UserCredential.DEFAULT_SCHEMA)), types);
+	}
+
+	public GlobalGroup newGlobalGroup() {
+		MetadataSchemaTypes types = metadataSchemasManager.getSchemaTypes(SYSTEM_COLLECTION);
+		return new GlobalGroup(recordServices.newRecordWithSchema(types.getSchema(GlobalGroup.DEFAULT_SCHEMA)), types);
+	}
+
+
 	public void addUpdateUserCredential(UserCredential userCredential) {
 		List<String> collections = collectionsListManager.getCollectionsExcludingSystem();
 		validateAdminIsActive(userCredential);
@@ -178,7 +188,7 @@ public class UserServices {
 			}
 			for (String collection : group.getUsersAutomaticallyAddedToCollections()) {
 				if (collections.contains(collection)) {
-					savedUserCredential = savedUserCredential.withNewCollection(collection);
+					savedUserCredential = savedUserCredential.addCollection(collection);
 				}
 			}
 		}
@@ -215,10 +225,10 @@ public class UserServices {
 	public void addUserToCollection(UserCredential userCredential, String collection) {
 		if (!userCredential.getCollections().contains(collection)) {
 			try {
-				addUpdateUserCredential(userCredential.withNewCollection(collection));
+				addUpdateUserCredential(userCredential.addCollection(collection));
 			} catch (UserServicesRuntimeException_CannotExcuteTransaction e) {
 				// Revert change in XML config
-				userCredentialsManager.addUpdate(userCredential.withRemovedCollection(collection));
+				userCredentialsManager.addUpdate(userCredential.removeCollection(collection));
 				throw e;
 			}
 		} else {
@@ -237,7 +247,7 @@ public class UserServices {
 				List<String> groupCodes = new ArrayList<>();
 				groupCodes.addAll(latestCrendential.getGlobalGroups());
 				groupCodes.add(groupCode);
-				addUpdateUserCredential(latestCrendential.withGlobalGroups(groupCodes));
+				addUpdateUserCredential(latestCrendential.setGlobalGroups(groupCodes));
 			}
 		}
 
@@ -247,7 +257,7 @@ public class UserServices {
 				List<String> groupCodes = new ArrayList<>();
 				groupCodes.addAll(currentListUser.getGlobalGroups());
 				groupCodes.remove(groupCode);
-				addUpdateUserCredential(currentListUser.withGlobalGroups(groupCodes));
+				addUpdateUserCredential(currentListUser.setGlobalGroups(groupCodes));
 			}
 		}
 	}
@@ -344,25 +354,25 @@ public class UserServices {
 	}
 
 	public void removeUserCredentialAndUser(UserCredential userCredential) {
-		userCredential = userCredential.withStatus(UserCredentialStatus.DELETED);
+		userCredential = userCredential.setStatus(UserCredentialStatus.DELETED);
 		addUpdateUserCredential(userCredential);
 	}
 
 	public void setUserCredentialAndUserStatusPendingApproval(UserCredential userCredential) {
 
-		userCredential = userCredential.withStatus(UserCredentialStatus.PENDING);
+		userCredential = userCredential.setStatus(UserCredentialStatus.PENDING);
 		addUpdateUserCredential(userCredential);
 	}
 
 	public void suspendUserCredentialAndUser(UserCredential userCredential) {
 
-		userCredential = userCredential.withStatus(UserCredentialStatus.SUSPENDED);
+		userCredential = userCredential.setStatus(UserCredentialStatus.SUSPENDED);
 		addUpdateUserCredential(userCredential);
 	}
 
 	public void activeUserCredentialAndUser(UserCredential userCredential) {
 
-		userCredential = userCredential.withStatus(UserCredentialStatus.ACTIVE);
+		userCredential = userCredential.setStatus(UserCredentialStatus.ACTIVE);
 		addUpdateUserCredential(userCredential);
 		List<String> collections = userCredential.getCollections();
 		restoreUserInBigVault(userCredential.getUsername(), collections);
@@ -453,11 +463,11 @@ public class UserServices {
 	}
 
 	public void givenSystemAdminPermissionsToUser(UserCredential user) {
-		addUpdateUserCredential(user.withSystemAdminPermission());
+		addUpdateUserCredential(user.setSystemAdminEnabled());
 	}
 
 	public String giveNewServiceToken(UserCredential user) {
-		UserCredential modifiedUser = user.withServiceKey(secondaryUniqueIdGenerator.next());
+		UserCredential modifiedUser = user.setServiceKey(secondaryUniqueIdGenerator.next());
 		addUpdateUserCredential(modifiedUser);
 		return modifiedUser.getServiceKey();
 	}
@@ -483,7 +493,7 @@ public class UserServices {
 		if (!removedCollections.isEmpty()) {
 			List<String> collections = new ArrayList<>(user.getCollections());
 			collections.removeAll(removedCollections);
-			addUpdateUserCredential(user.withCollections(collections));
+			addUpdateUserCredential(user.setCollections(collections));
 		}
 	}
 
@@ -517,7 +527,7 @@ public class UserServices {
 			userInCollection.set(CommonMetadataBuilder.LOGICALLY_DELETED, false);
 		}
 		userInCollection.setEmail(StringUtils.isBlank(user.getEmail()) ? null : user.getEmail());
-		if (userInCollection.getSchema().hasMetadataWithCode(SolrUserCredential.PERSONAL_EMAILS)) {
+		if (userInCollection.getSchema().hasMetadataWithCode(UserCredential.PERSONAL_EMAILS)) {
 			userInCollection.setPersonalEmails(isEmpty(user.getPersonalEmails()) ? null : user.getPersonalEmails());
 		}
 		userInCollection.setFirstName(user.getFirstName());
@@ -680,7 +690,7 @@ public class UserServices {
 		return new Group(record, schemaTypes(collection));
 	}
 
-	List<Group> getAllGroupsInCollections(String collection) {
+	public List<Group> getAllGroupsInCollections(String collection) {
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
 		LogicalSearchQuery query = new LogicalSearchQuery(allGroups(collectionTypes).returnAll());
 		query.filteredByStatus(StatusFilter.ACTIVES);
@@ -694,7 +704,7 @@ public class UserServices {
 		return Group.wrap(searchServices.search(query), collectionTypes);
 	}
 
-	List<Group> getGlobalGroupsInCollections(String collection) {
+	public List<Group> getGlobalGroupsInCollections(String collection) {
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
 		LogicalSearchQuery query = new LogicalSearchQuery(allGroupsWhereGlobalGroupFlag(collectionTypes).isTrue());
 		return Group.wrap(searchServices.search(query), collectionTypes);
@@ -757,7 +767,7 @@ public class UserServices {
 		if (!newGlobalGroups.remove(globalGroupCode)) {
 			throw new UserServicesRuntimeException_NoSuchGroup(globalGroupCode);
 		}
-		addUpdateUserCredential(user.withGlobalGroups(newGlobalGroups));
+		addUpdateUserCredential(user.setGlobalGroups(newGlobalGroups));
 	}
 
 	public String getToken(String serviceKey, String username, String password) {
@@ -793,7 +803,7 @@ public class UserServices {
 	public String generateToken(String username, ReadableDuration duration) {
 		String token = secondaryUniqueIdGenerator.next();
 		LocalDateTime expiry = TimeProvider.getLocalDateTime().plus(duration);
-		UserCredential userCredential = getUser(username).withAccessToken(token, expiry);
+		UserCredential userCredential = getUser(username).addAccessToken(token, expiry);
 		userCredentialsManager.addUpdate(userCredential);
 		return token;
 	}
@@ -803,7 +813,7 @@ public class UserServices {
 		LocalDateTime expiry = unitTime.equals("hours") ?
 							   TimeProvider.getLocalDateTime().plusHours(duration) :
 							   TimeProvider.getLocalDateTime().plusDays(duration);
-		UserCredential userCredential = getUser(username).withAccessToken(token, expiry);
+		UserCredential userCredential = getUser(username).addAccessToken(token, expiry);
 		userCredentialsManager.addUpdate(userCredential);
 		return token;
 	}
@@ -914,7 +924,7 @@ public class UserServices {
 			List<UserCredential> userInGroup = this.getGlobalGroupActifUsers(group.getCode());
 			if ((group.getStatus().equals(GlobalGroupStatus.INACTIVE) && userInGroup.size() == 0)) {
 				globalGroupsManager.logicallyRemoveGroup(group);
-				recordServices.physicallyDelete(((SolrGlobalGroup) group).getWrappedRecord(), User.GOD);
+				recordServices.physicallyDelete(((GlobalGroup) group).getWrappedRecord(), User.GOD);
 			} else if (userInGroup.size() != 0) {
 				groupWithUserList.add(group);
 			}
@@ -993,8 +1003,8 @@ public class UserServices {
 				}
 			}
 		}
-		recordServices.logicallyDelete(((SolrUserCredential) userCredential).getWrappedRecord(), User.GOD);
-		recordServices.physicallyDelete(((SolrUserCredential) userCredential).getWrappedRecord(), User.GOD);
+		recordServices.logicallyDelete(((UserCredential) userCredential).getWrappedRecord(), User.GOD);
+		recordServices.physicallyDelete(((UserCredential) userCredential).getWrappedRecord(), User.GOD);
 	}
 
 	public List<User> safePhysicalDeleteAllUnusedUsers(String collection) {
@@ -1036,7 +1046,7 @@ public class UserServices {
 	public void restoreDeletedGroup(String groupCode, String collection) {
 		GlobalGroup globalGroup = globalGroupsManager.getGlobalGroupWithCode(groupCode);
 		if (globalGroup.getStatus().equals(GlobalGroupStatus.INACTIVE)) {
-			globalGroupsManager.addUpdate(globalGroup.withStatus(GlobalGroupStatus.ACTIVE));
+			globalGroupsManager.addUpdate(globalGroup.setStatus(GlobalGroupStatus.ACTIVE));
 		}
 
 		MetadataSchemaTypes collectionTypes = metadataSchemasManager.getSchemaTypes(collection);
@@ -1143,7 +1153,7 @@ public class UserServices {
 			globalGroup = globalGroupsManager.getGlobalGroupWithCode(group.getCode());
 		} else {
 			SchemasRecordsServices schemas = new SchemasRecordsServices(
-					com.constellio.model.entities.records.wrappers.Collection.SYSTEM_COLLECTION, modelLayerFactory);
+					SYSTEM_COLLECTION, modelLayerFactory);
 			globalGroup = schemas.wrapGlobalGroup(record);
 		}
 
@@ -1161,5 +1171,25 @@ public class UserServices {
 		} else {
 			return true;
 		}
+	}
+
+	public List<User> getUserForEachCollection(UserCredential userCredential) {
+
+		List<User> users = new ArrayList<>();
+		for (String collection : userCredential.getCollections()) {
+			users.add(getUserInCollection(userCredential.getUsername(), collection));
+		}
+
+		return users;
+	}
+
+	public List<Group> getGroupForEachCollection(GlobalGroup globalGroup) {
+
+		List<Group> groups = new ArrayList<>();
+		for (String collection : collectionsListManager.getCollectionsExcludingSystem()) {
+			groups.add(getGroupInCollection(globalGroup.getCode(), collection));
+		}
+
+		return groups;
 	}
 }

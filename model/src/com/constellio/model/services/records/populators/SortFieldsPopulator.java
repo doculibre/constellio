@@ -67,7 +67,7 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 						}
 
 						if (!metadata.getDataStoreCode().equals(sortMetadata.getDataStoreCode())) {
-							fields.put(sortMetadata.getDataStoreCode(), (Object) captionForRecord);
+							populateNormalizedValue(metadata, sortMetadata, captionForRecord, fields);
 						}
 					}
 				}
@@ -75,30 +75,31 @@ public class SortFieldsPopulator extends SeparatedFieldsPopulator implements Fie
 				e.printStackTrace();
 			}
 		} else {
-
-			StringSortFieldNormalizer normalizer = metadata.getSortFieldNormalizer();
-
 			Metadata sortMetadata = getSortMetadata(metadata);
 			if (!locale.equals(types.getCollectionInfo().getMainSystemLocale())) {
 				sortMetadata = sortMetadata.getSecondaryLanguageField(locale.getLanguage());
 			}
 
-			if (normalizer != null) {
-				Object normalizedValue;
-				if (value == null) {
-					normalizedValue = normalizer.normalizeNull();
-				} else {
-					normalizedValue = normalizer.normalize((String) value);
-				}
-				if (normalizedValue == null) {
-					normalizedValue = "";
-				}
-				fields.put(sortMetadata.getDataStoreCode(), normalizedValue);
-
-			}
-
+			populateNormalizedValue(metadata, sortMetadata, value, fields);
 		}
 
 		return fields;
+	}
+
+	private void populateNormalizedValue(Metadata metadata, Metadata sortMetadata,
+								  Object value, Map<String, Object> fields) {
+		StringSortFieldNormalizer normalizer = metadata.getSortFieldNormalizer();
+		if (normalizer != null) {
+			Object normalizedValue;
+			if (value == null) {
+				normalizedValue = normalizer.normalizeNull();
+			} else {
+				normalizedValue = normalizer.normalize((String) value);
+			}
+			if (normalizedValue == null) {
+				normalizedValue = "";
+			}
+			fields.put(sortMetadata.getDataStoreCode(), normalizedValue);
+		}
 	}
 }

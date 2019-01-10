@@ -9,12 +9,10 @@ import com.constellio.model.services.records.RecordValidatorParams;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Charles Blanchette on 2017-03-22.
- */
 public class MediumTypeValidator implements RecordValidator {
 
 	public static final String DM_CODE_MUST_NOT_BE_MODIFIED = "DMcodeMustNotBeModified";
+	public static final String ANALOGICAL_CANNOT_BE_ACTIVATED_ON_CONTENT = "cannotBeAnalogicalAndActivatedOnContent";
 	public static final String CODE = "code";
 
 	@Override
@@ -28,13 +26,17 @@ public class MediumTypeValidator implements RecordValidator {
 
 		try {
 			String oldCode = mediumType.getWrappedRecord().getCopyOfOriginalRecord().get(Schemas.CODE);
-
 			if (oldCode.equals("DM") && !oldCode.equals(mediumType.getCode())) {
 				Map<String, Object> parameters = new HashMap<>();
 				parameters.put(CODE, mediumType.getCode());
 
 				params.getValidationErrors().add(MediumTypeValidator.class, DM_CODE_MUST_NOT_BE_MODIFIED, parameters);
 			}
+
+			if (mediumType.isAnalogical() && mediumType.isActivatedOnContent()) {
+				params.getValidationErrors().add(MediumTypeValidator.class, ANALOGICAL_CANNOT_BE_ACTIVATED_ON_CONTENT);
+			}
+
 		} catch (RecordImplRuntimeException.RecordImplException_UnsupportedOperationOnUnsavedRecord e) {
 		}
 	}

@@ -19,8 +19,6 @@ import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 
 public class TaskTokensCalculator implements MetadataValueCalculator<List<String>> {
 
-	LocalDependency<List<String>> allAuthorizationsParam = LocalDependency
-			.toAStringList(CommonMetadataBuilder.ALL_AUTHORIZATIONS);
 	LocalDependency<List<String>> manualTokensParam = LocalDependency.toAStringList(CommonMetadataBuilder.MANUAL_TOKENS);
 	LocalDependency<String> assigneeParam = LocalDependency.toAReference(Task.ASSIGNEE);
 	LocalDependency<List<String>> assigneeUsersParam = LocalDependency.toAReference(Task.ASSIGNEE_USERS_CANDIDATES)
@@ -94,7 +92,7 @@ public class TaskTokensCalculator implements MetadataValueCalculator<List<String
 
 	@Override
 	public List<? extends Dependency> getDependencies() {
-		return Arrays.asList(allAuthorizationsParam, manualTokensParam, assigneeParam, assigneeGroupsParam, assigneeUsersParam,
+		return Arrays.asList(manualTokensParam, assigneeParam, assigneeGroupsParam, assigneeUsersParam,
 				followersParam, createdByParam, parentTokensParam);
 	}
 

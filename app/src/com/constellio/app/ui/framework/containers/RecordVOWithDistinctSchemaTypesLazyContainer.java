@@ -145,19 +145,21 @@ public class RecordVOWithDistinctSchemaTypesLazyContainer extends LazyQueryConta
 				for (String reportMetadata : reportMetadataList) {
 					if (!propertiesIds.contains(reportMetadata)) {
 						String schemaCode = recordVO.getSchema().getCode();
-						Object value = recordVO.get(schemaCode + "_" + reportMetadata);
-						if (value == null) {
-							value = "";
-						}
+						if(recordVO.getMetadataCodes().contains(schemaCode + "_" + reportMetadata)) {
+							Object value = recordVO.get(schemaCode + "_" + reportMetadata);
+							if (value == null) {
+								value = "";
 
-						addItemProperty(reportMetadata, new ObjectProperty<>(value));
+								addItemProperty(reportMetadata, new ObjectProperty<>(value));
+							}
+						}
 					}
 				}
 			}
-		}
 
-		private interface SerializableQuery extends Query, Serializable {
+			private interface SerializableQuery extends Query, Serializable {
 
+			}
 		}
 	}
 }

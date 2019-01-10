@@ -46,7 +46,26 @@ public class ValueListItemSchemaTypeBuilder {
 		typeBuilder.setLabels(labels);
 		typeBuilder.setSecurity(false);
 
+
 		MetadataSchemaBuilder defaultSchemaBuilder = typeBuilder.getDefaultSchema().setLabels(labels);
+
+
+		defaultSchemaBuilder.create(ValueListItem.COMMENTS).setMultivalue(true)
+				.setType(MetadataValueType.STRUCTURE).defineStructureFactory(CommentFactory.class);
+
+		List<Language> languages = new ArrayList<>(labels.keySet());
+
+		for (MetadataBuilder metadataBuilder : defaultSchemaBuilder.getMetadatas()) {
+			for (Language language : languages) {
+				if (metadataBuilder.getLabel(language) == null
+					|| metadataBuilder.getLabel(language).equals(metadataBuilder.getLocalCode())) {
+					String labelValue = $("init.allTypes.allSchemas." + metadataBuilder.getLocalCode(), language.getLocale());
+					if (labelValue != null) {
+						metadataBuilder.addLabel(language, labelValue);
+					}
+				}
+			}
+		}
 
 		defaultSchemaBuilder.getMetadata(Schemas.TITLE_CODE).setUniqueValue(options.titleUnique)
 				.setDefaultRequirement(true).setMultiLingual(options.isMultilingual());
@@ -54,7 +73,7 @@ public class ValueListItemSchemaTypeBuilder {
 		MetadataBuilder codeMetadata = defaultSchemaBuilder.create(ValueListItem.CODE).setType(
 				MetadataValueType.STRING).setSearchable(true).setUndeletable(true).setSchemaAutocomplete(true);
 
-		List<Language> languages = new ArrayList<>(labels.keySet());
+
 		for (Language language : languages) {
 			codeMetadata.addLabel(language, $("init.valuelist.default.code"));
 		}
@@ -76,8 +95,6 @@ public class ValueListItemSchemaTypeBuilder {
 			descriptionMetadata.addLabel(language, $("init.valuelist.default.description"));
 		}
 
-		defaultSchemaBuilder.create(ValueListItem.COMMENTS).setMultivalue(true)
-				.setType(MetadataValueType.ENUM).defineStructureFactory(CommentFactory.class);
 
 		MetadataBuilder titleMetadata = defaultSchemaBuilder.getMetadata(Schemas.TITLE.getLocalCode()).setSearchable(true);
 		for (Language language : languages) {

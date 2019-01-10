@@ -201,12 +201,12 @@ public class ListPrincipalAccessAuthorizationsPresenterAcceptTest extends Conste
 
 	private org.assertj.core.api.ListAssert<AuthorizationVO> assertThatInheritedAccessAuthorizations() {
 		return assertThat(accessPresenter.getInheritedAuthorizations())
-				.usingElementComparatorIgnoringFields("authId", "userRolesTitles");
+				.usingElementComparatorIgnoringFields("authId", "userRolesTitles", "negative");
 	}
 
 	private org.assertj.core.api.ListAssert<AuthorizationVO> assertThatOwnAccessAuthorizations() {
 		return assertThat(accessPresenter.getOwnAuthorizations())
-				.usingElementComparatorIgnoringFields("authId", "userRolesTitles");
+				.usingElementComparatorIgnoringFields("authId", "userRolesTitles", "negative");
 	}
 
 	private void add(AuthorizationAddRequest authorization) {
@@ -219,7 +219,7 @@ public class ListPrincipalAccessAuthorizationsPresenterAcceptTest extends Conste
 
 	private void givenAliceIsInLegendsGroup() {
 		UserServices userServices = getModelLayerFactory().newUserServices();
-		userServices.addUpdateUserCredential(users.alice().withNewGlobalGroup(users.legends().getCode()));
+		userServices.addUpdateUserCredential(users.alice().addGlobalGroup(users.legends().getCode()));
 	}
 }
 

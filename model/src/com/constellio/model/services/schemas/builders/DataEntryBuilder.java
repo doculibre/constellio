@@ -18,14 +18,19 @@ import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder
 import com.constellio.model.utils.ClassProvider;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import static com.constellio.model.entities.schemas.MetadataValueType.BOOLEAN;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE;
 import static com.constellio.model.entities.schemas.MetadataValueType.DATE_TIME;
 import static com.constellio.model.entities.schemas.MetadataValueType.NUMBER;
 import static com.constellio.model.entities.schemas.MetadataValueType.REFERENCE;
 import static com.constellio.model.entities.schemas.MetadataValueType.STRING;
 import static com.constellio.model.entities.schemas.entries.AggregationType.CALCULATED;
+import static com.constellio.model.entities.schemas.entries.AggregationType.LOGICAL_AND;
+import static com.constellio.model.entities.schemas.entries.AggregationType.LOGICAL_OR;
 import static com.constellio.model.entities.schemas.entries.AggregationType.REFERENCE_COUNT;
 import static com.constellio.model.entities.schemas.entries.AggregationType.VALUES_UNION;
 import static java.util.Arrays.asList;
@@ -221,6 +226,63 @@ public class DataEntryBuilder {
 		if (metadata.getType() == null) {
 			metadata.setType(STRING);
 		}
+		return metadata;
+	}
+
+	public MetadataBuilder asAggregatedOr(MetadataBuilder referenceToAggregatingSchemaType,
+										  MetadataBuilder... booleanMetadatas) {
+		Map<MetadataBuilder, List<MetadataBuilder>> metadataByReferenceMetadata = new HashMap<>();
+		metadataByReferenceMetadata.put(referenceToAggregatingSchemaType, asList(booleanMetadatas));
+		return asLogicalAggregation(metadataByReferenceMetadata, LOGICAL_OR);
+	}
+
+	public MetadataBuilder asAggregatedOr(
+			Map<MetadataBuilder, List<MetadataBuilder>> booleanMetadataByReferenceToAggregatingSchemaType) {
+		return asLogicalAggregation(booleanMetadataByReferenceToAggregatingSchemaType, LOGICAL_OR);
+	}
+
+	public MetadataBuilder asAggregatedAnd(MetadataBuilder referenceToAggregatingSchemaType,
+										   MetadataBuilder... booleanMetadatas) {
+		Map<MetadataBuilder, List<MetadataBuilder>> metadataByReferenceMetadata = new HashMap<>();
+		metadataByReferenceMetadata.put(referenceToAggregatingSchemaType, asList(booleanMetadatas));
+		return asLogicalAggregation(metadataByReferenceMetadata, LOGICAL_AND);
+	}
+
+	public MetadataBuilder asAggregatedAnd(
+			Map<MetadataBuilder, List<MetadataBuilder>> booleanMetadataByReferenceToAggregatingSchemaType) {
+		return asLogicalAggregation(booleanMetadataByReferenceToAggregatingSchemaType, LOGICAL_AND);
+	}
+
+	private MetadataBuilder asLogicalAggregation(
+			Map<MetadataBuilder, List<MetadataBuilder>> booleanMetadataByReferenceToAggregatingSchemaType,
+			AggregationType aggregationType) {
+		if (!metadata.getCode().contains("_default_")) {
+			throw new DataEntryBuilderRuntimeException_AgregatedMetadatasNotSupportedOnCustomSchemas();
+		}
+
+		Map<String, List<String>> booleanMetadataCodesByReferenceMetadataCode = new HashMap<>();
+		for (MetadataBuilder referenceMetadata : booleanMetadataByReferenceToAggregatingSchemaType.keySet()) {
+			if (referenceMetadata.getType() != REFERENCE || referenceMetadata.isMultivalue()) {
+				throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("reference",
+						referenceMetadata.getCode());
+			}
+
+			List<String> metadataCodes = new ArrayList<>();
+			for (MetadataBuilder metadata : booleanMetadataByReferenceToAggregatingSchemaType.get(referenceMetadata)) {
+				if (metadata.getType() != BOOLEAN) {
+					throw new DataEntryBuilderRuntimeException_InvalidMetadataCode("booleanMetadata",
+							metadata.getCode(), BOOLEAN);
+				}
+				metadataCodes.add(metadata.getCode());
+			}
+			booleanMetadataCodesByReferenceMetadataCode.put(referenceMetadata.getCode(), metadataCodes);
+		}
+
+		if (metadata.getType() == null) {
+			metadata.setType(BOOLEAN);
+		}
+
+		metadata.dataEntry = new AggregatedDataEntry(booleanMetadataCodesByReferenceMetadataCode, aggregationType);
 		return metadata;
 	}
 }

@@ -10,7 +10,7 @@ import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.configs.SystemConfigurationsManager;
 import com.constellio.model.services.contents.ContentManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
@@ -21,10 +21,8 @@ import com.constellio.model.services.records.SchemasRecordsServices;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
 import com.constellio.model.services.search.SearchServices;
 import com.constellio.model.services.users.UserServices;
-import com.google.common.base.Strings;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,6 +31,7 @@ public abstract class BaseDao {
 	protected ContentManager contentManager;
 	protected MetadataSchemasManager metadataSchemasManager;
 	protected SystemConfigurationsManager systemConfigurationsManager;
+	protected RestApiConfigs restApiConfigs;
 
 	protected RecordServices recordServices;
 	protected SearchServices searchServices;
@@ -45,6 +44,7 @@ public abstract class BaseDao {
 		contentManager = modelLayerFactory.getContentManager();
 		metadataSchemasManager = modelLayerFactory.getMetadataSchemasManager();
 		systemConfigurationsManager = modelLayerFactory.getSystemConfigurationsManager();
+		restApiConfigs = new RestApiConfigs(modelLayerFactory);
 
 		recordServices = modelLayerFactory.newRecordServices();
 		searchServices = modelLayerFactory.newSearchServices();
@@ -58,7 +58,7 @@ public abstract class BaseDao {
 			return null;
 		}
 
-		return getMetadataValue(userCredential, SolrUserCredential.USERNAME);
+		return getMetadataValue(userCredential, UserCredential.USERNAME);
 	}
 
 	public User getUser(String serviceKey, String collection) {
@@ -89,15 +89,9 @@ public abstract class BaseDao {
 	}
 
 	public List<String> getAllowedHosts() {
-		String value = systemConfigurationsManager.getValue(RestApiConfigs.REST_API_URLS);
-		if (Strings.isNullOrEmpty(value)) {
+		List<String> restApiUrls = restApiConfigs.getRestApiUrls();
+		if (restApiUrls.isEmpty()) {
 			return Collections.singletonList(getServerHost());
-		}
-
-		List<String> restApiUrls = new ArrayList<>();
-		String[] urls = value.split(";");
-		for (String url : urls) {
-			restApiUrls.add((url.trim()));
 		}
 		return restApiUrls;
 	}

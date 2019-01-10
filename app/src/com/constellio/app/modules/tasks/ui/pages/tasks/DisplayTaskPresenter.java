@@ -11,6 +11,7 @@ import com.constellio.app.modules.tasks.ui.builders.TaskToVOBuilder;
 import com.constellio.app.modules.tasks.ui.components.TaskTable.TaskPresenter;
 import com.constellio.app.modules.tasks.ui.components.window.QuickCompleteWindow;
 import com.constellio.app.modules.tasks.ui.entities.TaskVO;
+import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.ui.application.ConstellioUI;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -18,10 +19,12 @@ import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.framework.builders.EventToVOBuilder;
 import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.buttons.report.ReportGeneratorButton;
+import com.constellio.app.ui.framework.components.RMSelectionPanelReportPresenter;
 import com.constellio.app.ui.framework.data.RecordVODataProvider;
 import com.constellio.app.ui.pages.base.BaseView;
 import com.constellio.app.ui.pages.base.SingleSchemaBasePresenter;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.app.ui.util.MessageUtils;
 import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.Record;
 import com.constellio.model.entities.records.wrappers.User;
@@ -29,6 +32,7 @@ import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.entities.structures.MapStringStringStructure;
 import com.constellio.model.services.logging.LoggingServices;
 import com.constellio.model.services.records.RecordServicesException;
+import com.constellio.model.services.records.RecordServicesRuntimeException;
 import com.constellio.model.services.records.RecordUtils;
 import com.constellio.model.services.search.query.logical.LogicalSearchQuery;
 
@@ -214,14 +218,22 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 	}
 
 	public void deleteButtonClicked() {
-		taskPresenterServices.deleteTask(toRecord(taskVO), getCurrentUser());
+		try {
+			taskPresenterServices.deleteTask(toRecord(taskVO), getCurrentUser());
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+			view.showErrorMessage(MessageUtils.toMessage(e));
+		}
 		// TODO: Properly redirect
 		view.navigate().to(TaskViews.class).taskManagement();
 	}
 
 	@Override
 	public void deleteButtonClicked(RecordVO entity) {
-		taskPresenterServices.deleteTask(toRecord(entity), getCurrentUser());
+		try {
+			taskPresenterServices.deleteTask(toRecord(entity), getCurrentUser());
+		} catch (RecordServicesRuntimeException.RecordServicesRuntimeException_CannotLogicallyDeleteRecord e) {
+			view.showErrorMessage(MessageUtils.toMessage(e));
+		}
 		reloadCurrentTask();
 	}
 
@@ -437,5 +449,23 @@ public class DisplayTaskPresenter extends SingleSchemaBasePresenter<DisplayTaskV
 		boolean isClosedOrTerminated = getFinishedOrClosedStatuses().contains(closed);
 
 		return isClosedOrTerminated;
+	}
+
+	public RMSelectionPanelReportPresenter buildReportPresenter() {
+		return new RMSelectionPanelReportPresenter(appLayerFactory, collection, getCurrentUser()) {
+			@Override
+			public String getSelectedSchemaType() {
+				return Task.SCHEMA_TYPE;
+			}
+
+			@Override
+			public List<String> getSelectedRecordIds() {
+				return asList(taskVO.getId());
+			}
+		};
+	}
+
+	public AppLayerFactory getApplayerFactory() {
+		return appLayerFactory;
 	}
 }

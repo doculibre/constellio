@@ -14,7 +14,7 @@ import com.constellio.model.conf.ldap.config.LDAPServerConfiguration;
 import com.constellio.model.conf.ldap.config.LDAPUserSyncConfiguration;
 import com.constellio.model.services.encrypt.EncryptionServices;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.users.UserCredentialsManager;
+import com.constellio.model.services.users.SolrUserCredentialsManager;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -63,7 +63,7 @@ public class CoreMigrationTo_5_1_3 implements MigrationScript {
 		}
 	}
 
-	private static void encryptUserTokens(UserCredentialsManager userCredentialsManager) {
+	private static void encryptUserTokens(SolrUserCredentialsManager userCredentialsManager) {
 		userCredentialsManager.rewrite();
 	}
 

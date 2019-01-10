@@ -90,7 +90,7 @@ public class EsRmRobotActionParametersFieldFactory extends RecordFieldFactory im
 			super.postBuild(field, recordVO, metadataVO);
 		} else {
 			if (code.equals(DEFAULT_UNIFORM_SUBDIVISION)) {
-				uniformSubdivisionField = (LookupRecordField) super.build(recordVO, metadataVO);
+				uniformSubdivisionField = (LookupRecordField) super.build(recordVO, metadataVO, locale);
 				presenter.subdivisionFieldCreated();
 				return uniformSubdivisionField;
 			}

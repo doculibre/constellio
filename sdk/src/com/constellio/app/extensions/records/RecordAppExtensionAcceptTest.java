@@ -10,7 +10,7 @@ import com.constellio.app.modules.es.services.ConnectorManager;
 import com.constellio.app.modules.es.services.ESSchemasRecordsServices;
 import com.constellio.app.modules.rm.RMTestRecords;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
-import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentBreadcrumbTrail;
+import com.constellio.app.modules.rm.ui.components.breadcrumb.FolderDocumentContainerBreadcrumbTrail;
 import com.constellio.app.modules.rm.ui.pages.folder.AddEditFolderView;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderPresenter;
 import com.constellio.app.modules.rm.ui.pages.folder.DisplayFolderView;
@@ -118,9 +118,9 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
 				.getIconForRecord(new GetIconPathParams(records.getFolder_A01().getWrappedRecord(), false));
 
-		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder/folder.png")
+		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder2/yellow_hybrid_folder_closed.png")
 				.isEqualTo(iconPath);
-		assertThat(recordVO.getExtension()).isEqualTo("folder");
+		assertThat(recordVO.getExtension()).isEqualTo("yellow_hybrid_folder_closed");
 		assertThat(recordVO.getNiceTitle()).isEqualTo("niceTitle");
 	}
 
@@ -132,9 +132,9 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
 				.getIconForRecord(new GetIconPathParams(records.getFolder_C30().getWrappedRecord(), false));
 
-		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder/folder_orange.png")
+		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder2/orange_hybrid_folder_closed.png")
 				.isEqualTo(iconPath);
-		assertThat(recordVO.getExtension()).isEqualTo("folder_orange");
+		assertThat(recordVO.getExtension()).isEqualTo("orange_hybrid_folder_closed");
 	}
 
 	@Test
@@ -145,9 +145,9 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
 				.getIconForRecord(new GetIconPathParams(records.getFolder_A79().getWrappedRecord(), false));
 
-		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder/folder_purple.png")
+		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder2/purple_hybrid_folder_closed.png")
 				.isEqualTo(iconPath);
-		assertThat(recordVO.getExtension()).isEqualTo("folder_purple");
+		assertThat(recordVO.getExtension()).isEqualTo("purple_hybrid_folder_closed");
 	}
 
 	@Test
@@ -158,8 +158,8 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 		String iconPath = getAppLayerFactory().getExtensions().forCollection(zeCollection)
 				.getIconForRecord(new GetIconPathParams(records.getFolder_A80().getWrappedRecord(), false));
 
-		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder/folder_grey.png").isEqualTo(iconPath);
-		assertThat(recordVO.getExtension()).isEqualTo("folder_grey");
+		assertThat(recordVO.getResourceKey()).isEqualTo("images/icons/folder2/grey_hybrid_folder_closed.png").isEqualTo(iconPath);
+		assertThat(recordVO.getExtension()).isEqualTo("grey_hybrid_folder_closed");
 	}
 
 	@Test
@@ -215,7 +215,7 @@ public class RecordAppExtensionAcceptTest extends ConstellioTest {
 		MockedNavigation navigator = new MockedNavigation();
 
 		UIContext uiContext = mock(UIContext.class);
-		when(uiContext.getAttribute(FolderDocumentBreadcrumbTrail.TAXONOMY_CODE)).thenReturn(null);
+		when(uiContext.getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE)).thenReturn(null);
 		when(displayFolderView.getConstellioFactories()).thenReturn(getConstellioFactories());
 		when(displayFolderView.getSessionContext()).thenReturn(FakeSessionContext.gandalfInCollection(zeCollection));
 		when(displayFolderView.getUIContext()).thenReturn(uiContext);

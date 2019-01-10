@@ -158,7 +158,6 @@ public class EnglishSimpleSearchReliabilityAcceptanceTest extends ConstellioTest
 
 	private List<String> simpleSearch(String terms) {
 
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
 		LOGGER.info("Simple search with terms : " + terms);
 
 		LogicalSearchQuery query = new LogicalSearchQuery();

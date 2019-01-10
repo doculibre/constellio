@@ -1,6 +1,5 @@
 package com.constellio.app.ui.pages.management.ExcelReport;
 
-import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.ui.application.Navigation;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.RecordVO;
@@ -8,12 +7,14 @@ import com.constellio.app.ui.framework.buttons.AddButton;
 import com.constellio.app.ui.framework.buttons.DeleteButton;
 import com.constellio.app.ui.framework.buttons.DisplayButton;
 import com.constellio.app.ui.framework.buttons.EditButton;
+import com.constellio.app.ui.framework.components.TabWithTable;
 import com.constellio.app.ui.framework.components.breadcrumb.BaseBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.breadcrumb.IntermediateBreadCrumbTailItem;
 import com.constellio.app.ui.framework.components.breadcrumb.TitleBreadcrumbTrail;
 import com.constellio.app.ui.framework.components.table.RecordVOTable;
 import com.constellio.app.ui.framework.containers.ButtonsContainer;
 import com.constellio.app.ui.framework.containers.RecordVOLazyContainer;
+import com.constellio.app.ui.framework.items.RecordVOItem;
 import com.constellio.app.ui.pages.base.BaseViewImpl;
 import com.constellio.app.ui.params.ParamUtils;
 import com.constellio.model.services.schemas.MetadataSchemasManager;
@@ -25,6 +26,7 @@ import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,10 +38,10 @@ import static com.constellio.app.ui.i18n.i18n.$;
 public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelReportView {
 	public static final String TYPE_TABLE = "types";
 
-	public Map<String, String> POSSIBLE_TAB;
 	private ListExcelReportPresenter presenter;
 	private String currentSchema;
 	private TabSheet tabSheet;
+	List<TabWithTable> tabs = new ArrayList<>();
 
 	@Override
 	protected BaseBreadcrumbTrail buildBreadcrumbTrail() {
@@ -72,18 +74,24 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
 		MetadataSchemasManager metadataSchemasManager = getConstellioFactories().getAppLayerFactory().getModelLayerFactory()
 				.getMetadataSchemasManager();
 		presenter = new ListExcelReportPresenter(this);
-		POSSIBLE_TAB = presenter.initPossibleTab();
 	}
 
 	@Override
 	protected Component buildMainComponent(ViewChangeListener.ViewChangeEvent event) {
 		tabSheet = new TabSheet();
-		Iterator<Map.Entry<String, String>> possibleTabIterator = POSSIBLE_TAB.entrySet().iterator();
+		Iterator<Map.Entry<String, String>> possibleTabIterator = presenter.initPossibleTab().entrySet().iterator();
 		while (possibleTabIterator.hasNext()) {
-			Map.Entry<String, String> entry = possibleTabIterator.next();
-			tabSheet.addTab(generateTab(entry.getValue()), entry.getKey());
+			final Map.Entry<String, String> entry = possibleTabIterator.next();
+			TabWithTable tab = new TabWithTable(entry.getKey()) {
+				@Override
+				public Table buildTable() {
+					return generateTab(entry.getKey());
+				}
+			};
+			tabs.add(tab);
+			tabSheet.addTab(tab.getTabLayout(), entry.getValue());
 			if (currentSchema == null) {
-				currentSchema = entry.getValue();
+				currentSchema = entry.getKey();
 			}
 		}
 		tabSheet.addSelectedTabChangeListener(new TabsChangeListener());
@@ -96,24 +104,27 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
 		buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new ListExcelReportViewImpl.ExcelDisplayButton(itemId, schemaType);
+				RecordVO report = ((RecordVOItem) container.getItem(itemId)).getRecord();
+				return new ListExcelReportViewImpl.ExcelDisplayButton(report);
 			}
 		});
 		buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new ListExcelReportViewImpl.ExcelEditButton(itemId, schemaType);
+				RecordVO report = ((RecordVOItem) container.getItem(itemId)).getRecord();
+				return new ListExcelReportViewImpl.ExcelEditButton(report);
 			}
 		});
 		buttonsContainerForFolder.addButton(new ButtonsContainer.ContainerButton() {
 
 			@Override
 			protected Button newButtonInstance(final Object itemId, ButtonsContainer<?> container) {
-				return new ListExcelReportViewImpl.ExcelDeleteButton(itemId, schemaType);
+				RecordVO report = ((RecordVOItem) container.getItem(itemId)).getRecord();
+				return new ListExcelReportViewImpl.ExcelDeleteButton(report);
 			}
 		});
 		container = buttonsContainerForFolder;
-		Table table = new RecordVOTable($("ListSchemaTypeView.tableTitle"), buttonsContainerForFolder);
+		Table table = new RecordVOTable(buttonsContainerForFolder);
 		table.setSizeFull();
 		table.setPageLength(Math.min(15, container.size()));
 		table.setColumnHeader("buttons", "");
@@ -137,26 +148,20 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
 	}
 
 	private class ExcelEditButton extends EditButton {
-		private String itemId;
-		private String currentSchema;
+		private RecordVO report;
 
-		public ExcelEditButton(Object itemId, String currentSchema) {
-			RecordVO item = presenter.getRecordsWithIndex(currentSchema, itemId + "");
-			if (item != null) {
-				this.itemId = item.getId();
-				this.currentSchema = currentSchema;
-			}
+		public ExcelEditButton(RecordVO report) {
+			this.report = report;
 		}
 
 		@Override
 		protected void buttonClick(ClickEvent event) {
-			presenter.editButtonClicked(itemId, currentSchema);
+			presenter.editButtonClicked(report.getId(), currentSchema);
 		}
 
 		@Override
 		public boolean isVisible() {
-			RecordVO ret = presenter.getRecordsWithIndex(currentSchema, itemId);
-			return !(super.isVisible() && ret != null) || ret.get(Printable.ISDELETABLE).equals(true);
+			return true;
 		}
 	}
 
@@ -166,44 +171,33 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
 	}
 
 	private class ExcelDisplayButton extends DisplayButton {
-		private String itemId;
-		private String currentSchema;
+		private RecordVO report;
 
-		public ExcelDisplayButton(Object itemId, String currentSchema) {
-			RecordVO item = presenter.getRecordsWithIndex(currentSchema, itemId + "");
-			if (item != null) {
-				this.itemId = item.getId();
-				this.currentSchema = currentSchema;
-			}
+		public ExcelDisplayButton(RecordVO report) {
+			this.report = report;
 		}
 
 		@Override
 		protected void buttonClick(ClickEvent event) {
-			presenter.displayButtonClicked(itemId, currentSchema);
+			presenter.displayButtonClicked(report.getId(), currentSchema);
 		}
 	}
 
 	private class ExcelDeleteButton extends DeleteButton {
-		private String itemId;
-		private String currentSchema;
+		private RecordVO report;
 
-		public ExcelDeleteButton(Object itemId, String currentSchema) {
-			RecordVO item = presenter.getRecordsWithIndex(currentSchema, itemId + "");
-			if (item != null) {
-				this.itemId = item.getId();
-				this.currentSchema = currentSchema;
-			}
+		public ExcelDeleteButton(RecordVO report) {
+			this.report = report;
 		}
 
 		@Override
 		protected void confirmButtonClick(ConfirmDialog dialog) {
-			presenter.removeRecord(itemId, currentSchema);
+			presenter.removeRecord(report.getId(), currentSchema);
 		}
 
 		@Override
 		public boolean isVisible() {
-			RecordVO ret = presenter.getRecordsWithIndex(currentSchema, itemId);
-			return !(super.isVisible() && ret != null) || ret.get(Printable.ISDELETABLE).equals(true);
+			return true;
 		}
 	}
 
@@ -211,10 +205,12 @@ public class ListExcelReportViewImpl extends BaseViewImpl implements ListExcelRe
 
 		@Override
 		public void selectedTabChange(TabSheet.SelectedTabChangeEvent event) {
-			TabSheet eventSource = (TabSheet) event.getSource();
-			TabSheet.Tab tab = eventSource.getTab(eventSource.getSelectedTab());
-			if (POSSIBLE_TAB.containsKey(tab.getCaption())) {
-				currentSchema = POSSIBLE_TAB.get(tab.getCaption());
+			for (TabWithTable tab : tabs) {
+				if (tab.getTabLayout().equals(event.getTabSheet().getSelectedTab())) {
+					tab.refreshTable();
+					currentSchema = (String) tab.getId();
+					break;
+				}
 			}
 		}
 	}

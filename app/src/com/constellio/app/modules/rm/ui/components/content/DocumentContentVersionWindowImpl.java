@@ -22,6 +22,8 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
+import java.util.Map;
+
 import static com.constellio.app.ui.i18n.i18n.$;
 
 public class DocumentContentVersionWindowImpl extends VerticalLayout implements DocumentContentVersionWindow {
@@ -46,11 +48,11 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 
 	private DocumentContentVersionPresenter presenter;
 
-	public DocumentContentVersionWindowImpl(RecordVO recordVO, ContentVersionVO contentVersionVO) {
+
+	public DocumentContentVersionWindowImpl(RecordVO recordVO, ContentVersionVO contentVersionVO, Map<String,String> params) {
 		this.recordVO = recordVO;
 		this.contentVersionVO = contentVersionVO;
-
-		this.presenter = new DocumentContentVersionPresenter(this);
+		this.presenter = new DocumentContentVersionPresenter(this, params);
 
 		setSpacing(true);
 		setWidth("90%");
@@ -59,14 +61,6 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 		readOnlyLabel = new Label(readOnlyMessage);
 		readOnlyLabel.addStyleName(ValoTheme.LABEL_H2);
 		readOnlyLabel.setVisible(readOnlyMessage != null);
-
-		displayDocumentLink = new Button($("DocumentContentVersionWindow.displayDocumentLinkCaption"), new ClickListener() {
-			@Override
-			public void buttonClick(ClickEvent event) {
-				presenter.displayDocumentLinkClicked();
-			}
-		});
-		displayDocumentLink.addStyleName(ValoTheme.BUTTON_LINK);
 
 		if (agentURL != null) {
 			Resource icon = FileIconUtils.getIcon(recordVO);
@@ -92,7 +86,18 @@ public class DocumentContentVersionWindowImpl extends VerticalLayout implements 
 		checkOutLink.addStyleName(ValoTheme.BUTTON_LINK);
 		checkOutLink.setVisible(checkOutLinkVisible);
 
-		addComponents(readOnlyLabel, displayDocumentLink, openOrDownloadLink, checkOutLink);
+		if (presenter.isNavigationStateDocumentView()) {
+			addComponents(readOnlyLabel, openOrDownloadLink, checkOutLink);
+		} else {
+			displayDocumentLink = new Button($("DocumentContentVersionWindow.displayDocumentLinkCaption"), new ClickListener() {
+				@Override
+				public void buttonClick(ClickEvent event) {
+					presenter.displayDocumentLinkClicked();
+				}
+			});
+			displayDocumentLink.addStyleName(ValoTheme.BUTTON_LINK);
+			addComponents(readOnlyLabel, displayDocumentLink, openOrDownloadLink, checkOutLink);
+		}
 	}
 
 	@Override

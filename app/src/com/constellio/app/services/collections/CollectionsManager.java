@@ -31,10 +31,9 @@ import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.entities.schemas.Schemas;
-import com.constellio.model.entities.security.global.SolrUserCredential;
+import com.constellio.model.entities.security.global.UserCredential;
 import com.constellio.model.services.collections.CollectionsListManager;
 import com.constellio.model.services.factories.ModelLayerFactory;
-import com.constellio.model.services.factories.SystemCollectionListener;
 import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.records.RecordServicesRuntimeException;
@@ -91,28 +90,22 @@ public class CollectionsManager implements StatefulService {
 			createSystemCollection();
 
 		}
-		if (!modelLayerFactory.getMetadataSchemasManager().getSchemaTypes(Collection.SYSTEM_COLLECTION)
-				.hasType(SolrUserCredential.SCHEMA_TYPE)) {
-			initializeSystemCollection();
-		}
 
 		disableCollectionsWithoutSchemas();
 
-		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
-		if (!schemas.getTypes().hasType(SolrUserCredential.SCHEMA_TYPE)) {
-			for (SystemCollectionListener listener : modelLayerFactory.getSystemCollectionListeners()) {
-				listener.systemCollectionCreated();
-			}
-		}
+		initializeSystemCollection();
 
-		schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
+	}
+
+	protected void initializeSystemCollection() {
+		SchemasRecordsServices schemas = new SchemasRecordsServices(Collection.SYSTEM_COLLECTION, modelLayerFactory);
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(Collection.SYSTEM_COLLECTION);
 
-		if (schemas.getTypes().hasType(SolrUserCredential.SCHEMA_TYPE)) {
+		if (schemas.getTypes().hasType(UserCredential.SCHEMA_TYPE)) {
 			cache.configureCache(CacheConfig.permanentCache(schemas.credentialSchemaType()));
 			cache.configureCache(CacheConfig.permanentCache(schemas.globalGroupSchemaType()));
+			cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(schemas.collectionSchemaType()));
 		}
-
 	}
 
 	private void disableCollectionsWithoutSchemas() {
@@ -135,12 +128,6 @@ public class CollectionsManager implements StatefulService {
 		String mainDataLanguage = modelLayerFactory.getConfiguration().getMainDataLanguage();
 		List<String> languages = asList(mainDataLanguage);
 		createCollectionInCurrentVersion(Collection.SYSTEM_COLLECTION, languages);
-	}
-
-	private void initializeSystemCollection() {
-		for (SystemCollectionListener listener : modelLayerFactory.getSystemCollectionListeners()) {
-			listener.systemCollectionCreated();
-		}
 	}
 
 	public List<String> getCollectionCodes() {
@@ -195,7 +182,6 @@ public class CollectionsManager implements StatefulService {
 		CollectionInfo collectionInfo = getCollectionInfo(code);
 		modelLayerFactory.getMetadataSchemasManager().createCollectionSchemas(collectionInfo);
 		modelLayerFactory.getTaxonomiesManager().createCollectionTaxonomies(code);
-		modelLayerFactory.getAuthorizationDetailsManager().createCollectionAuthorizationDetail(code);
 		modelLayerFactory.getRolesManager().createCollectionRole(code);
 		modelLayerFactory.getSearchBoostManager().createCollectionSearchBoost(code);
 		modelLayerFactory.getSearchConfigurationsManager().createCollectionElevations(code);
@@ -258,17 +244,6 @@ public class CollectionsManager implements StatefulService {
 	private void removeFromCollectionsListManager(final String collection) {
 		collectionsListManager.remove(collection);
 	}
-
-	// private PropertiesAlteration newRemoveCollectionPropertiesAlteration(final String collection) {
-	// return new PropertiesAlteration() {
-	// @Override
-	// public void alter(Map<String, String> properties) {
-	// if (properties.containsKey(collection + "_version")) {
-	// properties.remove(collection + "_version");
-	// }
-	// }
-	// };
-	// }
 
 	TransactionDTO newTransactionDTO() {
 		return new TransactionDTO(RecordsFlushing.NOW);
@@ -374,6 +349,13 @@ public class CollectionsManager implements StatefulService {
 	}
 
 	void initializeCollection(String collection) {
+		if (!Collection.SYSTEM_COLLECTION.equals(collection)) {
+			initializeCollectionCaches(collection);
+		}
+		ConstellioEIM.start(appLayerFactory, collection);
+	}
+
+	private void initializeCollectionCaches(String collection) {
 		RecordsCache cache = modelLayerFactory.getRecordsCaches().getCache(collection);
 		SchemasRecordsServices core = new SchemasRecordsServices(collection, modelLayerFactory);
 		if (!cache.isConfigured(core.userSchemaType())) {
@@ -383,10 +365,10 @@ public class CollectionsManager implements StatefulService {
 			cache.configureCache(CacheConfig.permanentCache(core.groupSchemaType()));
 		}
 		if (!cache.isConfigured(core.collectionSchemaType())) {
-			cache.configureCache(CacheConfig.permanentCache(core.collectionSchemaType()));
+			cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(core.collectionSchemaType()));
 		}
 		if (!cache.isConfigured(core.facetSchemaType())) {
-			cache.configureCache(CacheConfig.permanentCache(core.facetSchemaType()));
+			cache.configureCache(CacheConfig.permanentCacheNotLoadedInitially(core.facetSchemaType()));
 		}
 		if (!cache.isConfigured(core.authorizationDetails.schemaType())) {
 			cache.configureCache(CacheConfig.permanentCache(core.authorizationDetails.schemaType()));
@@ -399,7 +381,6 @@ public class CollectionsManager implements StatefulService {
 				cache.configureCache(CacheConfig.permanentCache(types.getSchemaType(schemaType)));
 			}
 		}
-		ConstellioEIM.start(appLayerFactory, collection);
 	}
 
 	public CollectionInfo getCollectionInfo(String collectionCode) {

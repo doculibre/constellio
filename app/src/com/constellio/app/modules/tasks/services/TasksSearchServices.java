@@ -1,5 +1,6 @@
 package com.constellio.app.modules.tasks.services;
 
+import com.constellio.app.modules.tasks.caches.UnreadTasksUserCache;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus;
 import com.constellio.app.modules.tasks.model.wrappers.types.TaskType;
 import com.constellio.model.entities.records.Record;
@@ -14,6 +15,7 @@ import org.joda.time.LocalDate;
 
 import java.util.List;
 
+import static com.constellio.app.modules.tasks.caches.UnreadTasksUserCache.NAME;
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.CLOSED;
 import static com.constellio.app.modules.tasks.model.wrappers.TaskStatusType.FINISHED;
 import static com.constellio.app.modules.tasks.model.wrappers.types.TaskStatus.CLOSED_CODE;
@@ -75,6 +77,18 @@ public class TasksSearchServices {
 	}
 
 	public long getCountUnreadTasksToUserQuery(User user) {
+
+		UnreadTasksUserCache cache = tasksSchemas.getModelLayerFactory().getCachesManager().getUserCache(NAME);
+		Long cachedValue = cache.getCachedUnreadTasks(user);
+		if (cachedValue == null) {
+			cachedValue = calculateCountUnreadTasksToUserQuery(user);
+			cache.insertUnreadTasks(user, cachedValue);
+		}
+
+		return cachedValue;
+	}
+
+	private long calculateCountUnreadTasksToUserQuery(User user) {
 		LogicalSearchCondition condition = from(tasksSchemas.userTask.schemaType()).whereAllConditions(
 				where(tasksSchemas.userTask.readByUser()).isFalse(),
 				where(tasksSchemas.userTask.isModel()).isFalseOrNull(),

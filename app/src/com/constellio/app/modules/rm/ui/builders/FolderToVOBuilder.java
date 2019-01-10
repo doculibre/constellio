@@ -17,7 +17,7 @@ public class FolderToVOBuilder extends RecordToVOBuilder {
 	}
 
 	@Override
-	protected FolderVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode) {
-		return new FolderVO(id, metadataValueVOs, viewMode);
+	protected FolderVO newRecordVO(String id, List<MetadataValueVO> metadataValueVOs, VIEW_MODE viewMode, List<String> excludedMetadata) {
+		return new FolderVO(id, metadataValueVOs, viewMode, excludedMetadata);
 	}
 }

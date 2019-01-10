@@ -1,6 +1,7 @@
 package com.constellio.app.ui.pages.management.schemas.display.table;
 
 import com.constellio.app.entities.schemasDisplay.SchemaDisplayConfig;
+import com.constellio.app.entities.schemasDisplay.SchemaTypeDisplayConfig;
 import com.constellio.app.services.schemasDisplay.SchemasDisplayManager;
 import com.constellio.app.ui.application.NavigatorConfigurationService;
 import com.constellio.app.ui.entities.FormMetadataVO;
@@ -13,6 +14,7 @@ import com.constellio.model.entities.CorePermissions;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.Metadata;
 import com.constellio.model.entities.schemas.MetadataSchema;
+import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.MetadataValueType;
 import com.constellio.model.entities.schemas.Schemas;
 import com.constellio.model.services.schemas.MetadataList;
@@ -51,6 +53,7 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 
 	public List<FormMetadataVO> getMetadatas() {
 		MetadataSchemasManager schemasManager = modelLayerFactory.getMetadataSchemasManager();
+		MetadataSchemaType schemaType = schemasManager.getSchemaTypes(collection).getSchemaType(SchemaUtils.getSchemaTypeCode(getSchemaCode()));
 		MetadataList list = schemasManager.getSchemaTypes(collection).getSchema(getSchemaCode()).getMetadatas();
 		SchemasDisplayManager displayManager = appLayerFactory.getMetadataSchemasDisplayManager();
 
@@ -59,7 +62,7 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 		for (Metadata metadata : list) {
 			FormMetadataVO metadataVO = builder
 					.build(metadata, displayManager, parameters.get("schemaTypeCode"), view.getSessionContext());
-			if (this.isAllowedMetadata(metadataVO)) {
+			if (isAllowedMetadata(metadataVO, metadata, schemaType)) {
 				formMetadataVOs.add(metadataVO);
 			}
 		}
@@ -93,13 +96,13 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 		return formMetadataVOs;
 	}
 
-	private boolean isAllowedMetadata(FormMetadataVO metadataVO) {
+	private boolean isAllowedMetadata(FormMetadataVO metadataVO, Metadata metadata, MetadataSchemaType schemaType) {
 		boolean result;
 		List<Metadata> restrictedMetadata = Arrays.asList(Schemas.SCHEMA, Schemas.VERSION, Schemas.PATH, Schemas.PRINCIPAL_PATH,
-				Schemas.PARENT_PATH, Schemas.ALL_REMOVED_AUTHS, Schemas.REMOVED_AUTHORIZATIONS,
+				Schemas.ALL_REMOVED_AUTHS, Schemas.REMOVED_AUTHORIZATIONS,
 				Schemas.ATTACHED_ANCESTORS, Schemas.IS_DETACHED_AUTHORIZATIONS, Schemas.TOKENS, Schemas.COLLECTION,
-				Schemas.FOLLOWERS, Schemas.LOGICALLY_DELETED_STATUS, Schemas.SHARE_DENY_TOKENS, Schemas.SHARE_TOKENS,
-				Schemas.DENY_TOKENS, Schemas.SEARCHABLE);
+				Schemas.LOGICALLY_DELETED_STATUS, Schemas.SHARE_DENY_TOKENS, Schemas.SHARE_TOKENS,
+				Schemas.DENY_TOKENS);
 
 		List<MetadataValueType> restrictedType = Arrays.asList(MetadataValueType.STRUCTURE, MetadataValueType.CONTENT);
 
@@ -107,7 +110,21 @@ public class TableDisplayConfigPresenter extends SingleSchemaBasePresenter<Table
 
 		result = !restrictedType.contains(metadataVO.getValueType()) && !localCodes.contains(metadataVO.getLocalcode());
 
-		return result && metadataVO.isEnabled();
+		return result && (isEnabledInAtLeastOneSchema(metadataVO, metadata, schemaType));
+	}
+
+	private boolean isEnabledInAtLeastOneSchema(FormMetadataVO metadataVO, Metadata metadata, MetadataSchemaType schemaType) {
+		if(metadataVO.isEnabled()) {
+			return true;
+		} else {
+			List<MetadataSchema> allSchemas = schemaType.getAllSchemas();
+			for(MetadataSchema schema: allSchemas) {
+				if(schema.hasMetadataWithCode(metadata.getLocalCode()) && schema.getMetadata(metadata.getLocalCode()).isEnabled()) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	public void saveButtonClicked(List<FormMetadataVO> formMetadataVOs) {

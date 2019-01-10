@@ -69,4 +69,8 @@ public class ListAddRemoveTaskFollowerField extends ListAddRemoveField<TaskFollo
 				taskFollower.getFollowTaskCompleted(), taskFollower.getFollowTaskDeleted());
 	}
 
+	public void addTaskFollower(TaskFollower taskFollower) {
+		getAddEditField().setValue(toTaskFollowerVO(taskFollower));
+		tryAdd();
+	}
 }

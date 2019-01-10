@@ -22,8 +22,12 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 
 	private String viewTitle;
 
-	@SuppressWarnings("unchecked")
 	public TitleBreadcrumbTrail(final BaseView view, final String viewTitle) {
+		this(view, viewTitle, true);
+	}
+
+	@SuppressWarnings("unchecked")
+	public TitleBreadcrumbTrail(final BaseView view, final String viewTitle, boolean checkForInterface) {
 		this.view = view;
 		this.viewTitle = viewTitle;
 
@@ -32,26 +36,30 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 			addItem(new CollectionBreadcrumbItem(collectionCode));
 		}
 
-		Class<? extends MenuViewGroup> viewGroupClass = null;
-		String viewGroupLabel = null;
-		List<Class<?>> implementedInterfaces = ClassUtils.getAllInterfaces(view.getClass());
-		for (Class<?> implementedInterface : implementedInterfaces) {
-			if (!MenuViewGroup.class.equals(implementedInterface) && MenuViewGroup.class.isAssignableFrom(implementedInterface)) {
-				String className = implementedInterface.getSimpleName();
-				String key = "ViewGroup." + className;
-				viewGroupLabel = $(key);
-				if (key.equals(viewGroupLabel)) {
-					viewGroupLabel = null;
-				} else {
-					viewGroupClass = (Class<? extends MenuViewGroup>) implementedInterface;
-					break;
+
+			Class<? extends MenuViewGroup> viewGroupClass = null;
+			String viewGroupLabel = null;
+			List<Class<?>> implementedInterfaces = ClassUtils.getAllInterfaces(view.getClass());
+			if(checkForInterface) {
+				for (Class<?> implementedInterface : implementedInterfaces) {
+					if (!MenuViewGroup.class.equals(implementedInterface) && MenuViewGroup.class.isAssignableFrom(implementedInterface)) {
+						String className = implementedInterface.getSimpleName();
+						String key = "ViewGroup." + className;
+						viewGroupLabel = $(key);
+						if (key.equals(viewGroupLabel)) {
+							viewGroupLabel = null;
+						} else {
+							viewGroupClass = (Class<? extends MenuViewGroup>) implementedInterface;
+							break;
+						}
+					}
 				}
+
+			if (StringUtils.isNotBlank(viewGroupLabel)) {
+				addItem(new ViewGroupBreadcrumbItem(viewGroupClass, viewGroupLabel));
 			}
 		}
 
-		if (StringUtils.isNotBlank(viewGroupLabel)) {
-			addItem(new ViewGroupBreadcrumbItem(viewGroupClass, viewGroupLabel));
-		}
 
 		List<? extends IntermediateBreadCrumbTailItem> intermediateBreadCrumbTailItems = getIntermediateItems();
 		if (!intermediateBreadCrumbTailItems.isEmpty()) {
@@ -93,11 +101,11 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		}
 	}
 
-	class CurrentViewItem implements BreadcrumbItem {
+	public static class CurrentViewItem implements BreadcrumbItem {
 
 		private String viewTitle;
 
-		CurrentViewItem(String viewTitle) {
+		public CurrentViewItem(String viewTitle) {
 			this.viewTitle = viewTitle;
 		}
 
@@ -112,9 +120,8 @@ public class TitleBreadcrumbTrail extends BaseBreadcrumbTrail {
 		}
 
 	}
-
-	class ViewGroupBreadcrumbItem implements BreadcrumbItem {
-
+	
+	protected class ViewGroupBreadcrumbItem implements BreadcrumbItem {
 		private Class<? extends MenuViewGroup> viewGroupClass;
 
 		private String viewGroupLabel;

@@ -57,14 +57,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.constellio.app.modules.es.connectors.ConnectorServicesFactory.forConnectorInstance;
 import static com.constellio.app.ui.i18n.i18n.$;
 import static com.constellio.model.services.schemas.SchemaUtils.getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship;
+import static java.util.Arrays.asList;
 
 public class ClassifyConnectorRecordInTaxonomyExecutor {
 
@@ -228,11 +229,12 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		if (rmRecord == null) {
 			String folderTypeId = params.getFolderTypeId();
 			Record parentConcept = recordUrlInfo.getConceptWhereRecordIsCreated();
+			List<String> calculatedMetadatas = new ArrayList<>();
 			if (parentConcept != null) {
 				rmFolder = classifyFolderInConcept(fullConnectorDocPath, targetTaxonomy, folderName, folderSchema, parentConcept,
-						folderTypeId);
+						folderTypeId, calculatedMetadatas);
 			} else if (targetTaxonomy != null) {
-				rmFolder = classifyFolderInParentFolder(fullConnectorDocPath, folderName, folderTypeId);
+				rmFolder = classifyFolderInParentFolder(fullConnectorDocPath, folderName, folderTypeId, calculatedMetadatas);
 			} else {
 				if (folderTypeId != null) {
 					rmFolder = rm.newFolderWithType(folderTypeId);
@@ -243,7 +245,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				rmFolder.setCreatedByRobot(robotId);
 			}
 			RecordUtils.copyMetadatas(connectorFolder, rmFolder);
-			mapFolderMetadataFromMappingFile(folderName, rmFolder, fullConnectorDocPath);
+			mapFolderMetadataFromMappingFile(folderName, rmFolder, fullConnectorDocPath, calculatedMetadatas, true);
 			try {
 				recordServices.validateRecordInTransaction(rmFolder.getWrappedRecord(), transaction);
 			} catch (ValidationException e) {
@@ -252,7 +254,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			classifyDocumentsFromFolder(rmFolder);
 		} else {
 			rmFolder = rm.wrapFolder(rmRecord);
-			mapFolderMetadataFromMappingFile(folderName, rmFolder, fullConnectorDocPath);
+			mapFolderMetadataFromMappingFile(folderName, rmFolder, fullConnectorDocPath, new ArrayList<String>(), false);
 			classifyDocumentsFromFolder(rmFolder);
 		}
 		// if (params.getActionAfterClassification().isConnectorDocumentExcluded()) {
@@ -268,6 +270,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		Folder rmFolder;
 		String parentPath = getParentPath(url, folderName);
 		Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
+		boolean isANewFolder;
 
 		if (rmRecord == null) {
 			String folderTypeId = params.getFolderTypeId();
@@ -278,14 +281,16 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			}
 			rmFolder.setTitle(folderName);
 			rmFolder.setLegacyId(url);
+			isANewFolder = true;
 
 		} else {
 			rmFolder = rm.wrapFolder(rmRecord);
 			rmFolder.getWrappedRecord().set(Schemas.LOGICALLY_DELETED_STATUS, false);
+			isANewFolder = false;
 		}
 
 		rmFolder.setCreatedByRobot(robotId);
-		mapFolderMetadataFromMappingFile(folderName, rmFolder, url);
+		mapFolderMetadataFromMappingFile(folderName, rmFolder, url, new ArrayList<String>(), isANewFolder);
 		if (rmFolder.getParentFolder() == null) {
 			rmFolder.setParentFolder(parentFolder);
 			if (params.getDefaultParentFolder() != null && parentFolder == null) {
@@ -310,8 +315,20 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		newExclusions.add(connectorDocument.getURL());
 	}
 
-	private void mapFolderMetadataFromMappingFile(String folderName, Folder rmFolder, String folderURL) {
+	private void mapFolderMetadataFromMappingFile(String folderName, Folder rmFolder, String folderURL,
+												  List<String> previouslyCalculatedMetadatas, boolean isANewFolder) {
 		Content folderMapping = params.getFolderMapping();
+
+		Map<String, Object> defaultValuesOfSchema = new HashMap<>();
+		if (isANewFolder) {
+			MetadataSchema schemaOfFolder = modelLayerFactory.getMetadataSchemasManager().getSchemaOf(rmFolder.getWrappedRecord());
+			for (Metadata metadata : schemaOfFolder.getMetadatas().onlyWithDefaultValue()) {
+				if (!previouslyCalculatedMetadatas.contains(metadata.getLocalCode())) {
+					defaultValuesOfSchema.put(metadata.getLocalCode(), metadata.getDefaultValue());
+				}
+			}
+		}
+
 		if (folderMapping != null) {
 			List<Map<String, String>> csvEntries = new CSVReader(contentManager).readCSVContent(folderMapping);
 			Map<String, Map<String, String>> mappedEntries = mapEntriesOnFolderName(csvEntries);
@@ -326,14 +343,14 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 					}
 				}
 				setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
-				useDefaultValuesInMissingFields(folderEntry, rmFolder);
+				useDefaultValuesInMissingFields(folderEntry, rmFolder, defaultValuesOfSchema);
 			} else {
 				setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
-				useAllDefaultValuesFromParams(rmFolder);
+				useAllDefaultValuesFromParams(rmFolder, defaultValuesOfSchema);
 			}
 		} else {
 			setOpeningDateFromCreatedOnOrLastModifiedIfNull(rmFolder);
-			useAllDefaultValuesFromParams(rmFolder);
+			useAllDefaultValuesFromParams(rmFolder, defaultValuesOfSchema);
 		}
 		try {
 			transaction.add(rmFolder);
@@ -350,7 +367,8 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		return mappedEntries;
 	}
 
-	private Folder classifyFolderInParentFolder(String fullConnectorDocPath, String pathPart, String folderTypeId) {
+	private Folder classifyFolderInParentFolder(String fullConnectorDocPath, String pathPart, String folderTypeId,
+												List<String> calculatedMetadatas) {
 		String parentPath = getParentPath(fullConnectorDocPath, pathPart);
 
 		Folder parentFolder = rm.getFolderWithLegacyId(parentPath);
@@ -368,11 +386,13 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 			newRmFolder.setCloseDateEntered(parentFolder.getCloseDateEntered());
 		}
 		newRmFolder.setParentFolder(parentFolder).setTitle(pathPart).setLegacyId(fullConnectorDocPath);
+		calculatedMetadatas.addAll(asList(Folder.CREATED_BY_ROBOT, Folder.PARENT_FOLDER, Folder.FORM_MODIFIED_ON, Folder.FORM_CREATED_ON, Schemas.LEGACY_ID.getLocalCode()));
 		return newRmFolder;
 	}
 
 	private Folder classifyFolderInConcept(String fullConnectorDocPath, Taxonomy targetTaxonomy, String pathPart,
-										   MetadataSchema folderSchema, Record parentConcept, String folderTypeId) {
+										   MetadataSchema folderSchema, Record parentConcept, String folderTypeId,
+										   List<String> calculatedMetadatas) {
 		Folder newRmFolder;
 		if (folderTypeId != null) {
 			newRmFolder = rm.newFolderWithType(folderTypeId);
@@ -381,7 +401,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 
 		newRmFolder.setCreatedByRobot(robotId);
-		Metadata taxoMetadata = folderSchema.getTaxonomyRelationshipReferences(Arrays.asList(targetTaxonomy)).get(0);
+		Metadata taxoMetadata = folderSchema.getTaxonomyRelationshipReferences(asList(targetTaxonomy)).get(0);
 		if (taxoMetadata.getDataEntry().getType() == DataEntryType.CALCULATED) {
 			taxoMetadata = getMetadataUsedByCalculatedReferenceWithTaxonomyRelationship(folderSchema, taxoMetadata);
 		}
@@ -390,6 +410,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		newRmFolder.setFormModifiedOn(connectorFolder.getLastModified());
 		newRmFolder.setFormCreatedOn(connectorFolder.getCreatedOn());
 		newRmFolder.setLegacyId(fullConnectorDocPath);
+		calculatedMetadatas.addAll(asList(Folder.CREATED_BY_ROBOT, taxoMetadata.getLocalCode(), Folder.FORM_MODIFIED_ON, Folder.FORM_CREATED_ON, Schemas.LEGACY_ID.getLocalCode()));
 		return newRmFolder;
 	}
 
@@ -531,21 +552,21 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 	}
 
-	private void useAllDefaultValuesFromParams(Folder rmFolder) {
+	private void useAllDefaultValuesFromParams(Folder rmFolder, Map<String, Object> defaultValuesOfSchema) {
 
 		// rmFolder.setParentFolder(params.getDefaultParentFolder());
 		String taxonomy = params.getInTaxonomy();
-		if (rmFolder.getAdministrativeUnitEntered() == null) {
+		if (rmFolder.getAdministrativeUnitEntered() == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED)) {
 			rmFolder.setAdministrativeUnitEntered(params.getDefaultAdminUnit());
 		}
 
-		if (rmFolder.getCategoryEntered() == null) {
+		if (rmFolder.getCategoryEntered() == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.CATEGORY_ENTERED)) {
 			rmFolder.setCategoryEntered(params.getDefaultCategory());
 		}
-		if (rmFolder.getUniformSubdivisionEntered() == null) {
+		if (rmFolder.getUniformSubdivisionEntered() == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.UNIFORM_SUBDIVISION_ENTERED)) {
 			rmFolder.setUniformSubdivisionEntered(params.getDefaultUniformSubdivision());
 		}
-		if (rmFolder.getRetentionRuleEntered() == null) {
+		if (rmFolder.getRetentionRuleEntered() == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.RETENTION_RULE_ENTERED)) {
 			rmFolder.setRetentionRuleEntered(params.getDefaultRetentionRule());
 
 			if (rmFolder.getRetentionRuleEntered() == null && rmFolder.getCategoryEntered() != null) {
@@ -556,14 +577,24 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 				}
 			}
 		}
-		if (rmFolder.getCopyStatusEntered() == null) {
+		if (rmFolder.getCopyStatusEntered() == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.COPY_STATUS_ENTERED)) {
 			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
 		}
-		if (rmFolder.getOpenDate() == null || (!rmFolder.getWrappedRecord().isSaved() && params.getDefaultOpenDate() != null)) {
+		if (rmFolder.getOpenDate() == null || (!rmFolder.getWrappedRecord().isSaved() && params.getDefaultOpenDate() != null)
+			|| isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.OPENING_DATE)) {
 			rmFolder.setOpenDate(params.getDefaultOpenDate());
 		}
 
 		addMediumTypeToFolder(rmFolder);
+	}
+
+	private boolean isMetadataAtDefaultValue(Folder rmFolder, Map<String, Object> defaultValuesOfSchema,
+											 String localCode) {
+		if (defaultValuesOfSchema.containsKey(localCode)) {
+			return Objects.equals(rmFolder.get(localCode), defaultValuesOfSchema.get(localCode));
+		} else {
+			return false;
+		}
 	}
 
 	private void addMediumTypeToFolder(Folder folder) {
@@ -577,30 +608,37 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		}
 
 		if (mediumType != null) {
-			folder.setMediumTypes(recordServices.getRecordsById(robots.getCollection(), Arrays.asList(mediumType.getId())));
+			folder.setMediumTypes(recordServices.getRecordsById(robots.getCollection(), asList(mediumType.getId())));
 		}
 	}
 
-	private void useDefaultValuesInMissingFields(Map<String, String> folderEntry, Folder rmFolder) {
-		if (folderEntry.get(Folder.PARENT_FOLDER) == null && rmFolder.getParentFolder() == null
+	private void useDefaultValuesInMissingFields(Map<String, String> folderEntry, Folder rmFolder,
+												 Map<String, Object> defaultValuesOfSchema) {
+		if ((folderEntry.get(Folder.PARENT_FOLDER) == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
+			&& rmFolder.getParentFolder() == null
 			&& params.getDefaultParentFolder() != null) {
 			rmFolder.setParentFolder(params.getDefaultParentFolder());
 		}
-		if (rmFolder.getAdministrativeUnitEntered() == null && folderEntry.get(Folder.ADMINISTRATIVE_UNIT_ENTERED) == null
+		if ((rmFolder.getAdministrativeUnitEntered() == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
+			&& folderEntry.get(Folder.ADMINISTRATIVE_UNIT_ENTERED) == null
 			&& params.getDefaultAdminUnit() != null) {
 			rmFolder.setAdministrativeUnitEntered(params.getDefaultAdminUnit());
 		}
-		if (rmFolder.getCategoryEntered() == null && folderEntry.get(Folder.CATEGORY_ENTERED) == null
+		if ((rmFolder.getCategoryEntered() == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
+			&& folderEntry.get(Folder.CATEGORY_ENTERED) == null
 			&& params.getDefaultCategory() != null) {
 			rmFolder.setCategoryEntered(params.getDefaultCategory());
 		}
-		if (folderEntry.get(Folder.RETENTION_RULE_ENTERED) == null && params.getDefaultRetentionRule() != null) {
+		if ((folderEntry.get(Folder.RETENTION_RULE_ENTERED) == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
+			&& params.getDefaultRetentionRule() != null) {
 			rmFolder.setRetentionRuleEntered(params.getDefaultRetentionRule());
 		}
-		if (folderEntry.get(Folder.COPY_STATUS_ENTERED) == null && params.getDefaultCopyStatus() != null) {
+		if ((folderEntry.get(Folder.COPY_STATUS_ENTERED) == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
+			&& params.getDefaultCopyStatus() != null) {
 			rmFolder.setCopyStatusEntered(params.getDefaultCopyStatus());
 		}
-		if (folderEntry.get(Folder.UNIFORM_SUBDIVISION) == null && params.getDefaultUniformSubdivision() != null) {
+		if ((folderEntry.get(Folder.UNIFORM_SUBDIVISION) == null || isMetadataAtDefaultValue(rmFolder, defaultValuesOfSchema, Folder.ADMINISTRATIVE_UNIT_ENTERED))
+			&& params.getDefaultUniformSubdivision() != null) {
 			rmFolder.setUniformSubdivisionEntered(params.getDefaultUniformSubdivision());
 		}
 	}
@@ -611,7 +649,7 @@ public class ClassifyConnectorRecordInTaxonomyExecutor {
 		switch (metadata.getType()) {
 			case STRING:
 				if (metadata.isMultivalue()) {
-					rmRecord.set(metadataCode, Arrays.asList(value.split(";")));
+					rmRecord.set(metadataCode, asList(value.split(";")));
 				} else {
 					rmRecord.set(metadataCode, value);
 				}

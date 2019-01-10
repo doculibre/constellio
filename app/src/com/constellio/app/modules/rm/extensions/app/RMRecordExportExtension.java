@@ -1,5 +1,13 @@
 package com.constellio.app.modules.rm.extensions.app;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
+
 import com.constellio.app.api.extensions.RecordExportExtension;
 import com.constellio.app.api.extensions.params.OnWriteRecordParams;
 import com.constellio.app.modules.rm.extensions.imports.DecommissioningListImportExtension;
@@ -30,13 +38,6 @@ import com.constellio.model.entities.records.wrappers.structure.ReportedMetadata
 import com.constellio.model.entities.schemas.MetadataSchemaTypes;
 import com.constellio.model.services.contents.UserSerializedContentFactory;
 import com.constellio.model.services.records.StructureImportContent;
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class RMRecordExportExtension extends RecordExportExtension {
 
@@ -77,16 +78,6 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		Document document = new Document(params.getRecord(), getTypes());
 
-		//params.getModifiableImportRecord().addField(Schemas.CREATED_BY.getLocalCode(), folder.getFormCreatedBy());
-		//		if (document.getFormCreatedOn() != null) {
-		//			params.getModifiableImportRecord().addField(Schemas.CREATED_ON.getLocalCode(), document.getFormCreatedOn());
-		//		}
-		//params.getModifiableImportRecord().addField(Schemas.MODIFIED_BY.getLocalCode(), folder.getModifiedBy());
-
-		//		if (document.getFormModifiedOn() != null) {
-		//			params.getModifiableImportRecord().addField(Schemas.MODIFIED_ON.getLocalCode(), document.getFormCreatedOn());
-		//		}
-
 		if (document.getContent() != null) {
 			UserSerializedContentFactory contentFactory = new UserSerializedContentFactory(collection, appLayerFactory.getModelLayerFactory());
 
@@ -101,15 +92,15 @@ public class RMRecordExportExtension extends RecordExportExtension {
 
 		Folder folder = new Folder(params.getRecord(), getTypes());
 
-		//params.getModifiableImportRecord().addField(Schemas.CREATED_BY.getLocalCode(), folder.getFormCreatedBy());
-		//		if (folder.getFormCreatedOn() != null) {
-		//			params.getModifiableImportRecord().addField(Schemas.CREATED_ON.getLocalCode(), folder.getFormCreatedOn());
-		//		}
-		//params.getModifiableImportRecord().addField(Schemas.MODIFIED_BY.getLocalCode(), folder.getModifiedBy());
+		if (folder.getMainCopyRuleIdEntered() != null && !params.isForSameSystem()) {
+			CopyRetentionRule copyRetentionRule = folder.getMainCopyRule();
 
-		//		if (folder.getFormModifiedOn() != null) {
-		//			params.getModifiableImportRecord().addField(Schemas.MODIFIED_ON.getLocalCode(), folder.getFormCreatedOn());
-		//		}
+			//Overwrite the mainCopyRule if possible
+			if (copyRetentionRule.getCode() != null) {
+				params.getModifiableImportRecord().addField(Folder.MAIN_COPY_RULE_ID_ENTERED, copyRetentionRule.getCode());
+			}
+		}
+
 	}
 
 	private void manageUserTask(OnWriteRecordParams params) {
@@ -322,7 +313,8 @@ public class RMRecordExportExtension extends RecordExportExtension {
 		Map<String, String> map = new HashMap<>();
 
 		map.put(DecommissioningListImportExtension.FOLDER_ID, decomListFolderDetail.getFolderId());
-		map.put(DecommissioningListImportExtension.FOLDER_EXCLUDED, Boolean.toString(decomListFolderDetail.isFolderExcluded()));
+		map.put(DecommissioningListImportExtension.FOLDER_EXCLUDED,
+				decomListFolderDetail.getFolderDetailStatus().getDescription());
 		map.put(DecommissioningListImportExtension.CONTAINER_RECORD_ID, decomListFolderDetail.getContainerRecordId());
 		map.put(DecommissioningListImportExtension.REVERSED_SORT, Boolean.toString(decomListFolderDetail.isReversedSort()));
 		if (decomListFolderDetail.getFolderLinearSize() != null) {

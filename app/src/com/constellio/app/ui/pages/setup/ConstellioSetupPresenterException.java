@@ -36,4 +36,12 @@ public class ConstellioSetupPresenterException extends Exception {
 		}
 	}
 
+	public static class ConstellioSetupPresenterException_AdminConfirmationPasswordNotEqualToAdminPassword
+			extends ConstellioSetupPresenterException {
+
+		public ConstellioSetupPresenterException_AdminConfirmationPasswordNotEqualToAdminPassword() {
+			super($("ConstellioSetupView.adminConfirmationPasswordNotEqualToAdminPassword"));
+		}
+	}
+
 }

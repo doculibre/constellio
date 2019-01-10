@@ -14,6 +14,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -133,6 +134,16 @@ public class Metadata implements DataStoreField {
 		this.inheritanceCode = computeInheritanceCode();
 		this.global = computeIsGlobal();
 		this.customParameter = Collections.unmodifiableMap(new HashMap<String, Object>());
+	}
+
+	public boolean isFilteredByAny(List<MetadataFilter> metadataFilterList) {
+		for (MetadataFilter metadataFilter : metadataFilterList) {
+			if (metadataFilter.isFiltered(this)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public final String computeInheritanceCode() {
@@ -462,7 +473,7 @@ public class Metadata implements DataStoreField {
 	}
 
 	public boolean isSameLocalCode(Metadata metadata) {
-		return localCode.equals(metadata.getLocalCode());
+		return metadata != null && localCode.equals(metadata.getLocalCode());
 	}
 
 	public boolean isSameLocalCodeThanAny(Metadata... metadatas) {

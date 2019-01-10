@@ -232,7 +232,6 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 	@Test
 	public void givenRecordWithCopiedValuesWhenMergingThenCopiedMetadatasMerged()
 			throws Exception {
-		getDataLayerFactory().getDataLayerLogger().monitor("zeRecord");
 		final int numberOfThreads = 10;
 		final int numberOfIncrements = 20;
 		defineSchemasManager().using(schemas.withCopiedMetadatas(numberOfThreads));
@@ -306,7 +305,6 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 	@Test
 	public void givenRecordWithCalculatedValuesWhenMergingThenCalculatedMetadatasMerged()
 			throws Exception {
-		getDataLayerFactory().getDataLayerLogger().monitor("zeRecord");
 		final int numberOfThreads = 5;
 		final int numberOfIncrements = 20;
 		defineSchemasManager().using(schemas.withFiveCalculatedMetadatas());
@@ -380,7 +378,6 @@ public class RecordServicesOptimisticLockingHandlingAcceptanceTest extends Const
 	@Test
 	public void givenRecordWithManualValuesWhenMergingThenMetadatasCorrectlyMerged()
 			throws Exception {
-		getDataLayerFactory().getDataLayerLogger().monitor("zeRecord");
 		final int numberOfThreads = 10;
 		final int numberOfIncrements = 20;
 		defineSchemasManager().using(schemas.withManualNumberMetadatasInZeSchemas(numberOfThreads));

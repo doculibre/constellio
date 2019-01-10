@@ -89,6 +89,8 @@ public class MetadataBuilder {
 	private MetadataSchemaBuilder schemaBuilder;
 	private boolean dependencyOfAutomaticMetadata;
 	private Map<String, Object> customParameter;
+	private boolean fillEmptyLabelWithCode = true;
+
 
 	MetadataBuilder(MetadataSchemaBuilder schemaBuilder) {
 		this.schemaBuilder = schemaBuilder;
@@ -110,6 +112,15 @@ public class MetadataBuilder {
 		copy.setCode(codeSchema + "_" + copy.getLocalCode());
 
 		return copy;
+	}
+
+	public boolean isFillEmptyLabelWithCode() {
+		return fillEmptyLabelWithCode;
+	}
+
+	public MetadataBuilder setFillEmptyLabelWithCode(boolean fillEmptyLabelWithCode) {
+		this.fillEmptyLabelWithCode = fillEmptyLabelWithCode;
+		return this;
 	}
 
 	public Map<String, Object> getCustomParameter() {
@@ -355,6 +366,7 @@ public class MetadataBuilder {
 	}
 
 	public MetadataBuilder setLabels(Map<Language, String> labels) {
+
 		if (labels == null) {
 			this.labels = new HashMap<>();
 		} else {
@@ -927,7 +939,7 @@ public class MetadataBuilder {
 		if (builder.code == null) {
 			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "code");
 		}
-		if (builder.getLabels() == null || builder.getLabels().isEmpty()) {
+		if ((builder.getLabels() == null || builder.getLabels().isEmpty()) && fillEmptyLabelWithCode) {
 			//FIXME
 			builder.addLabel(Language.French, builder.getCode());
 			//			throw new MetadataBuilderRuntimeException.InvalidAttribute(builder.getCode(), "label");
@@ -1012,6 +1024,11 @@ public class MetadataBuilder {
 
 	public MetadataAccessRestrictionBuilder defineAccessRestrictions() {
 		return accessRestrictionBuilder;
+	}
+
+	public MetadataBuilder setAccessRestrictionBuilder(MetadataAccessRestrictionBuilder metadataAccessRestrictionBuilder) {
+		accessRestrictionBuilder = metadataAccessRestrictionBuilder;
+		return this;
 	}
 
 	public MetadataBuilder defineStructureFactory(Class<? extends StructureFactory> structureFactory) {

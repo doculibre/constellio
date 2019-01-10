@@ -18,9 +18,11 @@ import com.constellio.app.ui.pages.search.batchProcessing.BatchProcessingModifyi
 import com.vaadin.data.Validator;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ItemClickEvent.ItemClickListener;
+import com.vaadin.event.dd.DropHandler;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
+import com.vaadin.ui.DragAndDropWrapper;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.UI;
@@ -52,13 +54,14 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	private RecordVOLazyContainer recordVOContainer;
 	private boolean allItemsSelected;
 	private AdvancedSearchPresenter presenter;
+	RecordVOTable adaptee;
 
 	public SearchResultSimpleTable(RecordVOLazyContainer container, final AdvancedSearchPresenter presenter) {
 		super();
 		this.recordVOContainer = container;
 		this.presenter = presenter;
 
-		RecordVOTable adaptee = new RecordVOTable(container);
+		adaptee = new RecordVOTable(container);
 		adaptee.setWidth("100%");
 
 		adaptee.setColumnCollapsingAllowed(true);
@@ -70,11 +73,6 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 				Object itemId = event.getItemId();
 				RecordVO recordVO = recordVOContainer.getRecordVO((int) itemId);
 
-				Window recordWindow = new BaseWindow();
-				recordWindow.setWidth("95%");
-				recordWindow.setHeight("98%");
-				recordWindow.center();
-
 				AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 				GetSearchResultSimpleTableWindowComponentParam param = new GetSearchResultSimpleTableWindowComponentParam(recordVO, presenter.getUser());
 
@@ -83,7 +81,20 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 				if (windowComponent == null) {
 					windowComponent = new RecordDisplay(recordVO);
 				}
-				recordWindow.setContent(windowComponent);
+
+				final Component finalWindowComponent = windowComponent;
+				DragAndDropWrapper dragAndDropWrapper = new DragAndDropWrapper(windowComponent);
+				if(finalWindowComponent instanceof DropHandler) {
+					dragAndDropWrapper.setDropHandler((DropHandler) windowComponent);
+				}
+				dragAndDropWrapper.setSizeFull();
+
+				BaseWindow recordWindow = new BaseWindow();
+				recordWindow.setWidth("95%");
+				recordWindow.setHeight("98%");
+				recordWindow.center();
+				recordWindow.setContent(dragAndDropWrapper);
+
 				presenter.logRecordView(recordVO);
 				UI.getCurrent().addWindow(recordWindow);
 				//				}
@@ -101,6 +112,10 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 
 		setTable(adaptee);
 		getToggleButton().setVisible(false);
+	}
+
+	public void addItemClickListener(final ItemClickListener listener) {
+		adaptee.addItemClickListener(listener);
 	}
 
 	public List<String> getSelectedRecordIds() {
@@ -437,6 +452,11 @@ public class SearchResultSimpleTable extends SelectionTableAdapter implements Se
 	private void showErrorMessage(String errorMessage) {
 		BaseViewImpl view = (BaseViewImpl) ConstellioUI.getCurrent().getCurrentView();
 		view.showErrorMessage(errorMessage);
+	}
+
+	@Override
+	protected boolean isIndexProperty() {
+		return true;
 	}
 
 }

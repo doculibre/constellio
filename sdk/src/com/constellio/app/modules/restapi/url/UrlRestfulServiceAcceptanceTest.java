@@ -72,8 +72,8 @@ public class UrlRestfulServiceAcceptanceTest extends ConstellioTest {
 		UserServices userServices = getModelLayerFactory().newUserServices();
 
 		userServices.addUpdateUserCredential(
-				users.bob().withServiceKey(serviceKey)
-						.withAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
+				users.bob().setServiceKey(serviceKey)
+						.addAccessToken(token, TimeProvider.getLocalDateTime().plusYears(1)));
 
 		givenTimeIs(fakeDate);
 		givenConfig(RestApiConfigs.REST_API_URLS, "localhost:7070; localhost2");

@@ -873,6 +873,13 @@ public class DecommissioningService {
 		return duplicatedFolder;
 	}
 
+	public void validateDuplicateStructure(Folder folder, User currentUser, boolean forceTitleDuplication)
+			throws RecordServicesException {
+		Transaction transaction = new Transaction();
+		Folder duplicatedFolder = duplicateStructureAndAddToTransaction(folder, currentUser, transaction, forceTitleDuplication);
+		recordServices.prepareRecords(transaction);
+	}
+
 	public Folder duplicateStructureAndDocuments(Folder folder, User currentUser, boolean forceTitleDuplication) {
 
 		Transaction transaction = new Transaction();
@@ -1102,7 +1109,7 @@ public class DecommissioningService {
 
 	private void delete(Record record, String reason, boolean physically, User user) {
 		boolean putFirstInTrash = putFirstInTrash(record);
-		if (recordServices.isLogicallyThenPhysicallyDeletable(record, user) || putFirstInTrash) {
+		if (recordServices.validateLogicallyThenPhysicallyDeletable(record, user).isEmpty() || putFirstInTrash) {
 			recordServices.logicallyDelete(record, user);
 			modelLayerFactory.newLoggingServices().logDeleteRecordWithJustification(record, user, reason);
 			if (physically && !putFirstInTrash) {

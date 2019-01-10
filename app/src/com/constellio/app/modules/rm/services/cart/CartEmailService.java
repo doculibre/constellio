@@ -3,7 +3,6 @@ package com.constellio.app.modules.rm.services.cart;
 import com.constellio.app.api.extensions.params.EmailMessageParams;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.services.cart.CartEmailServiceRuntimeException.CartEmlServiceRuntimeException_InvalidRecordId;
-import com.constellio.app.modules.rm.wrappers.Cart;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.app.services.factories.ConstellioFactories;
@@ -42,10 +41,10 @@ public class CartEmailService {
 		this.contentManager = modelLayerFactory.getContentManager();
 	}
 
-	public EmailMessage createEmailForCart(Cart cart, User requestUser) {
+	public EmailMessage createEmailForCart(String cartOwner, List<String> cartDocuments, User requestUser) {
 		try {
 			newTempFolder = ioServices.newTemporaryFile(TMP_EML_FILE);
-			return createEmailForCart(cart, newTempFolder, requestUser);
+			return createEmailForCart(cartOwner, cartDocuments, newTempFolder, requestUser);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		} finally {
@@ -53,13 +52,13 @@ public class CartEmailService {
 		}
 	}
 
-	EmailMessage createEmailForCart(Cart cart, File messageFile, User requestUser) {
+	EmailMessage createEmailForCart(String cartOwner, List<String> cartDocuments, File messageFile, User requestUser) {
 		try (OutputStream outputStream = ioServices.newFileOutputStream(messageFile, CartEmailService.class.getSimpleName() + ".createMessageForCart.out")) {
-			User user = rm.getUser(cart.getOwner());
+			User user = rm.getUser(cartOwner);
 			String signature = getSignature(user);
 			String subject = "";
 			String from = user.getEmail();
-			List<MessageAttachment> attachments = getAttachments(cart, requestUser);
+			List<MessageAttachment> attachments = getAttachments(cartDocuments, requestUser);
 
 			AppLayerFactory appLayerFactory = ConstellioFactories.getInstance().getAppLayerFactory();
 			EmailMessageParams params = new EmailMessageParams("cart", signature, subject, from, attachments);
@@ -90,11 +89,11 @@ public class CartEmailService {
 		}
 	}
 
-	List<MessageAttachment> getAttachments(Cart cart, User requestUser)
+	List<MessageAttachment> getAttachments(List<String> cartDocuments, User requestUser)
 			throws IOException {
 		//FIXME current version get only cart documents attachments
 		List<MessageAttachment> returnList = new ArrayList<>();
-		returnList.addAll(getDocumentsAttachments(cart.getDocuments(), requestUser));
+		returnList.addAll(getDocumentsAttachments(cartDocuments, requestUser));
 		return returnList;
 	}
 

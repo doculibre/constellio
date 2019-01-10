@@ -114,6 +114,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 		RecordProvider recordProvider = new RecordProvider(recordServices);
 
 		params.setProgressionUpperLimit(totalNumberOfRecords);
+		boolean isCsvReportDone = false;
 
 		try {
 			User batchUser = batchProcess.getUsername() == null ?
@@ -128,7 +129,6 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 						recordServices.prepareRecords(transaction);
 						appendCsvReport(transaction, appLayerFactory, params);
 						recordServices.execute(transaction);
-						transaction.getModifiedRecords();
 					} catch (Throwable t) {
 						if (report != null) {
 							report.appendErrors(asList(t.getMessage()));
@@ -139,7 +139,6 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 					}
 					params.incrementProgression(recordsForTransaction.size());
 					updateBatchProcessReport(report, appLayerFactory, RecordsFlushing.LATER());
-					FileUtils.deleteQuietly(csvReport);
 				}
 			}
 
@@ -148,12 +147,16 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 			Content content = contentManager.createMajor(batchUser, csvReport.getName(), contentVersion);
 			report.setContent(content);
 			updateBatchProcessReport(report, appLayerFactory, RecordsFlushing.NOW());
+			isCsvReportDone = true;
 		} catch (IOException e) {
 			LOGGER.error("Error occured when creating csv report for batchProcess " + batchProcess.getId());
 			e.printStackTrace();
 		} finally {
 			IOUtils.closeQuietly(csvInputStream);
 			IOUtils.closeQuietly(csvOuputStream);
+			if (isCsvReportDone) {
+				FileUtils.deleteQuietly(csvReport);
+			}
 		}
 	}
 
@@ -220,6 +223,7 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 					.batchProcessingSpecialCaseExtensions(new BatchProcessingSpecialCaseParams(record, batchUser));
 		}
 		transaction.addUpdate(batch);
+		transaction.setUser(batchUser);
 		return transaction;
 	}
 
@@ -389,7 +393,11 @@ public class ChangeValueOfMetadataBatchAsyncTask implements AsyncTask {
 
 	private OutputStream ensureCsvOutputStreamIsInitialized(AsyncTaskExecutionParams params)
 			throws IOException {
-		return csvOuputStream = FileUtils.openOutputStream(createOrGetTempFile(params), true);
+		if (csvOuputStream == null) {
+			return csvOuputStream = FileUtils.openOutputStream(createOrGetTempFile(params), true);
+		} else {
+			return csvOuputStream;
+		}
 	}
 
 	private File createOrGetTempFile(AsyncTaskExecutionParams params) {

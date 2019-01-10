@@ -2,7 +2,9 @@ package com.constellio.app.api.extensions;
 
 import com.constellio.app.api.extensions.params.GetAvailableExtraMetadataAttributesParam;
 import com.constellio.app.api.extensions.params.IsBuiltInMetadataAttributeModifiableParam;
+import com.constellio.app.modules.rm.extensions.params.RMSchemaTypesPageExtensionExclusionByPropertyParams;
 import com.constellio.data.frameworks.extensions.ExtensionBooleanResult;
+import com.constellio.model.entities.schemas.MetadataFilter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,5 +32,13 @@ public class SchemaTypesPageExtension {
 	public ExtensionBooleanResult isBuiltInMetadataAttributeModifiable(
 			IsBuiltInMetadataAttributeModifiableParam param) {
 		return ExtensionBooleanResult.NOT_APPLICABLE;
+	}
+
+	public List<MetadataFilter> getMetadataAccessExclusionFilters() {
+		return new ArrayList<>();
+	}
+
+	public boolean getMetadataAccessExclusionPropertyFilter(RMSchemaTypesPageExtensionExclusionByPropertyParams metadataVO) {
+		return false;
 	}
 }

@@ -12,7 +12,11 @@ import com.constellio.app.ui.framework.builders.MetadataSchemaToVOBuilder;
 import com.constellio.app.ui.framework.builders.RecordToVOBuilder;
 import com.constellio.app.ui.pages.base.SessionContext;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
+import com.constellio.data.io.services.facades.IOServices;
+import com.constellio.model.entities.records.Content;
 import com.constellio.model.entities.records.Transaction;
+import com.constellio.model.services.contents.ContentManager;
+import com.constellio.model.services.contents.ContentVersionDataSummary;
 import com.constellio.model.services.schemas.MetadataSchemaTypesAlteration;
 import com.constellio.model.services.schemas.builders.MetadataSchemaTypesBuilder;
 import com.constellio.sdk.tests.ConstellioTest;
@@ -20,6 +24,8 @@ import com.constellio.sdk.tests.FakeSessionContext;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,12 +33,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ReportTabButtonPresenterAcceptanceTest extends ConstellioTest {
-
+	private static final String STREAMID = ReportTabButtonPresenterAcceptanceTest.class.getName() + "-Stream";
 	private RMTestRecords records = new RMTestRecords(zeCollection);
 	private SessionContext sessionContext;
 	private ReportTabButtonPresenter presenter;
 	private RMSchemasRecordsServices rm;
 	private ReportTabButton view;
+	private File jasperFile;
+	private IOServices ioServices;
+	private ContentManager contentManager;
 
 	@Before
 	public void SetUp() {
@@ -48,6 +57,9 @@ public class ReportTabButtonPresenterAcceptanceTest extends ConstellioTest {
 		when(view.getCollection()).thenReturn(zeCollection);
 		presenter = new ReportTabButtonPresenter(view);
 		rm = new RMSchemasRecordsServices(zeCollection, getAppLayerFactory());
+		contentManager = getModelLayerFactory().getContentManager();
+		jasperFile = getTestResourceFile("jasperfile.jrxml");
+		ioServices = getModelLayerFactory().getIOServicesFactory().newIOServices();
 	}
 
 	@Test
@@ -100,39 +112,74 @@ public class ReportTabButtonPresenterAcceptanceTest extends ConstellioTest {
 
 	@Test
 	public void checkIfGetAllReportReturnsCorrectReport() throws Exception {
-		getDataLayerFactory().getDataLayerLogger().setPrintAllQueriesLongerThanMS(0);
-		PrintableReport defaultFolderReport = rm.newPrintableReport();
-		PrintableReport defaultDocumentReport = rm.newPrintableReport();
-		defaultDocumentReport.setTitle("default document report").set(PrintableReport.RECORD_TYPE, "document").set(PrintableReport.RECORD_SCHEMA, Document.DEFAULT_SCHEMA);
-		defaultFolderReport.setTitle("default folder report").set(PrintableReport.RECORD_TYPE, "dossier").set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
+		InputStream jasperInputStream = null;
 
-		Transaction t = new Transaction();
-		t.addAll(defaultFolderReport, defaultDocumentReport);
-		getModelLayerFactory().newRecordServices().execute(t);
+		try {
+			jasperInputStream = ioServices.newFileInputStream(jasperFile, STREAMID);
 
-		presenter = new ReportTabButtonPresenter(view);
+			ContentVersionDataSummary newFileVersion = contentManager
+					.upload(jasperInputStream, "test.jasper").getContentVersionDataSummary();
 
-		MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
-		List<RecordVO> availableReports = presenter.getAllAvailableReport(builder.build(rm.defaultFolderSchema(), RecordVO.VIEW_MODE.DISPLAY, sessionContext));
-		assertThat(availableReports).extracting("id").containsOnly(defaultFolderReport.getId());
+			Content jasperFileContent = contentManager.createSystemContent("jasperFile.jasper", newFileVersion);
+
+			PrintableReport defaultFolderReport = rm.newPrintableReport();
+			PrintableReport defaultDocumentReport = rm.newPrintableReport();
+			defaultDocumentReport.setTitle("default document report").set(PrintableReport.RECORD_TYPE, "document")
+					.set(PrintableReport.RECORD_SCHEMA, Document.DEFAULT_SCHEMA)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
+			defaultFolderReport.setTitle("default folder report").set(PrintableReport.RECORD_TYPE, "dossier")
+					.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
+
+			Transaction t = new Transaction();
+			t.addAll(defaultFolderReport, defaultDocumentReport);
+			getModelLayerFactory().newRecordServices().execute(t);
+
+			presenter = new ReportTabButtonPresenter(view);
+
+			MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
+			List<RecordVO> availableReports = presenter
+					.getAllAvailableReport(builder.build(rm.defaultFolderSchema(), RecordVO.VIEW_MODE.DISPLAY, sessionContext));
+			assertThat(availableReports).extracting("id").containsOnly(defaultFolderReport.getId());
+		} finally {
+			ioServices.closeQuietly(jasperInputStream);
+		}
 	}
 
 	@Test
 	public void checkIfThereIsReportThatBothAreReturned() throws Exception {
-		PrintableReport report1 = rm.newPrintableReport();
-		PrintableReport report2 = rm.newPrintableReport();
-		report1.setTitle("report 1").set(PrintableReport.RECORD_TYPE, "document").set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
-		report2.setTitle("report 2").set(PrintableReport.RECORD_TYPE, "dossier").set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA);
+		InputStream jasperInputStream = null;
 
-		Transaction t = new Transaction();
-		t.addAll(report1, report2);
-		getModelLayerFactory().newRecordServices().execute(t);
+		try {
+			jasperInputStream = ioServices.newFileInputStream(jasperFile, STREAMID);
 
-		presenter = new ReportTabButtonPresenter(view);
+			ContentVersionDataSummary newFileVersion = contentManager
+					.upload(jasperInputStream, "test.jasper").getContentVersionDataSummary();
 
-		MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
-		List<RecordVO> availableReports = presenter.getAllAvailableReport(builder.build(rm.defaultFolderSchema(), RecordVO.VIEW_MODE.DISPLAY, sessionContext));
-		assertThat(availableReports).extracting("id").containsOnly(report1.getId(), report2.getId());
+			Content jasperFileContent = contentManager.createSystemContent("jasperFile.jasper", newFileVersion);
+
+			PrintableReport report1 = rm.newPrintableReport();
+			PrintableReport report2 = rm.newPrintableReport();
+			report1.setTitle("report 1").set(PrintableReport.RECORD_TYPE, "document")
+					.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
+			report2.setTitle("report 2").set(PrintableReport.RECORD_TYPE, "dossier")
+					.set(PrintableReport.RECORD_SCHEMA, Folder.DEFAULT_SCHEMA)
+					.set(PrintableReport.JASPERFILE, jasperFileContent);
+
+			Transaction t = new Transaction();
+			t.addAll(report1, report2);
+			getModelLayerFactory().newRecordServices().execute(t);
+
+			presenter = new ReportTabButtonPresenter(view);
+
+			MetadataSchemaToVOBuilder builder = new MetadataSchemaToVOBuilder();
+			List<RecordVO> availableReports = presenter
+					.getAllAvailableReport(builder.build(rm.defaultFolderSchema(), RecordVO.VIEW_MODE.DISPLAY, sessionContext));
+			assertThat(availableReports).extracting("id").containsOnly(report1.getId(), report2.getId());
+		} finally {
+			ioServices.closeQuietly(jasperInputStream);
+		}
 	}
 
 }
