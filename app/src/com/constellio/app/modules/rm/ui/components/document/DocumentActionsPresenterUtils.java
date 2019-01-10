@@ -237,7 +237,7 @@ public class DocumentActionsPresenterUtils<T extends DocumentActionsComponent> i
 
 	protected ValidationErrors validateDeleteDocumentPossible() {
 		ValidationErrors validationErrors = new ValidationErrors();
-		boolean userHasDeleteAccess = !getCurrentUser().hasDeleteAccess().on(currentDocument());
+		boolean userHasDeleteAccess = getCurrentUser().hasDeleteAccess().on(currentDocument());
 		if (!userHasDeleteAccess) {
 			validationErrors.add(DocumentActionsPresenterUtils.class, "userDoesNotHaveDeleteAccess");
 		} else {
