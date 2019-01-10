@@ -15067,6 +15067,10 @@ div.v-layout.v-horizontal.v-widget {
 	padding-right: 10px;
 }
 
+.constellio .right-to-left .content-footer-wrapper .content-footer .content-view-wrapper .main-component-wrapper .main-component .search-result-table .search-result-title {
+	text-align: right;
+}
+
 .constellio .right-to-left .content-footer-wrapper .content-footer .search-result-title .v-icon {
 	padding-left: 8px;
 	padding-right: 2px;
@@ -15160,6 +15164,27 @@ div.v-layout.v-horizontal.v-widget {
 	direction: rtl;
 }
 
+.constellio .right-to-left .v-tree-node-caption span {
+	padding-right: inherit;
+}
+
+.constellio .right-to-left .v-treetable .v-table-cell-wrapper {
+	direction: rtl;
+}
+
+.constellio .right-to-left .v-treetable .v-table-cell-wrapper .v-menubar {
+	direction: ltr;
+}
+
+.constellio .right-to-left .v-treetable .v-table-cell-wrapper .v-treetable-treespacer {
+	margin-left: inherit;
+	margin-right: -14px;
+}
+
+.constellio .right-to-left .v-treetable .v-table-cell-wrapper .v-treetable-node-closed:before {
+	content: "\f0d9";
+}
+
 .constellio .right-to-left .v-slot-search-result-facets .facet-box {
 	direction: rtl;
 }
@@ -15172,6 +15197,10 @@ div.v-layout.v-horizontal.v-widget {
 
 .constellio .right-to-left .v-slot-search-result-facets .facet-box label {
 	direction: ltr;
+}
+
+.constellio .right-to-left .v-slot-search-result-facets .facet-box .facet-value > label {
+	margin-right: 25px;
 }
 
 .constellio .right-to-left .header .header-search {

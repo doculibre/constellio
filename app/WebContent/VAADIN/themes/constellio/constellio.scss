@@ -2540,6 +2540,16 @@ $popup-view-z-index: 3;
 				
 				.content-view-wrapper {
 					padding-right: 10px;
+
+					.main-component-wrapper {
+						.main-component {
+							.search-result-table {
+								.search-result-title {
+									text-align: right;
+								}
+							}
+						}
+					}
 				}
 			
 				.search-result-title {
@@ -2670,8 +2680,31 @@ $popup-view-z-index: 3;
 		
 		.v-tree-node-caption {
 			direction: rtl;
+			
+			span {
+				padding-right: inherit;
+			}
 		}
-    	
+
+		.v-treetable {
+			.v-table-cell-wrapper {
+				direction: rtl;
+
+				.v-menubar {
+					direction: ltr;
+				}
+
+				.v-treetable-treespacer {
+					margin-left: inherit;
+					margin-right: -14px;
+				}
+
+				.v-treetable-node-closed:before {
+					content: "\f0d9";
+				}
+			}
+		}
+
     	.v-slot-search-result-facets {
     		.facet-box {
     			direction: rtl;
@@ -2686,6 +2719,9 @@ $popup-view-z-index: 3;
 					direction: ltr;
 				}
 
+				.facet-value > label {
+					margin-right: 25px;
+				}
     		}
     	}
 		
