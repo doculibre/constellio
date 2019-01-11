@@ -66,15 +66,6 @@ public class FilterUtils {
 					filter.append("_*");
 				}
 
-				for (String aGroup : user.getUserGroups()) {
-					if (user.getRolesDetails().getSchemasRecordsServices().isGroupActive(aGroup)) {
-						filter.append(" OR ");
-						filter.append(TOKENS.getDataStoreCode());
-						filter.append(":r_");
-						filter.append(aGroup);
-					}
-				}
-
 				filter.append(" OR (");
 				filter.append(userReadFilter(user, securityTokenManager));
 				filter.append(")");

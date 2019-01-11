@@ -99,7 +99,7 @@ public class ConstellioRestApiModule implements InstallableSystemModule {
 		ApplicationStarter.registerServlet(SERVICE_PATH + "*", servletHolder);
 
 		FilterHolder filterHolder = new FilterHolder(new CrossOriginFilter());
-		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,HEAD,POST,PUT,PATCH,DELETE");
+		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,HEAD,POST,PUT,PATCH,DELETE,OPTIONS");
 		filterHolder.setInitParameter(CrossOriginFilter.ALLOWED_HEADERS_PARAM,
 				"X-Requested-With,Content-Type,Accept,Origin,Constellio-Flushing-Mode,Host,If-Match");
 		filterHolder.setInitParameter(CrossOriginFilter.CHAIN_PREFLIGHT_PARAM, "false");

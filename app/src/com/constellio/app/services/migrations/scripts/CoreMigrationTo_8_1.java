@@ -32,7 +32,7 @@ public class CoreMigrationTo_8_1 implements MigrationScript {
 
 		@Override
 		protected void migrate(MetadataSchemaTypesBuilder builder) {
-			if (builder.getDefaultSchema(UserCredential.SCHEMA_TYPE).hasMetadata(UserCredential.HAS_AGREED_TO_PRIVACY_POLICY)) {
+			if (!builder.getDefaultSchema(UserCredential.SCHEMA_TYPE).hasMetadata(UserCredential.HAS_AGREED_TO_PRIVACY_POLICY)) {
 				builder.getDefaultSchema(UserCredential.SCHEMA_TYPE)
 						.createUndeletable(UserCredential.HAS_AGREED_TO_PRIVACY_POLICY).setType(MetadataValueType.BOOLEAN);
 			}

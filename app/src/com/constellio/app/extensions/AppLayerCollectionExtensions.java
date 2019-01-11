@@ -47,6 +47,7 @@ import com.constellio.app.api.extensions.taxonomies.GetTaxonomyManagementClassif
 import com.constellio.app.api.extensions.taxonomies.TaxonomyExtraField;
 import com.constellio.app.api.extensions.taxonomies.TaxonomyManagementClassifiedType;
 import com.constellio.app.api.extensions.taxonomies.UserSearchEvent;
+import com.constellio.app.api.extensions.taxonomies.ValidateTaxonomyDeletableParams;
 import com.constellio.app.extensions.api.cmis.CmisExtension;
 import com.constellio.app.extensions.api.cmis.params.BuildAllowableActionsParams;
 import com.constellio.app.extensions.api.cmis.params.BuildCmisObjectFromConstellioRecordParams;
@@ -93,6 +94,7 @@ import com.constellio.model.entities.schemas.MetadataFilterFactory;
 import com.constellio.model.entities.schemas.MetadataSchema;
 import com.constellio.model.entities.schemas.MetadataSchemaType;
 import com.constellio.model.entities.schemas.Schemas;
+import com.constellio.model.frameworks.validation.ValidationErrors;
 import com.constellio.model.services.search.query.logical.condition.LogicalSearchCondition;
 import com.vaadin.server.Resource;
 import com.vaadin.ui.Button;
@@ -445,6 +447,14 @@ public class AppLayerCollectionExtensions {
 				return behavior.displayTaxonomy(user, taxonomy);
 			}
 		});
+	}
+
+	public ValidationErrors validateTaxonomyDeletable(Taxonomy taxonomy) {
+		ValidationErrors validationErrors = new ValidationErrors();
+		for (TaxonomyPageExtension taxonomyPageExtension : taxonomyAccessExtensions.getExtensions()) {
+			taxonomyPageExtension.validateTaxonomyDeletable(new ValidateTaxonomyDeletableParams(taxonomy, validationErrors));
+		}
+		return validationErrors;
 	}
 
 	public void decorateView(PagesComponentsExtensionParams params) {

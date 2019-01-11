@@ -17,7 +17,6 @@ import org.junit.Test;
 import java.io.StringReader;
 import java.util.List;
 
-import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedAllauthorizationsMetadatas;
 import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedDdvContainerMetadatas;
 import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedDdvDocumentMetadatas;
 import static com.constellio.app.servlet.ConstellioGetSchemaMetadatasAcceptTestRessources.expectedDocumentDefaultSchemaMetadatas;
@@ -141,11 +140,6 @@ public class ConstellioGetSchemaMetadatasAcceptTest extends ConstellioTest {
 				expectedDdvDocumentMetadatas()
 		);
 
-		List<Element> metadatas = schema.getChildren("metadata");
-		Element allauthorizationsMetadata = find("allauthorizations", metadatas);
-		assertThat(allauthorizationsMetadata.getAttributes()).extracting("name", "value").contains(
-				expectedAllauthorizationsMetadatas()
-		);
 	}
 
 	@Test
@@ -166,17 +160,7 @@ public class ConstellioGetSchemaMetadatasAcceptTest extends ConstellioTest {
 				expectedDdvContainerMetadatas()
 		);
 
-		List<Element> documentMetadatas = schemaWithLabelDocument.getChildren("metadata");
-		Element documentAllAuthorizationsMetadata = find("allauthorizations", documentMetadatas);
-		assertThat(documentAllAuthorizationsMetadata.getAttributes()).extracting("name", "value").contains(
-				expectedAllauthorizationsMetadatas()
-		);
 
-		List<Element> containerMetadatas = schemaWithLabelContainer.getChildren("metadata");
-		Element containerAllAuthorizationsMetadata = find("allauthorizations", containerMetadatas);
-		assertThat(containerAllAuthorizationsMetadata.getAttributes()).extracting("name", "value").contains(
-				expectedAllauthorizationsMetadatas()
-		);
 	}
 
 	private Element find(String code, List<Element> metadatas) {

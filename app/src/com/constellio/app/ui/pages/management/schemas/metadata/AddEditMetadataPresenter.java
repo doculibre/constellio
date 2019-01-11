@@ -274,6 +274,12 @@ public class AddEditMetadataPresenter extends SingleSchemaBasePresenter<AddEditM
 		return true;
 	}
 
+	public boolean isAccessRoleAndRequired(FormMetadataVO formMetadataVO) {
+		return formMetadataVO.isRequired() && formMetadataVO.getReadAccessRoles() != null
+				&& !formMetadataVO.getReadAccessRoles().isEmpty();
+	}
+
+
 	public void preSaveButtonClicked(final FormMetadataVO formMetadataVO, final boolean editMode) {
 
 		final String schemaCode = getSchemaCode();

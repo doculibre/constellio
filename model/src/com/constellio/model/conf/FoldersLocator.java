@@ -8,6 +8,7 @@ import java.util.List;
 
 public class FoldersLocator {
 
+	public static final String CONSTELLIO_TMP = "constellio_tmp";
 	private static boolean CONTEXT_PRINTED = false;
 
 	private static FoldersLocatorMode foldersLocatorModeCached;
@@ -193,8 +194,14 @@ public class FoldersLocator {
 	}*/
 
 	public File getDefaultTempFolder() {
+
 		if (getFoldersLocatorMode() == FoldersLocatorMode.WRAPPER) {
-			return new File(getWrapperInstallationFolder(), "temp");
+			File file = new File(getWrapperInstallationFolder().getParentFile(), CONSTELLIO_TMP);
+			if (file.exists() && file.isDirectory()) {
+				return file;
+			} else {
+				return new File(getWrapperInstallationFolder(), "temp");
+			}
 		} else if (getFoldersLocatorMode() == FoldersLocatorMode.TOMCAT) {
 			return new File(getTomcatInstallationFolder(), "temp");
 		} else {

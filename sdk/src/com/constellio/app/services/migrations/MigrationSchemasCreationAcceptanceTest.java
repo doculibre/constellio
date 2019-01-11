@@ -39,7 +39,6 @@ public class MigrationSchemasCreationAcceptanceTest extends ConstellioTest {
 		assertThatCollectionIsOK(types);
 		assertThatGroupIsOK(types);
 		assertThatUserIsOK(types);
-		assertThatUserHasAllCommonMetadatas(types);
 		assertThatEventIsOK(types);
 	}
 
@@ -70,18 +69,6 @@ public class MigrationSchemasCreationAcceptanceTest extends ConstellioTest {
 		assertThat(defaultUser.getMetadata("userroles").isMultivalue()).isTrue();
 		assertThat(defaultUser.getMetadata("allroles").isMultivalue()).isTrue();
 		assertThat(defaultUser.getMetadata("title").getDataEntry().getType()).isEqualTo(DataEntryType.CALCULATED);
-	}
-
-	private void assertThatUserHasAllCommonMetadatas(MetadataSchemaTypes schemaTypes) {
-		MetadataSchema defaultUser = schemaTypes.getSchemaType("user").getDefaultSchema();
-		assertThat(defaultUser.getCode()).isEqualTo("user_default");
-		assertThat(defaultUser.getMetadata("authorizations").isUndeletable()).isTrue();
-		assertThat(defaultUser.getMetadata("authorizations").isMultivalue()).isTrue();
-		assertThat(defaultUser.getMetadata("detachedauthorizations").isUndeletable()).isTrue();
-		assertThat(defaultUser.getMetadata("allauthorizations").isUndeletable()).isTrue();
-		assertThat(defaultUser.getMetadata("allauthorizations").isMultivalue()).isTrue();
-		assertThat(defaultUser.getMetadata("tokens").isUndeletable()).isTrue();
-		assertThat(defaultUser.getMetadata("tokens").isMultivalue()).isTrue();
 	}
 
 	private void assertThatEventIsOK(MetadataSchemaTypes schemaTypes) {

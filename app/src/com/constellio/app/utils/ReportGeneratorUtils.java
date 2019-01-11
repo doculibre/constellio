@@ -7,6 +7,7 @@ import com.constellio.app.modules.rm.services.reports.printableReport.PrintableR
 import com.constellio.app.modules.rm.wrappers.Printable;
 import com.constellio.app.modules.rm.wrappers.PrintableReport;
 import com.constellio.app.services.factories.AppLayerFactory;
+import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.framework.components.LabelViewer;
 import com.constellio.app.ui.pages.management.Report.PrintableReportListPossibleType;
 import com.constellio.data.io.IOServicesFactory;
@@ -38,7 +39,7 @@ public class ReportGeneratorUtils {
 	public static Component saveButtonClick(AppLayerFactory factory, String collection, String schemaType,
 											PrintableReportTemplate selectedTemplate, int numberOfCopies,
 											List<String> ids, LogicalSearchQuery query,
-											Locale locale) {
+											Locale locale, UserVO user) {
 		InputStream selectedJasperFileContentInputStream = null;
 		File temporaryJasperFile = null;
 		try {
@@ -49,7 +50,7 @@ public class ReportGeneratorUtils {
 			xmlGeneratorParameters.setQuery(query);
 			xmlGeneratorParameters.setElementWithIds(schemaType, ids);
 			PrintableReportXmlGenerator printableReportXmlGenerator = new PrintableReportXmlGenerator(factory, collection,
-					xmlGeneratorParameters, locale);
+					xmlGeneratorParameters, locale, user);
 			JasperPdfGenerator jasperPdfGenerator = new JasperPdfGenerator(printableReportXmlGenerator);
 			selectedJasperFileContentInputStream = contentManager
 					.getContentInputStream(selectedTemplate.getJasperFile().getCurrentVersion().getHash(),

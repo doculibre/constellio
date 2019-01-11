@@ -87,8 +87,8 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 
 		ArrayList<String> containerPropertyIdArray = new ArrayList<>();
 
-		for(Object property : propertyIdCollection) {
-			if(!table.isColumnCollapsed(property)) {
+		for (Object property : propertyIdCollection) {
+			if (!table.isColumnCollapsed(property)) {
 				containerPropertyIdArray.add(table.getColumnHeader(property));
 			}
 		}
@@ -101,8 +101,8 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 		Object[] propertyIdCollection = table.getVisibleColumns();
 		List<Object> nonCollapsedPropertyList = new ArrayList<>();
 
-		for(Object propertyId : propertyIdCollection) {
-			if(!table.isColumnCollapsed(propertyId)) {
+		for (Object propertyId : propertyIdCollection) {
+			if (!table.isColumnCollapsed(propertyId)) {
 				nonCollapsedPropertyList.add(propertyId);
 			}
 		}
@@ -131,6 +131,8 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 					return displayButton(metadataValue);
 				} else if (presenter.isTypeMetadata(metadataValue)) {
 					return newEventTypeLabel(metadataValue);
+				} else if (presenter.isNegativeAuthorizationMetadata(metadataValue)) {
+					return negativeAuthorizationLabel(metadataValue);
 				} else {
 					RecordVO linkedRecordVO = presenter.getLinkedRecordVO(recordVO);
 					if (presenter.isTitleMetadata(metadataValue) && isRecordEvent && linkedRecordVO != null) {
@@ -196,6 +198,12 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 							defaultVisibleColumnIds.add(EVENT_DEFAULT_USERNAME);
 							return defaultVisibleColumnIds;
 						}
+
+						@Override
+						public void manage(Table table, String tableId) {
+							super.manage(table, tableId);
+							setColumnCollapsed("event_default_negative", false);
+						}
 					};
 				}
 			}
@@ -205,7 +213,6 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 				return null;
 			}
 		};
-
 
 		if (isRecordEvent) {
 			table.addItemClickListener(new ItemClickListener() {
@@ -233,6 +240,11 @@ public class EventViewImpl extends BaseViewImpl implements EventView {
 			e.printStackTrace();
 		}
 		return new Label(eventTypeCaption);
+	}
+
+	private static Component negativeAuthorizationLabel(MetadataValueVO metadataValue) {
+		final String negative = (metadataValue.getValue() != null) ? $("yes") : $("no");
+		return new Label(negative);
 	}
 
 	private static Component displayButton(MetadataValueVO metadataValue) {

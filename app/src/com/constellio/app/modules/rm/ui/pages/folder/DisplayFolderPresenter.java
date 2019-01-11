@@ -134,6 +134,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	private transient RMModuleExtensions rmModuleExtensions;
 	private transient ConstellioEIMConfigs eimConfigs;
 	private String taxonomyCode;
+	private User user;
 
 	Boolean allItemsSelected = false;
 
@@ -170,6 +171,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		rmModuleExtensions = appLayerFactory.getExtensions().forCollection(collection).forModule(ConstellioRMModule.ID);
 		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 		eimConfigs = new ConstellioEIMConfigs(modelLayerFactory.getSystemConfigurationsManager());
+		user = appLayerFactory.getModelLayerFactory().newUserServices().getUserInCollection(view.getSessionContext().getCurrentUser().getUsername(), collection);
+	}
+
+	public User getUser() {
+		return user;
 	}
 
 	protected void setTaxonomyCode(String taxonomyCode) {
@@ -194,6 +200,7 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 		view.getSessionContext().addVisited(id);
 
 		String taxonomyCode = view.getUIContext().getAttribute(FolderDocumentContainerBreadcrumbTrail.TAXONOMY_CODE);
+		this.setTaxonomyCode(taxonomyCode);
 		view.setTaxonomyCode(taxonomyCode);
 
 		Record record = getRecord(id);
@@ -1344,27 +1351,11 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	}
 
 	public List<Cart> getOwnedCarts() {
-		return rmSchemasRecordsServices().wrapCarts(searchServices().search(new LogicalSearchQuery(from(schema(Cart.DEFAULT_SCHEMA)).where(schema(Cart.DEFAULT_SCHEMA).getMetadata(Cart.OWNER))
+		return rmSchemasRecordsServices().wrapCarts(searchServices().search(new LogicalSearchQuery(from(rmSchemasRecordsServices().cartSchema()).where(rmSchemasRecordsServices().cart.owner())
 				.isEqualTo(getCurrentUser().getId())).sortAsc(Schemas.TITLE)));
-	}
-
-	public Record getCreatedBy(Cart cart) {
-		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getCreatedBy()));
-	}
-
-	public Record getModifiedBy(Cart cart) {
-		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getModifiedBy()));
-	}
-
-	public Record getOwner(Cart cart) {
-		return searchServices().searchSingleResult(from(rmSchemasRecordsServices().userSchemaType()).where(rmSchemasRecordsServices().userSchemaType().getMetadata("user_default_id")).isEqualTo(cart.getOwner()));
 	}
 
 	public MetadataSchemaVO getSchema() {
 		return new MetadataSchemaToVOBuilder().build(schema(Cart.DEFAULT_SCHEMA), RecordVO.VIEW_MODE.TABLE, view.getSessionContext());
-	}
-
-	public User getCurrentUser() {
-		return super.getCurrentUser();
 	}
 }

@@ -55,7 +55,7 @@ public class MediumType extends ValueListItem {
 		return getBooleanWithDefaultValue(ACTIVATED_ON_CONTENT, false);
 	}
 
-	public MediumType setActivatedOnContent(boolean activatedOnContent) {
+	public MediumType setActivatedOnContent(Boolean activatedOnContent) {
 		set(ACTIVATED_ON_CONTENT, activatedOnContent);
 		return this;
 	}
