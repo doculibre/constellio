@@ -1,5 +1,6 @@
 package com.constellio.app.modules.rm.extensions.imports;
 
+import com.constellio.app.modules.rm.RMConfigs;
 import com.constellio.app.modules.rm.services.RMSchemasRecordsServices;
 import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
@@ -8,6 +9,7 @@ import com.constellio.app.modules.rm.wrappers.structures.Comment;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListContainerDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListFolderDetail;
 import com.constellio.app.modules.rm.wrappers.structures.DecomListValidation;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.model.extensions.behaviors.RecordImportExtension;
 import com.constellio.model.extensions.events.recordsImport.BuildParams;
 import com.constellio.model.extensions.events.recordsImport.ValidationParams;
@@ -49,9 +51,11 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
 	public static final String VALIDATION_DATE = "validationDate";
 
 	private final RMSchemasRecordsServices rm;
+	private RMConfigs rmConfigs;
 
 	public DecommissioningListImportExtension(String collection, ModelLayerFactory modelLayerFactory) {
 		this.rm = new RMSchemasRecordsServices(collection, modelLayerFactory);
+		rmConfigs = new RMConfigs(modelLayerFactory.getSystemConfigurationsManager());
 	}
 
 	@Override
@@ -195,7 +199,11 @@ public class DecommissioningListImportExtension extends RecordImportExtension {
 			if (folder == null) {
 				decomListFolderDetail = new DecomListFolderDetail();
 			} else {
-				decomListFolderDetail = new DecomListFolderDetail(folder);
+				if (rmConfigs.isDecommissioningListWithSelectedFolders()) {
+					decomListFolderDetail = new DecomListFolderDetail(folder, FolderDetailStatus.SELECTED);
+				} else {
+					decomListFolderDetail = new DecomListFolderDetail(folder, FolderDetailStatus.INCLUDED);
+				}
 			}
 		} else {
 			decomListFolderDetail = new DecomListFolderDetail();

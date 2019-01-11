@@ -61,7 +61,7 @@ public class DecomListFolderDetailTest extends ConstellioTest {
 	@Test
 	public void whenConvertingStructureWithNullValuesThenRemainsEqual()
 			throws Exception {
-		detail = new DecomListFolderDetail();
+		detail = new DecomListFolderDetail().setFolderDetailStatus(FolderDetailStatus.INCLUDED);
 
 		String serialized = factory.toString(detail);
 		DecomListFolderDetail deserialized = (DecomListFolderDetail) factory.build(serialized);

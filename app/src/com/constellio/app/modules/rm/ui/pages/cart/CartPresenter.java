@@ -28,6 +28,7 @@ import com.constellio.app.modules.rm.wrappers.ContainerRecord;
 import com.constellio.app.modules.rm.wrappers.DecommissioningList;
 import com.constellio.app.modules.rm.wrappers.Document;
 import com.constellio.app.modules.rm.wrappers.Folder;
+import com.constellio.app.modules.rm.wrappers.structures.FolderDetailStatus;
 import com.constellio.app.ui.entities.MetadataSchemaVO;
 import com.constellio.app.ui.entities.MetadataVO;
 import com.constellio.app.ui.entities.RecordVO;
@@ -682,7 +683,11 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 		list.setTitle(title);
 		list.setAdministrativeUnit(getCommonAdministrativeUnit(getCartFolders()));
 		list.setDecommissioningListType(decomType);
-		list.setFolderDetailsFor(getNotDeletedCartFolders());
+		if (isDecommissioningListWithSelectedFolders()) {
+			list.setFolderDetailsFor(getNotDeletedCartFolders(), FolderDetailStatus.SELECTED);
+		} else {
+			list.setFolderDetailsFor(getNotDeletedCartFolders(), FolderDetailStatus.INCLUDED);
+		}
 
 		try {
 			recordServices().add(list);
@@ -924,6 +929,10 @@ public class CartPresenter extends SingleSchemaBasePresenter<CartView> implement
 
 	public boolean isNeedingAReasonToDeleteRecords() {
 		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isNeedingAReasonBeforeDeletingFolders();
+	}
+
+	public boolean isDecommissioningListWithSelectedFolders() {
+		return new RMConfigs(modelLayerFactory.getSystemConfigurationsManager()).isDecommissioningListWithSelectedFolders();
 	}
 
 	public List<String> getCartFolderIds() {

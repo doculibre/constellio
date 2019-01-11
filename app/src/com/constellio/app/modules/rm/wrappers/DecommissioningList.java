@@ -333,31 +333,31 @@ public class DecommissioningList extends RecordWrapper {
 		return setFolderDetails(details);
 	}
 
-	public DecommissioningList addFolderDetailsFor(Folder... folders) {
+	public DecommissioningList addFolderDetailsFor(FolderDetailStatus folderDetailStatus, Folder... folders) {
 		List<DecomListFolderDetail> details = new ArrayList<>();
 		details.addAll(getFolderDetails());
 		List<String> existingDetails = getFolders();
 		for (Folder folder : folders) {
 			if (!existingDetails.contains(folder.getId())) {
-				details.add(new DecomListFolderDetail(folder));
+				details.add(new DecomListFolderDetail(folder, folderDetailStatus));
 			}
 		}
 		return setFolderDetails(details);
 	}
 
-	public DecommissioningList setFolderDetailsFor(List<Folder> folders) {
+	public DecommissioningList setFolderDetailsFor(List<Folder> folders, FolderDetailStatus folderDetailStatus) {
 		List<DecomListFolderDetail> details = new ArrayList<>();
 		for (Folder folder : folders) {
-			details.add(new DecomListFolderDetail(folder));
+			details.add(new DecomListFolderDetail(folder, folderDetailStatus).setFolderDetailStatus(folderDetailStatus));
 		}
 		setFolderDetails(details);
 		return this;
 	}
 
-	public DecommissioningList setFolderDetailsForIds(List<String> folders) {
+	public DecommissioningList setFolderDetailsForIds(List<String> folders, FolderDetailStatus folderDetailStatus) {
 		List<DecomListFolderDetail> details = new ArrayList<>();
 		for (String folder : folders) {
-			details.add(new DecomListFolderDetail().setFolderId(folder));
+			details.add(new DecomListFolderDetail().setFolderId(folder).setFolderDetailStatus(folderDetailStatus));
 		}
 		setFolderDetails(details);
 		return this;
@@ -372,10 +372,10 @@ public class DecommissioningList extends RecordWrapper {
 		return this;
 	}
 
-	public DecommissioningList setFolderDetailsForIds(String... folders) {
+	public DecommissioningList setFolderDetailsForIds(FolderDetailStatus folderDetailStatus, String... folders) {
 		List<DecomListFolderDetail> details = new ArrayList<>();
 		for (String folder : folders) {
-			details.add(new DecomListFolderDetail().setFolderId(folder));
+			details.add(new DecomListFolderDetail().setFolderId(folder).setFolderDetailStatus(folderDetailStatus));
 		}
 		setFolderDetails(details);
 		return this;
